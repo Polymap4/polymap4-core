@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry exported="true" kind="lib" path="lib/main-2.0.2.jar" sourcepath="packages/geoserver-2.0.2-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/ows-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/platform-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wfs-2.0.2.jar" sourcepath="packages/geoserver-2.0.2-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/wms-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ezmorph-1.0.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/json-lib-2.2.3-jdk15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-aop-2.5.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/aopalliance-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/freemarker-2.3.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/itext-2.1.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jai_codec-1.1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jai_core-1.1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jai_imageio-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/acegi-security-1.0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xstream-1.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-web-2.5.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-webmvc-2.5.5.jar" sourcepath="packages/spring-webmvc-2.5.5-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-beans-2.5.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-context-2.5.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-core-2.5.5.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="output" path="build/eclipse"/>
+</classpath>

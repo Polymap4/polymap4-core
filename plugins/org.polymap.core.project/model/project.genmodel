@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/org.polymap.core.project/src"
+    modelPluginID="org.polymap.core.project" modelName="Project" importerID="org.eclipse.emf.importer.java"
+    complianceLevel="5.0" copyrightFields="false" usedGenPackages="../../org.eclipse.emf.ecore/model/Ecore.genmodel#//ecore">
+  <foreignModel>@model</foreignModel>
+  <genPackages prefix="Project" basePackage="org.polymap.core" disposableProviderFactory="true"
+      ecorePackage="project.ecore#/">
+    <genClasses ecoreClass="project.ecore#//Layer">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute project.ecore#//Layer/label"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference project.ecore#//Layer/map"/>
+    </genClasses>
+    <genClasses ecoreClass="project.ecore#//Map">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute project.ecore#//Map/label"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference project.ecore#//Map/layers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference project.ecore#//Map/maps"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference project.ecore#//Map/parent"/>
+    </genClasses>
+    <genClasses ecoreClass="project.ecore#//IProject"/>
+    <genClasses ecoreClass="project.ecore#//Project">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute project.ecore#//Project/label"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="project.ecore#//IMap"/>
+    <genClasses image="false" ecoreClass="project.ecore#//ILayer"/>
+  </genPackages>
+</genmodel:GenModel>

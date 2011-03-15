@@ -1,0 +1,21 @@
+Shell-DisplayOverlay {
+    background-image: none;
+    background-color: #000000;
+    opacity: 0.21;
+    animation: fadeIn 150ms linear, fadeOut 350ms ease-out;
+}
+
+Menu {
+    background-color: #f0f0FF;
+    /*animation: slideIn 10ms linear, slideOut 10ms ease-out;*/
+}
+
+/*
+Table-GridLine {
+    color: #d0d0d0;
+}
+
+Table-GridLine:horizontal {
+    color: transparent;
+}
+*/

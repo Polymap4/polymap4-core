@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry exported="true" kind="lib" path="lib/cglib-nodep-2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-api-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-bootstrap-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-runtime-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-spi-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-testsupport-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-auth-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-cache-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-constraints-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-http-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-locking-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-logging-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-rdf-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qi4j-lib-uid-1.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="packages/qi4j-core/spi/src/main/java"/>
+	<classpathentry kind="src" path="packages/qi4j-core/runtime/src/main/java"/>
+	<classpathentry kind="src" path="packages/qi4j-extensions/entitystore-preferences/src/main/java"/>
+	<classpathentry kind="src" path="META-INF"/>
+	<classpathentry kind="output" path="build/eclipse"/>
+</classpath>

@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OpenLayers RAP Widget
+Bundle-SymbolicName: org.polymap.openlayers.rap.widget;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: polymap.org
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: javax.servlet;version="2.5.0",
+ javax.servlet.http;version="2.5.0",
+ org.mortbay.util,
+ org.polymap.openlayers.rap.widget.base_types
+Export-Package: org.polymap.openlayers.rap.widget,
+ org.polymap.openlayers.rap.widget.base,
+ org.polymap.openlayers.rap.widget.base_types,
+ org.polymap.openlayers.rap.widget.controls,
+ org.polymap.openlayers.rap.widget.features,
+ org.polymap.openlayers.rap.widget.geometry,
+ org.polymap.openlayers.rap.widget.internal.openlayerswidgetkit,
+ org.polymap.openlayers.rap.widget.internal.resources,
+ org.polymap.openlayers.rap.widget.layers,
+ org.polymap.openlayers.rap.widget.marker,
+ org.polymap.openlayers.rap.widget.util
+Require-Bundle: org.eclipse.rap.rwt;bundle-version="1.2.1"
+Bundle-ActivationPolicy: lazy

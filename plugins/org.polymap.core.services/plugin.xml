@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="org.polymap.core.services.wms" name="WMS service" schema="schema/org.polymap.core.services.wms.exsd"/>
+   <!--extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="false"
+            id="org.polymap.core.services.contributions.IMap"
+            objectClass="org.polymap.core.project.IMap">
+         <action
+               class="org.polymap.core.services.ui.NewServiceAction"
+               id="org.polymap.core.services.actions.newService"
+               label="%actions_newService">
+         </action>
+      </objectContribution>
+   </extension-->
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="org.polymap.core.services.ui.OwsPropertiesPage"
+            id="org.polymap.core.services.ui.owsPropertyPage"
+            name="%propertyPage_owsLabel">
+         <enabledWhen>
+            <instanceof
+                  value="org.polymap.core.project.IMap">
+            </instanceof>
+         </enabledWhen>
+      </page>
+   </extension>
+   <extension
+         point="org.polymap.core.qi4j.moduleAssemblers">
+      <assembler
+            class="org.polymap.core.services.ServiceRepositoryAssembler">
+      </assembler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.polymap.core.services.ui.GeneralPreferencePage"
+            id="org.polymap.core.services.generalPreferences"
+            name="%GeneralPreferencesPage_name">
+      </page>
+   </extension>
+
+</plugin>
