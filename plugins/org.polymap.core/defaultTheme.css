@@ -1,3 +1,11 @@
+* {
+    background-color: #f4f4fb;
+}
+
+Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label {
+    background-color: #f4f4fb;
+}
+
 Shell-DisplayOverlay {
     background-image: none;
     background-color: #000000;
@@ -6,16 +14,92 @@ Shell-DisplayOverlay {
 }
 
 Menu {
-    background-color: #f0f0FF;
+    background-color: #fefefe;
     /*animation: slideIn 10ms linear, slideOut 10ms ease-out;*/
 }
 
-/*
+/* Form widgets *******************************************/
+Text.formeditor {
+    border: 1px solid #CCCCCC;
+    background-color: #FFFDD4;
+}
+
+Combo.formeditor {
+    border: 1px solid #CCCCCC;
+    background-color: #FFFDD4;
+}
+
+DateTime.formeditor {
+    border: 1px solid #CCCCCC;
+    background-color: #FFFDD4;
+}
+
+/* Button *************************************************/
+Button[PUSH] {
+    border-radius: 6px;
+    background-image: gradient(
+      linear, left top, left bottom,
+      from( #f8f8fb ),
+      to( #ebebf3 )
+    );
+}
+  
+Button[PUSH]:pressed {
+    background-color: #ffffff;
+}
+  
+Button[PUSH]:hover {
+    background-color: #ffffff;
+    background-image: gradient(
+      linear, left top, left bottom,
+      from( #fefeff ),
+      to( #dfdfe7 )
+    );
+}
+  
+/* Table **************************************************/
+TableColumn {
+  background-color: #f8f8ff;
+  padding: 1px 2px;
+  background-image: gradient(
+    linear, left top, left bottom,
+    from( #fbfcfd ),
+    to( #E8E8EF )
+  );
+  color: #585858;
+}
+
+TableColumn:hover {
+  background-image: gradient(
+    linear, left top, left bottom,
+    from( #fafafa ),
+    to( #fafafa )
+  );
+}
+
+TableItem {
+  color: inherit;
+}
+
+TableItem:selected, TableItem:even:selected {
+  color: white;
+  background-color: #316AC5;
+}
+
+TableItem:selected:unfocused, TableItem:even:selected:unfocused {
+  background-color: #c0c0c0;
+  color: #ffffff;
+}
+
+TableItem:even {
+  background-color: #f3f3f3;
+}
+
 Table-GridLine {
-    color: #d0d0d0;
+    color: #d8d8d8;
 }
 
 Table-GridLine:horizontal {
-    color: transparent;
+    color: #e8e8e8;  /*transparent;*/
 }
-*/
+
