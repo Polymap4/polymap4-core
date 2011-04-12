@@ -1,6 +1,8 @@
 #!/bin/sh
 
 DIRNAME=`dirname $0`
+WORKSPACE=~/servers/workspace
+PORT=8080
 
 #export JAVA_HOME=/usr/local/jrockit-R27.2.0-jdk1.6.0/
 #export JAVA_HOME=/usr/local/jdk1.6.0_17/
@@ -13,8 +15,10 @@ DIRNAME=`dirname $0`
 # and they are installed as Eclipse Babel packages
 export LANG=en_US.UTF-8
 
-VMARGS="-Xverify:none -XX:+UseParallelGC -Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog -Dorg.eclipse.rwt.compression=true"
-WORKSPACE=~/servers/workspace
-
 cd $DIRNAME/bin
-./eclipse -vm $JAVA_HOME/bin/java -console -consolelog -registryMultiLanguage -data $WORKSPACE -vmargs $VMARGS
+
+export VMARGS='-Xverify:none -XX:+UseParallelGC -Xmx512M -XX:MaxPermSize=128M -Dorg.eclipse.rwt.compression=true'
+export ARGS='-console -consolelog -registryMultiLanguage'
+#export LOGARGS='-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog'
+
+./eclipse $ARGS -data $WORKSPACE -vmargs $VMARGS -Dorg.osgi.service.http.port=$PORT $LOGARGS
