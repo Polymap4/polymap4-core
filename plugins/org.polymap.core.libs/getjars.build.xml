@@ -26,6 +26,7 @@
 	<artifact:localRepository id="local.repository" path="${repo}" />
 
 	<target name="clean" description="deletes external libraries folder">
+        <echo message="Deleting: ${lib} ..." />
 		<delete dir="${lib}" />
 	</target>
 
@@ -46,7 +47,6 @@
 			<remoteRepository refid="jaitoolsmaven.repository" />
 			<remoteRepository refid="geosolutionsmaven.repository" />
 
-			<!-- uDig Specific Extras -->
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-common" version="3.0" />
@@ -229,7 +229,6 @@
 		</copy>
 
 		<!-- (flat) copy downloaded source JARs (sources) to plugin directory ${libs_src_dir} -->
-		<!--
 		<copy todir="${libs_src_dir}" flatten="true" verbose="true">
 			<fileset refid="sources.dependency.fileset" />
 			<chainedmapper>
@@ -237,12 +236,13 @@
 				<globmapper from="*-sources.jar" to="*-sources.zip" />
 			</chainedmapper>
 		</copy>
-		-->
 		<!-- <eclipse.refreshLocal resource="net.refractions.udig.libs/lib" depth="infinite"/>	-->
 	</target>
 
 	<target name="create" unless="already_downloaded">
 		<description>creates the lib directory if needed</description>
+        <echo message="Creating: ${lib} and ${libs_src_dir} ..." />
+
 		<mkdir dir="${lib}" />
 		<mkdir dir="${libs_src_dir}" />
 	</target>
