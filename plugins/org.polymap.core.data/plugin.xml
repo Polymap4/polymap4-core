@@ -107,10 +107,10 @@
          name="FeatureTypeEditorProcessor"
          point="org.polymap.core.data.pipeline.processors">
       <processor
-            class="org.polymap.core.data.feature.FeatureTypeEditorProcessor"
+            class="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor"
             description="%processor_featureTypeEditorDesc"
             name="%processor_featureTypeEditor"
-            propertyPage="org.polymap.core.data.feature.FeatureTypeEditorProcessorConfig">
+            propertyPage="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig">
       </processor>
    </extension>
    <extension
@@ -139,8 +139,17 @@
          name="Feature-Cache"
          point="org.polymap.core.data.pipeline.processors">
       <processor
-            class="org.polymap.core.data.feature.FeatureCacheProcessor"
+            class="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
             name="Feature-Cache">
+      </processor>
+   </extension>
+   <extension
+         id="org.polymap.core.data.feature.LuceneCacheProcessor"
+         name="LuceneCache"
+         point="org.polymap.core.data.pipeline.processors">
+      <processor
+            class="org.polymap.core.data.feature.lucene.LuceneFeatureCacheProcessor"
+            name="Feature-Cache (Lucene)">
       </processor>
    </extension>
 </plugin>

@@ -45,6 +45,11 @@ Export-Package: net.sf.ehcache,
  org.polymap.core.data.util
 Import-Package: org.osgi.service.http;version="1.2.1"
 Bundle-Localization: plugin
-Bundle-ClassPath: libs/backport-util-concurrent-3.0.jar,
- libs/ehcache-1.4.1.jar,
- .
+Bundle-ClassPath: .,
+ lib/backport-util-concurrent-3.1.jar,
+ lib/ehcache-1.4.1.jar,
+ lib/jsr107cache-1.0.jar,
+ lib/lucene-core-3.1.0.jar,
+ lib/gt-geojson.jar,
+ lib/json_simple-1.1.jar,
+ lib/json-lib-2.2.3-jdk15.jar

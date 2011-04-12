@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.feature;
+package org.polymap.core.data.feature.typeeditor;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,6 +37,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
+
 
 /**
  * 

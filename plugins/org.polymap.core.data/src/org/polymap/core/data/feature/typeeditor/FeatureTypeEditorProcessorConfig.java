@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.feature;
+package org.polymap.core.data.feature.typeeditor;
 
 import java.util.Iterator;
 import java.util.Properties;

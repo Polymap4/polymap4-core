@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.feature;
+package org.polymap.core.data.feature.typeeditor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +57,12 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import net.refractions.udig.catalog.IGeoResource;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.feature.GetFeatureTypeRequest;
+import org.polymap.core.data.feature.GetFeatureTypeResponse;
+import org.polymap.core.data.feature.GetFeaturesRequest;
+import org.polymap.core.data.feature.GetFeaturesResponse;
+import org.polymap.core.data.feature.GetFeaturesSizeRequest;
+import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;

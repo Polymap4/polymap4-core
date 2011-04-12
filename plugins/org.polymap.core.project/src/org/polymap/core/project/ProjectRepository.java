@@ -127,6 +127,28 @@ public class ProjectRepository
         }
         return rootMap;
     }
+
+    
+    public <T> T visitProjects( ProjectVisitor<T> visitor ) {
+        for (IMap map : rootMap.getMaps()) {
+            for (ILayer layer : map.getLayers()) {
+                visitor.visit( layer );
+            }
+        }
+        return visitor.result;
+    }
+    
+    
+    /**
+     * 
+     */
+    public abstract static class ProjectVisitor<T> {
+
+        protected T         result;
+        
+        public abstract void visit( ILayer layer );
+        
+    }
     
     
     public <T> T newOperation( Class<T> type ) {

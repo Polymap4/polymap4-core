@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.core.data.feature;
+package org.polymap.core.data.feature.memory;
 
 import java.util.Properties;
 
@@ -24,6 +24,15 @@ import org.apache.commons.logging.LogFactory;
 
 import org.geotools.data.Query;
 
+import org.polymap.core.data.feature.AddFeaturesRequest;
+import org.polymap.core.data.feature.GetFeatureTypeRequest;
+import org.polymap.core.data.feature.GetFeatureTypeResponse;
+import org.polymap.core.data.feature.GetFeaturesRequest;
+import org.polymap.core.data.feature.GetFeaturesResponse;
+import org.polymap.core.data.feature.GetFeaturesSizeRequest;
+import org.polymap.core.data.feature.GetFeaturesSizeResponse;
+import org.polymap.core.data.feature.ModifyFeaturesRequest;
+import org.polymap.core.data.feature.RemoveFeaturesRequest;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;

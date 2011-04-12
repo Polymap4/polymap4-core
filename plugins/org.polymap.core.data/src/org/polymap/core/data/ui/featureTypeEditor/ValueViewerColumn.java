@@ -38,8 +38,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 
-import org.polymap.core.data.feature.AttributeMapping;
-import org.polymap.core.data.feature.FeatureTypeMapping;
+import org.polymap.core.data.feature.typeeditor.AttributeMapping;
+import org.polymap.core.data.feature.typeeditor.FeatureTypeMapping;
 
 /**
  * 

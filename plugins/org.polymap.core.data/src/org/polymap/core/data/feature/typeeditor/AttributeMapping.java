@@ -20,12 +20,15 @@
  *
  * $Id$
  */
-package org.polymap.core.data.feature;
+package org.polymap.core.data.feature.typeeditor;
 
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.data.feature.LegalAttributeType;
+
 import org.geotools.referencing.CRS;
 import org.json.JSONException;
 import org.json.JSONObject;

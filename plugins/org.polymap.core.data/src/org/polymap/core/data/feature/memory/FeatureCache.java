@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.core.data.feature;
+package org.polymap.core.data.feature.memory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
