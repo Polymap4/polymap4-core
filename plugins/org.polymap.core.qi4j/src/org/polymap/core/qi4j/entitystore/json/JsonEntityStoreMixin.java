@@ -407,7 +407,8 @@ public class JsonEntityStoreMixin
                 }
                 // Boolean
                 else if (propertyType.type().isBoolean()) {
-                    propsJson.put( propertyType.qualifiedName().name(), (Boolean)value );
+                    propsJson.put( propertyType.qualifiedName().name(), 
+                            value instanceof Boolean ? (Boolean)value : Boolean.valueOf( value.toString() ));
                 }
                 // Value
                 else if (propertyType.type().isValue()) {

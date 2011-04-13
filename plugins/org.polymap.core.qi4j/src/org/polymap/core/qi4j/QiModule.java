@@ -58,6 +58,7 @@ import org.polymap.core.model.AclPermission;
 import org.polymap.core.model.CompletionException;
 import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Entity;
+import org.polymap.core.model.EntityType;
 import org.polymap.core.model.GlobalModelChangeListener;
 import org.polymap.core.model.ModelChangeEvent;
 import org.polymap.core.model.ModelChangeListener;
@@ -385,11 +386,11 @@ public abstract class QiModule
      * @param <T>
      * @param type
      * @param id The id of the newly created entity; null specifies that the
-     *        system created a unique id.
+     *        system creates a unique id.
      * @return The newly created entity.
      */
     public <T> T newEntity( Class<T> type, String id ) {
-        T result = uow.newEntity( type, null );
+        T result = uow.newEntity( type, id );
         ((NestedChangeSet)currentChangeSet()).compositeCreate( (Identity)result );
         return result;
     }
@@ -448,4 +449,12 @@ public abstract class QiModule
         return result;
     }
 
+    /**
+     * Creates a new {@link EntityType} instance for the given {@link Entity}
+     * class. The return value should be cached and reused if possible.
+     */
+    public EntityType entityType( Class<? extends Entity> type ) {
+        return new EntityTypeImpl( type );
+    }
+    
 }

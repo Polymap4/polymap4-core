@@ -66,4 +66,6 @@ public interface Entity {
     
     public Class<? extends EntityComposite> getCompositeType();
     
+    public EntityType getEntityType();
+    
 }

@@ -27,6 +27,7 @@ import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.injection.scope.This;
 
 import org.polymap.core.model.Entity;
+import org.polymap.core.model.EntityType;
 
 /**
  * 
@@ -63,6 +64,10 @@ public abstract class EntityMixin
 
     public Class<? extends EntityComposite> getCompositeType() {
         return (Class<? extends EntityComposite>)composite.type();
+    }
+
+    public EntityType getEntityType() {
+        throw new RuntimeException( "not implemented yet, should I?" );
     }
 
 }
