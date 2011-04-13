@@ -85,7 +85,7 @@ public class ProjectView
     /**
      * The ID of the view as specified by the extension.
      */
-    public static final String ID = "org.polymap.core.project.editor.ProjectView";
+    public static final String ID = "org.polymap.core.project.ProjectView";
 
     private TreeViewer         viewer;
 

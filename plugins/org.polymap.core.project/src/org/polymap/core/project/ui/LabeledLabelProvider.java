@@ -32,11 +32,10 @@ import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 
-import org.polymap.core.model.MObject;
 import org.polymap.core.project.Labeled;
 
 /**
- * A {@link LabelProvider} for {@link MObject} models. The 'label' and 'name'
+ * A {@link LabelProvider} for {@link Labeled} models. The 'label' and 'name'
  * features are used as labels.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>

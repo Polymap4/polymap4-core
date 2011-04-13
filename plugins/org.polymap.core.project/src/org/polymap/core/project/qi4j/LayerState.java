@@ -24,23 +24,20 @@
 package org.polymap.core.project.qi4j;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.IOException;
 import java.net.URL;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geotools.data.FeatureSource;
+import org.geotools.referencing.CRS;
+import org.opengis.metadata.Identifier;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.property.Property;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.opengis.metadata.Identifier;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import org.geotools.data.FeatureSource;
-import org.geotools.referencing.CRS;
 
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.ICatalog;
@@ -112,7 +109,7 @@ public interface LayerState
         /** The cache of the {@link #styleId()} property. */
         private IStyle                          style;
         
-        private ReentrantLock                   isGettingGeoResources = new ReentrantLock();
+        private AtomicBoolean                   isGettingGeoResources = new AtomicBoolean( false );
         
         private LayerStatus                     layerStatus = LayerStatus.STATUS_OK;
         
@@ -361,19 +358,20 @@ public interface LayerState
          * With this purpose the new imlementation is done to avoid UI thread
          * blocking because of synchronization.
          */
-        public IGeoResource getGeoResource() {
+        public synchronized IGeoResource getGeoResource() {
             if (geores == null) {
-                isGettingGeoResources.lock();
-                // chance is very small that another thread got the lock and
-                // would not break things, so I don't check again
+                isGettingGeoResources.set( true );
+                setLayerStatus( LayerStatus.STATUS_WAITING );
                 try {
-                    setLayerStatus( LayerStatus.STATUS_WAITING );
                     final ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
 
                     try { 
                         IGeoResourceResolver resolver = ProjectPlugin.geoResourceResolver( this );
                         List<IGeoResource> results = resolver.resolve( georesId().get() );
                         if (results.isEmpty()) {
+//                            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this
+//                                    , "Layer: " + getLabel() + " could not find a GeoResource with id:" + georesId().get()
+//                                    , null );
                             setLayerStatus( LayerStatus.STATUS_MISSING );
                             geores = null;
                         } 
@@ -383,13 +381,14 @@ public interface LayerState
                         }
                     } 
                     catch (Exception e) {
-                        PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this,
-                                "Layer: " + getLabel() + ": error getting GeoResource id:" + georesId().get(), e );
+                        PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this
+                                , "Layer: " + getLabel() + ": error getting GeoResource id:" + georesId().get()
+                                , e );
                         setLayerStatus( new LayerStatus( IStatus.ERROR, LayerStatus.MISSING, Messages.get( "LayerStatus_connectionFailed" ), e ) ); //$NON-NLS-1$
                     }
                 } 
                 finally {
-                    isGettingGeoResources.unlock();
+                    isGettingGeoResources.set( false );
                 }
             }
             return geores;

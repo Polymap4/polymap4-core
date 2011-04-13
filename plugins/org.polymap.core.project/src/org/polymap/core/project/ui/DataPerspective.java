@@ -58,13 +58,14 @@ public class DataPerspective
         IPlaceholderFolderLayout bottom = layout.createPlaceholderFolder( 
                 "bottom", IPageLayout.BOTTOM, 0.70f, editorArea );
         
-        bottom.addPlaceholder( "org.polymap.*" );
-        bottom.addPlaceholder( "org.eclipse.*" );
-        
         topLeft.addView( "org.polymap.core.project.ProjectView" );
         bottomLeft.addView( "org.polymap.core.project.MapLayersView" );
         topRight.addView( "net.refractions.udig.catalog.ui.CatalogView" );
         topRight.addPlaceholder( "org.polymap.geocoder.*" );
+        
+        bottom.addPlaceholder( "org.polymap.core.data.ui.featureTable.view:*" );
+        bottom.addPlaceholder( "org.polymap.*" );
+        bottom.addPlaceholder( "org.eclipse.*" );
         
 //        bottom.addView( "net.refractions.udig.catalog.ui.Search" );
 //        bottom.addView( IPageLayout.ID_PROP_SHEET );
