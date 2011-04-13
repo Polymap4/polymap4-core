@@ -41,13 +41,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
+import org.polymap.core.data.ui.featureTable.GeoSelectionView;
 import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.ISelectFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorInput;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.Messages;
-import org.polymap.core.mapeditor.ui.GeoSelectionView;
 import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
@@ -111,8 +111,7 @@ public class SetLayerSelectableOperation
                         }
                         
                         if (selectable) {
-                            GeoSelectionView view = (GeoSelectionView)page.showView( GeoSelectionView.ID );
-                            view.connectLayer( layer );
+                            GeoSelectionView.open( layer );
 
                             SelectFeatureSupport select = (SelectFeatureSupport)mapEditor.findSupport( ISelectFeatureSupport.class );
                             assert select == null;
@@ -122,11 +121,7 @@ public class SetLayerSelectableOperation
                             mapEditor.activateSupport( select, true );
                         }
                         else {
-                            GeoSelectionView view = (GeoSelectionView)page.findView( GeoSelectionView.ID );
-                            if (view != null) {
-                                page.hideView( view );
-                                view.disconnectLayer();
-                            }
+                            GeoSelectionView.close( layer );
                             
                             IMapEditorSupport select = mapEditor.findSupport( ISelectFeatureSupport.class );
                             if (select != null) {

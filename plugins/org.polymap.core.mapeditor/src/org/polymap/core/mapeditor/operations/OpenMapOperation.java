@@ -108,8 +108,9 @@ public class OpenMapOperation
                 : map.getMaxExtent();
                 
             if (map.getMaxExtent() == null && bbox != null) {
-                log.info( "### No map max extent -> using calculated values." );
-                map.setMaxExtent( bbox );
+                log.info( "### No map max extent -> using calculated values: " + bbox );
+                // FIXME this operation is no composite -> no changeset -> no setXX() method
+                //map.setMaxExtent( bbox );
             }
             display.syncExec( new Runnable() {
                 public void run() {

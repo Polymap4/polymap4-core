@@ -22,14 +22,13 @@
  */
 package org.polymap.core.mapeditor.edit;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opengis.feature.Feature;
+
 import org.opengis.feature.type.GeometryDescriptor;
 
 import org.eclipse.swt.widgets.Event;
@@ -39,8 +38,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.ui.IEditorActionDelegate;
 
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.event.GeoEvent;
+import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -127,7 +125,7 @@ public class DrawFeatureEditorAction
         }
         
         try {
-            NewFeatureOperation op = new NewFeatureOperation( support.layer, payload.get( "features" ) );
+            NewFeatureOperation op = new NewFeatureOperation( support.layer, null, payload.get( "features" ) );
             OperationSupport.instance().execute( op, true, false );
 
 // XXX inside operation now

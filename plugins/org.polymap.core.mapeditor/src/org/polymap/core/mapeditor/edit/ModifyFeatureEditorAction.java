@@ -44,6 +44,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.ui.IEditorActionDelegate;
 
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.operations.ModifyFeaturesOperation;
 import org.polymap.core.geohub.GeoHub;
 import org.polymap.core.geohub.event.GeoEvent;
 import org.polymap.core.mapeditor.MapEditorPlugin;

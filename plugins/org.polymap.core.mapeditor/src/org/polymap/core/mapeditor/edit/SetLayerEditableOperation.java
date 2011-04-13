@@ -41,12 +41,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
+import org.polymap.core.data.ui.featureTable.GeoSelectionView;
 import org.polymap.core.mapeditor.IEditFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorInput;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.Messages;
-import org.polymap.core.mapeditor.ui.GeoSelectionView;
 import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;

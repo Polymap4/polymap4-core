@@ -24,6 +24,7 @@ package org.polymap.core.mapeditor.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.opengis.filter.Filter;
 
 import org.eclipse.jface.action.IAction;
@@ -34,8 +35,8 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.ui.featureTable.GeoSelectionView;
 import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.ui.GeoSelectionView;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

@@ -313,7 +313,7 @@ public class MapEditor
         olayer.setFormat( "image/png" );
         olayer.setVisibility( true );
         olayer.setIsBaseLayer( false );
-        //olayer.setSingleTile( true );
+        //olLayer.setSingleTile( true );
         olayer.setTileSize( new Size( 400, 400 ) );
         olayer.setBuffer( 0 );
         olayer.setZIndex( descriptor.zPriority );

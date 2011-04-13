@@ -57,7 +57,7 @@
       </viewContribution>
       <viewContribution
             id="org.polymap.core.mapeditor.geoSelectionContribution"
-            targetID="org.polymap.core.mapeditor.ui.GeoSelectionView">
+            targetID="org.polymap.core.data.ui.featureTable.GeoSelectionView">
          <action
                class="org.polymap.core.mapeditor.actions.DeleteFeaturesAction"
                enablesFor="+"
@@ -235,17 +235,6 @@
             </and>
          </enablement>
       </decorator>
-   </extension>
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            category="org.polymap.core.project"
-            class="org.polymap.core.mapeditor.ui.GeoSelectionView"
-            icon="icons/eview16/table_view.gif"
-            id="org.polymap.core.mapeditor.ui.GeoSelectionView"
-            name="%views_geoSelection"
-            restorable="true">
-      </view>
    </extension>
 
 </plugin>

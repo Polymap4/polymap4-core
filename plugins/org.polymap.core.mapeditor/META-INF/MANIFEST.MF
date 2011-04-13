@@ -24,6 +24,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.mapeditor,
  org.polymap.core.mapeditor.actions
-Bundle-ClassPath: .,
- libs/gt-geojson.jar,
- libs/json_simple-1.1.jar
+Bundle-ClassPath: .
