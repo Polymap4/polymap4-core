@@ -394,6 +394,8 @@ public final class UnitOfWorkInstance
                             }
                         }
                     }
+                    // XXX falko: 
+                    e.printStackTrace();
                     throw new ConcurrentEntityModificationException( modifiedEntities );
                 }
                 else

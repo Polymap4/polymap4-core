@@ -70,7 +70,9 @@ public class PropertyReferenceProxy
         {
             Class<?> propertyClass = propertyReference.propertyType();
             return Proxy.newProxyInstance(
-                getClass().getClassLoader(),
+                // XXX falko: use cl of the property to make OSGi bundle content visible
+                //getClass().getClassLoader(),
+                propertyClass.getClassLoader(),
                 new Class[]{ propertyClass, PropertyReference.class },
                 new MixinTypeProxy( propertyClass, propertyReference )
             );

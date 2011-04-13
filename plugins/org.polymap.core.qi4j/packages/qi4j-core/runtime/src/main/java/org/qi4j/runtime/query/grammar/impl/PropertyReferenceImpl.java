@@ -20,8 +20,12 @@
 package org.qi4j.runtime.query.grammar.impl;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+
+import org.opengis.geometry.coordinate.ParametricCurveSurface;
+
 import org.qi4j.api.property.GenericPropertyInfo;
 import org.qi4j.api.property.Property;
 import org.qi4j.api.query.NotQueryableException;
@@ -90,6 +94,11 @@ public final class PropertyReferenceImpl<T>
             throw new QueryExpressionException( "Not a property type:" + returnType );
         }
         Type propertyTypeAsType = GenericPropertyInfo.getPropertyType( returnType );
+        // falko: there 2 (or more) type parameters: Property<Collection<String>>
+        // so more than just one dereferrence step is needed 
+        while (propertyTypeAsType instanceof ParameterizedType) {
+            propertyTypeAsType = ((ParameterizedType)propertyTypeAsType).getActualTypeArguments()[ 0 ];
+        }
         if( !( propertyTypeAsType instanceof Class ) )
         {
             throw new QueryExpressionException( "Unsupported property type:" + propertyTypeAsType );
