@@ -22,33 +22,30 @@
  */
 package org.polymap.core.data.operations;
 
-import java.util.Collections;
 import java.util.List;
 
 import java.io.IOException;
 import java.io.StringReader;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.filter.identity.FeatureId;
+import net.refractions.udig.ui.OffThreadProgressMonitor;
 
 import org.geotools.data.FeatureStore;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.filter.identity.FeatureId;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
-
-import net.refractions.udig.ui.OffThreadProgressMonitor;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -63,8 +60,6 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.event.GeoEvent;
 import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
@@ -101,8 +96,8 @@ public class NewFeatureOperation
     
     private String                  jsonParam; 
     
-    /** Feature created in the FeatureStore. */
-    private SimpleFeature           newFeature;
+    /** The fids created on last execute() call. */
+    private List<FeatureId>         fids;
     
 
     /**
@@ -138,8 +133,8 @@ public class NewFeatureOperation
     /**
      * Returns the feature after the operation was executed.
      */
-    public SimpleFeature getNewFeature() {
-        return newFeature;        
+    public FeatureId getCreatedFid() {
+        return fids.get( 0 );
     }
 
     public ILayer getLayer() {
@@ -164,6 +159,7 @@ public class NewFeatureOperation
             SimpleFeatureType schema = (SimpleFeatureType)fs.getSchema();
 
             // create feature
+            SimpleFeature newFeature;
             if (jsonParam != null) {
                 newFeature = parseJSON( schema, jsonParam );
             }
@@ -176,7 +172,7 @@ public class NewFeatureOperation
             FeatureCollection<SimpleFeatureType, SimpleFeature> features = 
                     FeatureCollections.newCollection();
             features.add( newFeature );
-            List<FeatureId> fids = fs.addFeatures( features );
+            fids = fs.addFeatures( features );
             log.info( "### Feature created: " + fids.get( 0 ) );
 
             monitor.worked( 1 );
@@ -187,12 +183,12 @@ public class NewFeatureOperation
                     try {
                         // XXX update map editor
                         
-                        // geo event: added
-                        GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_CREATED, 
-                                layer.getMap().getLabel(), 
-                                null );
-                        event.setBody( Collections.singletonList( (Feature)newFeature ) );
-                        GeoHub.instance().send( event );
+//                        // geo event: added
+//                        GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_CREATED, 
+//                                layer.getMap().getLabel(), 
+//                                null );
+//                        event.setBody( Collections.singletonList( (Feature)newFeature ) );
+//                        GeoHub.instance().send( event );
 
 //                        // geo event: hovered
 //                        event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED, 

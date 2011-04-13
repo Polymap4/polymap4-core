@@ -73,7 +73,7 @@ public class FeatureTableAction
             public void run() {
                 try {
                     // ensure that the view is shown
-                    GeoSelectionView view = GeoSelectionView.open( selectedLayer );
+                    GeoSelectionView view = GeoSelectionView.open( selectedLayer, true );
                     
                     FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
                     

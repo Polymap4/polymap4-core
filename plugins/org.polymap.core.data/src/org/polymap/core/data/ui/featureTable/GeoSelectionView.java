@@ -56,8 +56,10 @@ import net.refractions.udig.ui.PlatformJobs;
 import net.refractions.udig.ui.ProgressManager;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -66,6 +68,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.jface.action.GroupMarker;
@@ -121,27 +124,29 @@ public class GeoSelectionView
      * open, then it is activated.
      * 
      * @param layer
+     * @param allowSearch XXX
      * @return The view for the given layer.
      */
-    public static GeoSelectionView open( final ILayer layer ) {
-        GeoSelectionView result = null;
+    public static GeoSelectionView open( final ILayer layer, final boolean allowSearch ) {
+        final GeoSelectionView[] result = new GeoSelectionView[1];
         
-//        Polymap.getSessionDisplay().syncExec( new Runnable() {
-//            public void run() {
+        Polymap.getSessionDisplay().syncExec( new Runnable() {
+            public void run() {
                 try {
                     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                     ensureMaxViews( page );
                     
-                    result = (GeoSelectionView)page.showView( 
+                    result[0] = (GeoSelectionView)page.showView( 
                             GeoSelectionView.ID, layer.id(), IWorkbenchPage.VIEW_ACTIVATE );
-                    result.connectLayer( layer );
+                    result[0].setAllowSearch( allowSearch );
+                    result[0].connectLayer( layer );
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, null, e.getMessage(), e );
                 }
-//            }
-//        });
-        return result;
+            }
+        });
+        return result[0];
     }
     
     public static void close( final ILayer layer ) {
@@ -175,6 +180,8 @@ public class GeoSelectionView
     public static final String      ID = "org.polymap.core.data.ui.featureTable.view";
     
     private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
+
+    public static final int         DEFAULT_MAX_RESULTS = 10000;
 
     private Composite               parent;
     
@@ -223,6 +230,11 @@ public class GeoSelectionView
 
     public void setAllowSearch( boolean allowSearch ) {
         this.allowSearch = allowSearch;
+        if (attrCombo != null) {
+            attrCombo.dispose(); attrCombo = null;
+            searchText.dispose(); searchText = null;
+            sizeLabel.dispose(); sizeLabel = null;
+        }
     }
 
     public ILayer getLayer() {
@@ -358,9 +370,9 @@ public class GeoSelectionView
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
 
-        if (fs != null) {
-            loadTable( Filter.EXCLUDE );
-        }
+//        if (fs != null) {
+//            loadTable( Filter.EXCLUDE );
+//        }
     }
     
 
@@ -442,12 +454,18 @@ public class GeoSelectionView
             public void run( IProgressMonitor monitor )
             throws InvocationTargetException, InterruptedException {
                 try {
+                    long start = System.currentTimeMillis();
+                    
                     // query features
                     GeoSelectionView.this.filter = _filter;
                     DefaultQuery query = new DefaultQuery( fs.getSchema().getName().getLocalPart(), filter );
-                    query.setMaxFeatures( 500 );
+                    query.setMaxFeatures( DEFAULT_MAX_RESULTS );
                     fc = fs.getFeatures( query );
                     //log.debug( "        fc size: " + fc.size() );
+                    
+//                    long sleepMillis = Math.max( 0, 3000 - (System.currentTimeMillis()-start) );
+//                    log.info( "Sleeping: " + sleepMillis + "ms ..." );
+//                    Thread.sleep( sleepMillis );
                     
                     // geo event
                     GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
@@ -472,18 +490,22 @@ public class GeoSelectionView
                         if (viewer.getViewer() == null) {
                             viewer.createTableControl( parent );
                             viewer.getControl().setLayoutData( dTable );
-                            viewer.getControl().pack();
+                            //viewer.getControl().pack();
+
                             viewer.addSelectionChangedListener( tableSelectionListener );
+
+                            Shell shell = GeoSelectionView.this.getSite().getShell();
+                            shell.layout( true );
+                            Point size = shell.getSize();
+                            log.info( "Size: " + size.toString() );
+                            viewer.getControl().setSize( 1200, 200 /*size.y, size.x*/ );
                         }
                         viewer.setFeatures( allowModify 
                                 ? new ModifierFeatureCollection( (FeatureStore)fs, fc ) 
                                 : fc );
-//                        Shell shell = GeoSelectionView.this.getSite().getShell();
-//                        Point size = shell.getSize();
-//                        shell.setSize( size.x, size.y-2 );
-//                        getSite().getShell().update();
-                        
-                        //viewer.getControl().pack();
+
+                        //viewer.getViewer().getTable().pack( true );
+                        viewer.getViewer().getTable().layout( true );
                         //viewer.getViewer().refresh();
                         //viewer.getControl().update();
                         //viewer.getControl().redraw();
@@ -559,26 +581,26 @@ public class GeoSelectionView
         public void onEvent( GeoEvent ev ) {
             log.info( "ev: " + ev );
             
-            // FEATURE_CREATED
-            if (ev.getType() == GeoEvent.Type.FEATURE_CREATED) {
-                // reload table with current filter
-                loadTable( filter );
-
-                Set<FeatureId> fids = new HashSet();
-                String sfid = null;
-                for (Feature feature : ev.getBody()) {
-                    fids.add( feature.getIdentifier() );
-                    sfid = feature.getIdentifier().getID();
-                }
-                
-                viewer.removeSelectionChangedListener( tableSelectionListener );
-//                viewer.select( fids );
-                viewer.setSelection( new StructuredSelection( sfid ) );
-                viewer.addSelectionChangedListener( tableSelectionListener );
-            }
+//            // FEATURE_CREATED
+//            if (ev.getType() == GeoEvent.Type.FEATURE_CREATED) {
+//                // reload table with current filter
+//                loadTable( filter );
+//
+//                Set<FeatureId> fids = new HashSet();
+//                String sfid = null;
+//                for (Feature feature : ev.getBody()) {
+//                    fids.add( feature.getIdentifier() );
+//                    sfid = feature.getIdentifier().getID();
+//                }
+//                
+//                viewer.removeSelectionChangedListener( tableSelectionListener );
+////                viewer.select( fids );
+//                viewer.setSelection( new StructuredSelection( sfid ) );
+//                viewer.addSelectionChangedListener( tableSelectionListener );
+//            }
             
             // FEATURE_SELECTED
-            else if (ev.getType() == GeoEvent.Type.FEATURE_SELECTED) {
+            if (ev.getType() == GeoEvent.Type.FEATURE_SELECTED) {
                 //log.info( "fc: " + ev.getBody().size() );
                 loadTable( ev.getFilter() );
             }
