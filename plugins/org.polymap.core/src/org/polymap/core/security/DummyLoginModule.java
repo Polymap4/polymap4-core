@@ -23,15 +23,12 @@
 package org.polymap.core.security;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.security.Principal;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -45,12 +42,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import sun.security.acl.PrincipalImpl;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
 import org.polymap.core.runtime.Polymap;
+
+import sun.security.acl.PrincipalImpl;
 
 /**
  * Dummy authentication based on user/role setting in the jaas_config file or
@@ -66,17 +63,17 @@ public class DummyLoginModule
     private static Log log = LogFactory.getLog( DummyLoginModule.class );
 
     /** Maps user name to passwd. */
-    private Map<String,UserPrincipal>  users = new HashMap();
+    private Map<String,DummyUserPrincipal>  users = new HashMap();
 
-    private CallbackHandler     callbackHandler;
+    private CallbackHandler                 callbackHandler;
 
-    private boolean             loggedIn;
+    private boolean                         loggedIn;
 
-    private Subject             subject;
+    private Subject                         subject;
     
-    private UserPrincipal       principal;
+    private DummyUserPrincipal              principal;
     
-    private File                configFile;
+    private File                            configFile;
 
 
     public DummyLoginModule() {
@@ -107,7 +104,7 @@ public class DummyLoginModule
             }
             else {
                 String user = option.getKey();
-                users.put( user, new UserPrincipal( user, option.getValue() ) );
+                users.put( user, new DummyUserPrincipal( user, option.getValue() ) );
             }
         }
         
@@ -125,7 +122,7 @@ public class DummyLoginModule
                     props.load( new FileInputStream( configFile )  );
                 }
                 for (String user : props.stringPropertyNames()) {
-                    users.put( user, new UserPrincipal( user, props.getProperty( user ) ) );
+                    users.put( user, new DummyUserPrincipal( user, props.getProperty( user ) ) );
                 }
             }
             catch (Exception e) {
@@ -138,7 +135,7 @@ public class DummyLoginModule
     public boolean login()
     throws LoginException {
         // check if there is a user with "login" password
-        for (UserPrincipal candidate : users.values()) {
+        for (DummyUserPrincipal candidate : users.values()) {
             if (candidate.getPassword().equals( "login" )) {
                 principal = candidate;
                 return loggedIn = true;
@@ -164,7 +161,7 @@ public class DummyLoginModule
             password = String.valueOf( passwordCallback.getPassword() );
         }
 
-        UserPrincipal candidate = users.get( username );
+        DummyUserPrincipal candidate = users.get( username );
         if (candidate.getPassword().equals( password )) {
             principal = candidate;
             loggedIn = true;
@@ -205,17 +202,11 @@ public class DummyLoginModule
      * 
      * 
      */
-    final class UserPrincipal
-            implements Principal, java.io.Serializable {
+    final class DummyUserPrincipal
+            extends UserPrincipal {
 
-        private static final long serialVersionUID = 892106070870210969L;
-
-        private final String        name;
-        
         private final String        passwd;
         
-        private final Set<Principal>    roles = new HashSet();
-
 
         /**
          * Creates a principal.
@@ -224,12 +215,10 @@ public class DummyLoginModule
          * @exception NullPointerException If the <code>name</code> is
          *            <code>null</code>.
          */
-        public UserPrincipal( String name, String configString ) {
-            assert name != null : "name must not be null";
+        public DummyUserPrincipal( String name, String configString ) {
+            super( name );
             assert configString != null : "configString must not be null";
 
-            this.name = name;
-            
             String[] configStrings = StringUtils.split( configString, ",: " );
             if (configStrings.length == 0) {
                 throw new RuntimeException( "Config für Nutzer ist zu kurz (kein Passwort): " + configString );
@@ -241,56 +230,10 @@ public class DummyLoginModule
             }
         }
 
-        /**
-         * Compares this principal to the specified object.
-         * 
-         * @param object The object to compare this principal against.
-         * @return true if they are equal; false otherwise.
-         */
-        public boolean equals( Object object ) {
-            if (this == object) {
-                return true;
-            }
-            if (object instanceof UserPrincipal) {
-                return name.equals( ((UserPrincipal)object).getName() );
-            }
-            return false;
-        }
-
-        /**
-         * Returns a hash code for this principal.
-         * 
-         * @return The principal's hash code.
-         */
-        public int hashCode() {
-            return name.hashCode();
-        }
-
-        /**
-         * Returns the name of this principal.
-         */
-        public String getName() {
-            return name;
-        }
-
-        /**
-         * Returns the password of this principal.
-         */
         public String getPassword() {
             return passwd;
         }
 
-        
-        public Set<Principal> getRoles() {
-            return roles;
-        }
-
-        /**
-         * Returns a string representation of this principal.
-         */
-        public String toString() {
-            return name;
-        }
     }
 
 }

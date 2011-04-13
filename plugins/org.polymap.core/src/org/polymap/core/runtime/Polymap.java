@@ -60,6 +60,7 @@ import org.eclipse.equinox.security.auth.ILoginContext;
 import org.eclipse.equinox.security.auth.LoginContextFactory;
 
 import org.polymap.core.CorePlugin;
+import org.polymap.core.security.UserPrincipal;
 
 /**
  * Static access to the runtime infrastructure.
@@ -145,6 +146,8 @@ public final class Polymap
     
     private Set<Principal>  principals;
     
+    private UserPrincipal   user;
+    
     
     /**
      * Parameterless default ctor for implicite creation by {@link #getInstance(Class)}.
@@ -194,6 +197,17 @@ public final class Polymap
                 subject = secureContext.getSubject();
                 principals = new HashSet( subject.getPrincipals() );
                 
+                // find user
+                for (Principal principal : principals) {
+                    if (principal instanceof UserPrincipal) {
+                        user = (UserPrincipal)principal;
+                        break;
+                    }
+                }
+                if (user == null) {
+                    throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
+                }
+                
                 loggedIn = true;
             } 
             catch (LoginException e) {
@@ -211,6 +225,11 @@ public final class Polymap
     }
 
     
+    public Principal getUser() {
+        return user;
+    }
+
+
     public Subject getSubject() {
         return subject;    
     }

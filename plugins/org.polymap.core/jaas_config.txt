@@ -4,7 +4,8 @@ This is the POLYMAP standard JAAS config. By default use file based dummy login.
 POLYMAP {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.polymap.core.security.DummyLoginModule"
-        configFile="login_config.properties";
+        configFile="login_config.properties"
+        dialogTitle="POLYMAP3 Workbench";
 };
  
 UNIX {
