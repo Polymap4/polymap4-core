@@ -111,7 +111,7 @@ public class SetLayerSelectableOperation
                         }
                         
                         if (selectable) {
-                            GeoSelectionView.open( layer );
+                            GeoSelectionView.open( layer, true );
 
                             SelectFeatureSupport select = (SelectFeatureSupport)mapEditor.findSupport( ISelectFeatureSupport.class );
                             assert select == null;
