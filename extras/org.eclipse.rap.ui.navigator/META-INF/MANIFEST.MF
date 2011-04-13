@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Eclipse-SourceBundle: org.eclipse.rap.ui.navigator;version="3.5.0.2010
+ 05241113";roots:="."
+Bundle-Version: 3.5.0.201005241113
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.eclipse.rap.ui.navigator;singleton:=true
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.eclipse.rap.ui;bundle-version="1.3.1",
+ org.eclipse.rap.ui.forms;bundle-version="1.3.1",
+ org.eclipse.rap.ui.views;bundle-version="1.3.1",
+ org.eclipse.rap.ui.workbench;bundle-version="1.3.1"
+Import-Package: org.eclipse.core.expressions
+Export-Package: org.eclipse.ui.internal.navigator,
+ org.eclipse.ui.internal.navigator.actions,
+ org.eclipse.ui.internal.navigator.dnd,
+ org.eclipse.ui.internal.navigator.extensions,
+ org.eclipse.ui.internal.navigator.filters,
+ org.eclipse.ui.internal.navigator.framelist,
+ org.eclipse.ui.internal.navigator.sorters,
+ org.eclipse.ui.internal.navigator.wizards,
+ org.eclipse.ui.navigator
+Bundle-Activator: org.eclipse.ui.internal.navigator.NavigatorPlugin
+

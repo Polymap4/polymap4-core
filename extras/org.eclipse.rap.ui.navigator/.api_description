@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component name="org.eclipse.rap.ui.navigator_3.5.0.201005241113" version="1.2">
+    <plugin id="org.eclipse.rap.ui.navigator_3.5.0.201005241113"/>
+    <package name="org.eclipse.ui.navigator" visibility="1">
+        <type name="CommonDropAdapterAssistant" restrictions="0">
+            <method name="setCommonDropAdapter" restrictions="24" signature="(Lorg/eclipse/ui/navigator/CommonDropAdapter;)V"/>
+        </type>
+        <type name="CommonNavigator" restrictions="0">
+            <method name="getRootMode" restrictions="24" signature="()I"/>
+            <method name="getWorkingSetLabel" restrictions="24" signature="()Ljava/lang/String;"/>
+            <method name="setRootMode" restrictions="24" signature="(I)V"/>
+            <method name="setWorkingSetLabel" restrictions="24" signature="(Ljava/lang/String;)V"/>
+        </type>
+        <type name="CommonNavigatorManager" restrictions="4"/>
+        <type name="CommonViewer" restrictions="0">
+            <method name="createFrameList" restrictions="24" signature="()V"/>
+            <method name="getFrameList" restrictions="24" signature="()Lorg/eclipse/ui/internal/navigator/framelist/FrameList;"/>
+        </type>
+        <type name="ICommonActionConstants" restrictions="3"/>
+        <type name="ICommonActionExtensionSite" restrictions="3"/>
+        <type name="ICommonContentExtensionSite" restrictions="3"/>
+        <type name="ICommonFilterDescriptor" restrictions="3"/>
+        <type name="ICommonMenuConstants" restrictions="3"/>
+        <type name="ICommonViewerMapper" restrictions="2"/>
+        <type name="ICommonViewerSite" restrictions="3"/>
+        <type name="ICommonViewerWorkbenchSite" restrictions="3"/>
+        <type name="IExtensionStateModel" restrictions="3"/>
+        <type name="INavigatorContentDescriptor" restrictions="3"/>
+        <type name="INavigatorContentExtension" restrictions="3"/>
+        <type name="INavigatorContentService" restrictions="3"/>
+        <type name="INavigatorDnDService" restrictions="3"/>
+        <type name="INavigatorFilterService" restrictions="3"/>
+        <type name="INavigatorPipelineService" restrictions="3"/>
+        <type name="INavigatorSaveablesService" restrictions="3"/>
+        <type name="INavigatorSorterService" restrictions="3"/>
+        <type name="INavigatorViewerDescriptor" restrictions="3"/>
+        <type name="LinkHelperService" restrictions="4"/>
+        <type name="NavigatorActionService" restrictions="0">
+            <method name="getActionProviderInstance" restrictions="8" signature="(Lorg/eclipse/ui/internal/navigator/actions/CommonActionProviderDescriptor;)Lorg/eclipse/ui/navigator/CommonActionProvider;"/>
+        </type>
+    </package>
+</component>

@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: POLYMAP3 Rhei
+Bundle-SymbolicName: org.polymap.rhei;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.polymap.rhei.RheiPlugin
+Bundle-Vendor: polymap.org
+Require-Bundle: org.eclipse.rap.jface.databinding;bundle-version="1.3.1",
+ org.eclipse.rap.ui.navigator;bundle-version="3.5.0",
+ org.eclipse.rap.ui.forms;bundle-version="1.3.1",
+ net.refractions.udig.catalog;bundle-version="1.2.0",
+ org.polymap.core;bundle-version="3.0.0",
+ org.polymap.core.libs;bundle-version="3.0.0",
+ org.polymap.core.data;bundle-version="3.0.0",
+ org.polymap.core.project;bundle-version="3.0.0",
+ org.polymap.core.qi4j;bundle-version="3.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
+Bundle-Localization: plugin
+Export-Package: org.polymap.catalog.qi4j,
+ org.polymap.rhei,
+ org.polymap.rhei.calculator,
+ org.polymap.rhei.calculator.editor,
+ org.polymap.rhei.calculator.spi,
+ org.polymap.rhei.field,
+ org.polymap.rhei.filter,
+ org.polymap.rhei.form,
+ org.polymap.rhei.form.json,
+ org.polymap.rhei.model,
+ org.polymap.rhei.navigator
+Bundle-ClassPath: lib/bsh-2.0b4.jar,
+ .
+
