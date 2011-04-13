@@ -31,6 +31,8 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.vividsolutions.jts.geom.Geometry;
 
 class FeatureTableLabelProvider extends LabelProvider
@@ -72,7 +74,10 @@ implements ITableLabelProvider, IColorProvider {
             return ""; //$NON-NLS-1$
         } else if (element instanceof SimpleFeature) {
             SimpleFeature f = (SimpleFeature) element;            
-            if (columnIndex == 0) return f.getID();
+            if (columnIndex == 0) {
+                // _p3: FIXME displaying FID is useless for most users
+                return "..." + StringUtils.right( f.getID(), 3 );
+            }
             if( owningFeatureTableControl.features==null )
                 return ""; //$NON-NLS-1$
             String attName = owningFeatureTableControl.getViewer().getTable().getColumn(columnIndex).getText();

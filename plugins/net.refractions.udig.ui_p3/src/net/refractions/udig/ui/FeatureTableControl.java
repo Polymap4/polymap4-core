@@ -1,22 +1,49 @@
 package net.refractions.udig.ui;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import java.lang.reflect.Array;
+
 import net.refractions.udig.core.IProvider;
 import net.refractions.udig.internal.ui.Trace;
 import net.refractions.udig.internal.ui.UiPlugin;
 import net.refractions.udig.ui.internal.Messages;
 
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.filter.text.cql2.CQLException;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.filter.Filter;
+import org.opengis.filter.Id;
+import org.opengis.filter.identity.FeatureId;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.vividsolutions.jts.geom.Geometry;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Text;
+
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -34,30 +61,11 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TextCellEditor;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.part.PageBook;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.filter.text.cql2.CQL;
-import org.geotools.filter.text.cql2.CQLException;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.filter.Filter;
-import org.opengis.filter.Id;
-import org.opengis.filter.identity.FeatureId;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.eclipse.ui.part.PageBook;
+
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * A TreeViewer control for viewing a table of SimpleFeature attributes.
@@ -610,8 +618,8 @@ public class FeatureTableControl implements ISelectionProvider {
             
 
             TableColumn column = new TableColumn(table, SWT.CENTER | SWT.BORDER);
-            column.setText("FID"); //$NON-NLS-1$
-            layout.addColumnData(new ColumnWeightData(1, 150, true));
+            column.setText("ID"); //$NON-NLS-1$
+            layout.addColumnData(new ColumnWeightData(1, 50, true));
             column.setMoveable(true);
 
             column.addListener(SWT.Selection, new AttributeColumnSortListener(this,
@@ -619,14 +627,33 @@ public class FeatureTableControl implements ISelectionProvider {
 
             for( int i = 0; i < schema.getAttributeCount(); i++ ) {
                 AttributeDescriptor aType = schema.getDescriptor(i);
+                
+//                column = Number.class.isAssignableFrom( aType.getType().getBinding() )
+//                        ? new TableColumn(table, SWT.RIGHT | SWT.BORDER)
+//                        : new TableColumn(table, SWT.CENTER | SWT.BORDER);
                 column = new TableColumn(table, SWT.CENTER | SWT.BORDER);
+                
                 if (Geometry.class.isAssignableFrom(aType.getType().getBinding())) { // was aType.isGeometry()
                     // jg: wot is this maddness? jd: paul said so
                     column.setText("GEOMETRY"); //$NON-NLS-1$
                 } else
-                    column.setText(aType.getName().getLocalPart());
+                    // _p3: the capitalize does not work since some other, wonderful code seem to depend
+                    // on the column text for property name :(
+                    column.setText( aType.getName().getLocalPart() ); //StringUtils.capitalize(aType.getName().getLocalPart()));
 
-                layout.addColumnData(new ColumnWeightData(1, 100, true));
+                // _p3: column width depending on column data type
+                if (Boolean.class.isAssignableFrom( aType.getType().getBinding() )) {
+                    layout.addColumnData(new ColumnWeightData(2, 50, true));
+                }
+                else if (Number.class.isAssignableFrom( aType.getType().getBinding() )) {
+                    layout.addColumnData(new ColumnWeightData(3, 80, true));
+                }
+                else if (Date.class.isAssignableFrom( aType.getType().getBinding() )) {
+                    layout.addColumnData(new ColumnWeightData(5, 80, true));
+                }
+                else {
+                    layout.addColumnData(new ColumnWeightData(10, 120, true));
+                }
                 column.setMoveable(true);
 
                 column.addListener(SWT.Selection, new AttributeColumnSortListener(this,
