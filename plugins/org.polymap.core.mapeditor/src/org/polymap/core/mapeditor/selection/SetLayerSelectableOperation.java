@@ -23,10 +23,10 @@
 
 package org.polymap.core.mapeditor.selection;
 
+import net.refractions.udig.ui.OffThreadProgressMonitor;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import net.refractions.udig.ui.OffThreadProgressMonitor;
 
 import org.eclipse.swt.widgets.Display;
 

@@ -101,7 +101,7 @@
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="isTerminal" type="boolean">
+         <attribute name="isTerminal" type="boolean" use="required">
             <annotation>
                <documentation>
                   Specifies whether this processor is a terminal processor (implementing ITerminalProcessor) or not.

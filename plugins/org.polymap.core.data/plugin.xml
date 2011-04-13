@@ -89,69 +89,52 @@
       <processor
             class="org.polymap.core.data.image.ImageBufferProcessor"
             description="%processor_bufferDesc"
-            id="image_buffer"
+            id="org.polymap.core.data.image.ImageBufferProcessor"
+            isTerminal="false"
             name="%processor_buffer"
             propertyPage="org.polymap.core.data.image.ImageBufferProcessorConfig">
       </processor>
-   </extension>
-   <extension
-         id="org.polymap.core.data.image.ImageGrayscaleProcessor"
-         name="ImageGrayscaleProcessor"
-         point="org.polymap.core.data.pipeline.processors">
+      <processor
+            class="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
+            id="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
+            isTerminal="false"
+            name="Feature-Cache">
+      </processor>
       <processor
             class="org.polymap.core.data.image.ImageGrayscaleProcessor"
             description="%processor_grayscaleDesc"
+            id="org.polymap.core.data.image.ImageGrayscaleProcessor"
+            isTerminal="false"
             name="%processor_grayscale"
             propertyPage="org.polymap.core.data.image.ImageGrayscaleProcessorConfig">
       </processor>
-   </extension>
-   <extension
-         id="org.polymap.core.data.feature.FeatureTypeEditorProcessor"
-         name="FeatureTypeEditorProcessor"
-         point="org.polymap.core.data.pipeline.processors">
       <processor
             class="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor"
             description="%processor_featureTypeEditorDesc"
+            id="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor"
+            isTerminal="false"
             name="%processor_featureTypeEditor"
             propertyPage="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig">
       </processor>
-   </extension>
-   <extension
-         id="org.polymap.core.data.image.cache.ImageCacheProcessor"
-         name="ImageCacheProcessor"
-         point="org.polymap.core.data.pipeline.processors">
       <processor
             class="org.polymap.core.data.image.cache.ImageCacheProcessor"
             description="%processor_imageCache"
+            id="org.polymap.core.data.image.cache.ImageCacheProcessor"
+            isTerminal="false"
             name="%processor_imageCache"
             propertyPage="org.polymap.core.data.image.cache.ImageCacheProcessorConfig">
       </processor>
-   </extension>
-   <extension
-         id="org.polymap.core.data.image.cache.ImageTransparencyProcessor"
-         name="ImageTransparencyProcessor"
-         point="org.polymap.core.data.pipeline.processors">
       <processor
             class="org.polymap.core.data.image.ImageTransparencyProcessor"
+            id="org.polymap.core.data.image.ImageTransparencyProcessor"
+            isTerminal="false"
             name="%processor_transparency"
             propertyPage="org.polymap.core.data.image.ImageTransparencyProcessorConfig">
       </processor>
-   </extension>
-   <extension
-         id="org.polymap.core.data.feature.FeatureCacheProcessor"
-         name="Feature-Cache"
-         point="org.polymap.core.data.pipeline.processors">
-      <processor
-            class="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
-            name="Feature-Cache">
-      </processor>
-   </extension>
-   <extension
-         id="org.polymap.core.data.feature.LuceneCacheProcessor"
-         name="LuceneCache"
-         point="org.polymap.core.data.pipeline.processors">
       <processor
             class="org.polymap.core.data.feature.lucene.LuceneFeatureCacheProcessor"
+            id="org.polymap.core.data.feature.lucene.LuceneFeatureCacheProcessor"
+            isTerminal="false"
             name="Feature-Cache (Lucene)">
       </processor>
    </extension>
