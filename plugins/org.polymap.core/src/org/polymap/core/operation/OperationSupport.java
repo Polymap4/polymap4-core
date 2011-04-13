@@ -22,6 +22,11 @@
  */
 package org.polymap.core.operation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.logging.Log;
@@ -159,14 +164,15 @@ public class OperationSupport
             throws InvocationTargetException {
                 try {
                     _monitor.beginTask( op.getLabel(), 10 );
-                    history.undo( context, _monitor, new OperationInfo() );
+                    OperationInfo info = new OperationInfo();
+                    OperationConcernExtension.undo( history, context, _monitor, info );
                 } 
                 catch (Exception e) {
                     throw new InvocationTargetException( e );
                 }
             }
         };
-        execute( runnable, op.getLabel(), true, true );
+        doExecute( runnable, op.getLabel(), true, true );
     }
     
     public void redo()
@@ -179,14 +185,15 @@ public class OperationSupport
             throws InvocationTargetException {
                 try {
                     _monitor.beginTask( op.getLabel(), 10 );
-                    history.redo( context, _monitor, new OperationInfo() );
+                    OperationInfo info = new OperationInfo();
+                    OperationConcernExtension.redo( history, context, _monitor, info );
                 } 
                 catch (Exception e) {
                     throw new InvocationTargetException( e );
                 }
             }
         };
-        execute( runnable, op.getLabel(), true, true );
+        doExecute( runnable, op.getLabel(), true, true );
     }
     
     public void addOperationHistoryListener( IOperationHistoryListener l ) {
@@ -233,18 +240,19 @@ public class OperationSupport
             throws InvocationTargetException {
                 try {
                     _monitor.beginTask( op.getLabel(), 10 );
-                    history.execute( op, _monitor, new OperationInfo() );
+                    OperationInfo info = new OperationInfo();
+                    OperationConcernExtension.execute( history, op, _monitor, info );
                 } 
                 catch (Exception e) {
                     throw new InvocationTargetException( e );
                 }
             }
         };
-        execute( runnable, op.getLabel(), async, progress );
+        doExecute( runnable, op.getLabel(), async, progress );
     }
 
 
-    protected void execute( IRunnableWithProgress runnable, String label, boolean async, boolean progress )
+    protected void doExecute( IRunnableWithProgress runnable, String label, boolean async, boolean progress )
             throws ExecutionException {
         try {
             // run in new job
@@ -332,11 +340,18 @@ public class OperationSupport
      * @version POLYMAP3 ($Revision$)
      * @since 3.0
      */
-    class OperationInfo
+    public class OperationInfo
             implements IAdaptable {
 
-        Display         display;
+        Display                 display;
         
+        Exception               exception;
+        
+        boolean                 vetoOperationExecution = false;
+        
+        Map<String,Object>      concernContext = new HashMap();
+        
+        List                    concerns = new ArrayList();
         
         OperationInfo() {
             super();
@@ -344,6 +359,9 @@ public class OperationSupport
             assert this.display != null;
         }
 
+        public Exception getException() {
+            return exception;
+        }
 
         public Object getAdapter( Class adapter ) {
             if (Display.class.isAssignableFrom( adapter)  ) {
@@ -352,6 +370,14 @@ public class OperationSupport
             else {
                 return null;
             }
+        }
+
+        public void putContext( String key, Object value ) {
+            concernContext.put( key, value );
+        }
+        
+        public Object getContext( String key ) {
+            return concernContext.get( key );
         }
         
     }

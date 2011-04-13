@@ -3,6 +3,7 @@
 <booleanAttribute key="append.args" value="true"/>
 <booleanAttribute key="automaticAdd" value="false"/>
 <booleanAttribute key="automaticValidate" value="true"/>
+<stringAttribute key="bad_container_name" value="/org.polymap.cor/launch"/>
 <stringAttribute key="bootstrap" value=""/>
 <stringAttribute key="checked" value="[NONE]"/>
 <booleanAttribute key="clearConfig" value="false"/>

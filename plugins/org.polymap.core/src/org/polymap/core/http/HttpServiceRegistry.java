@@ -63,8 +63,19 @@ public class HttpServiceRegistry {
     
     /** The registered servlets. Maps pathSpec into servlet. */
     private static Map<String,HttpServlet>      servlets = new HashMap();
-    
 
+
+    /**
+     * This method can be used during startup to check in bundly change handlers
+     * if the {@link HttpServiceRegistry} is available. This is necessary because
+     * the availability of a particula service depends on the startup sequence
+     * of the bundles.
+     */
+    public static boolean isInitialized() {
+        return httpService != null;
+    }
+    
+    
     /**
      * Initialization.
      */

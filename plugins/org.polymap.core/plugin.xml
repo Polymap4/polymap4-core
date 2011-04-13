@@ -3,6 +3,7 @@
 <plugin>
    <extension-point id="org.polymap.core.http.servlets" name="HttpServlets" schema="schema/servlets.exsd"/>
    <extension-point id="org.polymap.core.data.ows.wms" name="WMS Server" schema="schema/org.polymap.core.data.ows.wms.exsd"/>
+   <extension-point id="org.polymap.core.operation.concerns" name="Operation Concerns" schema="schema/operation.concerns.exsd"/>
    <extension
          point="org.eclipse.rap.ui.entrypoint">
       <entrypoint
@@ -15,20 +16,6 @@
             id="org.polymap.core.entrypoint.udig"
             parameter="udig">
       </entrypoint>
-   </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
-         <toolbar
-               id="org.polymap.core.workbench.polymapToolbar">
-            <command
-                  commandId="org.polymap.core.workbench.actions.CreatePdfCommand"
-                  icon="icons/etool16/exportapp_wiz.gif"
-                  id="org.polymap.core.workbench.toolbars.CreatePdfCommand">
-            </command>
-         </toolbar>
-      </menuContribution>
    </extension>
    <extension
          point="org.eclipse.ui.commands">

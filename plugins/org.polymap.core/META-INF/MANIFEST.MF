@@ -22,11 +22,9 @@ Require-Bundle: org.eclipse.core.runtime,
 Eclipse-LazyStart: true
 Bundle-Vendor: polymap.org
 Export-Package: org.polymap.core,
+ org.polymap.core.geohub,
+ org.polymap.core.geohub.event,
  org.polymap.core.http;uses:="javax.servlet.http",
- org.polymap.core.model,
- org.polymap.core.model.plain,
- org.polymap.core.model.ui,
- org.polymap.core.model.xml,
  org.polymap.core.operation,
  org.polymap.core.runtime,
  org.polymap.core.security,
