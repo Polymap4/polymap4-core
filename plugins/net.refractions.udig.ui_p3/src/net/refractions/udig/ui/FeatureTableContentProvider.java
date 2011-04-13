@@ -356,7 +356,7 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
             final Scrollable control = owningFeatureTableControl.getViewer().getTable();
             final int size;
             if (!enabled)
-                size = input.size();
+                size = IProgressMonitor.UNKNOWN;  //input.size();
             else
                 size = IProgressMonitor.UNKNOWN;
 
