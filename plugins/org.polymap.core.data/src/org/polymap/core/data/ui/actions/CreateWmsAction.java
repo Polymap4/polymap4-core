@@ -1,4 +1,4 @@
-package org.polymap.core.data.actions;
+package org.polymap.core.data.ui.actions;
 
 import java.util.Map;
 

@@ -22,6 +22,8 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jface.preference.IPreferencePage;
@@ -48,6 +50,7 @@ public class ProcessorExtension {
     public static ProcessorExtension[] allExtensions() {
         IConfigurationElement[] elms = Platform.getExtensionRegistry()
                 .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
+        
         ProcessorExtension[] result = new ProcessorExtension[ elms.length ];
         for (int i=0; i<elms.length; i++) {
             result[i] = new ProcessorExtension( elms[i] );
@@ -57,14 +60,20 @@ public class ProcessorExtension {
     
     public static ProcessorExtension forExtensionId( String id ) {
         IConfigurationElement[] elms = Platform.getExtensionRegistry().getConfigurationElementsFor(
-                DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME, id );
+                DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
         
-        if (elms.length > 1) {
+        List<ProcessorExtension> result = new ArrayList( elms.length );
+        for (int i=0; i<elms.length; i++) {
+            ProcessorExtension ext = new ProcessorExtension( elms[i] );
+            if (ext.getId().equals( id )) {
+                result.add( ext );
+            }
+        }
+
+        if (result.size() > 1) {
             throw new IllegalStateException( "More than 1 extension: " + elms );
         }
-        return elms.length > 0
-                ? new ProcessorExtension( elms[0] )
-                : null;
+        return !result.isEmpty() ? result.get( 0 ) : null;
     }
     
     
@@ -74,12 +83,11 @@ public class ProcessorExtension {
 
     
     public ProcessorExtension( IConfigurationElement ext ) {
-        super();
         this.ext = ext;
     }
     
-    public String getExtensionId() {
-        return ext.getDeclaringExtension().getUniqueIdentifier();
+    public String getId() {
+        return ext.getAttribute( "id" );
     }
 
     public String getName() {
@@ -89,6 +97,17 @@ public class ProcessorExtension {
     public String getDescription() {
         return ext.getAttribute( "description" );
     }
+    
+    public boolean isTerminal() {
+        return ext.getAttribute( "isTerminal" ).equalsIgnoreCase( "true" );
+    }
+
+// does not seem to load through proper ClassLoader
+//    public Class getProcessorClass() 
+//    throws InvalidRegistryObjectException, ClassNotFoundException {
+//        return (Class<? extends PipelineProcessor>)
+//                Thread.currentThread().getContextClassLoader().loadClass( ext.getAttribute( "class" ) );
+//    }
     
     public PipelineProcessor newProcessor()
     throws CoreException {

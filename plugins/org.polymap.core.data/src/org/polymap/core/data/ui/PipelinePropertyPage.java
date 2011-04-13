@@ -329,7 +329,7 @@ public class PipelinePropertyPage
                 log.info( "filter: " + elm );
                 ProcessorExtension ext = (ProcessorExtension)elm;
                 for (PipelineProcessorConfiguration proc : result.getContent()) {
-                    if (proc.getExtensionId().equals( ext.getExtensionId() )) {
+                    if (proc.getExtensionId().equals( ext.getId() )) {
                         return false;
                     }
                 }
@@ -387,7 +387,7 @@ public class PipelinePropertyPage
     
     protected void addProcessor( ProcessorExtension ext ) {
         PipelineHolder holder = (PipelineHolder)getElement();
-        result.add( new PipelineProcessorConfiguration( ext.getExtensionId(), ext.getName() ) );
+        result.add( new PipelineProcessorConfiguration( ext.getId(), ext.getName() ) );
     }
     
 

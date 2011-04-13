@@ -23,12 +23,16 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.part.ViewPart;
 
+import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.ui.featureTable.GeoSelectionView;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  *  
- *
+ * @deprecated Use {@link GeoSelectionView} instead.
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
@@ -151,6 +155,7 @@ public class FeatureTableView
         }
         catch (Exception e) {
             log.warn( "unhandled: ", e );
+            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, Messages.get( "FeatureTableView_loadError" ), e );
         }
     }
 

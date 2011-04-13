@@ -72,7 +72,7 @@ public class DataSourceProcessor
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
-    public static final int                 DEFAULT_CHUNK_SIZE = 200;
+    public static final int                 DEFAULT_CHUNK_SIZE = 100;
     
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
@@ -126,7 +126,7 @@ public class DataSourceProcessor
         // resolve FeatureSource
         ILayer layer = context.getLayers().iterator().next();
         IGeoResource geores = layer.getGeoResource();
-        log.debug( "        Request: " + r.getClass().getSimpleName() + ", geores= " + geores.getIdentifier() );
+        log.debug( "        Request: " + r + ", geores= " + geores.getIdentifier() );
 
         // GetFeatureType
         if (r instanceof GetFeatureTypeRequest) {
@@ -195,10 +195,10 @@ public class DataSourceProcessor
     
     protected void getFeatures( FeatureSource fs, Query query, ProcessorContext context )
     throws Exception {
+        // features
         // we cannot just cache this since the query specifies chunks instead
         // of the entire collection
-        //FilterVisitor filter = new;
-        log.debug( "            Query: " + query.toString() );
+        log.debug( "            Filter: " + query.getFilter() );
         FeatureCollection fc = fs.getFeatures( query );
         
         

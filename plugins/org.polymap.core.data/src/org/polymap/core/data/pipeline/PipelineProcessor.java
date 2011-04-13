@@ -32,11 +32,10 @@ import org.polymap.core.project.ILayer;
  * {@link Pipeline} and executed inside of a {@link PipelineExecutor}. A
  * processor can process requests, reponses or both.
  * <p>
- * Implementing classes should make sure that they are threadsafe and stateless.
- * The state between several calls of the <code>processXXX()</code> methods
- * should be kept in the {@link ProcessorContext}.
+ * A processor has to be threadsafe and stateless...
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
+ *         <li>18.10.2009: created</li>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */

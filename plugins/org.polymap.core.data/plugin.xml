@@ -10,7 +10,7 @@
             label="Create Test Data"
             visible="false">
          <action
-               class="org.polymap.core.data.actions.CreateWmsAction"
+               class="org.polymap.core.data.ui.actions.CreateWmsAction"
                icon="icons/etool16/add_wms.gif"
                id="org.polymap.core.data.CreateWmsAction"
                label="WMS anlegen"
@@ -19,7 +19,7 @@
                tooltip="Test: WMS im Katalog anlegen">
          </action>
          <action
-               class="org.polymap.core.data.actions.CreateShapesAction"
+               class="org.polymap.core.data.ui.actions.CreateShapesAction"
                icon="icons/etool16/add_shape.gif"
                id="org.polymap.core.data.CreateShapesAction"
                label="Shapes anlegen"
@@ -30,7 +30,7 @@
          </action>
       </actionSet>
    </extension-->
-   <extension
+   <!--extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension
             targetID="org.polymap.core.project.dataPerspective">
@@ -38,13 +38,15 @@
                id="org.polymap.core.data.createDataActionSet">
          </actionSet>
       </perspectiveExtension>
-   </extension>
+   </extension-->
    <extension
          point="org.eclipse.ui.views">
       <view
-            class="org.polymap.core.data.ui.FeatureTableView"
-            icon="icons/obj16/view_obj.gif"
-            id="org.polymap.core.data.ui.FeatureTableView"
+            allowMultiple="true"
+            category="org.polymap.core.project"
+            class="org.polymap.core.data.ui.featureTable.GeoSelectionView"
+            icon="icons/eview16/table_view.gif"
+            id="org.polymap.core.data.ui.featureTable.view"
             name="%views_featureTable"
             restorable="true">
       </view>
@@ -56,12 +58,13 @@
             id="org.polymap.core.project.layerContribution"
             objectClass="org.polymap.core.project.ILayer">
          <action
-               class="org.polymap.core.data.actions.FeatureTableAction"
+               class="org.polymap.core.data.ui.featureTable.FeatureTableAction"
                enablesFor="+"
-               icon="icons/obj16/view_obj.gif"
+               icon="icons/eview16/table_view.gif"
                id="org.polymap.core.data.action.tableView"
                label="%actions_showFeatureTable"
-               style="toggle"
+               menubarPath="content"
+               style="push"
                tooltip="%actions_showFeatureTable_tip">
          </action>
       </objectContribution>

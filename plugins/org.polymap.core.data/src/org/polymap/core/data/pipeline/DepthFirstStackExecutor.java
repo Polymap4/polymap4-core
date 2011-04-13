@@ -39,7 +39,7 @@ import org.polymap.core.project.IMap;
 /**
  * This executor runs all processors inside the calling thread. The
  * requests/responses are passed between the processors by recursively calling
- * their processXXX() methods. The entire execution runs inside one single JVM
+ * their handle methods. The entire execution runs inside one single JVM
  * stackframe. This allows 'depth first' semantics. The first response is send
  * to the client at the first possible stage of the pipeline.
  * 

@@ -30,9 +30,9 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.core.runtime.CoreException;
-
 import net.refractions.udig.catalog.IService;
+
+import org.eclipse.core.runtime.CoreException;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.feature.AddFeaturesRequest;
@@ -93,6 +93,18 @@ public class DefaultPipelineIncubator
             terminals.add( FeatureRenderProcessor2.class );
             terminals.add( DataSourceProcessor.class );
             terminals.add( RasterRenderProcessor.class );
+            
+            for (ProcessorExtension ext : ProcessorExtension.allExtensions()) {
+                if (ext.isTerminal()) {
+                    try {
+                        log.info( "    Terminal processor type found: " + ext.getId() );
+                        terminals.add( (Class<? extends ITerminalPipelineProcessor>)ext.newProcessor().getClass() );
+                    }
+                    catch (Exception e) {
+                        log.warn( e.getMessage(), e );
+                    }
+                }
+            }
         }
     }
     

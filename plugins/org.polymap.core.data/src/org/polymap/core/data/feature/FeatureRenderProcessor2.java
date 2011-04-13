@@ -67,7 +67,6 @@ import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
-import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
@@ -127,14 +126,7 @@ public class FeatureRenderProcessor2
     
     // instance *******************************************
         
-    /**
-     * The mapContext is shared by all threads that call the pipeline of this
-     * processor. This breaks the contract of {@link PipelineProcessor} in
-     * order to avoid recreating the same mapContext again and again.
-     */
     protected MapContext              mapContext;
-    
-    protected final Object            mapContextLock = new Object();
     
     /** The styles used in the current {@link #mapContext}, used to check if new context is needed. */
     protected Map<ILayer,Style>       styles = new HashMap();
@@ -185,7 +177,7 @@ public class FeatureRenderProcessor2
         wfsLog.setLevel( Level.FINEST );
 
         // mapContext
-        synchronized (mapContextLock) {
+        synchronized (this) {
             // check style objects
             boolean needsNewContext = false;
             if (mapContext != null) {
@@ -238,6 +230,8 @@ public class FeatureRenderProcessor2
                         log.warn( "No pipeline.", e );
                     }
                 }
+            }
+            else {
             }
         }
         

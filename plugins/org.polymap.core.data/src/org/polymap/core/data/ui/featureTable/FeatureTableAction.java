@@ -21,7 +21,12 @@
  * $Id$
  */
 
-package org.polymap.core.data.actions;
+package org.polymap.core.data.ui.featureTable;
+
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
+
+import org.geotools.factory.CommonFactoryFinder;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -31,16 +36,16 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import org.eclipse.ui.IObjectActionDelegate;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionDelegate;
 
-import org.polymap.core.data.ui.FeatureTableView;
+import org.polymap.core.data.DataPlugin;
+import org.polymap.core.geohub.GeoHub;
+import org.polymap.core.geohub.event.GeoEvent;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
@@ -67,16 +72,20 @@ public class FeatureTableAction
         Display.getCurrent().asyncExec( new Runnable() {
             public void run() {
                 try {
-                    IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-                    page.showView( FeatureTableView.ID );
+                    // ensure that the view is shown
+                    GeoSelectionView view = GeoSelectionView.open( selectedLayer );
                     
-                    IViewPart view = page.findView( FeatureTableView.ID );
-                    if (view instanceof FeatureTableView) {
-                        ((FeatureTableView)view).setLayer( selectedLayer );
-                    }
+                    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
+                    
+                    // emulate a selection event so that the view can
+                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
+                            selectedLayer.getMap().getLabel(), 
+                            selectedLayer.getGeoResource().getIdentifier().toURI() );
+                    event.setFilter( Filter.INCLUDE );
+                    GeoHub.instance().send( event );
                 }
-                catch (PartInitException e) {
-                    throw new RuntimeException( e.getMessage(), e );
+                catch (Exception e) {
+                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Fehler beim Öffnen der Attributtabelle.", e );
                 }
             }
         });

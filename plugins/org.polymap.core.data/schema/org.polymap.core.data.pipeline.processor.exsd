@@ -6,7 +6,7 @@
          <meta.schema plugin="org.polymap.core.data" id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         This extension point allows to define new pipeline processors.
       </documentation>
    </annotation>
 
@@ -57,6 +57,13 @@
          </documentation>
       </annotation>
       <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A unque name that will be used to identify this processor.
+               </documentation>
+            </annotation>
+         </attribute>
          <attribute name="name" type="string" use="required">
             <annotation>
                <documentation>
@@ -92,6 +99,13 @@
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.polymap.core.data.pipeline.ProcessorExtension$ProcessorPropertyPage"/>
                </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="isTerminal" type="boolean">
+            <annotation>
+               <documentation>
+                  Specifies whether this processor is a terminal processor (implementing ITerminalProcessor) or not.
+               </documentation>
             </annotation>
          </attribute>
       </complexType>
