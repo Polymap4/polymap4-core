@@ -17,10 +17,9 @@
  */
 package org.polymap.rhei.internal.form;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
-
-import com.ibm.icu.util.Calendar;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
