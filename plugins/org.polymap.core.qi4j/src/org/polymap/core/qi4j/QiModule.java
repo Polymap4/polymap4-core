@@ -32,17 +32,20 @@ import java.util.Set;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections.SetUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.entity.Identity;
+import org.qi4j.api.query.Query;
+import org.qi4j.api.query.QueryBuilder;
+import org.qi4j.api.query.grammar.BooleanExpression;
 import org.qi4j.api.unitofwork.ConcurrentEntityModificationException;
 import org.qi4j.api.unitofwork.EntityTypeNotFoundException;
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.qi4j.api.unitofwork.UnitOfWork;
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
-
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.collections.SetUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.service.ContextProvider;
@@ -81,6 +84,8 @@ public abstract class QiModule
 
     private static Log log = LogFactory.getLog( QiModule.class );
     
+    public static final int             DEFAULT_MAX_RESULTS = 10000000;  
+
     private static GlobalEntityVersions  globalEntityVersions = new GlobalEntityVersions(); 
 
     private static GlobalEntityChangeSets globalEntityChangeSets = new GlobalEntityChangeSets(); 
@@ -437,6 +442,38 @@ public abstract class QiModule
         return uow.get( type, id );
     }
 
+    /**
+     * 
+     * @param <T>
+     * @param compositeType
+     * @param expression The query, or null if all entities are to be fetched.
+     * @param firstResult The first result index, 0 by default.
+     * @param maxResults The maximum number of entities in the result; -1
+     *        signals that there si no limit.
+     * @return The newly created query.
+     */
+    public <T> Query<T> findEntities( Class<T> compositeType, BooleanExpression expression,
+            int firstResult, int maxResults ) {
+        if (maxResults < 0) {
+            maxResults = DEFAULT_MAX_RESULTS;
+        }
+        if (maxResults > DEFAULT_MAX_RESULTS) {
+            maxResults = DEFAULT_MAX_RESULTS;
+        }
+        
+        QueryBuilder<T> builder = assembler.getModule()
+                .queryBuilderFactory().newQueryBuilder( compositeType );
+        
+        builder = expression != null 
+                ? builder.where( expression ) 
+                : builder;
+        
+        Query<T> query = builder.newQuery( uow )
+                .maxResults( maxResults )
+                .firstResult( firstResult );
+        return query;
+    }
+    
     /**
      * Creates a new operation of the given type.
      * <p>
