@@ -6,14 +6,6 @@ Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label {
     background-color: #f4f4fb;
 }
 
-* {
-    background-color: #f4f4fb;
-}
-
-Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label {
-    background-color: #f4f4fb;
-}
-
 Shell-DisplayOverlay {
     background-image: none;
     background-color: #000000;
