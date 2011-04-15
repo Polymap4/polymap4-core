@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,6 +68,8 @@ import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.rhei.data.entityfeature.catalog.EntityGeoResourceImpl;
+import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
 
 /**
  * Provides Qi4j entities as features to the pipeline. This processor is the

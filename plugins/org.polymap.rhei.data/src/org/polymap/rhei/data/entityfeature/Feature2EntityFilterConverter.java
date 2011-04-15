@@ -15,7 +15,7 @@
  *
  * $Id$
  */
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,14 +39,14 @@ import org.polymap.core.model.EntityType;
 
 /**
  * 
- * <p>
+ * <p/>
  * Impl. note: just a skeleton, work in progress...
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public class Feature2EntityFilterConverter {
+class Feature2EntityFilterConverter {
 
     private static final Log log = LogFactory.getLog( Feature2EntityFilterConverter.class );
 

@@ -43,15 +43,6 @@
       </editor>
    </extension>
    <extension
-         point="org.polymap.core.data.pipeline.processors">
-      <processor
-            class="org.polymap.catalog.qi4j.EntitySourceProcessor"
-            id="org.polymap.catalog.qi4j.EntitySourceProcessor"
-            isTerminal="true"
-            name="EntitySourceProcessor">
-      </processor>
-   </extension>
-   <extension
          point="org.eclipse.rap.ui.navigator.viewer">
       <viewer
             viewerId="org.polymap.rhei.RheiNavigator">

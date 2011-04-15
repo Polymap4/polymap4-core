@@ -51,6 +51,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.viewers.ViewerSorter;
 
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
@@ -247,7 +248,7 @@ public class PipelinePropertyPage
                     showPropertyPage( (PipelineProcessorConfiguration)sel.getFirstElement() );
                     updateEnables();
                 }
-                catch (CoreException e) {
+                catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, PipelinePropertyPage.this, e.getMessage(), e );
                 }
             }
@@ -326,8 +327,11 @@ public class PipelinePropertyPage
 
         extsTable.setFilters( new ViewerFilter[] {new ViewerFilter() {
             public boolean select( Viewer viewer, Object parentElm, Object elm ) {
-                log.info( "filter: " + elm );
                 ProcessorExtension ext = (ProcessorExtension)elm;
+                log.debug( "filtering: " + ext.getId() );
+                if (ext.isTerminal()) {
+                    return false;
+                }
                 for (PipelineProcessorConfiguration proc : result.getContent()) {
                     if (proc.getExtensionId().equals( ext.getId() )) {
                         return false;
@@ -338,6 +342,13 @@ public class PipelinePropertyPage
         }} );
         extsTable.setContentProvider( new ArrayContentProvider() );
         extsTable.setInput( allExtensions );
+        extsTable.setSorter( new ViewerSorter() {
+            public int compare( Viewer viewer, Object e1, Object e2 ) {
+                ProcessorExtension ext1 = (ProcessorExtension)e1;
+                ProcessorExtension ext2 = (ProcessorExtension)e2;
+                return ext1.getName().compareTo( ext2.getName() );
+            }
+        });
         
         extsTable.setLabelProvider( new LabelProvider() {
             public String getText( Object elm ) {
@@ -374,14 +385,25 @@ public class PipelinePropertyPage
         }
         
         ProcessorExtension ext = ProcessorExtension.forExtensionId( config.getExtensionId() );
-        propertyPage = ext.newPropertyPage();
+        try {
+            if (ext.hasPropertyPage()) {
+                propertyPage = ext.newPropertyPage();
 
-        PipelineHolder elm = (PipelineHolder)getElement();
-        propertyPage.init( elm, config.getConfig() );
-        propertyPage.createControl( propertiesSection );
-        
-        propertiesSection.getParent().layout( true );
-        propertiesSection.layout( true );
+                PipelineHolder elm = (PipelineHolder)getElement();
+                propertyPage.init( elm, config.getConfig() );
+                propertyPage.createControl( propertiesSection );
+            }
+            else {
+                Label l = new Label( propertiesSection, SWT.NONE );
+                l.setText( "No properties to setup." );
+            }
+            propertiesSection.getParent().layout( true );
+            propertiesSection.layout( true );
+        }
+        catch (Exception e) {
+            // XXX Auto-generated catch block
+            
+        }
     }
 
     

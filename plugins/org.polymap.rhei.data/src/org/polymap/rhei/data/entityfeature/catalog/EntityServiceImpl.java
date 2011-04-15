@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature.catalog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +36,9 @@ import net.refractions.udig.catalog.IServiceInfo;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import org.polymap.rhei.Messages;
+import org.polymap.rhei.data.Messages;
+import org.polymap.rhei.data.entityfeature.EntityProvider;
+import org.polymap.rhei.data.entityfeature.EntitySourceProcessor;
 
 /**
  * This service references a Qi4j entity store via ({@link EntityProvider}). The
@@ -123,7 +125,7 @@ public abstract class EntityServiceImpl
             }
 
             public String getDescription() {
-                return Messages.get( "Qi4jServiceImpl_description" ); 
+                return Messages.get( "EntityServiceImpl_description" ); 
             }
         };
     }

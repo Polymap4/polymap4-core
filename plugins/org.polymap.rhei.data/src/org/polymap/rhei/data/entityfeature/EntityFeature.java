@@ -16,7 +16,7 @@
  * $Id: $
  */
 
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +48,7 @@ import org.polymap.core.model.EntityType;
 
 /**
  * {@link Feature} facade for an {@link Entity}.
- * <p>
+ * <p/>
  * Designed to cache as less as possible values in order to consume as less as
  * possible memory (compared to building every feature using
  * {@link SimpleFeatureBuilder}.
@@ -56,7 +56,7 @@ import org.polymap.core.model.EntityType;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
  */
-public class EntityFeature
+class EntityFeature
         implements SimpleFeature {
 
     private static final Log log = LogFactory.getLog( EntityFeature.class );

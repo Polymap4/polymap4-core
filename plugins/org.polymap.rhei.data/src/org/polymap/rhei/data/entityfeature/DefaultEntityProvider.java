@@ -15,7 +15,7 @@
  *
  * $Id$
  */
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature;
 
 import java.util.ArrayList;
 import java.util.List;

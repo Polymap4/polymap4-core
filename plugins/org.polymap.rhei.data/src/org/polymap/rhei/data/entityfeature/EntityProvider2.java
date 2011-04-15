@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature;
 
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;

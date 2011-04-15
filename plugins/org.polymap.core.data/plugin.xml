@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension-point id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors" schema="schema/org.polymap.core.data.pipeline.processor.exsd"/>
+   <extension-point id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors" schema="schema/org.polymap.core.data.pipeline.processors.exsd"/>
    <!--extension
          point="org.eclipse.ui.actionSets">
       <actionSet
@@ -83,8 +83,6 @@
       </page>
    </extension>
    <extension
-         id="org.polymap.core.data.image.ImageBufferProcessor"
-         name="ImageBufferProcessor"
          point="org.polymap.core.data.pipeline.processors">
       <processor
             class="org.polymap.core.data.image.ImageBufferProcessor"
@@ -133,7 +131,7 @@
       </processor>
       <processor
             class="org.polymap.core.data.feature.lucene.LuceneFeatureCacheProcessor"
-            id="org.polymap.core.data.feature.lucene.LuceneFeatureCacheProcessor"
+            id="org.polymap.core.data.feature.lucene.LuceneCacheProcessor"
             isTerminal="false"
             name="Feature-Cache (Lucene)">
       </processor>

@@ -14,7 +14,7 @@
  * 
  * $Id: $
  */
-package org.polymap.catalog.qi4j;
+package org.polymap.rhei.data.entityfeature.catalog;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -41,6 +41,8 @@ import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ITransientResolve;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import org.polymap.rhei.data.entityfeature.EntityProvider;
 
 /**
  * 

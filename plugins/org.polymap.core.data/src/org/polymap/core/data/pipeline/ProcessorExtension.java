@@ -73,6 +73,9 @@ public class ProcessorExtension {
         if (result.size() > 1) {
             throw new IllegalStateException( "More than 1 extension: " + elms );
         }
+        if (result.isEmpty()) {
+            throw new IllegalArgumentException( "No extension for id: " + id );
+        }
         return !result.isEmpty() ? result.get( 0 ) : null;
     }
     
@@ -111,9 +114,18 @@ public class ProcessorExtension {
     
     public PipelineProcessor newProcessor()
     throws CoreException {
-        return (PipelineProcessor)ext.createExecutableExtension( "class" );
+        try {
+            return (PipelineProcessor)ext.createExecutableExtension( "class" );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( "Error creating new processor for extension: " + getId(), e );
+        }
     }
 
+    public boolean hasPropertyPage() {
+        return ext.getAttribute( "propertyPage" ) == null;
+    }
+    
     public ProcessorPropertyPage newPropertyPage()
     throws CoreException {
         return (ProcessorPropertyPage)ext.createExecutableExtension( "propertyPage" );
