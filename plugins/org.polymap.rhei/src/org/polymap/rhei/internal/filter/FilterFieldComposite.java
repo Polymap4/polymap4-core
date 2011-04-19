@@ -70,8 +70,12 @@ public class FilterFieldComposite
     
     private boolean                 isDirty = false;
     
+    /** The current error, externally set or returned by the validator. */
     private String                  errorMsg;
     
+    /** Error message set by {@link #setErrorMessage(String)} */
+    private String                  externalErrorMsg;
+
     private Object                  value;
 
 
@@ -154,6 +158,14 @@ public class FilterFieldComposite
     }
 
 
+    /**
+     * Returns the raw value of this field. The value is not transformed to be a
+     * 'field value'.
+     */
+    public Object getValue() {
+        return value;        
+    }
+
     // IFormFieldSite *************************************
         
     public String getFieldName() {
@@ -164,13 +176,22 @@ public class FilterFieldComposite
         return propType;
     }
 
-    public Object getFieldValue() {
-        return value;
+    public Object getFieldValue()
+    throws Exception {
+        return validator.transform2Field( value );
     }
 
-    public void setFieldValue( Object value ) {
-        this.value = value;
+    public void setFieldValue( Object value )
+    throws Exception {
+        this.value = validator.transform2Model( value );
     }
+
+    public void loadDefaultValue( Object defaultValue ) 
+    throws Exception {
+        this.value = defaultValue;
+        field.load();
+    }
+
 
     public IFormEditorToolkit getToolkit() {
         return toolkit;
@@ -185,22 +206,35 @@ public class FilterFieldComposite
     }
     
     public void fireEvent( Object source, int eventCode, Object newValue ) {
+        Object validatedNewValue = null;
+
+        errorMsg = externalErrorMsg;
+        
         // check isDirty / isValid
-        if (eventCode == IFormFieldListener.VALUE_CHANGE) {
-            if (value == null && newValue == null) {
-                isDirty = false;
-            }
-            else {
-                isDirty = value == null && newValue != null ||
-                        value != null && newValue == null ||
-                        !value.equals( newValue );
-            }
+        if (eventCode == IFormFieldListener.VALUE_CHANGE && errorMsg == null) {
             if (validator != null) {
                 errorMsg = validator.validate( newValue );
             }
+            if (errorMsg == null) {
+                if (value == null && newValue == null) {
+                    isDirty = false;
+                }
+                else {
+                    isDirty = value == null && newValue != null ||
+                    value != null && newValue == null ||
+                    !value.equals( newValue );
+                }
+                try {
+                    validatedNewValue = validator.transform2Model( newValue );
+                }
+                catch (Exception e) {
+                    // XXX hmmm... what to do?
+                    throw new RuntimeException( e );
+                }
+            }
         }
         // propagate
-        FormFieldEvent ev = new FormFieldEvent( source, propName, field, eventCode, null, newValue );
+        FormFieldEvent ev = new FormFieldEvent( source, propName, field, eventCode, null, validatedNewValue );
         for (Object l : listeners.getListeners()) {
             ((IFormFieldListener)l).fieldChange( ev );
         }
@@ -210,9 +244,8 @@ public class FilterFieldComposite
         return errorMsg;
     }
 
-    public void showMessage() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void setErrorMessage( String errorMsg ) {
+        this.externalErrorMsg = errorMsg;
     }
 
 }

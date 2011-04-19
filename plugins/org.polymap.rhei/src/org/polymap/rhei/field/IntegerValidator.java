@@ -51,7 +51,13 @@ public class IntegerValidator
 
     public Object transform2Model( Object fieldValue )
     throws Exception {
-        if (fieldValue instanceof Integer) {
+        if (fieldValue == null) {
+            return null;
+        }
+        else if (fieldValue instanceof Integer) {
+            return (Integer)fieldValue;
+        }
+        else if (fieldValue instanceof String) {
             return Integer.valueOf( (String)fieldValue );
         }
         else {

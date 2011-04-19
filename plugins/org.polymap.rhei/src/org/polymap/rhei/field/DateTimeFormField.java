@@ -55,15 +55,27 @@ public class DateTimeFormField
     private boolean             enabled = true;
 
     private Date                loadedValue;
+    
+    /** Special value representing a "null" as the propety value. */
+    private Date                nullValue;
 
 
     public void init( IFormFieldSite _site ) {
         this.site = _site;
+
+        // The DateTime field supports seconds only, so we need the current
+        // time without the millis for the nullValue in order to make it
+        // comparable to the result of the DateTime
+        Calendar cal = Calendar.getInstance( Locale.GERMANY );
+        cal.set( Calendar.MILLISECOND, 0 );
+        this.nullValue = cal.getTime();
     }
 
+    
     public void dispose() {
     }
 
+    
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
         dateTime = toolkit.createDateTime( parent, new Date(), SWT.MEDIUM | SWT.DROP_DOWN );
         dateTime.setEnabled( enabled );
@@ -76,7 +88,9 @@ public class DateTimeFormField
                         dateTime.getHours(), dateTime.getMinutes(), dateTime.getSeconds() );
                 Date date = cal.getTime();
                 log.info( "widgetSelected(): test= " + date );
-                site.fireEvent( DateTimeFormField.this, IFormFieldListener.VALUE_CHANGE, date );
+                
+                site.fireEvent( DateTimeFormField.this, IFormFieldListener.VALUE_CHANGE, 
+                        loadedValue == null && date.equals( nullValue ) ? null : date );
             }
             
         });
@@ -92,6 +106,7 @@ public class DateTimeFormField
         return dateTime;
     }
 
+    
     public void setEnabled( boolean enabled ) {
         this.enabled = enabled;
         if (dateTime != null) {
@@ -99,6 +114,7 @@ public class DateTimeFormField
         }
     }
 
+    
     public void setValue( Object value ) {
         Date date = (Date)value;
         Calendar cal = Calendar.getInstance( Locale.GERMANY );
@@ -108,23 +124,32 @@ public class DateTimeFormField
         dateTime.setTime( cal.get( Calendar.HOUR_OF_DAY ), cal.get( Calendar.MINUTE ), cal.get( Calendar.SECOND ) );
 
         // the above calls does not seem to fire events
-        site.fireEvent( DateTimeFormField.this, IFormFieldListener.VALUE_CHANGE, date );
+        site.fireEvent( DateTimeFormField.this, IFormFieldListener.VALUE_CHANGE,
+                loadedValue == null && date.equals( nullValue ) ? null : date );
     }
 
+    
     public void load() throws Exception {
         assert dateTime != null : "Control is null, call createControl() first.";
 
-        if (site.getFieldName() == null) {
-            // from the source of DateTime.setDate()
-            dateTime.setDate( 9996, 0, 1 );
-            dateTime.setTime( 0, 0, 0 );
+        if (site.getFieldValue() == null) {
+            loadedValue = null;
+            setValue( nullValue );
+
+//            // from the source of DateTime.setDate()
+//            dateTime.setDate( 9996, 0, 1 );
+//            dateTime.setTime( 0, 0, 0 );
         }
         else if (site.getFieldValue() instanceof Date) {
             loadedValue = (Date)site.getFieldValue();
             setValue( loadedValue );
         }
+        else {
+            log.warn( "Unknown value type: " + site.getFieldValue() );
+        }
     }
 
+    
     public void store() throws Exception {
         if (dateTime.getYear() != 9996) {
             Calendar cal = Calendar.getInstance( Locale.GERMANY );

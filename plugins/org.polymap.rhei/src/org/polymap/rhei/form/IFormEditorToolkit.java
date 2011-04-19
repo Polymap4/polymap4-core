@@ -91,6 +91,8 @@ public interface IFormEditorToolkit {
 
     public abstract Combo createCombo( Composite parent, Set<String> values );
     
+    public abstract Combo createCombo( Composite parent, Set<String> values, int style );
+    
     public abstract DateTime createDateTime( Composite parent, Date value );
     
     public abstract DateTime createDateTime( Composite parent, Date value, int style );

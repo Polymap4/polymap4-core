@@ -69,6 +69,8 @@ public class EntityFeature
     
     private Map<String,PropertyImpl>    properties = new HashMap();
     
+    private Map<String,Object>          modifiedProperties;
+    
     
     public EntityFeature( Entity entity, EntityType entityType, SimpleFeatureType featureType ) {
         this.entity = entity;
@@ -114,27 +116,36 @@ public class EntityFeature
 
         protected PropertyDescriptor    descriptor;
         
-        protected Object                value;
-
         
         protected PropertyImpl( PropertyDescriptor descriptor ) {
             assert descriptor != null;
             this.descriptor = descriptor;
+        }
+        
+        public Object getValue() {
+            // as long as no value was set deliver actual value from the
+            // entity in order to give access to changes
             try {
-                value = entityType.getProperty( descriptor.getName().getLocalPart() ).getValue( entity );
+                String propName = descriptor.getName().getLocalPart();
+                Object value = modifiedProperties != null ? modifiedProperties.get( propName ) : null;
+                if (value != null) {
+                    return value;
+                }
+                else {
+                    return entityType.getProperty( propName ).getValue( entity );
+                }
             }
             catch (Exception e) {
                 throw new RuntimeException( e );
             }
         }
         
-        public Object getValue() {
-            return value;
-        }
-        
         public void setValue( Object value ) {
             log.debug( "property= " + getName().getLocalPart() + ", value=" + value );
-            this.value = value;
+            if (modifiedProperties == null) {
+                modifiedProperties = new HashMap();
+            }
+            modifiedProperties.put( descriptor.getName().getLocalPart(), value );
 
 // Property must not write back directly, modify features command has to be used
 //            try {
@@ -184,8 +195,7 @@ public class EntityFeature
 
         
         public int hashCode() {
-            return 37 * descriptor.hashCode()
-                + (37 * (value == null ? 0 : value.hashCode()));
+            return descriptor.hashCode();
         }
         
         public String toString() {

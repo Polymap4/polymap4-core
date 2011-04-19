@@ -71,7 +71,7 @@ public class FilterLabelProvider
     public Image getImage( Object elm ) {
         // init images
         if (filtersImage == null) {
-            URL url = BundleUtility.find( RheiPlugin.PLUGIN_ID, "icons/elcl16/filter_ps.gif" );
+            URL url = BundleUtility.find( RheiPlugin.PLUGIN_ID, "icons/eview16/filter_view.gif" );
             assert (url != null) : "No image found.";
             filtersImage = ImageDescriptor.createFromURL( url ).createImage();
         }
