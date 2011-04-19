@@ -63,8 +63,22 @@ public interface IFormEditorPageSite {
     
     public void removeFieldListener( IFormFieldListener listener );
 
+    /**
+     *
+     * @param source XXX
+     * @param eventCode One of the constants in {@link IFormFieldListener}.
+     * @param newValue
+     */
+    public void fireEvent( Object source, String fieldName, int eventCode, Object newValue ); 
+
     public void setFieldValue( String fieldName, Object value );
 
     public void setFieldEnabled( String fieldName, boolean enabled );
+    
+    /**
+     * Reload all field from the backend.
+     */
+    public void reloadEditor()
+    throws Exception;
 
 }

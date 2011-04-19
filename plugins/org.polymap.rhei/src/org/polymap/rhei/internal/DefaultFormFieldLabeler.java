@@ -30,14 +30,17 @@ import org.polymap.rhei.form.IFormEditorToolkit;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public class DefaultFormFieldLabeler
         implements IFormFieldLabel {
 
+    public static final String  NO_LABEL = "_nolabel_";
+    
     private IFormFieldSite      site;
     
     private String              label;
+    
+    private int                 maxWidth = 100;
     
     
     /**
@@ -47,7 +50,13 @@ public class DefaultFormFieldLabeler
     }
 
     public DefaultFormFieldLabeler( String label ) {
-        this.label = label;
+        if (label != null && label.equals( NO_LABEL )) {
+            this.label = label;
+            this.maxWidth = 0;
+        }
+        else {
+            this.label = label;
+        }
     }
 
     public void init( IFormFieldSite _site ) {
@@ -61,6 +70,14 @@ public class DefaultFormFieldLabeler
         return toolkit.createLabel( parent, label != null
                 ? label
                 : StringUtils.capitalize( site.getFieldName() ) );
+    }
+    
+    public void setMaxWidth( int maxWidth ) {
+        this.maxWidth = maxWidth;
+    }
+
+    public int getMaxWidth() {
+        return maxWidth;
     }
 
 }

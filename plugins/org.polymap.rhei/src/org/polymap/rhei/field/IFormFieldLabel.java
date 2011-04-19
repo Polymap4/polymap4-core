@@ -36,4 +36,6 @@ public interface IFormFieldLabel {
     
     public Control createControl( Composite parent, IFormEditorToolkit toolkit );
     
+    public int getMaxWidth();
+    
 }

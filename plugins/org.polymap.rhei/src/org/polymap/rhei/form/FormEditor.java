@@ -23,17 +23,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.geotools.data.FeatureStore;
+import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 
-import org.geotools.data.FeatureStore;
-import org.geotools.factory.CommonFactoryFinder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Composite;
 
@@ -53,6 +52,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
+import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
@@ -66,8 +66,8 @@ import org.polymap.rhei.internal.form.FormPageProviderExtension;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
+@SuppressWarnings("deprecation")
 public class FormEditor
         extends org.eclipse.ui.forms.editor.FormEditor 
         implements IFormFieldListener {
@@ -128,7 +128,9 @@ public class FormEditor
     
     private boolean                     isValid;
     
-    private boolean                     actionsEnabled;
+    private Action                      submitAction;
+
+    private Action                      revertAction;
     
     
     public FormEditor() {
@@ -140,12 +142,16 @@ public class FormEditor
         super.init( site, input );
         
         // submit action
-        Action submitAction = new Action( Messages.get( "FormEditor_submit" ) ) {
+        submitAction = new Action( Messages.get( "FormEditor_submit" ) ) {
             public void run() {
                 try {
                     log.debug( "submitAction.run(): ..." );
                     doSave( new NullProgressMonitor() );
                     OperationSupport.instance().saveChanges();
+                }
+                catch (ConcurrentModificationException e) {
+                    PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this,
+                            "Daten wurden von einem anderen Nutzer geändert.\nKlicken Sie auf \"Daten von anderem Nutzer übernehmen\" und öffnen Sie den Datensatz erneut.\nACHTUNG: Wenn Sie den Datensatz nicht erneut öffnen, dann können Daten verloren gehen.", e );
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
@@ -159,7 +165,7 @@ public class FormEditor
         standardPageActions.add( submitAction );
 
         // revert action
-        Action revertAction = new Action( Messages.get( "FormEditor_revert" ) ) {
+        revertAction = new Action( Messages.get( "FormEditor_revert" ) ) {
             public void run() {
                 log.debug( "revertAction.run(): ..." );
                 doLoad( new NullProgressMonitor() );
@@ -174,6 +180,8 @@ public class FormEditor
 
     
     public void fieldChange( FormFieldEvent ev ) {
+        boolean oldIsDirty = isDirty;
+        
         isDirty = false;
         for (FormEditorPageContainer page : pages) {
             if (page.isDirty()) {
@@ -190,18 +198,17 @@ public class FormEditor
         }
 
         log.debug( "fieldChange(): dirty=" + isDirty + ", isValid=" + isValid );
-        boolean old = actionsEnabled;
-        actionsEnabled = isValid && isDirty;
-        if (actionsEnabled != old) {
-            for (Action action : standardPageActions) {
-                action.setEnabled( actionsEnabled );
-            }
+        submitAction.setEnabled( isDirty && isValid );
+        revertAction.setEnabled( isDirty );
+
+        if (oldIsDirty != isDirty) {
             editorDirtyStateChanged();
         }
     }
 
 
     public void dispose() {
+        // this also disposses my pages
         super.dispose();
         pages.clear();
     }
@@ -296,6 +303,9 @@ public class FormEditor
                     attrs.toArray( new AttributeDescriptor[attrs.size()]), 
                     values.toArray() ); 
             OperationSupport.instance().execute( op, false, false );
+            
+            // update isDirt/isValid
+            fieldChange( null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Objekt konnte nicht gespeichert werden.", e );
@@ -309,6 +319,8 @@ public class FormEditor
             for (FormEditorPageContainer page : pages) {
                 page.doLoad( monitor );
             }
+            // update isDirt/isValid
+            fieldChange( null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Objekt konnte nicht gespeichert werden.", e );

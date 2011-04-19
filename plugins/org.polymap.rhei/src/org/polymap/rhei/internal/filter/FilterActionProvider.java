@@ -73,7 +73,13 @@ public class FilterActionProvider
         // IFilter
         if (sel.getFirstElement() instanceof IFilter) {
             IFilter filter = (IFilter)sel.getFirstElement();
-            menu.add( new OpenFilterAction( filter ) );
+            if (filter.hasControl()) {
+                menu.add( new OpenFilterDialogAction( filter ) );
+                menu.add( new OpenFilterViewAction( filter ) );
+            }
+            else {
+                menu.add( new OpenFilterAction( filter ) );
+            }
         }
 //        // FiltersFolderItem
 //        else if (sel.getFirstElement() instanceof FiltersFolderItem) {

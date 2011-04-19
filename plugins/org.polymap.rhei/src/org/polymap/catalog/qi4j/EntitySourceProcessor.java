@@ -152,13 +152,13 @@ public class EntitySourceProcessor
                 builder.setName( entityProvider.getEntityName() );
 
                 for (EntityType.Property prop : entityType.getProperties()) {
-                    if (Geometry.class.isAssignableFrom( prop.getType().getClass() )) {
+                    if (Geometry.class.isAssignableFrom( prop.getType() )) {
                         builder.add( prop.getName(), prop.getType().getClass(), DefaultGeographicCRS.WGS84 );
                         // builder.setCRS( mapping.crs );
                         // builder.setDefaultGeometry( "the_geom" );
                     }
                     else {
-                        builder.add( prop.getName(), prop.getType().getClass() );
+                        builder.add( prop.getName(), prop.getType() );
                     }
                 }
                 schema = builder.buildFeatureType();

@@ -31,15 +31,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.opengis.feature.Property;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Layout;
 
 import org.eclipse.jface.action.Action;
 
@@ -48,6 +46,7 @@ import org.polymap.rhei.field.IFormField;
 import org.polymap.rhei.field.IFormFieldValidator;
 import org.polymap.rhei.field.NumberValidator;
 import org.polymap.rhei.field.StringFormField;
+import org.polymap.rhei.form.DefaultFormPageLayouter;
 import org.polymap.rhei.form.IFormEditorPage;
 import org.polymap.rhei.form.IFormEditorPageSite;
 import org.polymap.rhei.form.IFormEditorToolkit;
@@ -64,16 +63,12 @@ public class JsonForm
 
     private static Log log = LogFactory.getLog( JsonForm.class );
     
-    static final int                FIELD_SPACING_H = 5;
-    static final int                FIELD_SPACING_V = 1;
-    static final int                SECTION_SPACING = 8;
-
     private JSONObject              json;
 
     private IFormEditorPageSite     site;
 
     private IFormEditorToolkit      tk;
-    
+
     
     protected JsonForm() {
     }
@@ -135,10 +130,12 @@ public class JsonForm
         log.debug( "createFormContent(): json= " + json );
         this.site = _site;
         this.tk = site.getToolkit();
+        DefaultFormPageLayouter layouter = new DefaultFormPageLayouter();
 
         site.setFormTitle( getTitle() );
         site.getPageBody().setLayout( new FormLayout() );
         Composite client = site.getPageBody();
+        client.setLayout( layouter.newLayout() );
 
         try {
             JSONArray fields = json.getJSONArray( "fields" );
@@ -146,7 +143,7 @@ public class JsonForm
                 JSONObject field_json = fields.getJSONObject( i );
                 
                 Composite field = newFormField( client, field_json );
-                setFieldLayoutData( field );
+                layouter.setFieldLayoutData( field );
             }
         }
         catch (JSONException e) {
@@ -193,9 +190,26 @@ public class JsonForm
 
         // create the form field
         String label = field_json.optString( "label" );
+        String name = field_json.getString( "name" );
+        Object defaultValue = field_json.opt( "value" );
+
         Composite result = site.newFormField( parent, 
-                new PropertyAdapter( field_json ), formField, validator, label );
+                findProperty( name, defaultValue ), formField, validator, label );
         return result;
+    }
+
+
+    /**
+     * Sub classes may overwrite to provide proper properties for the property
+     * names found in the JSON form description.
+     * 
+     * @param propName Property name that was found in the JSON form
+     *        description.
+     * @param defaultValue
+     * @return
+     */
+    protected Property findProperty( String propName, Object defaultValue ) {
+        return new PropertyAdapter( propName, defaultValue );
     }
 
 
@@ -203,33 +217,4 @@ public class JsonForm
         return null;
     }
 
-    
-    // layout *********************************************
-    
-    private Composite lastLayoutElm = null;
-    
-    private Layout newLayout() {
-        if (lastLayoutElm != null) {
-            // close last element of the previous section
-            ((FormData)lastLayoutElm.getLayoutData()).bottom = new FormAttachment( 100, -2 );
-        }
-        lastLayoutElm = null;
-        return new FormLayout();
-    }
-    
-    private Composite setFieldLayoutData( Composite field ) {
-        assert field.getParent().getLayout() instanceof FormLayout;
-        
-        FormData layoutData = new FormData();
-        layoutData.left = new FormAttachment( 20, FIELD_SPACING_H );
-        layoutData.right = new FormAttachment( 80, -FIELD_SPACING_H );
-        layoutData.top = lastLayoutElm != null
-                ? new FormAttachment( lastLayoutElm, FIELD_SPACING_V )
-                : new FormAttachment( 0 );
-        field.setLayoutData( layoutData );
-        
-        lastLayoutElm = field;
-        return field;
-    }
-    
 }

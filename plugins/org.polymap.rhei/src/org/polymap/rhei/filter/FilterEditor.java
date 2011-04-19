@@ -12,36 +12,24 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.filter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
+
+import java.security.Principal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
-import org.eclipse.jface.window.Window;
+import org.eclipse.core.runtime.ListenerList;
 
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.forms.widgets.FormToolkit;
-
-import org.polymap.core.data.DataPlugin;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
 import org.polymap.rhei.RheiPlugin;
@@ -49,219 +37,249 @@ import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormField;
 import org.polymap.rhei.field.IFormFieldListener;
 import org.polymap.rhei.field.IFormFieldValidator;
+import org.polymap.rhei.field.NullValidator;
 import org.polymap.rhei.form.IFormEditorToolkit;
 import org.polymap.rhei.internal.DefaultFormFieldDecorator;
 import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 import org.polymap.rhei.internal.filter.FilterFieldComposite;
-import org.polymap.rhei.internal.form.FormEditorToolkit;
 
 /**
- * Provides a standard UI for filters. This class can be used by subclasses if
- * {@link IFilter} to provide a standard filter dialog.
+ * Provides a standard UI for filters. This class can be used by subclasses of
+ * {@link IFilter} to provide a standard {@link FilterDialog} or {@link FilterView}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
-public abstract class FilterEditor {
+public abstract class FilterEditor
+        implements IFilterEditorSite, IFormFieldListener {
 
     private static Log log = LogFactory.getLog( FilterEditor.class );
 
-    private IFormEditorToolkit          toolkit;
+    /** Saved values from last dialog run for each user. */
+    static Map<Principal,Map<String,Object>> defaultValues = new WeakHashMap();
     
-    private FilterEditorDialog          dialog;
+    private IFormEditorToolkit              toolkit;
     
-    private Map<String,FilterFieldComposite>  fields = new HashMap();
+    private Map<String,FilterFieldComposite> fields = new HashMap();
     
-    private Map<String,Object>          fieldValues = new HashMap();
+    private Map<String,Object>              fieldValues = new HashMap();
     
-    private Composite                   layoutLast;
+    private boolean                         isValid = true;
     
+    private boolean                         isDirty = false;
+    
+    /** Listeners of type {@link IFormFieldListener}. */
+    private ListenerList                    listeners = new ListenerList( ListenerList.IDENTITY );
+
     
     public FilterEditor() {
     }
 
     
-    /**
-     *
-     * @return
-     */
-    protected abstract Composite createControl( Composite parent, IFilterEditorSite site );
+//    /**
+//     *
+//     * @return
+//     */
+//    protected abstract Composite createControl( Composite parent );
     
-
-    /**
-     * Opens a modal dialog.
-     * 
-     * @return {@link Window#OK} or {@link Window#OK}. 
-     */
-    public int openDialog() {
-        try {
-            dialog = new FilterEditorDialog();
-
-            toolkit = new FormEditorToolkit( new FormToolkit( dialog.getParentShell().getDisplay() ) );
-            dialog.setBlockOnOpen( true );
-            return dialog.open();
+    public synchronized void dispose() {
+        for (FilterFieldComposite field : fields.values()) {
+            field.dispose();
         }
-        catch (Exception e) {
-            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Fehler beim Öffnen der Attributtabelle.", e );
-            return Window.CANCEL;
-        }
+        fields.clear();
+        fieldValues.clear();
+        listeners.clear();
+    }
+
+    public boolean isDirty() {
+        return isDirty;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public IFormEditorToolkit getToolkit() {
+        return toolkit;
     }
     
+    void setToolkit( IFormEditorToolkit toolkit ) {
+        this.toolkit = toolkit;
+    }
+    
+    
+    public Composite newFormField( Composite parent, String propName, Class propType, 
+            IFormField field, IFormFieldValidator validator ) {
+        return newFormField( parent, propName, propType, field, validator, null );
+    }
 
+    
+    public Composite newFormField( Composite parent, String propName, Class propType, 
+            IFormField field, IFormFieldValidator validator, String label ) {
+
+        final FilterFieldComposite fieldComposite = new FilterFieldComposite( 
+                toolkit, propName, propType, field, 
+                new DefaultFormFieldLabeler( label ), new DefaultFormFieldDecorator(), 
+                validator != null ? validator : new NullValidator() );
+
+        fieldComposite.addChangeListener( this );
+
+        fields.put( fieldComposite.getFieldName(), fieldComposite );
+
+        return fieldComposite.createComposite( parent, SWT.NONE );
+    }
+
+    
+    public abstract Composite createStandardLayout( Composite parent );
+    
+    public abstract void addStandardLayout( Composite composite );
+    
+//    public Composite createStandardLayout( Composite parent ) {
+//        Composite result = new Composite( parent, SWT.NONE );
+//        GridData gridData = new GridData( GridData.FILL_BOTH );
+//        gridData.grabExcessHorizontalSpace = true;
+//        result.setLayoutData( gridData );
+//
+//        layoutLast = null;
+//
+//        FormLayout layout = new FormLayout();
+//        layout.marginWidth = 10;
+//        layout.marginHeight = 10;
+//        result.setLayout( layout );
+//        return result;
+//    }
+//
+//    
+//    public void addStandardLayout( Composite composite ) {
+//        FormData data = new FormData();
+//        data.left = new FormAttachment( 0, 0 );
+//        data.right = new FormAttachment( 100, 0 );
+//        if (layoutLast != null) {
+//            data.top = new FormAttachment( layoutLast, 3 );
+//        }
+//        composite.setLayoutData( data );
+//        layoutLast = composite;
+//    }
+
+    
+    public void addFieldListener( IFormFieldListener listener ) {
+        listeners.add( listener );
+    }
+
+    
+    public void removeFieldListener( IFormFieldListener listener ) {
+        listeners.remove( listener );
+    }
+
+    
+    public void fieldChange( FormFieldEvent ev ) {
+        // record value
+        if (ev.getEventCode() == VALUE_CHANGE) {
+            fieldValues.put( ev.getFieldName(), ev.getNewValue() );
+            isDirty = true;
+        }
+        // check validity
+        isValid = true;
+        for (FilterFieldComposite fc : fields.values()) {
+            if (!fc.isValid()) {
+                isValid = false;
+                break;
+            }
+        }
+
+        // XXX a event scope is needed when registering for listener for field to distinguish
+        // between local event within that field or changes from other fields in the page or whole form
+
+        //                 // propagate event to all fields
+        //                 for (FormFieldComposite field : fields) {
+        //                     if (field.getFormField() != ev.getFormField()) {
+        //                         field.fireEvent( ev.getEventCode(), ev.getNewValue() );
+        //                     }
+        //                 }
+
+        for (Object l : listeners.getListeners()) {
+            ((IFormFieldListener)l).fieldChange( ev );
+        }
+    }
+
+    
     public Object getFieldValue( String propertyName ) {
         return fieldValues.get( propertyName );
     }
-    
 
     
-    /**
-     * 
-     */
-    class FilterEditorDialog
-            extends TitleAreaDialog
-            implements IFilterEditorSite {
+    protected void doSubmit() {
+        try {
+            // reset default values
+            Map<String,Object> userDefaults = new HashMap();
+            FilterEditor.defaultValues.put( Polymap.instance().getUser(), userDefaults );
 
-        private Composite           contents;
-        
+            // fieldValues are already filled in the event handler; we call store() method
+            // of the field anyway in order to keep the contract. Some form fields, for
+            // example BetweenFormField, provide a different value via the store value
+            for (FilterFieldComposite field : fields.values()) {
+                if (field.isDirty()) {
+                    field.getFormField().store();
 
-        public FilterEditorDialog() {
-            super( PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell() );
-            setShellStyle( getShellStyle() | SWT.RESIZE );
-        }
+                    String name = field.getFieldName();
+                    Object value = field.getValue();
+                    fieldValues.put( name, value );
 
-        public Shell getParentShell() {
-            return super.getParentShell();
-        }
-
-        public Composite getPageBody() {
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-        public IFormEditorToolkit getToolkit() {
-            return toolkit;
-        }
-
-        public Composite newFormField( Composite parent, String propName, Class propType, 
-                IFormField field, IFormFieldValidator validator ) {
-            return newFormField( parent, propName, propType, field, validator, null );
-        }
-        
-        public Composite newFormField( Composite parent, String propName, Class propType, 
-                IFormField field, IFormFieldValidator validator, String label ) {
-            
-            final FilterFieldComposite fieldComposite = new FilterFieldComposite( 
-                    toolkit, propName, propType, field, 
-                    new DefaultFormFieldLabeler( label ), new DefaultFormFieldDecorator(), 
-                    validator );
-            
-            fieldComposite.addChangeListener( new IFormFieldListener() {
-                public void fieldChange( FormFieldEvent ev ) {
-                    // record value
-                    if (ev.getEventCode() == VALUE_CHANGE) {
-                        fieldValues.put( fieldComposite.getFieldName(), ev.getNewValue() );
-                    }
-                    // check validity
-                    boolean valid = true;
-                    for (FilterFieldComposite fc : fields.values()) {
-                        if (!fc.isValid()) {
-                            valid = false;
-                            break;
-                        }
-                    }
-                    getButton( IDialogConstants.OK_ID ).setEnabled( valid );
-
-                    // FIXME propagate
-//                    for (FilterFieldComposite elm : fields.values()) {
-//                        if (elm != fieldComposite) {
-//                            elm.fireEvent( ev.getEventCode(), ev.getNewValue() );
-//                        }
-//                    }
+                    userDefaults.put( name, value );
                 }
-            });
-            
-            fields.put( fieldComposite.getFieldName(), fieldComposite );
-            
-            return fieldComposite.createComposite( parent, SWT.NONE );
-        }
-        
-        public Composite createStandardLayout( Composite parent ) {
-            Composite result = new Composite( parent, SWT.NONE );
-            GridData gridData = new GridData( GridData.FILL_BOTH );
-            gridData.grabExcessHorizontalSpace = true;
-            result.setLayoutData( gridData );
-
-            layoutLast = null;
-            
-            FormLayout layout = new FormLayout();
-            layout.marginWidth = 10;
-            layout.marginHeight = 10;
-            result.setLayout( layout );
-            return result;
-        }
-
-        public void addStandardLayout( Composite composite ) {
-            FormData data = new FormData();
-            data.left = new FormAttachment( 0, 0 );
-            data.right = new FormAttachment( 100, 0 );
-            if (layoutLast != null) {
-                data.top = new FormAttachment( layoutLast, 3 );
             }
-            composite.setLayoutData( data );
-            layoutLast = composite;
         }
-        
-        
-        // TitleAreaDialog ********************************
-        
-        protected Image getImage() {
-            return getShell().getDisplay().getSystemImage( SWT.ICON_QUESTION );
+        catch (Exception e) {
+            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, Messages.get( "FilterEditor_okError" ), e );
         }
+    }
 
-        protected Point getInitialSize() {
-//            return new Point( 350, 260 );
-            return super.getInitialSize();
-        }
+    
+    protected void doLoad() {
+        Map<String, Object> userDefaults = FilterEditor.defaultValues.get( Polymap.instance().getUser() );
+        if (userDefaults != null) {
 
-        protected Control createDialogArea( Composite parent ) {
-            Composite area = (Composite)super.createDialogArea( parent );
+            for (FilterFieldComposite fieldComposite : fields.values()) {
+                try {
+                    String propName = fieldComposite.getFieldName();
+                    Object defaultValue = userDefaults.get( propName );
 
-            setTitle( Messages.get( "FilterEditor_title" ) );
-            setMessage( Messages.get( "FilterEditor_description" ) );
-            
-            contents = createControl( area, this );
+                    if (defaultValue != null) {
+                        FilterEditor.log.debug( "   " + propName + ": " + defaultValue );
+                        fieldComposite.loadDefaultValue( defaultValue );
 
-            area.pack();
-            return area;
-        }
-
-
-        protected Control createButtonBar( Composite parent ) {
-            Control result = super.createButtonBar( parent );
-            getButton( IDialogConstants.OK_ID ).setEnabled( false );
-            return result;
-        }
-
-        protected void okPressed() {
-            try {
-                // fieldValues are already filled in the event handler; we call store() method
-                // of the field anyway in order to keep the contract. Some form fields, for
-                // example BetweenFormField, provide a different value via the store value
-                for (FilterFieldComposite field : fields.values()) {
-                    if (field.isDirty()) {
-                        field.getFormField().store();
-                        fieldValues.put( field.getFieldName(), field.getFieldValue() );
+                        fieldValues.put( propName, defaultValue );
                     }
                 }
-
-                if (!fieldValues.isEmpty()) {
-                    super.okPressed();
+                catch (Exception e) {
+                    FilterEditor.log.warn( e, e );
                 }
+            }
+        }
+        isDirty = false;
+    }
+
+    
+    protected void doReset() {
+        FilterEditor.defaultValues.remove( Polymap.instance().getUser() );
+
+        for (FilterFieldComposite fieldComposite : fields.values()) {
+            try {
+                String propName = fieldComposite.getFieldName();
+                fieldComposite.loadDefaultValue( null );
+
+                fieldValues.put( propName, null );
             }
             catch (Exception e) {
-                PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, Messages.get( "FilterEditor_okError" ), e );
+                FilterEditor.log.warn( e, e );
             }
         }
-
+        isDirty = false;
+        isValid = true;
     }
     
+
+    public Composite getPageBody() {
+        throw new RuntimeException( "not implemented." );
+    }
+
 }

@@ -37,8 +37,11 @@ public interface IFormFieldSite {
 //    public Class getFieldType();
 
     /**
-     * Returns the current value of this field from the backend store. This can
-     * be used to initialize or {@link IFormField#load()} the state of the UI.
+     * Returns the current value of this field from the backend store. The value
+     * is transformed via {@link IFormFieldValidator#transform2Field(Object)} in
+     * order to represent the value type corresponding to the particular
+     * {@link IFormField}.So this method can be used to initialize or
+     * {@link IFormField#load()} the state of the UI.
      * 
      * @throws Exception When the value could not be validated/transformed with
      *         the {@link IFormFieldValidator} of this field.
@@ -48,8 +51,10 @@ public interface IFormFieldSite {
 
 
     /**
-     * Changes the value of this field as the result of a submit action. This
-     * should be called by {@link IFormField#store()}.
+     * Changes the value of this field as the result of a submit action. The
+     * value is transformed via
+     * {@link IFormFieldValidator#transform2Model(Object)}. This method should
+     * be called by {@link IFormField#store()}.
      * 
      * @throws Exception When the value could not be validated/transformed with
      *         the {@link IFormFieldValidator} of this field.
@@ -75,12 +80,12 @@ public interface IFormFieldSite {
     
     public IFormEditorToolkit getToolkit();
     
-    public void showMessage();
-    
     /**
      *
      * @return The current error message, or null if no error.
      */
     public String getErrorMessage();
+
+    public void setErrorMessage( String msg );
     
 }

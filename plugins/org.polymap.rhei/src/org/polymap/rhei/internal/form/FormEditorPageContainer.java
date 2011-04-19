@@ -12,8 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.internal.form;
 
@@ -31,6 +29,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.Separator;
 
+import org.eclipse.ui.forms.FormDialog;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormPage;
 
@@ -55,9 +54,11 @@ import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 
 /**
  * 
- *
+ * @deprecated This is the first version of a Form Page container. It is used in
+ *             {@link FormEditor} only. Another version exists as
+ *             {@link AbstractFormEditorPageContainer}, which is used in
+ *             {@link FormDialog}. Should be refactored into one code base.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public class FormEditorPageContainer
         extends FormPage
@@ -100,7 +101,17 @@ public class FormEditorPageContainer
     public void removeFieldListener( IFormFieldListener l ) {
         listeners.remove( l );    
     }
+
+    /*
+     * Called from page provider client code.
+     */
+    public void fireEvent( Object source, String fieldName, int eventCode, Object newValue ) {
+        fieldChange( new FormFieldEvent( source, fieldName, null, eventCode, null, newValue ) );
+    }
     
+    /*
+     * Called from form fields.
+     */
     public void fieldChange( FormFieldEvent ev ) {
 // XXX a event scope is needed when registering for listener for field to distinguish
 // between local event within that field or changes from other fields in the page or whole form
@@ -249,9 +260,9 @@ public class FormEditorPageContainer
     }
 
     public Composite newFormField( Composite parent, Property prop, IFormField field, IFormFieldValidator validator, String label ) {
-        FormFieldComposite result = new FormFieldComposite( getToolkit(),
-                prop, field,
-                new DefaultFormFieldLabeler( label ), new DefaultFormFieldDecorator(), validator != null ? validator : new NullValidator() );
+        FormFieldComposite result = new FormFieldComposite( getToolkit(), prop, field,
+                new DefaultFormFieldLabeler( label ), new DefaultFormFieldDecorator(), 
+                validator != null ? validator : new NullValidator() );
         fields.add( result );
         
         result.addChangeListener( this );
@@ -277,7 +288,11 @@ public class FormEditorPageContainer
             }
         }
         throw new RuntimeException( "No such field: " + fieldName );
-        
+    }
+    
+    public void reloadEditor()
+    throws Exception {
+        ((FormEditor)getEditor()).doLoad( new NullProgressMonitor() );
     }
 
 }

@@ -474,6 +474,39 @@ public abstract class QiModule
         return query;
     }
     
+
+    /**
+     * 
+     * @param <T>
+     * @param compositeType
+     * @param expression The query, or null if all entities are to be fetched.
+     * @param firstResult The first result index, 0 by default.
+     * @param maxResults The maximum number of entities in the result; -1
+     *        signals that there si no limit.
+     * @return The newly created query.
+     */
+    public <T> Query<T> findEntities( Class<T> compositeType, BooleanExpression expression,
+            int firstResult, int maxResults ) {
+        if (maxResults < 0) {
+            maxResults = DEFAULT_MAX_RESULTS;
+        }
+        if (maxResults > DEFAULT_MAX_RESULTS) {
+            maxResults = DEFAULT_MAX_RESULTS;
+        }
+        
+        QueryBuilder<T> builder = assembler.getModule()
+                .queryBuilderFactory().newQueryBuilder( compositeType );
+        
+        builder = expression != null 
+                ? builder.where( expression ) 
+                : builder;
+        
+        Query<T> query = builder.newQuery( uow )
+                .maxResults( maxResults )
+                .firstResult( firstResult );
+        return query;
+    }
+    
     /**
      * Creates a new operation of the given type.
      * <p>

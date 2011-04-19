@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormField;
@@ -38,7 +39,6 @@ import org.polymap.rhei.field.NullValidator;
 import org.polymap.rhei.form.IFormEditorPage;
 import org.polymap.rhei.form.IFormEditorPage2;
 import org.polymap.rhei.form.IFormEditorPageSite;
-import org.polymap.rhei.form.IFormEditorToolkit;
 import org.polymap.rhei.internal.DefaultFormFieldDecorator;
 import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 
@@ -46,7 +46,6 @@ import org.polymap.rhei.internal.DefaultFormFieldLabeler;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public abstract class AbstractFormEditorPageContainer
         implements IFormEditorPageSite, IFormFieldListener {
@@ -84,6 +83,15 @@ public abstract class AbstractFormEditorPageContainer
     public void removeFieldListener( IFormFieldListener l ) {
         listeners.remove( l );    
     }
+
+    
+    /*
+     * Called from page provider client code.
+     */
+    public void fireEvent( Object source, String fieldName, int eventCode, Object newValue ) {
+        fieldChange( new FormFieldEvent( source, fieldName, null, eventCode, null, newValue ) );
+    }
+    
     
     
     public void fieldChange( FormFieldEvent ev ) {
@@ -217,6 +225,12 @@ public abstract class AbstractFormEditorPageContainer
         }
         throw new RuntimeException( "No such field: " + fieldName );
         
+    }
+
+    
+    public void reloadEditor()
+    throws Exception {
+        doLoad( new NullProgressMonitor() );
     }
 
 }

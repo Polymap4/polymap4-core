@@ -19,6 +19,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
@@ -38,8 +40,7 @@ import org.polymap.rhei.internal.form.FormEditorToolkit;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version POLYMAP3
- * @since 3.0
+ * @since 1.0
  */
 public class FormEditorDialog
         extends TitleAreaDialog {
@@ -61,11 +62,39 @@ public class FormEditorDialog
     }
 
     
+    protected void okPressed() {
+        log.debug( "okPressed() ..." );
+        try {
+            pageContainer.doSubmit( new NullProgressMonitor() );
+            pageContainer.dispose();
+
+            super.okPressed();
+        }
+        catch (Exception e) {
+            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Werte konnten nicht gespeichert werden.", e );
+        }
+    }
+
+
+    protected void cancelPressed() {
+        pageContainer.dispose();
+    }
+
+
     protected Control createDialogArea( Composite parent ) {
         Composite result = (Composite)super.createDialogArea( parent );
         toolkit = new FormEditorToolkit( new FormToolkit( getParentShell().getDisplay() ) );
         
-        pageBody = toolkit.createComposite( result );
+        // make margins
+        Composite container = new Composite( parent, SWT.NONE );
+        container.setLayoutData( new GridData( GridData.FILL_BOTH ) );
+        GridLayout gl = new GridLayout();
+        gl.marginWidth = 5;
+        gl.marginHeight = 0;
+        container.setLayout( gl );
+
+        pageBody = new Composite( container, SWT.NONE );
+        pageBody.setLayoutData( new GridData( GridData.FILL_BOTH ) );
         
         pageContainer.createContent();
         try {
@@ -94,6 +123,8 @@ public class FormEditorDialog
 //            form.getForm().getToolBarManager().appendToGroup( "__standardPageActions__", action );
 //        }
 //        form.getForm().getToolBarManager().update( true );
+        
+        result.pack();
         return result;
     }
 

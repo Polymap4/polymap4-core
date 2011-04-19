@@ -46,13 +46,14 @@ public class FilterContentProvider
         // filters
         else if (elm instanceof FiltersFolderItem) {
             FiltersFolderItem folder = (FiltersFolderItem)elm;
-//            FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
-//            Filter filter = ff.propertyGreaterThan( ff.property( "POPULATION"), ff.literal( 12 ) );
 
             // extensions
             List<IFilter> result = new ArrayList();
             for (FilterProviderExtension ext : FilterProviderExtension.allExtensions()) {
                 try {
+                    // FIXME IFilter is stateful but currently the same IFilter might be subject
+                    // to subsequent openDialog/View... request! Creating IFilter instances with
+                    // every getChildren() here might help but does not cure the problem
                     List<IFilter> filters = ext.newFilterProvider().addFilters( folder.getLayer() );
                     if (filters != null) {
                         result.addAll( filters );
@@ -61,23 +62,6 @@ public class FilterContentProvider
                 catch (Exception e) {
                     PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );                }
             }
-            
-//            TransientFilter allFilter = new TransientFilter( 
-//                    "__allFilter__", folder.getLayer(),
-//                    "Alle", null, Filter.INCLUDE, Long.MAX_VALUE );
-//            
-//            TransientFilter myFilter = new TransientFilter( 
-//                    "__myFilter__", folder.getLayer(),
-//                    "Meine offenen...", null, Filter.INCLUDE, Long.MAX_VALUE );
-//            
-//            TransientFilter _2010Filter = new TransientFilter( 
-//                    "__2010Filter__", folder.getLayer(),
-//                    "2010...", null, Filter.INCLUDE, Long.MAX_VALUE );
-//            
-//            TransientFilter _2009Filter = new TransientFilter( 
-//                    "__2009Filter__", folder.getLayer(),
-//                    "2009...", null, Filter.INCLUDE, Long.MAX_VALUE );
-            
             return result.toArray();            
         }
         return null;
