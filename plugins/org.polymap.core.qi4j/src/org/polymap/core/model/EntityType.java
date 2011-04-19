@@ -33,7 +33,7 @@ public interface EntityType {
 
     public String getName();
     
-    public Class getType();
+    public Class<? extends Entity> getType();
     
     public Collection<Property> getProperties();
     
@@ -47,7 +47,7 @@ public interface EntityType {
         
         public String getName();
         
-        public Type getType();
+        public Class getType();
 
         public Object getValue( Entity entity ) 
         throws Exception;

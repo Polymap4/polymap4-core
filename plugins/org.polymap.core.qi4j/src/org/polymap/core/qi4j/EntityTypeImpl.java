@@ -23,7 +23,11 @@ import java.util.Map;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
@@ -37,6 +41,8 @@ import org.polymap.core.model.EntityType;
  */
 class EntityTypeImpl
         implements EntityType {
+
+    private static final Log log = LogFactory.getLog( EntityTypeImpl.class );
 
     private Class<? extends Entity>     type;
     
@@ -55,7 +61,7 @@ class EntityTypeImpl
         return type.getName();
     }
 
-    public Class getType() {
+    public Class<? extends Entity> getType() {
         return type;
     }
 
@@ -71,7 +77,7 @@ class EntityTypeImpl
         return checkInitProps().get( name );
     }
 
-    protected Map<String,Property> checkInitProps() {
+    private Map<String,Property> checkInitProps() {
         if (props == null) {
             props = new HashMap();
             assocs = new HashMap();
@@ -85,7 +91,8 @@ class EntityTypeImpl
                         id = prop;
                     }
                     // ommit internal computed properties
-                    else if (!m.getDeclaringClass().equals( Entity.class )) {
+                    else if (!m.getDeclaringClass().equals( Entity.class )
+                            && prop.isValidType()) {
                         props.put( prop.getName(), prop );
                     }
                 }
@@ -119,8 +126,20 @@ class EntityTypeImpl
             
         }
 
-        public Type getType() {
-            return m.getGenericReturnType();
+        public boolean isValidType() {
+            try {
+                getType();
+                return true;
+            }
+            catch (Exception e) {
+                log.info( "no valid type: " + e.getMessage() );
+                return false;
+            }
+        }
+        
+        public Class getType() {
+            ParameterizedType propType = (ParameterizedType)m.getGenericReturnType();
+            return (Class)propType.getActualTypeArguments()[0];
         }
         
         public Object getValue( Entity entity ) 

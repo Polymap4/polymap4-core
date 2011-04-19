@@ -215,10 +215,13 @@ public class IProcessInfo {
     }
 
     public Map<String, Parameter< ? >> getInputs() {
-        return this.processFactory.getParameterInfo();
+        throw new RuntimeException( "XXX _p3: not yet migrated code" );
+        // XXX
+        //return this.processFactory.getParameterInfo();
     }
 
     public Map<String, Parameter< ? >> getOutputs() {
-        return this.processFactory.getResultInfo(null);
+        throw new RuntimeException( "XXX _p3: not yet migrated code" );
+        //return this.processFactory.getResultInfo(null);
     }
 }

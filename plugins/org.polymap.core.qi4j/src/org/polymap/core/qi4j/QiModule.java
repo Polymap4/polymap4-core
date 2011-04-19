@@ -33,6 +33,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.qi4j.api.entity.Identity;
+import org.qi4j.api.query.Query;
+import org.qi4j.api.query.QueryBuilder;
+import org.qi4j.api.query.grammar.BooleanExpression;
 import org.qi4j.api.unitofwork.ConcurrentEntityModificationException;
 import org.qi4j.api.unitofwork.EntityTypeNotFoundException;
 import org.qi4j.api.unitofwork.NoSuchEntityException;
@@ -81,6 +84,8 @@ public abstract class QiModule
 
     private static Log log = LogFactory.getLog( QiModule.class );
     
+    public static final int             DEFAULT_MAX_RESULTS = 10000000;  
+
     private static GlobalEntityVersions  globalEntityVersions = new GlobalEntityVersions(); 
 
     private static GlobalEntityChangeSets globalEntityChangeSets = new GlobalEntityChangeSets(); 
@@ -436,6 +441,39 @@ public abstract class QiModule
     public <T> T findEntity( Class<T> type, String id ) {
         return uow.get( type, id );
     }
+
+    /**
+     * 
+     * @param <T>
+     * @param compositeType
+     * @param expression The query, or null if all entities are to be fetched.
+     * @param firstResult The first result index, 0 by default.
+     * @param maxResults The maximum number of entities in the result; -1
+     *        signals that there si no limit.
+     * @return The newly created query.
+     */
+    public <T> Query<T> findEntities( Class<T> compositeType, BooleanExpression expression,
+            int firstResult, int maxResults ) {
+        if (maxResults < 0) {
+            maxResults = DEFAULT_MAX_RESULTS;
+        }
+        if (maxResults > DEFAULT_MAX_RESULTS) {
+            maxResults = DEFAULT_MAX_RESULTS;
+        }
+        
+        QueryBuilder<T> builder = assembler.getModule()
+                .queryBuilderFactory().newQueryBuilder( compositeType );
+        
+        builder = expression != null 
+                ? builder.where( expression ) 
+                : builder;
+        
+        Query<T> query = builder.newQuery( uow )
+                .maxResults( maxResults )
+                .firstResult( firstResult );
+        return query;
+    }
+    
 
     /**
      * Creates a new operation of the given type.
