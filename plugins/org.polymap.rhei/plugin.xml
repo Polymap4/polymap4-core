@@ -24,6 +24,15 @@
             name="Console"
             restorable="true">
       </view>
+      <view
+            allowMultiple="true"
+            category="org.polymap.rhei.ViewsCategory"
+            class="org.polymap.rhei.filter.FilterView"
+            icon="icons/eview16/filter_view.gif"
+            id="org.polymap.rhei.FilterView"
+            name="%FilterView_name"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.editors">
@@ -87,7 +96,7 @@
       <navigatorContent
             activeByDefault="true"
             contentProvider="org.polymap.rhei.internal.filter.FilterContentProvider"
-            icon="icons/elcl16/filter_ps.gif"
+            icon="icons/etool16/search.gif"
             id="org.polymap.rhei.filter.FilterContent"
             labelProvider="org.polymap.rhei.internal.filter.FilterLabelProvider"
             name="%FilterContent_name">
@@ -127,6 +136,15 @@
                tooltip="%actions_newFormTip">
          </action-->
          <action
+               class="org.polymap.rhei.internal.csv.DownloadCSVAction"
+               icon="icons/etool16/export_csv.gif"
+               id="org.polymap.rhei.DownloadCsvAction"
+               label="%actions_downloadCsv"
+               style="push"
+               toolbarPath="rhei"
+               tooltip="%actions_downloadCsvTip">
+         </action>
+         <action
                class="org.polymap.rhei.internal.form.OpenFormAction"
                enablesFor="+"
                icon="icons/etool16/open_form_editor.gif"
@@ -162,6 +180,14 @@
             id="org.polymap.rhei.form.StandardPageProvider"
             name="StandardPageProvider">
       </pageProvider>
+   </extension>
+   <extension
+         point="org.polymap.core.http.servlets">
+      <servlet
+            class="org.polymap.rhei.internal.csv.CsvServlet"
+            name="CsvServlet"
+            path="/csv">
+      </servlet>
    </extension>
 
 </plugin>

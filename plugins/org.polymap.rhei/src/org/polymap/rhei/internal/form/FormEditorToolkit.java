@@ -59,7 +59,7 @@ public class FormEditorToolkit
 
     private FormToolkit         delegate;
 
-    private Color               textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
+    public Color                textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
     
     private Color               labelForeground = Graphics.getColor( 0x70, 0x70, 0x70 );
     
@@ -159,7 +159,11 @@ public class FormEditorToolkit
     }
 
     public Combo createCombo( Composite parent, Set<String> values ) {
-        Combo combo = new Combo( parent, SWT.DROP_DOWN );
+        return createCombo( parent, values, SWT.DROP_DOWN );
+    }
+
+    public Combo createCombo( Composite parent, Set<String> values, int style ) {
+        Combo combo = new Combo( parent, style );
         delegate.adapt( combo );
         combo.setBackground( textBackground );
         combo.setData( WidgetUtil.CUSTOM_VARIANT, "formeditor" );

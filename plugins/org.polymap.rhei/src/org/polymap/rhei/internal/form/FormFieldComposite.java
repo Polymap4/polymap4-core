@@ -70,7 +70,11 @@ public class FormFieldComposite
     
     private boolean                 isDirty = false;
     
+    /** The current error, externally set or returned by the validator. */
     private String                  errorMsg;
+    
+    /** Error message set by {@link #setErrorMessage(String)} */
+    private String                  externalErrorMsg;
     
 
     public FormFieldComposite( IFormEditorToolkit toolkit,
@@ -92,7 +96,7 @@ public class FormFieldComposite
         // label
         labeler.init( this );
         Control labelControl = labeler.createControl( result, toolkit );
-        FormData layoutData = new FormData( 100, SWT.DEFAULT );
+        FormData layoutData = new FormData( labeler.getMaxWidth(), SWT.DEFAULT );
         layoutData.left = new FormAttachment( 0 );
         layoutData.top = new FormAttachment( 0, 3 );
         labelControl.setLayoutData( layoutData );
@@ -201,10 +205,12 @@ public class FormFieldComposite
     }
     
     public void fireEvent( Object source, int eventCode, Object newValue ) {
-        Object transformedNewValue = null;
+        Object validatedNewValue = null;
 
+        errorMsg = externalErrorMsg;
+        
         // check isDirty / validator
-        if (eventCode == IFormFieldListener.VALUE_CHANGE) {
+        if (eventCode == IFormFieldListener.VALUE_CHANGE && errorMsg == null) {
             if (validator != null) {
                 errorMsg = validator.validate( newValue );
             }
@@ -219,7 +225,7 @@ public class FormFieldComposite
                                 value != null && newValue == null ||
                                 !value.equals( newValue );
                     }
-                    transformedNewValue = validator.transform2Model( newValue );
+                    validatedNewValue = validator.transform2Model( newValue );
                 }
                 catch (Exception e) {
                     // XXX hmmm... what to do?
@@ -228,7 +234,7 @@ public class FormFieldComposite
             }
         }
         // propagate
-        FormFieldEvent ev = new FormFieldEvent( source, getFieldName(), field, eventCode, null, transformedNewValue );
+        FormFieldEvent ev = new FormFieldEvent( source, getFieldName(), field, eventCode, null, validatedNewValue );
         for (Object l : listeners.getListeners()) {
             ((IFormFieldListener)l).fieldChange( ev );
         }
@@ -238,9 +244,8 @@ public class FormFieldComposite
         return errorMsg;
     }
 
-    public void showMessage() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void setErrorMessage( String msg ) {
+        externalErrorMsg = msg;
     }
 
 }

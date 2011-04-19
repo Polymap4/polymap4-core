@@ -210,6 +210,11 @@ public class ScriptEditor
 //            doSave( new NullProgressMonitor() );
 
             ICalculator calculator = CalculatorSupport.instance().newCalculator( text.getText(), input.getLang() );
+            if (calculator == null) {
+                PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, ScriptEditor.this, 
+                        "No such calculator support for language: " + input.getLang(), new Exception() );
+                return;
+            }
             
             ConsoleView console = ConsoleView.open();
             console.clear();

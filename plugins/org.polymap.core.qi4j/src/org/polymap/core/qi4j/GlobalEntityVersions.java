@@ -47,6 +47,9 @@ public class GlobalEntityVersions {
     
     /** 
      * This holds the last commited version of the entities.
+     * <p>
+     * XXX If an entity is no longer used by any session than it should be deleted from
+     * this index in order to save memory.
      */
     private Map<String,Integer>     entityVersions = new HashMap();
 

@@ -21,10 +21,12 @@ import java.util.Set;
 
 import org.opengis.filter.Filter;
 
+import org.eclipse.swt.widgets.Composite;
+
 import org.polymap.core.project.ILayer;
 
 /**
- * 
+ * Simple filter without UI. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
@@ -55,7 +57,7 @@ public class TransientFilter
         this.maxResults = maxResults;
     }
 
-    public String id() {
+    public String getId() {
         return id;
     }
 
@@ -67,8 +69,16 @@ public class TransientFilter
         return label;
     }
 
-    public Filter createFilter() {
+    public Filter createFilter( IFilterEditorSite site ) {
         return filter;
+    }
+
+    public boolean hasControl() {
+        return false;
+    }
+
+    public Composite createControl( Composite parent, IFilterEditorSite site ) {
+        throw new RuntimeException( "not implemented." );
     }
 
     public long getMaxResults() {

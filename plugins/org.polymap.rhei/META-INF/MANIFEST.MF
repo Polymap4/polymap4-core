@@ -28,5 +28,6 @@ Export-Package: org.polymap.rhei,
  org.polymap.rhei.model,
  org.polymap.rhei.navigator
 Bundle-ClassPath: lib/bsh-2.0b4.jar,
+ lib/SuperCSV-1.52.jar,
  .
 

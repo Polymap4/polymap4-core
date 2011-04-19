@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -42,7 +43,10 @@ import org.polymap.rhei.model.ConstantWithSynonyms;
 
 /**
  * 
- *
+ * <p/>
+ * By default the {@link #setForceTextMatch(boolean)} is set to true, and
+ * {@link #setTextEditable(boolean)} is set to false.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
  */
@@ -51,11 +55,17 @@ public class PicklistFormField
 
     private static Log log = LogFactory.getLog( PicklistFormField.class );
 
+    public static final int         FORCE_MATCH = 1;
+    
+    public static final int         TEXT_EDITABLE = 2;
+    
     private IFormFieldSite          site;
     
     private Combo                   combo;
     
-    private int                     comboStyle = SWT.None;
+    private boolean                 textEditable = false;
+
+    private boolean                 forceTextMatch = true;
     
     private LabelProvider           labelProvider = new LabelProvider();
 
@@ -88,8 +98,13 @@ public class PicklistFormField
     }
 
     
-    public PicklistFormField() {
+    public PicklistFormField( int... flags ) {
+        if (flags.length > 0) {
+            setTextEditable( ArrayUtils.contains( flags, TEXT_EDITABLE ) );
+            setForceTextMatch( ArrayUtils.contains( flags, FORCE_MATCH ) );
+        }
     }
+    
     
     /**
      * The given strings are used as label in the combo and as value to
@@ -97,7 +112,21 @@ public class PicklistFormField
      *  
      * @param values
      */
-    public PicklistFormField( Iterable<String> values ) {
+    public PicklistFormField( Iterable<String> values, int... flags ) {
+        this( flags );
+        for (String value : values) {
+            this.values.put( value, value );
+        }
+    }
+
+    /**
+     * The given strings are used as label in the combo and as value to
+     * be stored in the property.
+     *  
+     * @param values
+     */
+    public PicklistFormField( String[] values, int... flags ) {
+        this( flags );
         for (String value : values) {
             this.values.put( value, value );
         }
@@ -108,19 +137,27 @@ public class PicklistFormField
      * @param values Maps labels into property values
      */
     public PicklistFormField( Map<String,Object> values ) {
+        setForceTextMatch( true );
+        setTextEditable( false );
+
         this.values.putAll( values );
     }
 
     public PicklistFormField( ConstantWithSynonyms.Type<? extends ConstantWithSynonyms,String> constants ) {
+        setForceTextMatch( true );
+        setTextEditable( false );
+        
         for (ConstantWithSynonyms constant : constants) {
             this.values.put( (String)constant.label, constant.id );
         }
     }
 
+    
     public void init( IFormFieldSite _site ) {
         this.site = _site;
     }
 
+    
     public void dispose() {
     }
 
@@ -143,15 +180,26 @@ public class PicklistFormField
      * This method can be called only while initializing before the widget has
      * been created.
      */
-    public void setTextEditable( boolean editable ) {
-        assert combo == null : "Method can be called only before the widget has been created.";
-        comboStyle = !editable
-            ? comboStyle | SWT.READ_ONLY
-            : comboStyle & ~SWT.READ_ONLY;
+    public void setTextEditable( boolean textEditable ) {
+        this.textEditable = textEditable;
     }
-            
+
+    
+    /**
+     * If true, then the current text of the {@link #combo} is returned only if
+     * it matches one of the labels. Otherwise the text is returned as is.
+     */
+    public void setForceTextMatch( boolean forceTextMatch ) {
+        this.forceTextMatch = forceTextMatch;    
+    }
+    
+    
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
-        combo = toolkit.createCombo( parent, Collections.EMPTY_SET );
+        int comboStyle = SWT.DROP_DOWN;
+        comboStyle = !textEditable 
+                ? comboStyle | SWT.READ_ONLY
+                : comboStyle & ~SWT.READ_ONLY;
+        combo = toolkit.createCombo( parent, Collections.EMPTY_SET, comboStyle );
         
         //
         for (ModifyListener l : modifyListeners) {
@@ -166,10 +214,21 @@ public class PicklistFormField
         // modify listener
         combo.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent ev ) {
-                // assume text is a label: try to find a value for it 
-                Object value = values.get( combo.getText() );
+                Object value = getValue();
                 log.debug( "modifyEvent(): combo= " + combo.getText() + ", value= " + value );
-                site.fireEvent( PicklistFormField.this, IFormFieldListener.VALUE_CHANGE, value ); 
+                
+                if (forceTextMatch && combo.getText().length() > 0 && value == null) {
+                    site.setErrorMessage( "Wert entspricht keiner der Vorgaben: " + combo.getText() );
+                }
+                else {
+                    site.setErrorMessage( null );
+                }
+                // null ist not allowed as text of the combo, so if the loadedValue was null,
+                // then map "" value to null; otherwise the world would see that value as changed
+                if (value != null && value.equals( "" ) && loadedValue == null) {
+                    value = null;
+                }
+                site.fireEvent( PicklistFormField.this, IFormFieldListener.VALUE_CHANGE, value );
             }
         });
         // selection listener
@@ -204,21 +263,44 @@ public class PicklistFormField
         return combo;
     }
 
+    
     public void setEnabled( boolean enabled ) {
         combo.setEnabled( enabled );
     }
 
+
     public void setValue( Object value ) {
-        if (value != null) {
+        combo.setText( "" );
+        combo.deselectAll();
+
+        if (forceTextMatch && value != null) {
             // find label for given value
             for (Map.Entry<String,Object> entry : values.entrySet()) {
                 if (value.equals( entry.getValue() )) {
                     combo.setText( entry.getKey() );
+                    break;
                 }
             }
         }
+        else {
+            combo.setText( value != null ? (String)value : "" );
+        }
     }
 
+    
+    /**
+     * Returns the current value depending on the {@link #forceTextMatch} flag.
+     * If true, then the current text of the {@link #combo} is returned only if
+     * it matches one of the labels. Otherwise the text is returned as is.
+     * 
+     * @return
+     */
+    protected Object getValue() {
+        String text = combo.getText();
+        return forceTextMatch ? values.get( text ) : text; 
+    }
+    
+    
     public void load() throws Exception {
         assert combo != null : "Control is null, call createControl() first.";
         
@@ -235,8 +317,7 @@ public class PicklistFormField
     }
 
     public void store() throws Exception {
-        Object value = values.get( combo.getText() );
-        site.setFieldValue( value );
+        site.setFieldValue( getValue() );
     }
 
 }

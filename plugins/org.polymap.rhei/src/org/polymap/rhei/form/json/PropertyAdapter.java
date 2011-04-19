@@ -20,8 +20,6 @@ package org.polymap.rhei.form.json;
 import java.util.Map;
 
 import org.geotools.feature.NameImpl;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
@@ -35,27 +33,26 @@ import org.opengis.feature.type.PropertyType;
  * @version POLYMAP3 ($Revision:$)
  * @since 3.0
  */
-class PropertyAdapter
+public class PropertyAdapter
         implements Property {
 
-    private JSONObject              delegate;
-
+    private String      name;
     
-    public PropertyAdapter( JSONObject field_json ) {
-        this.delegate = field_json;
+    private Object      value;
+    
+    private Object      defaultValue;
+    
+    
+    
+    public PropertyAdapter( String name, Object defaultValue ) {
+        super();
+        this.name = name;
+        this.defaultValue = defaultValue;
+        this.value = defaultValue;
     }
 
-    protected JSONObject delegate() {
-        return delegate;    
-    }
-    
     public Name getName() {
-        try {
-            return new NameImpl( delegate.getString( "name" ) );
-        }
-        catch (JSONException e) {
-            throw new RuntimeException( "JSON form does not contain field: " + e, e );
-        }
+        return new NameImpl( name );
     }
 
     public PropertyType getType() {
@@ -69,16 +66,11 @@ class PropertyAdapter
     }
 
     public Object getValue() {
-        return delegate.opt( "value" );
+        return value;
     }
 
     public void setValue( Object value ) {
-        try {
-            delegate.put( "value", value );
-        }
-        catch (JSONException e) {
-            throw new RuntimeException( "JSON form does not contain field: " + e, e );
-        }
+        this.value = value;
     }
 
     public Map<Object, Object> getUserData() {

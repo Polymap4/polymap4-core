@@ -12,8 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.internal.filter;
 
@@ -21,54 +19,69 @@ import org.opengis.filter.Filter;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.ui.featureTable.GeoSelectionView;
 import org.polymap.core.geohub.GeoHub;
 import org.polymap.core.geohub.event.GeoEvent;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
+import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.filter.IFilter;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public class OpenFilterAction
         extends Action
         implements IAction {
 
-    private IFilter             filter;
+    protected IFilter             filter;
     
     
     OpenFilterAction( IFilter filter ) {
-        super( Messages.get( "OpenFilterAction_name" ) );
-        setToolTipText( Messages.get( "OpenFilterAction_tip" ) );
+        super();
         this.filter = filter;
+        setText( Messages.get( "OpenFilterAction_name" ) );
+        setToolTipText( Messages.get( "OpenFilterAction_tip" ) );
+        setImageDescriptor( ImageDescriptor.createFromURL( 
+                RheiPlugin.getDefault().getBundle().getResource( "icons/etool16/search.gif" ) ) );
     }
 
+    
     public void run() {
+        assert !filter.hasControl();
         try {
-            Filter filterFilter = filter.createFilter();
-
+            Filter filterFilter = filter.createFilter( null );
             if (filterFilter != null) {
-                // ensure that the view is shown
-                // XXX allow search when incremental search is there
-                GeoSelectionView view = GeoSelectionView.open( filter.getLayer(), false );
-                
-                // emulate a selection event so that the view can handle it
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-                        filter.getLayer().getMap().getLabel(), 
-                        filter.getLayer().getGeoResource().getIdentifier().toURI() );
-                event.setFilter( filterFilter );
-                GeoHub.instance().send( event );
+                showResults( filter.getLayer(), filterFilter );
             }
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Fehler beim Öffnen der Attributtabelle.", e );
+            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Fehler beim Suchen und Öffnen der Ergebnistabelle.", e );
         }
     }
 
+    
+    public static void showResults( ILayer layer, Filter filter ) 
+    throws Exception {
+        if (filter == null) {
+            return;
+        }
+        // ensure that the view is shown
+        // XXX allow search when incremental search is there
+        GeoSelectionView view = GeoSelectionView.open( layer, false );
+        
+        // emulate a selection event so that the view can handle it
+        GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
+                layer.getMap().getLabel(), 
+                layer.getGeoResource().getIdentifier().toURI() );
+        event.setFilter( filter );
+        GeoHub.instance().send( event );
+    }
+    
 }

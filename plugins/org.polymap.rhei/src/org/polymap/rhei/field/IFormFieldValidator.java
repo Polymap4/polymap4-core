@@ -45,7 +45,8 @@ public interface IFormFieldValidator {
     public String validate( Object fieldValue );
     
     /**
-     *
+     * Transforms the given user input value to model value.
+     * 
      * @param fieldValue The user input value to transform, might be null.
      * @return Transformed value, or null if fieldValue is null.
      * @throws Exception
