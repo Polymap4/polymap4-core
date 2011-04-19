@@ -22,23 +22,21 @@
  */
 package org.polymap.core.data;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.geotools.data.Query;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import org.geotools.data.Query;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -46,7 +44,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
-import org.polymap.core.data.feature.DataSourceProcessor;
 
 /**
  * 
@@ -61,8 +58,10 @@ class AsyncPipelineFeatureCollection
 
     private static final Log log = LogFactory.getLog( AsyncPipelineFeatureCollection.class );
 
-    protected static final List<Feature>      END_OF_RESPONSE = ListUtils.EMPTY_LIST;
+    protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
     
+    protected static final int              DEFAULT_QUEUE_SIZE = 10;
+
     protected PipelineFeatureSource     fs;
 
     protected Query                     query;
@@ -110,11 +109,11 @@ class AsyncPipelineFeatureCollection
          * The FIFO between the fetcher and the calling thread. Holds chunks of
          * features to minimize synchronization overhead between the threads.
          */
-        LinkedBlockingDeque<List<Feature>> deque = new LinkedBlockingDeque( 5 );
+        LinkedBlockingDeque<List<Feature>> deque = new LinkedBlockingDeque( DEFAULT_QUEUE_SIZE );
 
-        List<Feature>                   buffer = new ArrayList( DataSourceProcessor.DEFAULT_CHUNK_SIZE );
+        List<Feature>                   buffer;
         
-        int                             bufferIndex;
+        Iterator<Feature>               bufferIt;
         
         Throwable                       resultException;
         
@@ -130,7 +129,7 @@ class AsyncPipelineFeatureCollection
                             public void handle( List<Feature> features )
                             throws Exception {
                                 if (checkEnd()) {
-                                    log.debug( "Async fetcher: deque=" + deque.size() );
+                                    //log.info( "Async fetcher: deque=" + deque.size() );
                                     deque.putLast( features );
                                 }
                             }
@@ -176,10 +175,10 @@ class AsyncPipelineFeatureCollection
         }
         
         public boolean hasNext() {
-            if (bufferIndex < buffer.size()) {
+            if (bufferIt != null && bufferIt.hasNext()) {
                 return true;
             }
-            else if (!deque.isEmpty() || !endOfResponse) {
+            else if (/*!deque.isEmpty() ||*/ !endOfResponse) {
                 while (true) {
                     try {
                         List<Feature> chunk = deque.takeFirst();
@@ -199,9 +198,8 @@ class AsyncPipelineFeatureCollection
                             }
                         }
                         else {
-                            buffer.clear();
-                            buffer.addAll( chunk );
-                            bufferIndex = 0;
+                            buffer = chunk;
+                            bufferIt = buffer.iterator();
                             return true;
                         }
                     }
@@ -222,7 +220,7 @@ class AsyncPipelineFeatureCollection
             if (!hasNext()) {
                 throw new NoSuchElementException( "No such element." );
             }
-            return buffer.get( bufferIndex++ );
+            return bufferIt.next();
         }
 
         public void remove() {

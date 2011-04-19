@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.feature.AddFeaturesRequest;
+import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
@@ -54,6 +55,7 @@ public class LuceneFeatureCacheProcessor
 
     private static final Log log = LogFactory.getLog( LuceneFeatureCacheProcessor.class );
 
+    public static final int                 DEFAULT_CHUNK_SIZE = DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
     private static final ProcessorSignature signature = new ProcessorSignature(
             new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
@@ -103,17 +105,17 @@ public class LuceneFeatureCacheProcessor
             }
             // not supported filter
             else if (!cache.supports( request.getQuery().getFilter() )) {
-                log.info( "Filter not supported: " + request.getQuery().getFilter() );
+                log.warn( "Filter not supported: " + request.getQuery().getFilter() );
                 context.sendRequest( request );
             }
             // cache
             else {
-                List<Feature> chunk = new ArrayList( 100 );
+                List<Feature> chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
                 for (Feature feature : cache.getFeatures( request.getQuery() )) {
                     chunk.add( feature );
-                    if (chunk.size() >= 100) {
+                    if (chunk.size() >= DEFAULT_CHUNK_SIZE) {
                         context.sendResponse( new GetFeaturesResponse( chunk ) );
-                        chunk = new ArrayList( 100 );
+                        chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
                     }
                 }
                 if (!chunk.isEmpty()) {
@@ -153,9 +155,20 @@ public class LuceneFeatureCacheProcessor
             log.debug( "received: " + response.count() + " features" );
             
             Query origQuery = (Query)context.get( "query" );
+            List<Feature> putBuffer = (List<Feature>)context.get( "putBuffer" );
             if (origQuery != null) {
-                // store in cache
-                cache.putFeatures( response.getFeatures() );
+                if (putBuffer == null) {
+                    putBuffer = new ArrayList<Feature>( 2000 );
+                    context.put( "putBuffer", putBuffer );
+                }
+                putBuffer.addAll( response.getFeatures() );
+                
+                // FIXME
+                if (putBuffer.size() >= 2000 || response.count() < DataSourceProcessor.DEFAULT_CHUNK_SIZE) {
+                    // store in cache
+                    cache.putFeatures( putBuffer );
+                    putBuffer.clear();
+                }
 
                 // filter and response
                 List<Feature> chunk = new ArrayList( response.count() );

@@ -38,12 +38,15 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldSelector;
+import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
@@ -54,7 +57,10 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
@@ -62,7 +68,7 @@ import org.polymap.core.runtime.Polymap;
 
 /**
  * Feature cache backed by Lucene.
- * <p>
+ * <p/>
  * All cache processors for the same layer share one instance (aquired by
  * {@link #instance(ILayer)}) across all sessions!
  * 
@@ -74,7 +80,12 @@ public class LuceneCache {
 
     private static final Log log = LogFactory.getLog( LuceneCache.class );
 
-    private static Map<String,LuceneCache>      instances = new HashMap();
+    static final String                     FIELD_MAXX = "_maxx_";
+    static final String                     FIELD_MAXY = "_maxy_";
+    static final String                     FIELD_MINX = "_minx_";
+    static final String                     FIELD_MINY = "_miny_";
+    
+    private static Map<String,LuceneCache>  instances = new HashMap();
     
     
     public static synchronized LuceneCache aquire( ILayer layer, FeatureType schema )
@@ -88,7 +99,6 @@ public class LuceneCache {
     }
     
     public static void releade( LuceneCache cache ) {
-        
     }
     
     
@@ -106,13 +116,18 @@ public class LuceneCache {
 
     private FeatureType         schema;
     
-    private LuceneQueryParser   queryParser;
+    private GeometryJSON        jsonCoder = new GeometryJSON( 6 );
+    
+    private boolean             isEmpty = false;
+    
+    /** Document number into Feature. */
+    private ConcurrentReferenceHashMap<Object,Feature> cache = new ConcurrentReferenceHashMap( 1024, 
+            ConcurrentReferenceHashMap.ReferenceType.SOFT, ConcurrentReferenceHashMap.ReferenceType.STRONG );
     
     
     LuceneCache( ILayer layer, FeatureType schema ) 
     throws IOException {
         this.schema = schema;
-        this.queryParser = new LuceneQueryParser( schema );
         
         File cacheDir = new File( Polymap.getWorkspacePath().toFile(), "cache" );
         File luceneCacheDir = new File( cacheDir, "luceneCache_" + layer.id() );
@@ -125,21 +140,30 @@ public class LuceneCache {
             IndexWriter iwriter = new IndexWriter( directory, analyzer, true, new IndexWriter.MaxFieldLength( 25000 ) );
             iwriter.commit();
             iwriter.close();
+            isEmpty = true;
         }
         
-        log.info( "    creating index reader..." );
-        indexReader = IndexReader.open( directory, false ); // read-only=true
-        log.info( "    creating index searcher..." );
-        searcher = new IndexSearcher( indexReader ); // read-only=true
+//        log.info( "    creating index reader..." );
+//        indexReader = IndexReader.open( directory, true );
+//        log.info( "    creating index searcher..." );
+//        searcher = new IndexSearcher( indexReader );
     }
     
     
     public void dispose() 
     throws IOException {
-        searcher.close();
-        searcher = null;
-        indexReader.close();
-        indexReader.close();
+        if (cache != null) {
+            cache.clear();
+            cache = null;
+        }
+        if (searcher != null) {
+            searcher.close();
+            searcher = null;
+        }
+        if (indexReader != null) {
+            indexReader.close();
+            indexReader = null;
+        }
         directory.close();
         directory = null;
     }
@@ -147,27 +171,68 @@ public class LuceneCache {
     
     public boolean isEmpty() 
     throws IOException {
-        return indexReader == null || indexReader.maxDoc() == 0;
+        return isEmpty;
     }
 
     
     public boolean supports( Filter filter ) {
-        return queryParser.supports( filter );
+        return LuceneQueryParser.supports( filter );
     }
 
     
-    public Iterable<Feature> getFeatures( Query query ) 
+    public Iterable<Feature> getFeatures( final Query query ) 
     throws IOException {
         long start = System.currentTimeMillis();
-        org.apache.lucene.search.Query luceneQuery = queryParser.createQuery( null, query.getFilter() );
+        
+        LuceneQueryParser queryParser = new LuceneQueryParser( schema, query.getFilter() );
+
+        if (indexReader == null) {
+            rwLock.writeLock().lock();
+            try {
+                if (indexReader == null) {
+                    indexReader = IndexReader.open( directory, true );
+                    searcher = new IndexSearcher( indexReader );
+                    log.info( "Index reloaded." );
+                }
+            }
+            finally {
+                rwLock.writeLock().unlock();
+            }
+        }
 
         rwLock.readLock().lock();
         
-        // execute Lucene query
-        TopDocs topDocs = searcher.search( luceneQuery, query.getMaxFeatures() );
-        final ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-        log.debug( "    results: " + scoreDocs.length + " (" + (System.currentTimeMillis()-start) + "ms)" );
+        // check shema
+        if (schema == null) {
+            throw new RuntimeException( "schema is null, call getFeatureType() first." );
+        }
 
+        // execute Lucene query
+        TopDocs topDocs = searcher.search( queryParser.getQuery(), query.getMaxFeatures() );
+        final ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+        final int count = scoreDocs.length;
+        log.info( "    results: " + count + " (" + (System.currentTimeMillis()-start) + "ms)" );
+
+        // skip unwanted properties
+        final FieldSelector fieldSelector = new FieldSelector() {
+            
+            private String[]        propNames = query.getPropertyNames();
+            
+            public FieldSelectorResult accept( String fieldName ) {
+                FieldSelectorResult result = FieldSelectorResult.NO_LOAD; 
+                if (propNames == null) {
+                    result = FieldSelectorResult.LOAD;
+                }
+                else if (StringUtils.indexOfAny( fieldName, propNames ) == 0) {
+                    result = FieldSelectorResult.LOAD;
+                }
+//                log.info( "    selector: field=" + fieldName + " -> " + result );
+                return result;
+            }
+        };
+        final String[] queryPropNames = query.getPropertyNames();
+        log.info( "FieldSelector: " + (queryPropNames != null ? Arrays.asList( queryPropNames ) : "ALL") );      
+        
         return new Iterable<Feature>() {
             public Iterator<Feature> iterator() {
           
@@ -175,8 +240,8 @@ public class LuceneCache {
 
                     private SimpleFeatureBuilder    builder = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
                     private int                     index = 0;
-                    private GeometryJSON            jsonDecoder = new GeometryJSON();
-                    private boolean                 unlocked = false;        
+                    private boolean                 unlocked = false;
+                    private int                     cacheHits = 0;
 
                     protected void finalize()
                     throws Throwable {
@@ -186,10 +251,13 @@ public class LuceneCache {
                     }
 
                     public boolean hasNext() {
-                        boolean result = index < scoreDocs.length;
+                        boolean result = index < count;
                         if (result == false && unlocked == false) {
                             rwLock.readLock().unlock();
                             unlocked = true;
+                        }
+                        if (result == false) {
+                            log.info( "CACHE: gets=" + count + ", hits=" + cacheHits + ", cache=" + cache.size() );
                         }
                         return result;
                     }
@@ -199,16 +267,28 @@ public class LuceneCache {
                             throw new NoSuchElementException( "Query result count: " + scoreDocs.length );
                         }
                         try {
-                            Document doc = searcher.doc( scoreDocs[index++].doc );
+                            int docnum = scoreDocs[ index++ ].doc;
+                            Feature result = cache.get( cacheKey( docnum, query ) );
+                            if (result != null) {
+                                ++cacheHits;
+                                return result;
+                            }
+                            
+//                            LuceneFeature result = new LuceneFeature( next, (SimpleFeatureType)schema );
+//                            next = null;
+//                            return result;
+                        
                             String fid = null;
-                            for (Fieldable field : doc.getFields()) {
+                            for (Fieldable field : searcher.doc( docnum, fieldSelector ).getFields()) {
                                 if (schema == null) {
                                     throw new RuntimeException( "schema is null, call getFeatureType() first." );
                                 }
+                                // fid
                                 if (field.name().equals( "fid" )) {
-                                   fid = field.stringValue();
-                                   continue;
+                                    fid = field.stringValue();
+                                    continue;
                                 }
+                                        
                                 PropertyDescriptor descriptor = schema.getDescriptor( field.name() );
                                 if (descriptor == null) {
                                     throw new RuntimeException( "No descriptor for: " + field.name() );
@@ -216,16 +296,18 @@ public class LuceneCache {
                                 Class valueType = descriptor.getType().getBinding();
                                 // Geometry
                                 if (Geometry.class.isAssignableFrom( valueType )) {
-                                    Geometry geom = jsonDecoder.read( new StringReader( field.stringValue() ) );
+                                    Geometry geom = jsonCoder.read( new StringReader( field.stringValue() ) );
                                     builder.set( field.name(), geom );
                                 }
                                 // other
                                 else {
-                                    String value = ValueCoder.encode( field.stringValue(), valueType );
-                                    builder.set( field.name(), field.stringValue() );
+                                    Object value = ValueCoder.decode( field, valueType );
+                                    builder.set( field.name(), value );
                                 }
                             }
-                            return builder.buildFeature( fid );
+                            result = builder.buildFeature( fid );
+                            cache.put( cacheKey( docnum, query ), result );
+                            return result;
                         }
                         catch (Exception e) {
                             throw new RuntimeException( e );
@@ -244,10 +326,10 @@ public class LuceneCache {
     
     public void putFeatures( List<Feature> features )
     throws CorruptIndexException, IOException, PipelineIncubationException {
-        log.info( "Adding features: " + features.size() );
 
         IndexWriter iwriter = null;
         try {
+            long start = System.currentTimeMillis();
             rwLock.writeLock().lock();
 
             iwriter = new IndexWriter( directory, analyzer, false, new IndexWriter.MaxFieldLength( 25000 ) );
@@ -255,8 +337,6 @@ public class LuceneCache {
             int size = 0;        
             int indexed = 0;
 
-            GeometryJSON jsonEncoder = new GeometryJSON( 4 );
-                    
             for (Feature feature : features) {
                 Document doc = new Document();
                 
@@ -272,37 +352,52 @@ public class LuceneCache {
                     else if (Geometry.class.isAssignableFrom( prop.getValue().getClass() ) ) {
                         Geometry geom = (Geometry)prop.getValue();
                         StringWriter out = new StringWriter( 1024 );
-                        jsonEncoder.write( geom, out );
+                        jsonCoder.write( geom, out );
                         doc.add( new Field( propName, out.toString(), Field.Store.YES, Field.Index.NO ) );
+                        
+                        Envelope envelop = geom.getEnvelopeInternal();
+                        doc.add( ValueCoder.encode( propName+FIELD_MAXX, envelop.getMaxX(), 
+                                Double.class, Field.Store.NO, true ) );
+                        doc.add( ValueCoder.encode( propName+FIELD_MAXY, envelop.getMaxY(), 
+                                Double.class, Field.Store.NO, true ) );
+                        doc.add( ValueCoder.encode( propName+FIELD_MINX, envelop.getMinX(), 
+                                Double.class, Field.Store.NO, true ) );
+                        doc.add( ValueCoder.encode( propName+FIELD_MINY, envelop.getMinY(), 
+                                Double.class, Field.Store.NO, true ) );
                     }
                     // other
                     else {
                         Class valueType = prop.getType().getBinding();
-                        String propValue = ValueCoder.encode( prop.getValue(), valueType );
-                        doc.add( new Field( propName, propValue, Field.Store.YES, Field.Index.NOT_ANALYZED ) );
-                        log.debug( "    field: " + propName + " = " + propValue );
+                        Fieldable field = ValueCoder.encode( propName, prop.getValue(), valueType, 
+                                Field.Store.YES, true );
+                        doc.add( field );
+                        //log.debug( "    field: " + field );
                     }
                     indexed++;
                 }
 
                 doc.add( new Field( "fid", feature.getIdentifier().getID(), Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+                //log.info( "DOC: " + doc );
                 iwriter.addDocument( doc );
                 size++;
             }
             iwriter.commit();
             iwriter.close();
-            log.info( "    document: count=" + size + " indexed=" + indexed );
+            iwriter = null;
+            isEmpty = false;
+            log.debug( "    document: count=" + size + " indexed=" + indexed );
 
-            //indexReader.reopen();
+            log.info( "Added features: " + features.size() + " (" + (System.currentTimeMillis()-start) + "ms)" );
 
-            // XXX hack to get index reloaded
             if (indexReader != null) {
                 searcher.close();
+                searcher = null;
                 indexReader.close();
+                indexReader = null;
             }
-            indexReader = IndexReader.open( directory, false ); // read-only=true
-            searcher = new IndexSearcher( indexReader ); // read-only=true
-            log.info( "Index reloaded." );
+//            indexReader = IndexReader.open( directory, true );
+//            searcher = new IndexSearcher( indexReader );
+//            log.info( "Index reloaded." );
         }
         catch (Exception e) {
             log.error( "Fehler beim Indizieren:" + e.getLocalizedMessage() );
@@ -314,4 +409,15 @@ public class LuceneCache {
         }
     }
 
+    
+    protected Object cacheKey( int docnum, Query query ) {
+        // this is not exact but I don't want to store the big joined strings
+        // as keys in the cache
+        long propNamesHash = 0;
+        if (query.getPropertyNames() != null) {
+            propNamesHash = StringUtils.join( query.getPropertyNames(), "_" ).hashCode();
+        }
+        return Long.valueOf( (long)docnum | (propNamesHash << 32) );
+    }
+    
 }

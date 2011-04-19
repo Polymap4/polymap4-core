@@ -94,7 +94,7 @@
       </processor>
       <processor
             class="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
-            id="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
+            id="org.polymap.core.data.feature.FeatureCacheProcessor"
             isTerminal="false"
             name="Feature-Cache">
       </processor>
@@ -109,7 +109,7 @@
       <processor
             class="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor"
             description="%processor_featureTypeEditorDesc"
-            id="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor"
+            id="org.polymap.core.data.feature.FeatureTypeEditorProcessor"
             isTerminal="false"
             name="%processor_featureTypeEditor"
             propertyPage="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig">

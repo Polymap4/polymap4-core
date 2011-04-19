@@ -55,14 +55,16 @@ import org.opengis.filter.spatial.Within;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.WildcardQuery;
 
 /**
@@ -78,27 +80,33 @@ class LuceneQueryParser {
     
     private FeatureType             schema;
     
+    private Query                   query;
     
-    public LuceneQueryParser( FeatureType schema ) {
+    /** Filters that cannot be translated into Lucene query. */
+    private List<Filter>            notQueryable;
+    
+    
+    public LuceneQueryParser( FeatureType schema, Filter filter ) {
         super();
         this.schema = schema;
+
+        query = processFilter( filter );
+        log.info( "LUCENE query: [" + query.toString() + "]" );
+        
+        if (notQueryable != null) {
+            throw new RuntimeException( "Deferred evaluation of not supported filters is not implemented yet." );
+        }
     }
 
 
-    public Query createQuery( final String resultType, final Filter filter ) {
-        Query result = processFilter( filter );
-        log.info( "LUCENE query: [" + result.toString() + "]" );
-        return result;
+    protected Query getQuery() {
+        return query;
     }
 
 
-    public boolean supports( Filter _filter ) {
+    public static boolean supports( Filter _filter ) {
         final List notSupported = new ArrayList();
         _filter.accept( new DefaultFilterVisitor() {
-            public Object visit( BBOX filter, Object data ) {
-                notSupported.add( filter );
-                return super.visit( filter, data );
-            }
             public Object visit( Beyond filter, Object data ) {
                 notSupported.add( filter );
                 return super.visit( filter, data );
@@ -186,6 +194,10 @@ class LuceneQueryParser {
         else if (filter instanceof IncludeFilter) {
             return new MatchAllDocsQuery();
         }
+        // BBOX
+        else if (filter instanceof BBOX) {
+            return processBBOX( (BBOX)filter );
+        }
         // comparison
         else if (filter instanceof BinaryComparisonOperator) {
             return processComparison( (BinaryComparisonOperator)filter );
@@ -217,6 +229,39 @@ class LuceneQueryParser {
         else {
             throw new UnsupportedOperationException( "Expression " + filter + " is not supported" );
         }
+    }
+
+
+    @SuppressWarnings("deprecation")
+    protected Query processBBOX( BBOX bbox ) {
+//        return !(other.minx > maxx ||
+//                other.maxx < minx ||
+//                other.miny > maxy ||
+//                other.maxy < miny);
+//
+//        -> !maxx < other.minx && !mixx > other.maxx
+//
+//        -> maxx > other.minx && minx < other.maxx
+        
+        BooleanQuery result = new BooleanQuery();
+        
+        // maxx > bbox.getMinX
+        result.add( NumericRangeQuery.newDoubleRange( 
+                bbox.getPropertyName()+LuceneCache.FIELD_MAXX, ValueCoder.PRECISION_STEP_64,
+                bbox.getMinX(), null, false, false ), BooleanClause.Occur.MUST );
+        // minx < bbox.getMaxX
+        result.add( NumericRangeQuery.newDoubleRange( 
+                bbox.getPropertyName()+LuceneCache.FIELD_MINX, ValueCoder.PRECISION_STEP_64,
+                null, bbox.getMaxX(), false, false ), BooleanClause.Occur.MUST );
+        // maxy > bbox.getMinY
+        result.add( NumericRangeQuery.newDoubleRange( 
+                bbox.getPropertyName()+LuceneCache.FIELD_MAXY, ValueCoder.PRECISION_STEP_64,
+                bbox.getMinY(), null, false, false ), BooleanClause.Occur.MUST );
+        // miny < bbox.getMaxY
+        result.add( NumericRangeQuery.newDoubleRange( 
+                bbox.getPropertyName()+LuceneCache.FIELD_MINY, ValueCoder.PRECISION_STEP_64,
+                null, bbox.getMaxY(), false, false ), BooleanClause.Occur.MUST );
+        return result;
     }
 
 
@@ -256,43 +301,33 @@ class LuceneQueryParser {
         // value / type
         String fieldname = prop.getPropertyName();
         Class valueType = schema.getDescriptor( prop.getPropertyName() ).getType().getBinding();
-        String value = ValueCoder.encode( literal.getValue(), valueType );
+        Fieldable field = ValueCoder.encode( fieldname, literal.getValue(), valueType, Field.Store.NO, true );
 
         // equals
         if (predicate instanceof PropertyIsEqualTo) {
-            return new TermQuery( new Term( fieldname, value ) );
+            return new TermQuery( new Term( fieldname, field.stringValue() ) );
         }
         // ge
         else if (predicate instanceof PropertyIsGreaterThanOrEqualTo) {
-            return new TermRangeQuery( fieldname, value, null, true, false );
+            throw new RuntimeException( "Operator not supported: " + predicate );
+//            return field instanceof NumericField
+//                    ? NumericRangeQuery.newDoubleRange( fieldname, ValueCoder.DEFAULT_PRECISION, field., null, true, false )
+//                    : new TermRangeQuery( fieldname, value, null, true, false );
         }
         // gt
         else if (predicate instanceof PropertyIsGreaterThan) {
-            return new TermRangeQuery( fieldname, value, null, false, false );
+            throw new RuntimeException( "Operator not supported: " + predicate );
+//            return new TermRangeQuery( fieldname, value, null, false, false );
         }
         // le
         else if (predicate instanceof PropertyIsLessThanOrEqualTo) {
-            return new TermRangeQuery( fieldname, null, value, false, true );
+            throw new RuntimeException( "Operator not supported: " + predicate );
+//            return new TermRangeQuery( fieldname, null, value, false, true );
         }
         // lt
         else if (predicate instanceof PropertyIsLessThan) {
-            return new TermRangeQuery( fieldname, null, value, false, false );
-        }
-        // matches
-        else if (predicate instanceof PropertyIsLike) {
-            PropertyIsLike isLike = (PropertyIsLike)predicate;
-
-            value = StringUtils.replace( value, isLike.getWildCard(), "*" );
-            value = StringUtils.replace( value, isLike.getSingleChar(), "?" );
-
-            if (value.endsWith( "*" ) 
-                    && StringUtils.countMatches( value, "*" ) == 1
-                    && StringUtils.countMatches( value, "?" ) == 0) {
-                return new PrefixQuery( new Term( fieldname, value.substring( 0, value.length() - 1 ) ) );
-            }
-            else {
-                return new WildcardQuery( new Term( fieldname, value ) );
-            }
+            throw new RuntimeException( "Operator not supported: " + predicate );
+//            return new TermRangeQuery( fieldname, null, value, false, false );
         }
         else {
             throw new UnsupportedOperationException( "Predicate type not supported in comparison: " + predicate );
@@ -307,7 +342,8 @@ class LuceneQueryParser {
         // value / type
         String fieldname = prop.getPropertyName();
         Class valueType = schema.getDescriptor( prop.getPropertyName() ).getType().getBinding();
-        String value = ValueCoder.encode( literal, valueType );
+        Fieldable field = ValueCoder.encode( fieldname, literal, valueType, Field.Store.NO, false );
+        String value = field.stringValue();
 
         value = StringUtils.replace( value, predicate.getWildCard(), "*" );
         value = StringUtils.replace( value, predicate.getSingleChar(), "?" );

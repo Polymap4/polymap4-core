@@ -123,7 +123,7 @@ public class ProcessorExtension {
     }
 
     public boolean hasPropertyPage() {
-        return ext.getAttribute( "propertyPage" ) == null;
+        return ext.getAttribute( "propertyPage" ) != null;
     }
     
     public ProcessorPropertyPage newPropertyPage()

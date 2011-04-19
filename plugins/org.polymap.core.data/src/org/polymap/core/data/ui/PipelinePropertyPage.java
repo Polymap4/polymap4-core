@@ -246,11 +246,11 @@ public class PipelinePropertyPage
                 try {
                     IStructuredSelection sel = (IStructuredSelection)ev.getSelection();
                     showPropertyPage( (PipelineProcessorConfiguration)sel.getFirstElement() );
-                    updateEnables();
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, PipelinePropertyPage.this, e.getMessage(), e );
                 }
+                updateEnables();
             }
         });
         

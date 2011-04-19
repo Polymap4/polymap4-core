@@ -72,7 +72,7 @@ public class DataSourceProcessor
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
-    public static final int                 DEFAULT_CHUNK_SIZE = 100;
+    public static final int                 DEFAULT_CHUNK_SIZE = 200;
     
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
