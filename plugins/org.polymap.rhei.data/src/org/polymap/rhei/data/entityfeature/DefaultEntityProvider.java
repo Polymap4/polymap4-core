@@ -86,7 +86,7 @@ public class DefaultEntityProvider<T extends Entity>
         }
         // regular query
         else {
-            return repo.findEntities( type.getType(), query, firstResult, maxResults );
+            return (Iterable<T>)repo.findEntities( type.getType(), query, firstResult, maxResults );
         }
     }
 
