@@ -53,7 +53,7 @@ public class CsvServlet
 
     private static Log log = LogFactory.getLog( CsvServlet.class );
 
-    public static final FastDateFormat      df = DateFormatUtils.ISO_DATE_FORMAT;
+    public static final FastDateFormat  df = DateFormatUtils.ISO_DATE_FORMAT;
 
     /** Hackish way to deliver the content to the servlet. */
     static Map<String,List<Feature>>    map = new WeakHashMap(); 
@@ -83,7 +83,7 @@ public class CsvServlet
             // download.html
             if (request.getPathInfo().startsWith( "/download.html" )) {
                 // sending an HTML page helps debugging on IE, which often blocks or
-                // other wise fails to download directly
+                // otherwise fails to download directly
                 String id = request.getParameter( "id" );
                 String linkTarget = "../csv/" + id + "/anta2_export.csv";
 

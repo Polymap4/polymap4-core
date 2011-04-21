@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/gt-geojson.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/json_simple-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-lib-2.2.3-jdk15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/json_simple-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-geojson.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ehcache-1.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr107cache-1.0.jar"/>

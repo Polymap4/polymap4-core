@@ -45,7 +45,8 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+
+import org.eclipse.rwt.widgets.codemirror.CodeMirror;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -132,7 +133,7 @@ public class ScriptEditor
 
     private ScriptEditorInput           input;
 
-    private Text                        text;
+    private CodeMirror                  text;
     
     private Map<String,Object>          calculatorParams = new HashMap();      
     
@@ -276,7 +277,7 @@ public class ScriptEditor
 
         
         // text
-        text = new Text( content, SWT.MULTI | SWT.WRAP );
+        text = new CodeMirror( content, SWT.NONE );  //new Text( content, SWT.MULTI | SWT.WRAP );
         ld = new FormData();
         ld.top = new FormAttachment( sep, 0 );
         ld.left = new FormAttachment( 0 );
