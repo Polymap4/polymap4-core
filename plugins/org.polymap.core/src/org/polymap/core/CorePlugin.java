@@ -90,7 +90,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 	        
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image", "debug" );
@@ -107,7 +107,8 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.eu.hydrologis.jgrass.csv2shape.importwizard", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.poi", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.anta2", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.eclipse.rwt.widgets.codemirror", "debug" );
 	}
 	
 	
