@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -46,6 +47,7 @@ import net.refractions.udig.catalog.ICatalogInfo;
 import net.refractions.udig.catalog.ID;
 import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IService;
+import net.refractions.udig.catalog.ITransientResolve;
 import net.refractions.udig.catalog.URLUtils;
 import net.refractions.udig.catalog.IResolve.Status;
 
@@ -140,8 +142,8 @@ public interface CatalogComposite
 
         @This CatalogComposite          composite;
         
-        /** The transient instance cache. */
-//        private final Set<IService>     services = new CopyOnWriteArraySet<IService>();
+        /** The transient services. */
+        private final Set<IService>     transientServices = new CopyOnWriteArraySet<IService>();
         
         /** Information about this catalog. */
         private CatalogInfoImpl         metadata;
@@ -181,8 +183,23 @@ public interface CatalogComposite
             this.facade = facade;
         }
 
+        public Iterable<IService> persistentAndTransientServices() {
+            // XXX better with an inner class but catalog code needs
+            // to be refactored anyway
+            List<IService> result = new ArrayList();
+
+            for (ServiceComposite serviceComposite : services()) {
+                result.add( serviceComposite.getService() );
+            }
+            
+            for (IService service : transientServices) {
+                result.add( service );
+            }
+            return result;
+        }
         
         // ICatalog methods *******************************
+        
         public URL getIdentifier() {
             return metadata.getSource();
         }
@@ -205,8 +222,8 @@ public interface CatalogComposite
             
             // group services into folders for each service type
             List<ServiceTypeFolder> folders = new ArrayList<ServiceTypeFolder>();
-            for (ServiceComposite entity : services()) {
-                IService service = entity.getService();
+            
+            for (IService service : persistentAndTransientServices()) {
                 boolean found = false;
                 for (ServiceTypeFolder folder : folders) {
                     if (folder.type.isAssignableFrom( service.getClass() )) {
@@ -215,7 +232,7 @@ public interface CatalogComposite
                         break;
                     }
                 }
-                if (!found) {
+                if (!found && service != null) {
                     folders.add( new ServiceTypeFolder( facade, service ) );
                 }
             }
@@ -247,9 +264,9 @@ public interface CatalogComposite
 
             URL url = id.toURL();
             if (IResolve.class.isAssignableFrom( type )) {
-                for (ServiceComposite service : services()) {
-                    if (URLUtils.urlEquals( url, service.getService().getIdentifier(), true )) {
-                        IResolve child = findChildById( service.getService(), id, false, monitor2 );
+                for (IService service : persistentAndTransientServices()) {
+                    if (URLUtils.urlEquals( url, service.getIdentifier(), true )) {
+                        IResolve child = findChildById( service, id, false, monitor2 );
                         if (child != null) {
                             return type.cast( child );
                         }
@@ -270,15 +287,23 @@ public interface CatalogComposite
                 throw new IllegalArgumentException( Messages.get( "CatalogComposite_entryAlreadyExists", entry.getID() ) );
             }
             
-            ServiceComposite entity = CatalogRepository.instance().newEntity( ServiceComposite.class, null );
-            for (Principal principal : Polymap.instance().getPrincipals()) {
-                entity.addPermission( principal.getName(), AclPermission.ALL );
+            // ITransientResolve
+            if (entry instanceof ITransientResolve || entry.canResolve( ITransientResolve.class )) {
+                transientServices.add( entry );
+                log.info( "Transient entries: " + transientServices.size() );
             }
-            entity.init( entry );
-            services().add( entity );
+            // persistent entry
+            else {
+                ServiceComposite entity = CatalogRepository.instance().newEntity( ServiceComposite.class, null );
+                for (Principal principal : Polymap.instance().getPrincipals()) {
+                    entity.addPermission( principal.getName(), AclPermission.ALL );
+                }
+                entity.init( entry );
+                services().add( entity );
 
-            serialize();
-            log.debug( "Catalog size:" + services().count() );
+                serialize();
+                log.debug( "Catalog size: " + services().count() );
+            }
         }
 
 
@@ -383,9 +408,7 @@ public interface CatalogComposite
             
             // first pass 1.1- use urlEquals on CONNECTED service for subset
             // check
-            for (ServiceComposite entity : services()) {
-                IService service = entity.getService();
-                
+            for (IService service : persistentAndTransientServices()) {
                 if (service.getStatus() != Status.CONNECTED) {
                     continue; // skip non connected service
                 }
@@ -406,9 +429,7 @@ public interface CatalogComposite
             }
             // first pass 1.2 - use urlEquals on unCONNECTED service for subset
             // check
-            for (ServiceComposite entity : services()) {
-                IService service = entity.getService();
-
+            for (IService service : persistentAndTransientServices()) {
                 if (service.getStatus() == Status.CONNECTED) {
                     continue; // already checked in pass 1.1
                 }
@@ -434,9 +455,7 @@ public interface CatalogComposite
             // first pass 1.3 - use urlEquals on BROKEN or RESTRICTED_ACCESS service for subset check
             // the hope here is that a "friend" will still have data! May be tough for friends
             // to negotiate a match w/ a broken services - but there is still hope... 
-            for (ServiceComposite entity : services()) {
-                IService service = entity.getService();
-
+            for (IService service : persistentAndTransientServices()) {
                 if( service.getStatus() == Status.CONNECTED 
                         || service.getStatus() == Status.NOTCONNECTED) {
                     continue; // already checked in pass 1.1-1.2                                    
