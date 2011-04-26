@@ -39,7 +39,7 @@ import org.polymap.core.qi4j.QiModule;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public class DefaultEntityProvider<T extends Entity>
+public abstract class DefaultEntityProvider<T extends Entity>
         implements EntityProvider<T> {
 
     private static Log log = LogFactory.getLog( DefaultEntityProvider.class );

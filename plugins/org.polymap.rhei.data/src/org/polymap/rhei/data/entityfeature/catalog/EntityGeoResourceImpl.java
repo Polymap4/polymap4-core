@@ -22,23 +22,21 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FeatureStore;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
-
-import com.vividsolutions.jts.geom.Envelope;
-
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IGeoResourceInfo;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ITransientResolve;
+
+import org.geotools.data.FeatureSource;
+import org.geotools.data.FeatureStore;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Envelope;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -174,11 +172,7 @@ public class EntityGeoResourceImpl
 
 
         public CoordinateReferenceSystem getCRS() {
-//            GeometryDescriptor defaultGeometry = ft.getGeometryDescriptor();
-//            if (defaultGeometry != null) {
-//                return defaultGeometry.getCoordinateReferenceSystem();
-//            }
-            return null;
+            return provider.getCoordinateReferenceSystem( provider.getDefaultGeometry() );
         }
 
 
@@ -203,9 +197,9 @@ public class EntityGeoResourceImpl
         }
 
 
-        @Override
         public ReferencedEnvelope getBounds() {
-            return new ReferencedEnvelope( new Envelope(), DefaultGeographicCRS.WGS84 );
+            return new ReferencedEnvelope( new Envelope(), getCRS() );
+            
 //            Envelope bounds;
 //            try {
 //                bounds = source.getBounds();

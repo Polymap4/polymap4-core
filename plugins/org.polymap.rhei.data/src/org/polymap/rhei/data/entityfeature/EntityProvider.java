@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.opengis.feature.type.Name;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.qi4j.api.query.grammar.BooleanExpression;
 import org.qi4j.api.query.grammar.NamedQueryExpression;
@@ -74,6 +75,10 @@ public interface EntityProvider<T extends Entity> {
     public Name getEntityName();
     
     public EntityType getEntityType();
+
+    public CoordinateReferenceSystem getCoordinateReferenceSystem( String propName );
+
+    public String getDefaultGeometry();
 
     /**
      * 

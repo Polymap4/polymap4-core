@@ -41,9 +41,9 @@ import org.polymap.rhei.data.entityfeature.EntityProvider;
 import org.polymap.rhei.data.entityfeature.EntitySourceProcessor;
 
 /**
- * This service references a Qi4j entity store via ({@link EntityProvider}). The
- * {@link EntitySourceProcessor} translates the entities into features for the
- * pipeline.
+ * This service references a Qi4j entity store (via {@link EntityProvider}s).
+ * The {@link EntitySourceProcessor} translates the entities into features for
+ * the pipeline.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version ($Revision$)

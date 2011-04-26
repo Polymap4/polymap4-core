@@ -29,6 +29,7 @@ import org.apache.commons.collections.SetUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.entity.EntityBuilder;
 import org.qi4j.api.entity.Identity;
 import org.qi4j.api.query.Query;
 import org.qi4j.api.query.QueryBuilder;
@@ -391,6 +392,26 @@ public abstract class QiModule
         return result;
     }
 
+    public <T> T newEntity( Class<T> type, String id, EntityCreator<T> creator ) {
+        EntityBuilder<T> builder = uow.newEntityBuilder( type );
+        
+        creator.create( builder.instance() );
+        
+        T result = builder.newInstance();
+        
+        ((NestedChangeSet)currentChangeSet()).compositeCreate( (Identity)result );
+        return result;
+    }
+
+    /**
+     * Functor for the {@link QiModule#newEntity(Class, String, EntityCreator)} method.
+     */
+    public interface EntityCreator<T> {
+        
+        public void create( T builderInstance );
+        
+    }
+    
     /**
      *
      * @param entity

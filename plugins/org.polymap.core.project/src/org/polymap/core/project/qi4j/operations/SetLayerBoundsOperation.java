@@ -171,7 +171,7 @@ public interface SetLayerBoundsOperation
 
         public static ReferencedEnvelope obtainBoundsFromResources( ILayer layer, CoordinateReferenceSystem crs,
                 IProgressMonitor monitor )
-        throws IOException {
+                throws IOException {
             ReferencedEnvelope bounds = null;
             IGeoResource geores = layer.getGeoResource();
             IGeoResourceInfo info = geores.getInfo( monitor );
@@ -181,12 +181,12 @@ public interface SetLayerBoundsOperation
                 return ReferencedEnvelope.EVERYTHING;
             }
             if (tmp instanceof ReferencedEnvelope
-                    && ((ReferencedEnvelope) tmp).getCoordinateReferenceSystem() != null) {
-                bounds = (ReferencedEnvelope) tmp;
+                    && ((ReferencedEnvelope)tmp).getCoordinateReferenceSystem() != null) {
+                bounds = (ReferencedEnvelope)tmp;
             } 
             else {
                 bounds = new ReferencedEnvelope(
-                        tmp.getMinX(), tmp.getMaxX(), tmp.getMinY(), tmp.getMaxY(), crs);
+                        tmp.getMinX(), tmp.getMaxX(), tmp.getMinY(), tmp.getMaxY(), crs );
             }
             return bounds;
         }

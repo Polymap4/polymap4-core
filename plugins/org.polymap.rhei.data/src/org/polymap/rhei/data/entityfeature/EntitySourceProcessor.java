@@ -30,7 +30,6 @@ import org.geotools.data.Query;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.identity.FeatureIdImpl;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -40,6 +39,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.filter.identity.Identifier;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -154,13 +154,15 @@ public class EntitySourceProcessor
                 builder.setName( entityProvider.getEntityName() );
 
                 for (EntityType.Property prop : entityType.getProperties()) {
-                    if (Geometry.class.isAssignableFrom( prop.getType().getClass() )) {
-                        builder.add( prop.getName(), prop.getType().getClass(), DefaultGeographicCRS.WGS84 );
-                        // builder.setCRS( mapping.crs );
-                        // builder.setDefaultGeometry( "the_geom" );
+                    Class propType = prop.getType();
+                    
+                    if (Geometry.class.isAssignableFrom( propType )) {
+                        CoordinateReferenceSystem crs = entityProvider.getCoordinateReferenceSystem( prop.getName() );
+                        builder.add( prop.getName(), propType, crs );
+                        builder.setDefaultGeometry( prop.getName() );
                     }
                     else {
-                        builder.add( prop.getName(), prop.getType().getClass() );
+                        builder.add( prop.getName(), propType );
                     }
                 }
                 schema = builder.buildFeatureType();

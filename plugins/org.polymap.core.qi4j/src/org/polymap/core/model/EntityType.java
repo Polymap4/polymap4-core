@@ -22,6 +22,10 @@ import java.util.Collection;
 
 import java.lang.reflect.Type;
 
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import com.vividsolutions.jts.geom.Geometry;
+
 /**
  * Provides information about and access to properties and associations of an
  * {@link Entity} type.
@@ -38,7 +42,7 @@ public interface EntityType {
     public Collection<Property> getProperties();
     
     public Property getProperty( String name );
-
+    
     
     /**
      * Information about a property of an {@link EntityType}. 
