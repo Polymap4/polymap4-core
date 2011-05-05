@@ -23,20 +23,21 @@
 
 package org.polymap.core.project;
 
+import net.refractions.udig.catalog.IGeoResource;
+
 import org.geotools.styling.Style;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import net.refractions.udig.catalog.IGeoResource;
 
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.model.ACL;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
+import org.polymap.core.model.security.ACL;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.style.IStyle;
 
 /**
@@ -50,7 +51,8 @@ import org.polymap.core.style.IStyle;
  * @since 3.0
  */
 public interface ILayer
-        extends Entity, Labeled, ACL, ParentMap, PipelineHolder, IAdaptable {
+        extends Entity, Labeled, ACL, ParentMap, PipelineHolder, IAdaptable,
+                PropertyChangeSupport {
 
     public static final String      PROP_OPACITY = "opacity";
     public static final String      PROP_ORDERKEY = "orderkey";

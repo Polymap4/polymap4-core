@@ -39,7 +39,6 @@ import org.polymap.core.mapeditor.IMapEditorSupportListener;
 import org.polymap.core.mapeditor.ISelectFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.actions.MouseModeAction;
-import org.polymap.core.project.ProjectRepository;
 
 /**
  * 
@@ -61,12 +60,12 @@ public class SelectFeatureEditorAction
     
     public void init( IAction _action ) {
         super.init( _action );
-        ProjectRepository.instance().addPropertyChangeListener( propChangeListener );
+//        ProjectRepository.instance().addPropertyChangeListener( propChangeListener );
     }
 
     public void dispose() {
         super.dispose();
-        ProjectRepository.instance().removePropertyChangeListener( propChangeListener );
+//        ProjectRepository.instance().removePropertyChangeListener( propChangeListener );
     }
 
 

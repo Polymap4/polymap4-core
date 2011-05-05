@@ -39,7 +39,6 @@ import org.polymap.core.mapeditor.INavigationSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -63,7 +62,9 @@ public class BackwardEditorAction
     
 
     public void dispose() {
-        ProjectRepository.instance().removePropertyChangeListener( this );
+        if (mapEditor != null) {
+            mapEditor.getMap().removePropertyChangeListener( this );
+        }
     }
 
     
@@ -98,8 +99,7 @@ public class BackwardEditorAction
     public void setActiveEditor( IAction _action, IEditorPart _targetEditor ) {
         // disconnect old editor
         if (mapEditor != null) {
-            ProjectRepository.instance().removePropertyChangeListener( this );
-            //GeoHub.instance().unsubscribe( this ); 
+            mapEditor.getMap().removePropertyChangeListener( this );
         }
         
         action = _action;
@@ -110,7 +110,7 @@ public class BackwardEditorAction
             support = (INavigationSupport)mapEditor.findSupport( INavigationSupport.class );
             action.setEnabled( support.canUndo() );
 
-            ProjectRepository.instance().addPropertyChangeListener( this );
+            mapEditor.getMap().addPropertyChangeListener( this );
 //            GeoHub.instance().subscribe( this, new GeoEventSelector( 
 //                    new GeoEventSelector.TypeFilter( GeoEvent.Type.NAVIGATION ) ) );
         }

@@ -26,7 +26,6 @@ package org.polymap.core.project.qi4j.operations;
 import java.security.Principal;
 
 import org.qi4j.api.composite.TransientComposite;
-import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.mixin.Mixins;
 
 import org.apache.commons.logging.Log;
@@ -53,12 +52,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.qi4j.OperationBoundsConcern;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.runtime.Polymap;
 
 /**
@@ -68,8 +67,6 @@ import org.polymap.core.runtime.Polymap;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Concerns( 
-        OperationBoundsConcern.class )
 @Mixins({
         NewLayerOperation.Mixin.class 
 })
@@ -88,7 +85,7 @@ public interface NewLayerOperation
      * Implementation. 
      */
     public static abstract class Mixin
-            extends AbstractOperation
+            extends AbstractModelChangeOperation
             implements NewLayerOperation {
 
         private static Log log = LogFactory.getLog( Mixin.class );
@@ -129,7 +126,7 @@ public interface NewLayerOperation
 //        }
 
 
-        public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+        public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
                 ProjectRepository repo = ProjectRepository.instance();
@@ -250,18 +247,6 @@ public interface NewLayerOperation
                 throw new ExecutionException( e.getMessage(), e );
             }
             return Status.OK_STATUS;
-        }
-
-
-        public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            throw new RuntimeException( "Method is never called; undo/redo is handled by OperationBoundsConcern." );
-        }
-
-
-        public IStatus undo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            throw new RuntimeException( "Method is never called; undo/redo is handled by OperationBoundsConcern." );
         }
 
     }

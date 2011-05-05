@@ -144,7 +144,7 @@ public class CatalogRepository
         
         public void revert( OperationSupport os ) {
             log.debug( "..." );
-            discardChanges();
+            revertChanges();
         }
 
     }

@@ -27,8 +27,9 @@ import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.mixin.Mixins;
 
 import org.polymap.core.project.ILayer;
-import org.polymap.core.qi4j.EntityMixin;
-import org.polymap.core.qi4j.ModificationConcern;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.event.ModelChangeSupport;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.qi4j.security.ACL;
 import org.polymap.core.qi4j.security.ACLCheckConcern;
 import org.polymap.core.qi4j.security.ACLFilterConcern;
@@ -37,13 +38,12 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
  * The composite providing the implementation of the {@link ILayer} interface.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @Concerns( {
         ACLCheckConcern.class, 
         ACLFilterConcern.class, 
-        ModificationConcern.class
+        PropertyChangeSupport.Concern.class
 })
 @Mixins( {
         LayerState.Mixin.class, 
@@ -51,10 +51,12 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
         ACL.Mixin.class, 
         ParentMap.Mixin.class,
         PipelineHolder.Mixin.class,
-        EntityMixin.class
+        PropertyChangeSupport.Mixin.class,
+        ModelChangeSupport.Mixin.class,
+        QiEntity.Mixin.class
 } )
 public interface LayerComposite
-        extends ILayer, LayerState, Labeled, ACL, ParentMap, PipelineHolder,
-                EntityComposite {
+        extends QiEntity, ILayer, LayerState, Labeled, ACL, ParentMap, PipelineHolder,
+                PropertyChangeSupport, ModelChangeSupport, EntityComposite {
 
 }

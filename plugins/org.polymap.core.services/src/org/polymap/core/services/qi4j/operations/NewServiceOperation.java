@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import org.qi4j.api.composite.TransientComposite;
-import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.mixin.Mixins;
 
 import org.apache.commons.logging.Log;
@@ -40,8 +39,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.qi4j.operations.AbstractOperation;
-import org.polymap.core.qi4j.OperationBoundsConcern;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.services.ServiceRepository;
 import org.polymap.core.services.qi4j.ProvidedServiceComposite;
 
@@ -52,7 +50,6 @@ import org.polymap.core.services.qi4j.ProvidedServiceComposite;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Concerns( OperationBoundsConcern.class )
 @Mixins( NewServiceOperation.Mixin.class )
 public interface NewServiceOperation
         extends IUndoableOperation, TransientComposite {
@@ -72,7 +69,7 @@ public interface NewServiceOperation
      * Implementation. 
      */
     public static abstract class Mixin
-            extends AbstractOperation
+            extends AbstractModelChangeOperation
             implements NewServiceOperation {
 
         private IMap                        map;
@@ -102,7 +99,7 @@ public interface NewServiceOperation
         }
 
 
-        public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+        public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
                 ServiceRepository repo = ServiceRepository.instance();
@@ -117,20 +114,6 @@ public interface NewServiceOperation
                 throw new ExecutionException( e.getMessage(), e );
             }
             return Status.OK_STATUS;
-        }
-
-
-        public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-
-        public IStatus undo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
         }
 
     }

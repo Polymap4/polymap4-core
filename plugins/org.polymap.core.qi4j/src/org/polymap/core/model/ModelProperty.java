@@ -29,13 +29,16 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
+
 /**
  * This annotion marks methods that change the persistent state of the entity. A
  * {@link PropertyChangeEvent} is fired when such a method has been called. A
  * {@link ModelChangeEvent} is fired when the enclosing operation is finished.
  * 
+ * @deprecated Use {@link PropertyChangeSupport} instead.
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @Retention( RetentionPolicy.RUNTIME )

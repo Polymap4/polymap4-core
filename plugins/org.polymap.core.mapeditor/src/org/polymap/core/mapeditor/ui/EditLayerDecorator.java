@@ -28,6 +28,8 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -42,16 +44,15 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
-import org.eclipse.core.runtime.ListenerList;
-
+import org.polymap.core.model.event.SourceClassPropertyEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.runtime.ListenerList;
 
 /**
  * Decorate the {@link ILayer} that is currently edited.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @SuppressWarnings("restriction")
@@ -85,7 +86,7 @@ public class EditLayerDecorator
         });
 
         module = ProjectRepository.instance();
-        module.addPropertyChangeListener( this );
+        module.addPropertyChangeListener( this, new SourceClassPropertyEventFilter( ILayer.class ) );
     }
     
 
@@ -120,11 +121,20 @@ public class EditLayerDecorator
         }
     }
 
-    public void propertyChange( PropertyChangeEvent ev ) {
+    public void propertyChange( final PropertyChangeEvent ev ) {
         log.debug( "propertyChange(): ev= " + ev );
         display.asyncExec( new Runnable() {
             public void run() {
-                fireEvent();
+                log.info( "Skipping event: " + ev + "!" );
+//                try {
+//                    ILayer layer = (ILayer)ev.getSource();
+//                    // was layer removed?
+//                    layer.id();
+//                    fireEvent();
+//                }
+//                catch (NoSuchEntityException e) {
+//                    log.info( "Entity was removed: " + e.getLocalizedMessage() );
+//                }
             }
         });
     }

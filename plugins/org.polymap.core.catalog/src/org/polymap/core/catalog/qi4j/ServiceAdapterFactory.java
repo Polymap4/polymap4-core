@@ -35,7 +35,7 @@ import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.CatalogRepository;
-import org.polymap.core.model.ACL;
+import org.polymap.core.model.security.ACL;
 
 /**
  * 

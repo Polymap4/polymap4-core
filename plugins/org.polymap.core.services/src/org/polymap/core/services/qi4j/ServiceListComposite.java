@@ -20,7 +20,6 @@
  *
  * $Id$
  */
-
 package org.polymap.core.services.qi4j;
 
 import org.qi4j.api.common.Optional;
@@ -35,22 +34,23 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.qi4j.AssocCollectionImpl;
-import org.polymap.core.qi4j.EntityMixin;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.services.IProvidedService;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @Mixins( {
-    ServiceListComposite.Mixin.class, 
-    EntityMixin.class
+    ServiceListComposite.Mixin.class,
+    ModelChangeSupport.Mixin.class,
+    QiEntity.Mixin.class
 } )
 public interface ServiceListComposite
-        extends EntityComposite {
+        extends QiEntity, EntityComposite {
 
     @Optional
     @UseDefaults

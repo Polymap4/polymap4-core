@@ -24,7 +24,6 @@
 package org.polymap.core.project.qi4j.operations;
 
 import org.qi4j.api.composite.TransientComposite;
-import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.mixin.Mixins;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -36,7 +35,7 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.qi4j.OperationBoundsConcern;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 
 /**
  * 
@@ -45,8 +44,6 @@ import org.polymap.core.qi4j.OperationBoundsConcern;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Concerns( OperationBoundsConcern.class 
-)
 @Mixins( RemoveLayerOperation.Mixin.class
 )
 public interface RemoveLayerOperation
@@ -64,7 +61,7 @@ public interface RemoveLayerOperation
      * Implementation. 
      */
     public static abstract class Mixin
-            extends AbstractOperation
+            extends AbstractModelChangeOperation
             implements RemoveLayerOperation {
 
         private ILayer              layer;
@@ -80,7 +77,7 @@ public interface RemoveLayerOperation
         }
 
 
-        public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+        public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
                 ProjectRepository rep = ProjectRepository.instance();
@@ -91,20 +88,6 @@ public interface RemoveLayerOperation
                 throw new ExecutionException( e.getMessage(), e );
             }
             return Status.OK_STATUS;
-        }
-
-
-        public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-
-        public IStatus undo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
         }
 
     }

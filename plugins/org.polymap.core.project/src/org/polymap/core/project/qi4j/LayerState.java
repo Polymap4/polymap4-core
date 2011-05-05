@@ -29,21 +29,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.IOException;
 import java.net.URL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geotools.data.FeatureSource;
-import org.geotools.referencing.CRS;
-import org.opengis.metadata.Identifier;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.qi4j.api.common.Optional;
-import org.qi4j.api.common.UseDefaults;
-import org.qi4j.api.property.Property;
-
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.ICatalog;
 import net.refractions.udig.catalog.ID;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.core.internal.CorePlugin;
+
+import org.geotools.data.FeatureSource;
+import org.geotools.referencing.CRS;
+import org.opengis.metadata.Identifier;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.common.Optional;
+import org.qi4j.api.common.UseDefaults;
+import org.qi4j.api.property.Property;
 
 import org.eclipse.ui.views.properties.IPropertySource;
 
@@ -98,7 +100,7 @@ public interface LayerState
     public static abstract class Mixin
             implements LayerState {
         
-        private static Log log = LogFactory.getLog( Mixin.class );
+        private static final Log log = LogFactory.getLog( Mixin.class );
 
         /** The cache of the {@link #georesId()} property. */
         private IGeoResource                    geores;

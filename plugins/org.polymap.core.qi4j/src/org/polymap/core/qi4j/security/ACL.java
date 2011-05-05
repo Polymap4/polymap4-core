@@ -37,26 +37,25 @@ import java.security.acl.AclEntry;
 import java.security.acl.NotOwnerException;
 import java.security.acl.Permission;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.property.Property;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.polymap.core.model.Entity;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.security.AclPermission;
+import org.polymap.core.qi4j.Qi4jPlugin;
+import org.polymap.core.qi4j.QiModule;
 
 import sun.security.acl.AclEntryImpl;
 import sun.security.acl.AclImpl;
 import sun.security.acl.PrincipalImpl;
-
-import org.polymap.core.model.AclPermission;
-import org.polymap.core.model.Entity;
-import org.polymap.core.model.ModelChangeEvent;
-import org.polymap.core.model.ModelChangeListener;
-import org.polymap.core.qi4j.Qi4jPlugin;
-import org.polymap.core.qi4j.QiModule;
-import org.polymap.core.runtime.Polymap;
 
 /**
  * Provides an ACL implementation based on the {@link sun.security.acl} package.
@@ -66,7 +65,7 @@ import org.polymap.core.runtime.Polymap;
  * @since 3.0
  */
 public interface ACL
-        extends org.polymap.core.model.ACL {
+        extends org.polymap.core.model.security.ACL {
 
     static Log log = LogFactory.getLog( ACL.class );
     
@@ -87,8 +86,8 @@ public interface ACL
     /**
      * The mixin.
      */
-    public abstract static class Mixin
-            implements ACL {
+    abstract static class Mixin
+            implements ACL, ModelChangeListener {
 
         private Acl                     acl;
         
@@ -125,31 +124,34 @@ public interface ACL
                     }
                 }
                 
-                // listen to entity (model) changes
-                // don't care outside Session
-                if (Polymap.getSessionDisplay() != null) {
-                    final QiModule module = Qi4jPlugin.Session.instance().resolveModule( entity );
-                    if (module != null) {
-                        module.addModelChangeListener( new ModelChangeListener() {
-                            public void modelChanged( ModelChangeEvent ev ) {
-                                log.info( "modelChanged(): ..." );
-                                acl = null;
-                                entries.clear();
-
-                                // the next checkInit() adds a new listener again; if this
-                                // entity is no longer used, then checkInit() is never called again
-                                // and the listener was removed correctly
-                                module.removeModelChangeListener( this );
-                            }
-                        });
-                    }
-                }
-                else {
-                    log.warn( "No module found for this ACL entity. -> no model change events are catched!" );
-                }
+//                // listen to entity (model) changes
+//                // don't care outside Session
+//                if (Polymap.getSessionDisplay() != null) {
+//                    final QiModule module = Qi4jPlugin.Session.instance().resolveModule( entity );
+//                    if (module != null) {
+//                        module.addModelChangeListener( new ModelChangeListener() {
+//                        });
+//                    }
+//                }
+//                else {
+//                    log.warn( "No module found for this ACL entity. -> no model change events are catched!" );
+//                }
             }
         }
 
+        public void modelChanged( ModelChangeEvent ev ) {
+            log.info( "modelChanged(): ..." );
+            acl = null;
+            entries.clear();
+
+            final QiModule module = Qi4jPlugin.Session.instance().resolveModule( entity );
+            if (module != null) {
+                // the next checkInit() adds a new listener again; if this
+                // entity is no longer used, then checkInit() is never called again
+                // and the listener was removed correctly
+                module.removeModelChangeListener( this );
+            }
+        }
         
         protected void serialize() {
             Set<String> aclEntries = aclEntries().get();
@@ -171,7 +173,7 @@ public interface ACL
         
         public boolean addPermission( String principalName, AclPermission... permissions ) {
             checkInit();
-            // FIXME
+            // FIXME what?
             CompatiblePrincipal principal = new CompatiblePrincipal( principalName );
 
             boolean result = true;

@@ -22,9 +22,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.CorePlugin;
-import org.polymap.core.model.GlobalModelChangeEvent;
-import org.polymap.core.model.GlobalModelChangeListener;
-import org.polymap.core.model.GlobalModelChangeEvent.EventType;
+import org.polymap.core.model.event.GlobalModelChangeEvent;
+import org.polymap.core.model.event.GlobalModelChangeListener;
+import org.polymap.core.model.event.GlobalModelChangeEvent.EventType;
 import org.polymap.core.services.ui.GeneralPreferencePage;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -192,7 +192,7 @@ public class ServicesPlugin
                 public void modelChanged( GlobalModelChangeEvent ev ) {
                     // XXX avoid restart on *every* global entity event
                     log.debug( "Global entity event: source= " + ev.getSource() );
-                    if (ev.getEventType() == EventType.commit
+                    if (ev.getEventType() == EventType.COMMIT
                             && ServiceRepository.class.isAssignableFrom( ev.getSource().getClass() )) {
                         restartServices();
                     }

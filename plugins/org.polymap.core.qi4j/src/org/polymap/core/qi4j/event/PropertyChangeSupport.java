@@ -1,0 +1,391 @@
+/* 
+ * polymap.org
+ * Copyright 2009-2011, Falko Bräutigam, and other contributors as
+ * indicated by the @authors tag. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
+package org.polymap.core.qi4j.event;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.common.Optional;
+import org.qi4j.api.common.QualifiedName;
+import org.qi4j.api.concern.GenericConcern;
+import org.qi4j.api.entity.Lifecycle;
+import org.qi4j.api.entity.LifecycleException;
+import org.qi4j.api.entity.association.Association;
+import org.qi4j.api.entity.association.ManyAssociation;
+import org.qi4j.api.injection.scope.This;
+import org.qi4j.api.property.Property;
+import org.qi4j.runtime.entity.EntityInstance;
+
+import org.polymap.core.model.TransientProperty;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.Qi4jPlugin;
+import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.workbench.PolymapWorkbench;
+
+/**
+ * Adds support for {@link PropertyChangeEvent}s to an entity. The {@link Mixin}
+ * and the {@link Concern} must be applied to the entity composite.
+ * 
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @since 3.1
+ */
+public interface PropertyChangeSupport
+        extends QiEntity {
+    
+    static final Log log = LogFactory.getLog( PropertyChangeSupport.class );
+
+    public static final String              PROP_ENTITY_CREATED = "_entity_created_";
+    public static final String              PROP_ENTITY_REMOVED = "_entity_removed_";
+    
+    static final ListenerList<PropertyChangeListener> globalListeners = new ListenerList();
+    
+    
+    public void addPropertyChangeListener( PropertyChangeListener l );
+
+    public void removePropertyChangeListener( PropertyChangeListener l );
+
+    public void fireEvent( QualifiedName name, @Optional Object newValue, @Optional Object oldValue );
+    
+
+    /**
+     * 
+     */
+    abstract class Mixin
+            implements PropertyChangeSupport, Lifecycle {
+
+        @This
+        protected PropertyChangeSupport                 composite;
+        
+        private ListenerList<PropertyChangeListener>    listeners;
+
+        
+        public void create()
+        throws LifecycleException {
+            log.info( "Entity created: " + composite.toString() );
+            fireEvent( QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_CREATED ), composite, null );
+        }
+
+
+        public void remove()
+        throws LifecycleException {
+            log.info( "Entity removed: " + composite.toString() );
+            fireEvent( QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_REMOVED ), composite, null );
+        }
+
+        
+        public void addPropertyChangeListener( PropertyChangeListener l ) {
+            if (listeners == null) {
+                synchronized (this) {
+                    if (listeners == null) {
+                        listeners = new ListenerList();
+                    }
+                }
+            }
+            listeners.add( l );    
+        }
+
+        public void removePropertyChangeListener( PropertyChangeListener l ) {
+            if (listeners != null) {
+                listeners.remove( l );
+            }
+        }
+
+        public void fireEvent( QualifiedName name, Object newValue, Object oldValue ) {
+            PropertyChangeEvent ev = new PropertyChangeEvent( composite, name.name(), oldValue, newValue );
+
+            if (globalListeners != null) {
+                for (PropertyChangeListener listener : globalListeners) {
+                    try {
+                        listener.propertyChange( ev );
+                    }
+                    catch (Throwable e) {
+                        PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, listener, "Error while changing object: " + composite, e );
+                    }
+                }
+            }
+
+            if (listeners != null) {
+                for (PropertyChangeListener listener : listeners) {
+                    try {
+                        listener.propertyChange( ev );
+                    }
+                    catch (Throwable e) {
+                        PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, listener, "Error while changing object: " + composite, e );
+                    }
+                }
+            }
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    public class Concern
+            extends GenericConcern {
+
+        @This
+        protected PropertyChangeSupport     composite;
+            
+
+        public Object invoke( Object proxy, Method method, Object[] args )
+        throws Throwable {
+            // call underlying
+            Object result = next.invoke( proxy, method, args );
+            
+            // check method annotations
+            TransientProperty a2 = method.getAnnotation( TransientProperty.class );
+            if (a2 != null) {
+                if (!Qi4jPlugin.isInitialized()) {
+                    log.debug( "Qi4JPlugin still about to initialize. Skipping this modification." );
+                }
+                else if (Polymap.getSessionDisplay() == null) {
+                    log.debug( "!!! No session when modifying entity !!!" );
+                }
+                else {
+                    composite.fireEvent( QualifiedName.fromClass( method.getDeclaringClass(), a2.value() ), args[0], null );
+                }
+            }
+            
+            // using a reference to composite in wrapper does not work;
+            // the proxy lost its InvocationHandler when set() is called
+            EntityInstance entityInstance = (EntityInstance)Proxy.getInvocationHandler( (Proxy)proxy );
+
+            // XXX creating a wrapper for every property method invocation may
+            // create a lot of objects, should we cache them?
+
+            if (result instanceof Property) {
+                return new PropertyWrapper( (Property)result, entityInstance );
+            }
+            else if (result instanceof Association) {
+                return new AssociationWrapper( (Association)result, entityInstance );
+            }
+            else if (result instanceof ManyAssociation) {
+                return new ManyAssociationWrapper( (ManyAssociation)result, entityInstance );
+            }
+            else {
+                return result;
+            }
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    static class PropertyWrapper
+            implements Property {
+        
+        private Property                delegate;
+        
+        private EntityInstance          entityInstance;
+
+
+        /**
+         * Create a new wrapper.
+         * <p/>
+         * Using a reference to composite in wrapper does not work; the proxy
+         * lost its InvocationHandler when set() is called
+         */
+        protected PropertyWrapper( Property delegate, EntityInstance entityInstance ) {
+            assert delegate != null;
+            assert entityInstance != null;
+            this.delegate = delegate;
+            this.entityInstance = entityInstance;
+        }
+
+        public Object get() {
+            return delegate.get();
+        }
+
+        public void set( Object newValue )
+                throws IllegalArgumentException, IllegalStateException {
+            Object oldValue = delegate.get();
+            delegate.set( newValue );
+            entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), newValue, oldValue );
+        }
+
+        public boolean isComputed() {
+            return delegate.isComputed();
+        }
+
+        public boolean isImmutable() {
+            return delegate.isImmutable();
+        }
+
+        public <T> T metaInfo( Class<T> infoType ) {
+            return delegate.metaInfo( infoType );
+        }
+
+        public QualifiedName qualifiedName() {
+            return delegate.qualifiedName();
+        }
+
+        public Type type() {
+            return delegate.type();
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    static class AssociationWrapper
+            implements Association {
+        
+        private Association             delegate;
+        
+        private EntityInstance          entityInstance;
+
+        
+        protected AssociationWrapper( Association delegate, EntityInstance entityInstance ) {
+            this.delegate = delegate;
+            this.entityInstance = entityInstance;
+        }
+
+        public Object get() {
+            return delegate.get();
+        }
+
+        public void set( Object associated )
+                throws IllegalArgumentException {
+            Object oldValue = delegate.get();
+            delegate.set( associated );
+            entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), associated, oldValue );
+        }
+
+        public boolean isAggregated() {
+            return delegate.isAggregated();
+        }
+
+        public boolean isImmutable() {
+            return delegate.isImmutable();
+        }
+
+        public <T> T metaInfo( Class<T> infoType ) {
+            return delegate.metaInfo( infoType );
+        }
+
+        public QualifiedName qualifiedName() {
+            return delegate.qualifiedName();
+        }
+
+        public Type type() {
+            return delegate.type();
+        }
+
+    }
+
+    
+    /**
+     * 
+     */
+    static class ManyAssociationWrapper
+            implements ManyAssociation {
+        
+        private ManyAssociation         delegate;
+        
+        private EntityInstance          entityInstance;
+
+        
+        protected ManyAssociationWrapper( ManyAssociation delegate, EntityInstance entityInstance ) {
+            this.delegate = delegate;
+            this.entityInstance = entityInstance;
+        }
+
+        public boolean add( int i, Object entity ) {
+            boolean result = delegate.add( i, entity );
+            if (result) {
+                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), entity, Integer.valueOf( i ) );
+            }
+            return result;
+        }
+
+        public boolean add( Object entity ) {
+            boolean result = delegate.add( entity );
+            if (result) {
+                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), entity, Integer.valueOf( Integer.MAX_VALUE ) );
+            }
+            return result;
+        }
+
+        public boolean remove( Object entity ) {
+            boolean result = delegate.remove( entity );
+            if (result) {
+                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), entity, Integer.valueOf( -1 ) );
+            }
+            return result;
+        }
+
+        public boolean contains( Object entity ) {
+            return delegate.contains( entity );
+        }
+
+        public int count() {
+            return delegate.count();
+        }
+
+        public Object get( int i ) {
+            return delegate.get( i );
+        }
+
+        public boolean isAggregated() {
+            return delegate.isAggregated();
+        }
+
+        public boolean isImmutable() {
+            return delegate.isImmutable();
+        }
+
+        public Iterator iterator() {
+            return delegate.iterator();
+        }
+
+        public <T> T metaInfo( Class<T> infoType ) {
+            return delegate.metaInfo( infoType );
+        }
+
+        public QualifiedName qualifiedName() {
+            return delegate.qualifiedName();
+        }
+
+        public List toList() {
+            return delegate.toList();
+        }
+
+        public Set toSet() {
+            return delegate.toSet();
+        }
+
+        public Type type() {
+            return delegate.type();
+        }
+
+
+    }
+
+}

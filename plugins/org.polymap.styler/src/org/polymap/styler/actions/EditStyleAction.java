@@ -37,9 +37,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
 
-import org.polymap.core.model.ACL;
-import org.polymap.core.model.ACLUtils;
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.MapLayersView;
 import org.polymap.styler.ui.StyleView;

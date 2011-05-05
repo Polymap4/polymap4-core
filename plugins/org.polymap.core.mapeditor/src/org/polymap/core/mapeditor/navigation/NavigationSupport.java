@@ -3,10 +3,10 @@ package org.polymap.core.mapeditor.navigation;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
@@ -26,7 +26,6 @@ import org.polymap.core.mapeditor.INavigationSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.controls.MouseDefaultsControl;
 
@@ -76,12 +75,14 @@ public class NavigationSupport
 //        this.lastMapExtent = mapEditor.getMap().getExtent() != null
 //                ? mapEditor.getMap().getExtent()
 //                : mapEditor.getMap().getMaxExtent();
-        ProjectRepository.instance().addPropertyChangeListener( this );
+        mapEditor.getMap().addPropertyChangeListener( this );
     }
 
 
     public void dispose() {
-        ProjectRepository.instance().removePropertyChangeListener( this );
+        if (mapEditor != null) {
+            mapEditor.getMap().removePropertyChangeListener( this );
+        }
         
         if (history != null) {
 //            history.removeOperationApprover( approver );

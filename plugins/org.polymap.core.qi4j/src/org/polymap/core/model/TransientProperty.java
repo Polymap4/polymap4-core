@@ -20,7 +20,6 @@
  *
  * $Id$
  */
-
 package org.polymap.core.model;
 
 import java.lang.annotation.Documented;
@@ -29,13 +28,14 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 
+import org.polymap.core.model.event.ModelChangeEvent;
+
 /**
  * This annotion marks methods that change the transient state of the entity. A
  * {@link PropertyChangeEvent} is fired when such a method has been called. A
  * {@link ModelChangeEvent} is fired when the enclosing operation is finished.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @Retention( RetentionPolicy.RUNTIME )

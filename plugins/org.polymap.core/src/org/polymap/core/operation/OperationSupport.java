@@ -177,7 +177,7 @@ public class OperationSupport
     
     public void redo()
     throws ExecutionException {
-        final IUndoableOperation op = getUndoOperation();
+        final IUndoableOperation op = getRedoOperation();
         assert op != null && op.canRedo();
         
         IRunnableWithProgress runnable = new IRunnableWithProgress(){

@@ -53,8 +53,8 @@ import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.catalog.CatalogPlugin;
 import org.polymap.core.catalog.CatalogRepository;
-import org.polymap.core.model.ACL;
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 

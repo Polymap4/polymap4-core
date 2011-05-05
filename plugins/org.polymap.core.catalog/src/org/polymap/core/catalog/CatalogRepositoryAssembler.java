@@ -39,7 +39,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.catalog.qi4j.CatalogComposite;
 import org.polymap.core.catalog.qi4j.ServiceComposite;
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;

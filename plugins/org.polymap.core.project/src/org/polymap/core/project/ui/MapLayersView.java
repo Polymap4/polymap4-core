@@ -28,14 +28,14 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import net.refractions.udig.internal.ui.IDropTargetProvider;
 import net.refractions.udig.internal.ui.UDIGViewerDropAdapter;
 import net.refractions.udig.ui.IDropAction;
 import net.refractions.udig.ui.IDropHandlerListener;
 import net.refractions.udig.ui.UDIGDragDropUtilities;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -81,8 +81,9 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 
-import org.polymap.core.model.ModelChangeEvent;
-import org.polymap.core.model.ModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.SourceClassPropertyEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
@@ -283,7 +284,8 @@ public class MapLayersView
                     });
                 }
             };
-            ProjectRepository.instance().addModelChangeListener( modelListener );
+            ProjectRepository.instance().addModelChangeListener( modelListener,
+                    new SourceClassPropertyEventFilter( ILayer.class ));
         }
     }
 

@@ -40,8 +40,8 @@ import net.refractions.udig.catalog.IServiceInfo;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import org.polymap.core.model.ACL;
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.model.security.AclPermission;
 
 /**
  * A facade of {@link ServiceComposite} providing the {@link ICatalog} and the

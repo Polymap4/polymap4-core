@@ -40,7 +40,7 @@ public interface HRIdentityGeneratorService
 
         private static final Log log = LogFactory.getLog( HRIdentityGeneratorService.class );
 
-        private static final FastDateFormat df = FastDateFormat.getInstance("yyyy-MM-dd_HH:mm");
+        private static final FastDateFormat df = FastDateFormat.getInstance("yyyyMMdd-HHmm");
         
         private String                      lastDateFormat;
         
@@ -56,16 +56,16 @@ public interface HRIdentityGeneratorService
             
             result.append( compositeType.getSimpleName() );
             
-            result.append( "_" );
+            result.append( "-" );
             
             String dateFormat = df.format( System.currentTimeMillis() );
             count = dateFormat.equals( lastDateFormat ) ? count+1 : 0;
             lastDateFormat = dateFormat;
             result.append( dateFormat );
 
-            result.append( "_" );
+            result.append( "-" );
             result.append( count );
-            log.info( "generated ID: " + result.toString() );
+            log.debug( "generated ID: " + result.toString() );
             return result.toString();
         }
 

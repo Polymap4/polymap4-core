@@ -40,9 +40,9 @@ import org.eclipse.ui.actions.ActionDelegate;
 
 import org.eclipse.core.commands.ExecutionException;
 
-import org.polymap.core.model.ACL;
-import org.polymap.core.model.ACLUtils;
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Messages;

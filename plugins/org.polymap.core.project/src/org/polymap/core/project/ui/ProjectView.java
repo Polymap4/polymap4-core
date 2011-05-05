@@ -117,9 +117,9 @@ public class ProjectView
     }
 
 
-    public void firePropertyChanged( int propertyId ) {
-        super.firePropertyChange( propertyId );
-    }
+//    public void firePropertyChanged( int propertyId ) {
+//        super.firePropertyChange( propertyId );
+//    }
 
 
     /**

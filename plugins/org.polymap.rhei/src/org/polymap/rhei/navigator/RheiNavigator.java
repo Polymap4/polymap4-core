@@ -35,8 +35,9 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.navigator.CommonNavigator;
 
-import org.polymap.core.model.ModelChangeEvent;
-import org.polymap.core.model.ModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.PropertyEventFilter;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.DefaultPartListener;
@@ -121,7 +122,7 @@ public class RheiNavigator
                     });
                 }
             };
-            ProjectRepository.instance().addModelChangeListener( modelListener );
+            ProjectRepository.instance().addModelChangeListener( modelListener, PropertyEventFilter.ALL );
         }
     }
 

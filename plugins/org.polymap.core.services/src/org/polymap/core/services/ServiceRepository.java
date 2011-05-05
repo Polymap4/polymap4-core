@@ -208,7 +208,7 @@ public class ServiceRepository
         
         public void revert( OperationSupport os ) {
             log.debug( "..." );
-            discardChanges();
+            revertChanges();
         }
 
     }

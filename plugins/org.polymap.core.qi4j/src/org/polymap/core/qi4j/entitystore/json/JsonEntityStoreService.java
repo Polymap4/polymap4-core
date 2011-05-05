@@ -48,7 +48,7 @@ import org.qi4j.spi.entitystore.EntityStore;
  
 // _p3: falko: polymap3 handles concurrent modifications; this concern causes
 // error when objects are saved twice (dont know why) and it is overhead
-//@Concerns( ConcurrentModificationCheckConcern.class )
+//@Concerns( ModificationTrackConcern.class )
 
 @Mixins( JsonEntityStoreMixin.class )
 public interface JsonEntityStoreService

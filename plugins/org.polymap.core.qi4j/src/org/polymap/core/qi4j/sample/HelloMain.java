@@ -20,16 +20,13 @@
  *
  * $Id$
  */
-
 package org.polymap.core.qi4j.sample;
 
-import java.util.prefs.Preferences;
-
 import org.geotools.geometry.jts.ReferencedEnvelope;
+
 import org.qi4j.api.common.Visibility;
 import org.qi4j.api.composite.TransientBuilderFactory;
 import org.qi4j.api.entity.Identity;
-import org.qi4j.api.service.ServiceReference;
 import org.qi4j.api.structure.Module;
 import org.qi4j.api.unitofwork.UnitOfWork;
 import org.qi4j.bootstrap.ApplicationAssembler;
@@ -39,19 +36,16 @@ import org.qi4j.bootstrap.AssemblyException;
 import org.qi4j.bootstrap.Energy4Java;
 import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
-import org.qi4j.entitystore.prefs.PreferencesEntityStoreInfo;
+import org.qi4j.entitystore.memory.MemoryEntityStoreService;
 import org.qi4j.entitystore.prefs.PreferencesEntityStoreService;
 import org.qi4j.spi.structure.ApplicationSPI;
 import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
 
-import org.polymap.core.qi4j.NestedChangeSet;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
  */
 public class HelloMain {
 
@@ -78,12 +72,12 @@ public class HelloMain {
                 domainModule.addServices( FactoryService.class )
                         .visibleIn( Visibility.application );
                 
-//              domainModule.addServices( MemoryEntityStoreService.class )
-//              .instantiateOnStartup();
+                domainModule.addServices( MemoryEntityStoreService.class )
+                        .instantiateOnStartup();
 
-                Preferences prefRoot = Preferences.userRoot().node(
-                        domainModule.layerAssembly().applicationAssembly().name() + "/" + "hello" );
-                prefRoot.put( "test", "hello" );
+//                Preferences prefRoot = Preferences.userRoot().node(
+//                        domainModule.layerAssembly().applicationAssembly().name() + "/" + "hello" );
+//                prefRoot.put( "test", "hello" );
 
                 // indexer
 //                RdfMemoryStoreAssembler rdf = new RdfMemoryStoreAssembler();
@@ -101,11 +95,11 @@ public class HelloMain {
 //                        .visibleIn( Visibility.application )
 //                        .instantiateOnStartup();
                 
-                // persistence
-                domainModule.addServices( PreferencesEntityStoreService.class )
-                        .setMetaInfo( new PreferencesEntityStoreInfo( prefRoot ) )
-                        .instantiateOnStartup()
-                        ;  //.identifiedBy( "rdf-repository" );
+//                // persistence
+//                domainModule.addServices( PreferencesEntityStoreService.class )
+//                        .setMetaInfo( new PreferencesEntityStoreInfo( prefRoot ) )
+//                        .instantiateOnStartup()
+//                        ;  //.identifiedBy( "rdf-repository" );
                 
 //                // auth layer / module
 //                LayerAssembly authLayer = assembly.layerAssembly( "auth2-layer" );
@@ -189,7 +183,6 @@ public class HelloMain {
         
         hello.label().set( "label" );
         System.out.println( "Hello: " + hello.getLabel() );
-        System.out.println( "says: " + hello.say() );
         
         // entities ****
 
@@ -198,13 +191,14 @@ public class HelloMain {
         System.out.println( "uow: " + uow );
         //uow.complete();
         
-        // cs1
-        NestedChangeSet cs1 = NestedChangeSet.newInstance( uow );
+//        ServiceReference<Factory> fs = domainModule.serviceFinder().findService( Factory.class );
+//        Person root = fs.get().createPerson( "root", "root" );
+//        final Person root = uow.get( Person.class, "root" );
         
-        ServiceReference<Factory> fs = domainModule.serviceFinder().findService( Factory.class );
-        //Person root = fs.get().createPerson( "root", "root" );
-        final Person root = uow.get( Person.class, "root" );
+        PersonComposite root = uow.newEntity( PersonComposite.class, "root" );
+        
         System.out.println( "root: " + root.toString() );
+        System.out.println( "root: " + root.lastModified() );
         root.extend().set( new ReferencedEnvelope() );
         printPerson( root );
         

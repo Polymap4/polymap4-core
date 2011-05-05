@@ -37,6 +37,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 
+import net.refractions.udig.catalog.ID;
+import net.refractions.udig.catalog.IService;
+import net.refractions.udig.catalog.IServiceFactory;
+import net.refractions.udig.catalog.URLUtils;
+import net.refractions.udig.core.internal.CorePlugin;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.concern.Concerns;
@@ -45,20 +55,11 @@ import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.mixin.Mixins;
 import org.qi4j.api.property.Property;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import net.refractions.udig.catalog.ID;
-import net.refractions.udig.catalog.IService;
-import net.refractions.udig.catalog.IServiceFactory;
-import net.refractions.udig.catalog.URLUtils;
-import net.refractions.udig.core.internal.CorePlugin;
-
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.ModelProperty;
-import org.polymap.core.qi4j.EntityMixin;
-import org.polymap.core.qi4j.ModificationConcern;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.event.ModelChangeSupport;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.qi4j.security.ACL;
 import org.polymap.core.qi4j.security.ACLCheckConcern;
 import org.polymap.core.qi4j.security.ACLFilterConcern;
@@ -73,15 +74,18 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
 @Concerns( {
         ACLCheckConcern.class, 
         ACLFilterConcern.class, 
-        ModificationConcern.class
+        PropertyChangeSupport.Concern.class
 })
 @Mixins( {
         ServiceComposite.Mixin.class, 
         ACL.Mixin.class, 
-        EntityMixin.class
+        PropertyChangeSupport.Mixin.class,
+        ModelChangeSupport.Mixin.class,
+        QiEntity.Mixin.class
 })
 public interface ServiceComposite
-        extends org.polymap.core.model.ACL, Entity, EntityComposite {
+        extends QiEntity, org.polymap.core.model.security.ACL,
+                PropertyChangeSupport, ModelChangeSupport, EntityComposite {
 
     public static final String          PROP_PARAMS = "params";
 

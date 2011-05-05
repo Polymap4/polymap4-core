@@ -38,7 +38,7 @@ import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
 import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
 
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.qi4j.LayerComposite;
 import org.polymap.core.project.qi4j.MapComposite;
 import org.polymap.core.project.qi4j.MapState;
@@ -52,6 +52,7 @@ import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreService;
+import org.polymap.core.qi4j.idgen.HRIdentityGeneratorService;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.security.Authentication;
 
@@ -99,7 +100,7 @@ public class ProjectRepositoryAssembler
         LayerAssembly domainLayer = _app.layerAssembly( "adhoc-layer" );
         ModuleAssembly domainModule = domainLayer.moduleAssembly( "project-module" );
         domainModule.addEntities( 
-                MapComposite.class, 
+                MapComposite.class,
                 LayerComposite.class 
         );
         domainModule.addTransients( 
@@ -136,7 +137,7 @@ public class ProjectRepositoryAssembler
                 .instantiateOnStartup()
                 ;  //.identifiedBy( "rdf-repository" );
 
-        domainModule.addServices( UuidIdentityGeneratorService.class );
+        domainModule.addServices( HRIdentityGeneratorService.class );
 
         // indexer
 //        RdfNativeSesameStoreAssembler rdf = new RdfNativeSesameStoreAssembler();

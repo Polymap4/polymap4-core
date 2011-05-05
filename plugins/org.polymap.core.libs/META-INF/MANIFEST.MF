@@ -1148,6 +1148,9 @@ Export-Package: .,
    org.opengis.referencing.operation,
    org.opengis.referencing.crs,
    new org.geotools.gce.imagemosaic",
+ org.geotools.geojson,
+ org.geotools.geojson.feature,
+ org.geotools.geojson.geom,
  org.geotools.geometry;
   uses:="org.opengis.referencing.datum,
    org.opengis.geometry.aggregate,
@@ -2341,6 +2344,9 @@ Bundle-ClassPath: .,
  lib/commons-httpclient-3.1.jar,
  lib/gt-epsg-wkt-2.6.4.jar,
  lib/commons-logging-1.1.1.jar,
- lib/ant-1.8.1.jar
+ lib/ant-1.8.1.jar,
+ resource/gt-geojson-2.7.x.jar,
+ resource/json_simple-1.1.jar,
+ resource/json-lib-2.2.3-jdk15.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"

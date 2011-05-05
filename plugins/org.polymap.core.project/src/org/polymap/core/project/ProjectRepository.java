@@ -185,7 +185,7 @@ public class ProjectRepository
         
         public void revert( OperationSupport os ) {
             log.debug( "..." );
-            discardChanges();
+            revertChanges();
         }
 
     }

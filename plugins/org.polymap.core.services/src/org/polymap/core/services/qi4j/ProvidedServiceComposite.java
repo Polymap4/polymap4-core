@@ -20,7 +20,6 @@
  *
  * $Id$
  */
-
 package org.polymap.core.services.qi4j;
 
 import java.util.List;
@@ -37,7 +36,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.qi4j.EntityMixin;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.services.IProvidedService;
 import org.polymap.core.services.ServicesPlugin;
@@ -48,15 +48,15 @@ import org.polymap.core.services.http.WmsService;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @Mixins( {
-    ProvidedServiceComposite.Mixin.class, 
-    EntityMixin.class
+    ProvidedServiceComposite.Mixin.class,
+    ModelChangeSupport.Mixin.class,
+    QiEntity.Mixin.class
 } )
 public interface ProvidedServiceComposite
-        extends IProvidedService, EntityComposite {
+        extends QiEntity, IProvidedService, EntityComposite {
 
     @Optional
     @UseDefaults

@@ -24,7 +24,6 @@ import java.util.Map;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,27 +32,45 @@ import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 
 /**
- * Default implementation of {@link EntityType}. This class can be
- * instantiated directly or subclassed. 
+ * Default implementation of {@link EntityType} for {@link QiModule} based
+ * modules. 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version ($Revision$)
+ * @since 3.1
  */
 class EntityTypeImpl
         implements EntityType {
 
     private static final Log log = LogFactory.getLog( EntityTypeImpl.class );
 
+    private static Map<Class,EntityTypeImpl>        types = new HashMap();
+    
+    
+    public static EntityType forClass( Class<? extends Entity> type ) {
+        EntityTypeImpl result = types.get( type );
+        if (result == null) {
+            synchronized (types) {
+                result = new EntityTypeImpl( type );
+                types.put( type, result );
+                if (types.size() > 100) {
+                    throw new RuntimeException( "The global map of entity types has grown over 100 entries!" );
+                }
+            }
+        }
+        return result;
+    }
+    
+    
+    // instance *******************************************
+    
     private Class<? extends Entity>     type;
     
     private Property                    id;
     
     private Map<String,Property>        props;
     
-    private Map<String,Association>     assocs;
-    
 
-    EntityTypeImpl( Class<? extends Entity> type ) {
+    private EntityTypeImpl( Class<? extends Entity> type ) {
         this.type = type;
     }
 
@@ -80,8 +97,7 @@ class EntityTypeImpl
     private Map<String,Property> checkInitProps() {
         if (props == null) {
             props = new HashMap();
-            assocs = new HashMap();
-            for (Method m : type.getDeclaredMethods()) {
+            for (Method m : type.getMethods()) {
                 // property
                 if (org.qi4j.api.property.Property.class.isAssignableFrom(
                         m.getReturnType() ) ) {
@@ -100,7 +116,13 @@ class EntityTypeImpl
                 else if (org.qi4j.api.entity.association.Association.class.isAssignableFrom(
                         m.getReturnType() ) ) {
                     AssociationImpl assoc = new AssociationImpl( m );
-                    assocs.put( assoc.getName(), assoc );
+                    props.put( assoc.getName(), assoc );
+                }
+                // many-association
+                else if (org.qi4j.api.entity.association.ManyAssociation.class.isAssignableFrom(
+                        m.getReturnType() ) ) {
+                    ManyAssociationImpl assoc = new ManyAssociationImpl( m );
+                    props.put( assoc.getName(), assoc );
                 }
             }
         }
@@ -114,7 +136,7 @@ class EntityTypeImpl
     class PropertyImpl
             implements Property {
 
-        private Method          m;
+        protected Method          m;
         
         
         PropertyImpl( Method m ) {
@@ -132,7 +154,7 @@ class EntityTypeImpl
                 return true;
             }
             catch (Exception e) {
-                log.info( "no valid type: " + e.getMessage() );
+                log.info( "no valid type: " + e );
                 return false;
             }
         }
@@ -191,24 +213,69 @@ class EntityTypeImpl
      * 
      */
     class AssociationImpl
+            extends PropertyImpl
             implements Association {
 
-        private Method          m;
-        
-        
         AssociationImpl( Method m ) {
-            this.m = m;
+            super( m );
         }
 
-        public String getName() {
-            return m.getName();
-            
-        }
-
-        public Type getType() {
-            return m.getGenericReturnType();
+        public Object getValue( Entity entity ) 
+        throws Exception {
+            try {
+                org.qi4j.api.entity.association.Association assoc = 
+                        (org.qi4j.api.entity.association.Association)m.invoke( entity );
+                return assoc.get();
+            }
+            catch (InvocationTargetException e) {
+                Throwable ee = e.getTargetException();
+                if (ee instanceof Exception) {
+                    throw (Exception)ee;
+                }
+                else {
+                    throw (Error)ee;
+                }
+            }
+            catch (Exception e) {
+                throw e;
+            }
         }
         
+        public void setValue( Entity entity, Object value )
+        throws Exception {
+            try {
+                org.qi4j.api.entity.association.Association assoc = 
+                        (org.qi4j.api.entity.association.Association)m.invoke( entity );
+                assoc.set( value );
+            }
+            catch (InvocationTargetException e) {
+                Throwable ee = e.getTargetException();
+                if (ee instanceof Exception) {
+                    throw (Exception)ee;
+                }
+                else {
+                    throw (Error)ee;
+                }
+            }
+            catch (Exception e) {
+                throw e;
+            }
+        }
+        
+    }
+
+    
+    /**
+     * 
+     */
+    class ManyAssociationImpl
+            extends PropertyImpl
+            implements ManyAssociation {
+
+        ManyAssociationImpl( Method m ) {
+            super( m );
+        }
+
         public Object getValue( Entity entity ) 
         throws Exception {
             try {

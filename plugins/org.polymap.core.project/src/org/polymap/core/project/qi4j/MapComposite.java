@@ -20,7 +20,6 @@
  *
  * $Id$
  */
-
 package org.polymap.core.project.qi4j;
 
 import org.qi4j.api.concern.Concerns;
@@ -28,8 +27,9 @@ import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.mixin.Mixins;
 
 import org.polymap.core.project.IMap;
-import org.polymap.core.qi4j.EntityMixin;
-import org.polymap.core.qi4j.ModificationConcern;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.event.ModelChangeSupport;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.qi4j.security.ACL;
 import org.polymap.core.qi4j.security.ACLCheckConcern;
 import org.polymap.core.qi4j.security.ACLFilterConcern;
@@ -44,16 +44,19 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
 @Concerns( {
         ACLCheckConcern.class, 
         ACLFilterConcern.class, 
-        ModificationConcern.class
+        PropertyChangeSupport.Concern.class
 })
 @Mixins( {
         MapState.Mixin.class, 
         Labeled.Mixin.class, 
         ACL.Mixin.class, 
         ParentMap.Mixin.class,
-        EntityMixin.class
+        PropertyChangeSupport.Mixin.class,
+        ModelChangeSupport.Mixin.class,
+        QiEntity.Mixin.class
 } )
 public interface MapComposite
-        extends IMap, MapState, Labeled, ACL, ParentMap, EntityComposite {
+        extends QiEntity, IMap, MapState, Labeled, ACL, ParentMap, 
+                PropertyChangeSupport, ModelChangeSupport, EntityComposite {
 
 }

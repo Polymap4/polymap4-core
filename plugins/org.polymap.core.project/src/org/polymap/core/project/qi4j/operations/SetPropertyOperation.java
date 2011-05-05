@@ -27,7 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.qi4j.api.composite.TransientComposite;
-import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.mixin.Mixins;
 import org.qi4j.library.constraints.annotation.NotEmpty;
 
@@ -40,7 +39,7 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.qi4j.OperationBoundsConcern;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 
 /**
  * This operation allows to set a property of an entity. The property setter
@@ -50,7 +49,6 @@ import org.polymap.core.qi4j.OperationBoundsConcern;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Concerns( OperationBoundsConcern.class )
 @Mixins( SetPropertyOperation.Mixin.class )
 public interface SetPropertyOperation
         extends IUndoableOperation, TransientComposite {
@@ -75,7 +73,7 @@ public interface SetPropertyOperation
      * Implementation. 
      */
     public static abstract class Mixin
-            extends AbstractOperation
+            extends AbstractModelChangeOperation
             implements SetPropertyOperation {
 
         private Object                  obj;
@@ -100,8 +98,12 @@ public interface SetPropertyOperation
             setLabel( '"' + propName + "\" ändern" );
         }
 
+//        public final IStatus execute( IProgressMonitor monitor, IAdaptable info )
+//        throws ExecutionException {
+//            return super.execute( monitor, info );
+//        }
 
-        public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+        public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
                 ProjectRepository rep = ProjectRepository.instance();
@@ -138,20 +140,6 @@ public interface SetPropertyOperation
                 }
             }
             return Status.OK_STATUS;
-        }
-
-
-        public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-
-        public IStatus undo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
         }
 
     }

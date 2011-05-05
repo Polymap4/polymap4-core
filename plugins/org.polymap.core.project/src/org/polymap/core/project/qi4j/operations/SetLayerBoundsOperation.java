@@ -24,18 +24,19 @@ package org.polymap.core.project.qi4j.operations;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IGeoResourceInfo;
+
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.composite.TransientComposite;
-import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.mixin.Mixins;
 
 import com.vividsolutions.jts.geom.Envelope;
-
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.catalog.IGeoResourceInfo;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
@@ -47,7 +48,7 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.Messages;
-import org.polymap.core.qi4j.OperationBoundsConcern;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 
 /**
  * Returns the bounds of the layer as best estimated. The bounds will be
@@ -64,7 +65,6 @@ import org.polymap.core.qi4j.OperationBoundsConcern;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Concerns( OperationBoundsConcern.class )
 @Mixins( SetLayerBoundsOperation.Mixin.class )
 public interface SetLayerBoundsOperation
         extends IUndoableOperation, TransientComposite {
@@ -85,7 +85,7 @@ public interface SetLayerBoundsOperation
      * Implementation. 
      */
     public static abstract class Mixin
-            extends AbstractOperation
+            extends AbstractModelChangeOperation
             implements SetLayerBoundsOperation {
 
         private static Log log = LogFactory.getLog( SetLayerBoundsOperation.class );
@@ -108,7 +108,7 @@ public interface SetLayerBoundsOperation
         }
 
 
-        public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+        public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
                 //            monitor.subTask( "sleeping..." );
@@ -139,19 +139,6 @@ public interface SetLayerBoundsOperation
             else {
                 result = new ReferencedEnvelope( new Envelope(), null );
             }
-            return Status.OK_STATUS;
-        }
-
-
-        public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
-            // ignore
-            return Status.OK_STATUS;
-        }
-
-
-        public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            // ignore
             return Status.OK_STATUS;
         }
 

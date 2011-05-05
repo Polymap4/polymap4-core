@@ -47,7 +47,7 @@
             adaptableType="net.refractions.udig.catalog.IService"
             class="org.polymap.core.catalog.qi4j.ServiceAdapterFactory">
          <adapter
-               type="org.polymap.core.model.ACL">
+               type="org.polymap.core.model.security.ACL">
          </adapter>
       </factory>
    </extension>
@@ -57,7 +57,7 @@
             class="org.polymap.core.catalog.qi4j.ServiceAdapterFactory"
             resolveableType="net.refractions.udig.catalog.IService">
          <resolve
-               type="org.polymap.core.model.ACL">
+               type="org.polymap.core.model.security.ACL">
          </resolve>
       </factory>
    </extension-->

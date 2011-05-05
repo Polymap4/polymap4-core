@@ -5,16 +5,16 @@
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
-            class="org.polymap.core.model.ui.ACLPropertiesPage"
+            class="org.polymap.core.model.security.ACLPropertiesPage"
             id="org.polymap.core.model.ui.ACLPropertiesPage"
             name="%propsPage_acl">
          <enabledWhen>
             <or>
                <instanceof
-                     value="org.polymap.core.model.ACL">
+                     value="org.polymap.core.model.security.ACL">
                </instanceof>
                <adapt
-                     type="org.polymap.core.model.ACL">
+                     type="org.polymap.core.model.security.ACL">
                </adapt>
             </or>
          </enabledWhen>

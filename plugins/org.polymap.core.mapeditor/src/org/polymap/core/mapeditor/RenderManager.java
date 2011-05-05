@@ -48,8 +48,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
-import org.polymap.core.model.ModelChangeEvent;
-import org.polymap.core.model.ModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.PropertyEventFilter;
 import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
@@ -100,8 +101,22 @@ public class RenderManager {
         
         // register listeners
         ProjectRepository module = ProjectRepository.instance();
-        module.addPropertyChangeListener( mapDomainListener );
-        module.addModelChangeListener( mapDomainListener );
+        module.addPropertyChangeListener( mapDomainListener, new PropertyEventFilter() {
+            public boolean accept( PropertyChangeEvent ev ) {
+                if (RenderManager.this.map == null || ev.getSource() == null) {
+                    return false;
+                }
+                if (ev.getSource() instanceof IMap) {
+                    return RenderManager.this.map.equals( ev.getSource() );
+                }
+                else if (ev.getSource() instanceof ILayer) {
+                    ILayer layer = (ILayer)ev.getSource();
+                    return RenderManager.this.map.equals( layer.getMap() );
+                }
+                log.info( "Skipping: " + ev );
+                return false;
+            }
+        });
     }
 
     
@@ -109,7 +124,6 @@ public class RenderManager {
         if (mapDomainListener != null && map != null) {
             ProjectRepository module = ProjectRepository.instance();
             module.removePropertyChangeListener( mapDomainListener );
-            module.removeModelChangeListener( mapDomainListener );
             mapDomainListener = null;
         }
         if (wmsService != null) {

@@ -20,32 +20,28 @@
  *
  * $Id$
  */
-
 package org.polymap.core.qi4j.sample;
 
-import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.entity.EntityComposite;
+import org.qi4j.api.injection.scope.Structure;
+import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.mixin.Mixins;
-import org.qi4j.api.sideeffect.SideEffects;
-
-import org.polymap.core.model.Entity;
-import org.polymap.core.qi4j.EntityMixin;
-import org.polymap.core.qi4j.ModificationConcern;
+import org.qi4j.runtime.entity.EntityInstance;
+import org.qi4j.spi.Qi4jSPI;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
  */
 //@SideEffects( 
 //        ParentSideEffect.class 
 //)
-@Concerns( 
-        ModificationConcern.class
-)
+//@Concerns( 
+//        PropertyChangeConcern.class
+//)
 @Mixins( {
+        PersonComposite.Mixin.class,
         PersonMixin.class, 
         Labeled.Mixin.class, 
         PersonParentMixin.class
@@ -54,6 +50,23 @@ import org.polymap.core.qi4j.ModificationConcern;
 public interface PersonComposite
         extends EntityComposite, Person, Labeled, PersonParent { //, Entity {
 
+    public long lastModified();
+    
 //    public String toString();
 
+    abstract class Mixin
+            implements PersonComposite {
+        
+//        @Structure
+//        private Qi4jSPI         qi4j;
+        
+        @This
+        private PersonComposite composite;
+        
+        public long lastModified() {
+            return EntityInstance.getEntityInstance( composite ).entityState().lastModified();
+//            return qi4j.getEntityState( composite ).lastModified();
+        }
+    }
+    
 }

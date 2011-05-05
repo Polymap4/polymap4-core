@@ -30,11 +30,12 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.eclipse.core.runtime.IAdaptable;
 
-import org.polymap.core.model.ACL;
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 
 /**
  * A Map contains Maps and Layers. It holds information about the rendering of
@@ -49,7 +50,7 @@ import org.polymap.core.model.TransientProperty;
  * @since 3.0
  */
 public interface IMap
-        extends Entity, Labeled, ACL, ParentMap, IAdaptable { 
+        extends Entity, Labeled, ACL, ParentMap, IAdaptable, PropertyChangeSupport { 
 
     public static final String      PROP_MAPS = "maps";
     public static final String      PROP_LAYERS = "layers";

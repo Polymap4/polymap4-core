@@ -35,15 +35,15 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import org.polymap.core.model.ModelChangeEvent;
-import org.polymap.core.model.ModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.PropertyEventFilter;
 import org.polymap.core.project.ProjectRepository;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public abstract class EntityContentProvider
@@ -77,7 +77,7 @@ public abstract class EntityContentProvider
         dispose();
         this.input = newInput;
         if (input != null) {
-            ProjectRepository.instance().addModelChangeListener( this );
+            ProjectRepository.instance().addModelChangeListener( this, PropertyEventFilter.ALL );
         }
         this.viewer = _viewer;
     }
@@ -93,7 +93,7 @@ public abstract class EntityContentProvider
                 try {
                     viewer.refresh();
                 }
-                // qi4j seems to not have EntityComposite.equals() implemented correctly;
+                // qi4j seems to not have QiEntity.equals() implemented correctly;
                 catch (Exception e) {
                     log.warn( "unhandled:" + e, e );
                 }

@@ -25,18 +25,18 @@ package org.polymap.core.qi4j.security;
 
 import java.lang.reflect.Method;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.concern.GenericConcern;
 import org.qi4j.api.injection.scope.Structure;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.structure.Module;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.polymap.core.model.ACLUtils;
-import org.polymap.core.model.AclPermission;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.runtime.Polymap;
 

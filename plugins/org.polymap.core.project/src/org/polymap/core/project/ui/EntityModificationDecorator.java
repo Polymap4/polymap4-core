@@ -20,13 +20,14 @@
  *
  * $Id$
  */
-
 package org.polymap.core.project.ui;
 
 import java.net.URL;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -42,12 +43,12 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.ListenerList;
 
 import org.polymap.core.model.Entity;
-import org.polymap.core.model.GlobalModelChangeEvent;
-import org.polymap.core.model.GlobalModelChangeListener;
+import org.polymap.core.model.event.GlobalModelChangeEvent;
+import org.polymap.core.model.event.GlobalModelChangeListener;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.qi4j.QiModule.EntityState;
-
+import org.polymap.core.qi4j.event.EntityChangeStatus;
+import org.polymap.core.qi4j.event.ModelChangeSupport;
 
 /**
  * 
@@ -129,11 +130,11 @@ public class EntityModificationDecorator
         
         Entity entity = (Entity)elm;
         log.debug( "### Decorating: entity=" + entity.id() );
-        EntityState entityState = ProjectRepository.instance().entityState( entity );
+        EntityChangeStatus entityState = EntityChangeStatus.forEntity( (ModelChangeSupport)entity );
         
         boolean dirty = entityState.isLocallyChanged();
         boolean pendingChanges = entityState.isGloballyChanged();
-        boolean pendingCommits = entityState.isGloballyCommited();
+        boolean pendingCommits = entityState.isGloballyCommitted();
 
         if (dirty && pendingCommits) {
             decoration.addOverlay( conflictImage, IDecoration.BOTTOM_RIGHT );
@@ -155,7 +156,7 @@ public class EntityModificationDecorator
         return true;
     }
 
-    public void modelChanged( GlobalModelChangeEvent ev ) {
+    public void modelChanged( final GlobalModelChangeEvent ev ) {
         log.debug( "Global change: ev= " + ev );
         
         // make sure that display is not disposed and our session is still valid
@@ -168,7 +169,13 @@ public class EntityModificationDecorator
         else {
             display.asyncExec( new Runnable() {
                 public void run() {
-                    fireEvent();
+                    log.warn( "Skipping global event: " + ev );
+//                    try {
+//                        fireEvent();
+//                    }
+//                    catch (Throwable e) {
+//                        log.info( "Error while modelChange(): " + e.getLocalizedMessage() );
+//                    }
                 }
             });
         }

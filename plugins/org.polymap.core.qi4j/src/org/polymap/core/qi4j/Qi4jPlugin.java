@@ -28,15 +28,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.bootstrap.ApplicationAssembler;
 import org.qi4j.bootstrap.ApplicationAssembly;
 import org.qi4j.bootstrap.ApplicationAssemblyFactory;
 import org.qi4j.bootstrap.AssemblyException;
 import org.qi4j.bootstrap.Energy4Java;
 import org.qi4j.spi.structure.ApplicationSPI;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.rwt.SessionSingletonBase;
 
@@ -45,8 +46,6 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
-
-import org.polymap.core.model.Entity;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -227,9 +226,9 @@ public class Qi4jPlugin
 	            return modules.get( (Class)appliesTo );
 	        }
 	        // Entity
-	        else if (appliesTo instanceof Entity) {
+	        else if (appliesTo instanceof QiEntity) {
                 for (QiModule module : modules.values()) {
-                    Entity entity = (Entity)appliesTo;
+                    QiEntity entity = (QiEntity)appliesTo;
                     try {
                         module.findEntity( entity.getCompositeType(), entity.id() );
                         return module;

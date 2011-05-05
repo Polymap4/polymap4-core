@@ -39,7 +39,7 @@ import org.eclipse.ui.internal.dialogs.PropertyDialog;
 import org.eclipse.ui.internal.dialogs.PropertyPageContributorManager;
 
 import org.polymap.core.catalog.qi4j.CatalogImpl;
-import org.polymap.core.model.ACL;
+import org.polymap.core.model.security.ACL;
 
 /**
  * 

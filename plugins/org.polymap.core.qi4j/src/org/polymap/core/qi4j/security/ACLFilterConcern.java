@@ -42,8 +42,8 @@ import org.qi4j.api.structure.Module;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.model.ACLUtils;
-import org.polymap.core.model.AclPermission;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 
 /**
  * Filters the return values of assocations regarding the READ permission
@@ -72,13 +72,13 @@ public class ACLFilterConcern
         // filter result
         if (Association.class.isAssignableFrom( method.getReturnType() )) {
             Association assoc = (Association)result;
-            return (org.polymap.core.model.ACL.class.isAssignableFrom( (Class)assoc.type() ))
+            return (org.polymap.core.model.security.ACL.class.isAssignableFrom( (Class)assoc.type() ))
                     ? new FilteredAssociation( assoc )
                     : result;
         }
         else if (ManyAssociation.class.isAssignableFrom( method.getReturnType() )) {
             ManyAssociation assoc = (ManyAssociation)result;
-            return (org.polymap.core.model.ACL.class.isAssignableFrom( (Class)assoc.type()))
+            return (org.polymap.core.model.security.ACL.class.isAssignableFrom( (Class)assoc.type()))
                     ? new FilteredManyAssociation( assoc )
                     : result;
         }
@@ -103,7 +103,7 @@ public class ACLFilterConcern
         }
 
         protected Object filter( Object entity ) {
-            org.polymap.core.model.ACL result = (org.polymap.core.model.ACL)entity;
+            org.polymap.core.model.security.ACL result = (org.polymap.core.model.security.ACL)entity;
             return ACLUtils.checkPermission( result, AclPermission.READ, false )
                     ? result : null;
         }
@@ -223,7 +223,7 @@ public class ACLFilterConcern
         }
 
         public Object get() {
-            org.polymap.core.model.ACL result = (org.polymap.core.model.ACL)delegate.get();
+            org.polymap.core.model.security.ACL result = (org.polymap.core.model.security.ACL)delegate.get();
             return result != null && ACLUtils.checkPermission( result, AclPermission.READ, false )
                     ? result : null;
         }

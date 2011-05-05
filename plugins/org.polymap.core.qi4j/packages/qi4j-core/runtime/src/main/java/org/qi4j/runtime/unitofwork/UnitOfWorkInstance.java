@@ -454,7 +454,9 @@ public final class UnitOfWorkInstance
                 protected void execute( EntityInstance instance )
                     throws Exception
                 {
-                    if( instance.<Object>proxy() instanceof UnitOfWorkCallback )
+                    // XXX falko: check for REMOVED
+                    if( instance.status() != EntityStatus.REMOVED
+                            && instance.<Object>proxy() instanceof UnitOfWorkCallback )
                     {
                         UnitOfWorkCallback callback = UnitOfWorkCallback.class.cast( instance.proxy() );
                         callback.beforeCompletion();

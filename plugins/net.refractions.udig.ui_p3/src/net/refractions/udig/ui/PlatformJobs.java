@@ -115,7 +115,7 @@ public class PlatformJobs
         synchronized (done) {
             while (done.get() == false) {
                 try {
-                    System.out.println( "readAndDispatch()..." );
+                    //System.out.println( "readAndDispatch()..." );
                     Thread.yield();
                     if (display == null) {
                         done.wait( 300 );

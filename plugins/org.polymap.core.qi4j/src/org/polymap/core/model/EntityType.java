@@ -20,12 +20,6 @@ package org.polymap.core.model;
 
 import java.util.Collection;
 
-import java.lang.reflect.Type;
-
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import com.vividsolutions.jts.geom.Geometry;
-
 /**
  * Provides information about and access to properties and associations of an
  * {@link Entity} type.
@@ -64,18 +58,17 @@ public interface EntityType {
     /**
      * Information about an association of an {@link EntityType}. 
      */
-    public interface Association {
+    public interface Association
+            extends Property {
         
-        public String getName();
+    }
+    
+    /**
+     * Information about a many-to-one association of an {@link EntityType}. 
+     */
+    public interface ManyAssociation
+            extends Property {
         
-        public Type getType();
-
-        public Object getValue( Entity entity ) 
-        throws Exception;
-        
-        public void setValue( Entity entity, Object value )
-        throws Exception;
-
     }
     
 }

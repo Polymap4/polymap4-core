@@ -31,9 +31,17 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import net.refractions.udig.core.StaticProvider;
+import net.refractions.udig.ui.FeatureTableControl;
+import net.refractions.udig.ui.PlatformJobs;
+import net.refractions.udig.ui.ProgressManager;
 
+import org.geotools.data.DefaultQuery;
+import org.geotools.data.FeatureSource;
+import org.geotools.data.FeatureStore;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.factory.GeoTools;
+import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.type.GeometryDescriptor;
@@ -43,20 +51,10 @@ import org.opengis.filter.FilterFactory;
 import org.opengis.filter.PropertyIsLike;
 import org.opengis.filter.identity.FeatureId;
 
-import org.geotools.data.DefaultQuery;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FeatureStore;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
-import org.geotools.feature.FeatureCollection;
-
-import net.refractions.udig.core.StaticProvider;
-import net.refractions.udig.ui.FeatureTableControl;
-import net.refractions.udig.ui.PlatformJobs;
-import net.refractions.udig.ui.ProgressManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
@@ -105,6 +103,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.DefaultPartListener;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.WeakListener;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -339,7 +338,7 @@ public class GeoSelectionView
         setPartName( layer.getLabel() );
 
         // property listener
-        ProjectRepository.instance().addPropertyChangeListener( layerChangeListener );
+        layer.addPropertyChangeListener( WeakListener.forListener( layerChangeListener ) );
 
         // part listener
         page = getSite().getWorkbenchWindow().getActivePage();
@@ -413,6 +412,9 @@ public class GeoSelectionView
     
     public void dispose() {
         log.debug( "dispose() ..." );
+        if (layer != null) {
+            layer.removePropertyChangeListener( layerChangeListener );
+        }
         disconnectLayer();
         if (viewer != null) {
             viewer.removeSelectionChangedListener( tableSelectionListener );
