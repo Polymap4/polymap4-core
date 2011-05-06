@@ -178,5 +178,12 @@
             primary="true">
       </toc>
    </extension>
+   <extension
+         point="org.polymap.core.operation.concerns">
+      <concern
+            class="org.polymap.core.operation.LogOperationConcernFactory"
+            id="org.polymap.core.LogOperationConcern">
+      </concern>
+   </extension>
 
 </plugin>

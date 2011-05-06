@@ -95,8 +95,8 @@ public class WeakListener
                 log.warn( "" );
                 return null;
             }
-            Method delegateMethod = delegate.getClass().getMethod( method.getName(), method.getParameterTypes() );
-            return delegateMethod.invoke( delegate, args );
+//            Method delegateMethod = delegate.getClass().getMethod( method.getName(), method.getParameterTypes() );
+            return method.invoke( delegate, args );
         }
     }
     

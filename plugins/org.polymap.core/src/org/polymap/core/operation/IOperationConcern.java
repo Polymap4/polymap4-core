@@ -20,27 +20,19 @@ package org.polymap.core.operation;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import org.polymap.core.operation.OperationSupport.OperationInfo;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
+ * @since 3.1
  */
 public interface IOperationConcern {
 
-    boolean handles( IUndoableOperation op, OperationInfo info, IProgressMonitor monitor );
+    boolean execute( IProgressMonitor monitor, OperationInfo info );
     
-    boolean beforeExecute( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
-    
-    void afterExecute( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
+    void undo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
 
-    boolean beforeUndo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
+    void redo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
     
-    void afterUndo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
-
-    boolean beforeRedo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
-    
-    void afterRedo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
 }

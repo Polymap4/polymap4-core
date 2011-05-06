@@ -12,45 +12,79 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.core.operation;
 
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.IUndoableOperation;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
-
-import org.polymap.core.operation.OperationSupport.OperationInfo;
+import org.eclipse.core.runtime.IStatus;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public abstract class OperationConcernAdapter
-        implements IOperationConcern {
+        implements IUndoableOperation {
 
-    public void afterExecute( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info ) {
+
+    protected abstract OperationInfo getInfo();
+    
+
+    // IUndoableOperation *********************************
+    
+    public void addContext( IUndoContext context ) {
+        getInfo().next().addContext( context );
     }
 
-    public void afterRedo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info ) {
+    public boolean canExecute() {
+        return getInfo().next().canExecute();
     }
 
-    public void afterUndo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info ) {
+    public boolean canRedo() {
+        return getInfo().next().canRedo();
     }
 
-    public boolean beforeExecute( IUndoableOperation op, IProgressMonitor monitor,
-            OperationInfo info ) {
-        return true;
+    public boolean canUndo() {
+        return getInfo().next().canUndo();
     }
 
-    public boolean beforeRedo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info ) {
-        return true;
+    public void dispose() {
+        getInfo().next().dispose();
     }
 
-    public boolean beforeUndo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info ) {
-        return true;
+    public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        return getInfo().next().execute( monitor, info );
     }
 
+    public IUndoContext[] getContexts() {
+        return getInfo().next().getContexts();
+    }
+
+    public String getLabel() {
+        return getInfo().next().getLabel();
+    }
+
+    public boolean hasContext( IUndoContext context ) {
+        return getInfo().next().hasContext( context );
+    }
+
+    public IStatus redo( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        return getInfo().next().redo( monitor, info );
+    }
+
+    public void removeContext( IUndoContext context ) {
+        getInfo().next().removeContext( context );
+    }
+
+    public IStatus undo( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        return getInfo().next().undo( monitor, info );
+    }
+    
 }

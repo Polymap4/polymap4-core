@@ -22,10 +22,6 @@
  */
 package org.polymap.core.operation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -51,11 +47,9 @@ import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 
-import org.polymap.core.runtime.Polymap;
 
 /**
  * The API and implementation of the operations system.
@@ -163,9 +157,8 @@ public class OperationSupport
             public void run( IProgressMonitor _monitor ) 
             throws InvocationTargetException {
                 try {
-                    _monitor.beginTask( op.getLabel(), 10 );
-                    OperationInfo info = new OperationInfo();
-                    OperationConcernExtension.undo( history, context, _monitor, info );
+                    _monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                    history.undo( context, _monitor, null );
                 } 
                 catch (Exception e) {
                     throw new InvocationTargetException( e );
@@ -184,9 +177,8 @@ public class OperationSupport
             public void run( IProgressMonitor _monitor ) 
             throws InvocationTargetException {
                 try {
-                    _monitor.beginTask( op.getLabel(), 10 );
-                    OperationInfo info = new OperationInfo();
-                    OperationConcernExtension.redo( history, context, _monitor, info );
+                    _monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                    history.redo( context, _monitor, null );
                 } 
                 catch (Exception e) {
                     throw new InvocationTargetException( e );
@@ -233,15 +225,16 @@ public class OperationSupport
      */
     public void execute( final IUndoableOperation op, boolean async, boolean progress )
             throws ExecutionException {
-        op.addContext( context );
 
         IRunnableWithProgress runnable = new IRunnableWithProgress(){
             public void run( IProgressMonitor _monitor ) 
             throws InvocationTargetException {
                 try {
-                    _monitor.beginTask( op.getLabel(), 10 );
-                    OperationInfo info = new OperationInfo();
-                    OperationConcernExtension.execute( history, op, _monitor, info );
+                    _monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                    OperationExecutor executor = OperationExecutor.newInstance( op );
+                    IUndoableOperation executorOp = executor.getOperation();
+                    executorOp.addContext( context );
+                    history.execute( executorOp, _monitor, executor.getInfo() );
                 } 
                 catch (Exception e) {
                     throw new InvocationTargetException( e );
@@ -330,56 +323,6 @@ public class OperationSupport
             ((IOperationSaveListener)listener).revert( this );
         }        
         history.dispose( context, true, true, true );
-    }
-    
-    
-    /**
-     * Used when execute/undo/redo operation.
-     *
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
-     * @since 3.0
-     */
-    public class OperationInfo
-            implements IAdaptable {
-
-        Display                 display;
-        
-        Exception               exception;
-        
-        boolean                 vetoOperationExecution = false;
-        
-        Map<String,Object>      concernContext = new HashMap();
-        
-        List                    concerns = new ArrayList();
-        
-        OperationInfo() {
-            super();
-            this.display = Polymap.getSessionDisplay();
-            assert this.display != null;
-        }
-
-        public Exception getException() {
-            return exception;
-        }
-
-        public Object getAdapter( Class adapter ) {
-            if (Display.class.isAssignableFrom( adapter)  ) {
-                return display;
-            }
-            else {
-                return null;
-            }
-        }
-
-        public void putContext( String key, Object value ) {
-            concernContext.put( key, value );
-        }
-        
-        public Object getContext( String key ) {
-            return concernContext.get( key );
-        }
-        
     }
 
 }
