@@ -65,6 +65,7 @@ import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageResponse;
+import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.ProcessorRequest;
@@ -103,23 +104,27 @@ public class FeatureRenderProcessor2
     }
 
     public static boolean isCompatible( IService service ) {
-        // Postgres
-        if (service instanceof PostgisService2) {
-            return true;
-        }
-        // WFS, Memory, ...
-        else {
-            try {
-                DataStore dataStore = service.resolve( DataStore.class, null );
-                if (dataStore != null) {
-                    return true;
-                }
-            }
-            catch (Exception e) {
-                log.warn( e.getMessage() );
-            }
-        }
-        return false;
+        // we are compatible to everything a feature pipeline can be build for
+        return true;
+        //FeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
+        
+//        // Postgres
+//        if (service instanceof PostgisService2) {
+//            return true;
+//        }
+//        // WFS, Memory, ...
+//        else {
+//            try {
+//                DataStore dataStore = service.resolve( DataStore.class, null );
+//                if (dataStore != null) {
+//                    return true;
+//                }
+//            }
+//            catch (Exception e) {
+//                log.warn( e.getMessage() );
+//            }
+//        }
+//        return false;
     }
     
 

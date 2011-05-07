@@ -23,14 +23,16 @@
 package org.polymap.core.data.pipeline;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import net.refractions.udig.catalog.IService;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import net.refractions.udig.catalog.IService;
 
 import org.eclipse.core.runtime.CoreException;
 
@@ -119,12 +121,14 @@ public class DefaultPipelineIncubator
         if (terms.isEmpty()) {
             throw new PipelineIncubationException( "No terminal for service: " + service.getClass().getName() );
         }
+        
         // transformer chain
         LinkedList<ProcessorDescription> chain = null;
         for (ProcessorDescription term : terms) {
+            chain = new LinkedList();
             ProcessorDescription start = new ProcessorDescription( signatureForUsecase( usecase ) );
-            chain = findTransformation( start, term, usecase );
-            if (chain != null) {
+            
+            if (findTransformation( start, term, usecase, chain )) {
                 break;
             }
             else {
@@ -180,7 +184,7 @@ public class DefaultPipelineIncubator
         List<ProcessorDescription> result = new ArrayList();
         for (ProcessorDescription desc : allTerminals( usecase )) {
             if (desc.isCompatible( service )) {
-                log.debug( "Terminal for '" + service + "': " + desc );
+                log.info( "Terminal for '" + service + "' -- " + usecase + " : " + desc );
                 result.add( desc );
             }
         }
@@ -196,27 +200,36 @@ public class DefaultPipelineIncubator
     }
 
     
-    protected LinkedList<ProcessorDescription> findTransformation( ProcessorDescription from, ProcessorDescription to, LayerUseCase usecase ) {
+    protected boolean findTransformation( ProcessorDescription from,
+            ProcessorDescription to, LayerUseCase usecase, Deque<ProcessorDescription> chain ) {
+        log.info( StringUtils.repeat( "    ", chain.size() ) + "findTransformation: " + from + " => " + to + " -- " + usecase );
+
+        // recursion break
+        if (chain.size() > 16) {
+            return false;
+        }
+        
         // recursion start
         if (from.getSignature().isCompatible( to.getSignature() )) {
-            LinkedList<ProcessorDescription> result = new LinkedList();
-            result.addFirst( to );
-            log.debug( "Start transformation found: " + to );
-            return result;
+            chain.addLast( to );
+            log.info( StringUtils.repeat( "    ", chain.size() ) + "Transformation found: " + chain );
+            return true;
         }
+        
         // recursion step
         else {
             for (ProcessorDescription desc : allTransformers( usecase )) {
-                if (from.getSignature().isCompatible( desc.getSignature() )) {
-                    LinkedList<ProcessorDescription> result = findTransformation( desc, to, usecase );
-                    if (result != null) {
-                        result.addFirst( desc );
-                        log.debug( "      transformation found: " + desc );
-                        return result;
+                if (from.getSignature().isCompatible( desc.getSignature() )
+                        && !chain.contains( desc )) {
+                    chain.addLast( desc );
+                    if (findTransformation( desc, to, usecase, chain )) {
+                        //log.debug( "      transformation found: " + desc );
+                        return true;
                     }
+                    chain.removeLast();
                 }
             }
-            return null;
+            return false;
         }
     }
 

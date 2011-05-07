@@ -69,8 +69,28 @@ class ProcessorDescription {
     }
 
 
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + ((cl == null) ? 0 : cl.getName().hashCode());
+//        result = 31 * result + ((usecase == null) ? 0 : usecase.asString().hashCode());
+        return result;
+    }
+
+
+    public boolean equals( Object obj ) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof ProcessorDescription) {
+            ProcessorDescription rhs = (ProcessorDescription)obj;
+            return cl.equals( rhs.cl );
+        }
+        return false;
+    }
+
+
     public String toString() {
-        return getClass().getSimpleName() + "[" 
+        return /*getClass().getSimpleName() + */ "[" 
                 + (cl != null ? cl.getSimpleName() : "null")
                 + "]";
     }

@@ -20,6 +20,7 @@ package org.polymap.rhei.data.entityfeature;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.type.Name;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -79,6 +80,8 @@ public interface EntityProvider<T extends Entity> {
     public CoordinateReferenceSystem getCoordinateReferenceSystem( String propName );
 
     public String getDefaultGeometry();
+
+    public ReferencedEnvelope getBounds();
 
     /**
      * 

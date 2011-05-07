@@ -104,13 +104,12 @@ public class OpenMapOperation
         try {
             monitor.subTask( Messages.get( "OpenMapOperation_calcLayersBounds" ) ); //$NON-NLS-1$
             final ReferencedEnvelope bbox = map.getMaxExtent() == null
-                ? calcLayersBounds( map.getLayers(), map.getCRS(), monitor )
-                : map.getMaxExtent();
+                    ? calcLayersBounds( map.getLayers(), map.getCRS(), monitor )
+                    : map.getMaxExtent();
                 
             if (map.getMaxExtent() == null && bbox != null) {
                 log.info( "### No map max extent -> using calculated values: " + bbox );
-                // FIXME this operation is no composite -> no changeset -> no setXX() method
-                //map.setMaxExtent( bbox );
+                map.setMaxExtent( bbox );
             }
             display.syncExec( new Runnable() {
                 public void run() {
@@ -224,7 +223,9 @@ public class OpenMapOperation
                 }
                 ReferencedEnvelope bbox = SetLayerBoundsOperation
                         .obtainBoundsFromResources( layer, crs, monitor );
-                bbox = bbox.transform( crs, true );
+                if (!bbox.getCoordinateReferenceSystem().equals( crs )) {
+                    bbox = bbox.transform( crs, true );
+                }
                 log.debug( "layer: " + layer + ", bbox= " + bbox ); //$NON-NLS-1$ //$NON-NLS-2$
 
                 if (result == null) {
@@ -232,17 +233,17 @@ public class OpenMapOperation
                 } else {
                     result.expandToInclude( bbox );
                 }
-                log.debug( "result: bbox= " + result ); //$NON-NLS-1$
+                log.debug( "result: bbox=  " + result ); //$NON-NLS-1$
             }
             catch (Exception e) {
                 // XXX mark layers!?
                 log.debug( "", e ); //$NON-NLS-1$
-                log.warn( "skipping layer: " + layer.getLabel() + " (" + e.toString() ); //$NON-NLS-1$ //$NON-NLS-2$
+                log.warn( "skipping layer: " + layer.getLabel() + " (" + e.toString(), e ); //$NON-NLS-1$ //$NON-NLS-2$
                 layer.setLayerStatus( new LayerStatus( Status.WARNING, LayerStatus.UNSPECIFIED, 
                         Messages.get( "LayerStatus_noCrs" ), e ) ); //$NON-NLS-1$
             }
         }
-        return result;
+        return result != null ? result : ReferencedEnvelope.EVERYTHING.transform( crs, true );
     }
 
 }

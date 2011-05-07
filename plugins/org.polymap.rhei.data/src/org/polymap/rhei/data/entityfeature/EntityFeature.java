@@ -265,6 +265,7 @@ class EntityFeature
     }
 
     public GeometryAttribute getDefaultGeometryProperty() {
+        //return featureType.getGeometryDescriptor().getName()
         throw new RuntimeException( "not yet implemented." );
     }
 

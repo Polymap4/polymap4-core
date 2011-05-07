@@ -46,6 +46,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.query.grammar.BooleanExpression;
+import org.qi4j.api.value.ValueComposite;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -148,6 +149,7 @@ public class EntitySourceProcessor
             }
             // build standard schema
             else {
+                log.debug( "Building schema for layer: " + layer.getLabel() );
                 EntityType entityType = entityProvider.getEntityType();
 
                 SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
@@ -160,9 +162,17 @@ public class EntitySourceProcessor
                         CoordinateReferenceSystem crs = entityProvider.getCoordinateReferenceSystem( prop.getName() );
                         builder.add( prop.getName(), propType, crs );
                         builder.setDefaultGeometry( prop.getName() );
+                        log.debug( "    Geometry: " + prop.getName() + " / " + propType );
+                    }
+                    else if (ValueComposite.class.isAssignableFrom( propType )) {
+                        log.debug( "    skipping complex: " + prop.getName() + " / " + propType );
+                    }
+                    else if (Collection.class.isAssignableFrom( propType )) {
+                        log.debug( "    skipping collection: " + prop.getName() + " / " + propType );
                     }
                     else {
                         builder.add( prop.getName(), propType );
+                        log.debug( "    primitive: " + prop.getName() + " / " + propType );
                     }
                 }
                 schema = builder.buildFeatureType();
@@ -257,6 +267,8 @@ public class EntitySourceProcessor
     
     protected void getFeatures( Query query, ProcessorContext context )
     throws Exception {
+        assert query != null && query.getFilter() != null;
+        
         long start = System.currentTimeMillis();
         log.debug( "            Filter: " + StringUtils.abbreviate( query.getFilter().toString(), 0, 256 ) );
         int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0; 
@@ -312,23 +324,26 @@ public class EntitySourceProcessor
         }
         else {
             EntityType type = entityProvider.getEntityType();
-            return new EntityFeature( entity, type, (SimpleFeatureType)schema );
-        }
 
-// straight forward solution; 2 times slower and probably needs more memory
-//        if (fb == null) {
-//            fb = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
+            // this does not work with Geometry properties yet
+//            return new EntityFeature( entity, type, (SimpleFeatureType)schema );
 //        }
-//        try {
-//            for (AttributeDescriptor attr : ((SimpleFeatureType)schema).getAttributeDescriptors()) {
-//                EntityType.Property entityProp = type.getProperty( attr.getName().getLocalPart() );
-//                fb.set( attr.getName(), entityProp.getValue( entity ) );
-//            }
-//            return fb.buildFeature( entity.id() );
-//        }
-//        catch (Exception e) {
-//            throw new RuntimeException( e );
-//        }
+
+            // straight forward solution; 2 times slower and probably needs more memory
+            if (fb == null) {
+                fb = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
+            }
+            try {
+                for (AttributeDescriptor attr : ((SimpleFeatureType)schema).getAttributeDescriptors()) {
+                    EntityType.Property entityProp = type.getProperty( attr.getName().getLocalPart() );
+                    fb.set( attr.getName(), entityProp.getValue( entity ) );
+                }
+                return fb.buildFeature( entity.id() );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }
     }
 
 

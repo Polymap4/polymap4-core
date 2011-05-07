@@ -130,10 +130,14 @@ public class MapEditor
             overview.dispose();
             overview = null;
         }
-        renderManager.dispose();
-        renderManager = null;
-        olwidget.dispose();
-        olwidget = null;
+        if (renderManager != null) {
+            renderManager.dispose();
+            renderManager = null;
+        }
+        if (olwidget != null) {
+            olwidget.dispose();
+            olwidget = null;
+        }
         supportListeners.clear();
     }
 

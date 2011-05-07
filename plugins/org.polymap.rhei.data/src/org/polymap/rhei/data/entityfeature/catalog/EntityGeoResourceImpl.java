@@ -36,8 +36,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.vividsolutions.jts.geom.Envelope;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.rhei.data.entityfeature.EntityProvider;
@@ -198,8 +196,8 @@ public class EntityGeoResourceImpl
 
 
         public ReferencedEnvelope getBounds() {
-            return new ReferencedEnvelope( new Envelope(), getCRS() );
-            
+            return provider.getBounds();
+                
 //            Envelope bounds;
 //            try {
 //                bounds = source.getBounds();

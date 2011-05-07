@@ -94,7 +94,9 @@ public class DrawFeatureEditorAction
                         handler = DrawFeatureControl.HANDLER_POINT;
                     }
                     else {
-                        throw new Exception( "Dieser Geometrietyp kann nicht bearbeitet werden: " + geom.getType().getName() );
+                        log.warn( "Unhandled geometry type: " + geomName + ". Using polygone handler..." );
+                        handler = DrawFeatureControl.HANDLER_POLYGON;
+//                        throw new Exception( "Dieser Geometrietyp kann nicht bearbeitet werden: " + geom.getType().getName() );
                     }
                     control = new DrawFeatureControl( support.vectorLayer, handler );
                     support.addControl( control );
@@ -117,7 +119,7 @@ public class DrawFeatureEditorAction
 
     
     public void process_event( OpenLayersObject obj, String name, HashMap<String, String> payload ) {
-        log.info( "process_event() event: " + name + ", from: " + obj );
+        log.debug( "process_event() event: " + name + ", from: " + obj );
         for (Map.Entry entry : payload.entrySet()) {
             Object key = entry.getKey();
             Object value = entry.getValue();

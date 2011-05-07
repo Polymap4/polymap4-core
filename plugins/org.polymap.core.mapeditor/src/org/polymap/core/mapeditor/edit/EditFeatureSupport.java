@@ -154,14 +154,14 @@ public class EditFeatureSupport
 
         // vectorLayer
         Style standard = new Style();
-        standard.setAttribute( "strokeWidth", 2 );
+        standard.setAttribute( "strokeWidth", 1 );
         standard.setAttribute( "strokeColor", "#ee5030" );
         Style temporary = new Style();
-        temporary.setAttribute( "strokeWidth", 3 );
+        temporary.setAttribute( "strokeWidth", 2 );
         temporary.setAttribute( "strokeColor", "#ff0000" );
         temporary.setAttribute( "fillColor", "#ff0000" );
         Style select = new Style();
-        select.setAttribute( "strokeWidth", 2 );
+        select.setAttribute( "strokeWidth", 1 );
         select.setAttribute( "strokeColor", "#f00000" );
         select.setAttribute( "fillColor", "#f00000" );
 

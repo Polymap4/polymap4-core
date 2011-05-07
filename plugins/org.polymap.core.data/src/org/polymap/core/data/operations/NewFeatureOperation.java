@@ -24,7 +24,6 @@ package org.polymap.core.data.operations;
 
 import java.util.List;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import net.refractions.udig.ui.OffThreadProgressMonitor;
@@ -34,15 +33,20 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
@@ -215,7 +219,7 @@ public class NewFeatureOperation
 
     
     protected SimpleFeature parseJSON( FeatureType schema, String json ) 
-    throws IOException {
+    throws Exception {
         // parse JSON
         log.debug( json );
         FeatureJSON io = new FeatureJSON();
@@ -231,12 +235,12 @@ public class NewFeatureOperation
 //            }
 //        }
         
-        // convert to MultiXXX geometry if necessary
+        // convert to multi geometry if necessary
         GeometryDescriptor geomDesc = schema.getGeometryDescriptor();
         GeometryFactory gf = new GeometryFactory();
         String geomName = geomDesc.getType().getName().toString();
         log.debug( "    geometry: " + geomName );
-        Object geom = feature.getDefaultGeometry();
+        Geometry geom = (Geometry)feature.getDefaultGeometry();
         if ("MultiLineString".equals( geomName )) {
             log.debug( "    convert geometry: " + geom + " -> " + geomName ); 
             geom = gf.createMultiLineString( new LineString[] {(LineString)geom} );
@@ -244,6 +248,15 @@ public class NewFeatureOperation
         else if ("MultiPolygon".equals( geomName )) {
             log.debug( "    convert geometry: " + geom + " -> " + geomName ); 
             geom = gf.createMultiPolygon( new Polygon[] {(Polygon)geom} );
+        }
+        
+        // transform CRS
+        CoordinateReferenceSystem layerCRS = schema.getCoordinateReferenceSystem();
+        CoordinateReferenceSystem mapCRS = layer.getMap().getCRS();
+        if (!mapCRS.equals( layerCRS )) {
+            log.debug( "    transforming geom: " + mapCRS.getName() + " -> " + layerCRS.getName() );
+            MathTransform transform = CRS.findMathTransform( mapCRS, layerCRS );
+            geom = JTS.transform( geom, transform );
         }
         
         // create feature
