@@ -27,6 +27,7 @@ import java.io.File;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.entity.EntityBuilder;
 import org.qi4j.api.structure.Application;
 import org.qi4j.api.structure.Module;
@@ -36,18 +37,17 @@ import org.qi4j.api.unitofwork.UnitOfWorkFactory;
 import org.qi4j.bootstrap.ApplicationAssembly;
 import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
-import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
 
 import org.polymap.core.model.security.AclPermission;
-import org.polymap.core.project.qi4j.LayerComposite;
-import org.polymap.core.project.qi4j.MapComposite;
-import org.polymap.core.project.qi4j.MapState;
-import org.polymap.core.project.qi4j.operations.NewLayerOperation;
-import org.polymap.core.project.qi4j.operations.NewMapOperation;
-import org.polymap.core.project.qi4j.operations.RemoveLayerOperation;
-import org.polymap.core.project.qi4j.operations.RemoveMapOperation;
-import org.polymap.core.project.qi4j.operations.SetProcessorConfigurationsOperation;
-import org.polymap.core.project.qi4j.operations.SetPropertyOperation;
+import org.polymap.core.project.model.LayerComposite;
+import org.polymap.core.project.model.MapComposite;
+import org.polymap.core.project.model.MapState;
+import org.polymap.core.project.model.operations.NewLayerOperation;
+import org.polymap.core.project.model.operations.NewMapOperation;
+import org.polymap.core.project.model.operations.RemoveLayerOperation;
+import org.polymap.core.project.model.operations.RemoveMapOperation;
+import org.polymap.core.project.model.operations.SetProcessorConfigurationsOperation;
+import org.polymap.core.project.model.operations.SetPropertyOperation;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;

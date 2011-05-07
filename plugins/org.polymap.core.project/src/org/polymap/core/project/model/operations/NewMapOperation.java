@@ -21,12 +21,16 @@
  * $Id$
  */
 
-package org.polymap.core.project.qi4j.operations;
+package org.polymap.core.project.model.operations;
 
-import java.util.ArrayList;
+import java.security.Principal;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
+
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.geotools.referencing.CRS;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -35,10 +39,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.project.ILayer;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * 
@@ -47,49 +52,60 @@ import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Mixins( RemoveMapOperation.Mixin.class )
-public interface RemoveMapOperation
+@Mixins( NewMapOperation.Mixin.class )
+public interface NewMapOperation
         extends IUndoableOperation, TransientComposite {
 
-    public void init( IMap map );
+    public void init( IMap _parent, String _mapName, CoordinateReferenceSystem _crs );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
     
     public int hashCode();
 
-    
     /**
      * Implementation. 
      */
     public static abstract class Mixin
             extends AbstractModelChangeOperation
-            implements RemoveMapOperation {
-
-        private IMap                map;
+            implements NewMapOperation {
         
+        private IMap                        parent;
+
+        private String                      mapName;
+
+        private CoordinateReferenceSystem   crs;
+
+
         public Mixin() {
             super( "[undefined]" );
         }
 
 
-        public void init( IMap _map ) {
-            this.map = _map;
-            setLabel( '"' + map.getLabel() + "\" löschen" );
+        public void init( IMap _parent, String _mapName, CoordinateReferenceSystem _crs ) {
+            assert _parent != null;
+
+            this.parent = _parent;
+            this.mapName = _mapName;
+            this.crs = _crs;
+            setLabel( (mapName != null ? mapName : "Karte") + " anlegen" );
         }
 
 
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
-                ProjectRepository rep = ProjectRepository.instance();
-                ArrayList<ILayer> layers = new ArrayList( map.getLayers() );
-                for (ILayer layer : layers) {
-                    map.removeLayer( layer );
-                    rep.removeEntity( layer );
+                IMap map = ProjectRepository.instance().newEntity( IMap.class, null );
+
+                // default ACL
+                for (Principal principal : Polymap.instance().getPrincipals()) {
+                    map.addPermission( principal.getName(), AclPermission.ALL );
                 }
-                map.getMap().removeMap( map );
-                rep.removeEntity( map );
+                
+                map.setLabel( mapName );
+                map.setCRSCode( "EPSG:" + CRS.lookupEpsgCode( crs, true ) );
+                parent.addMap( map );
+                parent.setLabel( parent.getLabel() + "*" );
             }
             catch (Throwable e) {
                 throw new ExecutionException( e.getMessage(), e );

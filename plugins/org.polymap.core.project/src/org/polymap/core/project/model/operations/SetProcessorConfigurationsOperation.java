@@ -20,16 +20,11 @@
  *
  * $Id$
  */
-package org.polymap.core.services.qi4j.operations;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+package org.polymap.core.project.model.operations;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -38,26 +33,23 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.project.IMap;
+import org.polymap.core.project.PipelineHolder;
+import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
-import org.polymap.core.services.ServiceRepository;
-import org.polymap.core.services.qi4j.ProvidedServiceComposite;
 
 /**
+ * This operation allows to set the pipeline processor configs
+ * (see {@link PipelineHolder}).
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Mixins( NewServiceOperation.Mixin.class )
-public interface NewServiceOperation
+@Mixins( SetProcessorConfigurationsOperation.Mixin.class )
+public interface SetProcessorConfigurationsOperation
         extends IUndoableOperation, TransientComposite {
 
-    static Log log = LogFactory.getLog( NewServiceOperation.class );
-    
-
-    public void init( IMap _map, Class _type/*, String _pathSpec*/ );
+    public void init( PipelineHolder holder, PipelineProcessorConfiguration[] procs );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
@@ -70,49 +62,27 @@ public interface NewServiceOperation
      */
     public static abstract class Mixin
             extends AbstractModelChangeOperation
-            implements NewServiceOperation {
+            implements SetProcessorConfigurationsOperation {
 
-        private IMap                        map;
-
-        private Class                       type;
-
-        private String                      pathSpec;
-
-
+        private PipelineHolder          holder;
+        
+        private PipelineProcessorConfiguration[] procs;
+        
+        
         public Mixin() {
             super( "[undefined]" );
         }
 
 
-        @SuppressWarnings("deprecation")
-        public void init( IMap _map, Class _type/*, String _pathSpec*/ ) {
-            this.map = _map;
-            this.type = _type;
-            try {
-                this.pathSpec = "/" + URLEncoder.encode( map.getLabel(), "UTF-8" );
-            }
-            catch (UnsupportedEncodingException e) {
-                log.warn( "", e );
-                this.pathSpec = "/" + URLEncoder.encode( map.getLabel() );
-            }
-            setLabel( "Service anlegen" );
+        public void init( PipelineHolder _holder, PipelineProcessorConfiguration[] _procs ) {
+            this.holder = _holder;
+            this.procs = _procs;
         }
 
 
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
-            try {
-                ServiceRepository repo = ServiceRepository.instance();
-                ProvidedServiceComposite service = repo.newEntity( ProvidedServiceComposite.class, null );
-                service.mapId().set( map.id() );
-                service.serviceType().set( type.getName() );
-                service.setPathSpec( pathSpec );
-                
-                repo.addService( service );
-            }
-            catch (Throwable e) {
-                throw new ExecutionException( e.getMessage(), e );
-            }
+            holder.setProcessorConfigs( procs );
             return Status.OK_STATUS;
         }
 

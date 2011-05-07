@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.qi4j;
+package org.polymap.core.services.model;
 
 import java.util.List;
 

@@ -36,7 +36,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.operations.NewLayerOperation;
+import org.polymap.core.project.model.operations.NewLayerOperation;
 import org.polymap.core.project.ui.MapLayersView;
 import org.polymap.core.workbench.PolymapWorkbench;
 

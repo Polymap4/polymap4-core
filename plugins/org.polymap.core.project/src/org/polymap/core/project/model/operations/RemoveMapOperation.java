@@ -21,7 +21,9 @@
  * $Id$
  */
 
-package org.polymap.core.project.qi4j.operations;
+package org.polymap.core.project.model.operations;
+
+import java.util.ArrayList;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
@@ -33,23 +35,23 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.project.PipelineHolder;
-import org.polymap.core.project.PipelineProcessorConfiguration;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.IMap;
+import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 
 /**
- * This operation allows to set the pipeline processor configs
- * (see {@link PipelineHolder}).
  * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Mixins( SetProcessorConfigurationsOperation.Mixin.class )
-public interface SetProcessorConfigurationsOperation
+@Mixins( RemoveMapOperation.Mixin.class )
+public interface RemoveMapOperation
         extends IUndoableOperation, TransientComposite {
 
-    public void init( PipelineHolder holder, PipelineProcessorConfiguration[] procs );
+    public void init( IMap map );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
@@ -62,27 +64,36 @@ public interface SetProcessorConfigurationsOperation
      */
     public static abstract class Mixin
             extends AbstractModelChangeOperation
-            implements SetProcessorConfigurationsOperation {
+            implements RemoveMapOperation {
 
-        private PipelineHolder          holder;
-        
-        private PipelineProcessorConfiguration[] procs;
-        
+        private IMap                map;
         
         public Mixin() {
             super( "[undefined]" );
         }
 
 
-        public void init( PipelineHolder _holder, PipelineProcessorConfiguration[] _procs ) {
-            this.holder = _holder;
-            this.procs = _procs;
+        public void init( IMap _map ) {
+            this.map = _map;
+            setLabel( '"' + map.getLabel() + "\" löschen" );
         }
 
 
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
-            holder.setProcessorConfigs( procs );
+            try {
+                ProjectRepository rep = ProjectRepository.instance();
+                ArrayList<ILayer> layers = new ArrayList( map.getLayers() );
+                for (ILayer layer : layers) {
+                    map.removeLayer( layer );
+                    rep.removeEntity( layer );
+                }
+                map.getMap().removeMap( map );
+                rep.removeEntity( map );
+            }
+            catch (Throwable e) {
+                throw new ExecutionException( e.getMessage(), e );
+            }
             return Status.OK_STATUS;
         }
 

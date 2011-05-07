@@ -67,7 +67,7 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.operations.SetProcessorConfigurationsOperation;
+import org.polymap.core.project.model.operations.SetProcessorConfigurationsOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

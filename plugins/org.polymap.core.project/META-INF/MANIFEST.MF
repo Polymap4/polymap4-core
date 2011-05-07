@@ -9,8 +9,8 @@ Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.polymap.core.project,
  org.polymap.core.project.actions,
- org.polymap.core.project.qi4j,
- org.polymap.core.project.qi4j.operations,
+ org.polymap.core.project.model,
+ org.polymap.core.project.model.operations,
  org.polymap.core.project.ui
 Require-Bundle: org.eclipse.core.runtime,
  net.refractions.udig.catalog;bundle-version="1.2.0",

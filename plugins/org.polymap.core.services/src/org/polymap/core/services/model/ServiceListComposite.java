@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.qi4j;
+package org.polymap.core.services.model;
 
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;

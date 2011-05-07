@@ -20,17 +20,16 @@
  *
  * $Id$
  */
+package org.polymap.core.services.model.operations;
 
-package org.polymap.core.project.qi4j.operations;
-
-import java.security.Principal;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
 
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import org.geotools.referencing.CRS;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -39,11 +38,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.services.ServiceRepository;
+import org.polymap.core.services.model.ProvidedServiceComposite;
 
 /**
  * 
@@ -52,29 +50,33 @@ import org.polymap.core.runtime.Polymap;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Mixins( NewMapOperation.Mixin.class )
-public interface NewMapOperation
+@Mixins( NewServiceOperation.Mixin.class )
+public interface NewServiceOperation
         extends IUndoableOperation, TransientComposite {
 
-    public void init( IMap _parent, String _mapName, CoordinateReferenceSystem _crs );
+    static Log log = LogFactory.getLog( NewServiceOperation.class );
+    
+
+    public void init( IMap _map, Class _type/*, String _pathSpec*/ );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
     
     public int hashCode();
 
+    
     /**
      * Implementation. 
      */
     public static abstract class Mixin
             extends AbstractModelChangeOperation
-            implements NewMapOperation {
-        
-        private IMap                        parent;
+            implements NewServiceOperation {
 
-        private String                      mapName;
+        private IMap                        map;
 
-        private CoordinateReferenceSystem   crs;
+        private Class                       type;
+
+        private String                      pathSpec;
 
 
         public Mixin() {
@@ -82,30 +84,31 @@ public interface NewMapOperation
         }
 
 
-        public void init( IMap _parent, String _mapName, CoordinateReferenceSystem _crs ) {
-            assert _parent != null;
-
-            this.parent = _parent;
-            this.mapName = _mapName;
-            this.crs = _crs;
-            setLabel( (mapName != null ? mapName : "Karte") + " anlegen" );
+        @SuppressWarnings("deprecation")
+        public void init( IMap _map, Class _type/*, String _pathSpec*/ ) {
+            this.map = _map;
+            this.type = _type;
+            try {
+                this.pathSpec = "/" + URLEncoder.encode( map.getLabel(), "UTF-8" );
+            }
+            catch (UnsupportedEncodingException e) {
+                log.warn( "", e );
+                this.pathSpec = "/" + URLEncoder.encode( map.getLabel() );
+            }
+            setLabel( "Service anlegen" );
         }
 
 
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
-                IMap map = ProjectRepository.instance().newEntity( IMap.class, null );
-
-                // default ACL
-                for (Principal principal : Polymap.instance().getPrincipals()) {
-                    map.addPermission( principal.getName(), AclPermission.ALL );
-                }
+                ServiceRepository repo = ServiceRepository.instance();
+                ProvidedServiceComposite service = repo.newEntity( ProvidedServiceComposite.class, null );
+                service.mapId().set( map.id() );
+                service.serviceType().set( type.getName() );
+                service.setPathSpec( pathSpec );
                 
-                map.setLabel( mapName );
-                map.setCRSCode( "EPSG:" + CRS.lookupEpsgCode( crs, true ) );
-                parent.addMap( map );
-                parent.setLabel( parent.getLabel() + "*" );
+                repo.addService( service );
             }
             catch (Throwable e) {
                 throw new ExecutionException( e.getMessage(), e );

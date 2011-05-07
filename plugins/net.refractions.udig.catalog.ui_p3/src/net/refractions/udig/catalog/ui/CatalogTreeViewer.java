@@ -69,7 +69,7 @@ public class CatalogTreeViewer extends TreeViewer implements ISelectionChangedLi
      * @param parent
      */
     public CatalogTreeViewer( Composite parent, boolean titles ) {
-        this(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER, titles);
+        this(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL /*| SWT.BORDER*/, titles);
     }
     
     /**

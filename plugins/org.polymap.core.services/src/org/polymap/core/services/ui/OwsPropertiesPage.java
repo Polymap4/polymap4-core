@@ -48,14 +48,14 @@ import org.eclipse.core.runtime.IAdaptable;
 
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.qi4j.operations.SetPropertyOperation;
+import org.polymap.core.project.model.operations.SetPropertyOperation;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.services.IProvidedService;
 import org.polymap.core.services.Messages;
 import org.polymap.core.services.ServiceRepository;
 import org.polymap.core.services.ServicesPlugin;
 import org.polymap.core.services.http.WmsService;
-import org.polymap.core.services.qi4j.operations.NewServiceOperation;
+import org.polymap.core.services.model.operations.NewServiceOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

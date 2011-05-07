@@ -21,7 +21,7 @@
  * $Id$
  */
 
-package org.polymap.core.project.qi4j.operations;
+package org.polymap.core.project.model.operations;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

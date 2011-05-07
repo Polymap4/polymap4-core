@@ -20,7 +20,8 @@
  *
  * $Id$
  */
-package org.polymap.core.services.qi4j.operations;
+
+package org.polymap.core.project.model.operations;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
@@ -32,10 +33,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.project.IMap;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
-import org.polymap.core.services.IProvidedService;
-import org.polymap.core.services.ServiceRepository;
 
 /**
  * 
@@ -44,49 +44,45 @@ import org.polymap.core.services.ServiceRepository;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Mixins( 
-        RemoveServiceOperation.Mixin.class 
+@Mixins( RemoveLayerOperation.Mixin.class
 )
-public interface RemoveServiceOperation
+public interface RemoveLayerOperation
         extends IUndoableOperation, TransientComposite {
 
-    public void init( IProvidedService service, IMap map );
+    public void init( ILayer map );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
     
     public int hashCode();
 
+    
     /**
      * Implementation. 
      */
     public static abstract class Mixin
             extends AbstractModelChangeOperation
-            implements RemoveServiceOperation {
+            implements RemoveLayerOperation {
+
+        private ILayer              layer;
         
-        private IMap                        map;
-
-        private IProvidedService            service;
-
-
         public Mixin() {
             super( "[undefined]" );
         }
 
 
-        public void init( IProvidedService _service, IMap _map ) {
-            this.map = _map;
-            this.service = _service;
-            setLabel( "Service löschen" );
+        public void init( ILayer _layer ) {
+            this.layer = _layer;
+            setLabel( '"' + layer.getLabel() + "\" löschen" );
         }
 
 
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
-                ServiceRepository repo = ServiceRepository.instance();
-                repo.removeService( service );
-                repo.removeEntity( service );
+                ProjectRepository rep = ProjectRepository.instance();
+                layer.getMap().removeLayer( layer );
+                rep.removeEntity( layer );
             }
             catch (Throwable e) {
                 throw new ExecutionException( e.getMessage(), e );

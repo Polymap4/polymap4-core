@@ -21,7 +21,7 @@
  * $Id$
  */
 
-package org.polymap.core.project.qi4j;
+package org.polymap.core.project.model;
 
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.entity.association.Association;

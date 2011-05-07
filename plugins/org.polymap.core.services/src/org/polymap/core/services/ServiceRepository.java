@@ -41,7 +41,7 @@ import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.Qi4jPlugin.Session;
-import org.polymap.core.services.qi4j.ServiceListComposite;
+import org.polymap.core.services.model.ServiceListComposite;
 
 /**
  * Factory and repository for the domain model artifacts.

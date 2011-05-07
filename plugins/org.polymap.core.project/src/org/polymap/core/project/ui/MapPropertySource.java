@@ -15,7 +15,7 @@ import org.polymap.core.project.Labeled;
 import org.polymap.core.project.MapStatus;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.operations.SetPropertyOperation;
+import org.polymap.core.project.model.operations.SetPropertyOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

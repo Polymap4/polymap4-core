@@ -21,7 +21,7 @@
  * $Id$
  */
 
-package org.polymap.core.project.qi4j.operations;
+package org.polymap.core.project.model.operations;
 
 import java.security.Principal;
 
@@ -195,7 +195,9 @@ public interface NewLayerOperation
                 ReferencedEnvelope layerBBox = SetLayerBoundsOperation.Helper.obtainBoundsFromResources( layer, map.getCRS(), monitor );
                 if (layerBBox != null && !layerBBox.isNull()) {
                     monitor.subTask( "transforming bounds..." );
-                    layerBBox = layerBBox.transform( map.getCRS(), true );
+                    if (!layerBBox.getCoordinateReferenceSystem().equals( map.getCRS() )) {
+                        layerBBox = layerBBox.transform( map.getCRS(), true );
+                    }
                     log.debug( "transformed: " + layerBBox );
                     monitor.worked( 1 );
                 }

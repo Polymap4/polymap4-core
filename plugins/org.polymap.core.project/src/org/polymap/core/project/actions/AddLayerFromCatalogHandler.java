@@ -51,7 +51,7 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.operations.NewLayerOperation;
+import org.polymap.core.project.model.operations.NewLayerOperation;
 
 /**
  * This is handler for the <em>....</em> command.

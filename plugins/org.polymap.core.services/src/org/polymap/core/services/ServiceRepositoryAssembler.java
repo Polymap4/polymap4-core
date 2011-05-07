@@ -36,17 +36,17 @@ import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
 import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
 
-import org.polymap.core.project.qi4j.MapComposite;
-import org.polymap.core.project.qi4j.operations.SetPropertyOperation;
+import org.polymap.core.project.model.MapComposite;
+import org.polymap.core.project.model.operations.SetPropertyOperation;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreService;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.services.qi4j.ProvidedServiceComposite;
-import org.polymap.core.services.qi4j.ServiceListComposite;
-import org.polymap.core.services.qi4j.operations.NewServiceOperation;
-import org.polymap.core.services.qi4j.operations.RemoveServiceOperation;
+import org.polymap.core.services.model.ProvidedServiceComposite;
+import org.polymap.core.services.model.ServiceListComposite;
+import org.polymap.core.services.model.operations.NewServiceOperation;
+import org.polymap.core.services.model.operations.RemoveServiceOperation;
 
 /**
  * 

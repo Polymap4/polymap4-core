@@ -21,7 +21,7 @@
  * $Id$
  */
 
-package org.polymap.core.project.qi4j;
+package org.polymap.core.project.model;
 
 import java.util.StringTokenizer;
 

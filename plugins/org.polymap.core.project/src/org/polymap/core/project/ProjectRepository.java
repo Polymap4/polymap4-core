@@ -32,7 +32,7 @@ import org.eclipse.rwt.internal.service.ContextProvider;
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.project.qi4j.MapState;
+import org.polymap.core.project.model.MapState;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
@@ -42,7 +42,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * Factory and repository for the domain model artifacts.
  * <p>
  * XXX This depends on the Qi4j model implementation; extract the
- * interface and move impl to {@link org.polymap.core.project.qi4j}.
+ * interface and move impl to {@link org.polymap.core.project.model}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)

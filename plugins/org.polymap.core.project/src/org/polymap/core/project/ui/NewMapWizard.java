@@ -50,7 +50,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.operations.NewMapOperation;
+import org.polymap.core.project.model.operations.NewMapOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

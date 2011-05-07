@@ -56,7 +56,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.LayerComposite;
+import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.services.http.HttpServiceFactory;
 import org.polymap.core.services.http.WmsService;
 import org.polymap.core.workbench.PolymapWorkbench;

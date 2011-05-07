@@ -24,7 +24,7 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.qi4j.operations.SetPropertyOperation;
+import org.polymap.core.project.model.operations.SetPropertyOperation;
 
 /**
  * The property source for an {@link ILayer}. Allows the user to directly
