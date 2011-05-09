@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.core.runtime,
  net.refractions.udig.catalog.postgis;bundle-version="1.2.0";resolution:=optional,
  net.refractions.udig.ui;bundle-version="1.2.0",
  net.refractions.udig.core;bundle-version="1.2.0",
- net.refractions.udig.catalog.rasterings;bundle-version="1.2.0"
+ net.refractions.udig.catalog.rasterings;bundle-version="1.2.0",
+ org.eclipse.rwt.widgets.upload;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: edu.emory.mathcs.backport.java.util,
@@ -41,11 +42,6 @@ Export-Package: edu.emory.mathcs.backport.java.util,
  net.sf.ehcache.management,
  net.sf.ehcache.store,
  net.sf.ehcache.util,
- org.geotools.geojson,
- org.geotools.geojson.feature,
- org.geotools.geojson.geom,
- org.json.simple,
- org.json.simple.parser,
  org.polymap.core.data,
  org.polymap.core.data.feature,
  org.polymap.core.data.feature.lucene,
@@ -64,6 +60,4 @@ Bundle-ClassPath: .,
  lib/ehcache-1.4.1.jar,
  lib/jsr107cache-1.0.jar,
  lib/lucene-core-3.1.0.jar,
- lib/gt-geojson.jar,
- lib/json_simple-1.1.jar,
- lib/json-lib-2.2.3-jdk15.jar
+ lib/jackcess-1.1.18.jar

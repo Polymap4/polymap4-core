@@ -136,4 +136,12 @@
             name="Feature-Cache (Lucene)">
       </processor>
    </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <wizard
+            class="org.polymap.core.data.feature.mdb.MdbImportWizard"
+            id="org.polymap.core.data.MdbImportWizard"
+            name="MS-Access">
+      </wizard>
+   </extension>
 </plugin>
