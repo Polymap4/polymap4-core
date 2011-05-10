@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -76,7 +76,7 @@ import org.polymap.core.project.LayerUseCase;
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}
  * (its underlaying {@link IService}), processed by the layer specific
  * {@link Pipeline}, instantiated for use-case {@link LayerUseCase#FEATURES}.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
@@ -88,21 +88,21 @@ public class PipelineFeatureSource
     private static final Log log = LogFactory.getLog( PipelineFeatureSource.class );
 
     private static final IPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
-    
-    
+
+
     // static factory *************************************
 
     /**
      * <p>
      * This method may block execution while accessing the back-end service.
-     * 
+     *
      * @return The newly created <code>FeatureSource</code>.
-     * @throws PipelineIncubationException 
-     * @throws IOException 
+     * @throws PipelineIncubationException
+     * @throws IOException
      * @throws IllegalStateException If the geo resource for the given layer
      *         could not be find.
      */
-    public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional ) 
+    public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional )
     throws PipelineIncubationException, IOException {
         // find service for layer
         log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
@@ -115,30 +115,27 @@ public class PipelineFeatureSource
         IService service = res.service( null );
         log.debug( "service: " + service );
 //        monitor.worked( 1 );
-        
+
         // create pipeline
         LayerUseCase useCase = transactional
                 ? LayerUseCase.FEATURES_TRANSACTIONAL
                 : LayerUseCase.FEATURES;
         Pipeline pipe = pipelineIncubator.newPipeline( useCase, layer.getMap(), layer, service );
-        
+
         // create FeatureSource
         PipelineFeatureSource result = new PipelineFeatureSource( pipe );
         return result;
     }
 
-    
+
     // instance *******************************************
-    
+
     private Pipeline            pipeline;
-    
+
     private PipelineDataStore   store;
-    
+
     private Transaction         tx = Transaction.AUTO_COMMIT;
-    
-    /** Cache for the result of the {@link #getSchema()} request */
-    private SimpleFeatureType   schema;
-    
+
 
     public PipelineFeatureSource( Pipeline pipeline ) {
         super();
@@ -147,7 +144,7 @@ public class PipelineFeatureSource
         this.store = new PipelineDataStore( this );
     }
 
-    
+
     public DataStore getDataStore() {
         return store;
     }
@@ -155,8 +152,8 @@ public class PipelineFeatureSource
     public Pipeline getPipeline() {
         return pipeline;
     }
-    
-    
+
+
     public ReferencedEnvelope getBounds( Query query )
             throws IOException {
         // XXX optimize getBounds via dedicated request
@@ -183,29 +180,28 @@ public class PipelineFeatureSource
 
 
     public SimpleFeatureType getSchema() {
-        if (schema == null) {
-            // avoid synchronize; doing this in parallel is ok
-            GetFeatureTypeRequest request = new GetFeatureTypeRequest();
-            try {
-                final FeatureType[] type = new FeatureType[1];
-                pipeline.process( request, new ResponseHandler() {
-                    public void handle( ProcessorResponse r )
-                    throws Exception {
-                        GetFeatureTypeResponse response = (GetFeatureTypeResponse)r;
-                        type[0] = response.getFeatureType();
-                    }
-                });
-                schema = (SimpleFeatureType)type[0];
-            }
-            catch (RuntimeException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e );   
-            }
+        // XXX caching schema is not allowed since the pipeline and/or processors
+        // may change; maybe we could add a listener API to the pipeline
+
+        // avoid synchronize; doing this in parallel is ok
+        GetFeatureTypeRequest request = new GetFeatureTypeRequest();
+        try {
+            final FeatureType[] type = new FeatureType[1];
+            pipeline.process( request, new ResponseHandler() {
+                public void handle( ProcessorResponse r )
+                throws Exception {
+                    GetFeatureTypeResponse response = (GetFeatureTypeResponse)r;
+                    type[0] = response.getFeatureType();
+                }
+            });
+            return (SimpleFeatureType)type[0];
         }
-        
-        return schema;
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
 
@@ -215,12 +211,12 @@ public class PipelineFeatureSource
         return new AsyncPipelineFeatureCollection( this, query );
     }
 
-    
+
     /**
      * Called by {@link SyncPipelineFeatureCollection} to fetch feature chunks.
      */
     protected void fetchFeatures( Query query, final FeatureResponseHandler handler )
-    throws Exception { 
+    throws Exception {
         try {
             log.debug( "fetchFeatures(): maxFeatures= " + query.getMaxFeatures() );
             GetFeaturesRequest request = new GetFeaturesRequest( query );
@@ -237,24 +233,24 @@ public class PipelineFeatureSource
 //            throw e;
 //        }
 //        catch (Exception e) {
-//            throw new RuntimeException( e );   
+//            throw new RuntimeException( e );
 //        }
         finally {
             handler.endOfResponse();
         }
     }
 
-    
+
     protected interface FeatureResponseHandler {
-        
+
         public void handle( List<Feature> features )
         throws Exception;
-        
+
         public void endOfResponse()
-        throws Exception; 
+        throws Exception;
     }
 
-    
+
     /**
      * Called by {@link SyncPipelineFeatureCollection} to determine the size
      * of the result collection of the given query.
@@ -276,11 +272,11 @@ public class PipelineFeatureSource
             throw e;
         }
         catch (Exception e) {
-            throw new RuntimeException( e );   
+            throw new RuntimeException( e );
         }
     }
 
-    
+
     public void addFeatureListener( FeatureListener l ) {
         store.listeners.addFeatureListener( this, l );
     }
@@ -289,9 +285,9 @@ public class PipelineFeatureSource
         store.listeners.removeFeatureListener( this, l );
     }
 
-    
+
     // FeatureStore ***************************************
-    
+
     public void setTransaction( Transaction transaction ) {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
@@ -301,7 +297,7 @@ public class PipelineFeatureSource
     public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType, SimpleFeature> features )
     throws IOException {
         FeatureType type = features.getSchema();
-        
+
         FeatureIterator it = features.features();
         try {
             // chunk
@@ -329,7 +325,7 @@ public class PipelineFeatureSource
             throw e;
         }
         catch (Exception e) {
-            throw new RuntimeException( e );   
+            throw new RuntimeException( e );
         }
         finally {
             it.close();
@@ -360,11 +356,11 @@ public class PipelineFeatureSource
             throw e;
         }
         catch (Exception e) {
-            throw new RuntimeException( e );   
+            throw new RuntimeException( e );
         }
     }
 
-    
+
     public void modifyFeatures( AttributeDescriptor type, Object value, Filter filter )
     throws IOException {
         modifyFeatures( new AttributeDescriptor[] { type, }, new Object[] { value, }, filter );
@@ -397,11 +393,11 @@ public class PipelineFeatureSource
             throw e;
         }
         catch (Exception e) {
-            throw new IOException( e );   
+            throw new IOException( e );
         }
     }
 
-    
+
     public void setFeatures( FeatureReader<SimpleFeatureType, SimpleFeature> reader )
     throws IOException {
         // XXX Auto-generated method stub

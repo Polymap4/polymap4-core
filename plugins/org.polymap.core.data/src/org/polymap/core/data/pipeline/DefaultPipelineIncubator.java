@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -66,7 +66,7 @@ import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
@@ -80,8 +80,8 @@ public class DefaultPipelineIncubator
     private static List<Class<? extends PipelineProcessor>>          transformers = new ArrayList();
 
     private static List<Class<? extends ITerminalPipelineProcessor>> terminals = new ArrayList();
-    
-    
+
+
     static {
         // XXX get transfomers/terminals from extensions
         synchronized (transformers) {
@@ -95,7 +95,7 @@ public class DefaultPipelineIncubator
             terminals.add( FeatureRenderProcessor2.class );
             terminals.add( DataSourceProcessor.class );
             terminals.add( RasterRenderProcessor.class );
-            
+
             for (ProcessorExtension ext : ProcessorExtension.allExtensions()) {
                 if (ext.isTerminal()) {
                     try {
@@ -109,25 +109,25 @@ public class DefaultPipelineIncubator
             }
         }
     }
-    
-    
-    public Pipeline newPipeline( LayerUseCase usecase, IMap map, ILayer layer, IService service ) 
+
+
+    public Pipeline newPipeline( LayerUseCase usecase, IMap map, ILayer layer, IService service )
     throws PipelineIncubationException {
         log.info( "New pipeline for service: " + service );
 //        IGeoResource geores = layer.getGeoResource();
-        
+
         // terminal
-        List<ProcessorDescription> terms = findTerminals( service, layer, usecase );
+        List<ProcessorDescription> terms = findTerminals( service, usecase );
         if (terms.isEmpty()) {
             throw new PipelineIncubationException( "No terminal for service: " + service.getClass().getName() );
         }
-        
+
         // transformer chain
         LinkedList<ProcessorDescription> chain = null;
         for (ProcessorDescription term : terms) {
             chain = new LinkedList();
             ProcessorDescription start = new ProcessorDescription( signatureForUsecase( usecase ) );
-            
+
             if (findTransformation( start, term, usecase, chain )) {
                 break;
             }
@@ -136,42 +136,48 @@ public class DefaultPipelineIncubator
             }
         }
         if (chain == null) {
-            throw new PipelineIncubationException( "No transformer chain for: layer=" + layer.getLabel() + ", usecase="  + usecase );            
+            throw new PipelineIncubationException( "No transformer chain for: layer=" + layer + ", usecase="  + usecase );
         }
-        
+
         // add layer specific processors
-        PipelineProcessorConfiguration[] procConfigs = layer.getProcessorConfigs();
-        for (PipelineProcessorConfiguration procConfig : procConfigs) {
-            ProcessorExtension ext = ProcessorExtension.forExtensionId( procConfig.getExtensionId() );
-            
-            try {
-                PipelineProcessor processor = ext.newProcessor();
-                ProcessorDescription candidate = new ProcessorDescription( 
-                        processor.getClass(), procConfig.getConfig(), usecase );
-                int i = 0;
-                for (ProcessorDescription chainElm : chain) {
-                    if (candidate.getSignature().isCompatible( chainElm.getSignature() )) {
-                        log.debug( "      Insert configured processor: " + candidate.toString() + " at: " + i );
-                        chain.add( i, candidate );
-                        break;
+        if (layer != null) {
+            PipelineProcessorConfiguration[] procConfigs = layer.getProcessorConfigs();
+            for (PipelineProcessorConfiguration procConfig : procConfigs) {
+                ProcessorExtension ext = ProcessorExtension.forExtensionId( procConfig.getExtensionId() );
+
+                try {
+                    PipelineProcessor processor = ext.newProcessor();
+                    ProcessorDescription candidate = new ProcessorDescription(
+                            processor.getClass(), procConfig.getConfig(), usecase );
+                    int i = 0;
+                    for (ProcessorDescription chainElm : chain) {
+                        if (candidate.getSignature().isCompatible( chainElm.getSignature() )) {
+                            log.debug( "      Insert configured processor: " + candidate.toString() + " at: " + i );
+                            chain.add( i, candidate );
+                            break;
+                        }
+                        i++;
                     }
-                    i++;
+                }
+                catch (CoreException e) {
+                    log.warn( e );
+                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+
                 }
             }
-            catch (CoreException e) {
-                log.warn( e );
-                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-                
-            }
         }
-        
+
         // create the pipeline
         Pipeline pipeline = new Pipeline( map, layer, service );
         for (ProcessorDescription desc : chain) {
             PipelineProcessor processor = desc.newProcessor();
             Properties props = desc.getProps() != null ? desc.getProps() : new Properties();
-            props.put( "layer", layer );
-            props.put( "map", map );
+            if (layer != null) {
+                props.put( "layer", layer );
+            }
+            if (map != null) {
+                props.put( "map", map );
+            }
             props.put( "service", service );
             processor.init( props );
             pipeline.addLast( processor );
@@ -179,8 +185,8 @@ public class DefaultPipelineIncubator
         return pipeline;
     }
 
-    
-    protected List<ProcessorDescription> findTerminals( IService service, ILayer layer, LayerUseCase usecase ) {
+
+    protected List<ProcessorDescription> findTerminals( IService service, LayerUseCase usecase ) {
         List<ProcessorDescription> result = new ArrayList();
         for (ProcessorDescription desc : allTerminals( usecase )) {
             if (desc.isCompatible( service )) {
@@ -190,16 +196,16 @@ public class DefaultPipelineIncubator
         }
         return result;
     }
-    
+
     protected List<ProcessorDescription> allTerminals( LayerUseCase usecase ) {
-        List<ProcessorDescription> result = new ArrayList( terminals.size() );        
+        List<ProcessorDescription> result = new ArrayList( terminals.size() );
         for (Class<? extends PipelineProcessor> cl : terminals) {
             result.add( new ProcessorDescription( cl, null, usecase ) );
         }
         return result;
     }
 
-    
+
     protected boolean findTransformation( ProcessorDescription from,
             ProcessorDescription to, LayerUseCase usecase, Deque<ProcessorDescription> chain ) {
         log.info( StringUtils.repeat( "    ", chain.size() ) + "findTransformation: " + from + " => " + to + " -- " + usecase );
@@ -208,14 +214,14 @@ public class DefaultPipelineIncubator
         if (chain.size() > 16) {
             return false;
         }
-        
+
         // recursion start
         if (from.getSignature().isCompatible( to.getSignature() )) {
             chain.addLast( to );
             log.info( StringUtils.repeat( "    ", chain.size() ) + "Transformation found: " + chain );
             return true;
         }
-        
+
         // recursion step
         else {
             for (ProcessorDescription desc : allTransformers( usecase )) {
@@ -235,7 +241,7 @@ public class DefaultPipelineIncubator
 
 
     protected List<ProcessorDescription> allTransformers( LayerUseCase usecase ) {
-        List<ProcessorDescription> result = new ArrayList( transformers.size() );        
+        List<ProcessorDescription> result = new ArrayList( transformers.size() );
         for (Class<? extends PipelineProcessor> cl : transformers) {
             result.add( new ProcessorDescription( cl, null, usecase ) );
         }
@@ -249,7 +255,7 @@ public class DefaultPipelineIncubator
      * XXX Use case and its signature are closely related. It is not a that good
      * idea to have both separated. However, currently the {@link LayerUseCase}
      * is part of the project bundle, which does not know about pipelines.
-     * 
+     *
      * @param usecase
      * @return Newly created signature for the given usecase.
      * @throws RuntimeException If no signature is found.
@@ -291,5 +297,5 @@ public class DefaultPipelineIncubator
             throw new RuntimeException( "No signature specified yet for usecase: " + usecase );
         }
     }
-    
+
 }

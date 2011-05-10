@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -23,9 +23,10 @@
 
 package org.polymap.core.data.pipeline;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import net.refractions.udig.catalog.IService;
@@ -45,20 +46,20 @@ public class Pipeline
         implements Iterable<PipelineProcessor> {
 
 //    private AtomicBoolean       isWorking = new AtomicBoolean( false );
-    
+
     private IMap                        map;
-    
+
     private Set<ILayer>                 layers = new HashSet();
-    
+
     private IService                    service;
-    
-    private ArrayList<PipelineProcessor> chain = new ArrayList( 8 );
-    
-    
+
+    private List<PipelineProcessor>     chain = new LinkedList();
+
+
     /**
-     * 
+     *
      * @param map The map we are working for.
-     * @param layer 
+     * @param layer
      * @param service The terminal service of this pipeline.
      */
     public Pipeline( IMap map, ILayer layer, IService service ) {
@@ -72,7 +73,7 @@ public class Pipeline
     public IMap getMap() {
         return map;
     }
-    
+
     public Set<ILayer> getLayers() {
         return layers;
     }
@@ -80,7 +81,7 @@ public class Pipeline
     public boolean addLayer( ILayer layer ) {
        return layers.add( layer );
     }
-    
+
     /**
      * The terminal service of this pipeline.
      */
@@ -91,24 +92,30 @@ public class Pipeline
 
     /**
      * Add the given procesor at the 'source' side of the pipeline.
-     * 
+     *
      * @param processor The processor to add.
      */
     public void addLast( PipelineProcessor processor ) {
         chain.add( chain.size(), processor );
     }
-    
+
 
     /**
      * Add the given processor at the 'sink' side of the pipeline.
-     * 
+     *
      * @param processor The processor to add.
      */
     public void addFirst( PipelineProcessor processor ) {
         chain.add( 0, processor );
     }
-    
-    
+
+
+    public PipelineProcessor get( int index ) {
+        assert index < chain.size();
+        return chain.get( index );
+    }
+
+
     public int length() {
         return chain.size();
     }
@@ -120,8 +127,8 @@ public class Pipeline
     public Iterator<PipelineProcessor> iterator() {
         return chain.iterator();
     }
-    
-    
+
+
     public void process( ProcessorRequest request, ResponseHandler handler )
             throws Exception {
         // XXX make this a preference and/or give it an API

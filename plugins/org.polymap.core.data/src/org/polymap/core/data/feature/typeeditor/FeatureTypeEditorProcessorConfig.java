@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -25,7 +25,6 @@ package org.polymap.core.data.feature.typeeditor;
 import java.util.Iterator;
 import java.util.Properties;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.logging.Log;
@@ -86,21 +85,24 @@ public class FeatureTypeEditorProcessorConfig
     private static final Log log = LogFactory.getLog( FeatureTypeEditorProcessorConfig.class );
 
     private PipelineHolder          holder;
-    
+
+    /** Resolved from {@link #holder} if its a {@link ILayer} or {@link #setSourceFeatureType(SimpleFeatureType)}. */
+    private SimpleFeatureType       sourceFeatureType;
+
     private Properties              props;
 
     private FeatureTypeEditor       fte;
-    
+
     private FeatureTypeMapping      mappings;
-    
+
     /** Read from the props. */
     private SimpleFeatureType       featureType;
-    
-    
+
+
     public void init( PipelineHolder _holder, Properties _props ) {
         this.holder = _holder;
         this.props = _props;
-        
+
         // get mappings
         String serialized = props.getProperty( "mappings", null );
         if (serialized != null) {
@@ -125,7 +127,7 @@ public class FeatureTypeEditorProcessorConfig
         featureType = mappings.newFeatureType();
     }
 
-    
+
     public void dispose() {
         super.dispose();
         if (getControl() != null && !getControl().isDisposed()) {
@@ -133,6 +135,11 @@ public class FeatureTypeEditorProcessorConfig
             mappings = null;
             featureType = null;
         }
+    }
+
+
+    public void setSourceFeatureType( SimpleFeatureType sourceFeatureType ) {
+        this.sourceFeatureType = sourceFeatureType;
     }
 
 
@@ -149,7 +156,7 @@ public class FeatureTypeEditorProcessorConfig
                 it.remove();
                 continue;
             }
-            // 
+            //
             mapping.binding = attr.getType().getBinding();
             if (attr instanceof GeometryDescriptor) {
                 mapping.crs = ((GeometryDescriptor)attr).getCoordinateReferenceSystem();
@@ -168,50 +175,52 @@ public class FeatureTypeEditorProcessorConfig
 
     protected Control createContents( Composite parent ) {
         noDefaultAndApplyButton();
-        
+
         Composite contents = new Composite( parent, SWT.BORDER );
 
         FormData dTable = new FormData();
-        
-        // FIXME directly accessing type of ds bypassing upstream procs
-        final FeatureSource[] fs = new FeatureSource[1];
-        if (holder instanceof ILayer) {
-            try {
-                PlatformJobs.runSync( new IRunnableWithProgress() {
-                    public void run( IProgressMonitor monitor )
-                            throws InvocationTargetException, InterruptedException {
-                        try {
-                            IGeoResource geores = ((ILayer)holder).getGeoResource();
-                            fs[0] = geores.resolve( FeatureSource.class, null );
+
+        if (sourceFeatureType == null) {
+            // FIXME directly accessing type of ds bypassing upstream procs
+            if (holder instanceof ILayer) {
+                try {
+                    PlatformJobs.runSync( new IRunnableWithProgress() {
+                        public void run( IProgressMonitor monitor )
+                        throws InvocationTargetException, InterruptedException {
+                            try {
+                                IGeoResource geores = ((ILayer)holder).getGeoResource();
+                                FeatureSource fs = geores.resolve( FeatureSource.class, null );
+                                sourceFeatureType = (SimpleFeatureType)fs.getSchema();
+                                log.debug( "        DataSource schema: " + sourceFeatureType );
+                            }
+                            catch (Exception e) {
+                                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+                            }
                         }
-                        catch (IOException e) {
-                            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-                        }
-                    }
-                }, null );
+                    }, null );
+                }
+                catch (Exception e) {
+                    sourceFeatureType = null;
+                    log.warn( "", e );
+                }
+
+                if (sourceFeatureType == null) {
+                    Text msg = new Text( contents, SWT.NONE );
+                    msg.setText( "Error while creating the processor config panel." );
+                    return contents;
+                }
             }
-            catch (Exception e) {
-                fs[0] = null;
-            }
-            
-            if (fs == null) {
-                Text msg = new Text( contents, SWT.NONE );
-                msg.setText( "Error while creating the processor config panel." );
-                return contents;
+            else {
+                new RuntimeException( "Unhandled pipeline holder type: " + holder );
             }
         }
-        else {
-            new RuntimeException( "Unhandled pipeline holder type: " + holder );
-        }
-        log.debug( "        DataSource schema: " + fs[0].getSchema() );
 
         // fte
         fte = new FeatureTypeEditor();
-        fte.addViewerColumn( new ValueViewerColumn( 
-                mappings, (SimpleFeatureType)fs[0].getSchema() ) );
+        fte.addViewerColumn( new ValueViewerColumn( mappings, sourceFeatureType ) );
 
         fte.createTable( contents, dTable, featureType, true );
-        
+
         // buttons
         Button createBtn = createButton( contents, new CreateAttributeAction( fte ) );
         Button deleteBtn = createButton( contents, new DeleteAttributeAction( fte ) );
@@ -237,11 +246,11 @@ public class FeatureTypeEditorProcessorConfig
         dButton.right = new FormAttachment( 100 );
         dButton.top = new FormAttachment( createBtn, 3 );
         deleteBtn.setLayoutData( dButton );
-        
+
         return contents;
     }
 
-    
+
     protected Button createButton( Composite composite, final IAction action ) {
         final Button button = new Button( composite, SWT.PUSH | SWT.BORDER );
         button.setToolTipText( action.getToolTipText() );

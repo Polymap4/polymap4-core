@@ -1,6 +1,7 @@
 /* uDig - User Friendly Desktop Internet GIS client
  * http://udig.refractions.net
  * (C) 2004, Refractions Research Inc.
+ * Copyright 2011, Falko Bräutigam
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,16 +65,15 @@ import org.polymap.core.data.feature.LegalAttributeType;
  * A composite editor based on a JFace TreeViewer for creating and editing feature types.
  * <p>
  * The code was originally found in {@link net.refractions.udig.ui.FeatureTypeEditor}.
- *  
+ *
  * @author jones
  * @author Andrea Antonello (www.hydrologis.com)
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class FeatureTypeEditor {
 
-    private static final int MAX_ATTRIBUTE_LENGTH = 10485759;  //Maximum allows by postgis and is "big enough" 
+    private static final int MAX_ATTRIBUTE_LENGTH = 10485759;  //Maximum allows by postgis and is "big enough"
     /**
      * The index of the name column in the viewer.
      */
@@ -89,7 +89,7 @@ public class FeatureTypeEditor {
 
 
     TreeViewer                             viewer;
-    
+
     List<ValueViewerColumn>                viewerColumns = new ArrayList();
 
     List<LegalAttributeType>               legalTypes = LegalAttributeType.types();
@@ -107,7 +107,7 @@ public class FeatureTypeEditor {
 
     /**
      * Create the table control and set the input.
-     * 
+     *
      * @param parent the composite that will be used as the TreeViewer's parent.
      * @param layoutData the layout data to use to layout the editor. If null
      *        GridData(Fill_Both)
@@ -119,7 +119,7 @@ public class FeatureTypeEditor {
 
     /**
      * Create the table control and set the input.
-     * 
+     *
      * @param parent the composite that will be used as the TreeViewer's parent.
      * @param layoutData the layout data to use to layout the editor. If null
      *        GridData(Fill_Both)
@@ -134,7 +134,7 @@ public class FeatureTypeEditor {
 
     /**
      * Create the table control and set the input.
-     * 
+     *
      * @param parent the composite that will be used as the TreeViewer's parent.
      * @param layoutData the layout data to use to layout the editor. If null GridData(Fill_Both).
      * @param featureType the {@link FeatureType} to use to populate the table.
@@ -146,6 +146,8 @@ public class FeatureTypeEditor {
         viewer = new TreeViewer( parent, SWT.FULL_SELECTION );
 
         Tree tree = viewer.getTree();
+        tree.setLinesVisible( true );
+
         if (layoutData == null) {
             tree.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
         } else {
@@ -160,22 +162,22 @@ public class FeatureTypeEditor {
         for (ValueViewerColumn viewerColumn : viewerColumns) {
             tableLayout.addColumnData( new ColumnWeightData( 1 ) );
         }
-        
+
         tree.setLayout( tableLayout );
 
         TreeColumn column = new TreeColumn( tree, SWT.CENTER );
         column.setResizable( true );
         column.setText( Messages.FeatureTypeEditor_nameColumnName );
 
-        column = new TreeColumn( tree, SWT.CENTER );
+        column = new TreeColumn( tree, SWT.LEFT );
         column.setResizable( true );
         column.setText( Messages.FeatureTypeEditor_typeColumnName );
 
-        column = new TreeColumn( tree, SWT.CENTER );
+        column = new TreeColumn( tree, SWT.LEFT );
         column.setResizable( true );
 
         for (ValueViewerColumn viewerColumn : viewerColumns) {
-            column = new TreeColumn( tree, SWT.CENTER );
+            column = new TreeColumn( tree, SWT.LEFT );
             column.setResizable( true );
             column.setText( viewerColumn.getHeaderText() );
         }
@@ -196,16 +198,16 @@ public class FeatureTypeEditor {
         setFeatureType( _featureType );
     }
 
-    
+
     public void addViewerColumn( ValueViewerColumn viewerColumn ) {
         viewerColumn.init( viewerColumns.size() + 3, this );
         viewerColumns.add( viewerColumn );
     }
 
-    
+
     /**
      * Sets whether the table is editable or just a viewer.
-     * 
+     *
      * @param editable if true then the table can be edited
      */
     public void setEditable( boolean editable ) {
@@ -219,7 +221,7 @@ public class FeatureTypeEditor {
             TextCellEditor attributeNameEditor = new TextCellEditor( tree );
             ComboBoxCellEditor attributeTypeEditor = new ComboBoxCellEditor( tree, comboItems,
                     SWT.READ_ONLY | SWT.FULL_SELECTION );
-            
+
             List<CellEditor> cellEditors = new ArrayList();
             cellEditors.add( attributeNameEditor );
             cellEditors.add( attributeTypeEditor );
@@ -229,7 +231,7 @@ public class FeatureTypeEditor {
             }
 
             viewer.setCellEditors( cellEditors.toArray( new CellEditor[cellEditors.size()] ) );
-            
+
             viewer.setCellModifier( new AttributeCellModifier( this ) );
         }
         else {
@@ -268,7 +270,7 @@ public class FeatureTypeEditor {
 
         Menu menu = contextMenu.createContextMenu(viewer.getTree());
         viewer.getControl().setMenu(menu);
-        
+
         return contextMenu;
     }
 
@@ -281,13 +283,13 @@ public class FeatureTypeEditor {
         throw new RuntimeException( "FIXME check if just addeing a new action is ok." );
 //        actionBars.setGlobalActionHandler( ActionFactory.DELETE.getId(), getDeleteAction() );
     }
-    
+
     /**
      * Sets the {@link SimpleFeatureType} being edited.
-     * 
+     *
      * <p>If type is null then a new featureType is created. Must be
      * called in the display thread.</p>
-     * 
+     *
      * @param type then new SimpleFeatureType to be edited, or null to create a new type.
      */
     public void setFeatureType( SimpleFeatureType type ) {
@@ -309,12 +311,12 @@ public class FeatureTypeEditor {
 
     /**
      * Creates a default {@link FeatureType}.
-     * 
+     *
      * <p>
      * The default type has a {@link Geometry} attribute and a name attribute.
      * The geometry attribute is a {@link LineString}.
      * </p>
-     * 
+     *
      * @return a default FeatureType.
      */
     public SimpleFeatureType createDefaultFeatureType() {
@@ -383,7 +385,7 @@ public class FeatureTypeEditor {
 
     /**
      * Retrieves the new SimpleFeatureType. Must be called in the display thread. May return null.
-     * 
+     *
      * @return the new SimpleFeatureType.
      */
     public SimpleFeatureType getFeatureType() {
@@ -395,19 +397,19 @@ public class FeatureTypeEditor {
 
     /**
      * Returns the FeatureTypeBuilder that is used for editing the feature type.
-     * 
+     *
      * @return the FeatureTypeBuilder that is used for editing the feature type.
      */
     public SimpleFeatureTypeBuilder getFeatureTypeBuilder() {
         if( viewer==null )
             return null;
-        
+
         return builderFromFeatureType((SimpleFeatureType) viewer.getInput());
     }
 
     /**
      * Returns the control that is the FeatureTypeEditor.
-     * 
+     *
      * @return the control that is the FeatureTypeEditor.
      */
     public Control getControl() {

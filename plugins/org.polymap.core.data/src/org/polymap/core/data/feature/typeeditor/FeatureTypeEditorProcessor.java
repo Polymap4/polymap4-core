@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -44,7 +44,6 @@ import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.spatial.BBOX;
 
 import org.geotools.data.DefaultQuery;
-import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
@@ -53,8 +52,6 @@ import org.geotools.filter.visitor.DuplicatingFilterVisitor;
 import org.geotools.referencing.CRS;
 
 import com.vividsolutions.jts.geom.MultiPolygon;
-
-import net.refractions.udig.catalog.IGeoResource;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
@@ -68,7 +65,6 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -77,7 +73,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * data source. Every target attribute can be mapped to a source attribute or
  * to a constant value. Mappings are specified via {@link AttributeMapping}s.
  * Mappings are configured by {@link FeatureTypeEditorProcessorConfig}.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
@@ -98,15 +94,17 @@ public class FeatureTypeEditorProcessor
         return signature;
     }
 
-    
+
     // instance *******************************************
-    
+
     private FeatureTypeMapping          mappings;
-    
+
     /** The target {@link FeatureType}. */
     private FeatureType                 featureType;
-    
-    
+
+    private FeatureType                 sourceFeatureType;
+
+
     public void init( Properties props ) {
         try {
             // get mappings
@@ -126,7 +124,7 @@ public class FeatureTypeEditorProcessor
                 mappings.put( mapping );
                 log.debug( "    mapping: " + mapping );
             }
-            
+
             // featureType
             String featureTypeName = props.getProperty( "featureTypeName", "_editedFeatureType_" );
             mappings.setFeatureTypeNameName( featureTypeName );
@@ -140,17 +138,10 @@ public class FeatureTypeEditorProcessor
 
     public void processRequest( ProcessorRequest r, ProcessorContext context )
             throws Exception {
-//        // resolve FeatureSource
-//        ILayer layer = context.getLayers().iterator().next();
-//        IGeoResource geores = layer.getGeoResource();
-//        FeatureSource fs = geores.resolve( FeatureSource.class, null );
-//        log.debug( "        Request: " + r + ", fs= " + fs.getName() );
-
         // GetFeatureType
         if (r instanceof GetFeatureTypeRequest) {
-            GetFeatureTypeResponse response = new GetFeatureTypeResponse( featureType ); 
-            context.sendResponse( response );
-            context.sendResponse( ProcessorResponse.EOP );
+            // we know the result already but we need the #sourceFeatureType too
+            context.sendRequest( r );
         }
         // GetFeatures
         else if (r instanceof GetFeaturesRequest) {
@@ -168,12 +159,19 @@ public class FeatureTypeEditorProcessor
             throw new IllegalArgumentException( "Unhandled request type: " + r );
         }
     }
-    
+
 
     public void processResponse( ProcessorResponse r, ProcessorContext context )
     throws Exception {
+        // GetFeatureType
+        if (r instanceof GetFeatureTypeResponse) {
+            sourceFeatureType = ((GetFeatureTypeResponse)r).getFeatureType();
+
+            GetFeatureTypeResponse response = new GetFeatureTypeResponse( featureType );
+            context.sendResponse( response );
+        }
         // GetFeaturesSize
-        if (r instanceof GetFeaturesSizeResponse) {
+        else if (r instanceof GetFeaturesSizeResponse) {
             context.sendResponse( r );
         }
         // GetFeatures
@@ -189,24 +187,23 @@ public class FeatureTypeEditorProcessor
         }
     }
 
-    
-    protected Query transformQuery( Query query, ProcessorContext context ) 
+
+    protected Query transformQuery( Query query, ProcessorContext context )
     throws Exception {
         FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
 
-        // FIXME directly accessing type of ds bypassing upstream procs
-        ILayer layer = context.getLayers().iterator().next();
-        IGeoResource geores = layer.getGeoResource();
-        FeatureSource fs = geores.resolve( FeatureSource.class, null );
-        log.debug( "DataSource schema: " + fs.getSchema() );
-        
+        if (sourceFeatureType == null) {
+            throw new RuntimeException( "The upstream FeatureType is not yet know. Call getSchema() on the PipelineFeatureSource first." );
+        }
+        log.debug( "DataSource schema: " + sourceFeatureType );
+
         // transform query
         DefaultQuery result = new DefaultQuery( query );
-        result.setTypeName( fs.getSchema().getName().getLocalPart() );
-        if (fs.getSchema().getName().getNamespaceURI() != null) {
-            result.setNamespace( new URI( fs.getSchema().getName().getNamespaceURI() ) );
+        result.setTypeName( sourceFeatureType.getName().getLocalPart() );
+        if (sourceFeatureType.getName().getNamespaceURI() != null) {
+            result.setNamespace( new URI( sourceFeatureType.getName().getNamespaceURI() ) );
         }
-        
+
         // transform properties
         if (query.getPropertyNames() != null) {
             List<String> resultProps = new ArrayList();
@@ -222,16 +219,16 @@ public class FeatureTypeEditorProcessor
             }
             result.setPropertyNames( resultProps );
         }
-        
+
         // transform filter
         FilterVisitor visitor = new MappingFilterVisitor();
-        Filter filterOnSourceType = (Filter)query.getFilter().accept( visitor, null );        
+        Filter filterOnSourceType = (Filter)query.getFilter().accept( visitor, null );
         result.setFilter( filterOnSourceType );
-        
+
         return result;
     }
-    
-    
+
+
     protected void transformFeatures( GetFeaturesResponse chunk, ProcessorContext context )
     throws Exception {
         log.debug( "       received features: " + chunk.count() );
@@ -241,7 +238,7 @@ public class FeatureTypeEditorProcessor
             List<Feature> result = new ArrayList( chunk.count() );
             for (Feature feature : chunk) {
                 for (PropertyDescriptor prop : featureType.getDescriptors()) {
-                    
+
                     AttributeMapping mapping = mappings.get( prop.getName().getLocalPart() );
                     // geometry
                     if (prop.getType() instanceof GeometryType ) {
@@ -301,7 +298,7 @@ public class FeatureTypeEditorProcessor
 
         public Object visit( PropertyName expression, Object data ) {
             log.debug( "*** Filter: target property: " + expression.getPropertyName() );
-            
+
             AttributeMapping mapping = mappings.get( expression.getPropertyName() );
             if (mapping == null) {
                 log.warn( "No mapping for: " + expression.getPropertyName() );

@@ -68,6 +68,18 @@
                tooltip="%actions_showFeatureTable_tip">
          </action>
       </objectContribution>
+      <objectContribution
+            adaptable="false"
+            id="org.polymap.core.data.georesContribution"
+            objectClass="net.refractions.udig.catalog.IGeoResource">
+         <action
+               class="org.polymap.core.data.operations.CopyFeaturesAction"
+               enablesFor="1"
+               id="org.polymap.core.data.CopyFeaturesAction"
+               label="Objekte kopieren..."
+               style="push">
+         </action>
+      </objectContribution>
    </extension>
    <extension
          point="org.eclipse.ui.propertyPages">

@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -61,7 +61,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
@@ -73,7 +73,7 @@ public class DataSourceProcessor
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
     public static final int                 DEFAULT_CHUNK_SIZE = 200;
-    
+
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
         if (usecase == LayerUseCase.FEATURES_TRANSACTIONAL ) {
@@ -114,18 +114,34 @@ public class DataSourceProcessor
         return false;
     }
 
-    
+
     // instance *******************************************
-    
+
+    private IGeoResource        geores;
+
+
     public void init( Properties props ) {
+    }
+
+
+    /**
+     * Ignore the geores of the source {@link ILayer} from the processor config and use
+     * the given geores instead.
+     *
+     * @param geores The geores to use.
+     */
+    public void setGeores( IGeoResource geores ) {
+        this.geores = geores;
     }
 
 
     public void processRequest( ProcessorRequest r, ProcessorContext context )
             throws Exception {
-        // resolve FeatureSource
-        ILayer layer = context.getLayers().iterator().next();
-        IGeoResource geores = layer.getGeoResource();
+        // find geores
+        if (geores == null) {
+            ILayer layer = context.getLayers().iterator().next();
+            geores = layer.getGeoResource();
+        }
         log.debug( "        Request: " + r + ", geores= " + geores.getIdentifier() );
 
         // GetFeatureType
@@ -139,7 +155,7 @@ public class DataSourceProcessor
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
             FeatureStore fs = geores.resolve( FeatureStore.class, null );
-            List<FeatureId> result = addFeatures( (FeatureStore)fs, request.getFeatures() );
+            List<FeatureId> result = addFeatures( fs, request.getFeatures() );
             context.sendResponse( new ModifyFeaturesResponse( result ) );
             context.sendResponse( ProcessorResponse.EOP );
         }
@@ -147,14 +163,14 @@ public class DataSourceProcessor
         else if (r instanceof RemoveFeaturesRequest) {
             RemoveFeaturesRequest request = (RemoveFeaturesRequest)r;
             FeatureStore fs = geores.resolve( FeatureStore.class, null );
-            removeFeatures( (FeatureStore)fs, request.getFilter() );
+            removeFeatures( fs, request.getFilter() );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // ModifyFeatures
         else if (r instanceof ModifyFeaturesRequest) {
             ModifyFeaturesRequest request = (ModifyFeaturesRequest)r;
             FeatureStore fs = geores.resolve( FeatureStore.class, null );
-            modifyFeatures( (FeatureStore)fs, request.getType(), request.getValue(), request.getFilter() );
+            modifyFeatures( fs, request.getType(), request.getValue(), request.getFilter() );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // GetFeatures
@@ -176,12 +192,12 @@ public class DataSourceProcessor
             throw new IllegalArgumentException( "Unhandled request type: " + r );
         }
     }
-    
-    
+
+
     protected FeatureType getFeatureType( FeatureSource fs ) {
         return fs.getSchema();
     }
-    
+
 
     protected int getFeaturesSize( FeatureSource fs, Query query )
     throws IOException {
@@ -191,8 +207,8 @@ public class DataSourceProcessor
         log.debug( "            Features size: " + result );
         return result;
     }
-    
-    
+
+
     protected void getFeatures( FeatureSource fs, Query query, ProcessorContext context )
     throws Exception {
         // features
@@ -200,15 +216,15 @@ public class DataSourceProcessor
         // of the entire collection
         log.debug( "            Filter: " + query.getFilter() );
         FeatureCollection fc = fs.getFeatures( query );
-        
-        
+
+
         // execute should of set all the header information
         // including the lockID
         //
         // execute should also fail if all of the locks could not be aquired
 //        List resultsList = featureCollection.getFeature();
-        
-        
+
+
         Iterator it = null;
         try {
             ArrayList<Feature> chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
@@ -236,41 +252,40 @@ public class DataSourceProcessor
         }
     }
 
-    
+
     protected List<FeatureId> addFeatures( FeatureStore fs, Collection<Feature> features )
     throws IOException {
         log.debug( "            Features: " + features.size() );
         // XXX supports SimpleFeatureType only yet
-        FeatureCollection<SimpleFeatureType, SimpleFeature> coll = 
+        FeatureCollection<SimpleFeatureType, SimpleFeature> coll =
                 FeatureCollections.newCollection();
         coll.addAll( (Collection<? extends SimpleFeature>)features );
         return fs.addFeatures( coll );
     }
 
-    
+
     protected void removeFeatures( FeatureStore fs, Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
         fs.removeFeatures( filter );
     }
 
-    
-    protected void modifyFeatures( FeatureStore fs, 
+
+    protected void modifyFeatures( FeatureStore fs,
             AttributeDescriptor[] type, Object[] value, Filter filter )
             throws IOException {
         log.debug( "            Filter: " + filter );
         fs.modifyFeatures( type, value, filter );
     }
 
-    
+
     public void processResponse( ProcessorResponse reponse, ProcessorContext context )
     throws Exception {
         throw new RuntimeException( "This is a terminal processor." );
     }
 
-    
     /**** sample code from the old SourceFeaturesProcessor ****
-     
+
     public void processRequest( ProcessorRequest r, ProcessorContext context )
     throws Exception {
         GetDataRequest request = (GetDataRequest)r;
@@ -293,7 +308,7 @@ public class DataSourceProcessor
         FeatureCollection fc = null;
         if (bbox != null) {
             // transform bbox
-            CoordinateReferenceSystem layerCRS = 
+            CoordinateReferenceSystem layerCRS =
                 geores.getInfo( new NullProgressMonitor() ).getCRS();
             if (layerCRS == null) {
                 log.warn( "### No CRS found for layer. Using map CRS for layer CRS." );
@@ -325,6 +340,6 @@ public class DataSourceProcessor
         context.sendResponse( response );
         context.sendResponse( ProcessorResponse.EOP );
     }*/
-    
+
 }
 

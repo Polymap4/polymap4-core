@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -38,15 +38,18 @@ import org.polymap.core.project.LayerUseCase;
  * </ul>
  * The interface is the bridge between the packages
  * <code>org.polymap.core.project</code> and <code>org.polymap.core.data</code>.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public interface IPipelineIncubator {
 
+    static IPipelineIncubator       instance = new DefaultPipelineIncubator();
+
+
     public Pipeline newPipeline( LayerUseCase usecase, IMap map, ILayer layer,
-            IService service) 
+            IService service)
             throws PipelineIncubationException;
 
 }

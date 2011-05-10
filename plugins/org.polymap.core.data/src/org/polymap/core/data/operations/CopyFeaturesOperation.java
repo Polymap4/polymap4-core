@@ -1,0 +1,402 @@
+/*
+ * polymap.org
+ * Copyright 2011, Falko Bräutigam. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
+package org.polymap.core.data.operations;
+
+import java.util.Properties;
+
+import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IService;
+
+import org.geotools.data.FeatureStore;
+import org.geotools.data.Query;
+import org.geotools.feature.FeatureCollection;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Composite;
+
+import org.eclipse.jface.dialogs.IPageChangedListener;
+import org.eclipse.jface.dialogs.PageChangedEvent;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.jface.wizard.WizardPage;
+
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.operations.AbstractOperation;
+import org.eclipse.core.commands.operations.IUndoableOperation;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+
+import org.polymap.core.data.Messages;
+import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.feature.typeeditor.AttributeMapping;
+import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor;
+import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig;
+import org.polymap.core.data.feature.typeeditor.FeatureTypeMapping;
+import org.polymap.core.data.pipeline.Pipeline;
+import org.polymap.core.data.pipeline.PipelineProcessor;
+import org.polymap.core.data.ui.featureTypeEditor.FeatureTypeEditor;
+import org.polymap.core.data.ui.featureTypeEditor.ValueViewerColumn;
+import org.polymap.core.operation.OperationWizard;
+import org.polymap.core.operation.OperationWizardPage;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.project.ui.ProjectTreeViewer;
+import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.runtime.WeakListener;
+
+/**
+ * Modifies features. This operation is triggered by
+ * {@link ModifyFeatureEditorAction} but might be used by other classes as well.
+ * <p>
+ * ...
+ *
+ * @see NewFeatureOperation
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @since 3.1
+ */
+public class CopyFeaturesOperation
+        extends AbstractOperation
+        implements IUndoableOperation {
+
+    private static Log log = LogFactory.getLog( CopyFeaturesOperation.class );
+
+    private IGeoResource            sourceGeores;
+
+    private Query                   sourceQuery;
+
+    private PipelineFeatureSource   source;
+
+    private ILayer                  dest;
+
+
+    public CopyFeaturesOperation( PipelineFeatureSource source, ILayer dest ) {
+        super( Messages.get( "CopyFeaturesOperation_labelPrefix" ) );
+        this.source = source;
+        this.dest = dest;
+    }
+
+
+    /**
+     * Creates a new operation without the destination layer set. This will open
+     * a dialog when executing, which allows to choose the destination layer.
+     *
+     * @param source
+     */
+    public CopyFeaturesOperation( PipelineFeatureSource source ) {
+        super( Messages.get( "CopyFeaturesOperation_labelPrefix" ) );
+        this.source = source;
+    }
+
+
+    public CopyFeaturesOperation( IGeoResource geores ) {
+        super( Messages.get( "CopyFeaturesOperation_labelPrefix" ) );
+        this.sourceGeores = geores;
+    }
+
+
+    public PipelineFeatureSource getSource() {
+        return source;
+    }
+
+
+    public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        // narrow source
+        if (sourceGeores != null) {
+            try {
+                IService service = sourceGeores.service( monitor );
+
+                //Pipeline pipeline = new DefaultPipelineIncubator().newPipeline( LayerUseCase.FEATURES, null, null, service );
+                Pipeline pipeline = new Pipeline( null, null, service );
+                DataSourceProcessor dataSource = new DataSourceProcessor();
+                dataSource.setGeores( sourceGeores );
+                pipeline.addLast( dataSource );
+
+                source = new PipelineFeatureSource( pipeline );
+                log.info( "Source created from GeoRes: " + source );
+            }
+            catch (Exception e) {
+                throw new ExecutionException( "", e );
+            }
+        }
+
+        // open wizard dialog
+        OperationWizard wizard = new OperationWizard( this, info, monitor ) {
+
+            public boolean doPerformFinish()
+            throws Exception {
+                ((FeatureEditorPage2)getPage( FeatureEditorPage2.ID )).performFinish();
+
+                FeatureStore destFs = PipelineFeatureSource.forLayer( dest, true );
+                FeatureCollection features = sourceQuery != null ? source.getFeatures( sourceQuery ) : source.getFeatures();
+                destFs.addFeatures( features );
+                return true;
+            }
+        };
+        wizard.addPage( new ChooseLayerPage() );
+        wizard.addPage( new FeatureEditorPage2() );
+        return OperationWizard.openDialog( wizard );
+    }
+
+
+    public boolean canUndo() {
+        return false;
+    }
+
+    public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    public boolean canRedo() {
+        return false;
+    }
+
+    public IStatus redo( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    /**
+     *
+     */
+    class ChooseLayerPage
+            extends WizardPage
+            implements IWizardPage, ISelectionChangedListener {
+
+        public static final String          ID = "ChooseLayerPage";
+
+        private ProjectTreeViewer           viewer;
+
+
+        protected ChooseLayerPage() {
+            super( ID );
+            setTitle( Messages.get( "CopyFeaturesOperation_ChooseLayerPage_title" ) );
+            setDescription( Messages.get( "CopyFeaturesOperation_ChooseLayerPage_description" ) );
+        }
+
+        public void createControl( Composite parent ) {
+            Composite contents = new Composite( parent, SWT.NONE );
+            FormLayout layout = new FormLayout();
+            layout.spacing = 5;
+            contents.setLayout( layout );
+            setControl( contents );
+
+            viewer = new ProjectTreeViewer( contents, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
+            viewer.setRootMap( ProjectRepository.instance().getRootMap() );
+            viewer.getTree().setLayoutData( new SimpleFormData().fill().create() );
+
+            viewer.addSelectionChangedListener( WeakListener.forListener( this ) );
+        }
+
+        public boolean isPageComplete() {
+            return dest != null;
+        }
+
+        public void selectionChanged( SelectionChangedEvent ev ) {
+            dest = null;
+            ISelection sel = ev.getSelection();
+            if (sel != null && sel instanceof IStructuredSelection) {
+                Object elm = ((IStructuredSelection)sel).getFirstElement();
+                if (elm != null && elm instanceof ILayer) {
+                    dest = (ILayer)elm;
+                }
+            }
+            getContainer().updateButtons();
+        }
+
+    }
+
+
+    /**
+     *
+     */
+    class FeatureEditorPage2
+            extends OperationWizardPage
+            implements IWizardPage, IPageChangedListener {
+
+        public static final String          ID = "FeatureEditorPage2";
+
+        private FeatureTypeEditor           editor;
+
+        private Composite                   content;
+
+        private Properties                  configPageProps = new Properties();
+
+        private FeatureTypeEditorProcessorConfig configPage;
+
+        protected FeatureEditorPage2() {
+            super( ID );
+            setTitle( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_title" ) );
+            setDescription( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_description" ) );
+        }
+
+        public void createControl( Composite parent ) {
+            this.content = new Composite( parent, SWT.NONE );
+            FormLayout layout = new FormLayout();
+            layout.spacing = 5;
+            content.setLayout( layout );
+            setControl( content );
+            getWizard().addPageChangedListener( WeakListener.forListener( this ) );
+        }
+
+        public void pageChanged( PageChangedEvent ev ) {
+            log.info( "pageChanged(): ev= " + ev.getSelectedPage() );
+            if (ev.getSelectedPage() == this /*&& editor == null*/) {
+                pageEntered();
+            }
+        }
+
+        protected void pageEntered() {
+            getContainer().getShell().setMinimumSize( SWT.DEFAULT, 600 );
+            getContainer().getShell().layout( true );
+
+            // create default mapping
+            FeatureTypeMapping mappings = new FeatureTypeMapping();
+            SimpleFeatureType schema = null;
+            try {
+                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( dest, true );
+                schema = fs.getSchema();
+            }
+            catch (Exception e) {
+                throw new RuntimeException( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorLayerSchema" ), e );
+            }
+
+            for (AttributeDescriptor destAttr : schema.getAttributeDescriptors()) {
+                // find best matching attribut
+                log.debug( "Find mapping for: " + destAttr.getLocalName() );
+                AttributeDescriptor matchingAttr = null;
+                int score = Integer.MAX_VALUE;
+                for (AttributeDescriptor sourceAttr : source.getSchema().getAttributeDescriptors()) {
+                    int s = StringUtils.getLevenshteinDistance(
+                            sourceAttr.getLocalName().toLowerCase(), destAttr.getLocalName().toLowerCase() );
+
+                    log.debug( "    check: " + sourceAttr.getLocalName() + ", score:" + s );
+                    if (s < score) {
+                        score = s;
+                        matchingAttr = sourceAttr;
+                        log.debug( "    match: " + matchingAttr.getLocalName() + " (" + score + ")" );
+                    }
+                }
+                mappings.put( new AttributeMapping( destAttr.getLocalName(), destAttr.getType().getBinding(), null,
+                        matchingAttr.getLocalName(), null ) );
+            }
+            configPageProps.put( "mappings", mappings.serialize() );
+
+            configPage = new FeatureTypeEditorProcessorConfig();
+            configPage.init( dest, configPageProps );
+            configPage.setSourceFeatureType( source.getSchema() );
+
+            configPage.createControl( content );
+            configPage.getControl().setLayoutData( new SimpleFormData().fill().create() );
+            content.layout( true );
+
+            getContainer().updateButtons();
+        }
+
+        public void performFinish() {
+            log.info( "canFlipToNextPage(): ..." );
+
+            configPage.performOk();
+
+            PipelineProcessor proc = source.getPipeline().get( 0 );
+            if (!(proc instanceof FeatureTypeEditorProcessor)) {
+                proc = new FeatureTypeEditorProcessor();
+                source.getPipeline().addFirst( proc );
+            }
+            ((FeatureTypeEditorProcessor)proc).init( configPageProps );
+
+            // give FeatureTypeEditorProcessor the upstream FeatureType
+            SimpleFeatureType schema = source.getSchema();
+            log.debug( "Schema: " + schema );
+        }
+
+        public boolean isPageComplete() {
+            return configPage != null ? configPage.okToLeave() : false;
+        }
+
+    }
+
+
+    /**
+     *
+     */
+    class FeatureEditorPage
+            extends OperationWizardPage
+            implements IWizardPage, IPageChangedListener {
+
+        public static final String          ID = "FeatureEditorPage";
+
+        private FeatureTypeEditor           editor;
+
+        private Composite                   contents;
+
+
+        protected FeatureEditorPage() {
+            super( ID );
+            setTitle( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_title" ) );
+            setDescription( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_description" ) );
+        }
+
+        public void createControl( Composite parent ) {
+            this.contents = new Composite( parent, SWT.BORDER );
+            FormLayout layout = new FormLayout();
+            layout.spacing = 5;
+            contents.setLayout( layout );
+            setControl( contents );
+            getWizard().addPageChangedListener( WeakListener.forListener( this ) );
+        }
+
+        public void pageChanged( PageChangedEvent ev ) {
+            log.info( "pageChanged(): ev= " + ev.getSelectedPage() );
+            if (ev.getSelectedPage() == this && editor == null) {
+                getContainer().getShell().setMinimumSize( SWT.DEFAULT, 600 );
+                getContainer().getShell().layout( true );
+
+                editor = new FeatureTypeEditor();
+
+                FeatureTypeMapping mapping = new FeatureTypeMapping();
+                editor.addViewerColumn( new ValueViewerColumn( mapping, source.getSchema() ) );
+
+                try {
+                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( dest, true );
+                    editor.createTable( contents, new SimpleFormData().fill().create(), fs.getSchema(), true );
+                    contents.layout( true );
+                }
+                catch (Exception e) {
+                    throw new RuntimeException( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorLayerSchema" ), e );
+                }
+            }
+        }
+
+        public boolean isPageComplete() {
+            return true;
+        }
+
+    }
+
+}
