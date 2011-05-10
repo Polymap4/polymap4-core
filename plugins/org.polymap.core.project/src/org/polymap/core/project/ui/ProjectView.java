@@ -1,24 +1,16 @@
 package org.polymap.core.project.ui;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import net.refractions.udig.internal.ui.IDropTargetProvider;
+import net.refractions.udig.ui.UDIGDragDropUtilities;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import net.refractions.udig.internal.ui.IDropTargetProvider;
-import net.refractions.udig.ui.UDIGDragDropUtilities;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.rwt.lifecycle.WidgetUtil;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -31,17 +23,12 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ILabelDecorator;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeSelection;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.ViewerSorter;
 
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
@@ -61,7 +48,6 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.core.commands.ExecutionException;
 
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
@@ -87,7 +73,7 @@ public class ProjectView
      */
     public static final String ID = "org.polymap.core.project.ProjectView";
 
-    private TreeViewer         viewer;
+    private ProjectTreeViewer  viewer;
 
     private DrillDownAdapter   drillDownAdapter;
     
@@ -117,37 +103,21 @@ public class ProjectView
     }
 
 
-//    public void firePropertyChanged( int propertyId ) {
-//        super.firePropertyChange( propertyId );
-//    }
-
-
     /**
      * This is a callback that will allow us to create the viewer and initialize
      * it.
      */
     public void createPartControl( Composite parent ) {
-        viewer = new TreeViewer( parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL );
-        viewer.setData( WidgetUtil.CUSTOM_WIDGET_ID, "projectViewer" );
+        viewer = new ProjectTreeViewer( parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL );
         getSite().setSelectionProvider( viewer );        
         UDIGDragDropUtilities.addDragDropSupport( viewer, this );
 
         root = ProjectRepository.instance().getRootMap();
+        viewer.setRootMap( root );
 
         // XXX the drilldownadapter needs to get informed of real input changes 
         drillDownAdapter = new DrillDownAdapter( viewer );
-        
-        viewer.setContentProvider( new ProjectContentProvider() );
-        
-        // LabelProvider
-        ILabelProvider lp = new ProjectLabelProvider();
-        ILabelDecorator decorator = PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator();
-        viewer.setLabelProvider( new DecoratingLabelProvider( lp, decorator ) );
-        
-        viewer.setSorter( new NameSorter() );
-        //viewer.setInput( getViewSite() );
-        viewer.setInput( root );
-        
+                
         getSite().getPage().addSelectionListener( new ISelectionListener() {
             public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
                 if (!sel.isEmpty() && sel instanceof StructuredSelection) {
@@ -346,72 +316,6 @@ public class ProjectView
     }
 
     
-    /**
-     * 
-     *
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
-     * @since 3.0
-     */
-    class ProjectContentProvider
-            extends EntityContentProvider {
-
-        protected Collection _getChildren( Object parent ) {
-            log.debug( "parent: " + parent );
-            if (parent instanceof IMap) {
-                IMap map = (IMap)parent;
-                List result = new ArrayList();
-                result.addAll( map.getMaps() );
-                result.addAll( map.getLayers() );
-                return result;
-            }
-//            else if (parent instanceof ILayer) {
-//                return ((ILayer)parent).getLayers();
-//            }
-            else {
-                log.warn( "unhandled parent type: " + parent );
-                return Collections.EMPTY_LIST;
-            }
-        }
-
-    }
-    
-    
-    /**
-     * 
-     */
-    class ProjectLabelProvider
-            extends LabeledLabelProvider {
-
-        public Image getImage( Object elm ) {
-            String imageKey = (elm instanceof IMap) ? ISharedImages.IMG_OBJ_FOLDER : ISharedImages.IMG_OBJ_ELEMENT;
-            return PlatformUI.getWorkbench().getSharedImages().getImage( imageKey );
-        }
-
-    }
-    
-    
-    /**
-     * The element sorter of the {@link ProjectView#viewer}. 
-     */
-    class NameSorter
-            extends ViewerSorter {
-
-        public int category( Object elm ) {
-            if (elm instanceof IMap) {
-                return 0;
-            }
-            else if (elm instanceof ILayer) {
-                return 1;
-            }
-            else {
-                return 10;
-            }
-        }
-        
-    }
-
-
     /**
      * Collaps the viewer tree.
      */
