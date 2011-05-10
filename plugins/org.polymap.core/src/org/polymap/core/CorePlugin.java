@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -56,24 +56,24 @@ import org.polymap.core.http.HttpServiceRegistry;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public class CorePlugin 
+public class CorePlugin
         extends AbstractUIPlugin {
-	
+
 	private static Log log = LogFactory.getLog( CorePlugin.class );
-	
+
 	// The plug-in ID
 	public static final String PLUGIN_ID = "org.polymap.core";
 
 	// The shared instance
 	private static CorePlugin  plugin;
-	
+
 	private static boolean     httpServiceRegistryStarted = false;
-	
+
 
 	public static ImageDescriptor imageDescriptor( String path ) {
         return imageDescriptorFromPlugin( PLUGIN_ID, path );
     }
-    
+
 
 	static {
 	    try {
@@ -83,7 +83,7 @@ public class CorePlugin
         catch (Exception e) {
             System.out.println( "No GEOTOOLS logger: " + e );
         }
-        
+
         // horrible log configuration system...
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
 
@@ -92,13 +92,12 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
-	        
+
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.services.geoserver", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ows.simple", "debug" );
-        
+
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );
 
@@ -109,9 +108,15 @@ public class CorePlugin
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.anta2", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.eclipse.rwt.widgets.codemirror", "debug" );
+
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene", "debug" );
+
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.edit", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.operations", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
 	}
-	
-	
+
+
 	public CorePlugin() {
 		log.debug( "Hello from the first POLYMAP3 plugin! :)" );
 
@@ -127,7 +132,7 @@ public class CorePlugin
         super.start( context );
         log.debug( "start..." );
         plugin = this;
-        
+
         // start HttpServiceRegistry
         context.addBundleListener( new BundleListener() {
             public void bundleChanged( BundleEvent ev ) {
@@ -165,21 +170,21 @@ public class CorePlugin
 		return plugin;
 	}
 
-	
+
     public static void logInfo( String msg ) {
-        getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );    
+        getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );
     }
-    
+
 
     public static void logError( String msg ) {
-        getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );    
+        getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );
     }
-    
+
 
     /**
      * XXX we need a central log facility; first shot for API; should be
      * refactored into log service package/classes
-     * 
+     *
      * @param msg
      * @param callerLog
      * @param e
@@ -189,7 +194,7 @@ public class CorePlugin
             log.error( msg, e );
         }
         // FIXME does this make sense in RAP???
-        getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );    
+        getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );
     }
-    
+
 }
