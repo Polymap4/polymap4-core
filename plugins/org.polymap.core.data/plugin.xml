@@ -165,4 +165,19 @@
             name="MS-Access">
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="org.polymap.core.data.geoSelectionContribution"
+            targetID="org.polymap.core.data.ui.featureTable.view">
+         <action
+               class="org.polymap.core.data.operations.CopyGeoSelectionFeaturesAction"
+               icon="icons/etool16/copy_features.gif"
+               id="org.polymap.core.data.CopyGeoSelectionFeaturesAction"
+               label="%actions_copyFeatures"
+               style="push"
+               toolbarPath="data">
+         </action>
+      </viewContribution>
+   </extension>
 </plugin>

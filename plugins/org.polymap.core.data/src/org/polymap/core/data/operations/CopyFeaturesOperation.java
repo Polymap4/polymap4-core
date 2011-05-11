@@ -97,21 +97,18 @@ public class CopyFeaturesOperation
     private ILayer                  dest;
 
 
-    public CopyFeaturesOperation( PipelineFeatureSource source, ILayer dest ) {
-        super( Messages.get( "CopyFeaturesOperation_label" ) );
-        this.source = source;
-        this.dest = dest;
-    }
-
-
     /**
-     * Creates a new operation without the destination layer set. This will open
-     * a dialog when executing, which allows to choose the destination layer.
+     * Creates a new operation without the destination layer set. This will open a dialog
+     * when executing, which allows to choose the destination layer.
      *
      * @param source
+     * @param query The query to be used to fetch the features, or null if all features
+     *        should be fetched.
      */
-    public CopyFeaturesOperation( PipelineFeatureSource source ) {
-        this( source, null );
+    public CopyFeaturesOperation( PipelineFeatureSource source, Query query ) {
+        super( Messages.get( "CopyFeaturesOperation_label" ) );
+        this.source = source;
+        this.sourceQuery = query;
     }
 
 
@@ -295,7 +292,7 @@ public class CopyFeaturesOperation
         }
 
         protected void pageEntered() {
-            getContainer().getShell().setMinimumSize( SWT.DEFAULT, 600 );
+            getContainer().getShell().setMinimumSize( 700, 500 );
             getContainer().getShell().layout( true );
 
             setErrorMessage( null );

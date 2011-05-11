@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -107,35 +107,35 @@ import org.polymap.core.runtime.WeakListener;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- *  
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class GeoSelectionView
-        extends ViewPart { 
+        extends ViewPart {
 
     private static Log log = LogFactory.getLog( GeoSelectionView.class );
 
     /**
      * Makes sure that the view for the layer is open. If the view is already
      * open, then it is activated.
-     * 
+     *
      * @param layer
      * @param allowSearch XXX
      * @return The view for the given layer.
      */
     public static GeoSelectionView open( final ILayer layer, final boolean allowSearch ) {
         final GeoSelectionView[] result = new GeoSelectionView[1];
-        
+
         Polymap.getSessionDisplay().syncExec( new Runnable() {
             public void run() {
                 try {
                     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                     ensureMaxViews( page );
-                    
-                    result[0] = (GeoSelectionView)page.showView( 
+
+                    result[0] = (GeoSelectionView)page.showView(
                             GeoSelectionView.ID, layer.id(), IWorkbenchPage.VIEW_ACTIVATE );
                     result[0].setAllowSearch( allowSearch );
                     result[0].connectLayer( layer );
@@ -147,7 +147,7 @@ public class GeoSelectionView
         });
         return result[0];
     }
-    
+
     public static void close( final ILayer layer ) {
         Polymap.getSessionDisplay().asyncExec( new Runnable() {
             public void run() {
@@ -169,45 +169,45 @@ public class GeoSelectionView
 
     protected static void ensureMaxViews( IWorkbenchPage page ) {
     }
-    
-    
+
+
     // instance *******************************************
-    
+
     /**
      * The ID of the view as specified by the extension.
      */
     public static final String      ID = "org.polymap.core.data.ui.featureTable.view";
-    
+
     private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
 
     public static final int         DEFAULT_MAX_RESULTS = 10000;
 
     private Composite               parent;
-    
+
     private FeatureTableControl     viewer;
 
     private Text                    searchText;
 
     private Combo                   attrCombo;
-    
-    private Label                   sizeLabel;    
+
+    private Label                   sizeLabel;
 
     private FormData                dTable;
 
     private ILayer                  layer;
-    
+
     private FeatureSource           fs;
-    
+
     /** The currently displayed features. */
     private FeatureCollection       fc;
-    
+
     /** The filter that was used to produce the {@link #fc}. */
     private Filter                  filter;
-    
+
     private ISelectionChangedListener tableSelectionListener = new TableSelectionListener();
 
     private GeoSelectionListener    geoSelectionListener = new GeoSelectionListener();
-    
+
     private DefaultPartListener     partListener = new PartListener();
 
     private PropertyChangeListener  layerChangeListener = new LayerChangeListener();
@@ -215,9 +215,9 @@ public class GeoSelectionView
     private IWorkbenchPage          page;
 
     private boolean                 allowModify = false;
-    
+
     private boolean                 allowSearch = true;
-    
+
 
     public GeoSelectionView() {
         log.debug( "..." );
@@ -246,6 +246,10 @@ public class GeoSelectionView
 
     public FeatureStore getFeatureStore() {
         return (FeatureStore)fs;
+    }
+
+    public Filter getFilter() {
+        return filter;
     }
 
     /**
@@ -289,7 +293,7 @@ public class GeoSelectionView
             sizeLabel.setText( "ausgewählt: 0" );
             sizeLabel.setToolTipText( "Anzahl der ausgewählten Objekte" );
         }
-        
+
         // layout
         FormLayout layout = new FormLayout();
         layout.marginHeight = 0;
@@ -325,14 +329,14 @@ public class GeoSelectionView
 
         makeActions();
         hookContextMenu();
-        
+
         // contributeToActionBars
         IActionBars bars = getViewSite().getActionBars();
         fillLocalPullDown( bars.getMenuManager() );
         fillLocalToolBar( bars.getToolBarManager() );
     }
 
-    
+
     public void connectLayer( ILayer _layer ) {
         this.layer = _layer;
         setPartName( layer.getLabel() );
@@ -345,8 +349,8 @@ public class GeoSelectionView
         page.addPartListener( partListener );
 
         // geo event listener
-        GeoHub.instance().subscribe( geoSelectionListener, 
-                new GeoEventSelector( 
+        GeoHub.instance().subscribe( geoSelectionListener,
+                new GeoEventSelector(
                         new MapNameFilter( layer.getMap().getLabel() ),
                         new TypeFilter( GeoEvent.Type.FEATURE_HOVERED, GeoEvent.Type.FEATURE_SELECTED, GeoEvent.Type.FEATURE_CREATED ) ) );
 
@@ -373,7 +377,7 @@ public class GeoSelectionView
 //            loadTable( Filter.EXCLUDE );
 //        }
     }
-    
+
 
     public void disconnectLayer() {
         if (page != null) {
@@ -393,8 +397,8 @@ public class GeoSelectionView
         // geo event
         if (layer != null && fc != null) {
             try {
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-                        layer.getMap().getLabel(), 
+                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED,
+                        layer.getMap().getLabel(),
                         layer.getGeoResource().getIdentifier().toURI() );
                 GeoHub.instance().send( event, geoSelectionListener );
             }
@@ -402,14 +406,14 @@ public class GeoSelectionView
                 PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
             }
         }
-        
+
         layer = null;
         fs = null;
         fc = null;
         filter = null;
     }
-    
-    
+
+
     public void dispose() {
         log.debug( "dispose() ..." );
         if (layer != null) {
@@ -424,13 +428,13 @@ public class GeoSelectionView
         super.dispose();
     }
 
-    
+
     protected void search() {
         String text = searchText.getText();
         if (text.indexOf( '*' ) <= 0 && text.indexOf( '?' ) <= 0) {
             text = "*" + text + "*";
         }
-        
+
         Filter _filter = Filter.EXCLUDE;
         // all
         if (attrCombo.getSelectionIndex() == 0) {
@@ -447,8 +451,8 @@ public class GeoSelectionView
         log.debug( "        Filter: " + _filter );
         loadTable( _filter );
     }
-    
-    
+
+
     protected void loadTable( final Filter _filter ) {
         final Display display = Polymap.getSessionDisplay();
 
@@ -457,21 +461,21 @@ public class GeoSelectionView
             throws InvocationTargetException, InterruptedException {
                 try {
                     long start = System.currentTimeMillis();
-                    
+
                     // query features
                     GeoSelectionView.this.filter = _filter;
                     DefaultQuery query = new DefaultQuery( fs.getSchema().getName().getLocalPart(), filter );
                     query.setMaxFeatures( DEFAULT_MAX_RESULTS );
                     fc = fs.getFeatures( query );
                     //log.debug( "        fc size: " + fc.size() );
-                    
+
 //                    long sleepMillis = Math.max( 0, 3000 - (System.currentTimeMillis()-start) );
 //                    log.info( "Sleeping: " + sleepMillis + "ms ..." );
 //                    Thread.sleep( sleepMillis );
-                    
+
                     // geo event
-                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-                            layer.getMap().getLabel(), 
+                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED,
+                            layer.getMap().getLabel(),
                             layer.getGeoResource().getIdentifier().toURI() );
                     event.setBody( fc );
                     GeoHub.instance().send( event, geoSelectionListener );
@@ -502,8 +506,8 @@ public class GeoSelectionView
                             log.info( "Size: " + size.toString() );
                             viewer.getControl().setSize( 1200, 200 /*size.y, size.x*/ );
                         }
-                        viewer.setFeatures( allowModify 
-                                ? new ModifierFeatureCollection( (FeatureStore)fs, fc ) 
+                        viewer.setFeatures( allowModify
+                                ? new ModifierFeatureCollection( (FeatureStore)fs, fc )
                                 : fc );
 
                         //viewer.getViewer().getTable().pack( true );
@@ -519,22 +523,22 @@ public class GeoSelectionView
 
 
     /**
-     * 
+     *
      */
     protected class TableSelectionListener
             implements ISelectionChangedListener {
-        
+
         public void selectionChanged( SelectionChangedEvent ev ) {
             log.info( "TableSelectionListener.selectionChanged(): ev= " + ev.getSelection() + ", " + ev.getSource() );
-            
+
             try {
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED, 
-                        layer.getMap().getLabel(), 
+                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED,
+                        layer.getMap().getLabel(),
                         layer.getGeoResource().getIdentifier().toURI() );
-                
+
                 final Set<String> fids = new HashSet( viewer.getSelectionFids() );
                 final Collection<Feature> body = new ArrayList();
-                
+
                 fc.accepts( new FeatureVisitor() {
                     public void visit( Feature feature ) {
                         if (fids.contains( feature.getIdentifier().getID() )) {
@@ -543,7 +547,7 @@ public class GeoSelectionView
                     }
                 }, null );
                 event.setBody( body );
-                
+
                 GeoHub.instance().send( event, geoSelectionListener );
             }
             catch (Exception e) {
@@ -554,11 +558,11 @@ public class GeoSelectionView
 
 
     /**
-     * 
+     *
      */
     protected class GeoSelectionListener
             implements ISelectionListener, GeoEventListener {
-        
+
         public void selectionChanged( IWorkbenchPart part, ISelection selection ) {
             log.info( "selectionChanged(): ev= " + selection );
 //            try {
@@ -582,7 +586,7 @@ public class GeoSelectionView
 
         public void onEvent( GeoEvent ev ) {
             log.info( "ev: " + ev );
-            
+
 //            // FEATURE_CREATED
 //            if (ev.getType() == GeoEvent.Type.FEATURE_CREATED) {
 //                // reload table with current filter
@@ -594,19 +598,19 @@ public class GeoSelectionView
 //                    fids.add( feature.getIdentifier() );
 //                    sfid = feature.getIdentifier().getID();
 //                }
-//                
+//
 //                viewer.removeSelectionChangedListener( tableSelectionListener );
 ////                viewer.select( fids );
 //                viewer.setSelection( new StructuredSelection( sfid ) );
 //                viewer.addSelectionChangedListener( tableSelectionListener );
 //            }
-            
+
             // FEATURE_SELECTED
             if (ev.getType() == GeoEvent.Type.FEATURE_SELECTED) {
                 //log.info( "fc: " + ev.getBody().size() );
                 loadTable( ev.getFilter() );
             }
-            
+
             // FEATURE_HOVERED
             else if (ev.getType() == GeoEvent.Type.FEATURE_HOVERED) {
                 Set<FeatureId> fids = new HashSet();
@@ -615,7 +619,7 @@ public class GeoSelectionView
                     fids.add( feature.getIdentifier() );
                     sfid = feature.getIdentifier().getID();
                 }
-                
+
                 viewer.removeSelectionChangedListener( tableSelectionListener );
 //                viewer.select( fids );
                 viewer.setSelection( new StructuredSelection( sfid ) );
@@ -627,9 +631,9 @@ public class GeoSelectionView
         }
     }
 
-    
+
     /**
-     * 
+     *
      */
     protected class PartListener
             extends DefaultPartListener {
@@ -640,18 +644,18 @@ public class GeoSelectionView
         }
     }
 
-    
+
     /**
-     * 
+     *
      */
     protected class LayerChangeListener
             implements PropertyChangeListener {
 
         public void propertyChange( PropertyChangeEvent ev ) {
-            if (layer != null 
-                    && ev.getPropertyName().equals( "edit" ) 
+            if (layer != null
+                    && ev.getPropertyName().equals( "edit" )
                     && ev.getNewValue().equals( false )) {
-                
+
                 Display display = Polymap.getSessionDisplay();
                 display.asyncExec( new Runnable() {
                     public void run() {
@@ -664,16 +668,16 @@ public class GeoSelectionView
             }
         }
     }
-    
-    
+
+
     private void hookContextMenu() {
 //        final MenuManager contextMenu = new MenuManager( "#PopupMenu" );
 //        contextMenu.setRemoveAllWhenShown( true );
-//        
+//
 //        contextMenu.addMenuListener( new IMenuListener() {
 //            public void menuAboutToShow( IMenuManager manager ) {
 //                manager.add( newWizardAction );
-//                
+//
 //                // Other plug-ins can contribute there actions here
 //                manager.add( new Separator( IWorkbenchActionConstants.MB_ADDITIONS ) );
 //                manager.add( new GroupMarker( IWorkbenchActionConstants.MB_ADDITIONS ) );

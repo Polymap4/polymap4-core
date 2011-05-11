@@ -51,7 +51,7 @@ public class CopyLayerFeaturesAction
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            CopyFeaturesOperation op = new CopyFeaturesOperation( source );
+            CopyFeaturesOperation op = new CopyFeaturesOperation( source, null );
             OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
