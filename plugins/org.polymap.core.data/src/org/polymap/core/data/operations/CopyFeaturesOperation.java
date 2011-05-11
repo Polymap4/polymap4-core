@@ -22,8 +22,10 @@ import net.refractions.udig.catalog.IService;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.GeometryDescriptor;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -33,6 +35,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 
+import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.dialogs.IPageChangedListener;
 import org.eclipse.jface.dialogs.PageChangedEvent;
 import org.eclipse.jface.viewers.ISelection;
@@ -48,6 +51,8 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
@@ -94,7 +99,7 @@ public class CopyFeaturesOperation
 
 
     public CopyFeaturesOperation( PipelineFeatureSource source, ILayer dest ) {
-        super( Messages.get( "CopyFeaturesOperation_labelPrefix" ) );
+        super( Messages.get( "CopyFeaturesOperation_label" ) );
         this.source = source;
         this.dest = dest;
     }
@@ -107,13 +112,12 @@ public class CopyFeaturesOperation
      * @param source
      */
     public CopyFeaturesOperation( PipelineFeatureSource source ) {
-        super( Messages.get( "CopyFeaturesOperation_labelPrefix" ) );
-        this.source = source;
+        this( source, null );
     }
 
 
     public CopyFeaturesOperation( IGeoResource geores ) {
-        super( Messages.get( "CopyFeaturesOperation_labelPrefix" ) );
+        super( Messages.get( "CopyFeaturesOperation_label" ) );
         this.sourceGeores = geores;
     }
 
@@ -124,11 +128,15 @@ public class CopyFeaturesOperation
 
 
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
-            throws ExecutionException {
+    throws ExecutionException {
+        monitor.beginTask( getLabel(), 3 );
+
         // narrow source
+        monitor.subTask( "Datenstruktur der Quelle ermitteln..." );
         if (sourceGeores != null) {
             try {
-                IService service = sourceGeores.service( monitor );
+                IService service = sourceGeores.service(
+                        new SubProgressMonitor( monitor, 0 ) );
 
                 //Pipeline pipeline = new DefaultPipelineIncubator().newPipeline( LayerUseCase.FEATURES, null, null, service );
                 Pipeline pipeline = new Pipeline( null, null, service );
@@ -143,23 +151,36 @@ public class CopyFeaturesOperation
                 throw new ExecutionException( "", e );
             }
         }
+        monitor.worked( 1 );
 
         // open wizard dialog
+        monitor.subTask( "Eingaben vom Nutzer..." );
         OperationWizard wizard = new OperationWizard( this, info, monitor ) {
-
             public boolean doPerformFinish()
             throws Exception {
                 ((FeatureEditorPage2)getPage( FeatureEditorPage2.ID )).performFinish();
-
-                FeatureStore destFs = PipelineFeatureSource.forLayer( dest, true );
-                FeatureCollection features = sourceQuery != null ? source.getFeatures( sourceQuery ) : source.getFeatures();
-                destFs.addFeatures( features );
                 return true;
             }
         };
         wizard.addPage( new ChooseLayerPage() );
         wizard.addPage( new FeatureEditorPage2() );
-        return OperationWizard.openDialog( wizard );
+
+        // copy features
+        if (OperationWizard.openDialog( wizard )) {
+            monitor.worked( 1 );
+            try {
+                monitor.subTask( "Objekte kopieren..." );
+                FeatureStore destFs = PipelineFeatureSource.forLayer( dest, true );
+                FeatureCollection features = sourceQuery != null ? source.getFeatures( sourceQuery ) : source.getFeatures();
+                destFs.addFeatures( features );
+                monitor.worked( 1 );
+                return Status.OK_STATUS;
+            }
+            catch (Exception e) {
+                throw new ExecutionException( Messages.get( "CopyFeaturesOperation_executeError" ), e );
+            }
+        }
+        return Status.CANCEL_STATUS;
     }
 
 
@@ -275,6 +296,8 @@ public class CopyFeaturesOperation
             getContainer().getShell().setMinimumSize( SWT.DEFAULT, 600 );
             getContainer().getShell().layout( true );
 
+            setErrorMessage( null );
+
             // create default mapping
             FeatureTypeMapping mappings = new FeatureTypeMapping();
             SimpleFeatureType schema = null;
@@ -285,31 +308,69 @@ public class CopyFeaturesOperation
             catch (Exception e) {
                 throw new RuntimeException( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorLayerSchema" ), e );
             }
+            SimpleFeatureType sourceSchema = source.getSchema();
+
+            // check CRSs
+            if (!CRS.equalsIgnoreMetadata( schema.getCoordinateReferenceSystem(),
+                    sourceSchema.getCoordinateReferenceSystem() )) {
+                setErrorMessage( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorCrs",
+                        CRS.toSRS( schema.getCoordinateReferenceSystem() ),
+                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ) );
+            }
+
+            // geometry attribute
+            GeometryDescriptor destGeomAttr = schema.getGeometryDescriptor();
+            GeometryDescriptor sourceGeomAttr = sourceSchema.getGeometryDescriptor();
+            mappings.put( new AttributeMapping( destGeomAttr.getLocalName(),
+                    destGeomAttr.getType().getBinding(),
+                    destGeomAttr.getCoordinateReferenceSystem(),
+                    sourceGeomAttr.getLocalName(), null ) );
+
+            // check geometry type
+            Class destGeomType = destGeomAttr.getType().getBinding();
+            Class sourceGeomType = sourceGeomAttr.getType().getBinding();
+            if (!destGeomType.isAssignableFrom( sourceGeomType )) {
+                setMessage( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorGeom",
+                        destGeomType.getSimpleName(), sourceGeomType.getSimpleName() ),
+                        DialogPage.WARNING );
+            }
 
             for (AttributeDescriptor destAttr : schema.getAttributeDescriptors()) {
+                if (destAttr == destGeomAttr) {
+                    continue;
+                }
+
                 // find best matching attribut
                 log.debug( "Find mapping for: " + destAttr.getLocalName() );
                 AttributeDescriptor matchingAttr = null;
                 int score = Integer.MAX_VALUE;
-                for (AttributeDescriptor sourceAttr : source.getSchema().getAttributeDescriptors()) {
-                    int s = StringUtils.getLevenshteinDistance(
+
+                for (AttributeDescriptor sourceAttr : sourceSchema.getAttributeDescriptors()) {
+
+                    if (destAttr.getType().getBinding().isAssignableFrom(
+                            sourceAttr.getType().getBinding() )) {
+
+                        int s = StringUtils.getLevenshteinDistance(
                             sourceAttr.getLocalName().toLowerCase(), destAttr.getLocalName().toLowerCase() );
 
-                    log.debug( "    check: " + sourceAttr.getLocalName() + ", score:" + s );
-                    if (s < score) {
-                        score = s;
-                        matchingAttr = sourceAttr;
-                        log.debug( "    match: " + matchingAttr.getLocalName() + " (" + score + ")" );
+                        log.debug( "    check: " + sourceAttr.getLocalName() + ", score:" + s );
+                        if (s < score) {
+                            score = s;
+                            matchingAttr = sourceAttr;
+                            log.debug( "    match: " + matchingAttr.getLocalName() + " (" + score + ")" );
+                        }
                     }
                 }
-                mappings.put( new AttributeMapping( destAttr.getLocalName(), destAttr.getType().getBinding(), null,
-                        matchingAttr.getLocalName(), null ) );
+                if (matchingAttr != null) {
+                    mappings.put( new AttributeMapping( destAttr.getLocalName(), destAttr.getType().getBinding(), null,
+                            matchingAttr.getLocalName(), null ) );
+                }
             }
             configPageProps.put( "mappings", mappings.serialize() );
 
             configPage = new FeatureTypeEditorProcessorConfig();
             configPage.init( dest, configPageProps );
-            configPage.setSourceFeatureType( source.getSchema() );
+            configPage.setSourceFeatureType( sourceSchema );
 
             configPage.createControl( content );
             configPage.getControl().setLayoutData( new SimpleFormData().fill().create() );
@@ -319,7 +380,7 @@ public class CopyFeaturesOperation
         }
 
         public void performFinish() {
-            log.info( "canFlipToNextPage(): ..." );
+            log.info( "performFinish(): ..." );
 
             configPage.performOk();
 
@@ -336,6 +397,9 @@ public class CopyFeaturesOperation
         }
 
         public boolean isPageComplete() {
+            if (getErrorMessage() != null) {
+                return false;
+            }
             return configPage != null ? configPage.okToLeave() : false;
         }
 

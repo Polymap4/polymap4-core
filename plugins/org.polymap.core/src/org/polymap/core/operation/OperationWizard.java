@@ -37,9 +37,6 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -65,12 +62,15 @@ public abstract class OperationWizard
 
 
     /**
+     * Creastes and opens a new dialog for the given wizard.
+     * <p/>
+     * This method blocks until the wizard dialogs OK button is pressed ot dialog
+     * is canceled.
      *
      * @param wizard
-     * @return {@link Status#OK_STATUS} if window return code was {@link Window#OK},
-     *         {@link Status#CANCEL_STATUS} otherwise.
+     * @return True if the OK button of the wizard was pressed.
      */
-    public static IStatus openDialog( final OperationWizard wizard ) {
+    public static boolean openDialog( final OperationWizard wizard ) {
         final AtomicInteger returnCode = new AtomicInteger( -1 );
 
         wizard.getDisplay().syncExec( new Runnable() {
@@ -82,7 +82,7 @@ public abstract class OperationWizard
                 returnCode.set( dialog.open() );
             }
         });
-        return returnCode.get() == Window.OK ? Status.OK_STATUS : Status.CANCEL_STATUS;
+        return returnCode.get() == Window.OK;
     }
 
 

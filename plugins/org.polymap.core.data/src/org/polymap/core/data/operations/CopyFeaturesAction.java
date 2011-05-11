@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as
  * indicated by the @authors tag. All rights reserved.
@@ -44,7 +44,7 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -55,26 +55,26 @@ public class CopyFeaturesAction
     private static Log log = LogFactory.getLog( CopyFeaturesAction.class );
 
     private IGeoResource        geores;
-    
+
 
     public void runWithEvent( IAction action, Event event ) {
         try {
             CopyFeaturesOperation op = new CopyFeaturesOperation( geores );
-            OperationSupport.instance().execute( op, true, false );
+            OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
         }
     }
 
-    
+
     public void selectionChanged( IAction action, ISelection sel ) {
         geores = null;
         action.setEnabled( false );
-        
+
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
-            if (elm != null 
+            if (elm != null
                     && elm instanceof IGeoResource
                     && ((IGeoResource)elm).canResolve( FeatureSource.class )) {
                 geores = (IGeoResource)elm;
@@ -97,9 +97,9 @@ public class CopyFeaturesAction
             }
         }
     }
-    
+
 
     public void setActivePart( IAction action, IWorkbenchPart targetPart ) {
     }
-    
+
 }

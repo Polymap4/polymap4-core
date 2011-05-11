@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -23,64 +23,34 @@
 
 package org.polymap.core.data;
 
-import java.util.ResourceBundle;
-
-import org.apache.commons.lang.StringUtils;
-import org.jfree.util.Log;
-
 import org.eclipse.rwt.RWT;
 
+import org.polymap.core.runtime.MessagesImpl;
+
 /**
- * 
- * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- *         <li>24.06.2009: created</li>
- * @version $Revision$
+ *
+ *
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class Messages {
 
-    private static final String BUNDLE_NAME = DataPlugin.PLUGIN_ID + ".messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = DataPlugin.PLUGIN_ID + ".messages";
+
+    private static final MessagesImpl   instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
 
     private Messages() {
         // prevent instantiation
     }
 
-
-    public static String get( String key ) {
-        ClassLoader cl = Messages.class.getClassLoader();
-        try {
-            // getBundle() caches the bundles
-            ResourceBundle bundle = ResourceBundle.getBundle( BUNDLE_NAME, RWT.getLocale(), cl );
-            return bundle.getString( key );
-        }
-        catch (Exception e) {
-            return StringUtils.substringAfterLast( key, "_" );
-        }
+    public static String get( String key, Object... args ) {
+        return instance.get( key, args );
     }
-    
 
-    public static String getForClass( String keySuffix ) {
-        
-        Exception e = new Exception();
-        e.fillInStackTrace();
-        StackTraceElement[] trace = e.getStackTrace();
-        StackTraceElement elm = trace[trace.length-1];
-        Log.debug( "### stack element: " + elm );
-        
-        StringBuffer key = new StringBuffer( 64 );
-        key.append( StringUtils.substringAfterLast( elm.getClassName(), "." ) ) 
-                .append( "_" )
-                .append( key );
-        
-        ClassLoader cl = Messages.class.getClassLoader();
-        // getBundle() caches the bundles
-        ResourceBundle bundle =
-                ResourceBundle.getBundle( BUNDLE_NAME, RWT.getLocale(), cl );
-        return bundle.getString( key.toString() );
+    public static String get2( Object caller, String key, Object... args ) {
+        return instance.get( caller, key, args );
     }
-    
-    
+
     public static Messages get() {
         Class clazz = Messages.class;
         return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
