@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -27,30 +27,38 @@ import org.apache.commons.logging.LogFactory;
 
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.util.ProgressListener;
 
 import org.geotools.data.FeatureEvent;
 import org.geotools.data.FeatureListener;
 import org.geotools.feature.CollectionEvent;
 import org.geotools.feature.CollectionListener;
-import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.collection.AbstractFeatureCollection;
 
 /**
  * Provides {@link CollectionEven} and {@link FeatureListener} handling methods.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 abstract class AbstractPipelineFeatureCollection
         extends AbstractFeatureCollection
-        implements FeatureCollection<SimpleFeatureType, SimpleFeature>, FeatureListener {
+        implements PipelineFeatureCollection<SimpleFeatureType, SimpleFeature>, FeatureListener {
 
     private static final Log log = LogFactory.getLog( AbstractPipelineFeatureCollection.class );
+
+    protected ProgressListener        progressListener;
 
 
     protected AbstractPipelineFeatureCollection( SimpleFeatureType memberType ) {
         super( memberType );
+    }
+
+    public ProgressListener setProgressListener( ProgressListener l ) {
+        ProgressListener old = progressListener;
+        progressListener = l;
+        return old;
     }
 
     protected void fireChange( CollectionEvent ev ) {
@@ -58,15 +66,15 @@ abstract class AbstractPipelineFeatureCollection
             ((CollectionListener)listeners.get(i)).collectionChanged( ev );
         }
     }
-        
+
     protected void fireChange(SimpleFeature[] features, int type) {
         fireChange( new CollectionEvent( this, features, type ) );
     }
-        
+
     protected void fireChange(SimpleFeature feature, int type) {
         fireChange( new SimpleFeature[] { feature }, type );
     }
-    
+
     public void changed( FeatureEvent featureEvent ) {
         log.info( "changed(): ev=" + featureEvent );
         int type = CollectionEvent.FEATURES_CHANGED;
@@ -84,5 +92,5 @@ abstract class AbstractPipelineFeatureCollection
         SimpleFeature[] features = new SimpleFeature[] {};
         fireChange( new CollectionEvent( this, features, type ) );
     }
-    
+
 }

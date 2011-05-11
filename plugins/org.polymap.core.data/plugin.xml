@@ -67,6 +67,14 @@
                style="push"
                tooltip="%actions_showFeatureTable_tip">
          </action>
+         <action
+               class="org.polymap.core.data.operations.CopyLayerFeaturesAction"
+               enablesFor="1"
+               icon="icons/etool16/copy_features.gif"
+               id="org.polymap.core.data.CopyLayerFeaturesAction"
+               label="%actions_copyFeatures"
+               style="push">
+         </action>
       </objectContribution>
       <objectContribution
             adaptable="false"

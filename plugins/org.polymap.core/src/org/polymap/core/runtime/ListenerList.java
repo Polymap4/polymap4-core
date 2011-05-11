@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as
  * indicated by the @authors tag. All rights reserved.
@@ -33,18 +33,18 @@ import org.apache.commons.logging.LogFactory;
  * This listener list support different kinds of listener references. There are the
  * {@link #STRONG} and the {@link #WEAK} default reference factories. Different reference
  * types can be mixed in one list.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ListenerList<T>
         implements Iterable<T> {
 
     private static Log log = LogFactory.getLog( ListenerList.class );
-    
+
     // comparator *****************************************
-    
+
     /**
-     * 
+     *
      */
     public interface Comparator {
         public boolean isSame( Object lhs, Object rhs, ListenerList list );
@@ -81,17 +81,17 @@ public class ListenerList<T>
             return lhs == rhs;
         }
     };
-    
+
     // reference factory **********************************
 
     /**
-     * 
+     *
      */
     public interface ListenerReferenceFactory {
         public <T> T newReference( T listener );
     }
 
-    
+
     /**
      * This factory creates strong references for listeners.
      */
@@ -104,7 +104,7 @@ public class ListenerList<T>
     /**
      * This factory creates weak references for listeners. Weak references are reclaimed
      * by the GC as soon as there are no strong references pointing to them.
-     * 
+     *
      * @see WeakReference
      */
     public static final ListenerReferenceFactory WEAK = new ListenerReferenceFactory() {
@@ -113,18 +113,18 @@ public class ListenerList<T>
                 ? listener : WeakListener.forListener( listener );
         }
     };
-    
+
     private static final Object[] EMPTY = new Object[0];
-    
+
 
     // instance *******************************************
-    
+
     private Comparator                  comparator;
-    
+
     private T[]                         list = (T[])EMPTY;
-    
+
     private ListenerReferenceFactory    refFactory;
-    
+
 
     /**
      * Creates a new instance with comparator {@link #IDENTITY} and
@@ -134,33 +134,33 @@ public class ListenerList<T>
         this( IDENTITY, STRONG );
     }
 
-    
+
     /**
-     * Creates a new instance with the given comparator. 
+     * Creates a new instance with the given comparator.
      */
     public ListenerList( Comparator comparator ) {
         this( comparator, STRONG );
     }
 
-    
+
     /**
      * Creates a new instance with the given comparator and the given
-     * factory fpr listener references. 
+     * factory fpr listener references.
      */
     public ListenerList( Comparator comparator, ListenerReferenceFactory refFactory ) {
         this.comparator = comparator;
         this.refFactory = refFactory;
     }
 
-    
+
     /**
      * Adds a listener to this list. This method has no effect if the <a href="#same">same</a>
      * listener is already registered.
-     * 
+     *
      * @param listener The non-<code>null</code> listener to add.
      */
-    public void add( T listener ) {
-        add( refFactory, listener );
+    public boolean add( T listener ) {
+        return add( refFactory, listener );
     }
 
 
@@ -169,12 +169,12 @@ public class ListenerList<T>
      * {@link ListenerReferenceFactory} is used to create the reference for the listener.
      * This can be used to create a {@link #WEAK} reference, so that the listener is automatically
      * reclaimed by GC and deregistered from this list.
-     * 
+     *
      * @param factory
      * @param listener
      */
     public boolean add( ListenerReferenceFactory factory, T listener ) {
-        // This method is synchronized to protect against multiple threads adding 
+        // This method is synchronized to protect against multiple threads adding
         // or removing listeners concurrently. This does not block concurrent readers.
         assert listener != null;
 
@@ -188,14 +188,14 @@ public class ListenerList<T>
                     continue;
                 }
             }
-            // check for duplicates 
+            // check for duplicates
             if (comparator.isSame( listener, elm, this )) {
                 return false;
             }
             newList.add( elm );
         }
         newList.add( factory.newReference( listener ) );
-        
+
         //atomic assignment
         this.list = (T[])newList.toArray();
         return true;
@@ -205,11 +205,11 @@ public class ListenerList<T>
     /**
      * Removes a listener to this list. This method has no effect if the <a href="#same">same</a>
      * listener was not already registered.
-     * 
+     *
      * @param listener The non-<code>null</code> listener to remove.
      */
     public synchronized boolean remove( T listener ) {
-        // This method is synchronized to protect against multiple threads adding 
+        // This method is synchronized to protect against multiple threads adding
         // or removing listeners concurrently. This does not block concurrent readers.
         assert listener != null;
 
@@ -234,24 +234,24 @@ public class ListenerList<T>
         }
         //atomic assignment
         this.list = (T[])(newList.isEmpty() ? EMPTY : newList.toArray());
-        
+
         if (!found) {
             log.warn( "!!! Listener not found to remove !!!" );
         }
         return found;
     }
-    
-    
+
+
     public Iterator<T> iterator() {
         return new ListenerListIterator<T>( list );
     }
 
-    
+
     public Iterable<T> getListeners() {
         return this;
     }
 
-    
+
     /**
      * An Iterator is needed when {@link WeakReference}s are used to check if an
      * entry is still valid when it is requested.
@@ -261,13 +261,13 @@ public class ListenerList<T>
 
         /** Reference to my version of the list. */
         private T[]                         list;
-        
+
         /** Iteration counter in the {@link #list}. */
         private int                         index = 0;
-        
+
         /** Strong reference to the next element. */
         private T                           next;
-        
+
 
         ListenerListIterator( T[] list ) {
             this.list = list;
@@ -291,7 +291,7 @@ public class ListenerList<T>
 
         public T next() {
             try {
-                return (T)next;
+                return next;
             }
             finally {
                 next = null;
@@ -301,7 +301,7 @@ public class ListenerList<T>
         public void remove() {
             throw new UnsupportedOperationException();
         }
-        
+
     }
 
 }

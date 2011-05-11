@@ -19,14 +19,12 @@ import java.util.Properties;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
-import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,6 +63,7 @@ import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.ui.featureTypeEditor.FeatureTypeEditor;
 import org.polymap.core.data.ui.featureTypeEditor.ValueViewerColumn;
+import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
@@ -129,7 +128,7 @@ public class CopyFeaturesOperation
 
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
-        monitor.beginTask( getLabel(), 3 );
+        monitor.beginTask( getLabel(), 10 );
 
         // narrow source
         monitor.subTask( "Datenstruktur der Quelle ermitteln..." );
@@ -170,9 +169,12 @@ public class CopyFeaturesOperation
             monitor.worked( 1 );
             try {
                 monitor.subTask( "Objekte kopieren..." );
-                FeatureStore destFs = PipelineFeatureSource.forLayer( dest, true );
-                FeatureCollection features = sourceQuery != null ? source.getFeatures( sourceQuery ) : source.getFeatures();
-                destFs.addFeatures( features );
+                PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
+                FeatureCollection features = sourceQuery != null
+                        ? source.getFeatures( sourceQuery )
+                        : source.getFeatures();
+                destFs.addFeatures( features,
+                        new ProgressListenerAdaptor( new SubProgressMonitor( monitor, 7 ) ) );
                 monitor.worked( 1 );
                 return Status.OK_STATUS;
             }

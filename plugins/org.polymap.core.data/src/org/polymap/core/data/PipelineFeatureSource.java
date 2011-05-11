@@ -38,6 +38,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.util.ProgressListener;
 
 import org.geotools.data.AbstractFeatureSource;
 import org.geotools.data.DataStore;
@@ -49,11 +50,14 @@ import org.geotools.data.Transaction;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.util.NullProgressListener;
+import org.geotools.util.SimpleInternationalString;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
 import org.polymap.core.data.feature.AddFeaturesRequest;
+import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
@@ -296,27 +300,47 @@ public class PipelineFeatureSource
 
     public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType, SimpleFeature> features )
     throws IOException {
-        FeatureType type = features.getSchema();
+        return addFeatures( features, new NullProgressListener() );
+    }
 
+
+    public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType, SimpleFeature> features,
+            ProgressListener monitor )
+            throws IOException {
+        monitor.started();
+        int chunkSize = DataSourceProcessor.DEFAULT_CHUNK_SIZE;
+
+        FeatureType type = features.getSchema();
         FeatureIterator it = features.features();
+        int count = 0;
         try {
-            // chunk
-            Collection<Feature> chunk = new ArrayList();
-            while (it.hasNext()) {
-                chunk.add( it.next() );
-            }
-            // request
-            AddFeaturesRequest request = new AddFeaturesRequest( type, chunk );
-            final ModifyFeaturesResponse[] response = new ModifyFeaturesResponse[1];
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
-                    response[0] = (ModifyFeaturesResponse)r;
+            final List<FeatureId> fids = new ArrayList( 1024 );
+            while (it.hasNext() && !monitor.isCanceled()) {
+                // chunk
+                Collection<Feature> chunk = new ArrayList( chunkSize );
+                for (int i=0; i<chunkSize && it.hasNext(); i++) {
+                    chunk.add( it.next() );
+                    count++;
                 }
-            });
+                log.info( "chunk red from source: " + chunk.size() );
+                // request
+                AddFeaturesRequest request = new AddFeaturesRequest( type, chunk );
+                pipeline.process( request, new ResponseHandler() {
+                    public void handle( ProcessorResponse r )
+                    throws Exception {
+                        fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() );
+                    }
+                });
+                log.info( "chunk sent down the pipe: " + chunk.size() );
+                monitor.setTask( new SimpleInternationalString( "Objekte verarbeitet: " + count ) );
+                monitor.progress( 1 );
+            }
+
             // fire event
             store.listeners.fireFeaturesAdded( getSchema().getTypeName(), tx, null, false );
-            return response[0].getFeatureIds();
+
+            monitor.complete();
+            return fids;
         }
         catch (RuntimeException e) {
             throw e;
