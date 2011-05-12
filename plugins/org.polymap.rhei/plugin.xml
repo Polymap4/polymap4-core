@@ -141,7 +141,7 @@
                id="org.polymap.rhei.DownloadCsvAction"
                label="%actions_downloadCsv"
                style="push"
-               toolbarPath="rhei"
+               toolbarPath="data"
                tooltip="%actions_downloadCsvTip">
          </action>
          <action

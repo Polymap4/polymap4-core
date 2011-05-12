@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutiga, and individual contributors as
  * indicated by the @authors tag.
@@ -31,9 +31,10 @@ import org.qi4j.api.query.grammar.BooleanExpression;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.qi4j.QiModule;
+import org.polymap.core.qi4j.QiModule.EntityCreator;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
@@ -45,12 +46,12 @@ public abstract class DefaultEntityProvider<T extends Entity>
     private static Log log = LogFactory.getLog( DefaultEntityProvider.class );
 
     protected QiModule              repo;
-    
+
     protected EntityType            type;
-    
+
     protected Name                  name;
-    
-    
+
+
     public DefaultEntityProvider( QiModule repo, Class<T> entityClass, Name entityName ) {
         this.repo = repo;
         this.type = repo.entityType( entityClass );
@@ -71,7 +72,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
     public Iterable<T> entities( BooleanExpression query, int firstResult, int maxResults ) {
         // special FidsQueryExpression
         if (query instanceof FidsQueryExpression) {
-            // XXX do not fetch all, return wrapper instead             
+            // XXX do not fetch all, return wrapper instead
             List<T> result = new ArrayList();
             int count = 0;
             for (String fid : ((FidsQueryExpression)query).fids()) {
@@ -106,15 +107,16 @@ public abstract class DefaultEntityProvider<T extends Entity>
         }
     }
 
-    
-    public T newEntity() {
-        // operation bounds are handled by AntragOperationConcern
-        return (T)repo.newEntity( type.getType(), null );
+
+    public T newEntity( EntityCreator<T> creator )
+    throws Exception {
+        // FIXME: operation bounds are handled by AntragOperationConcern !?
+        return repo.newEntity( (Class<T>)type.getType(), null, creator );
     }
-    
+
 
     public T findEntity( String id ) {
         return (T)repo.findEntity( type.getType(), id );
     }
-    
+
 }

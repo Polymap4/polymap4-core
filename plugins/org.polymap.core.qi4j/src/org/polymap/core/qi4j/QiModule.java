@@ -1,13 +1,13 @@
 /*
- * polymap.org 
+ * polymap.org
  * Copyright 2009-2011, Falko Bräutigam, and individual contributors as
  * indicated by the @authors tag. All rights reserved.
- * 
+ *
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation; either version 2.1 of the License, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
@@ -30,6 +30,7 @@ import org.qi4j.api.unitofwork.EntityTypeNotFoundException;
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.qi4j.api.unitofwork.UnitOfWork;
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
+import org.qi4j.api.unitofwork.UnitOfWorkException;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.service.ContextProvider;
@@ -60,7 +61,7 @@ import org.polymap.core.qi4j.event.PropertyChangeSupport;
  * entities can be signaled to the module. This can be done inside an
  * {@link IUndoableOperation} or via the {@link PropertyChangeSupport} provided
  * by an entity.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
@@ -69,21 +70,21 @@ public abstract class QiModule
         implements Module {
 
     private static Log log = LogFactory.getLog( QiModule.class );
-    
-    public static final int                 DEFAULT_MAX_RESULTS = 10000000;  
+
+    public static final int                 DEFAULT_MAX_RESULTS = 10000000;
 
 
     // instance *******************************************
-    
+
     protected QiModuleAssembler             assembler;
-    
+
     protected UnitOfWork                    uow;
 
-    
+
     protected QiModule( QiModuleAssembler assembler ) {
         this.assembler = assembler;
         this.uow = assembler.getModule().unitOfWorkFactory().newUnitOfWork();
-        
+
         // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
         // is no request context
         if (ContextProvider.hasContext()) {
@@ -115,13 +116,13 @@ public abstract class QiModule
                         findEntity( entity.getCompositeType(), entity.id() );
                         return f.accept( ev );
                     }
-                    catch (NoSuchEntityException e) {
+                    catch (UnitOfWorkException e) {
                         return false;
                     }
                 }
             });
     }
-    
+
     public void removePropertyChangeListener( PropertyChangeListener l ) {
         ModelChangeTracker.instance().removePropertyChangeListener( l );
     }
@@ -139,17 +140,17 @@ public abstract class QiModule
             throw new CompletionException( e );
         }
     }
-    
+
 
     public void revertChanges() {
         throw new RuntimeException( "Not yet implemented." );
-        
+
         // where do we get the list of changed entities?
         // then we could create a new UoW and get the old state from;
         // just creating new UoW does not send events and nothing gets updated
     }
 
-    
+
     // events ***
 
     public void addGlobalModelChangeListener( GlobalModelChangeListener l ) {
@@ -161,7 +162,7 @@ public abstract class QiModule
     }
 
     public void addModelChangeListener( ModelChangeListener l, final PropertyEventFilter f ) {
-        ModelChangeTracker.instance().addModelChangeListener( l, 
+        ModelChangeTracker.instance().addModelChangeListener( l,
             new PropertyEventFilter() {
                 public boolean accept( PropertyChangeEvent ev ) {
                     QiEntity entity = (QiEntity)ev.getSource();
@@ -170,7 +171,7 @@ public abstract class QiModule
                         findEntity( entity.getCompositeType(), entity.id() );
                         return f.accept( ev );
                     }
-                    catch (NoSuchEntityException e) {
+                    catch (UnitOfWorkException e) {
                         return false;
                     }
                 }
@@ -180,11 +181,11 @@ public abstract class QiModule
     public void removeModelChangeListener( ModelChangeListener l ) {
         ModelChangeTracker.instance().removeModelChangeListener( l );
     }
-    
+
     protected boolean appliesTo( org.qi4j.api.structure.Module rhs ) {
         return assembler.getModule().equals( rhs );
     }
-    
+
 //    /**
 //     * @deprecated Use {@link ModelChangeTracker} instead.
 //     */
@@ -202,12 +203,12 @@ public abstract class QiModule
 //    public boolean hasOperation() {
 //        return ModelChangeTracker.instance().hasOperation();
 //    }
-    
-    
+
+
     // factory methods ***
 
     /**
-     * 
+     *
      * @param <T>
      * @param type
      * @param id The id of the newly created entity; null specifies that the
@@ -219,11 +220,21 @@ public abstract class QiModule
         return result;
     }
 
-    public <T> T newEntity( Class<T> type, String id, EntityCreator<T> creator ) {
+    /**
+     *
+     * @param <T>
+     * @param type
+     * @param id
+     * @param creator
+     * @return The newly created entity
+     * @throws Exception If an exception occured while executing the creator.
+     */
+    public <T> T newEntity( Class<T> type, String id, EntityCreator<T> creator )
+    throws Exception {
         EntityBuilder<T> builder = uow.newEntityBuilder( type );
-        
+
         creator.create( builder.instance() );
-        
+
         T result = builder.newInstance();
         return result;
     }
@@ -232,11 +243,12 @@ public abstract class QiModule
      * Functor for the {@link QiModule#newEntity(Class, String, EntityCreator)} method.
      */
     public interface EntityCreator<T> {
-        
-        public void create( T builderInstance );
-        
+
+        public void create( T builderInstance )
+        throws Exception;
+
     }
-    
+
     /**
      *
      * @param entity
@@ -263,7 +275,7 @@ public abstract class QiModule
      */
     public void updateEntity( Entity entity )
             throws ConcurrentModificationException {
-        throw new RuntimeException( "not yet implemented." );        
+        throw new RuntimeException( "not yet implemented." );
     }
 
     /**
@@ -279,7 +291,7 @@ public abstract class QiModule
     }
 
     /**
-     * 
+     *
      * @param <T>
      * @param compositeType
      * @param expression The query, or null if all entities are to be fetched.
@@ -296,26 +308,26 @@ public abstract class QiModule
         if (maxResults > DEFAULT_MAX_RESULTS) {
             maxResults = DEFAULT_MAX_RESULTS;
         }
-        
+
         QueryBuilder<T> builder = assembler.getModule()
                 .queryBuilderFactory().newQueryBuilder( compositeType );
-        
-        builder = expression != null 
-                ? builder.where( expression ) 
+
+        builder = expression != null
+                ? builder.where( expression )
                 : builder;
-        
+
         Query<T> query = builder.newQuery( uow )
                 .maxResults( maxResults )
                 .firstResult( firstResult );
         return query;
     }
-    
+
     /**
      * Creates a new operation of the given type.
      * <p>
      * The caller must ensure to initialize the operation properly.
-     * 
-     * @param type Class that extends {@link IUndoableOperation}. 
+     *
+     * @param type Class that extends {@link IUndoableOperation}.
      */
     public <T> T newOperation( Class<T> type ) {
         T result = assembler.getModule().transientBuilderFactory().newTransient( type );
@@ -329,5 +341,5 @@ public abstract class QiModule
     public EntityType entityType( Class<? extends Entity> type ) {
         return EntityTypeImpl.forClass( type );
     }
-    
+
 }

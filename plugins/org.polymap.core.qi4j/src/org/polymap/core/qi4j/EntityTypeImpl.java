@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -33,7 +33,7 @@ import org.polymap.core.model.EntityType;
 
 /**
  * Default implementation of {@link EntityType} for {@link QiModule} based
- * modules. 
+ * modules.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
@@ -44,8 +44,8 @@ class EntityTypeImpl
     private static final Log log = LogFactory.getLog( EntityTypeImpl.class );
 
     private static Map<Class,EntityTypeImpl>        types = new HashMap();
-    
-    
+
+
     public static EntityType forClass( Class<? extends Entity> type ) {
         EntityTypeImpl result = types.get( type );
         if (result == null) {
@@ -59,16 +59,16 @@ class EntityTypeImpl
         }
         return result;
     }
-    
-    
+
+
     // instance *******************************************
-    
+
     private Class<? extends Entity>     type;
-    
+
     private Property                    id;
-    
+
     private Map<String,Property>        props;
-    
+
 
     private EntityTypeImpl( Class<? extends Entity> type ) {
         this.type = type;
@@ -106,7 +106,11 @@ class EntityTypeImpl
                     if (prop.getName().equals( "id" )) {
                         id = prop;
                     }
-                    // ommit internal computed properties
+                    // skip identity and internal properties
+                    else if (prop.getName().equals( "identity" )
+                            || prop.getName().startsWith( "_" )) {
+                    }
+                    // skip internal computed properties
                     else if (!m.getDeclaringClass().equals( Entity.class )
                             && prop.isValidType()) {
                         props.put( prop.getName(), prop );
@@ -129,23 +133,23 @@ class EntityTypeImpl
         return props;
     }
 
-    
+
     /**
-     * 
+     *
      */
     class PropertyImpl
             implements Property {
 
         protected Method          m;
-        
-        
+
+
         PropertyImpl( Method m ) {
             this.m = m;
         }
 
         public String getName() {
             return m.getName();
-            
+
         }
 
         public boolean isValidType() {
@@ -158,16 +162,16 @@ class EntityTypeImpl
                 return false;
             }
         }
-        
+
         public Class getType() {
             ParameterizedType propType = (ParameterizedType)m.getGenericReturnType();
             return (Class)propType.getActualTypeArguments()[0];
         }
-        
-        public Object getValue( Entity entity ) 
+
+        public Object getValue( Entity entity )
         throws Exception {
             try {
-                org.qi4j.api.property.Property prop = 
+                org.qi4j.api.property.Property prop =
                         (org.qi4j.api.property.Property)m.invoke( entity );
                 return prop.get();
             }
@@ -184,11 +188,11 @@ class EntityTypeImpl
                 throw e;
             }
         }
-        
+
         public void setValue( Entity entity, Object value )
         throws Exception {
             try {
-                org.qi4j.api.property.Property prop = 
+                org.qi4j.api.property.Property prop =
                         (org.qi4j.api.property.Property)m.invoke( entity );
                 prop.set( value );
             }
@@ -205,12 +209,12 @@ class EntityTypeImpl
                 throw e;
             }
         }
-        
+
     }
 
-    
+
     /**
-     * 
+     *
      */
     class AssociationImpl
             extends PropertyImpl
@@ -220,10 +224,10 @@ class EntityTypeImpl
             super( m );
         }
 
-        public Object getValue( Entity entity ) 
+        public Object getValue( Entity entity )
         throws Exception {
             try {
-                org.qi4j.api.entity.association.Association assoc = 
+                org.qi4j.api.entity.association.Association assoc =
                         (org.qi4j.api.entity.association.Association)m.invoke( entity );
                 return assoc.get();
             }
@@ -240,11 +244,11 @@ class EntityTypeImpl
                 throw e;
             }
         }
-        
+
         public void setValue( Entity entity, Object value )
         throws Exception {
             try {
-                org.qi4j.api.entity.association.Association assoc = 
+                org.qi4j.api.entity.association.Association assoc =
                         (org.qi4j.api.entity.association.Association)m.invoke( entity );
                 assoc.set( value );
             }
@@ -261,12 +265,12 @@ class EntityTypeImpl
                 throw e;
             }
         }
-        
+
     }
 
-    
+
     /**
-     * 
+     *
      */
     class ManyAssociationImpl
             extends PropertyImpl
@@ -276,10 +280,10 @@ class EntityTypeImpl
             super( m );
         }
 
-        public Object getValue( Entity entity ) 
+        public Object getValue( Entity entity )
         throws Exception {
             try {
-                org.qi4j.api.entity.association.Association assoc = 
+                org.qi4j.api.entity.association.Association assoc =
                         (org.qi4j.api.entity.association.Association)m.invoke( entity );
                 return assoc.get();
             }
@@ -296,11 +300,11 @@ class EntityTypeImpl
                 throw e;
             }
         }
-        
+
         public void setValue( Entity entity, Object value )
         throws Exception {
             try {
-                org.qi4j.api.entity.association.Association assoc = 
+                org.qi4j.api.entity.association.Association assoc =
                         (org.qi4j.api.entity.association.Association)m.invoke( entity );
                 assoc.set( value );
             }
@@ -317,7 +321,7 @@ class EntityTypeImpl
                 throw e;
             }
         }
-        
+
     }
-    
+
 }

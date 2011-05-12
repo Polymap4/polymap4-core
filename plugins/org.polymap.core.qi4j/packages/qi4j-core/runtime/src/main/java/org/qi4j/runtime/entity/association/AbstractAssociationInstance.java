@@ -112,7 +112,7 @@ public abstract class AbstractAssociationInstance<T>
                     }
                 }
 
-                throw new IllegalArgumentException( "Object must be an EntityComposite" );
+                throw new IllegalArgumentException( "Object must be an QiEntity" );
             }
         }
     }

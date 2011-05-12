@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -69,6 +69,7 @@ import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.qi4j.QiModule.EntityCreator;
 import org.polymap.rhei.data.entityfeature.catalog.EntityGeoResourceImpl;
 import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
 
@@ -80,7 +81,7 @@ import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
  * This class provides default implementation to build {@link FeatureType} and
  * {@link Feature} instances out of the given {@link EntityProvider}. The caller
  * may provide an {@link EntityProvider2} in order to control this process.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version ($Revision$)
  */
@@ -90,7 +91,7 @@ public class EntitySourceProcessor
     private static final Log log = LogFactory.getLog( EntitySourceProcessor.class );
 
     public static final int                 DEFAULT_CHUNK_SIZE = 100;
-    
+
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
         if (usecase == LayerUseCase.FEATURES_TRANSACTIONAL ) {
@@ -130,11 +131,9 @@ public class EntitySourceProcessor
     /** Might be of type {@link EntityProvider2}. @see #schema */
     private EntityProvider<Entity>  entityProvider;
 
-    private SimpleFeatureBuilder    fb;
-
     private Feature2EntityFilterConverter filterConverter;
-    
-    
+
+
     public void init( Properties props ) {
         try {
             // init schema
@@ -142,7 +141,7 @@ public class EntitySourceProcessor
             EntityGeoResourceImpl geores = (EntityGeoResourceImpl)layer.getGeoResource();
             entityProvider = geores.resolve( EntityProvider.class, null );
             filterConverter = new Feature2EntityFilterConverter( entityProvider.getEntityType() );
-            
+
             // EntityProvider2
             if (entityProvider instanceof EntityProvider2) {
                 schema = ((EntityProvider2)entityProvider).buildFeatureType();
@@ -157,7 +156,7 @@ public class EntitySourceProcessor
 
                 for (EntityType.Property prop : entityType.getProperties()) {
                     Class propType = prop.getType();
-                    
+
                     if (Geometry.class.isAssignableFrom( propType )) {
                         CoordinateReferenceSystem crs = entityProvider.getCoordinateReferenceSystem( prop.getName() );
                         builder.add( prop.getName(), propType, crs );
@@ -233,17 +232,17 @@ public class EntitySourceProcessor
             throw new IllegalArgumentException( "Unhandled request type: " + r );
         }
     }
-    
-    
+
+
     protected int getFeaturesSize( Query query )
     throws IOException {
         // build entity query
         BooleanExpression entityQuery = filterConverter.convert( query.getFilter() );
 
         if (entityQuery != null) {
-            int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0; 
-            int maxResults = query.getMaxFeatures() > 0 ? query.getMaxFeatures() : Integer.MAX_VALUE;  
-            
+            int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0;
+            int maxResults = query.getMaxFeatures() > 0 ? query.getMaxFeatures() : Integer.MAX_VALUE;
+
             return entityProvider.entitiesSize( entityQuery, firstResult, maxResults );
         }
         else {
@@ -263,39 +262,44 @@ public class EntitySourceProcessor
             return count;
         }
     }
-    
-    
+
+
     protected void getFeatures( Query query, ProcessorContext context )
     throws Exception {
         assert query != null && query.getFilter() != null;
-        
+
         long start = System.currentTimeMillis();
         log.debug( "            Filter: " + StringUtils.abbreviate( query.getFilter().toString(), 0, 256 ) );
-        int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0; 
-        int maxResults = query.getMaxFeatures() > 0 ? query.getMaxFeatures() : Integer.MAX_VALUE;  
-        
+        int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0;
+        int maxResults = query.getMaxFeatures() > 0 ? query.getMaxFeatures() : Integer.MAX_VALUE;
+
         // build entity query
         BooleanExpression entityQuery = filterConverter.convert( query.getFilter() );
 
         if (entityQuery == null) {
             log.warn( "*** No query tranlation geotools->Qi4j... fetching ALL entities! ***" );
         }
-        
+
         // 1 pass: query entities
         Iterable<Entity> entities = entityQuery != null
                 ? entityProvider.entities( entityQuery, firstResult, maxResults )
                 : entityProvider.entities( null, 0, Integer.MAX_VALUE );
-        
+
         // 2 pass: filter features
         int count = 0;
         ArrayList<Feature> chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
         for (Entity entity : entities) {
-            
-            Feature feature = buildFeature( entity );
+
+            Feature feature = null;
+            // XXX synchronized because qi4j seem to have issues when loading entities
+            // from several threads
+            synchronized (entityProvider) {
+                feature = buildFeature( entity );
+            }
             feature = entityQuery == null
                     ? filterFeature( feature, query.getFilter() )
                     : feature;
-            
+
             if (feature != null) {
                 chunk.add( feature );
                 if (chunk.size() >= DEFAULT_CHUNK_SIZE) {
@@ -330,9 +334,7 @@ public class EntitySourceProcessor
 //        }
 
             // straight forward solution; 2 times slower and probably needs more memory
-            if (fb == null) {
-                fb = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
-            }
+            SimpleFeatureBuilder fb = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
             try {
                 for (AttributeDescriptor attr : ((SimpleFeatureType)schema).getAttributeDescriptors()) {
                     EntityType.Property entityProp = type.getProperty( attr.getName().getLocalPart() );
@@ -353,7 +355,7 @@ public class EntitySourceProcessor
      * XXX Currently it seems simpler to fetch all features and apply the filter
      * than converting the geospatial filter to a Qi4j filter. But this can be
      * memory consuming and might be revised later.
-     * 
+     *
      * @param features
      * @param query
      * @return
@@ -362,42 +364,48 @@ public class EntitySourceProcessor
         return filter.evaluate( feature ) ? feature : null;
     }
 
-    
+
     protected List<FeatureId> addFeatures( Collection<Feature> features )
     throws Exception {
-        log.debug( "            Features: " + features.size() );
-        
-        EntityType type = entityProvider.getEntityType();
-        
+        //log.debug( "            Features: " + features.size() );
+
+        final EntityType type = entityProvider.getEntityType();
+
         List<FeatureId> result = new ArrayList();
-        for (Feature feature : features) {
-            Entity entity = entityProvider.newEntity();
-            for (Property featureProp : feature.getProperties()) {
-                EntityType.Property prop = type.getProperty( featureProp.getName().getLocalPart() );
-                Object value = featureProp.getValue();
-                // check values, do not overwrite default values
-                if (prop != null && value != null) {
-                    prop.setValue( entity, value );
+        for (final Feature feature : features) {
+
+            Entity entity = entityProvider.newEntity( new EntityCreator<Entity>() {
+
+                public void create( Entity instance )
+                throws Exception{
+                    for (Property featureProp : feature.getProperties()) {
+                        EntityType.Property prop = type.getProperty( featureProp.getName().getLocalPart() );
+                        Object value = featureProp.getValue();
+                        // check values, do not overwrite default values
+                        if (prop != null && value != null) {
+                            prop.setValue( instance, value );
+                        }
+                    }
                 }
-            }
+            });
             // assuming that buildFeature() uses id() as well
             result.add( new FeatureIdImpl( entity.id() ) );
         }
         return result;
     }
 
-    
+
     protected void removeFeatures( Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
         throw new RuntimeException( "not yet implemented." );
     }
 
-    
+
     protected void modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
-        
+
         // filter entities
         List<Entity> entities = new ArrayList();
         if (filter instanceof Id) {
@@ -408,7 +416,7 @@ public class EntitySourceProcessor
         else {
             throw new RuntimeException( "Unknown filter type: " + filter );
         }
-        
+
         // set values
         EntityType entityType = entityProvider.getEntityType();
         for (Entity entity : entities) {
@@ -417,7 +425,7 @@ public class EntitySourceProcessor
                     String propName = type[i].getLocalName();
                     log.debug( "    modifying: prop=" + propName + ", value=" + value[i] + ", entity=" + entity );
                     if (entityProvider instanceof EntityProvider2) {
-                        ((EntityProvider2)entityProvider).modifyFeature( entity, propName, value[i] ); 
+                        ((EntityProvider2)entityProvider).modifyFeature( entity, propName, value[i] );
                     }
                     else {
                         entityType.getProperty( propName ).setValue( entity, value[i] );
@@ -430,7 +438,7 @@ public class EntitySourceProcessor
         }
     }
 
-    
+
     public void processResponse( ProcessorResponse reponse, ProcessorContext context )
     throws Exception {
         throw new RuntimeException( "This is a terminal processor." );

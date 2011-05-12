@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -30,15 +30,26 @@ import org.qi4j.api.query.grammar.NamedQueryExpression;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.qi4j.QiModule;
+import org.polymap.core.qi4j.QiModule.EntityCreator;
 
 /**
  * Provides access to a certain entity type. {@link EntityType} interface for
  * use in {@link EntitySourceProcessor}. It provides factory and retrieval
  * methods. It can also be used to provide an 'feature view' for a given entity
  * type.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version ($Revision$)
+ */
+/**
+ *
+ *
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ */
+/**
+ *
+ *
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface EntityProvider<T extends Entity> {
 
@@ -52,8 +63,8 @@ public interface EntityProvider<T extends Entity> {
             implements NamedQueryExpression {
 
         private Set<String> fids = new HashSet();
-        
-        
+
+
         public FidsQueryExpression( Set<String> fids ) {
             this.fids = fids;
         }
@@ -63,18 +74,18 @@ public interface EntityProvider<T extends Entity> {
         }
 
         public Set<String> fids() {
-            return fids;    
+            return fids;
         }
-        
+
         public boolean eval( Object target ) {
             throw new RuntimeException( "not yet implemented." );
         }
-        
+
     }
-    
+
 
     public Name getEntityName();
-    
+
     public EntityType getEntityType();
 
     public CoordinateReferenceSystem getCoordinateReferenceSystem( String propName );
@@ -84,7 +95,7 @@ public interface EntityProvider<T extends Entity> {
     public ReferencedEnvelope getBounds();
 
     /**
-     * 
+     *
      * @param entityQuery The query to execute. This may also be a
      *        {@link FidsQueryExpression}.
      * @param firstResult
@@ -94,7 +105,15 @@ public interface EntityProvider<T extends Entity> {
 
     public int entitiesSize( BooleanExpression entityQuery, int firstResult, int maxResults );
 
-    public T newEntity();
+
+    /**
+     *
+     * @param creator
+     * @return The newly created entity
+     * @throws Exception If an exception occured while executing the creator.
+     */
+    public T newEntity( EntityCreator<T> creator )
+    throws Exception;
 
     public T findEntity( String id );
 
