@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -44,26 +44,26 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Provides the content of a FeatureCollection encoded as CSV via HTTP/REST
  * interface.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 1.0
  */
 public class CsvServlet
-        extends HttpServlet { 
+        extends HttpServlet {
 
     private static Log log = LogFactory.getLog( CsvServlet.class );
 
     public static final FastDateFormat  df = DateFormatUtils.ISO_DATE_FORMAT;
 
     /** Hackish way to deliver the content to the servlet. */
-    static Map<String,List<Feature>>    map = new WeakHashMap(); 
+    static Map<String,List<Feature>>    map = new WeakHashMap();
 
-    
+
     public CsvServlet() {
         log.info( "CsvServlet..." );
     }
-    
-    
+
+
     public boolean isValid() {
         return true;
     }
@@ -85,7 +85,8 @@ public class CsvServlet
                 // sending an HTML page helps debugging on IE, which often blocks or
                 // otherwise fails to download directly
                 String id = request.getParameter( "id" );
-                String linkTarget = "../csv/" + id + "/anta2_export.csv";
+                String filename = request.getParameter( "filename" );
+                String linkTarget = "../csv/" + id + "/" + (filename != null ? filename : "polymap3_export.csv");
 
                 response.setContentType( "text/html; charset=ISO-8859-1" );
 
@@ -114,21 +115,22 @@ public class CsvServlet
         String[] pathInfo = StringUtils.split( request.getPathInfo(), "/" );
         String id = pathInfo[0];
         log.debug( "Request: id=" + id );
-        
+
+        String filename = pathInfo.length > 1 ? pathInfo[1] : "polymap3_export.csv";
         List<Feature> features = map.get( id );
 
         response.setContentType( "text/csv; charset=ISO-8859-1" );
-        response.setHeader( "Content-disposition", "attachment; filename=anta2.csv" );
+        response.setHeader( "Content-disposition", "attachment; filename=" + filename );
         response.setHeader( "Pragma", "public" );
         response.setHeader( "Cache-Control", "must-revalidate, post-check=0, pre-check=0" );
         response.setHeader( "Cache-Control", "public" );
         response.setHeader( "Expires", "0" );
 
         PrintWriter writer = response.getWriter();
-        
+
         CsvPreference prefs = new CsvPreference('"', ';', "\r\n");  //CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
         CsvListWriter csvWriter = new CsvListWriter( writer, prefs );
-        
+
         // all features
         boolean noHeaderYet = true;
         for (Feature feature : features) {
@@ -137,7 +139,7 @@ public class CsvServlet
             if (noHeaderYet) {
                 List<String> header = new ArrayList( 32 );
                 for (Property prop : feature.getProperties()) {
-                    Class<?> binding = prop.getType().getBinding();                    
+                    Class<?> binding = prop.getType().getBinding();
                     if (Number.class.isAssignableFrom( binding )
                             || Boolean.class.isAssignableFrom( binding )
                             || Date.class.isAssignableFrom( binding )
@@ -145,23 +147,23 @@ public class CsvServlet
                         header.add( prop.getName().getLocalPart() );
                     }
                 }
-                csvWriter.writeHeader( (String[]) header.toArray(new String[header.size()]) );
+                csvWriter.writeHeader( header.toArray(new String[header.size()]) );
                 noHeaderYet = false;
             }
-            
+
             // all properties
             List line = new ArrayList( 32 );
             for (Property prop : feature.getProperties()) {
                 Class binding = prop.getType().getBinding();
                 Object value = prop.getValue();
-                
+
                 // Number
                 if (Number.class.isAssignableFrom( binding )) {
                     line.add( value != null ? value.toString() : "" );
                 }
                 // Boolean
                 else if (Boolean.class.isAssignableFrom( binding )) {
-                    line.add( value == null ? "" : 
+                    line.add( value == null ? "" :
                             ((Boolean)value).booleanValue() ? "ja" : "nein");
                 }
                 // Date
@@ -173,7 +175,7 @@ public class CsvServlet
                     String s = value != null ? (String)value : "";
                     // Excel happens to interprete decimal value otherwise! :(
                     s = StringUtils.replace( s, "/", "-" );
-                    line.add( s ); 
+                    line.add( s );
                 }
                 // other
                 else {
@@ -183,7 +185,7 @@ public class CsvServlet
             log.debug( "LINE: " + line );
             csvWriter.write( line );
         }
-        
+
         csvWriter.close();
     }
 

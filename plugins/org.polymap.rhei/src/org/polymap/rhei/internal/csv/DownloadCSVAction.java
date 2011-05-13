@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as
  * indicated by the @authors tag.
@@ -39,7 +39,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.RheiPlugin;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -49,8 +49,8 @@ public class DownloadCSVAction
     private static Log log = LogFactory.getLog( DownloadCSVAction.class );
 
     private GeoSelectionView    view;
-    
-    
+
+
     public void init( IViewPart _view ) {
         if (_view instanceof GeoSelectionView) {
             log.debug( "init(): found GeoSelectionView..." );
@@ -62,7 +62,7 @@ public class DownloadCSVAction
     public void run( IAction action ) {
         try {
             final List<Feature> features = new ArrayList();
-            
+
             view.getFeatureCollection().accepts( new FeatureVisitor() {
                 public void visit( Feature candidate ) {
                     features.add( candidate );
@@ -72,11 +72,13 @@ public class DownloadCSVAction
             String id = String.valueOf( System.currentTimeMillis() );
             CsvServlet.map.put( id, features );
             log.info( "CSV: " + features.size() + " features given to servlet for id: " + id );
-            
-            String linkTarget = "../csv/" + id + "/anta2_export.csv";
-            String htmlTarget = "../csv/download.html?id=" + id;
-            
-            ExternalBrowser.open( "csv_download_window", htmlTarget , 
+
+            String filename = view.getLayer() != null
+                    ? view.getLayer().getLabel() + "_export.csv" : "polymap3_export.csv";
+            String linkTarget = "../csv/" + id + "/" + filename;
+            String htmlTarget = "../csv/download.html?id=" + id + "&filename=" + filename;
+
+            ExternalBrowser.open( "csv_download_window", htmlTarget ,
                     ExternalBrowser.NAVIGATION_BAR | ExternalBrowser.STATUS);
 
 //            JSExecutor.executeJS(
@@ -93,14 +95,14 @@ public class DownloadCSVAction
 //        log.debug( "selectionChanged(): sel= " + sel );
 //
 //        selectedFid = null;
-//        
+//
 //        if (!sel.isEmpty() && sel instanceof IStructuredSelection) {
 //            Object elm = ((IStructuredSelection)sel).getFirstElement();
-//            
+//
 //            // called when the entity is clicked in GeoSellectionView
 //            if (elm instanceof FidFilterImpl) {
 //                Set fids = ((FidFilterImpl)elm).getIDs();
-//                selectedFid = fids.size() == 1 
+//                selectedFid = fids.size() == 1
 //                        ? (String)fids.iterator().next() : null;
 //            }
 //        }
