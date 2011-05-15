@@ -11,7 +11,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.polymap.core.libs;bundle-version="3.0.0",
  org.polymap.core.qi4j;bundle-version="3.1.0",
  org.polymap.core.data;bundle-version="3.0.0",
- org.polymap.core.project;bundle-version="3.0.0"
+ org.polymap.core.project;bundle-version="3.0.0",
+ org.polymap.rhei;bundle-version="1.0.0",
+ org.polymap.core;bundle-version="3.1.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.rhei.data,

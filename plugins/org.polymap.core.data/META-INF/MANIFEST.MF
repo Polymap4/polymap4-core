@@ -54,6 +54,7 @@ Export-Package: com.healthmarketscience.jackcess,
  org.polymap.core.data.pipeline,
  org.polymap.core.data.ui.featureTable,
  org.polymap.core.data.ui.featureTypeEditor,
+ org.polymap.core.data.ui.featuretable,
  org.polymap.core.data.util
 Import-Package: org.osgi.service.http;version="1.2.1"
 Bundle-Localization: plugin
