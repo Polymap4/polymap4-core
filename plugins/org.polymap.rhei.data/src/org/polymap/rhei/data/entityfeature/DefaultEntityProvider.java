@@ -47,7 +47,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
 
     protected QiModule              repo;
 
-    protected EntityType            type;
+    protected EntityType<T>         type;
 
     protected Name                  name;
 
@@ -77,7 +77,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
             int count = 0;
             for (String fid : ((FidsQueryExpression)query).fids()) {
                 if (count++ >= firstResult) {
-                    result.add( (T)repo.findEntity( type.getType(), fid ) );
+                    result.add( repo.findEntity( type.getType(), fid ) );
                     if (result.size() >= maxResults) {
                         return result;
                     }
@@ -87,7 +87,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
         }
         // regular query
         else {
-            return (Iterable<T>)repo.findEntities( type.getType(), query, firstResult, maxResults );
+            return repo.findEntities( type.getType(), query, firstResult, maxResults );
         }
     }
 
@@ -111,12 +111,12 @@ public abstract class DefaultEntityProvider<T extends Entity>
     public T newEntity( EntityCreator<T> creator )
     throws Exception {
         // FIXME: operation bounds are handled by AntragOperationConcern !?
-        return repo.newEntity( (Class<T>)type.getType(), null, creator );
+        return repo.newEntity( type.getType(), null, creator );
     }
 
 
     public T findEntity( String id ) {
-        return (T)repo.findEntity( type.getType(), id );
+        return repo.findEntity( type.getType(), id );
     }
 
 }

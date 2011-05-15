@@ -28,26 +28,31 @@ import java.lang.reflect.ParameterizedType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.value.ValueComposite;
+
+import org.polymap.core.model.Composite;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 
 /**
  * Default implementation of {@link EntityType} for {@link QiModule} based
  * modules.
+ * <p/>
+ * Type param T: {@link Entity} or {@link ValueComposite}
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
  */
-class EntityTypeImpl
-        implements EntityType {
+class EntityTypeImpl<T extends Composite>
+        implements EntityType<T> {
 
     private static final Log log = LogFactory.getLog( EntityTypeImpl.class );
 
     private static Map<Class,EntityTypeImpl>        types = new HashMap();
 
 
-    public static EntityType forClass( Class<? extends Entity> type ) {
-        EntityTypeImpl result = types.get( type );
+    public static <T extends Composite> EntityType<T> forClass( Class<T> type ) {
+        EntityTypeImpl<T> result = types.get( type );
         if (result == null) {
             synchronized (types) {
                 result = new EntityTypeImpl( type );
@@ -63,14 +68,14 @@ class EntityTypeImpl
 
     // instance *******************************************
 
-    private Class<? extends Entity>     type;
+    private Class<T>                    type;
 
     private Property                    id;
 
     private Map<String,Property>        props;
 
 
-    private EntityTypeImpl( Class<? extends Entity> type ) {
+    private EntityTypeImpl( Class<T> type ) {
         this.type = type;
     }
 
@@ -78,7 +83,7 @@ class EntityTypeImpl
         return type.getName();
     }
 
-    public Class<? extends Entity> getType() {
+    public Class<T> getType() {
         return type;
     }
 
@@ -110,9 +115,22 @@ class EntityTypeImpl
                     else if (prop.getName().equals( "identity" )
                             || prop.getName().startsWith( "_" )) {
                     }
-                    // skip internal computed properties
-                    else if (!m.getDeclaringClass().equals( Entity.class )
-                            && prop.isValidType()) {
+                    // skip internal and computed properties
+                    else if (m.getDeclaringClass().equals( Entity.class )
+                            || !prop.isValidType()) {
+                    }
+                    // complex
+                    else if (ValueComposite.class.isAssignableFrom( prop.getType() )) {
+                        CompositeProperty complexProperty = new CompositePropertyImpl( m );
+                        props.put( complexProperty.getName(), complexProperty );
+                    }
+                    // collection
+                    else if (Collection.class.isAssignableFrom( prop.getType() )) {
+                        CollectionProperty collProperty = new CollectionPropertyImpl( m );
+                        props.put( collProperty.getName(), collProperty );
+                    }
+                    // simple property
+                    else {
                         props.put( prop.getName(), prop );
                     }
                 }
@@ -168,7 +186,7 @@ class EntityTypeImpl
             return (Class)propType.getActualTypeArguments()[0];
         }
 
-        public Object getValue( Entity entity )
+        public Object getValue( Composite entity )
         throws Exception {
             try {
                 org.qi4j.api.property.Property prop =
@@ -189,7 +207,7 @@ class EntityTypeImpl
             }
         }
 
-        public void setValue( Entity entity, Object value )
+        public void setValue( Composite entity, Object value )
         throws Exception {
             try {
                 org.qi4j.api.property.Property prop =
@@ -211,6 +229,62 @@ class EntityTypeImpl
         }
 
     }
+
+
+    /**
+     *
+     */
+    class CompositePropertyImpl
+            extends PropertyImpl
+            implements CompositeProperty {
+
+        private EntityType       compositeType;
+
+
+        CompositePropertyImpl( Method m ) {
+            super( m );
+        }
+
+        public EntityType getCompositeType() {
+            if (compositeType == null) {
+                compositeType = new EntityTypeImpl( getType() );
+            }
+            return compositeType;
+        }
+
+    }
+
+
+   /**
+   *
+   */
+  class CollectionPropertyImpl
+          extends PropertyImpl
+          implements CollectionProperty {
+
+      private EntityType complexType;
+
+
+      CollectionPropertyImpl( Method m ) {
+          super( m );
+      }
+
+      public EntityType getComplexType() {
+          ParameterizedType collType = (ParameterizedType)m.getGenericReturnType();
+          Class elmType = (Class)collType.getActualTypeArguments()[0];
+
+          if (ValueComposite.class.isAssignableFrom( elmType )) {
+              if (complexType == null) {
+                  complexType = new EntityTypeImpl( elmType );
+              }
+              return complexType;
+          }
+          else {
+              throw new IllegalStateException( "Collection property '" + getName() + "' has non-complex type: " + elmType );
+          }
+      }
+
+  }
 
 
     /**

@@ -154,7 +154,8 @@ public class EntitySourceProcessor
                 SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
                 builder.setName( entityProvider.getEntityName() );
 
-                for (EntityType.Property prop : entityType.getProperties()) {
+                Collection<EntityType.Property> p = entityType.getProperties();
+                for (EntityType.Property prop : p) {
                     Class propType = prop.getType();
 
                     if (Geometry.class.isAssignableFrom( propType )) {

@@ -40,6 +40,7 @@ import org.eclipse.rwt.service.SessionStoreListener;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 
 import org.polymap.core.model.CompletionException;
+import org.polymap.core.model.Composite;
 import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
@@ -338,7 +339,7 @@ public abstract class QiModule
      * Creates a new {@link EntityType} instance for the given {@link Entity}
      * class. The return value should be cached and reused if possible.
      */
-    public EntityType entityType( Class<? extends Entity> type ) {
+    public <T extends Composite> EntityType<T> entityType( Class<T> type ) {
         return EntityTypeImpl.forClass( type );
     }
 

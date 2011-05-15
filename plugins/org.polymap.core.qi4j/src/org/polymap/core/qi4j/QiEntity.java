@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as
  * indicated by the @authors tag. All rights reserved.
@@ -15,6 +15,7 @@
  */
 package org.polymap.core.qi4j;
 
+import org.qi4j.api.composite.Composite;
 import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.injection.scope.This;
 
@@ -30,16 +31,16 @@ import org.polymap.core.model.EntityType;
 public interface QiEntity
         extends Entity {
 
-    public Class<? extends EntityComposite> getCompositeType();
+    public Class<? extends Composite> getCompositeType();
 
-    
+
     /**
-     * 
+     *
      */
     public abstract class Mixin
             implements QiEntity {
 
-        @This 
+        @This
         private EntityComposite         composite;
 
 
@@ -52,7 +53,8 @@ public interface QiEntity
         }
 
         public EntityType getEntityType() {
-            return EntityTypeImpl.forClass( (Class<? extends Entity>)composite.type() );
+            return EntityTypeImpl.forClass(
+                    (Class<? extends org.polymap.core.model.Composite>)composite.type() );
         }
 
     }

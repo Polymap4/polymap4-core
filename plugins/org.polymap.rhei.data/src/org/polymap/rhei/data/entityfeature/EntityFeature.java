@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -52,7 +52,7 @@ import org.polymap.core.model.EntityType;
  * Designed to cache as less as possible values in order to consume as less as
  * possible memory (compared to building every feature using
  * {@link SimpleFeatureBuilder}.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
  */
@@ -62,14 +62,14 @@ class EntityFeature
     private static final Log log = LogFactory.getLog( EntityFeature.class );
 
     private Entity                      entity;
-    
+
     private SimpleFeatureType           featureType;
-    
+
     private EntityType                  entityType;
-    
+
     private Map<String,PropertyImpl>    properties = new HashMap();
-    
-    
+
+
     public EntityFeature( Entity entity, EntityType entityType, SimpleFeatureType featureType ) {
         this.entity = entity;
         this.entityType = entityType;
@@ -95,7 +95,7 @@ class EntityFeature
                 if (rhs instanceof Feature) {
                     Feature feature = (Feature)rhs;
                     return feature != null && getID().equals( feature.getIdentifier().getID() );
-                }   
+                }
                 return false;
             }
         };
@@ -107,16 +107,16 @@ class EntityFeature
 
 
     /**
-     * 
+     *
      */
-    class PropertyImpl 
+    class PropertyImpl
             implements Property {
 
         protected PropertyDescriptor    descriptor;
-        
+
         protected Object                value;
 
-        
+
         protected PropertyImpl( PropertyDescriptor descriptor ) {
             assert descriptor != null;
             this.descriptor = descriptor;
@@ -127,11 +127,11 @@ class EntityFeature
                 throw new RuntimeException( e );
             }
         }
-        
+
         public Object getValue() {
             return value;
         }
-        
+
         public void setValue( Object value ) {
             log.debug( "property= " + getName().getLocalPart() + ", value=" + value );
             this.value = value;
@@ -144,7 +144,7 @@ class EntityFeature
 //                throw new RuntimeException( e );
 //            }
         }
-        
+
         public PropertyDescriptor getDescriptor() {
             return descriptor;
         }
@@ -160,11 +160,11 @@ class EntityFeature
         public boolean isNillable() {
             return getDescriptor().isNillable();
         }
-        
+
         public Map<Object, Object> getUserData() {
             throw new RuntimeException( "not yet implemented." );
         }
-        
+
         public boolean equals( Object obj ) {
             if (this == obj) {
                 return true;
@@ -182,12 +182,12 @@ class EntityFeature
             return true;
         }
 
-        
+
         public int hashCode() {
             return 37 * descriptor.hashCode()
                 + (37 * (value == null ? 0 : value.hashCode()));
         }
-        
+
         public String toString() {
             StringBuffer sb = new StringBuffer( getClass().getSimpleName() ).append( ":" );
             sb.append( getDescriptor().getName().getLocalPart() );
@@ -197,10 +197,10 @@ class EntityFeature
             sb.append( getValue() );
             return sb.toString();
         }
-        
+
     }
 
-    
+
     public Collection<? extends Property> getValue() {
         return getProperties();
     }
@@ -216,7 +216,8 @@ class EntityFeature
 
     public Collection<Property> getProperties() {
         List<Property> result = new ArrayList();
-        for (EntityType.Property entityProp : entityType.getProperties()) {
+        Collection<EntityType.Property> props = entityType.getProperties();
+        for (EntityType.Property entityProp : props) {
             result.add( getProperty( entityProp.getName() ) );
         }
         return result;
@@ -273,14 +274,14 @@ class EntityFeature
         throw new RuntimeException( "not yet implemented." );
     }
 
-    
+
     // SimpleFeature
-    
-    public Object getAttribute( int index ) 
+
+    public Object getAttribute( int index )
     throws IndexOutOfBoundsException {
         throw new RuntimeException( "not yet implemented." );
     }
-    
+
     public Object getAttribute( String name ) {
         return getProperty( name ).getValue();
     }
@@ -312,7 +313,7 @@ class EntityFeature
 //        // finally set the value into the feature
 //        values[index] = converted;
     }
-    
+
     public void setAttribute(String name, Object value) {
         throw new RuntimeException( "not yet implemented." );
 //        final Integer idx = index.get(name);
@@ -352,5 +353,5 @@ class EntityFeature
     public void setDefaultGeometry( Object arg0 ) {
         throw new RuntimeException( "not yet implemented." );
     }
-    
+
 }
