@@ -21,7 +21,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rwt.widgets.upload;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: edu.emory.mathcs.backport.java.util,
+Export-Package: com.healthmarketscience.jackcess,
+ com.healthmarketscience.jackcess.scsu,
+ edu.emory.mathcs.backport.java.util,
  edu.emory.mathcs.backport.java.util.concurrent,
  edu.emory.mathcs.backport.java.util.concurrent.atomic,
  net.sf.ehcache,

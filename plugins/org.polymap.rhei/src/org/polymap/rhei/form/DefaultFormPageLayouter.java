@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -26,21 +26,21 @@ import org.eclipse.swt.widgets.Layout;
 
 /**
  * Provides a default layout for classes that implement {@link IFormEditorPage}.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 1.0
  */
 public class DefaultFormPageLayouter {
 
     private static Log log = LogFactory.getLog( DefaultFormPageLayouter.class );
-    
+
     public static final int         DEFAULT_FIELD_SPACING_H = 5;
     public static final int         DEFAULT_FIELD_SPACING_V = 1;
     public static final int         DEFAULT_SECTION_SPACING = 8;
 
     private Composite               lastLayoutElm = null;
-    
-    
+
+
     public Layout newLayout() {
         if (lastLayoutElm != null) {
             // close last element of the previous section
@@ -49,11 +49,17 @@ public class DefaultFormPageLayouter {
         lastLayoutElm = null;
         return new FormLayout();
     }
-    
-    
+
+
+    public Composite setFieldLayoutData( Composite field, int height ) {
+        setFieldLayoutData( field );
+        ((FormData)field.getLayoutData()).height = height;
+        return field;
+    }
+
     public Composite setFieldLayoutData( Composite field ) {
         assert field.getParent().getLayout() instanceof FormLayout;
-        
+
         FormData layoutData = new FormData();
         layoutData.left = new FormAttachment( 0, DEFAULT_FIELD_SPACING_H );
         layoutData.right = new FormAttachment( 100, -DEFAULT_FIELD_SPACING_H );
@@ -61,7 +67,7 @@ public class DefaultFormPageLayouter {
                 ? new FormAttachment( lastLayoutElm, DEFAULT_FIELD_SPACING_V )
                 : new FormAttachment( 0 );
         field.setLayoutData( layoutData );
-        
+
         lastLayoutElm = field;
         return field;
     }

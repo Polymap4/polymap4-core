@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -28,18 +28,18 @@ import org.polymap.core.project.ILayer;
 /**
  * Provides the logic to create a concrete {@link Filter} instance for a given
  * layer (feature type).
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
  */
 public interface IFilter {
 
     public String getId();
-    
+
     public String getLabel();
 
     public Set<String> getKeywords();
-    
+
     /**
      * Returns the layer this filter is associated with.
      */
@@ -52,20 +52,20 @@ public interface IFilter {
      * which is returned by {@link #createControl(Composite)}.
      */
     public boolean hasControl();
-        
+
     /**
      * Creates UI elements in order to get the parameters of the filter
      * from the user.
      */
     public Composite createControl( Composite parent, IFilterEditorSite site );
-    
+
     /**
      * Create a new {@link Filter} instance.
-     * 
+     *
      * @return Newly created filter instance, or null if the was an error.
      */
     public Filter createFilter( IFilterEditorSite site );
-    
-    public long getMaxResults();
-    
+
+    public int getMaxResults();
+
 }

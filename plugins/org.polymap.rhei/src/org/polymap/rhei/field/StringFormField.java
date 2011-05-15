@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Text;
 import org.polymap.rhei.form.IFormEditorToolkit;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
@@ -42,11 +42,11 @@ public class StringFormField
 
     private static Log log = LogFactory.getLog( StringFormField.class );
 
-    protected IFormFieldSite        site;
-    
-    protected Text                  text;
-    
-    // XXX use (proper) validator to make the translation to String 
+    private IFormFieldSite          site;
+
+    private Text                    text;
+
+    // XXX use (proper) validator to make the translation to String
     private Object                  loadedValue;
 
 
@@ -68,7 +68,7 @@ public class StringFormField
         text.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent ev ) {
                 log.debug( "modifyEvent(): test= " + text.getText() );
-                site.fireEvent( StringFormField.this, IFormFieldListener.VALUE_CHANGE, 
+                site.fireEvent( StringFormField.this, IFormFieldListener.VALUE_CHANGE,
                         loadedValue == null && text.getText().equals( "" ) ? null : text.getText() );
             }
         });
@@ -95,10 +95,10 @@ public class StringFormField
     public void setValue( Object value ) {
         text.setText( value != null ? (String)value : "" );
     }
-    
+
     public void load() throws Exception {
         assert text != null : "Control is null, call createControl() first.";
-        
+
         loadedValue = site.getFieldValue();
         text.setText( loadedValue != null ? loadedValue.toString() : "" );
     }
@@ -106,5 +106,5 @@ public class StringFormField
     public void store() throws Exception {
         site.setFieldValue( text.getText() );
     }
-    
+
 }

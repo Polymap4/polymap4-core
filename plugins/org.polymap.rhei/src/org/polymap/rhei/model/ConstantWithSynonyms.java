@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -40,10 +40,10 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  * public class Kennzeichen
  *       extends ConstantWithSynonyms<String> {
  *   public static final Type<String> all = new Type<String>();
- *   
+ *
  *   public static final Kennzeichen Gebaude = new Kennzeichen( "Gebäude", "gebaude" );
  *   public static final Kennzeichen Digital = new Kennzeichen( "Digital" );
- *    
+ *
  *   private Kennzeichen( String label, String... synonyms ) {
  *       super( new Random().nextInt(), label, synonyms );
  *       all.add( this );
@@ -54,7 +54,7 @@ import edu.emory.mathcs.backport.java.util.Arrays;
  *   }
  * }
  * </pre>
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
  */
@@ -69,9 +69,9 @@ public class ConstantWithSynonyms<L> {
      */
     public static class Type<T extends ConstantWithSynonyms,L>
             implements Iterable<T> {
-        
+
         private List<T>             constants = new ArrayList();
-        
+
         public void add( T constant ) {
             constants.add( constant );
         }
@@ -80,7 +80,7 @@ public class ConstantWithSynonyms<L> {
         /**
          * The constant for the given label or synonym, or null if no such
          * constant exists.
-         * 
+         *
          * @return The constant or null.
          */
         public T forLabelOrSynonym( L labelOrSynonym ) {
@@ -107,7 +107,7 @@ public class ConstantWithSynonyms<L> {
         }
 
         /**
-         * 
+         *
          */
         public Iterable<L> labels() {
             return new Iterable<L>() {
@@ -129,7 +129,7 @@ public class ConstantWithSynonyms<L> {
                     };
                 }
             };
-            
+
 //            ArrayList<T> result = new ArrayList<T>();
 //            for (ConstantWithSynonyms elm : constants) {
 //                result.add( (T)elm.label );
@@ -142,9 +142,9 @@ public class ConstantWithSynonyms<L> {
         }
     }
 
-    
+
     // instance *******************************************
-    
+
     public final int    id;
 
     public L            label;
@@ -166,8 +166,12 @@ public class ConstantWithSynonyms<L> {
 
     public boolean equals( Object o ) {
         if (o instanceof ConstantWithSynonyms) {
-            return this == o || id == ((ConstantWithSynonyms)o).id; 
+            return this == o || id == ((ConstantWithSynonyms)o).id;
         }
+//        if (o instanceof Property) {
+//            Property prop = (Property)o;
+//            if (prop.t
+//        }
         else if (o != null && o.getClass().equals( label.getClass() ) ) {
             L rhs = normalizeValue( (L)o );
             for (L synonym : synonyms) {
@@ -205,5 +209,5 @@ public class ConstantWithSynonyms<L> {
     protected L normalizeValue( L value ) {
         return value;
     }
-    
+
 }

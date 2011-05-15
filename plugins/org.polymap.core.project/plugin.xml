@@ -57,7 +57,7 @@
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
-            class="org.polymap.core.project.ui.DataPerspective"
+            class="org.polymap.core.project.ui.ProjectPerspective"
             icon="icons/eview16/project_view.gif"
             id="org.polymap.core.project.dataPerspective"
             name="%perspectives_adhoc">

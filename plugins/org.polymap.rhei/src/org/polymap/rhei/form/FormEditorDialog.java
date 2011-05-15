@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -37,7 +37,7 @@ import org.polymap.rhei.internal.form.AbstractFormEditorPageContainer;
 import org.polymap.rhei.internal.form.FormEditorToolkit;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 1.0
@@ -46,22 +46,22 @@ public class FormEditorDialog
         extends TitleAreaDialog {
 
     private static Log log = LogFactory.getLog( FormEditorDialog.class );
-    
+
     private Composite                   pageBody;
 
     private PageContainer               pageContainer;
-    
+
     private IFormEditorToolkit          toolkit;
-    
-    
+
+
     public FormEditorDialog( IFormEditorPage page ) {
         super( PlatformUI.  getWorkbench().getActiveWorkbenchWindow().getShell() );
         setShellStyle( getShellStyle() | SWT.RESIZE );
-        
+
         this.pageContainer = new PageContainer( page );
     }
 
-    
+
     protected void okPressed() {
         log.debug( "okPressed() ..." );
         try {
@@ -84,7 +84,7 @@ public class FormEditorDialog
     protected Control createDialogArea( Composite parent ) {
         Composite result = (Composite)super.createDialogArea( parent );
         toolkit = new FormEditorToolkit( new FormToolkit( getParentShell().getDisplay() ) );
-        
+
         // make margins
         Composite container = new Composite( parent, SWT.NONE );
         container.setLayoutData( new GridData( GridData.FILL_BOTH ) );
@@ -95,15 +95,15 @@ public class FormEditorDialog
 
         pageBody = new Composite( container, SWT.NONE );
         pageBody.setLayoutData( new GridData( GridData.FILL_BOTH ) );
-        
+
         pageContainer.createContent();
         try {
             pageContainer.doLoad( new NullProgressMonitor() );
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );        
+            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
-        
+
         // form.getToolkit().decorateFormHeading( form.getForm().getForm() );
 
 //        // add page editor actions
@@ -123,7 +123,7 @@ public class FormEditorDialog
 //            form.getForm().getToolBarManager().appendToGroup( "__standardPageActions__", action );
 //        }
 //        form.getForm().getToolBarManager().update( true );
-        
+
         result.pack();
         return result;
     }
@@ -131,7 +131,7 @@ public class FormEditorDialog
 
 
     /**
-     * 
+     *
      */
     class PageContainer
             extends AbstractFormEditorPageContainer {
@@ -148,7 +148,7 @@ public class FormEditorDialog
             return pageBody;
         }
 
-        
+
         public IFormEditorToolkit getToolkit() {
             return toolkit;
         }
@@ -156,7 +156,11 @@ public class FormEditorDialog
         public void setFormTitle( String title ) {
             setTitle( title );
         }
-        
+
+        public void setActivePage( String pageId ) {
+            log.warn( "setActivePage() not supported." );
+        }
+
     }
 
 }

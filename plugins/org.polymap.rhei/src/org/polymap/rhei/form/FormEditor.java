@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -63,23 +63,23 @@ import org.polymap.rhei.internal.form.FormEditorPageContainer;
 import org.polymap.rhei.internal.form.FormPageProviderExtension;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @SuppressWarnings("deprecation")
 public class FormEditor
-        extends org.eclipse.ui.forms.editor.FormEditor 
+        extends org.eclipse.ui.forms.editor.FormEditor
         implements IFormFieldListener {
 
     private static Log log = LogFactory.getLog( FormEditor.class );
 
     public static final String          ID = "org.polymap.rhei.form.FormEditor";
-    
-    
+
+
     /**
      *
-     * @param fs 
+     * @param fs
      * @param feature
      * @return The editor of the given feature, or null.
      */
@@ -116,23 +116,23 @@ public class FormEditor
         }
     }
 
-    
+
     // instance *******************************************
-    
+
     private List<FormEditorPageContainer> pages = new ArrayList();
-    
+
     // FIXME visibility
     public List<Action>                 standardPageActions = new ArrayList();
 
     private boolean                     isDirty;
-    
+
     private boolean                     isValid;
-    
+
     private Action                      submitAction;
 
     private Action                      revertAction;
-    
-    
+
+
     public FormEditor() {
     }
 
@@ -140,7 +140,7 @@ public class FormEditor
     public void init( IEditorSite site, IEditorInput input )
             throws PartInitException {
         super.init( site, input );
-        
+
         // submit action
         submitAction = new Action( Messages.get( "FormEditor_submit" ) ) {
             public void run() {
@@ -158,7 +158,7 @@ public class FormEditor
                 }
             }
         };
-        submitAction.setImageDescriptor( ImageDescriptor.createFromURL( 
+        submitAction.setImageDescriptor( ImageDescriptor.createFromURL(
                 RheiPlugin.getDefault().getBundle().getResource( "icons/etool16/validate.gif" ) ) );
         submitAction.setToolTipText( Messages.get( "FormEditor_submitTip" ) );
         submitAction.setEnabled( false );
@@ -171,17 +171,17 @@ public class FormEditor
                 doLoad( new NullProgressMonitor() );
             }
         };
-        revertAction.setImageDescriptor( ImageDescriptor.createFromURL( 
+        revertAction.setImageDescriptor( ImageDescriptor.createFromURL(
                 RheiPlugin.getDefault().getBundle().getResource( "icons/etool16/revert.gif" ) ) );
         revertAction.setToolTipText( Messages.get( "FormEditor_revertTip" ) );
         revertAction.setEnabled( false );
         standardPageActions.add( revertAction );
     }
 
-    
+
     public void fieldChange( FormFieldEvent ev ) {
         boolean oldIsDirty = isDirty;
-        
+
         isDirty = false;
         for (FormEditorPageContainer page : pages) {
             if (page.isDirty()) {
@@ -218,7 +218,7 @@ public class FormEditor
         return super.getContainer();
     }
 
-    
+
     /**
      * This called by the Workbench so that we can add our pages. The implementation
      * searches for extensions that provide a {@link IFormPageProvider}. All providers
@@ -235,12 +235,12 @@ public class FormEditor
                         FormEditorPageContainer wrapper = new FormEditorPageContainer( page, this, page.getId(), page.getTitle() );
                         addPage( wrapper );
                         pages.add( wrapper );
-                        
+
                         if (ext.isStandard()) {
                             setActivePage( page.getId() );
-                            setPartName( page.getTitle() );
+                            //setPartName( page.getTitle() );
                         }
-                        
+
                         wrapper.addFieldListener( this );
                     }
                 }
@@ -252,15 +252,20 @@ public class FormEditor
     }
 
 
+    public void setPartName( String name ) {
+        super.setPartName( name );
+    }
+
+
     public Feature getFeature() {
-        return ((FormEditorInput)getEditorInput()).getFeature();    
+        return ((FormEditorInput)getEditorInput()).getFeature();
     }
-    
+
     public FeatureStore getFeatureStore() {
-        return ((FormEditorInput)getEditorInput()).getFeatureStore();    
+        return ((FormEditorInput)getEditorInput()).getFeatureStore();
     }
-    
-    
+
+
     public boolean isDirty() {
         return isDirty;
     }
@@ -268,9 +273,9 @@ public class FormEditor
 
     public void doSave( IProgressMonitor monitor ) {
         log.debug( "doSave(): ..." );
-        
+
         Map<Property,Object> changes = new HashMap();
-        
+
         try {
             // submit all pages and get their changes
             for (FormEditorPageContainer page : pages) {
@@ -296,14 +301,14 @@ public class FormEditor
             // execute operation
             FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
             Id filter = ff.id( Collections.singleton( getFeature().getIdentifier() ) );
-            
-            ModifyFeaturesOperation op = new ModifyFeaturesOperation( 
+
+            ModifyFeaturesOperation op = new ModifyFeaturesOperation(
                     getFeatureStore(),
                     filter,
-                    attrs.toArray( new AttributeDescriptor[attrs.size()]), 
-                    values.toArray() ); 
+                    attrs.toArray( new AttributeDescriptor[attrs.size()]),
+                    values.toArray() );
             OperationSupport.instance().execute( op, false, false );
-            
+
             // update isDirt/isValid
             fieldChange( null );
         }

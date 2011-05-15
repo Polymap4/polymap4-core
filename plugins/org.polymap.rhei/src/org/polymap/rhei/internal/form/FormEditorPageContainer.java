@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -53,7 +53,7 @@ import org.polymap.rhei.internal.DefaultFormFieldDecorator;
 import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 
 /**
- * 
+ *
  * @deprecated This is the first version of a Form Page container. It is used in
  *             {@link FormEditor} only. Another version exists as
  *             {@link AbstractFormEditorPageContainer}, which is used in
@@ -63,25 +63,25 @@ import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 public class FormEditorPageContainer
         extends FormPage
         implements IFormEditorPageSite, IFormFieldListener {
-    
+
     private IFormEditorPage             page;
-    
+
     private IManagedForm                form;
-    
+
     private IFormEditorToolkit          toolkit;
 
     private List<FormFieldComposite>    fields = new ArrayList();
-    
+
     /** Listeners of type {@link IFormFieldListener}. */
     private ListenerList                listeners = new ListenerList( ListenerList.IDENTITY );
-    
-    
+
+
     public FormEditorPageContainer( IFormEditorPage page, FormEditor editor, String id, String title ) {
         super( editor, id, title );
         this.page = page;
     }
-    
-    
+
+
     public synchronized void dispose() {
         if (page != null && page instanceof IFormEditorPage2) {
             ((IFormEditorPage2)page).dispose();
@@ -93,13 +93,13 @@ public class FormEditorPageContainer
         listeners.clear();
     }
 
-    
+
     public void addFieldListener( IFormFieldListener l ) {
-        listeners.add( l );    
+        listeners.add( l );
     }
-    
+
     public void removeFieldListener( IFormFieldListener l ) {
-        listeners.remove( l );    
+        listeners.remove( l );
     }
 
     /*
@@ -108,21 +108,21 @@ public class FormEditorPageContainer
     public void fireEvent( Object source, String fieldName, int eventCode, Object newValue ) {
         fieldChange( new FormFieldEvent( source, fieldName, null, eventCode, null, newValue ) );
     }
-    
+
     /*
      * Called from form fields.
      */
     public void fieldChange( FormFieldEvent ev ) {
 // XXX a event scope is needed when registering for listener for field to distinguish
 // between local event within that field or changes from other fields in the page or whole form
-        
+
 //        // propagate event to all fields
 //        for (FormFieldComposite field : fields) {
 //            if (field.getFormField() != ev.getFormField()) {
 //                field.fireEvent( ev.getEventCode(), ev.getNewValue() );
 //            }
 //        }
-        
+
         for (Object l : listeners.getListeners()) {
             ((IFormFieldListener)l).fieldChange( ev );
         }
@@ -142,8 +142,8 @@ public class FormEditorPageContainer
         }
         return false;
     }
-    
-    
+
+
     public boolean isValid() {
         if (page instanceof IFormEditorPage2) {
             if (!((IFormEditorPage2)page).isValid()) {
@@ -157,14 +157,14 @@ public class FormEditorPageContainer
         }
         return true;
     }
-    
-    
+
+
     public Map<Property,Object> doSubmit( IProgressMonitor monitor )
     throws Exception {
         super.doSave( monitor );
-        
+
         Map<Property,Object> result = new HashMap();
-        
+
         for (FormFieldComposite field : fields) {
             if (field.isDirty()) {
                 Object newValue = field.store();
@@ -184,7 +184,7 @@ public class FormEditorPageContainer
         return result;
     }
 
-    
+
     public void doLoad( IProgressMonitor monitor )
     throws Exception {
         if (page instanceof IFormEditorPage2) {
@@ -205,20 +205,20 @@ public class FormEditorPageContainer
         }
     }
 
-    
+
     protected void createFormContent( IManagedForm managedForm ) {
         form = managedForm;
         toolkit = new FormEditorToolkit( form.getToolkit() );
-        
+
         // ask the delegate to create content
         page.createFormContent( this );
         try {
             doLoad( new NullProgressMonitor() );
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );        
+            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
-        
+
         // form.getToolkit().decorateFormHeading( form.getForm().getForm() );
 
         // add page editor actions
@@ -239,10 +239,10 @@ public class FormEditorPageContainer
         }
         form.getForm().getToolBarManager().update( true );
     }
-    
-    
+
+
     // IFormEditorPageSite ****************************
-    
+
     public Composite getPageBody() {
         return form.getForm().getBody();
     }
@@ -253,6 +253,11 @@ public class FormEditorPageContainer
 
     public void setFormTitle( String title ) {
         form.getForm().setText( title );
+        ((FormEditor)getEditor()).setPartName( title );
+    }
+
+    public void setActivePage( String pageId ) {
+        ((FormEditor)getEditor()).setActivePage( pageId );
     }
 
     public Composite newFormField( Composite parent, Property prop, IFormField field, IFormFieldValidator validator ) {
@@ -261,12 +266,12 @@ public class FormEditorPageContainer
 
     public Composite newFormField( Composite parent, Property prop, IFormField field, IFormFieldValidator validator, String label ) {
         FormFieldComposite result = new FormFieldComposite( getToolkit(), prop, field,
-                new DefaultFormFieldLabeler( label ), new DefaultFormFieldDecorator(), 
+                new DefaultFormFieldLabeler( label ), new DefaultFormFieldDecorator(),
                 validator != null ? validator : new NullValidator() );
         fields.add( result );
-        
+
         result.addChangeListener( this );
-        
+
         return result.createComposite( parent != null ? parent : getPageBody(), SWT.NONE );
     }
 
@@ -289,7 +294,7 @@ public class FormEditorPageContainer
         }
         throw new RuntimeException( "No such field: " + fieldName );
     }
-    
+
     public void reloadEditor()
     throws Exception {
         ((FormEditor)getEditor()).doLoad( new NullProgressMonitor() );

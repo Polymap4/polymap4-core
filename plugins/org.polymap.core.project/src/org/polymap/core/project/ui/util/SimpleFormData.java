@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2011, Falko Bräutigam, and other contributors as
  * indicated by the @authors tag. All rights reserved.
@@ -30,21 +30,21 @@ import org.eclipse.swt.widgets.Control;
 public class SimpleFormData {
 
     private static Log log = LogFactory.getLog( SimpleFormData.class );
-    
+
     private FormData        formData;
-    
+
     private int             defaultOffset;
-    
-    
+
+
     public SimpleFormData() {
-        this( 0 );    
+        this( 0 );
     }
-    
+
     public SimpleFormData( int defaultOffset ) {
-        this.formData = new FormData();    
+        this.formData = new FormData();
         this.defaultOffset = defaultOffset;
     }
-    
+
     /**
      * Equivalent of calling:
      * <code>left( 0 ).top( 0 ).right( 100 ).bottom( 100 )</code>
@@ -52,93 +52,93 @@ public class SimpleFormData {
     public SimpleFormData fill() {
         return left( 0 ).top( 0 ).right( 100 ).bottom( 100 );
     }
-    
+
     public FormData create() {
         return formData;
     }
 
     // left
-    
+
     public SimpleFormData left( int num ) {
         return left( num, defaultOffset );
     }
-    
+
     public SimpleFormData left( int num, int offset ) {
         formData.left = new FormAttachment( num, offset );
         return this;
     }
-    
+
     public SimpleFormData left( Control control ) {
         formData.left = new FormAttachment( control, defaultOffset );
         return this;
     }
-    
+
     public SimpleFormData left( Control control, int offset ) {
         formData.left = new FormAttachment( control, offset );
         return this;
     }
-    
+
     // right
-    
+
     public SimpleFormData right( int num ) {
-        return right( num, defaultOffset );
+        return right( num, -defaultOffset );
     }
-    
+
     public SimpleFormData right( int num, int offset ) {
         formData.right = new FormAttachment( num, offset );
         return this;
     }
-    
+
     public SimpleFormData right( Control control ) {
-        formData.right = new FormAttachment( control, defaultOffset );
+        formData.right = new FormAttachment( control, -defaultOffset );
         return this;
     }
-    
+
     public SimpleFormData right( Control control, int offset ) {
         formData.right = new FormAttachment( control, offset );
         return this;
     }
-    
+
     // top
-    
+
     public SimpleFormData top( int num ) {
         return top( num, defaultOffset );
     }
-    
+
     public SimpleFormData top( int num, int offset ) {
         formData.top = new FormAttachment( num, offset );
         return this;
     }
-    
+
     public SimpleFormData top( Control control ) {
         formData.top = new FormAttachment( control, defaultOffset );
         return this;
     }
-    
+
     public SimpleFormData top( Control control, int offset ) {
         formData.top = new FormAttachment( control, offset );
         return this;
     }
-    
+
     // bottom
-    
+
     public SimpleFormData bottom( int num ) {
-        return bottom( num, defaultOffset );
+        return bottom( num, -defaultOffset );
     }
-    
+
     public SimpleFormData bottom( int num, int offset ) {
         formData.bottom = new FormAttachment( num, offset );
         return this;
     }
-    
+
     public SimpleFormData bottom( Control control ) {
-        formData.bottom = new FormAttachment( control, defaultOffset );
+        formData.bottom = new FormAttachment( control, -defaultOffset );
         return this;
     }
-    
+
     public SimpleFormData bottom( Control control, int offset ) {
         formData.bottom = new FormAttachment( control, offset );
         return this;
     }
-    
+
 }

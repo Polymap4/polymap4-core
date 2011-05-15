@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2009, Polymap GmbH, and individual contributors as indicated
  * by the @authors tag.
@@ -32,54 +32,61 @@ import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.IPlaceholderFolderLayout;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  *         <li>24.06.2009: created</li>
  * @version $Revision: $
  */
-public class DataPerspective
+public class ProjectPerspective
         implements IPerspectiveFactory {
 
-    private Log log = LogFactory.getLog( DataPerspective.class );
+    private Log log = LogFactory.getLog( ProjectPerspective.class );
 
-    
+
     public void createInitialLayout( final IPageLayout layout ) {
         log.debug( "..." );
         String editorArea = layout.getEditorArea();
         layout.setEditorAreaVisible( true );
 
-        IFolderLayout topLeft = layout.createFolder( 
-                "topLeft", IPageLayout.LEFT, 0.20f, editorArea );
-        IFolderLayout bottomLeft = layout.createFolder( 
-                "bottomLeft", IPageLayout.BOTTOM, 0.38f, "topLeft" );
-        IFolderLayout topRight = layout.createFolder( 
+        IFolderLayout topLeft = layout.createFolder(
+                "topLeft", IPageLayout.LEFT, 0.23f, editorArea );
+        IFolderLayout bottomLeft = layout.createFolder(
+                "bottomLeft", IPageLayout.BOTTOM, 0.25f, "topLeft" );
+        IFolderLayout topRight = layout.createFolder(
                 "topRight", IPageLayout.RIGHT, 0.72f, editorArea );
-        IPlaceholderFolderLayout bottom = layout.createPlaceholderFolder( 
+        IPlaceholderFolderLayout bottom = layout.createPlaceholderFolder(
                 "bottom", IPageLayout.BOTTOM, 0.70f, editorArea );
-        
-        topLeft.addView( "org.polymap.core.project.ProjectView" );
+
+        topLeft.addView( ProjectView.ID );
+
+        bottomLeft.addView( "org.polymap.rhei.RheiNavigator" );
         bottomLeft.addView( "org.polymap.core.project.MapLayersView" );
+        bottomLeft.addPlaceholder( "org.polymap.core.project.MapLayersView" );
+        bottomLeft.addPlaceholder( "org.polymap.rhei.FilterView:*" );
+
+        bottom.addPlaceholder( "org.polymap.*:*" );
+        bottom.addPlaceholder( "org.polymap.*" );
+        bottom.addPlaceholder( "org.eclipse.*" );
+
+//        bottomLeft.addView( CodeMirrorView.ID );
+
+//        topRight.addPlaceholder( "net.refractions.udig.catalog.ui.CatalogView" );
         topRight.addView( "net.refractions.udig.catalog.ui.CatalogView" );
         topRight.addPlaceholder( "org.polymap.geocoder.*" );
-        
+//      topRight.addPlaceholder( GeoSelectionView.ID );
+
+
         bottom.addPlaceholder( "org.polymap.core.data.ui.featureTable.view:*" );
         bottom.addPlaceholder( "org.polymap.*" );
         bottom.addPlaceholder( "org.eclipse.*" );
-        
-//        bottom.addView( "net.refractions.udig.catalog.ui.Search" );
-//        bottom.addView( IPageLayout.ID_PROP_SHEET );
-//        bottom.addView( "org.polymap.core.mapeditor.geoSelectionView" );
-        
-        
-//        topRight.addView( "org.eclipse.rap.demo.DemoSelectionViewPart" );
-//        topRight.addView( "org.eclipse.rap.demo.DemoBrowserViewPart" );
 
         // add shortcuts to show view menu
-//        layout.addShowViewShortcut( "net.refractions.udig.project.ui.layerManager" );
-//        layout.addShowViewShortcut( "net.refractions.udig.project.ui.projectExplorer" );
+        layout.addShowViewShortcut( "net.refractions.udig.catalog.ui.CatalogView" );
+//      layout.addShowViewShortcut( "net.refractions.udig.project.ui.projectExplorer" );
 
-        // add shortcut for other perspective
-//        layout.addPerspectiveShortcut( "org.eclipse.rap.demo.perspective.planning" );
+      // add shortcut for other perspective
+//      layout.addPerspectiveShortcut( "org.eclipse.rap.demo.perspective.planning" );
+
     }
 }

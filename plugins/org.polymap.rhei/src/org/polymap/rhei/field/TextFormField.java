@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -20,11 +20,12 @@ package org.polymap.rhei.field;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Text;
 
 import org.polymap.rhei.form.IFormEditorToolkit;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
@@ -32,10 +33,7 @@ import org.polymap.rhei.form.IFormEditorToolkit;
 public class TextFormField
         extends StringFormField {
 
-    private int             minHeight;
-    
-    public TextFormField( int minHeight ) {
-        this.minHeight = minHeight;
+    public TextFormField() {
     }
 
     public void init( IFormFieldSite _site ) {
@@ -46,7 +44,9 @@ public class TextFormField
     }
 
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
-        return createControl( parent, toolkit, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL );
+        Text text = (Text)createControl( parent, toolkit, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL );
+//        text.setSize( SWT.DEFAULT, minHeight );
+        return text;
     }
 
 }

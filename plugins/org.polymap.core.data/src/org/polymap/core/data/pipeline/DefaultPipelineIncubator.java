@@ -190,7 +190,7 @@ public class DefaultPipelineIncubator
         List<ProcessorDescription> result = new ArrayList();
         for (ProcessorDescription desc : allTerminals( usecase )) {
             if (desc.isCompatible( service )) {
-                log.info( "Terminal for '" + service + "' -- " + usecase + " : " + desc );
+                log.debug( "Terminal for '" + service + "' -- " + usecase + " : " + desc );
                 result.add( desc );
             }
         }
@@ -208,7 +208,7 @@ public class DefaultPipelineIncubator
 
     protected boolean findTransformation( ProcessorDescription from,
             ProcessorDescription to, LayerUseCase usecase, Deque<ProcessorDescription> chain ) {
-        log.info( StringUtils.repeat( "    ", chain.size() ) + "findTransformation: " + from + " => " + to + " -- " + usecase );
+        log.debug( StringUtils.repeat( "    ", chain.size() ) + "findTransformation: " + from + " => " + to + " -- " + usecase );
 
         // recursion break
         if (chain.size() > 16) {
@@ -218,7 +218,7 @@ public class DefaultPipelineIncubator
         // recursion start
         if (from.getSignature().isCompatible( to.getSignature() )) {
             chain.addLast( to );
-            log.info( StringUtils.repeat( "    ", chain.size() ) + "Transformation found: " + chain );
+            log.debug( StringUtils.repeat( "    ", chain.size() ) + "Transformation found: " + chain );
             return true;
         }
 

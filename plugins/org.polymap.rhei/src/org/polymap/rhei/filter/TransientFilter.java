@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.project.ILayer;
 
 /**
- * Simple filter without UI. 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
@@ -37,18 +37,18 @@ public class TransientFilter
     private String                  id;
 
     private ILayer                  layer;
-    
-    private String                  label;
-    
-    private Set<String>             keywords;
-    
-    private Filter                  filter;
-    
-    private long                    maxResults;
 
-    
+    private String                  label;
+
+    private Set<String>             keywords;
+
+    private Filter                  filter;
+
+    private int                     maxResults;
+
+
     public TransientFilter( String id, ILayer layer, String label, Set<String> keywords, Filter filter,
-            long maxResults ) {
+            int maxResults ) {
         this.id = id;
         this.layer = layer;
         this.label = label;
@@ -81,7 +81,7 @@ public class TransientFilter
         throw new RuntimeException( "not implemented." );
     }
 
-    public long getMaxResults() {
+    public int getMaxResults() {
         return maxResults;
     }
 

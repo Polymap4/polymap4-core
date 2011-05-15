@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright 2010, Falko Bräutigam, and other contributors as indicated
  * by the @authors tag.
@@ -27,7 +27,7 @@ import org.polymap.rhei.field.IFormFieldValidator;
 import org.polymap.rhei.field.NullValidator;
 
 /**
- * 
+ *
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @version ($Revision$)
@@ -35,6 +35,8 @@ import org.polymap.rhei.field.NullValidator;
 public interface IFormEditorPageSite {
 
     public void setFormTitle( String string );
+
+    public void setActivePage( String pageId );
 
     public Composite getPageBody();
 
@@ -49,7 +51,7 @@ public interface IFormEditorPageSite {
      * @param label
      */
     public Composite newFormField( Composite parent, Property prop, IFormField field, IFormFieldValidator validator, String label );
-    
+
     /**
      *
      * @param parent
@@ -60,7 +62,7 @@ public interface IFormEditorPageSite {
     public Composite newFormField( Composite parent, Property prop, IFormField field, IFormFieldValidator validator );
 
     public void addFieldListener( IFormFieldListener listener );
-    
+
     public void removeFieldListener( IFormFieldListener listener );
 
     /**
@@ -69,12 +71,12 @@ public interface IFormEditorPageSite {
      * @param eventCode One of the constants in {@link IFormFieldListener}.
      * @param newValue
      */
-    public void fireEvent( Object source, String fieldName, int eventCode, Object newValue ); 
+    public void fireEvent( Object source, String fieldName, int eventCode, Object newValue );
 
     public void setFieldValue( String fieldName, Object value );
 
     public void setFieldEnabled( String fieldName, boolean enabled );
-    
+
     /**
      * Reload all field from the backend.
      */
