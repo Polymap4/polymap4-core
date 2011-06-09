@@ -27,6 +27,7 @@ Export-Package: org.polymap.core,
  org.polymap.core.http;uses:="javax.servlet.http",
  org.polymap.core.operation,
  org.polymap.core.runtime,
+ org.polymap.core.runtime.mp,
  org.polymap.core.security,
  org.polymap.core.workbench
 Bundle-ClassPath: .
