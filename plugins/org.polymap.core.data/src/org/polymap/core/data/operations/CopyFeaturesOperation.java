@@ -312,9 +312,9 @@ public class CopyFeaturesOperation
             // check CRSs
             if (!CRS.equalsIgnoreMetadata( schema.getCoordinateReferenceSystem(),
                     sourceSchema.getCoordinateReferenceSystem() )) {
-                setErrorMessage( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorCrs",
+                setMessage( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorCrs",
                         CRS.toSRS( schema.getCoordinateReferenceSystem() ),
-                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ) );
+                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ), DialogPage.WARNING );
             }
 
             // geometry attribute

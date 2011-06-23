@@ -2317,7 +2317,6 @@ Bundle-ClassPath: .,
  lib/log4j-1.2.12.jar,
  lib/miglayout-3.7-swing.jar,
  lib/miglayout-3.7.jar,
- lib/mysql-connector-java-5.1.5.jar,
  lib/net.opengis.ows-2.6.4.jar,
  lib/net.opengis.wfs-2.6.4.jar,
  lib/net.opengis.wps-2.6.4.jar,
@@ -2347,6 +2346,7 @@ Bundle-ClassPath: .,
  lib/ant-1.8.1.jar,
  resource/gt-geojson-2.7.x.jar,
  resource/json_simple-1.1.jar,
- resource/json-lib-2.2.3-jdk15.jar
+ resource/json-lib-2.2.3-jdk15.jar,
+ lib/mysql-connector-java-5.1.5.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"

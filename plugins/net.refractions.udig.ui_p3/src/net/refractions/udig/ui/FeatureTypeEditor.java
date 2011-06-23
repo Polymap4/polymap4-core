@@ -94,7 +94,8 @@ import com.vividsolutions.jts.geom.Polygon;
  */
 public class FeatureTypeEditor {
 
-    private static final int MAX_ATTRIBUTE_LENGTH = 10485759;  //Maximum allows by postgis and is "big enough" 
+    // _p3: use default because MySQL
+    //private static final int MAX_ATTRIBUTE_LENGTH = 65535;  //Maximum allows by postgis and is "big enough" 
     /**
      * The index of the name column in the viewer.
      */
@@ -364,7 +365,9 @@ public class FeatureTypeEditor {
         builder = new SimpleFeatureTypeBuilder();
         builder.setName(Messages.FeatureTypeEditor_newFeatureTypeName); 
         builder.setCRS(getDefaultCRS());
-        builder.length(MAX_ATTRIBUTE_LENGTH).add(Messages.FeatureTypeEditor_defaultNameAttributeName, String.class); 
+        // _p3: MySQL does allow row with 65535 only
+        //builder.length(MAX_ATTRIBUTE_LENGTH);
+        builder.add(Messages.FeatureTypeEditor_defaultNameAttributeName, String.class); 
         builder.add(Messages.FeatureTypeEditor_defaultGeometryName, LineString.class); 
         return builder.buildFeatureType();
     }

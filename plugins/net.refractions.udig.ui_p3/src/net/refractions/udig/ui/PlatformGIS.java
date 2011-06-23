@@ -18,8 +18,6 @@ package net.refractions.udig.ui;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
@@ -52,7 +50,6 @@ import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.ui.PlatformUI;
 import org.geotools.brewer.color.ColorBrewer;
-import org.jfree.util.Log;
 
 /**
  * A facade into udig to simplify operations relating to performing platform operations.
@@ -414,7 +411,7 @@ public class PlatformGIS
             
             int maxLoops = 100, loopCount = 0;
             while (!done.get() && !Thread.interrupted() && loopCount++ < maxLoops) {
-                System.out.println( "PlatformGIS: waiting..." );
+                //System.out.println( "PlatformGIS: waiting..." );
                 synchronized (mutex) {
                     try {
                         mutex.wait( 200 );

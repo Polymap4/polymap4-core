@@ -75,7 +75,7 @@ public class DataSourceProcessor
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
-    public static final int                 DEFAULT_CHUNK_SIZE = 200;
+    public static final int                 DEFAULT_CHUNK_SIZE = 1000;
 
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
@@ -270,7 +270,7 @@ public class DataSourceProcessor
             // di this; here I know the proper target schema and iterating over features
             // is done anyway
             if (!feature.getType().equals( schema )) {
-                log.warn( "addFeatures(): FeatureType does not match: " + feature.getType() );
+                log.debug( "addFeatures(): FeatureType does not match: " + feature.getType() );
                 SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
 
                 for (Property prop : feature.getProperties()) {

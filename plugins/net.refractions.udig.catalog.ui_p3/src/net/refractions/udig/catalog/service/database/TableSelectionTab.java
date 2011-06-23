@@ -344,7 +344,8 @@ public class TableSelectionTab implements Tab {
                             .matches();
                     boolean nameMatch = filter.matcher(table.name.toLowerCase()).matches();
                     boolean sridMatch = filter.matcher(table.srid.toLowerCase()).matches();
-                    boolean schemaMatch = filter.matcher(table.schema.toLowerCase()).matches();
+                    // XXX _p3: MySQL does not seem to have a schema?
+                    boolean schemaMatch = table.schema != null ? filter.matcher(table.schema.toLowerCase()).matches() : true;
 
                     if (geometryTypeMatch || nameMatch || sridMatch || schemaMatch) {
                         filtered.add(table);
