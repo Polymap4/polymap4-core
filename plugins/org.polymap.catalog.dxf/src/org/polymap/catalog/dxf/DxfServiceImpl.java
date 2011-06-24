@@ -92,31 +92,6 @@ public class DxfServiceImpl
             t.printStackTrace();
         }
         this.params = params;
-// XXX
-//        Serializable memorymapped = params.get( "memory mapped buffer" ); //$NON-NLS-1$
-//        if (memorymapped == null) {
-//            memorymapped = false;
-//            try {
-//                File file = URLUtils.urlToFile( url );
-//                final int maxsize = 1024 * 2048;
-//                if (file.length() > maxsize) {
-//                    memorymapped = false;
-//                }
-//            }
-//            catch (Exception e) {
-//                memorymapped = false;
-//            }
-//        }
-//        if (!params.containsKey( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key )) {
-//            params.put( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, ShpPlugin.getDefault()
-//                    .isUseSpatialIndex() );
-//        }
-//        if (!params.containsKey( ShapefileDataStoreFactory.DBFCHARSET.key )) {
-//            params.put( ShapefileDataStoreFactory.DBFCHARSET.key, "ISO-8859-1" );
-//            // _p3: we rely on fix ISO setting, since the preference setting is not
-//            // yet available in p3
-//            // ShpPlugin.getDefault().defaultCharset());
-//        }
     }
 
 
@@ -263,25 +238,6 @@ public class DxfServiceImpl
         }
     }
 
-
-// XXX
-//    private void index( final ShapefileDataStore ds, final String typename ) {
-//        FeatureReader<SimpleFeatureType, SimpleFeature> reader = null;
-//        try {
-//            // smack Datastore to generate indices
-//            reader = ds.getFeatureReader(new DefaultQuery(typename, Filter.INCLUDE,
-//                    new String[0]), Transaction.AUTO_COMMIT);
-//        } catch (Exception e) {
-//            ShpPlugin.log("", e); //$NON-NLS-1$
-//        } finally {
-//            if (reader != null)
-//                try {
-//                    reader.close();
-//                } catch (IOException e) {
-//                    ShpPlugin.log("", e); //$NON-NLS-1$
-//                }
-//        }    
-//    }
 
     public Status getStatus() {
         return msg != null ? Status.BROKEN : ds == null ? Status.NOTCONNECTED : Status.CONNECTED;

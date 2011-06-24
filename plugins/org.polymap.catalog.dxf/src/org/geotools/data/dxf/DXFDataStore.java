@@ -98,7 +98,7 @@ public class DXFDataStore extends AbstractFileDataStore {
             log.warn("Typename is null, probably because of using getFeatureSource().\n" +
                     "\tPlease use getFeatureSource(typename)");
             // FIXME: falko: ...
-            typeName = strippedFileName + GeometryType.POLYGON.getExtension();
+            typeName = strippedFileName + GeometryType.ALL.getExtension();
         }
         return getSchema(typeName);
     }

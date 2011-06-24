@@ -42,10 +42,6 @@ public class DxfServiceExtension
         extends AbstractDataStoreServiceExtension 
         implements ServiceExtension {
 
-	// this is for backwards compatibility with 1.1.x.  The parameter key was 
-	// changed in geotools since 2.2
-//    private static final String                 OLD_URLP_KEY = "shapefile url"; //$NON-NLS-1$
-    
     private static DXFDataStoreFactory      dxfDSFactory;
 
     
@@ -58,10 +54,6 @@ public class DxfServiceExtension
     
 	
     public IService createService( URL id, Map<String,Serializable> params ) {
-//        if (params.containsKey( OLD_URLP_KEY )) {
-//            params.put( ShapefileDataStoreFactory.URLP.key, params.get( OLD_URLP_KEY ) );
-//            params.remove( OLD_URLP_KEY );
-//        }
         if (params.containsKey( DXFDataStoreFactory.PARAM_URL.key )) {
             URL url = null;
             if (params.get( DXFDataStoreFactory.PARAM_URL.key ) instanceof URL) {
@@ -81,8 +73,7 @@ public class DxfServiceExtension
             }
             String file = url.getFile();
             file = file.toLowerCase();
-            if (!(file.endsWith( ".dxf" ) || file.endsWith( ".shx" ) || file.endsWith( ".qix" ) //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-                    || file.endsWith( ".dbf" ))) {
+            if (!(file.endsWith( ".dxf" ) || file.endsWith( ".dwg" ))) {
                 return null;
             }
             if (id == null) {
@@ -115,7 +106,7 @@ public class DxfServiceExtension
 
     private boolean isSupportedExtension( URL url ) {
         String file = url.getFile();
-        return file.toLowerCase().endsWith( ".dxf" );
+        return file.toLowerCase().endsWith( ".dxf" ) || file.toLowerCase().endsWith( ".dwg" );
     }
 
 

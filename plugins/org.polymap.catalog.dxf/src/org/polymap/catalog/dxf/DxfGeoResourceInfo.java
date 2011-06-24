@@ -78,7 +78,7 @@ class DxfGeoResourceInfo
             bounds = new ReferencedEnvelope( new Envelope(), getCRS() );
         }
 
-        keywords = new String[] { ".shp", "Shapefile", //$NON-NLS-1$ //$NON-NLS-2$
+        keywords = new String[] { ".dxf", "DXF", //$NON-NLS-1$ //$NON-NLS-2$
                 featureType.getName().getLocalPart(), featureType.getName().getNamespaceURI() };
 
         title = featureType.getName().getLocalPart();
