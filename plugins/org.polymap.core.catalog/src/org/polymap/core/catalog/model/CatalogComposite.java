@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.catalog.qi4j;
+package org.polymap.core.catalog.model;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -40,7 +40,6 @@ import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ITransientResolve;
 import net.refractions.udig.catalog.URLUtils;
 import net.refractions.udig.catalog.IResolve.Status;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -55,9 +54,7 @@ import org.qi4j.api.mixin.Mixins;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
-import org.polymap.core.catalog.CatalogRepository;
 import org.polymap.core.catalog.Messages;
-import org.polymap.core.model.Entity;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.qi4j.QiEntity;
@@ -331,12 +328,21 @@ public interface CatalogComposite
 
         public void replace( ID id, IService replacement )
                 throws UnsupportedOperationException {
-            throw new UnsupportedOperationException( "Diese Funktion ist im POLYMAP-Katalog noch nicht enthalten.");
+            throw new UnsupportedOperationException( "Should never been called. See CatalogImpl.");
             
 //            if (replacement == null || replacement.getIdentifier() == null || id == null) {
 //                throw new NullPointerException( "Cannot have a null id" ); //$NON-NLS-1$
 //            }
-//            final IService service = getServiceById( id );
+//            
+//            // find service
+//            final IService service = null;
+//            for (IService candidate : persistentAndTransientServices()) {
+//                if (candidate.getID().equals( id )) {
+//                    service = candidate;
+//                    break;
+//                }
+//            }
+//
 //            List<IResolveDelta> changes = new ArrayList<IResolveDelta>();
 //            List<IResolveDelta> childChanges = new ArrayList<IResolveDelta>();
 //            try {
@@ -349,8 +355,7 @@ public interface CatalogComposite
 //                        for (IGeoResource child : newChildren) {
 //                            String name = child.getIdentifier().toString();
 //                            if (oldName.equals( name )) {
-//                                childChanges.add( new ResolveDelta( child, oldChild,
-//                                        IResolveDelta.NO_CHILDREN ) );
+//                                childChanges.add( new ResolveDelta( child, oldChild, IResolveDelta.NO_CHILDREN ) );
 //                                break;
 //                            }
 //                        }
@@ -366,30 +371,30 @@ public interface CatalogComposite
 //                    IResolveChangeEvent.Type.PRE_DELETE, deltas );
 //            fire( event );
 //
-//            services.remove(service);
+//            remove( service );
 //            
-//            PlatformGIS.run( new IRunnableWithProgress() {
+//            PlatformJobs.run( new IRunnableWithProgress() {
 //                public void run( IProgressMonitor monitor )
-//                        throws InvocationTargetException, InterruptedException {
+//                throws InvocationTargetException, InterruptedException {
 //                    try {
 //                        service.dispose( monitor );
 //                    }
 //                    catch (Throwable e) {
-//                        log( "error disposing of: " + service.getIdentifier(), e ); //$NON-NLS-1$
+//                        log.error( "Error disposing of: " + service.getIdentifier(), e ); //$NON-NLS-1$
 //                    }
 //                }
 //            });
 //            
-//            services.add(replacement);
-//            event = new ResolveChangeEvent(this,
-//                    IResolveChangeEvent.Type.POST_CHANGE, deltas);
+//            add( replacement );
+//            event = new ResolveChangeEvent( this, IResolveChangeEvent.Type.POST_CHANGE, deltas );
 //            
-//            if( !id.equals( replacement.getIdentifier())){
-//                // the service has actually moved
-//                IService moved = new MovedService( id, replacement.getID() );
-//                services.add( moved );
+//            if (!id.equals( replacement.getIdentifier() )) {
+//                throw new RuntimeException( "Service has moved: not supported yet." );
+////                // the service has actually moved
+////                IService moved = new MovedService( id, replacement.getID() );
+////                services.add( moved );
 //            }
-//            fire(event);
+//            fire( event );
         }
 
         

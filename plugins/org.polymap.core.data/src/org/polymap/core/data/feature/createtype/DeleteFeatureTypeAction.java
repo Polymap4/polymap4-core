@@ -13,10 +13,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.operations;
+package org.polymap.core.data.feature.createtype;
+
+import org.geotools.data.DataStore;
 
 import net.refractions.udig.catalog.IGeoResource;
-import org.geotools.data.FeatureSource;
+import net.refractions.udig.catalog.IResolve;
+import net.refractions.udig.catalog.IService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,27 +35,34 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.actions.ActionDelegate;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- *
- *
+ * Provides a popup menu for {@link IResolve}/{@link IService} entries triggering a
+ * {@link CreateFeatureTypeOperation}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class CopyFeaturesAction
+public class DeleteFeatureTypeAction
         extends ActionDelegate
         implements IObjectActionDelegate {
 
-    private static Log log = LogFactory.getLog( CopyFeaturesAction.class );
+    private static Log log = LogFactory.getLog( DeleteFeatureTypeAction.class );
 
-    private IGeoResource        geores;
+    private IGeoResource            geores;
 
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            CopyFeaturesOperation op = new CopyFeaturesOperation( geores );
+            DeleteFeatureTypeOperation op = new DeleteFeatureTypeOperation( geores );
             OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
@@ -67,27 +77,25 @@ public class CopyFeaturesAction
 
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
-            if (elm != null
-                    && elm instanceof IGeoResource
-                    && ((IGeoResource)elm).canResolve( FeatureSource.class )) {
-                geores = (IGeoResource)elm;
-                action.setEnabled( true );
-            }
+            if (elm instanceof IGeoResource) {
+                try {
+                    geores = (IGeoResource)elm;
+                    IService service = geores.service( new NullProgressMonitor() );
+                    action.setEnabled( service.canResolve( DataStore.class ) );
 
-//            // check ACL permission
-//            if (geores != null) {
-//                try {
-//                    IService service = geores.service( new NullProgressMonitor() );
-//                    ACL acl = (ACL)service.getAdapter( ACL.class );
-//                    if (acl != null) {
-//                        action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
-//                    }
-//                }
-//                catch (Exception e) {
-//                    log.warn( "" );
-//                    log.debug( "", e );
-//                }
-//            }
+                    // check ACL permission
+                    if (service != null && service instanceof IAdaptable) {
+                        ACL acl = (ACL)((IAdaptable)service).getAdapter( ACL.class );
+                        if (acl != null) {
+                            action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    log.warn( "" );
+                    log.debug( "", e );
+                }
+            }
         }
     }
 

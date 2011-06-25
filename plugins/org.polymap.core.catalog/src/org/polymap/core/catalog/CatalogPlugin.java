@@ -29,6 +29,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import org.polymap.core.catalog.model.CatalogRepository;
+
 /**
  * 
  *

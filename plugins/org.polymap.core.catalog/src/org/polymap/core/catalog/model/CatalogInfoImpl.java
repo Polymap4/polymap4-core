@@ -14,7 +14,7 @@
  *    Lesser General Public License for more details.
  *
  */
-package org.polymap.core.catalog.qi4j;
+package org.polymap.core.catalog.model;
 
 import java.net.URL;
 

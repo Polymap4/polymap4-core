@@ -301,15 +301,20 @@
    <extension
          point="org.eclipse.ui.importWizards">
       <wizard
+            category="net.refractions.udig.catalog.ui_p3.dataImportCategory"
             class="net.refractions.udig.catalog.internal.ui.CatalogImport$CatalogImportAdapter"
             icon="icons/obj16/repository_obj.gif"
             id="net.refractions.udig.catalog.ui.dataImportWizard"
             name="%dataImportWizard.name">
          <description>Import from a data source.</description>
       </wizard>
+      <category
+            id="net.refractions.udig.catalog.ui_p3.dataImportCategory"
+            name="%dataImportCategory.name">
+      </category>
    </extension>
 
- 	<extension
+ 	<!--extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             adaptable="true"
@@ -322,7 +327,7 @@
                menubarPath="additions"
                tooltip="%resetService.tooltip"/>
       </objectContribution>         
-   </extension>
+   </extension-->
   <extension
         point="net.refractions.udig.ui.dropAction">
         <action
@@ -344,7 +349,7 @@
   <extension
         id="net.refractions.udig.catalog.operations"
         point="net.refractions.udig.ui.operation">
-     <operation
+     <!--operation
            categoryId="net.refractions.udig.ui.edit"
            class="net.refractions.udig.catalog.internal.ui.ops.NewFeatureTypeOp"
            enablesFor="1"
@@ -355,7 +360,7 @@
         <enablement>
            <adaptsTo target="org.geotools.data.DataStore"/>
         </enablement>
-     </operation>
+     </operation-->
      <category
            context="Service"
            id="net.refractions.udig.catalog.ui.operation.serviceCategory"
@@ -365,7 +370,7 @@
         </menuContribution>
      </category>
 
-     <operation
+     <!--operation
            categoryId="net.refractions.udig.catalog.ui.operation.serviceCategory"
            class="net.refractions.udig.catalog.internal.ui.ops.NewFeatureTypeOp"
            enablesFor="1"
@@ -375,7 +380,7 @@
         <enablement>
            <adaptsTo target="org.geotools.data.DataStore"/>
         </enablement>
-     </operation>
+     </operation-->
        <operation
              categoryId="net.refractions.udig.catalog.ui.operation.resourceCategory"
              class="net.refractions.udig.catalog.ui.operation.ReshapeOperation"

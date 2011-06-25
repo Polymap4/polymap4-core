@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.catalog;
+package org.polymap.core.catalog.model;
 
 import java.io.File;
 
@@ -32,18 +32,15 @@ import org.qi4j.api.unitofwork.UnitOfWorkFactory;
 import org.qi4j.bootstrap.ApplicationAssembly;
 import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
-import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.catalog.qi4j.CatalogComposite;
-import org.polymap.core.catalog.qi4j.ServiceComposite;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreService;
+import org.polymap.core.qi4j.idgen.HRIdentityGeneratorService;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.security.Authentication;
 
@@ -107,14 +104,9 @@ public class CatalogRepositoryAssembler
 
         domainModule.addServices( JsonEntityStoreService.class )
                 .setMetaInfo( new JsonEntityStoreInfo( moduleRoot ) )
-                .instantiateOnStartup()
-                ;  //.identifiedBy( "rdf-repository" );
+                .instantiateOnStartup();
         
-        domainModule.addServices( UuidIdentityGeneratorService.class );
-
-        // indexer
-//        RdfNativeSesameStoreAssembler rdf = new RdfNativeSesameStoreAssembler();
-//        rdf.assemble( domainModule );
+        domainModule.addServices( HRIdentityGeneratorService.class );
     }                
 
     

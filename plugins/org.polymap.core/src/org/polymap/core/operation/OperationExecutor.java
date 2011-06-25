@@ -18,6 +18,7 @@ package org.polymap.core.operation;
 import java.util.List;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -82,8 +83,13 @@ public class OperationExecutor
     
     public synchronized Object invoke( Object proxy, Method method, Object[] args )
     throws Throwable {
-        concernIndex = 0;
-        return method.invoke( next(), args );
+        try {
+            concernIndex = 0;
+            return method.invoke( next(), args );
+        }
+        catch (InvocationTargetException e) {
+            throw e.getTargetException();
+        }
     }
 
     

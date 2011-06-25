@@ -20,16 +20,16 @@
  *
  * $Id$
  */
-package org.polymap.core.catalog.qi4j;
+package org.polymap.core.catalog.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.security.Principal;
-
-import com.vividsolutions.jts.geom.Envelope;
 
 import net.refractions.udig.catalog.ICatalog;
 import net.refractions.udig.catalog.ICatalogInfo;
@@ -42,6 +42,14 @@ import net.refractions.udig.catalog.IResolveDelta;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.internal.ResolveChangeEvent;
 import net.refractions.udig.catalog.internal.ResolveDelta;
+import net.refractions.udig.ui.PlatformJobs;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Envelope;
+
+import org.eclipse.jface.operation.IRunnableWithProgress;
 
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.ui.model.WorkbenchAdapter;
@@ -49,10 +57,10 @@ import org.eclipse.ui.model.WorkbenchAdapter;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.catalog.CatalogPlugin;
-import org.polymap.core.catalog.CatalogRepository;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.runtime.Polymap;
@@ -71,6 +79,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
 public class CatalogImpl
         extends ICatalog
         implements ACL, IAdaptable {
+
+    private static Log log = LogFactory.getLog( CatalogImpl.class );
 
     private CatalogComposite        delegate;
     
@@ -186,7 +196,64 @@ public class CatalogImpl
 
     public void replace( ID id, IService replacement )
             throws UnsupportedOperationException {
-        delegate.replace( id, replacement );
+        // find service
+        final IService service = getById( IService.class, id, new NullProgressMonitor() );
+
+        List<IResolveDelta> changes = new ArrayList<IResolveDelta>();
+        List<IResolveDelta> childChanges = new ArrayList<IResolveDelta>();
+        try {
+            List<? extends IGeoResource> newChildren = replacement.resources( null );
+            List<? extends IGeoResource> oldChildren = service.resources( null );
+            if (oldChildren != null)
+                for (IGeoResource oldChild : oldChildren) {
+                    String oldName = oldChild.getIdentifier().toString();
+
+                    for (IGeoResource child : newChildren) {
+                        String name = child.getIdentifier().toString();
+                        if (oldName.equals( name )) {
+                            childChanges.add( new ResolveDelta( child, oldChild, IResolveDelta.NO_CHILDREN ) );
+                            break;
+                        }
+                    }
+                }
+        }
+        catch (IOException ignore) {
+            // no children? Not a very good entry ..
+        }
+        changes.add( new ResolveDelta( service, replacement, childChanges ) );
+
+        IResolveDelta deltas = new ResolveDelta( this, changes );
+        IResolveChangeEvent event = new ResolveChangeEvent( this,
+                IResolveChangeEvent.Type.PRE_DELETE, deltas );
+        fire( event );
+
+        // remove
+        remove( service );
+
+        PlatformJobs.run( new IRunnableWithProgress() {
+            public void run( IProgressMonitor monitor )
+            throws InvocationTargetException, InterruptedException {
+                try {
+                    service.dispose( monitor );
+                }
+                catch (Throwable e) {
+                    log.error( "Error disposing of: " + service.getIdentifier(), e ); //$NON-NLS-1$
+                }
+            }
+        });
+
+        // add
+        add( replacement );
+        event = new ResolveChangeEvent( this, IResolveChangeEvent.Type.POST_CHANGE, deltas );
+
+        if (!id.equals( replacement.getIdentifier() )) {
+            log.warn( "Service moved!? id=" + id + ", replacement=" + replacement.getIdentifier() );
+            //throw new RuntimeException( "Service has moved: not supported yet." );
+            //      // the service has actually moved
+            //      IService moved = new MovedService( id, replacement.getID() );
+            //      services.add( moved );
+        }
+        fire( event );
     }
 
 

@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.ui.featureTypeEditor;
+package org.polymap.core.data.ui.featuretypeeditor;
 
 import java.util.ArrayList;
 import java.util.List;

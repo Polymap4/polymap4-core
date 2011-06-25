@@ -38,14 +38,13 @@ import org.eclipse.ui.actions.ActionDelegate;
 import org.eclipse.ui.internal.dialogs.PropertyDialog;
 import org.eclipse.ui.internal.dialogs.PropertyPageContributorManager;
 
-import org.polymap.core.catalog.qi4j.CatalogImpl;
+import org.polymap.core.catalog.model.CatalogImpl;
 import org.polymap.core.model.security.ACL;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @SuppressWarnings("restriction")

@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.catalog.qi4j;
+package org.polymap.core.catalog.model;
 
 import java.util.List;
 import java.util.Map;

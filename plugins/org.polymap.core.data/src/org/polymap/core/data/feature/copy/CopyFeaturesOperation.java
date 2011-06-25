@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.operations;
+package org.polymap.core.data.feature.copy;
 
 import java.util.Properties;
 
@@ -59,10 +59,11 @@ import org.polymap.core.data.feature.typeeditor.AttributeMapping;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeMapping;
+import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineProcessor;
-import org.polymap.core.data.ui.featureTypeEditor.FeatureTypeEditor;
-import org.polymap.core.data.ui.featureTypeEditor.ValueViewerColumn;
+import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
+import org.polymap.core.data.ui.featuretypeeditor.ValueViewerColumn;
 import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;

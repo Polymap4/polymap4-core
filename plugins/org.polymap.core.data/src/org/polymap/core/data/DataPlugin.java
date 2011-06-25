@@ -25,6 +25,11 @@ package org.polymap.core.data;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import org.eclipse.swt.graphics.Image;
+
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+
 /**
  * 
  *
@@ -65,6 +70,17 @@ public class DataPlugin
 
     public static DataPlugin getDefault() {
         return plugin;
+    }
+
+
+    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( key );
+        if (image == null || image.isDisposed()) {
+            images.put( key, imageDescriptor );
+            image = images.get( key );
+        }
+        return image;
     }
 
 }

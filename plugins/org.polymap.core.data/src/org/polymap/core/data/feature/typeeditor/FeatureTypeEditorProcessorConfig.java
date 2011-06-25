@@ -63,10 +63,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.pipeline.ProcessorExtension.ProcessorPropertyPage;
-import org.polymap.core.data.ui.featureTypeEditor.CreateAttributeAction;
-import org.polymap.core.data.ui.featureTypeEditor.DeleteAttributeAction;
-import org.polymap.core.data.ui.featureTypeEditor.FeatureTypeEditor;
-import org.polymap.core.data.ui.featureTypeEditor.ValueViewerColumn;
+import org.polymap.core.data.ui.featuretypeeditor.CreateAttributeAction;
+import org.polymap.core.data.ui.featuretypeeditor.DeleteAttributeAction;
+import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
+import org.polymap.core.data.ui.featuretypeeditor.ValueViewerColumn;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.workbench.PolymapWorkbench;

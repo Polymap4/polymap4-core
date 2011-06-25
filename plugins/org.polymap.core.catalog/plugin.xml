@@ -4,14 +4,14 @@
    <extension
          point="net.refractions.udig.catalog.ICatalog">
       <catalog
-            class="org.polymap.core.catalog.qi4j.CatalogImpl">
+            class="org.polymap.core.catalog.model.CatalogImpl">
       </catalog>
    </extension>
    <extension
          id="org.polymap.core.catalog.qi4j.assambler"
          point="org.polymap.core.qi4j.moduleAssemblers">
       <assembler
-            class="org.polymap.core.catalog.CatalogRepositoryAssembler">
+            class="org.polymap.core.catalog.model.CatalogRepositoryAssembler">
       </assembler>
    </extension>
    <extension
@@ -39,13 +39,21 @@
                menubarPath="properties"
                tooltip="%actions_serviceProperties">
          </action>
+         <action
+               class="org.polymap.core.catalog.actions.ResetServiceAction"
+               enablesFor="+"
+               icon="icons/etool16/refresh_service.gif"
+               id="org.polymap.core.catalog.resetServiceAction"
+               label="%actions_resetService"
+               tooltip="%actions_resetServiceTip">
+         </action>
       </objectContribution>
    </extension>
    <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
             adaptableType="net.refractions.udig.catalog.IService"
-            class="org.polymap.core.catalog.qi4j.ServiceAdapterFactory">
+            class="org.polymap.core.catalog.model.ServiceAdapterFactory">
          <adapter
                type="org.polymap.core.model.security.ACL">
          </adapter>

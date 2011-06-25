@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.catalog;
+package org.polymap.core.catalog.model;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +29,6 @@ import net.refractions.udig.catalog.CatalogPlugin;
 
 import org.eclipse.rwt.internal.service.ContextProvider;
 
-import org.polymap.core.catalog.qi4j.CatalogComposite;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;

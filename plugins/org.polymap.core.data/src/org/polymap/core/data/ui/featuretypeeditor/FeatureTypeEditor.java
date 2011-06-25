@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.ui.featureTypeEditor;
+package org.polymap.core.data.ui.featuretypeeditor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -402,10 +402,8 @@ public class FeatureTypeEditor {
      * @return the FeatureTypeBuilder that is used for editing the feature type.
      */
     public SimpleFeatureTypeBuilder getFeatureTypeBuilder() {
-        if( viewer==null )
-            return null;
-
-        return builderFromFeatureType((SimpleFeatureType) viewer.getInput());
+        return viewer != null
+            ?  builderFromFeatureType((SimpleFeatureType) viewer.getInput()) : null;
     }
 
     /**

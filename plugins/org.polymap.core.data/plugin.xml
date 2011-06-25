@@ -68,7 +68,7 @@
                tooltip="%actions_showFeatureTable_tip">
          </action>
          <action
-               class="org.polymap.core.data.operations.CopyLayerFeaturesAction"
+               class="org.polymap.core.data.feature.copy.CopyLayerFeaturesAction"
                enablesFor="1"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyLayerFeaturesAction"
@@ -81,12 +81,33 @@
             id="org.polymap.core.data.georesContribution"
             objectClass="net.refractions.udig.catalog.IGeoResource">
          <action
-               class="org.polymap.core.data.operations.CopyFeaturesAction"
+               class="org.polymap.core.data.feature.copy.CopyFeaturesAction"
                enablesFor="1"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyFeaturesAction"
                label="%actions_copyFeatures"
                style="push">
+         </action>
+         <action
+               class="org.polymap.core.data.feature.createtype.DeleteFeatureTypeAction"
+               icon="icons/etool16/delete.gif"
+               id="org.polymap.core.data.DeleteFeatureTypeAction"
+               label="%actions_deleteFeatureType"
+               tooltip="%actions_deleteFeatureTypeTip">
+         </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="org.polymap.core.data.resolveContribution"
+            objectClass="net.refractions.udig.catalog.IResolve">
+         <action
+               class="org.polymap.core.data.feature.createtype.CreateFeatureTypeAction"
+               enablesFor="1"
+               icon="icons/etool16/add_featuretype.gif"
+               id="org.polymap.core.data.CreateFeatureTypeAction"
+               label="%actions_createFeatureType"
+               style="push"
+               tooltip="%actions_createFeatureTypeTip">
          </action>
       </objectContribution>
    </extension>
@@ -160,7 +181,9 @@
    <extension
          point="org.eclipse.ui.importWizards">
       <wizard
+            category="net.refractions.udig.catalog.ui_p3.dataImportCategory"
             class="org.polymap.core.data.feature.mdb.MdbImportWizard"
+            icon="icons/obj16/msaccess_obj.gif"
             id="org.polymap.core.data.MdbImportWizard"
             name="MS-Access">
       </wizard>
@@ -171,7 +194,7 @@
             id="org.polymap.core.data.geoSelectionContribution"
             targetID="org.polymap.core.data.ui.featureTable.view">
          <action
-               class="org.polymap.core.data.operations.CopyGeoSelectionFeaturesAction"
+               class="org.polymap.core.data.feature.copy.CopyGeoSelectionFeaturesAction"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyGeoSelectionFeaturesAction"
                label="%actions_copyFeatures"

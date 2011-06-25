@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.ui.featureTypeEditor;
+package org.polymap.core.data.ui.featuretypeeditor;
 
 import java.util.Iterator;
 
@@ -54,7 +54,7 @@ public class DeleteAttributeAction
         super();
         this.fte = fte;
         
-        setId( "org.polymap.core.data.ui.featureTypeEditor.deleteAttributeAction" ); //$NON-NLS-1$
+        setId( "org.polymap.core.data.ui.featuretypeeditor.deleteAttributeAction" ); //$NON-NLS-1$
         setText( Messages.get( "DeleteAttributeAction_label" ) );
         setToolTipText( Messages.get( "DeleteAttributeAction_tip" ) );
         setImageDescriptor( Images.getDescriptor( "elcl16/delete.gif" ) ); //$NON-NLS-1$

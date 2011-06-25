@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.ui.featureTypeEditor;
+package org.polymap.core.data.ui.featuretypeeditor;
 
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -50,7 +50,7 @@ public class CreateAttributeAction
         super();
         this.fte = fte;
         
-        setId( "org.polymap.core.data.ui.featureTypeEditor.createAttributeAction" ); //$NON-NLS-1$
+        setId( "org.polymap.core.data.ui.featuretypeeditor.createAttributeAction" ); //$NON-NLS-1$
         setText( Messages.get( "CreateAttributeAction_label" ) );
         setToolTipText( Messages.get( "CreateAttributeAction_tip" ) );
         setImageDescriptor( Images.getDescriptor( "elcl16/new_attribute.gif" ) ); //$NON-NLS-1$
