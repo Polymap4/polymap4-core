@@ -168,7 +168,12 @@ public class CreateFeatureTypeOperation
                 }
 
                 List<IService> resets = new ArrayList<IService>();
-                resets.add( (IService)service );
+                if (service instanceof IService) {
+                    resets.add( (IService)service );                    
+                }
+                else if (service instanceof IResolveFolder) {
+                    resets.add( ((IResolveFolder)service).getService( monitor ) );                    
+                }
                 ResetServiceAction.reset( resets, new SubProgressMonitor( monitor, 2 ) );
             }
 
