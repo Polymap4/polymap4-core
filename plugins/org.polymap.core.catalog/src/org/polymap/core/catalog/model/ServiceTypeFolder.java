@@ -37,6 +37,7 @@ import net.refractions.udig.catalog.ID;
 import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IResolveFolder;
 import net.refractions.udig.catalog.IService;
+import net.refractions.udig.catalog.IServiceInfo;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 
@@ -74,6 +75,20 @@ class ServiceTypeFolder
     }
 
     public ImageDescriptor getIcon( IProgressMonitor monitor ) {
+        // XXX falko: give the folder the icon of the services; does not work;
+        // does not seem to be called anyway
+        if (!services.isEmpty()) {
+            IResolve service = services.get( 0 );
+            if (service instanceof IService) {
+                try {
+                    IServiceInfo info = ((IService)service).getInfo( monitor );
+                    return info.getImageDescriptor();
+                }
+                catch (IOException e) {
+                    return null;
+                }
+            }
+        }
         return null;
     }
 
@@ -104,8 +119,13 @@ class ServiceTypeFolder
         else if (StringUtils.containsIgnoreCase( typeName, "GeoTiff" )) {
             return "GeoTIFF";
         }
+        else if (StringUtils.containsIgnoreCase( typeName, "DXF" )) {
+            return "DXF";
+        }
         else {
-            return StringUtils.removeEnd( typeName, "Impl" );
+            String result = StringUtils.remove( typeName, "Impl" );
+            result = StringUtils.remove( result, "Service" );
+            return result;
         }
     }
 
