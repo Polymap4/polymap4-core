@@ -23,7 +23,6 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
-import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -37,7 +36,6 @@ import org.eclipse.ui.internal.navigator.ContributorTrackingSet;
 import org.eclipse.ui.internal.navigator.NavigatorContentService;
 //import org.eclipse.ui.internal.navigator.NavigatorDecoratingLabelProvider;
 import org.eclipse.ui.internal.navigator.NavigatorPipelineService;
-import org.eclipse.ui.internal.navigator.dnd.NavigatorDnDService;
 import org.eclipse.ui.internal.navigator.framelist.FrameList;
 
 /**
@@ -170,19 +168,20 @@ public class CommonViewer extends TreeViewer {
 	 * @see CommonDropAdapter
 	 */
 	protected void initDragAndDrop() {
-
-		int operations = DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK;
-
-		CommonDragAdapter dragAdapter = createDragAdapter();
-		addDragSupport(operations, dragAdapter.getSupportedDragTransfers(),
-				dragAdapter);
-		
-		CommonDropAdapter dropAdapter = createDropAdapter();
-		addDropSupport(operations, dropAdapter.getSupportedDropTransfers(),
-				dropAdapter);
-
-		NavigatorDnDService dnd = (NavigatorDnDService)contentService.getDnDService();
-		dnd.setDropAdaptor(dropAdapter);
+	    // XXX falko:
+        System.out.println( "XXX: normal Drag&Drop disabled for CommonViewer" );
+//		int operations = DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK;
+//
+//		CommonDragAdapter dragAdapter = createDragAdapter();
+//		addDragSupport(operations, dragAdapter.getSupportedDragTransfers(),
+//				dragAdapter);
+//		
+//		CommonDropAdapter dropAdapter = createDropAdapter();
+//		addDropSupport(operations, dropAdapter.getSupportedDropTransfers(),
+//				dropAdapter);
+//
+//		NavigatorDnDService dnd = (NavigatorDnDService)contentService.getDnDService();
+//		dnd.setDropAdaptor(dropAdapter);
 	}
 
 	

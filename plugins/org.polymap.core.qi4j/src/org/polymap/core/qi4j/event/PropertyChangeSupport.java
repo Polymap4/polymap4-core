@@ -39,6 +39,7 @@ import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.property.Property;
 import org.qi4j.runtime.entity.EntityInstance;
 
+import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.Qi4jPlugin;
@@ -56,8 +57,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
 public interface PropertyChangeSupport
         extends QiEntity {
     
-    static final Log log = LogFactory.getLog( PropertyChangeSupport.class );
-
     public static final String              PROP_ENTITY_CREATED = "_entity_created_";
     public static final String              PROP_ENTITY_REMOVED = "_entity_removed_";
     
@@ -74,8 +73,10 @@ public interface PropertyChangeSupport
     /**
      * 
      */
-    abstract class Mixin
+    abstract static class Mixin
             implements PropertyChangeSupport, Lifecycle {
+
+        private static final Log log = LogFactory.getLog( PropertyChangeSupport.class );
 
         @This
         protected PropertyChangeSupport                 composite;
@@ -115,7 +116,7 @@ public interface PropertyChangeSupport
         }
 
         public void fireEvent( QualifiedName name, Object newValue, Object oldValue ) {
-            PropertyChangeEvent ev = new PropertyChangeEvent( composite, name.name(), oldValue, newValue );
+            PropertyChangeEvent ev = new StoredPropertyChangeEvent( composite, name.name(), oldValue, newValue );
 
             if (globalListeners != null) {
                 for (PropertyChangeListener listener : globalListeners) {
@@ -145,8 +146,10 @@ public interface PropertyChangeSupport
     /**
      * 
      */
-    public class Concern
+    public static class Concern
             extends GenericConcern {
+
+        private static final Log log = LogFactory.getLog( PropertyChangeSupport.class );
 
         @This
         protected PropertyChangeSupport     composite;
@@ -159,7 +162,8 @@ public interface PropertyChangeSupport
             
             // check method annotations
             TransientProperty a2 = method.getAnnotation( TransientProperty.class );
-            if (a2 != null) {
+            ModelProperty a = method.getAnnotation( ModelProperty.class );
+            if (a2 != null || a != null) {
                 if (!Qi4jPlugin.isInitialized()) {
                     log.debug( "Qi4JPlugin still about to initialize. Skipping this modification." );
                 }
@@ -167,13 +171,14 @@ public interface PropertyChangeSupport
                     log.debug( "!!! No session when modifying entity !!!" );
                 }
                 else {
-                    composite.fireEvent( QualifiedName.fromClass( method.getDeclaringClass(), a2.value() ), args[0], null );
+                    String propName = a2 != null ? a2.value() : a.value();
+                    composite.fireEvent( QualifiedName.fromClass( method.getDeclaringClass(), propName ), args[0], null );
                 }
             }
             
             // using a reference to composite in wrapper does not work;
             // the proxy lost its InvocationHandler when set() is called
-            EntityInstance entityInstance = (EntityInstance)Proxy.getInvocationHandler( (Proxy)proxy );
+            EntityInstance entityInstance = (EntityInstance)Proxy.getInvocationHandler( proxy );
 
             // XXX creating a wrapper for every property method invocation may
             // create a lot of objects, should we cache them?
@@ -197,7 +202,7 @@ public interface PropertyChangeSupport
     /**
      * 
      */
-    static class PropertyWrapper
+    static final class PropertyWrapper
             implements Property {
         
         private Property                delegate;
@@ -254,7 +259,7 @@ public interface PropertyChangeSupport
     /**
      * 
      */
-    static class AssociationWrapper
+    static final class AssociationWrapper
             implements Association {
         
         private Association             delegate;
@@ -304,7 +309,7 @@ public interface PropertyChangeSupport
     /**
      * 
      */
-    static class ManyAssociationWrapper
+    static final class ManyAssociationWrapper
             implements ManyAssociation {
         
         private ManyAssociation         delegate;

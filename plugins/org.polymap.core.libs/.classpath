@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/h2-1.1.104.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/mysql-connector-java-5.1.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="resource/gt-geojson-2.7.x.jar"/>
 	<classpathentry exported="true" kind="lib" path="resource/json_simple-1.1.jar"/>
@@ -41,7 +42,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-imagemosaic-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-db2-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-h2-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-h2-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-h2-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-mysql-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-mysql-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-oracle-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-postgis-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-postgis-2.6.4-sources.zip"/>
@@ -71,7 +72,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-ows-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wfs-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wps-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/h2-1.1.104.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/hatbox-1.0.b7.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/hsqldb-1.8.0.7.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-customstreams-1.0.5.jar"/>

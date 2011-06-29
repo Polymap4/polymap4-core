@@ -24,6 +24,7 @@ import org.qi4j.api.concern.GenericConcern;
 import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.injection.scope.This;
 
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,7 +34,9 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Add operation bounds to single entity methods, let them act as operations
@@ -85,7 +88,12 @@ public class MethodOperationBoundsConcern
                 }
             }
         };
-        OperationSupport.instance().execute( op, false, false );
+        try {
+            OperationSupport.instance().execute( op, false, false );
+        }
+        catch (ExecutionException e) {
+            PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, this, "Operation konnte nicht korrekt ausgeführt werden.", e );
+        }
 
         log.info( "    operation completed." );
         return op.methodResult;

@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.rhei.internal.filter;
+package org.polymap.rhei.navigator.filter;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.workbench.PolymapWorkbench;

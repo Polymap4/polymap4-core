@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
@@ -149,6 +150,11 @@ public class JsonEntityStoreMixin
             EntityStatus status = EntityStatus.LOADED;
 
             EntityDescriptor entityDescriptor = module.entityDescriptor( type );
+            if (entityDescriptor == null) {
+                log.warn( "Type not found: " + type + ". Trying 'qi4j' -> 'model'..." );
+                type = StringUtils.replace( type, "qi4j", "model" );
+                entityDescriptor = module.entityDescriptor( type );
+            }
             if (entityDescriptor == null) {
                 throw new EntityTypeNotFoundException( type );
             }

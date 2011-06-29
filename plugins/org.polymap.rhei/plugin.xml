@@ -8,6 +8,7 @@
       <view
             category="org.polymap.rhei.ViewsCategory"
             class="org.polymap.rhei.navigator.RheiNavigator"
+            icon="icons/eview16/navigator_view.gif"
             id="org.polymap.rhei.RheiNavigator"
             name="%NavigatorView_name"
             restorable="true">
@@ -77,9 +78,9 @@
          point="org.eclipse.rap.ui.navigator.navigatorContent">
       <navigatorContent
             activeByDefault="true"
-            contentProvider="org.polymap.rhei.navigator.LayerContentProvider"
+            contentProvider="org.polymap.rhei.navigator.layer.LayerContentProvider"
             id="org.polymap.rhei.navigator.layerContent"
-            labelProvider="org.polymap.rhei.navigator.LayerLabelProvider"
+            labelProvider="org.polymap.rhei.navigator.layer.LayerLabelProvider"
             name="%LayerContent_name"
             priority="highest">
          <triggerPoints>
@@ -92,13 +93,21 @@
                </instanceof>
             </or>
          </triggerPoints>
+         <dropAssistant
+               class="org.polymap.rhei.navigator.layer.LayerDropAdapterAssistant"
+               id="org.polymap.rhei.layerDropAssistant">
+            <possibleDropTargets>
+               <instanceof
+                     value="org.polymap.core.project.ILayer">
+               </instanceof></possibleDropTargets>
+         </dropAssistant>
       </navigatorContent>
       <navigatorContent
             activeByDefault="true"
-            contentProvider="org.polymap.rhei.internal.filter.FilterContentProvider"
+            contentProvider="org.polymap.rhei.navigator.filter.FilterContentProvider"
             icon="icons/etool16/search.gif"
             id="org.polymap.rhei.filter.FilterContent"
-            labelProvider="org.polymap.rhei.internal.filter.FilterLabelProvider"
+            labelProvider="org.polymap.rhei.navigator.filter.FilterLabelProvider"
             name="%FilterContent_name">
          <triggerPoints>
             <instanceof
@@ -107,7 +116,7 @@
          </triggerPoints>
       </navigatorContent>
       <actionProvider
-            class="org.polymap.rhei.internal.filter.FilterActionProvider"
+            class="org.polymap.rhei.navigator.filter.FilterActionProvider"
             id="org.polymap.rhei.filter.FilterActionProvider">
          <enablement>
             <or>
@@ -115,7 +124,7 @@
                      value="org.polymap.rhei.filter.IFilter">
                </instanceof>
                <instanceof
-                     value="org.polymap.rhei.internal.filter.FiltersFolderItem">
+                     value="org.polymap.rhei.navigator.filter.FiltersFolderItem">
                </instanceof>
             </or>
          </enablement>
@@ -155,12 +164,27 @@
                tooltip="%actions_openFormTip">
          </action>
       </viewContribution>
+      <viewContribution
+            id="org.polymap.rhei.TheiNavigatorContribution"
+            targetID="org.polymap.rhei.RheiNavigator">
+         <action
+               class="org.polymap.rhei.navigator.layer.LayerVisibleStatusAction"
+               enablesFor="+"
+               icon="icons/elcl16/eye.png"
+               id="org.polymap.rhei.action1"
+               label="%actions_layerVisibleStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_layerVisibleStatusTip">
+         </action>
+      </viewContribution>
    </extension>
    <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             adaptable="false"
-            id="org.polymap.rhei.layerContribution1"
+            id="org.polymap.rhei.layerContribution"
             objectClass="org.polymap.core.project.ILayer">
          <action
                class="org.polymap.rhei.internal.form.NewFormAction"
@@ -170,6 +194,16 @@
                label="%actions_newForm"
                style="push"
                tooltip="%actions_newFormTip">
+         </action>
+         <action
+               class="org.polymap.rhei.navigator.layer.LayerVisibleStatusAction"
+               enablesFor="+"
+               icon="icons/elcl16/eye.png"
+               id="org.polymap.rhei.LayerVisibleStatusAction"
+               label="%actions_layerVisibleStatus"
+               state="false"
+               style="toggle"
+               tooltip="%actions_layerVisibleStatusTip">
          </action>
       </objectContribution>
    </extension>
@@ -188,6 +222,53 @@
             name="CsvServlet"
             path="/csv">
       </servlet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="true"
+            class="org.polymap.rhei.navigator.layer.LayerStatusDecorator"
+            icon="icons/ovr16/eye_ovr.png"
+            id="org.polymap.rhei.LayerStatusDecorator"
+            label="Layer Status"
+            lightweight="false"
+            objectClass="org.polymap.core.project.ILayer"
+            state="true">
+      </decorator>
+   </extension>
+   <extension
+         point="net.refractions.udig.ui.dropAction">
+      <action
+            class="org.polymap.rhei.navigator.layer.AddLayerToMapDropAction"
+            enablesFor="+"
+            name="AddLayerToMapDropAction">
+         <destination
+               class="org.polymap.rhei.navigator.RheiNavigator">
+         </destination>
+         <acceptedType
+               adapt="true"
+               class="net.refractions.udig.catalog.IGeoResource">
+         </acceptedType>
+         <destination
+               class="org.polymap.core.project.IMap">
+         </destination>
+         <destination
+               class="org.polymap.core.project.ILayer">
+         </destination>
+      </action>
+      <action
+            class="org.polymap.core.project.actions.SortLayerDropAction"
+            name="SortLayerDropAction">
+         <destination
+               class="org.polymap.core.project.ui.MapLayersView">
+         </destination>
+         <acceptedType
+               class="org.polymap.core.project.ILayer">
+         </acceptedType>
+         <destination
+               class="org.polymap.core.project.ILayer">
+         </destination>
+      </action>
    </extension>
 
 </plugin>

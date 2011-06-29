@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.rhei.internal.filter;
+package org.polymap.rhei.navigator.filter;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;

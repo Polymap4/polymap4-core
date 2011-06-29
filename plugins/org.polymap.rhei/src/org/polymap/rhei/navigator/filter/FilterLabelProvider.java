@@ -16,7 +16,7 @@
  * $Id: $
  */
 
-package org.polymap.rhei.internal.filter;
+package org.polymap.rhei.navigator.filter;
 
 import java.net.URL;
 

@@ -67,7 +67,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public interface LayerState
@@ -253,7 +252,7 @@ public interface LayerState
                 } 
                 catch (Exception e) {
                     log.warn( e.getMessage() );
-                    ProjectPlugin.logError( e.getMessage() ); //$NON-NLS-1$
+                    ProjectPlugin.logError( e.getMessage() ); 
                     //setLayerStatus( LayerStatus.STATUS_STYLE_MISSING );
 
                     try {

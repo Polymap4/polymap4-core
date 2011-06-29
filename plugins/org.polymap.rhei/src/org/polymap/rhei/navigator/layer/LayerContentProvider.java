@@ -15,7 +15,7 @@
  *
  * $Id: $
  */
-package org.polymap.rhei.navigator;
+package org.polymap.rhei.navigator.layer;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;

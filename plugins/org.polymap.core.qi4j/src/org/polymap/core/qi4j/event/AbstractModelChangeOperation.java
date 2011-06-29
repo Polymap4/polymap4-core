@@ -163,7 +163,11 @@ public abstract class AbstractModelChangeOperation
         
         for (int i = events.size()-1; i>=0; i--) {
             PropertyChangeEvent ev = events.get( i );
-            log.info( "Undoing: prop=" + ev.getPropertyName() + ", old=" + ev.getOldValue() + ", new=" + ev.getNewValue() );
+            if (!(ev instanceof StoredPropertyChangeEvent)) {
+                log.info( "revert(): skipping non-stored event: " + ev.getPropertyName() );
+                continue;
+            }
+            log.info( "revert(): prop=" + ev.getPropertyName() + ", old=" + ev.getOldValue() + ", new=" + ev.getNewValue() );
             
             String propName = ev.getPropertyName();
             // created

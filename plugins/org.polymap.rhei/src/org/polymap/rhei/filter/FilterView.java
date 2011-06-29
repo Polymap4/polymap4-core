@@ -48,8 +48,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormFieldListener;
-import org.polymap.rhei.internal.filter.OpenFilterAction;
 import org.polymap.rhei.internal.form.FormEditorToolkit;
+import org.polymap.rhei.navigator.filter.OpenFilterAction;
 
 
 /**

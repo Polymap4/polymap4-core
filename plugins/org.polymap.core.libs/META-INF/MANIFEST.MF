@@ -2275,7 +2275,6 @@ Bundle-ClassPath: .,
  lib/gt-xsd-ows-2.6.4.jar,
  lib/gt-xsd-wfs-2.6.4.jar,
  lib/gt-xsd-wps-2.6.4.jar,
- lib/h2-1.1.104.jar,
  lib/hatbox-1.0.b7.jar,
  lib/hsqldb-1.8.0.7.jar,
  lib/imageio-ext-customstreams-1.0.5.jar,
@@ -2339,6 +2338,7 @@ Bundle-ClassPath: .,
  resource/gt-geojson-2.7.x.jar,
  resource/json_simple-1.1.jar,
  resource/json-lib-2.2.3-jdk15.jar,
- lib/mysql-connector-java-5.1.5.jar
+ lib/mysql-connector-java-5.1.5.jar,
+ lib/h2-1.1.104.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
