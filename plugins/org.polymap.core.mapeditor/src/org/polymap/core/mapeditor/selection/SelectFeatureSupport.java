@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,27 +11,27 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.mapeditor.selection;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.gml2.bindings.GML2EncodingUtils;
 import org.json.JSONObject;
@@ -48,13 +47,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
-import org.polymap.core.geohub.GeoEventException;
-import org.polymap.core.geohub.GeoEventListener;
-import org.polymap.core.geohub.GeoEventSelector;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.GeoEventSelector.MapNameFilter;
-import org.polymap.core.geohub.GeoEventSelector.TypeFilter;
-import org.polymap.core.geohub.event.GeoEvent;
+import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.ISelectFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
@@ -77,12 +70,11 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @SuppressWarnings("deprecation")
 class SelectFeatureSupport
-        implements ISelectFeatureSupport, OpenLayersEventListener, GeoEventListener {
+        implements ISelectFeatureSupport, OpenLayersEventListener, PropertyChangeListener {
 
     static Log log = LogFactory.getLog( SelectFeatureSupport.class );
 
@@ -109,6 +101,8 @@ class SelectFeatureSupport
     private Collection<Feature>     features = new ArrayList();
 
     private ILayer                  layer;
+
+    private LayerFeatureSelectionManager lfs;
     
 
     /**
@@ -120,11 +114,6 @@ class SelectFeatureSupport
     throws Exception {
         this.mapEditor = mapEditor;
         this.mapEditor.addSupportListener( this );
-
-        GeoHub.instance().subscribe( this, 
-                new GeoEventSelector( 
-                        new MapNameFilter( mapEditor.getMap().getLabel() ),
-                        new TypeFilter( GeoEvent.Type.FEATURE_SELECTED, GeoEvent.Type.FEATURE_HOVERED ) ) );
 
         // jsonServer
         String pathSpec = "/" + RWT.getSessionStore().getId() + 
@@ -173,7 +162,11 @@ class SelectFeatureSupport
 
     public void dispose() {
         setActive( false );
-        GeoHub.instance().unsubscribe( this );
+
+        if (lfs != null) {
+            lfs.removeChangeListener( this );
+            lfs = null;
+        }
 
         boxControl.events.unregister( this, BoxControl.EVENT_BOX );
         mapEditor.removeControl( boxControl );
@@ -205,6 +198,14 @@ class SelectFeatureSupport
     }
 
     
+    public void connectLayer( ILayer _layer ) {
+        assert layer == null;
+        this.layer = _layer;
+        this.lfs = LayerFeatureSelectionManager.forLayer( layer );
+        this.lfs.addChangeListener( this );
+    }
+
+
     /**
      * The max number of selected features that is currently supported. The
      * actual result depends on default, configuration and client browser.
@@ -222,35 +223,33 @@ class SelectFeatureSupport
     }
 
     
-    public void onEvent( GeoEvent ev ) {
-        log.info( "ev: " + ev );
+    public void propertyChange( PropertyChangeEvent ev ) {
+        LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
         
-        if (ev.getType() == GeoEvent.Type.FEATURE_SELECTED) {
-            selectFeatures( ev.getBody() );
+        //select
+        if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
+            selectFeatures( fsm.getFeatureCollection() );
         }
-        
-        else if (ev.getType() == GeoEvent.Type.FEATURE_HOVERED) {
-            Collection<String> fids = new ArrayList( ev.getBody().size() );
-            for (Feature feature : ev.getBody()) {
-                fids.add( feature.getIdentifier().getID() );
-            }
-            selectControl.unselectAll();
-            selectControl.selectFids( fids  );
-            
-            // XXX reveal the selected feature
-        }
-
-        else {
-            log.warn( "Unhandled event type: " + ev );
+        // hover
+        else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+          selectControl.unselectAll();
+          selectControl.selectFids( Collections.singletonList( (String)ev.getNewValue() ) );
         }
     }
 
 
-    public void selectFeatures( Collection<Feature> _features ) {
+    public void selectFeatures( FeatureCollection _features ) {
         features.clear();
-        if (_features != null) {
-            features.addAll( _features );
+        Iterator it = _features.iterator();
+        try {
+            while (it.hasNext()) {
+                features.add( (Feature)it.next() );
+            }
         }
+        finally {
+            _features.close( it );
+        }
+
         // still initializing?
         if (jsonServer != null && vectorLayer != null) {
             jsonServer.setFeatures( features );
@@ -282,6 +281,7 @@ class SelectFeatureSupport
                 mapEditor.addControl( boxControl );
                 HashMap<String, String> payload1 = new HashMap<String, String>();
                 payload1.put( "bbox", "new OpenLayers.Format.JSON().write( event.bbox, false )" );
+//                payload1.put( "keyMask", "new OpenLayers.Format.JSON().write( event.bbox, false )" );
                 boxControl.events.register( this, BoxControl.EVENT_BOX, payload1 );
                 
                 hoverControl = new SelectFeatureControl( vectorLayer, SelectFeatureControl.FLAG_HOVER );
@@ -334,7 +334,7 @@ class SelectFeatureSupport
         for (Map.Entry entry : payload.entrySet()) {
             Object key = entry.getKey();
             Object value = entry.getValue();
-            log.debug( "    key: " + key + ", value: " + StringUtils.abbreviate( (String)value, 0, 60 ) );
+            log.info( "    key: " + key + ", value: " + StringUtils.abbreviate( (String)value, 0, 60 ) );
         }
 
         //
@@ -353,8 +353,8 @@ class SelectFeatureSupport
                 catch (final Exception e) {
                     Polymap.getSessionDisplay().asyncExec( new Runnable() {
                         public void run() {                                
-                        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                        MessageDialog.openInformation( window.getShell(), "Achtung", "Bitte markieren Sie immer ein gesamtes Rechteck.\nFehlerhafte Koordinaten: " + e.getLocalizedMessage() );
+                            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                            MessageDialog.openInformation( window.getShell(), "Achtung", "Bitte markieren Sie immer ein gesamtes Rechteck.\nFehlerhafte Koordinaten: " + e.getLocalizedMessage() );
                         }
                     });
                     return;
@@ -374,77 +374,26 @@ class SelectFeatureSupport
                 BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
                         dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
                 
-                // geo event; 
-                // XXX do nothing than just sending the event/filter; GeoSelectionView
-                // filters the elements and send a event back; without GeoSelectionView
-                // this does not work; should this be "fixed"?
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-                        mapEditor.getMap().getLabel(), 
-                        null );
-                event.setFilter( filter );
-                GeoHub.instance().send( event, this );
+                LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+                fsm.changeSelection( filter, null, this );
+                
+                selectFeatures( fsm.getFeatureCollection() );
             }
-            catch (Exception e) {
+            catch (final Exception e) {
                 log.warn( e.getLocalizedMessage(), e );
-                PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {                                
+                        PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+                    }
+                });
             }
         }
         
         //
         else if (name.equals( SelectFeatureControl.EVENT_SELECTED )) {
             String fid = payload.get( "fid" );
-            
-            try {
-                // geo event
-                Collection<Feature> fc = new ArrayList( 1 );
-                for (Feature feature : features) {
-                    if (feature.getIdentifier().getID().equals( fid )) {
-                        fc.add( feature );
-                        break;
-                    }
-                }
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED, 
-                        mapEditor.getMap().getLabel(), 
-                        null );
-                event.setBody( fc );
-                GeoHub.instance().send( event, this );
-            }
-            catch (GeoEventException e) {
-                PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-            }
-
-//            try {
-//                log.debug( "features JSON: " + payload.get( "features" ) );
-//                JSONArray json_fids = new JSONArray( payload.get( "features" ) );
-//                Set<String> fids = new HashSet( json_fids.length() * 2 );
-//                for (int i=0; i<json_fids.length(); i++) {
-//                    String fid = json_fids.getString( i );
-//                    log.info( "    feature: fid= " + fid );
-//                    fids.add( fid );
-//                }
-//                fireEvent( fids );
-//            }
-//            catch (JSONException e) {
-//                log.error( e.getMessage(), e );
-//            }
-
-            //                getSite().getShell().getDisplay().asyncExec( new Runnable() {
-            //                    public void run() {
-            //                        try {
-            //                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-            //                            page.showView( GeoSelectionView.ID );
-            //                        }
-            //                        catch (PartInitException e) {
-            //                            throw new RuntimeException( e.getMessage(), e );
-            //                        }
-            //                    }
-            //                });
+            lfs.setHovered( fid );
         }
-    }
-
-
-    public void connectLayer( ILayer _layer ) {
-        this.layer = _layer;
     }
 
 }

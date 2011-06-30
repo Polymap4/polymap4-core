@@ -22,9 +22,7 @@
  */
 package org.polymap.core.mapeditor;
 
-import java.util.Collection;
-
-import org.opengis.feature.Feature;
+import org.geotools.feature.FeatureCollection;
 
 /**
  * Map editors can adapt to this interface to provide support for 'select
@@ -37,6 +35,6 @@ import org.opengis.feature.Feature;
 public interface ISelectFeatureSupport
         extends IMapEditorSupport {
     
-    public void selectFeatures( Collection<Feature> features );
+    public void selectFeatures( FeatureCollection features );
     
 }

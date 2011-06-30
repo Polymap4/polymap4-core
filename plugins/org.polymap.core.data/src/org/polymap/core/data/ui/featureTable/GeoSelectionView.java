@@ -1,7 +1,7 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011, Polymap GmbH, and individual contributors
+ * as indicated by the @authors tag.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,20 +12,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.ui.featureTable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -42,15 +30,11 @@ import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.FeatureCollection;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.identity.FeatureId;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -93,12 +77,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.geohub.GeoEventListener;
-import org.polymap.core.geohub.GeoEventSelector;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.GeoEventSelector.MapNameFilter;
-import org.polymap.core.geohub.GeoEventSelector.TypeFilter;
-import org.polymap.core.geohub.event.GeoEvent;
+import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.DefaultPartListener;
@@ -110,7 +89,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class GeoSelectionView
@@ -263,6 +241,7 @@ public class GeoSelectionView
 //      Color bg = Graphics.getColor( 255, 200, 0 );
 //      viewer.getViewer().getTable().setBackgroundMode( SWT.INHERIT_FORCE );
 //      viewer.getViewer().getTable().setBackground( bg );
+//        Color bg = Polymap.getSessionDisplay().getSystemColor( SWT.COLOR_LIST_SELECTION );
         viewer.setSelectionColor( new StaticProvider<RGB>( new RGB( 0x50, 0x88, 0xee ) ) );
         viewer.addSelectionChangedListener( tableSelectionListener );
         getSite().setSelectionProvider( viewer );
@@ -349,11 +328,8 @@ public class GeoSelectionView
         page.addPartListener( partListener );
 
         // geo event listener
-        GeoHub.instance().subscribe( geoSelectionListener,
-                new GeoEventSelector(
-                        new MapNameFilter( layer.getMap().getLabel() ),
-                        new TypeFilter( GeoEvent.Type.FEATURE_HOVERED, GeoEvent.Type.FEATURE_SELECTED, GeoEvent.Type.FEATURE_CREATED ) ) );
-
+        LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( geoSelectionListener );
+        
         try {
             // FIXME do blocking operation inside a job
             fs = PipelineFeatureSource.forLayer( layer, false );
@@ -389,22 +365,7 @@ public class GeoSelectionView
             page = null;
 
             // geo event listener
-            if (!GeoHub.instance().unsubscribe( geoSelectionListener )) {
-                throw new IllegalStateException( "Unable to unsubscribe GeoSelectionListener!" );
-            }
-        }
-
-        // geo event
-        if (layer != null && fc != null) {
-            try {
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED,
-                        layer.getMap().getLabel(),
-                        layer.getGeoResource().getIdentifier().toURI() );
-                GeoHub.instance().send( event, geoSelectionListener );
-            }
-            catch (Exception e) {
-                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-            }
+            LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( geoSelectionListener );
         }
 
         layer = null;
@@ -468,17 +429,6 @@ public class GeoSelectionView
                     query.setMaxFeatures( DEFAULT_MAX_RESULTS );
                     fc = fs.getFeatures( query );
                     //log.debug( "        fc size: " + fc.size() );
-
-//                    long sleepMillis = Math.max( 0, 3000 - (System.currentTimeMillis()-start) );
-//                    log.info( "Sleeping: " + sleepMillis + "ms ..." );
-//                    Thread.sleep( sleepMillis );
-
-                    // geo event
-                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED,
-                            layer.getMap().getLabel(),
-                            layer.getGeoResource().getIdentifier().toURI() );
-                    event.setBody( fc );
-                    GeoHub.instance().send( event, geoSelectionListener );
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
@@ -531,28 +481,8 @@ public class GeoSelectionView
         public void selectionChanged( SelectionChangedEvent ev ) {
             log.info( "TableSelectionListener.selectionChanged(): ev= " + ev.getSelection() + ", " + ev.getSource() );
 
-            try {
-                GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED,
-                        layer.getMap().getLabel(),
-                        layer.getGeoResource().getIdentifier().toURI() );
-
-                final Set<String> fids = new HashSet( viewer.getSelectionFids() );
-                final Collection<Feature> body = new ArrayList();
-
-                fc.accepts( new FeatureVisitor() {
-                    public void visit( Feature feature ) {
-                        if (fids.contains( feature.getIdentifier().getID() )) {
-                            body.add( feature );
-                        }
-                    }
-                }, null );
-                event.setBody( body );
-
-                GeoHub.instance().send( event, geoSelectionListener );
-            }
-            catch (Exception e) {
-                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Unable to send event.", e );
-            }
+            LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+            fsm.setHovered( viewer.getSelectionFids().iterator().next() );
         }
     }
 
@@ -561,7 +491,24 @@ public class GeoSelectionView
      *
      */
     protected class GeoSelectionListener
-            implements ISelectionListener, GeoEventListener {
+            implements ISelectionListener, PropertyChangeListener {
+        
+        public void propertyChange( PropertyChangeEvent ev ) {
+            log.info( "ev = " + ev );
+            LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
+            
+            // select
+            if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
+                log.info( "    filter = " + ev.getNewValue() );
+                loadTable( (Filter)ev.getNewValue() );
+            }
+            // hover
+            if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+                viewer.removeSelectionChangedListener( tableSelectionListener );
+                viewer.setSelection( new StructuredSelection( fsm.getHovered() ) );
+                viewer.addSelectionChangedListener( tableSelectionListener );
+            }
+        }
 
         public void selectionChanged( IWorkbenchPart part, ISelection selection ) {
             log.info( "selectionChanged(): ev= " + selection );
@@ -582,52 +529,6 @@ public class GeoSelectionView
 //            catch (Exception e) {
 //                PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
 //            }
-        }
-
-        public void onEvent( GeoEvent ev ) {
-            log.info( "ev: " + ev );
-
-//            // FEATURE_CREATED
-//            if (ev.getType() == GeoEvent.Type.FEATURE_CREATED) {
-//                // reload table with current filter
-//                loadTable( filter );
-//
-//                Set<FeatureId> fids = new HashSet();
-//                String sfid = null;
-//                for (Feature feature : ev.getBody()) {
-//                    fids.add( feature.getIdentifier() );
-//                    sfid = feature.getIdentifier().getID();
-//                }
-//
-//                viewer.removeSelectionChangedListener( tableSelectionListener );
-////                viewer.select( fids );
-//                viewer.setSelection( new StructuredSelection( sfid ) );
-//                viewer.addSelectionChangedListener( tableSelectionListener );
-//            }
-
-            // FEATURE_SELECTED
-            if (ev.getType() == GeoEvent.Type.FEATURE_SELECTED) {
-                //log.info( "fc: " + ev.getBody().size() );
-                loadTable( ev.getFilter() );
-            }
-
-            // FEATURE_HOVERED
-            else if (ev.getType() == GeoEvent.Type.FEATURE_HOVERED) {
-                Set<FeatureId> fids = new HashSet();
-                String sfid = null;
-                for (Feature feature : ev.getBody()) {
-                    fids.add( feature.getIdentifier() );
-                    sfid = feature.getIdentifier().getID();
-                }
-
-                viewer.removeSelectionChangedListener( tableSelectionListener );
-//                viewer.select( fids );
-                viewer.setSelection( new StructuredSelection( sfid ) );
-                viewer.addSelectionChangedListener( tableSelectionListener );
-            }
-            else {
-                log.warn( "Unhandled event type: " + ev );
-            }
         }
     }
 
