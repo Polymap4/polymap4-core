@@ -170,6 +170,36 @@
                style="push"
                tooltip="%actions_showFeatureTable_tip">
          </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"
+               enablesFor="+"
+               icon="icons/etool16/layer_selectable.gif"
+               id="org.polymap.core.project.LayerSelectableStatusAction"
+               label="%actions_layerEditableStatus"
+               state="false"
+               style="toggle"
+               tooltip="%actions_layerEditableStatusTip">
+         </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
+               enablesFor="1"
+               icon="icons/etool16/layer_editable.gif"
+               id="org.polymap.core.project.LayerEditableStatusAction"
+               label="%actions_layerSelectableStatus"
+               state="false"
+               style="toggle"
+               tooltip="%actions_layerSelectableStatus">
+         </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
+               enablesFor="+"
+               icon="icons/etool16/layer_visible.png"
+               id="org.polymap.core.project.LayerVisibleStatusAction"
+               label="%actions_layerVisibleStatus"
+               state="false"
+               style="toggle"
+               tooltip="%actions_layerVisibleStatusTip">
+         </action>
       </objectContribution>
       <objectContribution
             adaptable="false"
@@ -226,6 +256,16 @@
                </objectClass>
             </and>
          </enablement>
+      </decorator>
+      <decorator
+            adaptable="true"
+            class="org.polymap.core.project.ui.layer.LayerStatusDecorator"
+            icon="icons/ovr16/eye_ovr_dark.png"
+            id="org.polymap.rhei.LayerStatusDecorator"
+            label="Layer Status"
+            lightweight="false"
+            objectClass="org.polymap.core.project.ILayer"
+            state="true">
       </decorator>
    </extension>
    <!--extension

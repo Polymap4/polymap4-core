@@ -34,6 +34,24 @@ DateTime.formeditor {
     background-color: #FFFDD4;
 }
 
+/* Toolbar ************************************************/
+ToolItem:selected {
+    background-color: #DFDFF8;
+    background-image: gradient(
+      linear, left top, left bottom,
+      from( #e7e7e7 ),
+      to( #c8c8c8 )
+    );
+}
+ToolItem:hover {
+    background-color: #DFDFF8;
+    background-image: gradient(
+      linear, left top, left bottom,
+      from( #fefeff ),
+      to( #dfdfe7 )
+    );
+}
+
 /* Button *************************************************/
 Button[PUSH] {
     border-radius: 6px;
@@ -42,10 +60,7 @@ Button[PUSH] {
       from( #f8f8fb ),
       to( #ebebf3 )
     );
-}
-  
-Button[PUSH]:pressed {
-    background-color: #ffffff;
+    
 }
   
 Button[PUSH]:hover {

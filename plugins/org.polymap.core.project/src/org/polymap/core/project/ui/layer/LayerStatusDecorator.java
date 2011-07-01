@@ -13,9 +13,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.rhei.navigator.layer;
+package org.polymap.core.project.ui.layer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
@@ -26,23 +28,23 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 
 import org.eclipse.jface.resource.CompositeImageDescriptor;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.polymap.core.project.ILayer;
-import org.polymap.rhei.RheiPlugin;
+import org.polymap.core.project.ProjectPlugin;
+import org.polymap.core.runtime.Polymap;
 
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @since 3.1
  */
 public class LayerStatusDecorator
         extends BaseLabelProvider
@@ -50,10 +52,17 @@ public class LayerStatusDecorator
 
     private static Log log = LogFactory.getLog( LayerStatusDecorator.class );
     
-    public static final Point       DEFAULT_SIZE = new Point( 16, 16 );
+    public static final Point       DEFAULT_SIZE = new Point( 17, 16 );
 
-    private static final ImageDescriptor visible = ImageDescriptor.createFromURL( 
-            RheiPlugin.getDefault().getBundle().getResource( "icons/ovr16/eye_ovr.png" ) );
+    public static final int         TOP_LEFT = 0;
+    public static final int         TOP_RIGHT = 1;
+    public static final int         BOTTOM_LEFT = 2;
+    public static final int         BOTTOM_RIGHT = 3;
+
+    private static final String     visible = "icons/ovr16/eye_ovr_dark.png";    
+    private static final String     selectable = "icons/ovr16/selectable_ovr_small.png";
+    private static final String     editable = "icons/ovr16/write_ovr.gif";
+    private static final String     baseImage = "icons/obj16/layer_obj.gif";
     
     private Map<String,ILayer>      decorated = new HashMap();
 
@@ -86,12 +95,27 @@ public class LayerStatusDecorator
         Image result = image;
         if (elm instanceof ILayer) {
             ILayer layer = (ILayer)elm;
-            // visible
-            if (layer.isVisible()) {
-                Image baseImage = RheiPlugin.getDefault().imageForName( "icons/obj16/layer_obj.gif" );
-                ImageDescriptor imageDescr = new DecoratedImageDescriptor( baseImage.getImageData() );
-                result = RheiPlugin.getDefault().imageForDescriptor( imageDescr, "layer_visible" );
+            DecoratedImageDescriptor decoratedImageDescriptor = new DecoratedImageDescriptor( baseImage );
+            String name = "layer";
+            // editable
+            if (layer.isEditable()) {
+                decoratedImageDescriptor.addDecoration( editable, TOP_RIGHT );
+                name += "_editable";
             }
+            // visible
+            else if (layer.isVisible()) {
+                decoratedImageDescriptor.addDecoration( visible, TOP_RIGHT );
+                name += "_visible";
+            }
+            // selectable
+            if (layer.isSelectable()) {
+                decoratedImageDescriptor.addDecoration( selectable, TOP_LEFT );
+                name += "_selectable";
+            }
+            if (!name.equals( "layer" )) {
+                result = ProjectPlugin.getDefault().imageForDescriptor( decoratedImageDescriptor, name );
+            }
+
             // register listener
             if (decorated.put( layer.id(), layer ) == null) {
                 layer.addPropertyChangeListener( this );
@@ -132,9 +156,15 @@ public class LayerStatusDecorator
     public void propertyChange( PropertyChangeEvent ev ) {
         log.info( "propertyChange(): " + ev.getSource() + " : " + ev.getPropertyName() );
         if (ev.getSource() instanceof ILayer
-                && ev.getPropertyName().equals( ILayer.PROP_VISIBLE )) {
+                && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
+                || ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
+                || ev.getPropertyName().equals( ILayer.PROP_EDITABLE ))) {
 
-            fireLabelProviderChanged( new LabelProviderChangedEvent( this ) );
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
+                }
+            });
         }
     }
 
@@ -142,20 +172,47 @@ public class LayerStatusDecorator
     /*
      * 
      */
-    class DecoratedImageDescriptor
+    static class DecoratedImageDescriptor
             extends CompositeImageDescriptor {
 
-        private ImageData       baseImage;
+        private String                  baseImageName;
         
-        public DecoratedImageDescriptor( ImageData baseImage ) {
-            this.baseImage = baseImage;
+        private List<String>            overlays = new ArrayList();
+        
+        private List<Integer>           quadrants = new ArrayList();
+        
+        
+        public DecoratedImageDescriptor( String baseImageName ) {
+            this.baseImageName = baseImageName;
+        }
+        
+        public void addDecoration( String overlayImageName, int quadrant ) {
+            overlays.add( overlayImageName );
+            quadrants.add( quadrant );
         }
 
         protected void drawCompositeImage( int width, int height ) {
-            drawImage( baseImage, 0, 0 );
-
-            Image ovrImage = RheiPlugin.getDefault().imageForName( "icons/ovr16/eye_ovr.png" );
-            drawImage( ovrImage.getImageData(), 8, 0 );
+            drawImage( ProjectPlugin.getDefault().imageForName( baseImageName ).getImageData(), 0, 0 );
+            
+            for (int i=0; i<overlays.size(); i++) {
+                Image ovrImage = ProjectPlugin.getDefault().imageForName( overlays.get( i ) );
+                switch (quadrants.get( i )) {
+                    case TOP_RIGHT: 
+                        drawImage( ovrImage.getImageData(), 9, 0 ); 
+                        break;
+                    case TOP_LEFT: 
+                        drawImage( ovrImage.getImageData(), 0, 0 ); 
+                        break;
+                    case BOTTOM_LEFT: 
+                        drawImage( ovrImage.getImageData(), 0, 8 ); 
+                        break;
+                    case BOTTOM_RIGHT: 
+                        drawImage( ovrImage.getImageData(), 9, 8 ); 
+                        break;
+                    default:
+                        throw new IllegalArgumentException( "Unknown quadrant: " + quadrants.get( i ) );
+                }
+            }
         }
 
         protected Point getSize() {

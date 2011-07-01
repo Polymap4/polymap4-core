@@ -102,7 +102,7 @@ class SelectFeatureSupport
 
     private ILayer                  layer;
 
-    private LayerFeatureSelectionManager lfs;
+    private LayerFeatureSelectionManager fsm;
     
 
     /**
@@ -163,9 +163,9 @@ class SelectFeatureSupport
     public void dispose() {
         setActive( false );
 
-        if (lfs != null) {
-            lfs.removeChangeListener( this );
-            lfs = null;
+        if (fsm != null) {
+            fsm.removeChangeListener( this );
+            fsm = null;
         }
 
         boxControl.events.unregister( this, BoxControl.EVENT_BOX );
@@ -201,8 +201,8 @@ class SelectFeatureSupport
     public void connectLayer( ILayer _layer ) {
         assert layer == null;
         this.layer = _layer;
-        this.lfs = LayerFeatureSelectionManager.forLayer( layer );
-        this.lfs.addChangeListener( this );
+        this.fsm = LayerFeatureSelectionManager.forLayer( layer );
+        this.fsm.addChangeListener( this );
     }
 
 
@@ -224,7 +224,7 @@ class SelectFeatureSupport
 
     
     public void propertyChange( PropertyChangeEvent ev ) {
-        LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
+        assert fsm == ev.getSource();
         
         //select
         if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
@@ -232,8 +232,8 @@ class SelectFeatureSupport
         }
         // hover
         else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
-          selectControl.unselectAll();
-          selectControl.selectFids( Collections.singletonList( (String)ev.getNewValue() ) );
+            selectControl.unselectAll();
+            selectControl.selectFids( Collections.singletonList( (String)ev.getNewValue() ) );
         }
     }
 
@@ -374,7 +374,6 @@ class SelectFeatureSupport
                 BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
                         dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
                 
-                LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
                 fsm.changeSelection( filter, null, this );
                 
                 selectFeatures( fsm.getFeatureCollection() );
@@ -392,7 +391,7 @@ class SelectFeatureSupport
         //
         else if (name.equals( SelectFeatureControl.EVENT_SELECTED )) {
             String fid = payload.get( "fid" );
-            lfs.setHovered( fid );
+            fsm.setHovered( fid );
         }
     }
 

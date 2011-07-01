@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.rhei.navigator.layer;
+package org.polymap.core.project.ui.layer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,25 +34,29 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 
+import org.eclipse.core.commands.ExecutionException;
+
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectPlugin;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LayerVisibleStatusAction
-        //extends ActionDelegate
+public class LayerSelectableStatusAction
         implements IObjectActionDelegate, IViewActionDelegate, PropertyChangeListener {
 
-    private static Log log = LogFactory.getLog( LayerVisibleStatusAction.class );
+    private static Log log = LogFactory.getLog( LayerSelectableStatusAction.class );
 
     private List<ILayer>        layers = new ArrayList();
     
     private IAction             action;
     
 
-    public LayerVisibleStatusAction() {
+    public LayerSelectableStatusAction() {
     }
 
 
@@ -61,9 +65,15 @@ public class LayerVisibleStatusAction
 
 
     public void run( IAction _action ) {
-        for (ILayer layer : layers) {
-            layer.setVisible( _action.isChecked() );
+        try {
+            LayerSelectableOperation op = new LayerSelectableOperation( 
+                    new ArrayList<ILayer>( layers ), _action.isChecked() );
+            OperationSupport.instance().execute( op, false, false );
         }
+        catch (ExecutionException e) {
+            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "", e );
+        }
+        
         selectionChanged( _action, new StructuredSelection( layers ) );
     }
 
@@ -74,33 +84,43 @@ public class LayerVisibleStatusAction
 
     public void selectionChanged( IAction _action, ISelection _sel ) {
         for (ILayer layer : layers) {
-            layer.addPropertyChangeListener( this );            
+            layer.removePropertyChangeListener( this );            
         }
         layers.clear();
         action = _action;
         
         if (_sel instanceof IStructuredSelection) {
             Object[] elms = ((IStructuredSelection)_sel).toArray();
+            boolean allLayersSelectable = true;
             boolean allLayersVisible = true;
             for (Object elm : elms) {
                 if (elm instanceof ILayer) {
+                    
                     layers.add( (ILayer)elm );
+                    
                     ((ILayer)elm).addPropertyChangeListener( this );
+                    
+                    if (!((ILayer)elm).isSelectable()) {
+                        allLayersSelectable = false;
+                    }
                     if (!((ILayer)elm).isVisible()) {
                         allLayersVisible = false;
                     }
                 }
             }
-            action.setEnabled( !layers.isEmpty() ); 
-            action.setChecked( layers.size() == 1 && layers.get( 0 ).isVisible()
-                    || layers.size() > 1 && allLayersVisible );
+            action.setEnabled( !layers.isEmpty() && allLayersVisible ); 
+            action.setChecked( 
+                       layers.size() == 1 && layers.get( 0 ).isSelectable()
+                    || layers.size() > 1 && allLayersSelectable );
         }
     }
 
     
     public void propertyChange( PropertyChangeEvent ev ) {
+        String prop = ev.getPropertyName();
+
         if (ev.getSource() instanceof ILayer
-                && ev.getPropertyName().equals( ILayer.PROP_VISIBLE )) {
+                && (prop.equals( ILayer.PROP_SELECTABLE ) || prop.equals( ILayer.PROP_VISIBLE ))) {
             selectionChanged( action, new StructuredSelection( layers ) );
         }
     }

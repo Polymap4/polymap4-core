@@ -22,6 +22,7 @@
  */
 package org.polymap.core.mapeditor.edit;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,14 +48,14 @@ import org.eclipse.rwt.RWT;
 import org.eclipse.core.runtime.ListenerList;
 
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.event.GeoEvent;
+import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.mapeditor.IEditFeatureSupport;
 import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.services.JSONServer;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.services.http.HttpServiceFactory;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
@@ -75,7 +76,7 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
  */
 @SuppressWarnings("deprecation")
 public class EditFeatureSupport
-        implements IEditFeatureSupport, OpenLayersEventListener {
+        implements IEditFeatureSupport, OpenLayersEventListener, PropertyChangeListener {
 
     private static Log log = LogFactory.getLog( EditFeatureSupport.class );
 
@@ -98,11 +99,16 @@ public class EditFeatureSupport
 
     protected ILayer                layer;
 
+    private LayerFeatureSelectionManager fsm;
+
 
     EditFeatureSupport( MapEditor mapEditor, ILayer layer )
     throws Exception {
         this.mapEditor = mapEditor;
         this.layer = layer;
+        this.fsm = LayerFeatureSelectionManager.forLayer( layer );
+        this.fsm.addChangeListener( this );
+
         this.mapEditor.addSupportListener( this );
 
         // jsonServer
@@ -133,19 +139,20 @@ public class EditFeatureSupport
             String propname = "";
             String epsgCode = GML2EncodingUtils.crs( dataBBox.getCoordinateReferenceSystem() );
             
-            BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
+            final BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
                     dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
 
             PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
             FeatureCollection features = fs.getFeatures( filter );
             jsonServer.setFeatures( features );
 
-            // GeoEvent
-            GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-                    mapEditor.getMap().getLabel(), 
-                    null );
-            event.setFilter( filter );
-            GeoHub.instance().send( event );
+            // select all features that are editable now;
+            // allow GeoSelectionView to startup from are sibling operation concern
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    fsm.changeSelection( filter, null, EditFeatureSupport.this );
+                }
+            });
         }
         catch (Exception e) {
             log.warn( e.getLocalizedMessage(), e );
@@ -189,6 +196,11 @@ public class EditFeatureSupport
     
     public void dispose() {
         setActive( false );
+
+        if (fsm != null) {
+            fsm.removeChangeListener( this );
+            fsm = null;
+        }
 
         controlListeners.clear();
         for (Control control : controls.values()) {
@@ -284,6 +296,16 @@ public class EditFeatureSupport
     
     public boolean isActive() {
         return active;
+    }
+
+    
+    public void propertyChange( PropertyChangeEvent ev ) {
+        assert fsm == ev.getSource();
+        // hover
+        if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+            hoverControl.unselectAll();
+            hoverControl.selectFids( Collections.singletonList( (String)ev.getNewValue() ) );
+        }
     }
 
     

@@ -22,6 +22,8 @@
  */
 package org.polymap.core.project;
 
+import java.net.URL;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.Bundle;
@@ -103,68 +105,28 @@ public class ProjectPlugin
     }
     
 
-//    public static MDomain loadDomain( String name )
-//            throws IOException, ModelRuntimeException, JAXBException, ClassNotFoundException {
-//        File domainFile = new File( 
-//                Polymap.getWorkspacePath().toFile(), 
-//                name + "_config.xml" );        
-//        if (!domainFile.exists()) {
-//            throw new IOException( "Domain file does not exist: " + domainFile.toString() );
-//        }
-//
-//        InputStream in = null;
-//        try {
-//            log.debug( "Loading domain: " + name + " ..............." );
-//            PlainMDomain domain = new PlainMDomain( new ProjectFactoryImpl() );
-//            in = new BufferedInputStream( new FileInputStream( domainFile ) );
-//            XmlSerializer serializer = new XmlSerializer( domain.createSerializerContext() );
-//            serializer.load( in );
-//            in.close();
-//            return domain;
-//        }
-//        finally {
-//            in.close();
-//        }
-//    }
-//
-//    
-//    public static void saveDomain( MDomain domain, String name) {
-//        File domainFile = new File( 
-//                Polymap.getWorkspacePath().toFile(), 
-//                name + "_config.xml" );        
-//
-//        OutputStream out = null;
-//        try {
-//            log.debug( "Saving domain: " + name + " ..............." );
-//            out = new BufferedOutputStream( new FileOutputStream( domainFile ) );
-//            XmlSerializer serializer = new XmlSerializer( domain.createSerializerContext() );
-//            serializer.store( out );
-//            out.close();
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//            try {
-//                out.close();
-//                domainFile.delete();
-//            }
-//            catch (IOException e1) {
-//                // ignore
-//            }
-//        }
-//    }
+    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( key );
+        if (image == null || image.isDisposed()) {
+            images.put( key, imageDescriptor );
+            image = images.get( key );
+        }
+        return image;
+    }
 
-    
-//    protected void initializeImageRegistry(ImageRegistry registry) {
-//        super.initializeImageRegistry(registry);
-//        Bundle bundle = 
-//
-//
-//        ImageDescriptor myImage = ImageDescriptor.createFromURL(
-//              FileLocator.find(bundle,
-//                               new Path("icons/myImage..gif"),
-//                                        null));
-//        registry.put(MY_IMAGE_ID, myImage);
-//    }
+
+    public Image imageForName( String resName ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( resName );
+        if (image == null || image.isDisposed()) {
+            URL res = getBundle().getResource( resName );
+            assert res != null : "Image resource not found: " + resName;
+            images.put( resName, ImageDescriptor.createFromURL( res ) );
+            image = images.get( resName );
+        }
+        return image;
+    }
 
 
     public static ImageDescriptor getImageDescriptor( String path ) {

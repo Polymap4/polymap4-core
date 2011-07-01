@@ -165,10 +165,32 @@
          </action>
       </viewContribution>
       <viewContribution
-            id="org.polymap.rhei.TheiNavigatorContribution"
+            id="org.polymap.rhei.RheiNavigatorContribution"
             targetID="org.polymap.rhei.RheiNavigator">
          <action
-               class="org.polymap.rhei.navigator.layer.LayerVisibleStatusAction"
+               class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
+               enablesFor="1"
+               icon="icons/etool16/layer_editable.gif"
+               id="org.polymap.rhei.action3"
+               label="%actions_layerEditableStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_layerEditableStatusTip">
+         </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"
+               enablesFor="+"
+               icon="icons/etool16/layer_selectable.gif"
+               id="org.polymap.rhei.action2"
+               label="%actions_layerSelectableStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_layerSelectableStatusTip">
+         </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
                enablesFor="+"
                icon="icons/elcl16/eye.png"
                id="org.polymap.rhei.action1"
@@ -195,16 +217,6 @@
                style="push"
                tooltip="%actions_newFormTip">
          </action>
-         <action
-               class="org.polymap.rhei.navigator.layer.LayerVisibleStatusAction"
-               enablesFor="+"
-               icon="icons/elcl16/eye.png"
-               id="org.polymap.rhei.LayerVisibleStatusAction"
-               label="%actions_layerVisibleStatus"
-               state="false"
-               style="toggle"
-               tooltip="%actions_layerVisibleStatusTip">
-         </action>
       </objectContribution>
    </extension>
    <extension
@@ -222,19 +234,6 @@
             name="CsvServlet"
             path="/csv">
       </servlet>
-   </extension>
-   <extension
-         point="org.eclipse.ui.decorators">
-      <decorator
-            adaptable="true"
-            class="org.polymap.rhei.navigator.layer.LayerStatusDecorator"
-            icon="icons/ovr16/eye_ovr.png"
-            id="org.polymap.rhei.LayerStatusDecorator"
-            label="Layer Status"
-            lightweight="false"
-            objectClass="org.polymap.core.project.ILayer"
-            state="true">
-      </decorator>
    </extension>
    <extension
          point="net.refractions.udig.ui.dropAction">

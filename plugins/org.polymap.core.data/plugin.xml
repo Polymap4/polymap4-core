@@ -203,4 +203,11 @@
          </action>
       </viewContribution>
    </extension>
+   <extension
+         point="org.polymap.core.operation.concerns">
+      <concern
+            class="org.polymap.core.data.ui.featureTable.LayerSelectableOperationConcern"
+            id="org.polymap.core.data.layerSelectableConcern">
+      </concern>
+   </extension>
 </plugin>

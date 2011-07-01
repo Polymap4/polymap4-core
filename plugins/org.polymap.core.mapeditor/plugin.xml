@@ -94,7 +94,7 @@
                label="%actions_zoomToLayer"
                style="push">
          </action>
-         <action
+         <!--action
                class="org.polymap.core.mapeditor.edit.SetLayerEditableAction"
                enablesFor="+"
                icon="icons/etool16/edit_vertex_mode.gif"
@@ -102,15 +102,15 @@
                label="%actions_editFeaturesMode"
                style="toggle"
                tooltip="%actions_editFeaturesModeTip">
-         </action>
-         <action
+         </action-->
+         <!--action
                class="org.polymap.core.mapeditor.selection.SetLayerSelectableAction"
                enablesFor="+"
                icon="icons/etool16/tb_buffer_fence.gif"
                id="org.polymap.core.mapeditor.action.selectFeatures_layers"
                label="%actions_selectFeaturesMode"
                style="toggle">
-         </action>
+         </action-->
       </objectContribution>
    </extension>
    <extension
@@ -219,6 +219,17 @@
       </editorContribution>
    </extension>
    <extension
+         point="org.polymap.core.operation.concerns">
+      <concern
+            class="org.polymap.core.mapeditor.selection.LayerSelectableOperationConcern"
+            id="org.polymap.core.mapeditor.LayerSelectableOperationConcern">
+      </concern>
+      <concern
+            class="org.polymap.core.mapeditor.edit.LayerEditableOperationConcern"
+            id="org.polymap.core.mapeditor.LayerEditableOperationConcern">
+      </concern>
+   </extension>
+   <!--extension
          point="org.eclipse.ui.decorators">
       <decorator
             adaptable="true"
@@ -235,6 +246,6 @@
             </and>
          </enablement>
       </decorator>
-   </extension>
+   </extension-->
 
 </plugin>
