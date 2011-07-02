@@ -22,7 +22,6 @@
  */
 package org.polymap.core.mapeditor.services;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -31,8 +30,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -40,6 +37,7 @@ import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -64,27 +62,20 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * GeoJSON server based on {@link FeatureJSON} package of GeoTools. The encoder
- * seems to work faster for big geometries compared to to {@link GsJSONServer}.
+ * seems to work faster for big geometries compared to to {@link GsJsonEncoder}.
  * The encoder does nt encode all decimals of coordinates and it does not (yet?)
  * strip properties of the features.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-class GtJSONServer 
-        extends JSONServer {
+class GtJsonEncoder 
+        extends JsonEncoder {
 
-    private static final Log log = LogFactory.getLog( GtJSONServer.class );
+    private static final Log log = LogFactory.getLog( GtJsonEncoder.class );
 
     
-    public GtJSONServer( String url, Collection<SimpleFeature> features, CoordinateReferenceSystem mapCRS ) 
-    throws MalformedURLException {
-        super( url, features, mapCRS );
-    }
-
-
-    protected void encode( CountingOutputStream out, String encoding )
+    public void encode( CountingOutputStream out, String encoding )
     throws IOException {
         BufferedWriter writer = new BufferedWriter( 
                 new OutputStreamWriter( out, encoding ) );
@@ -126,7 +117,7 @@ class GtJSONServer
 
         public void writeJSONString( Writer out )
                 throws IOException {
-            // this is code is from the 'old' JSONServer
+            // this is code is from the 'old' SimpleJsonServer
             Set<ReferenceIdentifier> ids = mapCRS.getIdentifiers();
             // WKT defined crs might not have identifiers at all
             if (ids != null && ids.size() > 0) {
@@ -196,9 +187,9 @@ class GtJSONServer
             
             try {
                 int featureCount = 0;
-                Iterator<SimpleFeature> it = features.iterator();
+                Iterator<Feature> it = features.iterator();
                 if (it.hasNext()) {
-                    fjson.writeFeature( transform( it.next() ), out );
+                    fjson.writeFeature( transform( (SimpleFeature)it.next() ), out );
                     featureCount++;
                 }
                 
@@ -218,7 +209,7 @@ class GtJSONServer
                     }
                     // encode feature
                     out.write(",");
-                    fjson.writeFeature( transform( it.next() ), out );
+                    fjson.writeFeature( transform( (SimpleFeature)it.next() ), out );
                 }
             }
             catch (IOException e) {

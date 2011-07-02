@@ -62,9 +62,9 @@ import org.polymap.core.services.http.WmsService;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * The RenderManager is the bridget between an {@link IMap} and the
- * {@link MapEditor}, that displays the contents of this map. It listens to all kind
- * of events regarding its map and changes its {@link #mapEditor} as needed.
+ * The RenderManager is the bridge between an {@link IMap} and the {@link MapEditor}
+ * that displays the contents of this map. It listens to all kind of events regarding
+ * its map and changes its {@link #mapEditor} as needed.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)

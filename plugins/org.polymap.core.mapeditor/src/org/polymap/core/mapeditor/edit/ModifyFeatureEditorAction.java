@@ -49,6 +49,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.ModifyFeatureControl;
+import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
  * Editor action for the {@link EditFeatureSupport}. This actions controls
@@ -119,7 +120,11 @@ public class ModifyFeatureEditorAction
             String property = fs.getSchema().getGeometryDescriptor().getLocalName();
             ModifyFeaturesOperation op = new ModifyFeaturesOperation( support.layer,
                     fs, feature.getID(), property, feature.getDefaultGeometry() );
-            OperationSupport.instance().execute( op, true, false );
+            OperationSupport.instance().execute( op, false, false );
+            
+            // redraw map layer
+            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
+            olayer.redraw( true );
         }
         catch (Throwable e) {
             log.warn( "", e );

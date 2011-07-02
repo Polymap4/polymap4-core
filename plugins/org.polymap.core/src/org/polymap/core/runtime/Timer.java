@@ -18,9 +18,8 @@ package org.polymap.core.runtime;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 /**
- * 
+ * Simple facility to measure elapsed time. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

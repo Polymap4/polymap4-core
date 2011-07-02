@@ -21,7 +21,6 @@ import java.util.Map;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,8 +34,6 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.gml2.bindings.GML2EncodingUtils;
 
-import org.eclipse.rwt.RWT;
-
 import org.eclipse.core.runtime.ListenerList;
 
 import org.polymap.core.data.PipelineFeatureSource;
@@ -45,10 +42,10 @@ import org.polymap.core.mapeditor.IEditFeatureSupport;
 import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.services.JSONServer;
+import org.polymap.core.mapeditor.services.JsonEncoder;
+import org.polymap.core.mapeditor.services.SimpleJsonServer;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.services.http.HttpServiceFactory;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
@@ -77,14 +74,14 @@ public class EditFeatureSupport
 
     protected VectorLayer           vectorLayer;
     
+    private JsonEncoder             jsonEncoder;
+    
     /** Controls handled by the editor actions of this package. */
     private Map<Object,Control>     controls = new HashMap();
     
     private SelectFeatureControl    hoverControl;
     
     private ListenerList            controlListeners = new ListenerList( ListenerList.IDENTITY );
-    
-    private JSONServer              jsonServer;
     
     private boolean                 active;
 
@@ -102,18 +99,14 @@ public class EditFeatureSupport
 
         this.mapEditor.addSupportListener( this );
 
-        // jsonServer
-        String pathSpec = "/" + RWT.getSessionStore().getId() + 
-                "/edit" + editCount++;
-        pathSpec = HttpServiceFactory.trimPathSpec( pathSpec );
-        String url = pathSpec.substring( 1 );
-
+        // jsonEncoder
         CoordinateReferenceSystem crs = mapEditor.getMap().getCRS();
-
-        jsonServer = JSONServer.newServer( url, ListUtils.EMPTY_LIST, crs );
-        jsonServer.setDecimals( 5 );
-        log.info( "        Server: " + jsonServer.getURL() );
-        HttpServiceFactory.registerServer( jsonServer, pathSpec, false );
+        SimpleJsonServer jsonServer = SimpleJsonServer.instance();
+        jsonEncoder = jsonServer.newLayer( Collections.EMPTY_LIST, crs, false );
+        // 3 decimals should be enough even for lat/long values
+        jsonEncoder.setDecimals( 8 );
+        String jsonUrl = jsonServer.getURL() + "/" + jsonEncoder.getName();
+        log.info( "        JsonEncoder: " + jsonUrl );
 
         // filter features in map extent
         try {
@@ -135,7 +128,7 @@ public class EditFeatureSupport
 
             PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
             FeatureCollection features = fs.getFeatures( filter );
-            jsonServer.setFeatures( features );
+            jsonEncoder.setFeatures( features );
 
             // select all features that are editable now;
             // allow GeoSelectionView to startup from are sibling operation concern
@@ -169,7 +162,7 @@ public class EditFeatureSupport
         styles.setIntentStyle( "select", select );
 
         vectorLayer = new VectorLayer( "Edit", 
-                new Protocol( Protocol.TYPE.HTTP, jsonServer.getURL(), "GeoJSON" ), styles );
+                new Protocol( Protocol.TYPE.HTTP, jsonUrl, "GeoJSON" ), styles );
 
         vectorLayer.setVisibility( true );
         vectorLayer.setIsBaseLayer( false );
@@ -211,8 +204,9 @@ public class EditFeatureSupport
         mapEditor.removeLayer( vectorLayer );
         vectorLayer.dispose();
         vectorLayer = null;
-        HttpServiceFactory.unregisterServer( jsonServer, false );
-        jsonServer = null;
+
+        SimpleJsonServer.instance().removeLayer( jsonEncoder );
+        log.info( "        JsonEncoder removed: " + jsonEncoder.getName() );
 
         this.mapEditor.removeSupportListener( this );
         this.mapEditor = null;

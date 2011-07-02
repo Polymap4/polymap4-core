@@ -24,7 +24,6 @@ import java.util.Map;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,8 +39,6 @@ import org.opengis.filter.FilterFactory;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import org.eclipse.rwt.RWT;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import org.eclipse.ui.IWorkbenchWindow;
@@ -52,10 +49,10 @@ import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.ISelectFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.services.JSONServer;
+import org.polymap.core.mapeditor.services.JsonEncoder;
+import org.polymap.core.mapeditor.services.SimpleJsonServer;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.services.http.HttpServiceFactory;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
@@ -80,8 +77,6 @@ class SelectFeatureSupport
 
     private static final int        DEFAULT_MAX_SELECTIONS = 100;
     
-    private static int              selectionCount = 0;
-    
     /** The {@link MapEditor} we are working with. */
     private MapEditor               mapEditor;
 
@@ -95,7 +90,8 @@ class SelectFeatureSupport
 
     private VectorLayer             vectorLayer;
     
-    private JSONServer              jsonServer;
+    /** Provides the features to the {@link #vectorLayer}. */
+    private JsonEncoder             jsonEncoder;
     
     /** The features that were last selected via {@link #selectFeatures(Collection)}. */
     private Collection<Feature>     features = new ArrayList();
@@ -115,19 +111,14 @@ class SelectFeatureSupport
         this.mapEditor = mapEditor;
         this.mapEditor.addSupportListener( this );
 
-        // jsonServer
-        String pathSpec = "/" + RWT.getSessionStore().getId() + 
-                "/geoselection" + selectionCount++;
-        pathSpec = HttpServiceFactory.trimPathSpec( pathSpec );
-        String url = pathSpec.substring( 1 );
-
+        // jsonEncoder
         CoordinateReferenceSystem crs = mapEditor.getMap().getCRS();
-
-        jsonServer = JSONServer.newServer( url, ListUtils.EMPTY_LIST, crs );
+        SimpleJsonServer jsonServer = SimpleJsonServer.instance();
+        jsonEncoder = jsonServer.newLayer( features, crs, false );
         // 3 decimals should be enough even for lat/long values
-        jsonServer.setDecimals( 3 );
-        log.info( "        Server: " + jsonServer.getURL() );
-        HttpServiceFactory.registerServer( jsonServer, pathSpec, false );
+        jsonEncoder.setDecimals( 3 );
+        String jsonUrl = jsonServer.getURL() + "/" + jsonEncoder.getName();
+        log.info( "        JsonEncoder: " + jsonUrl );
 
         // vectorLayer
         Style standard = new Style();
@@ -150,7 +141,7 @@ class SelectFeatureSupport
         styles.setIntentStyle( "select", select );
 
         vectorLayer = new VectorLayer( "GeoSelection", 
-                new Protocol( "HTTP", jsonServer.getURL(), "GeoJSON" ), styles );
+                new Protocol( "HTTP", jsonUrl, "GeoJSON" ), styles );
 
         vectorLayer.setVisibility( true );
         vectorLayer.setIsBaseLayer( false );
@@ -190,8 +181,9 @@ class SelectFeatureSupport
         mapEditor.removeLayer( vectorLayer );
         vectorLayer.dispose();
         vectorLayer = null;
-        HttpServiceFactory.unregisterServer( jsonServer, false );
-        jsonServer = null;
+    
+        SimpleJsonServer.instance().removeLayer( jsonEncoder );
+        log.info( "        JsonEncoder removed: " + jsonEncoder.getName() );
 
         this.mapEditor.removeSupportListener( this );
         this.mapEditor = null;
@@ -251,18 +243,9 @@ class SelectFeatureSupport
         }
 
         // still initializing?
-        if (jsonServer != null && vectorLayer != null) {
-            jsonServer.setFeatures( features );
+        if (jsonEncoder != null && vectorLayer != null) {
+            jsonEncoder.setFeatures( features );
             vectorLayer.refresh();
-
-//            vectorLayer = new VectorLayer( "GeoSelection", 
-//                    new Protocol( "HTTP", jsonServer.getURL(), "GeoJSON" ), styles );
-//
-//            vectorLayer.setVisibility( true );
-//            vectorLayer.setIsBaseLayer( false );
-//            vectorLayer.setZIndex( 10000 );
-//
-//            this.mapEditor.addLayer( vectorLayer );
         }
     }
 

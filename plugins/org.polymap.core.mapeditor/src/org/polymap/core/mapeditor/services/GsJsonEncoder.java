@@ -1,6 +1,5 @@
 package org.polymap.core.mapeditor.services;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -8,8 +7,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
-
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,20 +37,14 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * GeoJSON server based on {@link GeoJSONBuilder} from GeoServer. The encoder
  * strips properties from the features. It just encodes geoetries. Coordinates
  * are encoded with all decimals. This makes output big and slow for big geometries
- * compared to {@link GtJSONServer}.
+ * compared to {@link GtJsonEncoder}.
  */
-class GsJSONServer 
-        extends JSONServer {
+class GsJsonEncoder 
+        extends JsonEncoder {
 
-    private static final Log log = LogFactory.getLog( GsJSONServer.class );
+    private static final Log log = LogFactory.getLog( GsJsonEncoder.class );
 
     
-    public GsJSONServer( String url, Collection<SimpleFeature> features, CoordinateReferenceSystem mapCRS ) 
-    throws MalformedURLException {
-        super( url, features, mapCRS );
-    }
-
-
     /**
      * <p>
      * Initially found at {@link org.geoserver.wfs.response.GeoJSONOutputFormat}
@@ -63,7 +54,7 @@ class GsJSONServer
      * @throws IOException
      * @throws ServiceException
      */
-    protected void encode( CountingOutputStream out, String encoding )
+    public void encode( CountingOutputStream out, String encoding )
     throws IOException {
 
         // XXX investigate setting proper charsets in this

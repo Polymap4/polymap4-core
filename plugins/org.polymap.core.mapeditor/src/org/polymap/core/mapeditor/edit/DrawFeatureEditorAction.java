@@ -45,6 +45,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.DrawFeatureControl;
+import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
  * Editor action for the {@link EditFeatureSupport}. This actions controls
@@ -113,7 +114,6 @@ public class DrawFeatureEditorAction
                 PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
             }
         }
-
     }
 
     
@@ -127,7 +127,11 @@ public class DrawFeatureEditorAction
         
         try {
             NewFeatureOperation op = new NewFeatureOperation( support.layer, null, payload.get( "features" ) );
-            OperationSupport.instance().execute( op, true, false );
+            OperationSupport.instance().execute( op, false, false );
+            
+            // redraw map layer
+            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
+            olayer.redraw( true );
         }
         catch (Throwable e) {
             log.warn( "", e );

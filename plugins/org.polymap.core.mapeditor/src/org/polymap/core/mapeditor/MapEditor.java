@@ -290,6 +290,17 @@ public class MapEditor
         olwidget.getMap().removeLayer( olayer );
     }
     
+    public Layer findLayer( ILayer search ) {
+        for (Map.Entry<RenderLayerDescriptor,Layer> entry: layers.entrySet()) {
+            for (ILayer candidate : entry.getKey().layers) {
+                if (candidate.equals( search )) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
+    
     /**
      * Fills the {@link #olwidget} with the internal servers of the
      * {@link #renderManager}.
