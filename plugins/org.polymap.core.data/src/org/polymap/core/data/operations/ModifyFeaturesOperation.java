@@ -51,7 +51,9 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
+import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.operation.JobMonitors;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -76,6 +78,10 @@ public class ModifyFeaturesOperation
 
     private static final GeometryFactory    gf = new GeometryFactory();
 
+    private ILayer                  layer;
+    
+    private String                  fid;
+    
     private FeatureStore            fs;
     
     private AttributeDescriptor[]   types;
@@ -85,8 +91,10 @@ public class ModifyFeaturesOperation
     private Filter                  filter;
 
 
-    public ModifyFeaturesOperation( FeatureStore fs, String fid, String property, Object value ) {
+    public ModifyFeaturesOperation( ILayer layer, FeatureStore fs, String fid, String property, Object value ) {
         super( Messages.get( "ModifyFeaturesOperation_labelPrefix" ) );
+        this.layer = layer;
+        this.fid = fid;
         this.fs = fs;
         this.types = new AttributeDescriptor[] {
                 (AttributeDescriptor)fs.getSchema().getDescriptor( property ) };
@@ -146,6 +154,10 @@ public class ModifyFeaturesOperation
             display.asyncExec( new Runnable() {
                 public void run() {
                     try {
+                        // hover event
+                        LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+                        fsm.setHovered( fid );
+
                         // XXX update map editor
                     }
                     catch (Exception e) {

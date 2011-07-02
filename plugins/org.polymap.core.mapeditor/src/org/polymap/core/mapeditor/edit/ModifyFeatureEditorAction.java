@@ -22,7 +22,6 @@
  */
 package org.polymap.core.mapeditor.edit;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +31,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import org.geotools.geojson.feature.FeatureJSON;
@@ -45,8 +43,6 @@ import org.eclipse.ui.IEditorActionDelegate;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.event.GeoEvent;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -59,11 +55,10 @@ import org.polymap.openlayers.rap.widget.controls.ModifyFeatureControl;
  * the {@link ModifyFeatureControl}.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class ModifyFeatureEditorAction
-        extends AbstractEditorAction
+        extends AbstractEditEditorAction
         implements IEditorActionDelegate, OpenLayersEventListener {
 
     private static Log log = LogFactory.getLog( ModifyFeatureEditorAction.class );
@@ -122,16 +117,9 @@ public class ModifyFeatureEditorAction
             // execute operation
             PipelineFeatureSource fs = PipelineFeatureSource.forLayer( support.layer, true );
             String property = fs.getSchema().getGeometryDescriptor().getLocalName();
-            ModifyFeaturesOperation op = new ModifyFeaturesOperation( 
+            ModifyFeaturesOperation op = new ModifyFeaturesOperation( support.layer,
                     fs, feature.getID(), property, feature.getDefaultGeometry() );
             OperationSupport.instance().execute( op, true, false );
-
-            // geo event
-            GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED, 
-                    mapEditor.getMap().getLabel(), 
-                    null );
-            event.setBody( Collections.singletonList( (Feature)feature ) );
-            GeoHub.instance().send( event );
         }
         catch (Throwable e) {
             log.warn( "", e );

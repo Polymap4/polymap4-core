@@ -43,7 +43,7 @@ import org.polymap.openlayers.rap.widget.controls.DrawFeatureControl;
  * @since 3.0
  */
 public class DeleteFeatureEditorAction
-        extends AbstractEditorAction
+        extends AbstractEditEditorAction
         implements IEditorActionDelegate {
 
     private static Log log = LogFactory.getLog( DeleteFeatureEditorAction.class );

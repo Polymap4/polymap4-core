@@ -269,5 +269,12 @@
          </destination>
       </action>
    </extension>
+   <extension
+         point="org.polymap.core.operation.concerns">
+      <concern
+            class="org.polymap.rhei.internal.form.NewFeatureOperationConcern"
+            id="org.polymap.rhei.NewFeatureOperationConcern">
+      </concern>
+   </extension>
 
 </plugin>

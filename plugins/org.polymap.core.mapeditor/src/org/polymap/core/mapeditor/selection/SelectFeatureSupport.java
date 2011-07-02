@@ -131,16 +131,16 @@ class SelectFeatureSupport
 
         // vectorLayer
         Style standard = new Style();
-        standard.setAttribute( "strokeWidth", 2 );
-        standard.setAttribute( "strokeColor", "#0000f0" );
-        standard.setAttribute( "strokeOpacity", "0.7" );
-        standard.setAttribute( "fillColor", "#0000f0" );
+        standard.setAttribute( "strokeWidth", 1 );
+        standard.setAttribute( "strokeColor", "#0000ff" );
+        //standard.setAttribute( "strokeOpacity", "0.7" );
+        standard.setAttribute( "fillColor", "#0000ff" );
         Style temporary = new Style();
-        temporary.setAttribute( "strokeWidth", 2 );
+        temporary.setAttribute( "strokeWidth", 1 );
         temporary.setAttribute( "strokeColor", "#00b0ff" );
         temporary.setAttribute( "fillColor", "#00b0ff" );
         Style select = new Style();
-        select.setAttribute( "strokeWidth", 3 );
+        select.setAttribute( "strokeWidth", 2 );
         select.setAttribute( "strokeColor", "#00b0ff" );
         select.setAttribute( "fillColor", "#00b0ff" );
 
@@ -267,7 +267,7 @@ class SelectFeatureSupport
     }
 
 
-    public void setActive( boolean active ) {
+    protected void setActive( boolean active ) {
         log.debug( "active= " + active );
         if (isActive() == active) {
             return;

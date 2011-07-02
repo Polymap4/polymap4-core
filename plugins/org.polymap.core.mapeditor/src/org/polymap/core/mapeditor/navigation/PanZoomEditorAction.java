@@ -60,9 +60,8 @@ public class PanZoomEditorAction
 
 
     public void setActiveEditor( IAction action, IEditorPart targetEditor ) {
-        //log.debug( "### active editor: editor=" + mapEditor + "; new: " + targetEditor  );
         // disconnect old editor
-        if (mapEditor != null && mapEditor != targetEditor) {
+        if (mapEditor != null) {
             mapEditor.removeSupportListener( this );
         }
         
@@ -82,15 +81,17 @@ public class PanZoomEditorAction
         }
         else {
             action.setEnabled( false );
-            //action.setChecked( false );
+            action.setChecked( false );
         }
     }
 
 
     public void supportStateChanged( MapEditor _editor, IMapEditorSupport support, boolean activated ) {
+        if (support != navigation && !activated) {
+            mapEditor.activateSupport( navigation, true );
+        }
         if (support == navigation) {
-            log.debug( "activated= " + activated );
-            action.setChecked( activated );
+            action.setChecked( mapEditor.isActive( navigation ) );
         }
     }
 

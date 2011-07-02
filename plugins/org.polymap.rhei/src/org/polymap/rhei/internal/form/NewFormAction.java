@@ -17,15 +17,6 @@
  */
 package org.polymap.rhei.internal.form;
 
-import java.util.Collections;
-
-import org.geotools.data.FeatureStore;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.feature.FeatureCollection;
-import org.opengis.feature.Feature;
-import org.opengis.filter.Id;
-import org.opengis.filter.identity.FeatureId;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -36,14 +27,12 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.data.ui.featureTable.GeoSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.RheiPlugin;
-import org.polymap.rhei.form.FormEditor;
 
 /**
  * 
@@ -66,7 +55,7 @@ public class NewFormAction
         if (view instanceof GeoSelectionView) {
             log.debug( "init(): found GeoSelectionView..." );
             this.view = (GeoSelectionView)_view;
-            this.layer = ((GeoSelectionView)view).getLayer();
+            this.layer = (view).getLayer();
             assert layer != null : "Layer must not be null.";
         }
     }
@@ -76,17 +65,17 @@ public class NewFormAction
         try {
             NewFeatureOperation op = new NewFeatureOperation( layer, null );
             OperationSupport.instance().execute( op, false, false );
-            FeatureId fid = op.getCreatedFid();
-
-            FeatureStore fs = view != null
-                    ? view.getFeatureStore()
-                    // FIXME do blocking operation inside a job?
-                    : PipelineFeatureSource.forLayer( layer, false );
-
-            Id fidFilter = CommonFactoryFinder.getFilterFactory( null ).id( Collections.singleton( fid ) );
-            FeatureCollection coll = fs.getFeatures( fidFilter );
-            Feature feature = (Feature)coll.toArray( new Feature[1] )[0];
-            FormEditor.open( fs, feature );
+//            FeatureId fid = op.getCreatedFid();
+//
+//            FeatureStore fs = view != null
+//                    ? view.getFeatureStore()
+//                    // FIXME do blocking operation inside a job?
+//                    : PipelineFeatureSource.forLayer( layer, false );
+//
+//            Id fidFilter = CommonFactoryFinder.getFilterFactory( null ).id( Collections.singleton( fid ) );
+//            FeatureCollection coll = fs.getFeatures( fidFilter );
+//            Feature feature = (Feature)coll.toArray( new Feature[1] )[0];
+//            FormEditor.open( fs, feature );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );

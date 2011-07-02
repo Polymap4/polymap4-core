@@ -356,10 +356,12 @@ div.olControlSaveFeaturesItemInactive {
     cursor: crosshair;
 }
 .olControlDragFeatureOver {
-    cursor: move;
+    /*cursor: move;*/
+    cursor: crosshair;
 }
 .olControlDragFeatureActive.olControlDragFeatureOver.olDragDown {
-    cursor: -moz-grabbing;
+    /*cursor: -moz-grabbing;*/
+    cursor: crosshair;
 }
 
 /**

@@ -50,7 +50,7 @@ public class WeakListener
      */
     public static <T> T forListener( T delegate ) {
         assert delegate != null;
-        log.info( "forListener(): " + delegate.getClass().getName() );
+        log.debug( "forListener(): " + delegate.getClass().getName() );
         
         // find all interfaces
         Set<Class> interfaces = new HashSet();

@@ -44,7 +44,6 @@ import org.polymap.core.mapeditor.actions.MouseModeAction;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class SelectFeatureEditorAction
@@ -71,7 +70,7 @@ public class SelectFeatureEditorAction
 
     public void setActiveEditor( IAction action, IEditorPart targetEditor ) {
         // disconnect old editor
-        if (mapEditor != null && mapEditor != targetEditor) {
+        if (mapEditor != null) {
             mapEditor.removeSupportListener( this );
         }
         
@@ -93,8 +92,7 @@ public class SelectFeatureEditorAction
     
     public void supportStateChanged( MapEditor _editor, IMapEditorSupport _support, boolean _activated ) {
         if (support == _support) {
-            log.debug( "activated= " + _activated );
-            action.setChecked( _activated );
+            action.setChecked( mapEditor.isActive( support ) );
         }
     }
 

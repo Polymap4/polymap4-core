@@ -1986,6 +1986,7 @@ Export-Package: .,
  org.joda.time.tz.data.Europe,
  org.joda.time.tz.data.Indian,
  org.joda.time.tz.data.Pacific,
+ org.json.simple,
  org.opengis.annotation,
  org.opengis.coverage;
   uses:="org.opengis.util,

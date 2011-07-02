@@ -102,6 +102,7 @@ public class LayerEditableStatusAction
             Object[] elms = ((IStructuredSelection)_sel).toArray();
             boolean allLayersEditable = true;
             boolean allLayersVisible = true;
+            boolean allLayersNotSelectable = true;
             boolean allLayersPermitted = true;
             
             for (Object elm : elms) {
@@ -117,6 +118,9 @@ public class LayerEditableStatusAction
                     if (!((ILayer)elm).isVisible()) {
                         allLayersVisible = false;
                     }
+                    if (((ILayer)elm).isSelectable()) {
+                        allLayersNotSelectable = false;
+                    }
 
                     // check ACL permission
                     if (elm instanceof ACL 
@@ -128,7 +132,7 @@ public class LayerEditableStatusAction
 
                 }
             }
-            action.setEnabled( !layers.isEmpty() && allLayersVisible && allLayersPermitted ); 
+            action.setEnabled( !layers.isEmpty() && allLayersVisible && allLayersPermitted && allLayersNotSelectable ); 
             action.setChecked( layers.size() == 1 && layers.get( 0 ).isEditable()
                     || layers.size() > 1 && allLayersEditable );
         }
@@ -139,7 +143,7 @@ public class LayerEditableStatusAction
         String prop = ev.getPropertyName();
 
         if (ev.getSource() instanceof ILayer
-                && (prop.equals( ILayer.PROP_EDITABLE ) || prop.equals( ILayer.PROP_VISIBLE ))) {
+                && (prop.equals( ILayer.PROP_EDITABLE ) || prop.equals( ILayer.PROP_VISIBLE ) || prop.equals( ILayer.PROP_SELECTABLE ))) {
             selectionChanged( action, new StructuredSelection( layers ) );
         }
     }

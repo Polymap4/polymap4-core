@@ -51,11 +51,10 @@ import org.polymap.openlayers.rap.widget.controls.DrawFeatureControl;
  * the {@link DrawFeatureControl}.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class DrawFeatureEditorAction
-        extends AbstractEditorAction
+        extends AbstractEditEditorAction
         implements IEditorActionDelegate, OpenLayersEventListener {
 
     private static Log log = LogFactory.getLog( DrawFeatureEditorAction.class );
@@ -129,21 +128,6 @@ public class DrawFeatureEditorAction
         try {
             NewFeatureOperation op = new NewFeatureOperation( support.layer, null, payload.get( "features" ) );
             OperationSupport.instance().execute( op, true, false );
-
-// XXX inside operation now
-//            // geo event: added
-//            GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_CREATED, 
-//                    mapEditor.getMap().getLabel(), 
-//                    null );
-//            event.setBody( Collections.singletonList( (Feature)op.getFeature() ) );
-//            GeoHub.instance().send( event );
-//
-//            // geo event: hovered
-//            event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED, 
-//                    mapEditor.getMap().getLabel(), 
-//                    null );
-//            event.setBody( Collections.singletonList( (Feature)op.getFeature() ) );
-//            GeoHub.instance().send( event );
         }
         catch (Throwable e) {
             log.warn( "", e );

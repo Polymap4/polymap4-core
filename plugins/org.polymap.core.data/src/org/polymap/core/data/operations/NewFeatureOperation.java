@@ -22,23 +22,29 @@
  */
 package org.polymap.core.data.operations;
 
+import java.util.HashSet;
 import java.util.List;
 
+import java.io.IOException;
 import java.io.StringReader;
 
 import net.refractions.udig.ui.OffThreadProgressMonitor;
 
 import org.geotools.data.FeatureStore;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geojson.feature.FeatureJSON;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
@@ -64,6 +70,7 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
@@ -136,13 +143,22 @@ public class NewFeatureOperation
 
     /**
      * Returns the feature after the operation was executed.
+     * @throws IOException 
      */
-    public FeatureId getCreatedFid() {
-        return fids.get( 0 );
+    public Feature getCreatedFeature() 
+    throws IOException {
+        FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
+        Id fidFilter = ff.id( new HashSet( fids ) );
+        FeatureCollection coll = fs.getFeatures( fidFilter );
+        return (Feature)coll.toArray( new Feature[1] )[0];
     }
 
     public ILayer getLayer() {
         return layer;
+    }
+
+    public FeatureStore getFeatureStore() {
+        return fs;
     }
 
 
@@ -180,26 +196,16 @@ public class NewFeatureOperation
             log.info( "### Feature created: " + fids.get( 0 ) );
 
             monitor.worked( 1 );
-            
+
             // update UI
             display.asyncExec( new Runnable() {
                 public void run() {
                     try {
-                        // XXX update map editor
-                        
-//                        // geo event: added
-//                        GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_CREATED, 
-//                                layer.getMap().getLabel(), 
-//                                null );
-//                        event.setBody( Collections.singletonList( (Feature)newFeature ) );
-//                        GeoHub.instance().send( event );
+                        // hover event
+                        LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+                        fsm.setHovered( fids.get( 0 ).getID() );
 
-//                        // geo event: hovered
-//                        event = new GeoEvent( GeoEvent.Type.FEATURE_HOVERED, 
-//                                layer.getMap().getLabel(), 
-//                                null );
-//                        event.setBody( Collections.singletonList( (Feature)feature ) );
-//                        GeoHub.instance().send( event );
+                        // XXX update map editor
                     }
                     catch (Exception e) {
                         PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getMessage(), e );

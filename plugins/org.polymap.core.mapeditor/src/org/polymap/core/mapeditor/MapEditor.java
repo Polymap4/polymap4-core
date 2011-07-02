@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.mapeditor;
 
@@ -77,10 +69,9 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
 import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
- * A map editor based on OpenLayers.
+ * A map editor based on {@link OpenLayersWidget}.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class MapEditor
@@ -511,8 +502,9 @@ public class MapEditor
             return;
         }
         if (activeSupport != null) {
-            fireSupportEvent( activeSupport, false );
+            IMapEditorSupport deactivate = activeSupport;
             activeSupport = null;
+            fireSupportEvent( deactivate, false );
         }
         if (active) {
             activeSupport = support;
@@ -521,9 +513,7 @@ public class MapEditor
     }
     
     public boolean isActive( IMapEditorSupport support ) {
-        return support != null
-                ? support.equals( activeSupport )
-                : false;
+        return support != null ? support.equals( activeSupport ) : false;
     }
 
     public void addSupportListener( IMapEditorSupportListener listener ) {

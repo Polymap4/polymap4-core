@@ -45,7 +45,7 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
  * @since 3.0
  */
 public class SnapEditorAction
-        extends AbstractEditorAction
+        extends AbstractEditEditorAction
         implements IEditorActionDelegate {
 
     private static Log log = LogFactory.getLog( SnapEditorAction.class );

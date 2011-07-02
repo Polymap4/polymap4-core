@@ -34,26 +34,6 @@
                style="push"
                toolbarPath="mapEditor">
          </action>
-         <action
-               class="org.polymap.core.mapeditor.edit.SetLayerEditableAction"
-               enablesFor="+"
-               icon="icons/etool16/edit_vertex_mode.gif"
-               id="org.polymap.core.mapeditor.action.editFeatures"
-               label="%actions_editFeaturesMode"
-               style="toggle"
-               toolbarPath="mapEditor"
-               tooltip="%actions_editFeaturesModeTip">
-         </action>
-         <action
-               class="org.polymap.core.mapeditor.selection.SetLayerSelectableAction"
-               enablesFor="+"
-               icon="icons/etool16/tb_buffer_fence.gif"
-               id="org.polymap.core.mapeditor.action.selectFeatures"
-               label="%actions_selectFeaturesMode"
-               style="toggle"
-               toolbarPath="mapEditor"
-               tooltip="%actions_selectFeaturesMode">
-         </action>
       </viewContribution>
       <viewContribution
             id="org.polymap.core.mapeditor.geoSelectionContribution"
@@ -174,7 +154,7 @@
          </action-->
          <action
                class="org.polymap.core.mapeditor.selection.SelectFeatureEditorAction"
-               icon="icons/etool16/tb_buffer_fence.gif"
+               icon="icons/etool16/layer_selectable.gif"
                id="org.polymap.core.mapeditor.action.selectFeatures_editor"
                label="%actions_selectFeatures"
                style="toggle"

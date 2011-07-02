@@ -31,7 +31,7 @@ import org.polymap.openlayers.rap.widget.controls.MouseDefaultsControl;
 
 /**
  * Provides the navigation support methods for an {@link MapEditor}.
- * <p>
+ * <p/>
  * The <code>NavigationSupport</code> also provides the undo/redo logic
  * for navigation operations. 
  *
@@ -109,7 +109,7 @@ public class NavigationSupport
     }
 
     
-    public void setActive( boolean active ) {
+    protected void setActive( boolean active ) {
         log.debug( "NavigationSupport: active= " + active + " isActive= " + isActive() );
         if (isActive() == active) {
             return;

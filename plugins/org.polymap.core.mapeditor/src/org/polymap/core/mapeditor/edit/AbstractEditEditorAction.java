@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.mapeditor.edit;
 
@@ -44,14 +36,13 @@ import org.polymap.openlayers.rap.widget.controls.Control;
  * activation.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-abstract class AbstractEditorAction
+abstract class AbstractEditEditorAction
         extends MouseModeAction
         implements IEditorActionDelegate, IMapEditorSupportListener, PropertyChangeListener {
 
-    private static Log log = LogFactory.getLog( AbstractEditorAction.class );
+    private static Log log = LogFactory.getLog( AbstractEditEditorAction.class );
 
     /** The editor support interface that is currently handled by this action. */
     protected EditFeatureSupport            support;
@@ -60,9 +51,8 @@ abstract class AbstractEditorAction
     
 
     public void setActiveEditor( IAction action, IEditorPart targetEditor ) {
-        //log.debug( "### active editor: editor=" + mapEditor + "; new: " + targetEditor  );
         // disconnect old editor
-        if (mapEditor != null && mapEditor != targetEditor) {
+        if (mapEditor != null) {
             mapEditor.removeSupportListener( this );
             if (support != null) {
                 support.removeControlListener( this );
@@ -72,12 +62,12 @@ abstract class AbstractEditorAction
         // connect new editor
         super.setActiveEditor( action, targetEditor );
         
+        action.setEnabled( false );
+        action.setChecked( false );
+
         if (mapEditor != null) {
             support = (EditFeatureSupport)mapEditor.findSupport( EditFeatureSupport.class );
-            if (support == null) {
-                action.setEnabled( false );
-            }
-            else {
+            if (support != null) {
                 action.setEnabled( true );
                 mapEditor.addSupportListener( this );
                 support.addControlListener( this );
@@ -87,17 +77,14 @@ abstract class AbstractEditorAction
                         support.isControlActive( controlType ) );
             }
         }
-        else {
-            action.setEnabled( false );
-            //action.setChecked( false );
-        }
     }
 
     public void supportStateChanged( MapEditor _editor, IMapEditorSupport _support, boolean _activated ) {
         if (this.support == _support) {
             log.debug( "supportStateChanged(): activated= " + _activated );
             
-            action.setChecked( _activated && 
+            action.setChecked( 
+                    mapEditor.isActive( support ) && 
                     support.isControlActive( controlType ) );
 
             if (support.isControlActive( controlType )) {

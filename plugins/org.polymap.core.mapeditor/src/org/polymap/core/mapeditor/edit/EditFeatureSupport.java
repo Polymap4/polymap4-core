@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.mapeditor.edit;
 
@@ -71,7 +63,6 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
  * The 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @SuppressWarnings("deprecation")
@@ -169,8 +160,8 @@ public class EditFeatureSupport
         temporary.setAttribute( "fillColor", "#ff0000" );
         Style select = new Style();
         select.setAttribute( "strokeWidth", 1 );
-        select.setAttribute( "strokeColor", "#f00000" );
-        select.setAttribute( "fillColor", "#f00000" );
+        select.setAttribute( "strokeColor", "#ff0000" );
+        select.setAttribute( "fillColor", "#ff0000" );
 
         StyleMap styles = new StyleMap();
         styles.setIntentStyle( "default", standard );
