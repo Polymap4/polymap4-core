@@ -87,9 +87,15 @@ abstract class AbstractEditEditorAction
                     mapEditor.isActive( support ) && 
                     support.isControlActive( controlType ) );
 
-            if (support.isControlActive( controlType )) {
-                support.setControlActive( controlType, false );
+            if (!_activated) {
+                Control control = support.getControl( controlType );
+                if (control != null) {
+                    control.deactivate();
+                }
             }
+//            if (support.isControlActive( controlType )) {
+//                support.setControlActive( controlType, false );
+//            }
         }
     }
 

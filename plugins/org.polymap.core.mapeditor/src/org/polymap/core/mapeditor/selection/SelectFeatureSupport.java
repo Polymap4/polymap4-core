@@ -50,18 +50,17 @@ import org.polymap.core.mapeditor.ISelectFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.services.JsonEncoder;
+import org.polymap.core.mapeditor.services.JsonVectorLayer;
 import org.polymap.core.mapeditor.services.SimpleJsonServer;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
-import org.polymap.openlayers.rap.widget.base_types.Protocol;
 import org.polymap.openlayers.rap.widget.base_types.Style;
 import org.polymap.openlayers.rap.widget.base_types.StyleMap;
 import org.polymap.openlayers.rap.widget.controls.BoxControl;
 import org.polymap.openlayers.rap.widget.controls.SelectFeatureControl;
-import org.polymap.openlayers.rap.widget.layers.VectorLayer;
 
 /**
  * 
@@ -88,10 +87,7 @@ class SelectFeatureSupport
     
     private BoxControl              boxControl;
 
-    private VectorLayer             vectorLayer;
-    
-    /** Provides the features to the {@link #vectorLayer}. */
-    private JsonEncoder             jsonEncoder;
+    private JsonVectorLayer         vectorLayer;
     
     /** The features that were last selected via {@link #selectFeatures(Collection)}. */
     private Collection<Feature>     features = new ArrayList();
@@ -114,11 +110,9 @@ class SelectFeatureSupport
         // jsonEncoder
         CoordinateReferenceSystem crs = mapEditor.getMap().getCRS();
         SimpleJsonServer jsonServer = SimpleJsonServer.instance();
-        jsonEncoder = jsonServer.newLayer( features, crs, false );
+        JsonEncoder jsonEncoder = jsonServer.newLayer( features, crs, false );
         // 3 decimals should be enough even for lat/long values
-        jsonEncoder.setDecimals( 3 );
-        String jsonUrl = jsonServer.getURL() + "/" + jsonEncoder.getName();
-        log.info( "        JsonEncoder: " + jsonUrl );
+        //jsonEncoder.setDecimals( 3 );
 
         // vectorLayer
         Style standard = new Style();
@@ -140,8 +134,8 @@ class SelectFeatureSupport
         styles.setIntentStyle( "temporary", temporary );
         styles.setIntentStyle( "select", select );
 
-        vectorLayer = new VectorLayer( "GeoSelection", 
-                new Protocol( "HTTP", jsonUrl, "GeoJSON" ), styles );
+        vectorLayer = new JsonVectorLayer( "selection", 
+                jsonServer, jsonEncoder , styles );
 
         vectorLayer.setVisibility( true );
         vectorLayer.setIsBaseLayer( false );
@@ -182,9 +176,6 @@ class SelectFeatureSupport
         vectorLayer.dispose();
         vectorLayer = null;
     
-        SimpleJsonServer.instance().removeLayer( jsonEncoder );
-        log.info( "        JsonEncoder removed: " + jsonEncoder.getName() );
-
         this.mapEditor.removeSupportListener( this );
         this.mapEditor = null;
     }
@@ -243,8 +234,8 @@ class SelectFeatureSupport
         }
 
         // still initializing?
-        if (jsonEncoder != null && vectorLayer != null) {
-            jsonEncoder.setFeatures( features );
+        if (vectorLayer != null) {
+            vectorLayer.getJsonEncoder().setFeatures( features );
             vectorLayer.refresh();
         }
     }

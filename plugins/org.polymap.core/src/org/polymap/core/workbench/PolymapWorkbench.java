@@ -36,12 +36,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.util.URLHelper;
 import org.eclipse.rwt.lifecycle.IEntryPoint;
-import org.eclipse.rwt.service.SessionStoreEvent;
-import org.eclipse.rwt.service.SessionStoreListener;
-
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.ui.IWorkbench;
@@ -172,13 +168,6 @@ public class PolymapWorkbench
 //        if (POLYMAP_PRESENTATION.equals( presentationId )) {
 //            worbenchAdvisor = new PolymapPresentationWorkbenchAdvisor();
 //        }
-
-        boolean disposed = false;
-        RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
-            public void beforeDestroy( SessionStoreEvent ev ) {
-                log.info( "beforeDestroy: ..." );
-            }
-        });
 
         // security config / login
         Polymap.instance().login();

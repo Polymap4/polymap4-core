@@ -43,18 +43,17 @@ import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.services.JsonEncoder;
+import org.polymap.core.mapeditor.services.JsonVectorLayer;
 import org.polymap.core.mapeditor.services.SimpleJsonServer;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
-import org.polymap.openlayers.rap.widget.base_types.Protocol;
 import org.polymap.openlayers.rap.widget.base_types.Style;
 import org.polymap.openlayers.rap.widget.base_types.StyleMap;
 import org.polymap.openlayers.rap.widget.controls.Control;
 import org.polymap.openlayers.rap.widget.controls.SelectFeatureControl;
-import org.polymap.openlayers.rap.widget.layers.VectorLayer;
 
 /**
  * The 
@@ -68,13 +67,11 @@ public class EditFeatureSupport
 
     private static Log log = LogFactory.getLog( EditFeatureSupport.class );
 
-    private static int              editCount = 0;
-    
     private MapEditor               mapEditor;
 
-    protected VectorLayer           vectorLayer;
+    protected JsonVectorLayer       vectorLayer;
     
-    private JsonEncoder             jsonEncoder;
+    protected JsonVectorLayer[]     snapLayers;
     
     /** Controls handled by the editor actions of this package. */
     private Map<Object,Control>     controls = new HashMap();
@@ -102,11 +99,9 @@ public class EditFeatureSupport
         // jsonEncoder
         CoordinateReferenceSystem crs = mapEditor.getMap().getCRS();
         SimpleJsonServer jsonServer = SimpleJsonServer.instance();
-        jsonEncoder = jsonServer.newLayer( Collections.EMPTY_LIST, crs, false );
+        JsonEncoder jsonEncoder = jsonServer.newLayer( Collections.EMPTY_LIST, crs, false );
         // 3 decimals should be enough even for lat/long values
-        jsonEncoder.setDecimals( 8 );
-        String jsonUrl = jsonServer.getURL() + "/" + jsonEncoder.getName();
-        log.info( "        JsonEncoder: " + jsonUrl );
+        //jsonEncoder.setDecimals( 8 );
 
         // filter features in map extent
         try {
@@ -161,8 +156,7 @@ public class EditFeatureSupport
         styles.setIntentStyle( "temporary", temporary );
         styles.setIntentStyle( "select", select );
 
-        vectorLayer = new VectorLayer( "Edit", 
-                new Protocol( Protocol.TYPE.HTTP, jsonUrl, "GeoJSON" ), styles );
+        vectorLayer = new JsonVectorLayer( "Edit", jsonServer, jsonEncoder, styles );
 
         vectorLayer.setVisibility( true );
         vectorLayer.setIsBaseLayer( false );
@@ -177,9 +171,10 @@ public class EditFeatureSupport
         mapEditor.addControl( hoverControl );
         hoverControl.activate();
     }
+
     
     public void dispose() {
-        setActive( false );
+        this.active  = false;
 
         if (fsm != null) {
             fsm.removeChangeListener( this );
@@ -205,9 +200,14 @@ public class EditFeatureSupport
         vectorLayer.dispose();
         vectorLayer = null;
 
-        SimpleJsonServer.instance().removeLayer( jsonEncoder );
-        log.info( "        JsonEncoder removed: " + jsonEncoder.getName() );
-
+        if (snapLayers != null) {
+            for (JsonVectorLayer snapLayer : snapLayers) {
+                mapEditor.removeLayer( snapLayer );
+                snapLayer.dispose();
+            }
+            snapLayers = null;
+        }
+        
         this.mapEditor.removeSupportListener( this );
         this.mapEditor = null;
     }
@@ -221,7 +221,7 @@ public class EditFeatureSupport
     }
     
     boolean removeControl( Control control ) {
-        Control old = controls.get( control.getClass() );
+        Control old = controls.remove( control.getClass() );
         if (old != null) {
             mapEditor.removeControl( old );
         }
@@ -266,18 +266,9 @@ public class EditFeatureSupport
     public void supportStateChanged( MapEditor editor, IMapEditorSupport support, boolean activated ) {
         log.debug( "support= " + support + " activated= " + activated );
         if (this == support) {
-            setActive( activated );
+            this.active = activated;
         }
     }
-    
-    public void setActive( boolean active ) {
-        log.debug( "active= " + active );
-        if (isActive() == active) {
-            return;
-        }
-        this.active = active;
-    }
-
     
     public boolean isActive() {
         return active;

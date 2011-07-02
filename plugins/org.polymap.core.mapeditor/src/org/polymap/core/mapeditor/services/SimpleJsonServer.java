@@ -36,6 +36,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.SessionListener;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.services.http.HttpService;
 import org.polymap.core.services.http.HttpServiceFactory;
@@ -48,7 +50,7 @@ import org.polymap.core.services.http.HttpServiceFactory;
  * @since 3.0
  */
 public class SimpleJsonServer 
-        extends HttpService {
+        extends HttpService implements SessionListener {
 
     private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
 
@@ -56,18 +58,17 @@ public class SimpleJsonServer
     
     // static factory *************************************
     
-    private static SimpleJsonServer     instance;
-    
-    public static SimpleJsonServer instance() {
+    public static synchronized SimpleJsonServer instance() {
+        SimpleJsonServer instance = (SimpleJsonServer)Polymap.getSessionAttribute( "SimpleJsonServer" );
         if (instance == null) {
-            synchronized( SimpleJsonServer.class ) {
-                if (instance == null) {
-                    try {
-                        instance = new SimpleJsonServer( "/mapeditorjson" );
-                    }
-                    catch (Exception e) {
-                        throw new RuntimeException( e );
-                    }
+            if (instance == null) {
+                try {
+                    instance = new SimpleJsonServer( "/mapeditorjson-" + Polymap.instance().hashCode() );
+                    Polymap.instance().addSessionShutdownHook( instance );
+                    Polymap.setSessionAttribute( "SimpleJsonServer", instance );
+                }
+                catch (Exception e) {
+                    throw new RuntimeException( e );
                 }
             }
         }
@@ -93,7 +94,7 @@ public class SimpleJsonServer
         super();
         super.init( _pathSpec, null );
         
-        log.info( "URL: " + getURL() );
+        log.debug( "URL: " + getURL() );
         HttpServiceFactory.registerServer( this, pathSpec, false );
     }
 
@@ -108,6 +109,12 @@ public class SimpleJsonServer
     }
 
     
+    /* SessionListener */
+    public void beforeDestroy() {
+        dispose();
+    }
+
+
     public JsonEncoder newLayer( Collection<Feature> features, 
             CoordinateReferenceSystem mapCRS, boolean oneShot ) {
         JsonEncoder layer = JsonEncoder.newInstance();
