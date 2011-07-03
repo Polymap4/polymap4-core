@@ -45,6 +45,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
+import org.polymap.core.geohub.LayerFeatureSelectionOperation;
 import org.polymap.core.mapeditor.IMapEditorSupport;
 import org.polymap.core.mapeditor.ISelectFeatureSupport;
 import org.polymap.core.mapeditor.MapEditor;
@@ -52,6 +53,7 @@ import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.services.JsonEncoder;
 import org.polymap.core.mapeditor.services.JsonVectorLayer;
 import org.polymap.core.mapeditor.services.SimpleJsonServer;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -205,7 +207,10 @@ class SelectFeatureSupport
         }
     }
 
-    
+
+    /**
+     * Listen to feature selection changes from {@link LayerFeatureSelectionManager}.
+     */
     public void propertyChange( PropertyChangeEvent ev ) {
         assert fsm == ev.getSource();
         
@@ -348,7 +353,11 @@ class SelectFeatureSupport
                 BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
                         dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
                 
-                fsm.changeSelection( filter, null, this );
+                // change feature selection
+                LayerFeatureSelectionOperation op = new LayerFeatureSelectionOperation();
+                op.init( layer, filter, null, this );
+                OperationSupport.instance().execute( op, false, false );
+//                fsm.changeSelection( filter, null, this );
                 
                 selectFeatures( fsm.getFeatureCollection() );
             }

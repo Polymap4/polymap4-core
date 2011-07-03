@@ -126,7 +126,8 @@ public class EditFeatureSupport
             jsonEncoder.setFeatures( features );
 
             // select all features that are editable now;
-            // allow GeoSelectionView to startup from are sibling operation concern
+            // allow GeoSelectionView to startup from are sibling operation concern;
+            // do not use an operation because this is not undoable (as a single op)
             Polymap.getSessionDisplay().asyncExec( new Runnable() {
                 public void run() {
                     fsm.changeSelection( filter, null, EditFeatureSupport.this );
