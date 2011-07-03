@@ -196,6 +196,8 @@ public class GeoSelectionView
 
     private boolean                 allowSearch = true;
 
+    private String                  basePartName;
+
 
     public GeoSelectionView() {
         log.debug( "..." );
@@ -318,7 +320,8 @@ public class GeoSelectionView
 
     public void connectLayer( ILayer _layer ) {
         this.layer = _layer;
-        setPartName( layer.getLabel() );
+        this.basePartName = layer.getLabel(); 
+        setPartName( basePartName );
 
         // property listener
         layer.addPropertyChangeListener( WeakListener.forListener( layerChangeListener ) );
@@ -459,6 +462,11 @@ public class GeoSelectionView
                         viewer.setFeatures( allowModify
                                 ? new ModifierFeatureCollection( (FeatureStore)fs, fc )
                                 : fc );
+
+                        // view title
+                        int count = fc.size();  //getviewer.getViewer().getTable().getItemCount()
+                        String title = basePartName + " (" + count + ")";
+                        setPartName( title );
 
                         //viewer.getViewer().getTable().pack( true );
                         viewer.getViewer().getTable().layout( true );

@@ -24,14 +24,11 @@
 package org.polymap.core.data.ui.featureTable;
 
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-
-import org.geotools.factory.CommonFactoryFinder;
-
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
@@ -42,8 +39,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionDelegate;
 
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.geohub.GeoHub;
-import org.polymap.core.geohub.event.GeoEvent;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -74,15 +69,25 @@ public class FeatureTableAction
                 try {
                     // ensure that the view is shown
                     GeoSelectionView view = GeoSelectionView.open( selectedLayer, true );
+
+                    if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                            "Achtung", "Mit dieser Operation werden alle Objekte geladen.\n" + 
+                            "Das kann unter Umständen einige Zeit dauern. Um eine Auswahl von\n" + 
+                            "Objekten zu selektieren, nutzen Sie bitte die Funktion Abfragen/Suche.\n\n" + 
+                            "Achtung: mit dieser Operation wird eine eventuell gemachte Auswahl überschrieben.")) {
+                        
+                        view.loadTable( Filter.INCLUDE );
+                    }
                     
-                    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
-                    
-                    // emulate a selection event so that the view can
-                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-                            selectedLayer.getMap().getLabel(), 
-                            selectedLayer.getGeoResource().getIdentifier().toURI() );
-                    event.setFilter( Filter.INCLUDE );
-                    GeoHub.instance().send( event );
+//                    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
+//                    
+//                    // FIXME use LayerFeatureSelectionmanager
+//                    // emulate a selection event so that the view can
+//                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
+//                            selectedLayer.getMap().getLabel(), 
+//                            selectedLayer.getGeoResource().getIdentifier().toURI() );
+//                    event.setFilter( Filter.INCLUDE );
+//                    GeoHub.instance().send( event );
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Fehler beim Öffnen der Attributtabelle.", e );

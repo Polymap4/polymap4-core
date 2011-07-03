@@ -12,8 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.filter;
 
@@ -30,7 +28,6 @@ import org.polymap.core.project.ILayer;
  * layer (feature type).
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public interface IFilter {
 
@@ -55,7 +52,8 @@ public interface IFilter {
 
     /**
      * Creates UI elements in order to get the parameters of the filter
-     * from the user.
+     * from the user. The given {@link IFilterEditorSite} provides methods
+     * to create and layout form fields.
      */
     public Composite createControl( Composite parent, IFilterEditorSite site );
 

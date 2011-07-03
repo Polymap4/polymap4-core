@@ -25,8 +25,14 @@ package org.polymap.core.runtime;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -43,8 +49,11 @@ import org.apache.log4j.lf5.util.StreamUtils;
 
 import org.eclipse.swt.widgets.Display;
 
+import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.SessionSingletonBase;
 import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.service.SessionStoreEvent;
+import org.eclipse.rwt.service.SessionStoreListener;
 
 import org.eclipse.jface.dialogs.ErrorDialog;
 
@@ -54,6 +63,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.equinox.security.auth.ILoginContext;
 import org.eclipse.equinox.security.auth.LoginContextFactory;
 
@@ -109,6 +119,11 @@ public final class Polymap
     }
     
     
+    public static Locale getSessionLocale() {
+        return RWT.getLocale();
+    }
+
+    
     /**
      * Returns a named attribute for the session of the current thread.
      * 
@@ -133,6 +148,25 @@ public final class Polymap
     }
     
     
+    private static ExecutorService      executorService;
+
+    private static final BlockingQueue  globalQueue = new SynchronousQueue();           
+
+    /**
+     * Returns the {@link ExecutorService} for the calling session. This should be
+     * used whenever working threads are needed for multi processing. The default
+     * Eclipse {@link Job} should be used for normal async business logic operations.
+     */
+    public static ExecutorService executorService() {
+        if (executorService == null) {
+            int procNum = Runtime.getRuntime().availableProcessors();
+            ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum * 4, 100, 5, TimeUnit.MINUTES, globalQueue );      
+            executorService = pool;
+        }
+        return executorService;
+    }
+    
+    
     // instance *******************************************
 
     /** The session attributes. */
@@ -154,8 +188,12 @@ public final class Polymap
     }
 
 
-    public void addSessionShutdownHook() {
-        throw new RuntimeException( "not yet impemented." );
+    public void addSessionShutdownHook( final SessionListener l ) {
+        RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
+            public void beforeDestroy( SessionStoreEvent event ) {
+                l.beforeDestroy();
+            }
+        });
     }
 
 

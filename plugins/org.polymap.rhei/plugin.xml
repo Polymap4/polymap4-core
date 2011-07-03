@@ -228,6 +228,14 @@
       </pageProvider>
    </extension>
    <extension
+         point="org.polymap.rhei.filter.filterProviders">
+      <filterProvider
+            class="org.polymap.rhei.navigator.filter.StandardFilterProvider"
+            id="org.polymap.rhei.StandardFilterProvider"
+            name="StandardFilterProvider">
+      </filterProvider>
+   </extension>
+   <extension
          point="org.polymap.core.http.servlets">
       <servlet
             class="org.polymap.rhei.internal.csv.CsvServlet"

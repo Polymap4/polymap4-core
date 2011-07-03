@@ -17,6 +17,10 @@
  */
 package org.polymap.rhei.field;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,6 +41,31 @@ public class BetweenFormField
 
     private static Log log = LogFactory.getLog( BetweenFormField.class );
 
+    // Date helpers ***************************************
+    
+    public static Date dayStart( Date date ) {
+        Calendar cal = Calendar.getInstance( Locale.GERMANY );
+        cal.setTime( date );
+        cal.set( Calendar.HOUR_OF_DAY, 0 );
+        cal.set( Calendar.MINUTE, 0 );
+        cal.set( Calendar.SECOND, 0 );
+        cal.set( Calendar.MILLISECOND, 0 );
+        return cal.getTime();
+    }
+    
+    public static Date dayEnd( Date date ) {
+        Calendar cal = Calendar.getInstance( Locale.GERMANY );
+        cal.setTime( date );
+        cal.set( Calendar.HOUR_OF_DAY, 0 );
+        cal.set( Calendar.MINUTE, 0 );
+        cal.set( Calendar.SECOND, 0 );
+        cal.set( Calendar.MILLISECOND, 0 );
+        cal.add( Calendar.DAY_OF_MONTH, 1 );
+        return cal.getTime();
+    }
+
+    // instance *******************************************
+    
     private IFormFieldSite      site;
     
     private IFormField          field1, field2;

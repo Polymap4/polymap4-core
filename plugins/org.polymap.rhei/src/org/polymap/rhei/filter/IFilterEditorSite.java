@@ -39,7 +39,7 @@ public interface IFilterEditorSite {
 
     Composite newFormField( Composite parent, String propName, Class propType, IFormField field, IFormFieldValidator validator, String label );
 
-    Object getFieldValue( String propAntragsart );
+    Object getFieldValue( String propName );
 
     Composite createStandardLayout( Composite parent );
 
