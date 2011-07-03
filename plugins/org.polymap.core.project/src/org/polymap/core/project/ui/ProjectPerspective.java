@@ -61,7 +61,7 @@ public class ProjectPerspective
         topLeft.addView( ProjectView.ID );
 
         bottomLeft.addView( "org.polymap.rhei.RheiNavigator" );
-        bottomLeft.addView( "org.polymap.core.project.MapLayersView" );
+//        bottomLeft.addView( "org.polymap.core.project.MapLayersView" );
         bottomLeft.addPlaceholder( "org.polymap.core.project.MapLayersView" );
         bottomLeft.addPlaceholder( "org.polymap.rhei.FilterView:*" );
 
