@@ -55,7 +55,7 @@ public class LayerFeatureSelectionManager {
     /**
      * The selection modes
      */
-    public enum MODE { REPLACE, ADD, DIV, INTERSECT };
+    public enum MODE { REPLACE, ADD, DIFFERENCE, INTERSECT };
 
     
     private static FeatureCollectionFactory    fcf;
@@ -166,6 +166,9 @@ public class LayerFeatureSelectionManager {
                 break;
             case INTERSECT :
                 filter = filter != null ? ff.and( filter, newFilter ) : newFilter;
+                break;
+            case DIFFERENCE :
+                filter = filter != null ? ff.and( filter, ff.not( newFilter ) ) : newFilter;
                 break;
             default:
                 throw new UnsupportedOperationException( "Operation not supported yet: " + modeHint );

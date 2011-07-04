@@ -201,6 +201,44 @@
                style="push"
                toolbarPath="data">
          </action>
+         <action
+               class="org.polymap.core.data.ui.featureTable.Replace"
+               id="org.polymap.core.data.FeatureSelectionMode"
+               label="REPLACE"
+               menubarPath="selection"
+               state="true"
+               style="radio"
+               toolbarPath="selection">
+         </action>
+         <action
+               class="org.polymap.core.data.ui.featureTable.Add"
+               id="org.polymap.core.data.FeatureSelectionMode_add"
+               label="ADD"
+               menubarPath="selection"
+               style="radio"
+               toolbarPath="selection">
+         </action>
+         <action
+               class="org.polymap.core.data.ui.featureTable.Intersect"
+               id="org.polymap.core.data.FeatureSelectionMode_intersect"
+               label="INTERSECT"
+               menubarPath="selection"
+               style="radio"
+               toolbarPath="selection">
+         </action>
+         <action
+               class="org.polymap.core.data.ui.featureTable.Difference"
+               id="org.polymap.core.data.FeatureSelectionMode_difference"
+               label="DIFF"
+               menubarPath="selection"
+               style="radio"
+               toolbarPath="selection">
+         </action>
+         <menu
+               id="org.polymap.core.data.selectionModeMenu"
+               label="MODE"
+               path="selection">
+         </menu>
       </viewContribution>
    </extension>
    <extension
