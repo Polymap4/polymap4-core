@@ -38,12 +38,9 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-
 import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
+import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * 
@@ -60,7 +57,7 @@ class AsyncPipelineFeatureCollection
 
     protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
     
-    protected static final int              DEFAULT_QUEUE_SIZE = 10;
+    protected static final int              DEFAULT_QUEUE_SIZE = 10000/DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
     protected PipelineFeatureSource     fs;
 
@@ -122,8 +119,8 @@ class AsyncPipelineFeatureCollection
         
         protected AsyncPipelineIterator() {
 
-            Job job = new Job( "AsyncPipelineIterator" ) {
-                protected IStatus run( IProgressMonitor monitor ) {
+            Runnable task = new Runnable() {
+                public void run() {
                     try {
                         fs.fetchFeatures( query, new FeatureResponseHandler() {
                             public void handle( List<Feature> features )
@@ -146,7 +143,7 @@ class AsyncPipelineFeatureCollection
                             }
                         });
                         log.debug( "Async fetcher: done." );
-                        return Status.OK_STATUS;
+                        //return Status.OK_STATUS;
                     }
                     catch (Throwable e) {
                         try {
@@ -160,13 +157,11 @@ class AsyncPipelineFeatureCollection
                             log.error( e1 );
                             //deque = null;
                         }
-                        return Status.CANCEL_STATUS;
+                        //return Status.CANCEL_STATUS;
                     }
                 }
             };
-            job.setSystem( true );
-            job.setPriority( Job.INTERACTIVE );
-            job.schedule();
+            Polymap.executorService().execute( task );
         }
         
         public void close() {

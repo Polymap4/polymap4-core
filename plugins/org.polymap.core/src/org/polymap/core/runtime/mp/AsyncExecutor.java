@@ -24,7 +24,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -32,6 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.mp.ForEachExecutor.ProcessorContext;
 
 /**
@@ -52,10 +52,9 @@ public class AsyncExecutor<T,S>
             3 * Runtime.getRuntime().availableProcessors();
     
     private static final BlockingQueue      globalQueue = new SynchronousQueue();           
-    
-    private static final ThreadPoolExecutor executorService = 
-            new ThreadPoolExecutor( DEFAULT_PIPELINE_QUEUE_CAPACITY * 4, 100, 5, TimeUnit.MINUTES, globalQueue );      
 
+    private static ThreadPoolExecutor       executorService = (ThreadPoolExecutor)Polymap.executorService();
+    
     static {
         log.info( "Prestarting all core threads..." );
         executorService.prestartAllCoreThreads();
