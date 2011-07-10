@@ -13,12 +13,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.createtype;
+package org.polymap.core.data.operations.feature;
 
-import org.geotools.data.DataStore;
-
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.catalog.IResolve;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -33,33 +29,29 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.actions.ActionDelegate;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.IAdaptable;
-
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.model.security.ACL;
-import org.polymap.core.model.security.ACLUtils;
-import org.polymap.core.model.security.AclPermission;
+import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * Provides a popup menu for {@link IGeoResource} entries triggering a
- * {@link CreateFeatureTypeOperation}.
- * 
+ *
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class CreateFeatureTypeAction
+public class CopyLayerFeaturesAction
         extends ActionDelegate
         implements IObjectActionDelegate {
 
-    private static Log log = LogFactory.getLog( CreateFeatureTypeAction.class );
+    private static Log log = LogFactory.getLog( CopyLayerFeaturesAction.class );
 
-    private IResolve            service;
+    private PipelineFeatureSource       source;
 
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            CreateFeatureTypeOperation op = new CreateFeatureTypeOperation( service );
+            CopyFeaturesOperation op = new CopyFeaturesOperation( source, null );
             OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
@@ -69,23 +61,18 @@ public class CreateFeatureTypeAction
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        service = null;
+        source = null;
         action.setEnabled( false );
 
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
-            if (elm instanceof IResolve) {
-                service = (IResolve)elm;
-                action.setEnabled( service.canResolve( DataStore.class ) );
-            }
-
-            // check ACL permission
-            if (service != null && service instanceof IAdaptable) {
+            if (elm != null && elm instanceof ILayer) {
                 try {
-                    ACL acl = (ACL)((IAdaptable)service).getAdapter( ACL.class );
-                    if (acl != null) {
-                        action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
-                    }
+                    source = PipelineFeatureSource.forLayer( (ILayer)elm, false );
+                    action.setEnabled( true );
+
+                    // check ACL permission
+                    //action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
                 }
                 catch (Exception e) {
                     log.warn( "" );

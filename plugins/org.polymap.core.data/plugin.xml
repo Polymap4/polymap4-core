@@ -68,7 +68,7 @@
                tooltip="%actions_showFeatureTable_tip">
          </action>
          <action
-               class="org.polymap.core.data.feature.copy.CopyLayerFeaturesAction"
+               class="org.polymap.core.data.operations.feature.CopyLayerFeaturesAction"
                enablesFor="1"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyLayerFeaturesAction"
@@ -81,7 +81,7 @@
             id="org.polymap.core.data.georesContribution"
             objectClass="net.refractions.udig.catalog.IGeoResource">
          <action
-               class="org.polymap.core.data.feature.copy.CopyFeaturesAction"
+               class="org.polymap.core.data.operations.feature.CopyFeaturesAction"
                enablesFor="1"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyFeaturesAction"
@@ -89,7 +89,7 @@
                style="push">
          </action>
          <action
-               class="org.polymap.core.data.feature.createtype.DeleteFeatureTypeAction"
+               class="org.polymap.core.data.operations.featuretype.DeleteFeatureTypeAction"
                icon="icons/etool16/delete.gif"
                id="org.polymap.core.data.DeleteFeatureTypeAction"
                label="%actions_deleteFeatureType"
@@ -101,7 +101,7 @@
             id="org.polymap.core.data.resolveContribution"
             objectClass="net.refractions.udig.catalog.IResolve">
          <action
-               class="org.polymap.core.data.feature.createtype.CreateFeatureTypeAction"
+               class="org.polymap.core.data.operations.featuretype.CreateFeatureTypeAction"
                enablesFor="1"
                icon="icons/etool16/add_featuretype.gif"
                id="org.polymap.core.data.CreateFeatureTypeAction"
@@ -194,7 +194,7 @@
             id="org.polymap.core.data.geoSelectionContribution"
             targetID="org.polymap.core.data.ui.featureTable.view">
          <action
-               class="org.polymap.core.data.feature.copy.CopyGeoSelectionFeaturesAction"
+               class="org.polymap.core.data.operations.feature.CopyGeoSelectionFeaturesAction"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyGeoSelectionFeaturesAction"
                label="%actions_copyFeatures"

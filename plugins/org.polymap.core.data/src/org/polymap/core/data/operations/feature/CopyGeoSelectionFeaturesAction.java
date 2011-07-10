@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.copy;
+package org.polymap.core.data.operations.feature;
 
 import org.geotools.data.DefaultQuery;
 import org.apache.commons.logging.Log;

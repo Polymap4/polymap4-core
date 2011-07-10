@@ -15,6 +15,9 @@
  */
 package org.polymap.core.operation;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.refractions.udig.core.internal.CorePlugin;
@@ -78,6 +81,13 @@ public abstract class OperationWizard
             public void run() {
                 Shell shell = PolymapWorkbench.getShellToParentOn();
                 OperationWizardDialog dialog = new OperationWizardDialog( shell, wizard );
+                
+                // earlyListeners
+                for (Iterator<IPageChangedListener> it=wizard.earlyListeners.iterator(); it.hasNext(); ) {
+                    dialog.addPageChangedListener( it.next() );
+                    it.remove();
+                }
+                
                 dialog.setBlockOnOpen( true );
                 returnCode.set( dialog.open() );
             }
@@ -93,6 +103,8 @@ public abstract class OperationWizard
     private IAdaptable              operationInfo;
 
     private IProgressMonitor        monitor;
+
+    private List<IPageChangedListener> earlyListeners = new ArrayList();
 
 
     protected OperationWizard( IUndoableOperation operation, IAdaptable operationInfo, IProgressMonitor monitor ) {
@@ -123,11 +135,23 @@ public abstract class OperationWizard
     }
 
     public void addPageChangedListener( IPageChangedListener listener ) {
-        ((OperationWizardDialog)getContainer()).addPageChangedListener( listener );
+        OperationWizardDialog container = (OperationWizardDialog)getContainer();
+        if (container == null) {
+            earlyListeners.add( listener );
+        }
+        else {
+            container.addPageChangedListener( listener );
+        }
     }
 
     public void removePageChangedListener( IPageChangedListener listener ) {
-        ((OperationWizardDialog)getContainer()).removePageChangedListener( listener );
+        OperationWizardDialog container = (OperationWizardDialog)getContainer();
+        if (container == null) {
+            earlyListeners.remove( listener );
+        }
+        else {
+            container.removePageChangedListener( listener );
+        }
     }
 
     public Object getSelectedPage() {

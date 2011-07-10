@@ -13,7 +13,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.copy;
+package org.polymap.core.data.operations.feature;
+
+import net.refractions.udig.catalog.IGeoResource;
+import org.geotools.data.FeatureSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,9 +33,7 @@ import org.eclipse.ui.actions.ActionDelegate;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -40,18 +41,18 @@ import org.polymap.core.workbench.PolymapWorkbench;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class CopyLayerFeaturesAction
+public class CopyFeaturesAction
         extends ActionDelegate
         implements IObjectActionDelegate {
 
-    private static Log log = LogFactory.getLog( CopyLayerFeaturesAction.class );
+    private static Log log = LogFactory.getLog( CopyFeaturesAction.class );
 
-    private PipelineFeatureSource       source;
+    private IGeoResource        geores;
 
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            CopyFeaturesOperation op = new CopyFeaturesOperation( source, null );
+            CopyFeaturesOperation op = new CopyFeaturesOperation( geores );
             OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
@@ -61,24 +62,32 @@ public class CopyLayerFeaturesAction
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        source = null;
+        geores = null;
         action.setEnabled( false );
 
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
-            if (elm != null && elm instanceof ILayer) {
-                try {
-                    source = PipelineFeatureSource.forLayer( (ILayer)elm, false );
-                    action.setEnabled( true );
-
-                    // check ACL permission
-                    //action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
-                }
-                catch (Exception e) {
-                    log.warn( "" );
-                    log.debug( "", e );
-                }
+            if (elm != null
+                    && elm instanceof IGeoResource
+                    && ((IGeoResource)elm).canResolve( FeatureSource.class )) {
+                geores = (IGeoResource)elm;
+                action.setEnabled( true );
             }
+
+//            // check ACL permission
+//            if (geores != null) {
+//                try {
+//                    IService service = geores.service( new NullProgressMonitor() );
+//                    ACL acl = (ACL)service.getAdapter( ACL.class );
+//                    if (acl != null) {
+//                        action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
+//                    }
+//                }
+//                catch (Exception e) {
+//                    log.warn( "" );
+//                    log.debug( "", e );
+//                }
+//            }
         }
     }
 

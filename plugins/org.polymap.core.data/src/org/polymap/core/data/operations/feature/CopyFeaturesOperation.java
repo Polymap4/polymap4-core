@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.copy;
+package org.polymap.core.data.operations.feature;
 
 import java.util.Properties;
 
@@ -36,12 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.dialogs.IPageChangedListener;
 import org.eclipse.jface.dialogs.PageChangedEvent;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.wizard.IWizardPage;
-import org.eclipse.jface.wizard.WizardPage;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
@@ -59,6 +54,7 @@ import org.polymap.core.data.feature.typeeditor.AttributeMapping;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeMapping;
+import org.polymap.core.data.operations.ChooseLayerPage;
 import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineProcessor;
@@ -68,8 +64,6 @@ import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.ProjectTreeViewer;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.WeakListener;
 
@@ -95,7 +89,7 @@ public class CopyFeaturesOperation
 
     private PipelineFeatureSource   source;
 
-    private ILayer                  dest;
+    ILayer                  dest;
 
 
     /**
@@ -159,8 +153,23 @@ public class CopyFeaturesOperation
                 return true;
             }
         };
-        wizard.addPage( new ChooseLayerPage() );
-        wizard.addPage( new FeatureEditorPage2() );
+        final ChooseLayerPage chooseLayerPage = new ChooseLayerPage(
+                Messages.get( "CopyFeaturesOperation_ChooseLayerPage_title" ),
+                Messages.get( "CopyFeaturesOperation_ChooseLayerPage_description" ),
+                true );
+        wizard.addPage( chooseLayerPage );
+        final FeatureEditorPage2 featureEditorPage = new FeatureEditorPage2();
+        wizard.addPage( featureEditorPage );
+
+        // get/set  chosen layer
+        wizard.addPageChangedListener( new IPageChangedListener() {
+            public void pageChanged( PageChangedEvent ev ) {
+                log.info( "Page: " + ev.getSelectedPage() );
+                if (featureEditorPage == ev.getSelectedPage()) {
+                    dest = chooseLayerPage.getResult();
+                }
+            }
+        });
 
         // copy features
         if (OperationWizard.openDialog( wizard )) {
@@ -199,57 +208,6 @@ public class CopyFeaturesOperation
     public IStatus redo( IProgressMonitor monitor, IAdaptable info )
             throws ExecutionException {
         throw new RuntimeException( "not yet implemented." );
-    }
-
-
-    /**
-     *
-     */
-    class ChooseLayerPage
-            extends WizardPage
-            implements IWizardPage, ISelectionChangedListener {
-
-        public static final String          ID = "ChooseLayerPage";
-
-        private ProjectTreeViewer           viewer;
-
-
-        protected ChooseLayerPage() {
-            super( ID );
-            setTitle( Messages.get( "CopyFeaturesOperation_ChooseLayerPage_title" ) );
-            setDescription( Messages.get( "CopyFeaturesOperation_ChooseLayerPage_description" ) );
-        }
-
-        public void createControl( Composite parent ) {
-            Composite contents = new Composite( parent, SWT.NONE );
-            FormLayout layout = new FormLayout();
-            layout.spacing = 5;
-            contents.setLayout( layout );
-            setControl( contents );
-
-            viewer = new ProjectTreeViewer( contents, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
-            viewer.setRootMap( ProjectRepository.instance().getRootMap() );
-            viewer.getTree().setLayoutData( new SimpleFormData().fill().create() );
-
-            viewer.addSelectionChangedListener( WeakListener.forListener( this ) );
-        }
-
-        public boolean isPageComplete() {
-            return dest != null;
-        }
-
-        public void selectionChanged( SelectionChangedEvent ev ) {
-            dest = null;
-            ISelection sel = ev.getSelection();
-            if (sel != null && sel instanceof IStructuredSelection) {
-                Object elm = ((IStructuredSelection)sel).getFirstElement();
-                if (elm != null && elm instanceof ILayer) {
-                    dest = (ILayer)elm;
-                }
-            }
-            getContainer().updateButtons();
-        }
-
     }
 
 

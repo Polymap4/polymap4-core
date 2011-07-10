@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.createtype;
+package org.polymap.core.data.operations.featuretype;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +32,7 @@ import net.refractions.udig.catalog.IService;
 
 import org.geotools.data.DataStore;
 import org.geotools.data.DataUtilities;
+import org.geotools.data.FeatureSource;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.SchemaException;
@@ -72,13 +73,16 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.polymap.core.catalog.actions.ResetServiceAction;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
+import org.polymap.core.data.operations.ChooseLayerPage;
 import org.polymap.core.data.ui.featuretypeeditor.CreateAttributeAction;
 import org.polymap.core.data.ui.featuretypeeditor.DeleteAttributeAction;
 import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.WeakListener;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Creates a new {@link FeatureType}.
@@ -111,7 +115,7 @@ public class CreateFeatureTypeOperation
     }
 
 
-    public IStatus execute( IProgressMonitor monitor, IAdaptable info )
+    public IStatus execute( final IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
         monitor.beginTask( getLabel(), 2 );
 
@@ -131,8 +135,34 @@ public class CreateFeatureTypeOperation
                     return ((FeatureEditorPage)getPage( FeatureEditorPage.ID )).performFinish();
                 }
             };
-            FeatureEditorPage featureEditorPage = new FeatureEditorPage();
+            final ChooseLayerPage chooseLayerPage = new ChooseLayerPage(
+                    Messages.get( "CreateFeatureTypeOperation_ChooseLayerPage_title" ),
+                    Messages.get( "CreateFeatureTypeOperation_ChooseLayerPage_description" ),
+                    false );
+            wizard.addPage( chooseLayerPage );
+            final FeatureEditorPage featureEditorPage = new FeatureEditorPage();
             wizard.addPage( featureEditorPage );
+
+            // set schema from chosen layer
+            wizard.addPageChangedListener( new IPageChangedListener() {
+                public void pageChanged( PageChangedEvent ev ) {
+                    log.info( "Page: " + ev.getSelectedPage() );
+                    if (featureEditorPage == ev.getSelectedPage()
+                            && chooseLayerPage.getResult() != null) {
+                        try {
+                            ILayer layer = chooseLayerPage.getResult();
+                            schema = (SimpleFeatureType)layer
+                                    .getGeoResource().resolve( FeatureSource.class, monitor )
+                                    .getSchema();
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, CreateFeatureTypeOperation.this,
+                                    "Unable to get schema from layer: " + chooseLayerPage.getResult(), e );
+                            
+                        }
+                    }
+                }
+            });
 
             if (OperationWizard.openDialog( wizard )) {
                 schema = featureEditorPage.getNewSchema();
