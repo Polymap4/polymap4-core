@@ -200,7 +200,7 @@ public class LuceneCache {
             }
         }
 
-        rwLock.readLock().lock();
+//        rwLock.readLock().lock();
         
         // check shema
         if (schema == null) {
@@ -253,7 +253,7 @@ public class LuceneCache {
                     public boolean hasNext() {
                         boolean result = index < count;
                         if (result == false && unlocked == false) {
-                            rwLock.readLock().unlock();
+//                            rwLock.readLock().unlock();
                             unlocked = true;
                         }
                         if (result == false) {
@@ -267,19 +267,19 @@ public class LuceneCache {
                             throw new NoSuchElementException( "Query result count: " + scoreDocs.length );
                         }
                         try {
+                            Feature result = null;
                             int docnum = scoreDocs[ index++ ].doc;
-                            Feature result = cache.get( cacheKey( docnum, query ) );
-                            if (result != null) {
-                                ++cacheHits;
-                                return result;
-                            }
+//                            Feature result = cache.get( cacheKey( docnum, query ) );
+//                            if (result != null) {
+//                                ++cacheHits;
+//                                return result;
+//                            }
                             
-//                            LuceneFeature result = new LuceneFeature( next, (SimpleFeatureType)schema );
-//                            next = null;
-//                            return result;
+                            Document doc = searcher.doc( docnum, fieldSelector );
+//                            result = new LuceneFeature( doc, (SimpleFeatureType)schema );
                         
                             String fid = null;
-                            for (Fieldable field : searcher.doc( docnum, fieldSelector ).getFields()) {
+                            for (Fieldable field : doc.getFields()) {
                                 if (schema == null) {
                                     throw new RuntimeException( "schema is null, call getFeatureType() first." );
                                 }
@@ -306,7 +306,8 @@ public class LuceneCache {
                                 }
                             }
                             result = builder.buildFeature( fid );
-                            cache.put( cacheKey( docnum, query ), result );
+
+//                            cache.put( cacheKey( docnum, query ), result );
                             return result;
                         }
                         catch (Exception e) {
@@ -417,7 +418,7 @@ public class LuceneCache {
         if (query.getPropertyNames() != null) {
             propNamesHash = StringUtils.join( query.getPropertyNames(), "_" ).hashCode();
         }
-        return Long.valueOf( (long)docnum | (propNamesHash << 32) );
+        return Long.valueOf( docnum | (propNamesHash << 32) );
     }
     
 }

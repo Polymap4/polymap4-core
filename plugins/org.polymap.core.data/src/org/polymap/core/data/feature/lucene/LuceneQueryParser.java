@@ -188,7 +188,10 @@ class LuceneQueryParser {
         }
         // NOT
         else if (filter instanceof Not) {
-            throw new UnsupportedOperationException( "NOT expression." );
+            BooleanQuery result = new BooleanQuery();
+            Filter child = ((Not)filter).getFilter();
+            result.add( processFilter( child ), BooleanClause.Occur.MUST_NOT );
+            return result;
         }
         // INCLUDE
         else if (filter instanceof IncludeFilter) {
@@ -244,22 +247,24 @@ class LuceneQueryParser {
 //        -> maxx > other.minx && minx < other.maxx
         
         BooleanQuery result = new BooleanQuery();
+        String propName = bbox.getPropertyName().equals( "" )
+                ? schema.getGeometryDescriptor().getLocalName() : bbox.getPropertyName();
         
         // maxx > bbox.getMinX
         result.add( NumericRangeQuery.newDoubleRange( 
-                bbox.getPropertyName()+LuceneCache.FIELD_MAXX, ValueCoder.PRECISION_STEP_64,
+                propName+LuceneCache.FIELD_MAXX, ValueCoder.PRECISION_STEP_64,
                 bbox.getMinX(), null, false, false ), BooleanClause.Occur.MUST );
         // minx < bbox.getMaxX
         result.add( NumericRangeQuery.newDoubleRange( 
-                bbox.getPropertyName()+LuceneCache.FIELD_MINX, ValueCoder.PRECISION_STEP_64,
+                propName+LuceneCache.FIELD_MINX, ValueCoder.PRECISION_STEP_64,
                 null, bbox.getMaxX(), false, false ), BooleanClause.Occur.MUST );
         // maxy > bbox.getMinY
         result.add( NumericRangeQuery.newDoubleRange( 
-                bbox.getPropertyName()+LuceneCache.FIELD_MAXY, ValueCoder.PRECISION_STEP_64,
+                propName+LuceneCache.FIELD_MAXY, ValueCoder.PRECISION_STEP_64,
                 bbox.getMinY(), null, false, false ), BooleanClause.Occur.MUST );
         // miny < bbox.getMaxY
         result.add( NumericRangeQuery.newDoubleRange( 
-                bbox.getPropertyName()+LuceneCache.FIELD_MINY, ValueCoder.PRECISION_STEP_64,
+                propName+LuceneCache.FIELD_MINY, ValueCoder.PRECISION_STEP_64,
                 null, bbox.getMaxY(), false, false ), BooleanClause.Occur.MUST );
         return result;
     }

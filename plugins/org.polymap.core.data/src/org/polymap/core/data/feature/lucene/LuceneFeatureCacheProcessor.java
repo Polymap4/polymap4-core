@@ -127,7 +127,10 @@ public class LuceneFeatureCacheProcessor
         
         // GetFeaturesSize
         else if (r instanceof GetFeaturesSizeRequest) {
-            throw new RuntimeException( "Request type not supported: " + r );
+            log.warn( "XXX GetFeatureSize: not implemented yet!" );
+            context.sendResponse( new GetFeaturesSizeResponse( 0 ) );
+            context.sendResponse( ProcessorResponse.EOP );
+//            throw new RuntimeException( "Request type not supported: " + r );
         }
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {

@@ -281,6 +281,7 @@ class LuceneFeature
         PropertyImpl result = properties.get( name.getLocalPart() );
         if (result == null) {
             result = new PropertyImpl( featureType.getDescriptor( name ) );
+            properties.put( name.getLocalPart(), result );
         }
         return result;
     }
@@ -289,6 +290,7 @@ class LuceneFeature
         PropertyImpl result = properties.get( name );
         if (result == null) {
             result = new PropertyImpl( featureType.getDescriptor( name ) );
+            properties.put( name, result );
         }
         return result;
     }
