@@ -177,6 +177,12 @@
             isTerminal="false"
             name="Feature-Cache (Lucene)">
       </processor>
+      <processor
+            class="org.polymap.core.data.feature.filter.FeatureFilterProcessor"
+            id="org.polymap.core.data.FilterProcessor"
+            isTerminal="false"
+            name="Feature-Filter">
+      </processor>
    </extension>
    <extension
          point="org.eclipse.ui.importWizards">
@@ -198,6 +204,14 @@
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyGeoSelectionFeaturesAction"
                label="%actions_copyFeatures"
+               style="push"
+               toolbarPath="data">
+         </action>
+         <action
+               class="org.polymap.core.data.feature.filter.AddFilterProcessorAction"
+               icon="icons/etool16/filter.gif"
+               id="org.polymap.core.data.AddFilterProcessorAction"
+               label="Filter"
                style="push"
                toolbarPath="data">
          </action>
