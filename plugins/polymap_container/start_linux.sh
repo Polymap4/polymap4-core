@@ -1,7 +1,7 @@
 #!/bin/sh
 
 DIRNAME=`dirname $0`
-WORKSPACE=~/servers/workspace
+WORKSPACE=$DIRNAME/workspace
 PORT=8080
 
 #export JAVA_HOME=/usr/local/jrockit-R27.2.0-jdk1.6.0/
