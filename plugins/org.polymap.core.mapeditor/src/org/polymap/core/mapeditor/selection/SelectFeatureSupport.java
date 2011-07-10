@@ -78,6 +78,10 @@ class SelectFeatureSupport
 
     private static final int        DEFAULT_MAX_SELECTIONS = 100;
     
+    private static final String     COLOR_STANDARD = "#F6EA00";
+    private static final String     COLOR_HOVER = "#F6C100";
+    private static final String     COLOR_SELECT = "#F6C100";
+    
     /** The {@link MapEditor} we are working with. */
     private MapEditor               mapEditor;
 
@@ -118,18 +122,18 @@ class SelectFeatureSupport
 
         // vectorLayer
         Style standard = new Style();
-        standard.setAttribute( "strokeWidth", 1 );
-        standard.setAttribute( "strokeColor", "#0000ff" );
+        standard.setAttribute( "strokeWidth", 3 );
+        standard.setAttribute( "strokeColor", COLOR_STANDARD );
         //standard.setAttribute( "strokeOpacity", "0.7" );
-        standard.setAttribute( "fillColor", "#0000ff" );
+        standard.setAttribute( "fillColor", COLOR_STANDARD );
         Style temporary = new Style();
-        temporary.setAttribute( "strokeWidth", 1 );
-        temporary.setAttribute( "strokeColor", "#00b0ff" );
-        temporary.setAttribute( "fillColor", "#00b0ff" );
+        temporary.setAttribute( "strokeWidth", 3 );
+        temporary.setAttribute( "strokeColor", COLOR_HOVER );
+        temporary.setAttribute( "fillColor", COLOR_HOVER );
         Style select = new Style();
-        select.setAttribute( "strokeWidth", 2 );
-        select.setAttribute( "strokeColor", "#00b0ff" );
-        select.setAttribute( "fillColor", "#00b0ff" );
+        select.setAttribute( "strokeWidth", 4 );
+        select.setAttribute( "strokeColor", COLOR_SELECT );
+        select.setAttribute( "fillColor", COLOR_SELECT );
 
         StyleMap styles = new StyleMap();
         styles.setIntentStyle( "default", standard );

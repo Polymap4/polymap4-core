@@ -203,6 +203,7 @@
          </action>
          <action
                class="org.polymap.core.data.ui.featureTable.Replace"
+               icon="icons/etool16/select_replace.gif"
                id="org.polymap.core.data.FeatureSelectionMode"
                label="REPLACE"
                menubarPath="selection"
@@ -212,6 +213,7 @@
          </action>
          <action
                class="org.polymap.core.data.ui.featureTable.Add"
+               icon="icons/etool16/select_add.gif"
                id="org.polymap.core.data.FeatureSelectionMode_add"
                label="ADD"
                menubarPath="selection"
@@ -220,6 +222,7 @@
          </action>
          <action
                class="org.polymap.core.data.ui.featureTable.Intersect"
+               icon="icons/etool16/select_intersect.gif"
                id="org.polymap.core.data.FeatureSelectionMode_intersect"
                label="INTERSECT"
                menubarPath="selection"
@@ -228,6 +231,7 @@
          </action>
          <action
                class="org.polymap.core.data.ui.featureTable.Difference"
+               icon="icons/etool16/select_difference.gif"
                id="org.polymap.core.data.FeatureSelectionMode_difference"
                label="DIFF"
                menubarPath="selection"
