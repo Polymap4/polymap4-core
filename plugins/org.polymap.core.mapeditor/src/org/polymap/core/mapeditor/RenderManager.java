@@ -57,6 +57,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.services.http.HttpServiceFactory;
 import org.polymap.core.services.http.WmsService;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -243,7 +244,7 @@ public class RenderManager {
             log.debug( "    service: " + wmsServer.getClass().getName() );
 
             String url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );
-            wmsServer.init( url, map );
+            wmsServer.init( url, map, Polymap.getSessionDisplay() );
 
             log.debug( "    URL: " + wmsServer.getURL() );
             return wmsServer;

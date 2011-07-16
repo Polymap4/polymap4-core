@@ -31,6 +31,7 @@ import java.util.Set;
 
 import net.refractions.udig.catalog.IService;
 
+//import org.polymap.core.data.feature.buffer.FeatureBufferProcessor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 
@@ -38,8 +39,6 @@ import org.polymap.core.project.IMap;
  * Provides the API and implementation of a data processing pipeline.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- *         <li>18.10.2009: created</li>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class Pipeline
@@ -107,6 +106,11 @@ public class Pipeline
      */
     public void addFirst( PipelineProcessor processor ) {
         chain.add( 0, processor );
+    }
+
+
+    public void add( int i, PipelineProcessor processor ) {
+        chain.add( i, processor );
     }
 
 

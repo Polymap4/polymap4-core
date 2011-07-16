@@ -34,8 +34,6 @@ import net.refractions.udig.catalog.IService;
  * Provides the SPI for executor services.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- *         <li>18.10.2009: created</li>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public interface PipelineExecutor {
@@ -48,7 +46,6 @@ public interface PipelineExecutor {
      * The runtime context of one {@link PipelineProcessor}.
      *
      * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     *         <li>19.10.2009: created</li>
      */
     public static interface ProcessorContext {
         
@@ -76,10 +73,28 @@ public interface PipelineExecutor {
          */
         public void sendResponse( ProcessorResponse response )
         throws Exception;
-        
-        public Object put( String key, Object data );
 
+
+        /**
+         * Gets an element from the context. Context elements can be used by the
+         * {@link PipelineProcessor} to store its state between several handle
+         * request/response calls.
+         * 
+         * @param key The key of the element.
+         * @return The element for the given key or null.
+         */
         public Object get( String key );
+
+
+        /**
+         * Stores the given element in the context.
+         * 
+         * @param key The key of the element.
+         * @param data The object to be stored or null to remove a previously stored
+         *        element.
+         * @return The previously stored element.
+         */
+        public Object put( String key, Object data );
         
     }
 

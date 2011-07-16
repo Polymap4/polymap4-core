@@ -125,10 +125,14 @@ public class DepthFirstStackExecutor
         }
 
         public Object put( String key, Object data ) {
-            return procData.put( key, data );
+            assert key != null;
+            return data != null
+                    ? procData.put( key, data )
+                    : procData.remove( key );
         }
 
         public Object get( String key ) {
+            assert key != null;
             return procData.get( key );
         }
 

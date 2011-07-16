@@ -42,6 +42,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.rwt.lifecycle.UICallBack;
+
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -62,10 +66,12 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.services.http.WmsService;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Provides a very simple WMS server to be used by the {@link MapEditor}. It
@@ -93,6 +99,8 @@ public class SimpleWmsServer
 
     /** Maps layer name into corresponding Pipeline. */
     private Map<String,Pipeline>    pipelines = new HashMap();
+    
+    private Display                 display;
 
     
     public SimpleWmsServer( ) 
@@ -100,9 +108,10 @@ public class SimpleWmsServer
     }
 
     
-    public void init( String _pathSpec, IMap _map )
+    public void init( String _pathSpec, IMap _map, Display _display )
     throws MalformedURLException {
         super.init( _pathSpec, _map );
+        this.display = _display;
     }
 
     
@@ -139,22 +148,32 @@ public class SimpleWmsServer
             log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
             
             // find/create pipeline
-            Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
+            final Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
             
-            ProcessorRequest pr = new GetMapRequest( 
+            final ProcessorRequest pr = new GetMapRequest( 
                     Arrays.asList( layers ), srsCode, bbox, format, width, height );  
 
             // process
             final ServletOutputStream out = response.getOutputStream();
             
-            pipeline.process( pr, new ResponseHandler() {
-                public void handle( ProcessorResponse pipeResponse )
-                        throws Exception {
-                    byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
-                    int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
-                    out.write( chunk, 0, len );
-                }
-            });
+            UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                public void run() {
+
+                    try {
+                        pipeline.process( pr, new ResponseHandler() {
+                            public void handle( ProcessorResponse pipeResponse )
+                            throws Exception {
+                                byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
+                                int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
+                                out.write( chunk, 0, len );
+                            }
+                        });
+                    }
+                    catch (Exception e) {
+                        PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, SimpleWmsServer.this, "Cannot process display pipeline.", e );
+                    }
+                }});
+            
             log.debug( "    flushing response stream..." );
             out.flush();
             //out.close();

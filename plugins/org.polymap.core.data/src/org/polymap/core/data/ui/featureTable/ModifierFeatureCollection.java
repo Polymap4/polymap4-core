@@ -99,7 +99,7 @@ class ModifierFeatureCollection<T extends FeatureType, F extends Feature>
         try {
             SimpleFeature feature = (SimpleFeature)element;
             ModifyFeaturesOperation op = new ModifyFeaturesOperation( 
-                    fs, feature.getID(), property, value );
+                    layer, fs, feature.getID(), property, value );
             OperationSupport.instance().execute( op, true, false );
         }
         catch (Exception e) {

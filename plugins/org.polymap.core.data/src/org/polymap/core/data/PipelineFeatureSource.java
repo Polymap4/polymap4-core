@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data;
 
@@ -30,6 +22,12 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.rwt.SessionSingletonBase;
+
+import org.eclipse.jface.dialogs.IPageChangedListener;
 
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -52,7 +50,6 @@ import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
 import org.geotools.util.SimpleInternationalString;
-
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
@@ -67,7 +64,9 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
+import org.polymap.core.data.pipeline.IPipelineIncubationListener;
 import org.polymap.core.data.pipeline.IPipelineIncubator;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
@@ -75,6 +74,8 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}
@@ -82,7 +83,6 @@ import org.polymap.core.project.LayerUseCase;
  * {@link Pipeline}, instantiated for use-case {@link LayerUseCase#FEATURES}.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class PipelineFeatureSource
@@ -91,9 +91,64 @@ public class PipelineFeatureSource
 
     private static final Log log = LogFactory.getLog( PipelineFeatureSource.class );
 
-    private static final IPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
+    private static IPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
 
 
+    // static incubation listeners ************************
+
+    private static Session      global = new Session();
+    
+    /*
+     * 
+     */
+    static class Session
+            extends SessionSingletonBase {
+
+        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList(  ListenerList.IDENTITY, ListenerList.WEAK );
+
+        public static Session instance() {
+            try {
+                return (Session)getInstance( Session.class );
+            }
+            catch (IllegalStateException e) {
+                return global;
+            }
+        }
+
+        protected Session() {
+            Display display = Polymap.getSessionDisplay();
+            if (display != null) {
+                display.asyncExec( new Runnable() {
+                    public void run() {
+                        // FIXME hack to get
+                        LayerFeatureBufferManager.initSession();
+                    }
+                });
+            }
+        }
+        
+    }
+
+
+    /**
+     * Add a {@link IPageChangedListener} to the global list of listeners of this
+     * session.
+     * <p>
+     * The reference to the listener is <b>weakly</b> stored. The caller has to make
+     * sure that a strong reference exists a long as the listener should receive
+     * events.
+     * 
+     * @param l
+     */
+    public static void addIncubationListener( IPipelineIncubationListener l ) {
+        Session.instance().listeners.add( l );
+    }
+    
+    public static void removeIncubationListener( IPipelineIncubationListener l ) {
+        Session.instance().listeners.remove( l );
+    }
+    
+    
     // static factory *************************************
 
     /**
@@ -126,6 +181,11 @@ public class PipelineFeatureSource
                 : LayerUseCase.FEATURES;
         Pipeline pipe = pipelineIncubator.newPipeline( useCase, layer.getMap(), layer, service );
 
+        // call listeners
+        for (IPipelineIncubationListener listener : Session.instance().listeners) {
+            listener.pipelineCreated( pipe );
+        }
+        
         // create FeatureSource
         PipelineFeatureSource result = new PipelineFeatureSource( pipe );
         return result;
