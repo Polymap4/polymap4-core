@@ -21,10 +21,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.rwt.SessionSingletonBase;
 
-import org.polymap.core.data.feature.DataSourceProcessor;
-import org.polymap.core.data.pipeline.IPipelineIncubationListener;
-import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.project.ILayer;
 
 /**
@@ -36,12 +32,12 @@ public class LayerFeatureBufferManager {
 
     private static Log log = LogFactory.getLog( LayerFeatureBufferManager.class );
 
-    /*
-     * 
+
+    /**
+     * The Session holds the managers of the session.
      */
     static class Session
-            extends SessionSingletonBase 
-            implements IPipelineIncubationListener {
+            extends SessionSingletonBase { 
         
         protected WeakHashMap<ILayer,LayerFeatureBufferManager> managers = new WeakHashMap();
         
@@ -49,33 +45,17 @@ public class LayerFeatureBufferManager {
             return (Session)getInstance( Session.class );
         }
         
-        public Session() {
-            super();
-//            PipelineFeatureSource.addIncubationListener( this );
-        }
-
-        public void pipelineCreated( Pipeline pipeline ) {
-            PipelineProcessor source = pipeline.get( pipeline.length() - 1 );
-
-            if (source instanceof DataSourceProcessor) {
-                if (pipeline.getLayers().size() > 1) {
-                    log.warn( "Pipeline with more that one layer!" );
-                }
-                ILayer layer = pipeline.getLayers().iterator().next();
-                LayerFeatureBufferManager bufferManager = forLayer( layer );
-                pipeline.add( pipeline.length() - 1, bufferManager.processor );
-                log.debug( "pipelineCreated(): buffer processor added to pipeline = " + pipeline );
-            }
-        }
     }
+    
     
     /**
-     * Hack to get the Session initialized and the listener registered.
+     * Gets the buffer manager for the given layer of the current session. If no
+     * manager exists yet than a new one is created with default buffer type/impl
+     * and settings.
+     * 
+     * @param layer
+     * @return The buffer manager for the given layer.
      */
-    public static void initSession() {
-        Session.instance();    
-    }
-    
     public static final synchronized LayerFeatureBufferManager forLayer( ILayer layer ) {
         assert layer != null;
         

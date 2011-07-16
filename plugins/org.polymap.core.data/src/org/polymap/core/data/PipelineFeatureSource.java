@@ -23,11 +23,11 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.widgets.Display;
-
 import org.eclipse.rwt.SessionSingletonBase;
 
 import org.eclipse.jface.dialogs.IPageChangedListener;
+
+import org.eclipse.core.runtime.CoreException;
 
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -64,18 +64,17 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
-import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
 import org.polymap.core.data.pipeline.IPipelineIncubationListener;
 import org.polymap.core.data.pipeline.IPipelineIncubator;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
+import org.polymap.core.data.pipeline.PipelineListenerExtension;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.ListenerList;
-import org.polymap.core.runtime.Polymap;
 
 /**
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}
@@ -104,7 +103,7 @@ public class PipelineFeatureSource
     static class Session
             extends SessionSingletonBase {
 
-        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList(  ListenerList.IDENTITY, ListenerList.WEAK );
+        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
 
         public static Session instance() {
             try {
@@ -116,14 +115,14 @@ public class PipelineFeatureSource
         }
 
         protected Session() {
-            Display display = Polymap.getSessionDisplay();
-            if (display != null) {
-                display.asyncExec( new Runnable() {
-                    public void run() {
-                        // FIXME hack to get
-                        LayerFeatureBufferManager.initSession();
-                    }
-                });
+            for (PipelineListenerExtension ext : PipelineListenerExtension.allExtensions()) {
+                try {
+                    IPipelineIncubationListener listener = ext.newListener();
+                    listeners.add( listener );
+                }
+                catch (CoreException e) {
+                    log.error( "Unable to create a new IPipelineIncubationListener: " + ext.getId() );
+                }
             }
         }
         
@@ -133,12 +132,6 @@ public class PipelineFeatureSource
     /**
      * Add a {@link IPageChangedListener} to the global list of listeners of this
      * session.
-     * <p>
-     * The reference to the listener is <b>weakly</b> stored. The caller has to make
-     * sure that a strong reference exists a long as the listener should receive
-     * events.
-     * 
-     * @param l
      */
     public static void addIncubationListener( IPipelineIncubationListener l ) {
         Session.instance().listeners.add( l );

@@ -179,7 +179,7 @@ public class FeatureBufferProcessor
         else if (r instanceof GetFeaturesResponse) {
             GetFeaturesResponse response = (GetFeaturesResponse)r;
             Object state = context.get( "state" );
-            log.info( "State: " + state );
+            log.debug( "processResponse(): state: " + state );
             
             // state: removing
             if ("removing".equals( state )) {

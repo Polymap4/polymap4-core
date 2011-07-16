@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors" schema="schema/org.polymap.core.data.pipeline.processors.exsd"/>
+   <extension-point id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners" schema="schema/org.polymap.core.data.pipeline.listeners.exsd"/>
    <!--extension
          point="org.eclipse.ui.actionSets">
       <actionSet
@@ -183,6 +184,15 @@
             isTerminal="false"
             name="Feature-Filter">
       </processor>
+   </extension>
+   <extension
+         point="org.polymap.core.data.pipeline.listeners">
+      <listener
+            class="org.polymap.core.data.feature.buffer.InstallBufferPipelineListener"
+            description="Gets the concurrent stuff working... :)"
+            id="org.polymap.core.data.InstallBufferListener"
+            name="Install Buffer Listener">
+      </listener>
    </extension>
    <extension
          point="org.eclipse.ui.importWizards">

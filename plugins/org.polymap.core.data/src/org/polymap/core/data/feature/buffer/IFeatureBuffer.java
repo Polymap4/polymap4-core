@@ -21,8 +21,9 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 
 /**
- * A buffer tracks changes of features. In contrast to {@link IFeatureCache} a buffer
- * must no loose any changes it holds until the buffer is flushed.
+ * The SPI of a feature buffer. A buffer tracks changes of features. In contrast to
+ * {@link IFeatureCache} a buffer must no loose any changes it holds until the buffer
+ * is flushed.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
