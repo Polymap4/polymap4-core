@@ -185,10 +185,33 @@ class MemoryFeatureBuffer
     }
 
 
-    public void markRemoved( Collection<Feature> features )
+    public List<FeatureId> markRemoved( Filter filter )
     throws Exception {
-        fireFeatureChangeEvent( Type.REMOVED, features );
-        throw new RuntimeException( "not yet implemented." );
+        try {
+            lock.writeLock().lock();
+            
+            List<Feature> features = new ArrayList( buffer.size() );
+            List<FeatureId> fids = new ArrayList( buffer.size() );
+            
+            for (FeatureBufferState buffered : buffer.values()) {
+
+                if (filter.evaluate( buffered.feature() )) {
+                    buffered.evolveState( FeatureBufferState.State.REMOVED );
+                    
+                    features.add( buffered.feature() );
+                    fids.add( buffered.feature().getIdentifier() );
+                }
+            }
+            lock.writeLock().unlock();
+
+            fireFeatureChangeEvent( Type.REMOVED, features );
+            return fids;
+        }
+        finally {
+            if (lock.writeLock().isHeldByCurrentThread()) {
+                lock.writeLock().unlock();
+            }
+        }
     }
 
 

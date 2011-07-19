@@ -76,7 +76,7 @@ public interface IFeatureBuffer {
     throws Exception;
 
 
-    public void markRemoved( Collection<Feature> features )
+    public List<FeatureId> markRemoved( Filter filter )
     throws Exception;
 
 

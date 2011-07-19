@@ -35,7 +35,11 @@ public class FeatureBufferState {
     
     public static final String  USER_DATA_KEY = "buffer_state";
     
-    public enum State { 
+    public enum State {
+        /** 
+         * Feature is registered with the buffer but has no modifications yet. Or
+         * the feature was added and removed right afterwards.
+         */
         REGISTERED,
         REMOVED,
         ADDED,
@@ -86,28 +90,6 @@ public class FeatureBufferState {
         feature.getUserData().put( USER_DATA_KEY, state.toString() );
         return state;
     }
-    
-//    @SuppressWarnings("hiding")
-//    public void updateFeature( Feature feature ) {
-//        this.feature = feature;
-//    }
-//
-//    public void markRemoved( boolean removed ) {
-//        state = USER_DATA_REMOVED;
-//        feature.getUserData().put( USER_DATA_KEY, state );
-//    }
-//    
-//    public FeatureBufferState markAdded() {
-//        state = USER_DATA_ADDED;
-//        feature.getUserData().put( USER_DATA_KEY, state );
-//        return this;
-//    }
-//    
-//    public FeatureBufferState markModified() {
-//        state = USER_DATA_MODIFIED;
-//        feature.getUserData().put( USER_DATA_KEY, state );
-//        return this;
-//    }
     
     public boolean isAdded() {
         return state == State.ADDED;

@@ -75,9 +75,9 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * after the {@link DataSourceProcessor}.
  * <p/>
  * XXX Currently the original state of an modified feature is requested from the
- * underlying store just when the the modification request arrives. This may lead to
+ * underlying store not before the modification request arrives. This may lead to
  * <b>lost updates</b> if the feature has changed meanwhile. In order to detect
- * <b>every</b> modification an cache should be used that holds the states of all
+ * <b>every</b> modification a cache could be used that holds the states of all
  * features read in this session.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -311,7 +311,9 @@ public class LayerFeatureBufferManager
     
     protected void checkSubmitRemoved( FeatureStore fs, FeatureBufferState buffered ) 
     throws Exception {
-        throw new RuntimeException( "not yet implemented." );
+        FeatureId fid = buffered.feature().getIdentifier();
+        Id fidFilter = ff.id( Collections.singleton( fid ) );
+        fs.removeFeatures( fidFilter );
     }
 
     

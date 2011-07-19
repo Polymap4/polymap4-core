@@ -140,6 +140,7 @@ public class FeatureBufferProcessor
         // RemoveFeatures
         else if (r instanceof RemoveFeaturesRequest) {
             RemoveFeaturesRequest request = (RemoveFeaturesRequest)r;
+            context.put( "request", r );
             context.put( "state", "removing" );
             context.sendRequest( new GetFeaturesRequest( new DefaultQuery( null, request.getFilter() ) ) );
         }
@@ -178,7 +179,7 @@ public class FeatureBufferProcessor
             
             // state: removing
             if ("removing".equals( state )) {
-                buffer.markRemoved( response.getFeatures() );
+                buffer.registerFeatures( response.getFeatures() );
             }
             // state: modifying
             else if ("modifying".equals( state )) {
@@ -197,12 +198,22 @@ public class FeatureBufferProcessor
             Object state = context.get( "state" );
             context.put( "state", null );
             
+            // state: modifying
             if ("modifying".equals( state )) {
                 ModifyFeaturesRequest request = (ModifyFeaturesRequest)context.get( "request" );
-                List<FeatureId> ids = buffer.markModified( request.getFilter(), request.getType(), request.getValue() );
+                List<FeatureId> ids = buffer.markModified( 
+                        request.getFilter(), request.getType(), request.getValue() );
   
                 context.sendResponse( new ModifyFeaturesResponse( ids ) );    
             }
+            // state: removing
+            else if ("removing".equals( state )) {
+                RemoveFeaturesRequest request = (RemoveFeaturesRequest)context.get( "request" );
+                List<FeatureId> ids = buffer.markRemoved( request.getFilter() );
+  
+                context.sendResponse( new ModifyFeaturesResponse( ids ) );    
+            }
+
             context.sendResponse( r );
         }
         else {
