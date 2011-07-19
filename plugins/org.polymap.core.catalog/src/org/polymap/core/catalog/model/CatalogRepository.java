@@ -35,6 +35,7 @@ import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.Qi4jPlugin.Session;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Factory and repository for the domain model artifacts.
@@ -130,17 +131,24 @@ public class CatalogRepository
             //
         }
 
-        public void save( OperationSupport os )
-        throws Exception {
-            log.debug( "..." );
-            commitChanges();
-            
-            // trigger the reload of the global catalog; 
-            // the udig CatalogPlugin is not aware of the domain model and
-            // the model change listeners
-            CatalogPlugin.getDefault().storeToPreferences( null );
+        public void save( OperationSupport os ) {
+            try {
+                commitChanges();
+                
+                // trigger the reload of the global catalog; 
+                // the udig CatalogPlugin is not aware of the domain model and
+                // the model change listeners
+                CatalogPlugin.getDefault().storeToPreferences( null );
+            }
+            catch (Exception e) {
+                PolymapWorkbench.handleError( CatalogPlugin.ID, this, 
+                        "Die Änderungen konnten nicht gespeichert werden.\nDie Daten sind möglicherweise in einem inkonsistenten Zustand.\nBitte verständigen Sie den Administrator.", e );
+            }
         }
         
+        public void rollback( OperationSupport os ) {
+        }
+
         public void revert( OperationSupport os ) {
             log.debug( "..." );
             revertChanges();

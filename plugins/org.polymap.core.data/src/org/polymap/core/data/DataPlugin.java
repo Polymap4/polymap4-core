@@ -22,6 +22,8 @@
  */
 package org.polymap.core.data;
 
+import java.net.URL;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.polymap.core.geohub.FeatureCollectionFactory;
@@ -102,5 +104,20 @@ public class DataPlugin
         }
         return image;
     }
+
+    
+    public Image imageForName( String resName ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( resName );
+        if (image == null || image.isDisposed()) {
+            URL res = getBundle().getResource( resName );
+            assert res != null : "Image resource not found: " + resName;
+            images.put( resName, ImageDescriptor.createFromURL( res ) );
+            image = images.get( resName );
+        }
+        return image;
+    }
+
+
 
 }

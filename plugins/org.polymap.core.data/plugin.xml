@@ -195,6 +195,17 @@
       </listener>
    </extension>
    <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="org.polymap.core.data.feature.buffer.LayerBufferDecorator"
+            id="org.polymap.core.data.LayerBufferDecorator"
+            label="Layer Buffer State"
+            lightweight="true"
+            objectClass="org.polymap.core.project.ILayer"
+            state="true">
+      </decorator>
+   </extension>
+   <extension
          point="org.eclipse.ui.importWizards">
       <wizard
             category="net.refractions.udig.catalog.ui_p3.dataImportCategory"

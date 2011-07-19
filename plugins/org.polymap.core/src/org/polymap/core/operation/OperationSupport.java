@@ -303,13 +303,29 @@ public class OperationSupport
     public void saveChanges()
     throws Exception {
         Object[] listeners = saveListeners.getListeners();
-        for (Object listener : listeners) {
-            ((IOperationSaveListener)listener).prepareSave( this );
-        }        
-        for (Object listener : listeners) {
-            ((IOperationSaveListener)listener).save( this );
+        try {
+            // prepare
+            for (Object listener : listeners) {
+                ((IOperationSaveListener)listener).prepareSave( this );
+            }
+            // commit
+            for (Object listener : listeners) {
+                ((IOperationSaveListener)listener).save( this );
+            }
+            history.dispose( context, true, true, false );
         }
-        history.dispose( context, true, true, false );
+        catch (Throwable e) {
+            // rollback
+            for (Object listener : listeners) {
+                ((IOperationSaveListener)listener).rollback( this );
+            }
+            if (e instanceof Exception) {
+                throw (Exception)e;
+            }
+            else if (e instanceof Error) {
+                throw (Error)e;
+            }
+        }
     }
 
 

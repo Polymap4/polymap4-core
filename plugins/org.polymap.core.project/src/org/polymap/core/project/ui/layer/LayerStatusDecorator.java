@@ -29,10 +29,13 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.resource.CompositeImageDescriptor;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
-import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.IDecoration;
+import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.polymap.core.project.ILayer;
@@ -48,7 +51,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public class LayerStatusDecorator
         extends BaseLabelProvider
-        implements ILabelDecorator, PropertyChangeListener {
+        implements ILightweightLabelDecorator, PropertyChangeListener {
 
     private static Log log = LogFactory.getLog( LayerStatusDecorator.class );
     
@@ -59,7 +62,7 @@ public class LayerStatusDecorator
     public static final int         BOTTOM_LEFT = 2;
     public static final int         BOTTOM_RIGHT = 3;
 
-    private static final String     visible = "icons/ovr16/eye_ovr_dark.png";    
+    private static final String     visible = "icons/ovr16/visible_ovr2.gif";    
     private static final String     selectable = "icons/ovr16/selectable_ovr_small.png";
     private static final String     editable = "icons/ovr16/write_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
@@ -91,29 +94,24 @@ public class LayerStatusDecorator
     }
 
 
-    public Image decorateImage( Image image, Object elm ) {
-        Image result = image;
+    public void decorate( Object elm, IDecoration decoration ) {
         if (elm instanceof ILayer) {
             ILayer layer = (ILayer)elm;
-            DecoratedImageDescriptor decoratedImageDescriptor = new DecoratedImageDescriptor( baseImage );
-            String name = "layer";
+
             // editable
             if (layer.isEditable()) {
-                decoratedImageDescriptor.addDecoration( editable, TOP_RIGHT );
-                name += "_editable";
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, editable );
+                decoration.addOverlay( ovr, TOP_RIGHT );
             }
             // visible
             else if (layer.isVisible()) {
-                decoratedImageDescriptor.addDecoration( visible, TOP_RIGHT );
-                name += "_visible";
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible );
+                decoration.addOverlay( ovr, TOP_RIGHT );
             }
             // selectable
             if (layer.isSelectable()) {
-                decoratedImageDescriptor.addDecoration( selectable, TOP_LEFT );
-                name += "_selectable";
-            }
-            if (!name.equals( "layer" )) {
-                result = ProjectPlugin.getDefault().imageForDescriptor( decoratedImageDescriptor, name );
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, selectable );
+                decoration.addOverlay( ovr, TOP_LEFT );
             }
 
             // register listener
@@ -121,6 +119,41 @@ public class LayerStatusDecorator
                 layer.addPropertyChangeListener( this );
             }
         }
+    }
+
+
+    public Image decorateImage( Image image, Object elm ) {
+        Image result = null;
+        
+//        if (elm instanceof ILayer) {
+//            ILayer layer = (ILayer)elm;
+//            DecoratedImageDescriptor decoratedImageDescriptor = new DecoratedImageDescriptor( image );
+//            String name = "layer";
+//            // editable
+//            if (layer.isEditable()) {
+//                decoratedImageDescriptor.addDecoration( editable, TOP_RIGHT );
+//                name += "_editable";
+//            }
+//            // visible
+//            else if (layer.isVisible()) {
+//                decoratedImageDescriptor.addDecoration( visible, TOP_RIGHT );
+//                name += "_visible";
+//            }
+//            // selectable
+//            if (layer.isSelectable()) {
+//                decoratedImageDescriptor.addDecoration( selectable, TOP_LEFT );
+//                name += "_selectable";
+//            }
+//            if (!name.equals( "layer" )) {
+//                result = ProjectPlugin.getDefault().imageForDescriptor( 
+//                        decoratedImageDescriptor, name );
+//            }
+//
+//            // register listener
+//            if (decorated.put( layer.id(), layer ) == null) {
+//                layer.addPropertyChangeListener( this );
+//            }
+//        }
         return result;
     }
 
@@ -160,11 +193,17 @@ public class LayerStatusDecorator
                 || ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
                 || ev.getPropertyName().equals( ILayer.PROP_EDITABLE ))) {
 
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            Runnable runnable = new Runnable() {
                 public void run() {
                     fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
                 }
-            });
+            };
+            if (Display.getCurrent() != null) {
+                runnable.run();
+            }
+            else {
+                Polymap.getSessionDisplay().syncExec( runnable );
+            }
         }
     }
 
@@ -175,7 +214,7 @@ public class LayerStatusDecorator
     static class DecoratedImageDescriptor
             extends CompositeImageDescriptor {
 
-        private String                  baseImageName;
+        private Image                   baseImage;
         
         private List<String>            overlays = new ArrayList();
         
@@ -183,16 +222,20 @@ public class LayerStatusDecorator
         
         
         public DecoratedImageDescriptor( String baseImageName ) {
-            this.baseImageName = baseImageName;
+            this.baseImage = ProjectPlugin.getDefault().imageForName( baseImageName );
         }
         
+        public DecoratedImageDescriptor( Image image ) {
+            this.baseImage = image;
+        }
+
         public void addDecoration( String overlayImageName, int quadrant ) {
             overlays.add( overlayImageName );
             quadrants.add( quadrant );
         }
 
         protected void drawCompositeImage( int width, int height ) {
-            drawImage( ProjectPlugin.getDefault().imageForName( baseImageName ).getImageData(), 0, 0 );
+            drawImage( baseImage.getImageData(), 0, 0 );
             
             for (int i=0; i<overlays.size(); i++) {
                 Image ovrImage = ProjectPlugin.getDefault().imageForName( overlays.get( i ) );

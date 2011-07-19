@@ -23,11 +23,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.geotools.data.Query;
 import org.opengis.feature.Feature;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.data.feature.buffer.FeatureChangeEvent.Type;
 
 /**
  * Provides a simple in-memory feature buffer backed by {@link HashMap} and
@@ -35,7 +39,8 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class MemoryFeatureBuffer
+class MemoryFeatureBuffer
+        extends BaseFeatureBuffer
         implements IFeatureBuffer {
 
     private static Log log = LogFactory.getLog( MemoryFeatureBuffer.class );
@@ -45,6 +50,11 @@ public class MemoryFeatureBuffer
     private Map<String,FeatureBufferState>  buffer = new HashMap( INITIAL_CAPACITY );
     
     private ReentrantReadWriteLock          lock = new ReentrantReadWriteLock();
+
+    
+    MemoryFeatureBuffer() {
+        super();
+    }
 
 
     public void dispose()
@@ -62,11 +72,7 @@ public class MemoryFeatureBuffer
         finally {
             lock.writeLock().unlock();
         }
-    }
-
-
-    public boolean supports( Filter filter ) {
-        return true;
+        fireFeatureChangeEvent( Type.FLUSHED, null );
     }
 
 
@@ -76,7 +82,50 @@ public class MemoryFeatureBuffer
     }
 
 
-    public List<FeatureId> addFeatures( Collection<Feature> features )
+    public Collection<FeatureBufferState> content() {
+        try {
+            lock.readLock().lock();
+            return new ArrayList( buffer.values() );
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+
+    public FeatureBufferState contains( FeatureId identifier ) {
+        try {
+            lock.readLock().lock();
+            return buffer.get( identifier.getID() );
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+
+    public void registerFeatures( Collection<Feature> features ) {
+        try {
+            lock.writeLock().lock();
+            for (Feature original : features) {
+                String fid = original.getIdentifier().getID();
+                if (!buffer.containsKey( fid )) {
+                    buffer.put( fid, new FeatureBufferState( original) );
+                }
+            }
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+
+    public boolean supports( Filter filter ) {
+        return true;
+    }
+
+
+    public List<FeatureId> markAdded( Collection<Feature> features )
     throws Exception {
         try {
             lock.writeLock().lock();
@@ -84,52 +133,66 @@ public class MemoryFeatureBuffer
             
             for (Feature feature : features) {
                 FeatureId identifier = feature.getIdentifier();
-                assert !buffer.containsKey( identifier.getID() );
-                
-                buffer.put( identifier.getID(), new FeatureBufferState( feature ).markAdded() );
+                FeatureBufferState buffered = buffer.get( identifier.getID() );
+                if (buffered == null) {
+                    throw new IllegalStateException( "Feature is not registered with this buffer: " + identifier.getID() );
+                }
+
+                buffered.evolveState( FeatureBufferState.State.ADDED );
                 result.add( identifier );
             }
+            lock.writeLock().unlock();
+
+            fireFeatureChangeEvent( Type.ADDED, features );
             return result;
         }
         finally {
-            lock.writeLock().unlock();
+            if (lock.writeLock().isHeldByCurrentThread()) {
+                lock.writeLock().unlock();
+            }
         }
     }
 
 
-    public void modifyFeatures( Collection<Feature> features )
+    public List<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
     throws Exception {
         try {
             lock.writeLock().lock();
-            for (Feature feature : features) {
-                String fid = feature.getIdentifier().getID();
-                
-                FeatureBufferState buffered = buffer.get( fid );
-                if (buffered == null) {
-                    buffer.put( fid, new FeatureBufferState( feature ).markModified() );
-                }
-                else if (buffered.isRemoved()) {
-                    throw new IllegalStateException( "Feature is already removed: " + fid );
-                }
-                // added or modified
-                else {
-                    buffered.updateFeature( feature );
+            
+            List<Feature> features = new ArrayList( buffer.size() );
+            List<FeatureId> fids = new ArrayList( buffer.size() );
+            
+            for (FeatureBufferState buffered : buffer.values()) {
+
+                if (filter.evaluate( buffered.feature() )) {
+                    modifyFeature( buffered.feature(), type, value );
+                    buffered.evolveState( FeatureBufferState.State.MODIFIED );
+                    
+                    features.add( buffered.feature() );
+                    fids.add( buffered.feature().getIdentifier() );
                 }
             }
+            lock.writeLock().unlock();
+
+            fireFeatureChangeEvent( Type.MODIFIED, features );
+            return fids;
         }
         finally {
-            lock.writeLock().unlock();
+            if (lock.writeLock().isHeldByCurrentThread()) {
+                lock.writeLock().unlock();
+            }
         }
     }
 
 
-    public void removeFeatures( Collection<Feature> features )
+    public void markRemoved( Collection<Feature> features )
     throws Exception {
+        fireFeatureChangeEvent( Type.REMOVED, features );
         throw new RuntimeException( "not yet implemented." );
     }
 
 
-    public List<Feature> modifiedFeatures( Query query, Iterable<Feature> features )
+    public List<Feature> blendFeatures( Query query, Iterable<Feature> features )
     throws Exception {
         try {
             lock.readLock().lock();
@@ -180,17 +243,6 @@ public class MemoryFeatureBuffer
     }
     
     
-    public FeatureBufferState contains( FeatureId identifier ) {
-        try {
-            lock.readLock().lock();
-            return buffer.get( identifier.getID() );
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-
     public int featureSizeDifference( Query query )
     throws Exception {
         try {
@@ -214,14 +266,17 @@ public class MemoryFeatureBuffer
     }
 
 
-    public Collection<FeatureBufferState> content() {
-        try {
-            lock.readLock().lock();
-            return new ArrayList( buffer.values() );
-        }
-        finally {
-            lock.readLock().unlock();
+    protected void modifyFeature( Feature feature, AttributeDescriptor[] type, Object[] value ) {
+        for (int i=0; i<type.length; i++ ) {
+            if (feature instanceof SimpleFeature) {
+                ((SimpleFeature)feature).setAttribute( type[i].getName(), value[i] );
+            }
+            else {
+                // XXX complex features
+                throw new RuntimeException( "Complex features are not yet supported." );
+            }
         }
     }
+
 
 }

@@ -14,14 +14,19 @@
  */
 package org.polymap.core.data.feature.buffer;
 
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.Feature;
-
+import org.opengis.feature.simple.SimpleFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * A {@link Feature} facade that handles the buffer state of the feature. 
- *
+ * A {@link Feature} facade that handles the buffer state of the feature.
+ * <p>
+ * This holds a copy of the original feature. This allows to 1.) figure what
+ * properties have been changed and 2.) check if the underlying feature in the backend
+ * store has been changed.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureBufferState {
@@ -29,57 +34,95 @@ public class FeatureBufferState {
     private static Log log = LogFactory.getLog( FeatureBufferState.class );
     
     public static final String  USER_DATA_KEY = "buffer_state";
-    public static final String  USER_DATA_REMOVED = "removed";
-    public static final String  USER_DATA_ADDED = "added";
-    public static final String  USER_DATA_MODIFIED = "modified";
+    
+    public enum State { 
+        REGISTERED,
+        REMOVED,
+        ADDED,
+        MODIFIED
+    }
     
     private Feature             feature;
+    
+    private Feature             original;
 
-    private String              state;
+    private State               state;
 
     
-    public FeatureBufferState( Feature feature ) {
+    public FeatureBufferState( Feature original ) {
         super();
-        this.feature = feature;
-        this.state = (String)feature.getUserData().get( USER_DATA_KEY );
+        this.original = original;
+        this.state = State.REGISTERED;
+        
+        // XXX complex types
+        this.feature = SimpleFeatureBuilder.copy( (SimpleFeature)original );
+        this.feature.getUserData().put( USER_DATA_KEY, state.toString() );
     }
     
     public Feature feature() {
         return feature;
     }
     
-    @SuppressWarnings("hiding")
-    public void updateFeature( Feature feature ) {
-        this.feature = feature;
-    }
-
-    public void markRemoved( boolean removed ) {
-        state = USER_DATA_REMOVED;
-        feature.getUserData().put( USER_DATA_KEY, state );
+    public Feature original() {
+        return original;    
     }
     
-    public boolean isRemoved() {
-        return USER_DATA_REMOVED.equals( state );
+    public State evolveState( State newState ) {
+        if (newState == State.ADDED) {
+            if (state != State.REGISTERED && state != State.ADDED) {
+                throw new IllegalStateException( "Attempt to add 'old' feature: " + original.toString() );
+            }
+            state = newState;
+        }
+        else if (newState == State.MODIFIED) {
+            if (state == State.REMOVED) {
+                throw new IllegalStateException( "Attempt to modify removed feature: " + original.toString() );
+            }
+            state = state == State.ADDED ? State.ADDED : newState;
+        }
+        else if (newState == State.REMOVED) {
+            state = state == State.ADDED ? State.REGISTERED : newState;
+        }
+        feature.getUserData().put( USER_DATA_KEY, state.toString() );
+        return state;
     }
-
-    public FeatureBufferState markAdded() {
-        state = USER_DATA_ADDED;
-        feature.getUserData().put( USER_DATA_KEY, state );
-        return this;
-    }
+    
+//    @SuppressWarnings("hiding")
+//    public void updateFeature( Feature feature ) {
+//        this.feature = feature;
+//    }
+//
+//    public void markRemoved( boolean removed ) {
+//        state = USER_DATA_REMOVED;
+//        feature.getUserData().put( USER_DATA_KEY, state );
+//    }
+//    
+//    public FeatureBufferState markAdded() {
+//        state = USER_DATA_ADDED;
+//        feature.getUserData().put( USER_DATA_KEY, state );
+//        return this;
+//    }
+//    
+//    public FeatureBufferState markModified() {
+//        state = USER_DATA_MODIFIED;
+//        feature.getUserData().put( USER_DATA_KEY, state );
+//        return this;
+//    }
     
     public boolean isAdded() {
-        return USER_DATA_ADDED.equals( state );
+        return state == State.ADDED;
     }
-    
-    public FeatureBufferState markModified() {
-        state = USER_DATA_MODIFIED;
-        feature.getUserData().put( USER_DATA_KEY, state );
-        return this;
-    }
-    
+
     public boolean isModified() {
-        return USER_DATA_MODIFIED.equals( state );
+        return state == State.MODIFIED;
+    }
+
+    public boolean isRemoved() {
+        return state == State.REMOVED;
+    }
+    
+    public boolean isRegistered() {
+        return state == State.REGISTERED;
     }
     
 }

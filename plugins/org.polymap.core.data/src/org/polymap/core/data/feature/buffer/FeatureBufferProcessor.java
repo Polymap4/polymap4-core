@@ -14,7 +14,6 @@
  */
 package org.polymap.core.data.feature.buffer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -24,8 +23,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.geotools.data.DefaultQuery;
 import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.identity.FeatureId;
 
 import org.polymap.core.data.feature.AddFeaturesRequest;
@@ -134,7 +131,9 @@ public class FeatureBufferProcessor
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
-            List<FeatureId> result = buffer.addFeatures( request.getFeatures() );
+            buffer.registerFeatures( request.getFeatures() );
+            List<FeatureId> result = buffer.markAdded( request.getFeatures() );
+            
             context.sendResponse( new ModifyFeaturesResponse( result ) );
             context.sendResponse( ProcessorResponse.EOP );
         }
@@ -148,11 +147,8 @@ public class FeatureBufferProcessor
         else if (r instanceof ModifyFeaturesRequest) {
             ModifyFeaturesRequest request = (ModifyFeaturesRequest)r;
             
-            // modify added features
-            for (Feature feature : buffer.addedFeatures( request.getFilter() )) {
-                modifyFeature( feature, request );
-            }
-            // request other features and handle in response
+            // request other features ensuring that they are in buffer;
+            // see LayerFeatureBufferManager for details
             context.put( "request", r );
             context.put( "state", "modifying" );
             context.sendRequest( new GetFeaturesRequest( new DefaultQuery( null, request.getFilter() ) ) );
@@ -179,34 +175,19 @@ public class FeatureBufferProcessor
         else if (r instanceof GetFeaturesResponse) {
             GetFeaturesResponse response = (GetFeaturesResponse)r;
             Object state = context.get( "state" );
-            log.debug( "processResponse(): state: " + state );
             
             // state: removing
             if ("removing".equals( state )) {
-                buffer.removeFeatures( response.getFeatures() );
+                buffer.markRemoved( response.getFeatures() );
             }
             // state: modifying
             else if ("modifying".equals( state )) {
-                ModifyFeaturesRequest request = (ModifyFeaturesRequest)context.get( "request" );
-
-                List<Feature> modified = new ArrayList( response.getFeatures().size() );
-                
-                for (Feature feature : response.getFeatures() ) {
-                    FeatureBufferState buffered = buffer.contains( feature.getIdentifier() );
-                    if (buffered != null) {
-                        modifyFeature( buffered.feature(), request );
-                    }
-                    else {
-                        modifyFeature( feature, request );
-                        modified.add( feature );
-                    }
-                }
-                buffer.modifyFeatures( modified );
+                buffer.registerFeatures( response.getFeatures() );
             }
-            // state:
+            // state: none
             else {
                 GetFeaturesRequest request = (GetFeaturesRequest)context.get( "request" );
-                Collection<Feature> features = buffer.modifiedFeatures( request.getQuery(), response.getFeatures() );
+                Collection<Feature> features = buffer.blendFeatures( request.getQuery(), response.getFeatures() );
                 context.sendResponse( new GetFeaturesResponse( (List<Feature>)features ) );
             }
         }
@@ -216,27 +197,16 @@ public class FeatureBufferProcessor
             Object state = context.get( "state" );
             context.put( "state", null );
             
-//            if ("modifying".equals( state )) {
-//                context.get( "modified" );
-//                context.sendResponse( new ModifyFeaturesResponse( ) )    
-//            }
+            if ("modifying".equals( state )) {
+                ModifyFeaturesRequest request = (ModifyFeaturesRequest)context.get( "request" );
+                List<FeatureId> ids = buffer.markModified( request.getFilter(), request.getType(), request.getValue() );
+  
+                context.sendResponse( new ModifyFeaturesResponse( ids ) );    
+            }
             context.sendResponse( r );
         }
         else {
             context.sendResponse( r );
-        }
-    }
-
-
-    protected void modifyFeature( Feature feature, ModifyFeaturesRequest request ) {
-        AttributeDescriptor[] type = request.getType();
-        for (int i=0; i<type.length; i++ ) {
-            if (feature instanceof SimpleFeature) {
-                ((SimpleFeature)feature).setAttribute( type[i].getName(), request.getValue()[i] );
-            }
-            else {
-                throw new RuntimeException( "Complex features are not yet supported." );
-            }
         }
     }
 

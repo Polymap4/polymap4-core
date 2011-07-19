@@ -30,7 +30,6 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.eclipse.rwt.internal.service.ContextProvider;
 
 import org.polymap.core.model.AssocCollection;
-import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.model.MapState;
 import org.polymap.core.qi4j.Qi4jPlugin;
@@ -163,31 +162,5 @@ public class ProjectRepository
 //        }
 //    }
     
-    
-    
-    /**
-     * 
-     *
-     */
-    class OperationSaveListener
-    implements IOperationSaveListener {
-
-        public void prepareSave( OperationSupport os )
-        throws Exception {
-            //
-        }
-
-        public void save( OperationSupport os )
-        throws Exception {
-            log.debug( "..." );
-            commitChanges();
-        }
-        
-        public void revert( OperationSupport os ) {
-            log.debug( "..." );
-            revertChanges();
-        }
-
-    }
     
 }

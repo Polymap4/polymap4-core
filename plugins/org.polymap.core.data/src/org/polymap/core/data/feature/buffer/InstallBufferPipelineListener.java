@@ -43,7 +43,7 @@ public class InstallBufferPipelineListener
                 log.warn( "Pipeline with more that one layer!" );
             }
             ILayer layer = pipeline.getLayers().iterator().next();
-            LayerFeatureBufferManager bufferManager = LayerFeatureBufferManager.forLayer( layer );
+            LayerFeatureBufferManager bufferManager = LayerFeatureBufferManager.forLayer( layer, true );
             pipeline.add( pipeline.length() - 1, bufferManager.getProcessor() );
             log.debug( "pipelineCreated(): buffer processor added to pipeline = " + pipeline );
         }

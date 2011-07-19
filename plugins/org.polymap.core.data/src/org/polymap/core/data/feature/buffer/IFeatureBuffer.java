@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.geotools.data.Query;
 import org.opengis.feature.Feature;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 
@@ -41,40 +42,7 @@ public interface IFeatureBuffer {
     throws Exception;
 
 
-    public boolean supports( Filter filter );
-
-
-    /**
-     * Adapt the given features according to the buffered modifyed and removed
-     * features.
-     * 
-     * @param query
-     * @param features The original set of features.
-     * @return The adapted features.
-     * @throws Exception
-     */
-    public List<Feature> modifiedFeatures( Query query, Iterable<Feature> features )
-    throws Exception;
-
-    
-    public List<Feature> addedFeatures( Filter filter )
-    throws Exception;
-
-        
-    public List<FeatureId> addFeatures( Collection<Feature> features )
-    throws Exception;
-    
-    
-    public void modifyFeatures( Collection<Feature> features )
-    throws Exception;
-    
-    
-    public void removeFeatures( Collection<Feature> features )
-    throws Exception;
-
-
-    public int featureSizeDifference( Query query )
-    throws Exception;
+    public Iterable<FeatureBufferState> content();
 
 
     /**
@@ -86,8 +54,57 @@ public interface IFeatureBuffer {
      *         this feature.
      */
     public FeatureBufferState contains( FeatureId identifier );
+
+
+    /**
+     * Register a feature and its original state with this buffer. Ensures that the
+     * original state of the given features are stored in the buffer.
+     * 
+     * @param collection The original state of the features.
+     */
+    public void registerFeatures( Collection<Feature> collection );
+
+
+    public boolean supports( Filter filter );
+
+
+    public List<FeatureId> markAdded( Collection<Feature> features )
+    throws Exception;
     
     
-    public Collection<FeatureBufferState> content();
+    public List<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
+    throws Exception;
+
+
+    public void markRemoved( Collection<Feature> features )
+    throws Exception;
+
+
+    /**
+     * Adapt the given features according to the buffered modifyed and removed
+     * features.
+     * 
+     * @param query
+     * @param features The original set of features.
+     * @return The adapted features.
+     * @throws Exception
+     */
+    public List<Feature> blendFeatures( Query query, Iterable<Feature> features )
+    throws Exception;
+
+    
+    public List<Feature> addedFeatures( Filter filter )
+    throws Exception;
+
+    
+    public int featureSizeDifference( Query query )
+    throws Exception;
+
+
+    public void addFeatureChangeListener( IFeatureChangeListener l );
+    
+    public void removeFeatureChangeListener( IFeatureChangeListener l );
+
+
 
 }

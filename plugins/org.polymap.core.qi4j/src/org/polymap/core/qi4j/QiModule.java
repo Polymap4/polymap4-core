@@ -51,8 +51,11 @@ import org.polymap.core.model.event.PropertyEventFilter;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
+import org.polymap.core.operation.IOperationSaveListener;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.event.ModelChangeTracker;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Provides the implementation of a module of the Qi4J model. There is one
@@ -151,6 +154,36 @@ public abstract class QiModule
         // just creating new UoW does not send events and nothing gets updated
     }
 
+    
+    /**
+     * 
+     */
+    public class OperationSaveListener
+    implements IOperationSaveListener {
+
+        public void prepareSave( OperationSupport os )
+        throws Exception {
+            //
+        }
+
+        public void save( OperationSupport os ) {
+            try {
+                commitChanges();
+            }
+            catch (Exception e) {
+                PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, this, "Die Änderungen konnten nicht gespeichert werden.\nDie Daten sind möglicherweise in einem inkonsistenten Zustand.\nBitte verständigen Sie den Administrator.", e );
+            }
+        }
+
+        public void rollback( OperationSupport os ) {
+            // no prepare -> no rollback
+        }
+
+        public void revert( OperationSupport os ) {
+            revertChanges();
+        }
+    }
+    
 
     // events ***
 
