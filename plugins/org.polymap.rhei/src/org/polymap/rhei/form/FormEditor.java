@@ -52,7 +52,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
-import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
@@ -147,12 +146,13 @@ public class FormEditor
                 try {
                     log.debug( "submitAction.run(): ..." );
                     doSave( new NullProgressMonitor() );
-                    OperationSupport.instance().saveChanges();
+                    
+                    //OperationSupport.instance().saveChanges();
                 }
-                catch (ConcurrentModificationException e) {
-                    PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this,
-                            "Daten wurden von einem anderen Nutzer geändert.\nKlicken Sie auf \"Daten von anderem Nutzer übernehmen\" und öffnen Sie den Datensatz erneut.\nACHTUNG: Wenn Sie den Datensatz nicht erneut öffnen, dann können Daten verloren gehen.", e );
-                }
+//                catch (ConcurrentModificationException e) {
+//                    PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this,
+//                            "Daten wurden von einem anderen Nutzer geändert.\nKlicken Sie auf \"Daten von anderem Nutzer übernehmen\" und öffnen Sie den Datensatz erneut.\nACHTUNG: Wenn Sie den Datensatz nicht erneut öffnen, dann können Daten verloren gehen.", e );
+//                }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
                 }

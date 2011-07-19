@@ -31,10 +31,10 @@
 		<ant antfile="build.xml" dir="../org.polymap.core.mapeditor" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/eu.hydrologis.udig.catalog.jgrass_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/eu.hydrologis.jgrass.csv2shape_p3" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/org.polymap.lka" target="build.jars"/>
 		<ant antfile="build.xml" dir="../org.polymap.catalog.h2" target="build.jars"/>
 		<ant antfile="build.xml" dir="../org.polymap.catalog.dxf" target="build.jars"/>
 		<ant antfile="build.xml" dir="../net.refractions.udig.catalog.mysql_p3" target="build.jars"/>
+		<ant antfile="build.xml" dir="../../extras/org.eclipse.rap.ui.navigator" target="build.jars"/>
 		<ant antfile="build.xml" dir="../org.polymap.rhei" target="build.jars"/>
 		<ant antfile="build.xml" dir="../org.polymap.rhei.data" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../../polymap3-biotop/plugins/org.polymap.biotop" target="build.jars"/>

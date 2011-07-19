@@ -23,6 +23,8 @@ import net.refractions.udig.ui.UDIGDragDropUtilities;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
@@ -32,13 +34,10 @@ import org.eclipse.swt.widgets.Listener;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.StructuredSelection;
-
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.internal.ViewSite;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 import org.polymap.core.model.event.ModelChangeEvent;
@@ -84,6 +83,8 @@ public class RheiNavigator
         getCommonViewer().addDoubleClickListener( new IDoubleClickListener() {
             public void doubleClick( DoubleClickEvent ev ) {
                 log.info( "Double clicked: " + ev );
+                String[] menuIds = ((ViewSite)getSite()).getContextMenuIds();
+                log.info( "Context menus: " + Arrays.asList( menuIds ) );
             }
         });
 
@@ -104,21 +105,18 @@ public class RheiNavigator
             }
         });
 
-        // selection listener
-        getSite().getPage().addSelectionListener( new ISelectionListener() {
-            public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
-                if (!sel.isEmpty() && sel instanceof StructuredSelection) {
-                    Object elm = ((StructuredSelection)sel).getFirstElement();
-                    log.debug( "page selection: elm= " + elm );
-                    if (elm instanceof IMap) {
-                        setInputMap( (IMap)elm );
-                    }
-                }
-//                else {
-//                    selectedMap = null;
+//        // selection listener
+//        getSite().getPage().addSelectionListener( new ISelectionListener() {
+//            public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
+//                if (!sel.isEmpty() && sel instanceof StructuredSelection) {
+//                    Object elm = ((StructuredSelection)sel).getFirstElement();
+//                    log.debug( "page selection: elm= " + elm );
+//                    if (elm instanceof IMap) {
+//                        setInputMap( (IMap)elm );
+//                    }
 //                }
-            }
-        });
+//            }
+//        });
         
         // part listener
         partListener = new PartListener();

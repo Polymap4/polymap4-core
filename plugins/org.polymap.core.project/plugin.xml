@@ -175,20 +175,20 @@
                enablesFor="+"
                icon="icons/etool16/layer_selectable.gif"
                id="org.polymap.core.project.LayerSelectableStatusAction"
-               label="%actions_layerEditableStatus"
+               label="%actions_layerSelectableStatus"
                state="false"
                style="toggle"
-               tooltip="%actions_layerEditableStatusTip">
+               tooltip="%actions_layerSelectableStatusTip">
          </action>
          <action
                class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
                enablesFor="1"
                icon="icons/etool16/layer_editable.gif"
                id="org.polymap.core.project.LayerEditableStatusAction"
-               label="%actions_layerSelectableStatus"
+               label="%actions_layerEditableStatus"
                state="false"
                style="toggle"
-               tooltip="%actions_layerSelectableStatus">
+               tooltip="%actions_layerEditableStatus">
          </action>
          <action
                class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
@@ -263,7 +263,7 @@
             icon="icons/ovr16/eye_ovr_dark.png"
             id="org.polymap.rhei.LayerStatusDecorator"
             label="Layer Status"
-            lightweight="false"
+            lightweight="true"
             objectClass="org.polymap.core.project.ILayer"
             state="true">
       </decorator>

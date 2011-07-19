@@ -101,6 +101,9 @@
                      value="org.polymap.core.project.ILayer">
                </instanceof></possibleDropTargets>
          </dropAssistant>
+         <actionProvider
+               class="org.polymap.rhei.navigator.layer.LayerActionProvider">
+         </actionProvider>
       </navigatorContent>
       <navigatorContent
             activeByDefault="true"
