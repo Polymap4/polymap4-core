@@ -58,7 +58,6 @@ public interface ILayer
     public static final String      PROP_ORDERKEY = "orderkey";
     public static final String      PROP_CRSCODE = "crscode";
     public static final String      PROP_GEORESID = "georesid";
-    //public static final String      PROP_STYLEID = "styleid";
     public static final String      PROP_STYLE = "style";
     
     public static final String      PROP_VISIBLE = "visible";

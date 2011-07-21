@@ -30,6 +30,8 @@ import org.opengis.filter.identity.FeatureId;
  */
 public interface IFeatureBuffer {
 
+    public void init( IFeatureBufferSite site );
+    
     public void dispose()
     throws Exception;
 
@@ -99,12 +101,5 @@ public interface IFeatureBuffer {
     
     public int featureSizeDifference( Query query )
     throws Exception;
-
-
-    public void addFeatureChangeListener( IFeatureChangeListener l );
-    
-    public void removeFeatureChangeListener( IFeatureChangeListener l );
-
-
 
 }

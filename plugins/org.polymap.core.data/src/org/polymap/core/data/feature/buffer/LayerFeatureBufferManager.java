@@ -15,6 +15,7 @@
 package org.polymap.core.data.feature.buffer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.WeakHashMap;
 
@@ -50,10 +51,12 @@ import org.eclipse.rwt.SessionSingletonBase;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.feature.buffer.FeatureChangeEvent.Type;
 import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -139,16 +142,41 @@ public class LayerFeatureBufferManager
     
     private Transaction             tx;
     
+    private ListenerList<IFeatureChangeListener> listeners = new ListenerList();
+    
 
     protected LayerFeatureBufferManager( ILayer layer ) {
         super();
         this.layer = layer;
+        
         buffer = new MemoryFeatureBuffer();
+        buffer.init( new IFeatureBufferSite() {
+            public void fireFeatureChangeEvent( Type type, Collection<Feature> features ) {
+                LayerFeatureBufferManager.this.fireFeatureChangeEvent( type, features );
+            }
+        });
+        
         processor = new FeatureBufferProcessor( buffer );
         
         OperationSupport.instance().addOperationSaveListener( this );
     }
 
+    
+    public void addFeatureChangeListener( IFeatureChangeListener l ) {
+        listeners.add( l );
+    }
+    
+    public void removeFeatureChangeListener( IFeatureChangeListener l ) {
+        listeners.remove( l );
+    }
+    
+    protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
+        FeatureChangeEvent ev = new FeatureChangeEvent( this, type, features );
+        for (IFeatureChangeListener l : listeners) {
+            l.featureChange( ev );
+        }
+    }
+    
     
     public ILayer getLayer() {
         return layer;
@@ -243,6 +271,7 @@ public class LayerFeatureBufferManager
     public void revert( OperationSupport os ) {
         try {
             buffer.clear();
+            fireFeatureChangeEvent( FeatureChangeEvent.Type.FLUSHED, null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Unable to revert changes.", e );

@@ -51,9 +51,9 @@ public class FeatureChangeEvent
         this.features = features;
     }
 
-//    public Object getSource() {
-//        return getSource();
-//    }
+    public LayerFeatureBufferManager getSource() {
+        return (LayerFeatureBufferManager)super.getSource();
+    }
 
     public Collection<Feature> getFeatures() {
         return features;

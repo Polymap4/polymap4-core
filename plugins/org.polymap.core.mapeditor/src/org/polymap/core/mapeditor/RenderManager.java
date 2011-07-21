@@ -47,6 +47,9 @@ import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.feature.buffer.FeatureChangeEvent;
+import org.polymap.core.data.feature.buffer.IFeatureChangeListener;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
 import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.ModelChangeListener;
@@ -151,6 +154,11 @@ public class RenderManager {
             if (mapEditor != null) {
                 mapEditor.removeLayer( descriptor );
             }
+            for (ILayer layer : descriptor.layers) {
+                LayerFeatureBufferManager buffer = 
+                        LayerFeatureBufferManager.forLayer( layer, true );
+                buffer.addFeatureChangeListener( mapDomainListener );
+            }
         }
         descriptors.clear();
         editLayer = null;
@@ -209,6 +217,9 @@ public class RenderManager {
                             wmsService.getURL(), layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
+                    
+                    LayerFeatureBufferManager buffer = LayerFeatureBufferManager.forLayer( layer, true );
+                    buffer.addFeatureChangeListener( mapDomainListener );
                     
 //                    String key = descriptor.renderLayerKey();
 //                    RenderLayerDescriptor old = descriptors.get( key );
@@ -302,7 +313,15 @@ public class RenderManager {
      * @since 3.0
      */
     class MapDomainListener
-            implements PropertyChangeListener, ModelChangeListener {
+            implements PropertyChangeListener, ModelChangeListener, IFeatureChangeListener {
+
+        public void featureChange( FeatureChangeEvent ev ) {
+            LayerFeatureBufferManager buffer = ev.getSource();
+            RenderLayerDescriptor descriptor = findDescriptorForLayer( buffer.getLayer() );
+            if (descriptor != null) {
+                mapEditor.reloadLayer( descriptor );
+            }
+        }
 
         public void propertyChange( PropertyChangeEvent ev ) {
             //log.debug( "property: name= " + ev.getPropertyName() );

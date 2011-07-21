@@ -14,14 +14,8 @@
  */
 package org.polymap.core.data.feature.buffer;
 
-import java.util.Collection;
-
-import org.opengis.feature.Feature;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.polymap.core.runtime.ListenerList;
 
 /**
  * Provides {@link IFeatureChangeListener} handling. 
@@ -32,22 +26,22 @@ public abstract class BaseFeatureBuffer {
 
     private static Log log = LogFactory.getLog( BaseFeatureBuffer.class );
     
-    private ListenerList<IFeatureChangeListener>    listeners = new ListenerList();
-    
-    
-    public void addFeatureChangeListener( IFeatureChangeListener l ) {
-        listeners.add( l );
-    }
-    
-    public void removeFeatureChangeListener( IFeatureChangeListener l ) {
-        listeners.remove( l );
-    }
-    
-    protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
-        FeatureChangeEvent ev = new FeatureChangeEvent( this, type, features );
-        for (IFeatureChangeListener l : listeners) {
-            l.featureChange( ev );
-        }
-    }
+//    private ListenerList<IFeatureChangeListener>    listeners = new ListenerList();
+//    
+//    
+//    public void addFeatureChangeListener( IFeatureChangeListener l ) {
+//        listeners.add( l );
+//    }
+//    
+//    public void removeFeatureChangeListener( IFeatureChangeListener l ) {
+//        listeners.remove( l );
+//    }
+//    
+//    protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
+//        FeatureChangeEvent ev = new FeatureChangeEvent( this, type, features );
+//        for (IFeatureChangeListener l : listeners) {
+//            l.featureChange( ev );
+//        }
+//    }
     
 }

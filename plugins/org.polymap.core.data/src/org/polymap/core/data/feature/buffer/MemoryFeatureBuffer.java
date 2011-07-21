@@ -40,7 +40,6 @@ import org.polymap.core.data.feature.buffer.FeatureChangeEvent.Type;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class MemoryFeatureBuffer
-        extends BaseFeatureBuffer
         implements IFeatureBuffer {
 
     private static Log log = LogFactory.getLog( MemoryFeatureBuffer.class );
@@ -51,9 +50,16 @@ class MemoryFeatureBuffer
     
     private ReentrantReadWriteLock          lock = new ReentrantReadWriteLock();
 
+    private IFeatureBufferSite               site;
+    
     
     MemoryFeatureBuffer() {
         super();
+    }
+
+    
+    public void init( IFeatureBufferSite _site ) {
+        this.site = _site;    
     }
 
 
@@ -72,7 +78,7 @@ class MemoryFeatureBuffer
         finally {
             lock.writeLock().unlock();
         }
-        fireFeatureChangeEvent( Type.FLUSHED, null );
+        site.fireFeatureChangeEvent( Type.FLUSHED, null );
     }
 
 
@@ -143,7 +149,7 @@ class MemoryFeatureBuffer
             }
             lock.writeLock().unlock();
 
-            fireFeatureChangeEvent( Type.ADDED, features );
+            site.fireFeatureChangeEvent( Type.ADDED, features );
             return result;
         }
         finally {
@@ -174,7 +180,7 @@ class MemoryFeatureBuffer
             }
             lock.writeLock().unlock();
 
-            fireFeatureChangeEvent( Type.MODIFIED, features );
+            site.fireFeatureChangeEvent( Type.MODIFIED, features );
             return fids;
         }
         finally {
@@ -204,7 +210,7 @@ class MemoryFeatureBuffer
             }
             lock.writeLock().unlock();
 
-            fireFeatureChangeEvent( Type.REMOVED, features );
+            site.fireFeatureChangeEvent( Type.REMOVED, features );
             return fids;
         }
         finally {

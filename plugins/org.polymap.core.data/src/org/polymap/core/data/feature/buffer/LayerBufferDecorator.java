@@ -60,7 +60,7 @@ public class LayerBufferDecorator
     
     public void dispose() {
         for (LayerFeatureBufferManager layerBuffer : decorated.values()) {
-            layerBuffer.getBuffer().removeFeatureChangeListener( this );
+            layerBuffer.removeFeatureChangeListener( this );
         }
         decorated.clear();
 
@@ -92,7 +92,7 @@ public class LayerBufferDecorator
 
             // register listener
             if (decorated.put( layer.id(), layerBuffer ) == null) {
-                layerBuffer.getBuffer().addFeatureChangeListener( this );
+                layerBuffer.addFeatureChangeListener( this );
             }
         }
     }
@@ -145,20 +145,17 @@ public class LayerBufferDecorator
 
 
     public void featureChange( final FeatureChangeEvent ev ) {
-        if (ev.getSource() instanceof IFeatureBuffer) {
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
-                }
-            };
-
-            if (Display.getCurrent() != null) {
-                runnable.run();
+        Runnable runnable = new Runnable() {
+            public void run() {
+                fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
             }
-            else {
-                Polymap.getSessionDisplay().asyncExec( runnable );
-            }
+        };
 
+        if (Display.getCurrent() != null) {
+            runnable.run();
+        }
+        else {
+            Polymap.getSessionDisplay().asyncExec( runnable );
         }
     }
 

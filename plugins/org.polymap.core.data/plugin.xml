@@ -76,6 +76,25 @@
                label="%actions_copyFeatures"
                style="push">
          </action>
+         <action
+               class="org.polymap.core.data.feature.buffer.RevertBufferAction"
+               enablesFor="+"
+               icon="icons/etool16/revert_buffer.gif"
+               id="org.polymap.core.data.RevertBufferAction"
+               label="%actions_revertBuffer"
+               menubarPath="buffer"
+               state="true"
+               style="push">
+         </action>
+         <action
+               class="org.polymap.core.data.Action2"
+               enablesFor="+"
+               icon="icons/etool16/merge_buffer.gif"
+               id="org.polymap.core.data.MergeBufferAction"
+               label="%actions_mergeBuffer"
+               menubarPath="buffer"
+               style="push">
+         </action>
       </objectContribution>
       <objectContribution
             adaptable="false"
