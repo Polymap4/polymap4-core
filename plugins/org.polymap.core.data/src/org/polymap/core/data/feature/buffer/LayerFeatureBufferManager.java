@@ -16,6 +16,7 @@ package org.polymap.core.data.feature.buffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.WeakHashMap;
 
@@ -30,11 +31,11 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
@@ -248,8 +249,7 @@ public class LayerFeatureBufferManager
         IGeoResource geores = layer.getGeoResource();
         FeatureStore fs = geores.resolve( FeatureStore.class, null );
   
-        log.warn( "NO TX!" );
-//        fs.setTransaction( tx );
+        fs.setTransaction( tx );
 
         for (FeatureBufferState buffered : buffer.content()) {
             if (buffered.isAdded()) {
@@ -302,13 +302,7 @@ public class LayerFeatureBufferManager
         FeatureId fid = buffered.feature().getIdentifier();
         Id fidFilter = ff.id( Collections.singleton( fid ) );
         
-        final List<Feature> stored = new ArrayList();
-        fs.getFeatures( fidFilter ).accepts( new FeatureVisitor() {
-            public void visit( Feature feature ) {
-                stored.add( feature );
-            }
-        }, null );
-        
+        List<Feature> stored = loadFeatures( fs, fidFilter );         
         if (stored.size() == 0) {
             throw new ConcurrentModificationException( "Feature has been removed concurrently: " + fid );
         }
@@ -346,6 +340,24 @@ public class LayerFeatureBufferManager
     }
 
     
+    private List<Feature> loadFeatures( FeatureStore fs, Filter filter )
+    throws IOException {
+        List<Feature> result = new ArrayList();
+        
+        FeatureCollection features = fs.getFeatures( filter );
+        Iterator it = null;
+        try {
+            for (it=features.iterator(); it.hasNext(); ) {
+                 result.add( (Feature)it.next() );
+            }
+        }
+        finally {
+            features.close( it );
+        }
+        return result;
+    }
+
+
     private boolean isFeatureModified( Feature feature, Feature original ) 
     throws IOException {
         // XXX complex features

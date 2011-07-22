@@ -87,7 +87,7 @@
                style="push">
          </action>
          <action
-               class="org.polymap.core.data.Action2"
+               class="org.polymap.core.data.feature.buffer.MergeBufferAction"
                enablesFor="+"
                icon="icons/etool16/merge_buffer.gif"
                id="org.polymap.core.data.MergeBufferAction"
