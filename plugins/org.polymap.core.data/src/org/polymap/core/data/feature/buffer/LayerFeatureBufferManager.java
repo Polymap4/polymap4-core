@@ -145,10 +145,13 @@ public class LayerFeatureBufferManager
     
     private ListenerList<IFeatureChangeListener> listeners = new ListenerList();
     
+    private long                    storeVersion;
+    
 
     protected LayerFeatureBufferManager( ILayer layer ) {
         super();
         this.layer = layer;
+        this.storeVersion = FeatureStoreVersion.forLayer( layer );
         
         buffer = new MemoryFeatureBuffer();
         buffer.init( new IFeatureBufferSite() {
@@ -183,14 +186,16 @@ public class LayerFeatureBufferManager
         return layer;
     }
 
-
     public IFeatureBuffer getBuffer() {
         return buffer;
     }
 
-
     public FeatureBufferProcessor getProcessor() {
         return processor;
+    }
+    
+    public long getStoreVersion() {
+        return storeVersion;
     }
 
 
@@ -199,6 +204,7 @@ public class LayerFeatureBufferManager
             return;
         }
         try {
+            storeVersion = FeatureStoreVersion.checkSetForLayer( layer, storeVersion );
             try {
                 tx.commit();
                 buffer.clear();

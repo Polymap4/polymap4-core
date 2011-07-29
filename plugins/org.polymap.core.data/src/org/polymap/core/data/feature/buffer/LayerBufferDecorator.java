@@ -40,7 +40,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public class LayerBufferDecorator
         extends BaseLabelProvider
-        implements ILightweightLabelDecorator, IFeatureChangeListener {
+        implements ILightweightLabelDecorator, IFeatureChangeListener, IFeatureStoreListener {
 
     private static Log log = LogFactory.getLog( LayerBufferDecorator.class );
 
@@ -51,9 +51,9 @@ public class LayerBufferDecorator
     public static final int         BOTTOM_LEFT = 2;
     public static final int         BOTTOM_RIGHT = 3;
 
-    private static final String     outgoing = "icons/ovr16/outgo_synch3.gif";    
-    private static final String     incoming = "icons/ovr16/incom_synch.gif";    
-    private static final String     conflict = "icons/ovr16/conf_synch.gif";    
+    private static final String     OUTGOING = "icons/ovr16/outgo_synch3.gif";    
+    private static final String     INCOMING = "icons/ovr16/incom_synch.gif";    
+    private static final String     CONFLICT = "icons/ovr16/conf_synch.gif";    
 
     private Map<String,LayerFeatureBufferManager>   decorated = new HashMap();
 
@@ -63,7 +63,7 @@ public class LayerBufferDecorator
             layerBuffer.removeFeatureChangeListener( this );
         }
         decorated.clear();
-
+        FeatureStoreVersion.removeListener( this );
     }
 
 
@@ -77,13 +77,20 @@ public class LayerBufferDecorator
             }
             
             try {
-                // outgoing
-                if (!layerBuffer.getBuffer().isEmpty()) {
-                    ImageDescriptor ovr = DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, outgoing );
+                boolean outgoing = !layerBuffer.getBuffer().isEmpty();
+                boolean incoming = FeatureStoreVersion.forLayer( layer ) != layerBuffer.getStoreVersion();
+                
+                if (outgoing && incoming) {
+                    decoration.addPrefix( "# " );                    
+                }
+                else if (incoming) {
+                    decoration.addPrefix( "< " );                    
+                }
+                else if (outgoing) {
+                    ImageDescriptor ovr = DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, OUTGOING );
                     decoration.addOverlay( ovr, BOTTOM_RIGHT );
                     decoration.addPrefix( "> " );
                 }
-                // XXX add incoming and conflict
             }
             catch (Exception e) {
                 log.warn( "", e );
@@ -93,6 +100,8 @@ public class LayerBufferDecorator
             // register listener
             if (decorated.put( layer.id(), layerBuffer ) == null) {
                 layerBuffer.addFeatureChangeListener( this );
+                
+                FeatureStoreVersion.addListener( this );
             }
         }
     }
@@ -157,6 +166,15 @@ public class LayerBufferDecorator
         else {
             Polymap.getSessionDisplay().asyncExec( runnable );
         }
+    }
+
+
+    public void featureStoreChange( FeatureStoreEvent ev ) {
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+            }
+        });
     }
 
 }
