@@ -51,6 +51,15 @@
             name="%views_featureTable"
             restorable="true">
       </view>
+      <view
+            allowMultiple="true"
+            category="org.polymap.core.project"
+            class="org.polymap.core.data.ui.featureTable.FeatureSelectionView"
+            icon="icons/eview16/table_view.gif"
+            id="org.polymap.core.data.FeatureSelectionView"
+            name="%views_featureTable"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.popupMenus">

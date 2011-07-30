@@ -18,18 +18,19 @@ package org.polymap.core.data.ui.featuretable;
 import org.opengis.feature.Feature;
 
 /**
- * This is the content elment of a {@link FeatureTableViewer}. It is produced by
- * {@link IFeatureContentProvider}.
+ * This is the content element of a {@link FeatureTableViewer}.
+ * {@link IFeatureContentProvider} provides elements of this type.
  * <p/>
  * The content element are not plain {@link Feature} instances in order to let the
  * feature table handle any combinations of attributes, including complex attributes
  * or even multiple features in one table.
- *
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface IFeatureTableElement {
 
-    public Object getValue( String name )
-    throws Exception;
+    public String fid();
+    
+    public Object getValue( String name );
 
 }

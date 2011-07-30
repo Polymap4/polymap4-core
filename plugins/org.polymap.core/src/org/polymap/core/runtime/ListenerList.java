@@ -153,6 +153,11 @@ public class ListenerList<T>
     }
 
 
+    public void clear() {
+        list = (T[])EMPTY;
+    }
+
+
     /**
      * Adds a listener to this list. This method has no effect if the <a href="#same">same</a>
      * listener is already registered.

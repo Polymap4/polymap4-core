@@ -88,7 +88,7 @@ public class DefaultFeatureTableColumn
                 header != null ? header : prop.getName().getLocalPart() );
 
         TableLayout tableLayout = (TableLayout)viewer.getTable().getLayout();
-        tableLayout.addColumnData( new ColumnWeightData( 10 ) );
+        tableLayout.addColumnData( new ColumnWeightData( 10, 50, true ) );
         return viewerColumn;
     }
 
@@ -103,8 +103,10 @@ public class DefaultFeatureTableColumn
             labelProvider = new ColumnLabelProvider() {
                 public String getText( Object elm ) {
                     try {
-                        Object value = ((IFeatureTableElement)elm).getValue(
-                                prop.getName().getLocalPart() );
+                        IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                        //log.info( "getText(): fid=" + featureElm.fid() + ", prop=" + prop.getName().getLocalPart() );
+                        
+                        Object value = featureElm.getValue( prop.getName().getLocalPart() );
                         return value != null ? value.toString() : "";
                     }
                     catch (Exception e) {

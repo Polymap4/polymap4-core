@@ -16,20 +16,30 @@
 package org.polymap.core.data.ui.featuretable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.geotools.feature.FeatureCollection;
+import org.opengis.filter.Filter;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
-
+import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.runtime.ListenerList;
 
 /**
  *
@@ -41,11 +51,16 @@ public class FeatureTableViewer
 
     private static Log log = LogFactory.getLog( FeatureTableViewer.class );
 
-    private List<IFeatureTableColumn>       displayed = new ArrayList();
+    /** Property type that is fired when the content of the viewer has changed. */
+    public static final String          PROP_CONTENT_SIZE = "contentsize";
+    
+    private List<IFeatureTableColumn>   displayed = new ArrayList();
 
-    private List<IFeatureTableColumn>       available = new ArrayList();
+    private List<IFeatureTableColumn>   available = new ArrayList();
 
-    private Map<String,CellEditor>          editors;
+    private Map<String,CellEditor>      editors = new HashMap();
+    
+    private ListenerList<PropertyChangeListener> listeners = new ListenerList();
 
 
     public FeatureTableViewer( Composite parent, int style ) {
@@ -54,14 +69,41 @@ public class FeatureTableViewer
         getTable().setLinesVisible( true );
         getTable().setHeaderVisible( true );
         getTable().setLayout( new TableLayout() );
+        
+        getTable().addSelectionListener( new SelectionAdapter() {
+            public void widgetDefaultSelected( SelectionEvent e ) {
+                log.info( "calling setInput() ..." );
+            }
+        } );
     }
 
 
+    public void dispose() {
+        listeners.clear();
+        listeners = null;
+        displayed.clear();
+        available.clear();
+        editors.clear();
+    }
+
+
+    public int getItemCount() {
+        return doGetItemCount();
+    }
+    
+    
     public void addColumn( IFeatureTableColumn column ) {
         column.setViewer( this );
+        column.newViewerColumn();
+
         available.add( column );
         displayed.add( column );
-        column.newViewerColumn();
+    }
+
+
+    public void setContent( final PipelineFeatureSource fs, final Filter filter ) {
+        setContentProvider( new DeferredFeatureContentProvider( this, fs, filter, "BID" ) );
+        setInput( fs );
     }
 
 
@@ -72,7 +114,35 @@ public class FeatureTableViewer
 
     public void setContent( IFeatureContentProvider provider ) {
         super.setContentProvider( provider );
-        //setLabelProvider( new FeatureTableLabelProvider( this ) );
+    }
+
+
+    public boolean addPropertyChangeListener( PropertyChangeListener listener ) {
+        return listeners.add( listener );
+    }
+
+
+    public boolean removePropertyChangeListener( PropertyChangeListener listener ) {
+        return listeners.remove( listener );
+    }
+
+
+    protected void firePropChange( final String name, Object oldValue, final Object newValue ) {
+        final PropertyChangeEvent ev = new PropertyChangeEvent( this, name, oldValue, newValue );
+
+        Display display = getTable().getDisplay();
+        
+        display.asyncExec( new Runnable() {
+        
+            public void run() {
+                if (PROP_CONTENT_SIZE.equals( name ) ) {
+                    setItemCount( (Integer)newValue );
+                }
+                for (PropertyChangeListener l : listeners.getListeners()) {
+                    l.propertyChange( ev );
+                }
+            }
+        });
     }
 
 }
