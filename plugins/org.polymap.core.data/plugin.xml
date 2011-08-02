@@ -45,19 +45,19 @@
       <view
             allowMultiple="true"
             category="org.polymap.core.project"
-            class="org.polymap.core.data.ui.featureTable.GeoSelectionView"
+            class="org.polymap.core.data.ui.featureTable.FeatureSelectionView"
             icon="icons/eview16/table_view.gif"
-            id="org.polymap.core.data.ui.featureTable.view"
+            id="org.polymap.core.data.FeatureSelectionView"
             name="%views_featureTable"
             restorable="true">
       </view>
       <view
             allowMultiple="true"
             category="org.polymap.core.project"
-            class="org.polymap.core.data.ui.featureTable.FeatureSelectionView"
+            class="org.polymap.core.data.ui.featuretable.SourceFeatureTableView"
             icon="icons/eview16/table_view.gif"
-            id="org.polymap.core.data.FeatureSelectionView"
-            name="%views_featureTable"
+            id="org.polymap.core.data.SourceFeatureTableView"
+            name="%views_sourceFeatureTable"
             restorable="true">
       </view>
    </extension>
@@ -73,6 +73,16 @@
                icon="icons/eview16/table_view.gif"
                id="org.polymap.core.data.action.tableView"
                label="%actions_showFeatureTable"
+               menubarPath="content"
+               style="push"
+               tooltip="%actions_showFeatureTable_tip">
+         </action>
+         <action
+               class="org.polymap.core.data.ui.featuretable.SourceFeatureTableAction"
+               enablesFor="+"
+               icon="icons/eview16/table_view.gif"
+               id="org.polymap.core.data.sourceTableView"
+               label="%actions_sourceFeatureTable"
                menubarPath="content"
                style="push"
                tooltip="%actions_showFeatureTable_tip">
@@ -246,8 +256,8 @@
    <extension
          point="org.eclipse.ui.viewActions">
       <viewContribution
-            id="org.polymap.core.data.geoSelectionContribution"
-            targetID="org.polymap.core.data.ui.featureTable.view">
+            id="org.polymap.core.data.featureSelectionContribution"
+            targetID="org.polymap.core.data.FeatureSelectionView">
          <action
                class="org.polymap.core.data.operations.feature.CopyGeoSelectionFeaturesAction"
                icon="icons/etool16/copy_features.gif"

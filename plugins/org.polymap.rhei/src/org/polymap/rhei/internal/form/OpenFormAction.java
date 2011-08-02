@@ -17,19 +17,8 @@
  */
 package org.polymap.rhei.internal.form;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
-
-import org.geotools.filter.FidFilterImpl;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -38,9 +27,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
-import org.polymap.core.workbench.PolymapWorkbench;
-import org.polymap.rhei.RheiPlugin;
+import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
+import org.polymap.core.data.ui.featuretable.SimpleFeatureTableElement;
 import org.polymap.rhei.form.FormEditor;
 
 /**
@@ -54,61 +42,35 @@ public class OpenFormAction
 
     private static Log log = LogFactory.getLog( OpenFormAction.class );
 
-    private GeoSelectionView    view;
+    private FeatureSelectionView        view;
     
-    private String              selectedFid;
+    private SimpleFeatureTableElement   selectedElm;
     
     
     public void init( IViewPart _view ) {
-        if (_view instanceof GeoSelectionView) {
-            log.debug( "init(): found GeoSelectionView..." );
-            this.view = (GeoSelectionView)_view;
-        }
+        this.view = (FeatureSelectionView)_view;
     }
 
 
     public void run( IAction action ) {
-        try {
-            final List<Feature> features = new ArrayList();
-            view.getFeatureCollection().accepts( new FeatureVisitor() {
-                public void visit( Feature candidate ) {
-                    if (candidate.getIdentifier().getID().equals( selectedFid )) {
-                        features.add( candidate );
-                    }
-                }
-            }, null );
-            
-            if (features.isEmpty()) {
-                log.warn( "No feature found: " + selectedFid );
-                return;
-            } 
-            if (features.size() > 1) {
-                log.warn( "More than one feature for: " + selectedFid );
-            }
-            FormEditor.open( view.getFeatureStore(), features.get( 0 ) );
-        }
-        catch (IOException e) {
-            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-        }
+        FormEditor.open( view.getFeatureStore(), selectedElm.feature() );
     }
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        log.debug( "selectionChanged(): sel= " + sel );
-
-        selectedFid = null;
+        selectedElm = null;
         
         if (!sel.isEmpty() && sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
             
-            // called when the entity is clicked in GeoSellectionView
-            if (elm instanceof FidFilterImpl) {
-                Set fids = ((FidFilterImpl)elm).getIDs();
-                selectedFid = fids.size() == 1 
-                        ? (String)fids.iterator().next() : null;
+            if (elm instanceof SimpleFeatureTableElement) {
+                selectedElm = (SimpleFeatureTableElement)elm; 
+            }
+            else {
+                log.warn( "Unknow table element type: " + elm.getClass().getSimpleName() );
             }
         }
-        action.setEnabled( view != null && selectedFid != null );
+        action.setEnabled( view != null && selectedElm != null );
     }
 
 }

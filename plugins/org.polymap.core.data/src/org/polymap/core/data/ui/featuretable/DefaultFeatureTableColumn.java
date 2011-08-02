@@ -15,13 +15,20 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
+import java.util.Comparator;
+
 import org.opengis.feature.type.PropertyDescriptor;
 
+import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.TableColumn;
+
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -47,8 +54,6 @@ public class DefaultFeatureTableColumn
 
     private CellEditor              cellEditor;
 
-    private CellLabelProvider       labelProvider;
-
     private String                  header;
 
 
@@ -61,6 +66,10 @@ public class DefaultFeatureTableColumn
         this.viewer = viewer;
     }
 
+    public String getName() {
+        return prop.getName().getLocalPart();
+    }
+    
     public DefaultFeatureTableColumn setHeader( String header ) {
         this.header = header;
         return this;
@@ -80,42 +89,109 @@ public class DefaultFeatureTableColumn
     }
 
 
-    public TableViewerColumn newViewerColumn() {
-        TableViewerColumn viewerColumn = new TableViewerColumn( viewer, SWT.CENTER /*| SWT.BORDER*/ );
-//        viewerColumn.setEditingSupport( getEditingSupport() );
-        viewerColumn.setLabelProvider( getLabelProvider() );
-        viewerColumn.getColumn().setText(
-                header != null ? header : prop.getName().getLocalPart() );
-
-        TableLayout tableLayout = (TableLayout)viewer.getTable().getLayout();
-        tableLayout.addColumnData( new ColumnWeightData( 10, 50, true ) );
-        return viewerColumn;
-    }
-
-
     public EditingSupport getEditingSupport() {
         throw new RuntimeException( "not yet implementd" );
     }
 
+    
+    public TableViewerColumn newViewerColumn() {
+        int align = Number.class.isAssignableFrom( prop.getType().getBinding() )
+                ? SWT.RIGHT : SWT.CENTER;
 
-    public CellLabelProvider getLabelProvider() {
-        if (labelProvider == null) {
-            labelProvider = new ColumnLabelProvider() {
-                public String getText( Object elm ) {
-                    try {
-                        IFeatureTableElement featureElm = (IFeatureTableElement)elm;
-                        //log.info( "getText(): fid=" + featureElm.fid() + ", prop=" + prop.getName().getLocalPart() );
-                        
-                        Object value = featureElm.getValue( prop.getName().getLocalPart() );
-                        return value != null ? value.toString() : "";
+        TableViewerColumn viewerColumn = new TableViewerColumn( viewer, align );
+        viewerColumn.setLabelProvider( newLabelProvider() );
+        viewerColumn.getColumn().setText( header != null ? header : getName() );
+
+        // sort listener for supported prop bindings
+        Class propBinding = prop.getType().getBinding();
+        if (String.class.isAssignableFrom( propBinding )
+                || Number.class.isAssignableFrom( propBinding )) {
+
+            viewerColumn.getColumn().addListener( SWT.Selection, new Listener() {
+                public void handleEvent( Event ev ) {
+                    TableColumn sortColumn = viewer.getTable().getSortColumn();
+                    final TableColumn selectedColumn = (TableColumn)ev.widget;
+                    int dir = viewer.getTable().getSortDirection();
+                    log.info( "Sort: sortColumn=" + sortColumn.getText() + ", selectedColumn=" + selectedColumn.getText() + ", dir=" + dir );
+
+                    if (sortColumn == selectedColumn) {
+                        dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
+                    } 
+                    else {
+                        dir = SWT.DOWN;
                     }
-                    catch (Exception e) {
-                        return "Fehler: " + e.getLocalizedMessage();
-                    }
+                    Comparator<IFeatureTableElement> comparator = newComparator( dir );
+                    viewer.sortContent( comparator, dir, selectedColumn );
                 }
-            };
+            });
         }
-        return labelProvider;
+        
+        TableLayout tableLayout = (TableLayout)viewer.getTable().getLayout();
+        tableLayout.addColumnData( new ColumnWeightData( 10, 80, true ) );
+        return viewerColumn;
+    }
+
+    
+    public Comparator<IFeatureTableElement> newComparator( int sortDir ) {
+        Comparator<IFeatureTableElement> result = new Comparator<IFeatureTableElement>() {
+            
+            private String  sortPropName = getName();            
+            private Class   propBinding = prop.getType().getBinding();
+            
+            public int compare( IFeatureTableElement elm1, IFeatureTableElement elm2 ) {
+                Object value1 = elm1.getValue( sortPropName );
+                Object value2 = elm2.getValue( sortPropName );
+                
+                if (value1 == null && value2 == null) {
+                    return 0;
+                }
+                else if (value1 == null) {
+                    return -1;
+                }
+                else if (value2 == null) {
+                    return 1;
+                }
+                else if (String.class.isAssignableFrom( propBinding )) {
+                    return ((String)value1).compareTo( (String)value2 );
+                }
+                else if (Number.class.isAssignableFrom( propBinding )) {
+                    return (int)(((Number)value1).doubleValue() - ((Number)value2).doubleValue());
+                }
+                else {
+                    return value1.toString().compareTo( value2.toString() );
+                }
+            }
+        };
+        return sortDir == SWT.UP ? new ReverseComparator( result ) : result;
+    }
+
+    
+    protected CellLabelProvider newLabelProvider() {
+        return new ColumnLabelProvider() {
+            
+            public String getText( Object elm ) {
+                try {
+                    IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                    //log.info( "getText(): fid=" + featureElm.fid() + ", prop=" + prop.getName().getLocalPart() );
+
+                    Object value = featureElm.getValue( getName() );
+                    return value != null ? value.toString() : "";
+                }
+                catch (Exception e) {
+                    return "Fehler: " + e.getLocalizedMessage();
+                }
+            }
+
+            public String getToolTipText( Object elm ) {
+                if (elm != null) {
+                    IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                    Object value = featureElm.getValue( getName() );
+                    return value != null ? value.toString() : null;
+                }
+                return null;
+            }
+            
+        };
     }
 
 }

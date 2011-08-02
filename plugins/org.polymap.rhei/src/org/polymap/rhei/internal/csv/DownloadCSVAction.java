@@ -34,7 +34,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
+import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.RheiPlugin;
 
@@ -48,14 +49,11 @@ public class DownloadCSVAction
 
     private static Log log = LogFactory.getLog( DownloadCSVAction.class );
 
-    private GeoSelectionView    view;
+    private FeatureSelectionView    view;
 
 
     public void init( IViewPart _view ) {
-        if (_view instanceof GeoSelectionView) {
-            log.debug( "init(): found GeoSelectionView..." );
-            this.view = (GeoSelectionView)_view;
-        }
+        this.view = (FeatureSelectionView)_view;
     }
 
 
@@ -63,7 +61,8 @@ public class DownloadCSVAction
         try {
             final List<Feature> features = new ArrayList();
 
-            view.getFeatureCollection().accepts( new FeatureVisitor() {
+            PipelineFeatureSource fs = view.getFeatureStore();
+            fs.getFeatures( view.getFilter() ).accepts( new FeatureVisitor() {
                 public void visit( Feature candidate ) {
                     features.add( candidate );
                 }

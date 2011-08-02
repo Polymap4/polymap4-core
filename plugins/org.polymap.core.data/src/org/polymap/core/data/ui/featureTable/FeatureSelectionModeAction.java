@@ -25,6 +25,7 @@ import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.geohub.LayerFeatureSelectionManager.MODE;
+import org.polymap.core.project.ILayer;
 
 /**
  * 
@@ -36,15 +37,20 @@ public abstract class FeatureSelectionModeAction
 
     private static Log log = LogFactory.getLog( FeatureSelectionModeAction.class );
 
-    protected GeoSelectionView      view;
+    protected ILayer            layer;
     
 
     public void init( IViewPart _view ) {
-        this.view = (GeoSelectionView)_view;
+        if (_view instanceof FeatureSelectionView) {
+            this.layer = ((FeatureSelectionView)_view).getLayer();
+        }
+        else {
+            throw new RuntimeException( "Unknow view type:" + _view );
+        }
     }
 
     protected void setMode( MODE mode ) {
-        LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( view.getLayer() );
+        LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
         fsm.setMode( mode );
     }
     

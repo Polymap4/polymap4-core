@@ -15,7 +15,6 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
-import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 
 /**
@@ -25,6 +24,6 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface IFeatureContentProvider
-        extends IStructuredContentProvider, ILazyContentProvider {
+        extends IStructuredContentProvider {
 
 }

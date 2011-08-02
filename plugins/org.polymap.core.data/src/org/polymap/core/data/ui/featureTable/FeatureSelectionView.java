@@ -16,7 +16,6 @@ package org.polymap.core.data.ui.featureTable;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -32,15 +31,19 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.ui.featuretable.DefaultFeatureTableColumn;
 import org.polymap.core.data.ui.featuretable.FeatureTableViewer;
+import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
@@ -54,9 +57,14 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureSelectionView
-        extends ViewPart implements PropertyChangeListener {
+        extends ViewPart 
+        implements PropertyChangeListener {
 
     private static Log log = LogFactory.getLog( FeatureSelectionView.class );
+    
+    /* Bad but effective way to pass the layer to the view. */
+    private static final ThreadLocal<ILayer>    initLayer = new ThreadLocal();
+    
     
     /**
      * Makes sure that the view for the layer is open. If the view is already
@@ -74,12 +82,15 @@ public class FeatureSelectionView
                     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 //                    ensureMaxViews( page );
 
+                    initLayer.set( layer );
                     result[0] = (FeatureSelectionView)page.showView(
                             FeatureSelectionView.ID, layer.id(), IWorkbenchPage.VIEW_ACTIVATE );
-                    result[0].init( layer );
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, null, e.getMessage(), e );
+                }
+                finally {
+                    initLayer.remove();
                 }
             }
         });
@@ -116,6 +127,8 @@ public class FeatureSelectionView
     
     private PipelineFeatureSource   fs;
 
+    private Filter                  filter;
+
     private FeatureTableViewer      viewer;
 
     private String                  basePartName;
@@ -123,22 +136,24 @@ public class FeatureSelectionView
     private Composite               parent;
 
 
-    protected void init( ILayer _layer ) 
-    throws PipelineIncubationException, IOException {
-        this.layer = _layer;
-        this.basePartName = layer.getLabel(); 
-        setPartName( basePartName );
+    protected void init( ILayer _layer ) {
+        try {
+            this.layer = _layer;
+            this.basePartName = layer.getLabel(); 
+            setPartName( basePartName );
 
-        LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( this );
-        
-        // FIXME check blocking
-        this.fs = PipelineFeatureSource.forLayer( layer, false );
+            LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( this );
+            
+            // FIXME check blocking
+            this.fs = PipelineFeatureSource.forLayer( layer, false );
+        }
+        catch (Exception e) {
+            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
+        }
     }
     
     
     public void dispose() {
-        super.dispose();
-
         LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( this );
         
         if (viewer != null) {
@@ -146,43 +161,77 @@ public class FeatureSelectionView
         }
         layer = null;
         fs = null;
+        super.dispose();
     }
 
+    
+    public ILayer getLayer() {
+        return layer;
+    }
 
-    public void createPartControl( Composite _parent ) {
-        this.parent = _parent;
+    
+    public PipelineFeatureSource getFeatureStore() {
+        return fs;
+    }
+    
+    
+    public Filter getFilter() {
+        return filter; 
+    }
+
+    
+    public IFeatureTableElement[] getTableElements() {
+        return viewer.getTableElements();
+    }
+    
+    
+    public void createPartControl( @SuppressWarnings("hiding") Composite parent ) {
+        init( initLayer.get() );
+        
+        this.parent = parent;
         this.parent.setLayout( new FormLayout() );
-    }
 
+        viewer = new FeatureTableViewer( parent, SWT.NONE );
+        viewer.getTable().setLayoutData( new SimpleFormData().fill().create() );
 
-    protected void loadTable( Filter filter ) {
-        if (viewer == null) {
-            viewer = new FeatureTableViewer( parent, SWT.NONE );
-            viewer.getTable().setLayoutData( new SimpleFormData().fill().create() );
-
-            viewer.addPropertyChangeListener( new PropertyChangeListener() {
-                public void propertyChange( PropertyChangeEvent ev ) {
-                    if (ev.getPropertyName().equals( FeatureTableViewer.PROP_CONTENT_SIZE )) {
-                        Integer count = (Integer)ev.getNewValue();
-                        setPartName( basePartName + " (" + count + ")" );
-                    }
-                }
-            });
-            
-            // columns
-            assert fs != null : "fs not set. Call init() first.";
-            SimpleFeatureType schema = fs.getSchema();
-            for (PropertyDescriptor prop : schema.getDescriptors()) {
-                if (Geometry.class.isAssignableFrom( prop.getType().getBinding() )) {
-                    // skip Geometry
-                }
-                else {
-                    viewer.addColumn( new DefaultFeatureTableColumn( prop ) );
+        viewer.addPropertyChangeListener( new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent ev ) {
+                if (ev.getPropertyName().equals( FeatureTableViewer.PROP_CONTENT_SIZE )) {
+                    Integer count = (Integer)ev.getNewValue();
+                    setPartName( basePartName + " (" + count + ")" );
                 }
             }
-        }
+        });
+        viewer.addSelectionChangedListener( new ISelectionChangedListener() {
+            public void selectionChanged( SelectionChangedEvent ev ) {
+                IStructuredSelection sel = (IStructuredSelection)ev.getSelection();
+                IFeatureTableElement elm = (IFeatureTableElement)sel.getFirstElement();
+                
+                LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+                fsm.setHovered( elm.fid() );
+            }            
+        });
         
-        viewer.getTable().pack();
+        // columns
+        assert fs != null : "fs not set. Call init() first.";
+        SimpleFeatureType schema = fs.getSchema();
+        for (PropertyDescriptor prop : schema.getDescriptors()) {
+            if (Geometry.class.isAssignableFrom( prop.getType().getBinding() )) {
+                // skip Geometry
+            }
+            else {
+                viewer.addColumn( new DefaultFeatureTableColumn( prop ) );
+            }
+        }
+
+        viewer.getTable().pack( true );
+
+        getSite().setSelectionProvider( viewer );
+    }
+
+
+    protected void loadTable( @SuppressWarnings("hiding") Filter filter ) {
+        this.filter = filter;
         viewer.setContent( fs, filter );
     }
 

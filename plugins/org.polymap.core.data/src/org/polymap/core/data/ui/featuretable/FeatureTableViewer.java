@@ -15,9 +15,8 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
@@ -30,12 +29,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.TableColumn;
 
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.polymap.core.data.PipelineFeatureSource;
@@ -54,11 +53,11 @@ public class FeatureTableViewer
     /** Property type that is fired when the content of the viewer has changed. */
     public static final String          PROP_CONTENT_SIZE = "contentsize";
     
-    private List<IFeatureTableColumn>   displayed = new ArrayList();
+    private Map<String,IFeatureTableColumn> displayed = new HashMap();
 
-    private List<IFeatureTableColumn>   available = new ArrayList();
+    private Map<String,IFeatureTableColumn> available = new HashMap();
 
-    private Map<String,CellEditor>      editors = new HashMap();
+    private Map<String,CellEditor>          editors = new HashMap();
     
     private ListenerList<PropertyChangeListener> listeners = new ListenerList();
 
@@ -66,15 +65,16 @@ public class FeatureTableViewer
     public FeatureTableViewer( Composite parent, int style ) {
         super( parent, style | SWT.VIRTUAL );
 
+        ColumnViewerToolTipSupport.enableFor( this );
         getTable().setLinesVisible( true );
         getTable().setHeaderVisible( true );
         getTable().setLayout( new TableLayout() );
-        
-        getTable().addSelectionListener( new SelectionAdapter() {
-            public void widgetDefaultSelected( SelectionEvent e ) {
-                log.info( "calling setInput() ..." );
-            }
-        } );
+
+//        getTable().addSelectionListener( new SelectionAdapter() {
+//            public void widgetDefaultSelected( SelectionEvent e ) {
+//                log.info( "calling setInput() ..." );
+//            }
+//        } );
     }
 
 
@@ -91,18 +91,47 @@ public class FeatureTableViewer
         return doGetItemCount();
     }
     
+
+    public IFeatureTableElement[] getTableElements() {
+        IFeatureTableElement[] result = new IFeatureTableElement[ getItemCount() ];
+        for (int i=0; i<getItemCount(); i++) {
+            result[i] = (IFeatureTableElement)getElementAt( i );
+        }
+        return result;
+    }
     
+
     public void addColumn( IFeatureTableColumn column ) {
         column.setViewer( this );
         column.newViewerColumn();
 
-        available.add( column );
-        displayed.add( column );
+        available.put( column.getName(), column );
+        displayed.put( column.getName(), column );
     }
 
 
+    /**
+     * Set the content of this viewer. A {@link DeferredFeatureContentProvider} is
+     * used to fetch and sort the features.
+     * 
+     * @param fs
+     * @param filter
+     */
     public void setContent( final PipelineFeatureSource fs, final Filter filter ) {
-        setContentProvider( new DeferredFeatureContentProvider( this, fs, filter, "BID" ) );
+        TableColumn sortColumn = getTable().getSortColumn();
+        int sortDir = SWT.DOWN;
+        if (sortColumn == null) {
+            sortColumn = getTable().getColumn( 0 );
+            getTable().setSortColumn( sortColumn );
+            getTable().setSortDirection( sortDir );
+        }
+        else {
+            sortDir = getTable().getSortDirection();
+        }
+        IFeatureTableColumn sortTableColumn = displayed.get( sortColumn.getText() );
+
+        setContentProvider( new DeferredFeatureContentProvider( this, fs, filter,
+                sortTableColumn.newComparator( sortDir ) ) );
         setInput( fs );
     }
 
@@ -128,21 +157,40 @@ public class FeatureTableViewer
 
 
     protected void firePropChange( final String name, Object oldValue, final Object newValue ) {
+        if (getTable().isDisposed()) {
+            return;
+        }
         final PropertyChangeEvent ev = new PropertyChangeEvent( this, name, oldValue, newValue );
 
         Display display = getTable().getDisplay();
-        
         display.asyncExec( new Runnable() {
         
             public void run() {
-                if (PROP_CONTENT_SIZE.equals( name ) ) {
-                    setItemCount( (Integer)newValue );
-                }
+//                if (PROP_CONTENT_SIZE.equals( name ) ) {
+//                    getTable().setForeground( Graphics.getColor( 0x70, 0x70, 0x80 ) );
+//                }
                 for (PropertyChangeListener l : listeners.getListeners()) {
                     l.propertyChange( ev );
                 }
             }
         });
+    }
+
+
+    /**
+     * Sorts the table entries by delegating the call to the content provider.
+     * <p/>
+     * Must be caled only if the content provider is a {@link DeferredFeatureContentProvider}!
+     * 
+     * @param comparator
+     * @param dir
+     * @param column
+     */
+    protected void sortContent( Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
+        ((DeferredFeatureContentProvider)getContentProvider()).setSortOrder( comparator );
+        
+        getTable().setSortColumn( column );
+        getTable().setSortDirection( dir );
     }
 
 }

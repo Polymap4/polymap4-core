@@ -78,7 +78,7 @@ public class SimpleFeatureTableElement
     }
     
     
-    protected SimpleFeature feature() {
+    public SimpleFeature feature() {
         SimpleFeature result = ref.get();
         
         if (result == null) {

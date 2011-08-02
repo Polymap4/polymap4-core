@@ -28,6 +28,11 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.rwt.graphics.Graphics;
+
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.deferred.AbstractConcurrentModel;
 import org.eclipse.jface.viewers.deferred.DeferredContentProvider;
@@ -52,42 +57,51 @@ class DeferredFeatureContentProvider
 
     private static Log log = LogFactory.getLog( DeferredFeatureContentProvider.class );
     
+    private static final Color  LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
+    
     private FeatureTableViewer  viewer;
     
     private FeatureSource       fs;
     
     private Filter              filter;
-   
-    private String              sortPropName;
     
+    private Color               tableForeground;
+   
     
     DeferredFeatureContentProvider( FeatureTableViewer viewer,
-            FeatureSource fs, Filter filter, String sortPropName ) {
-        super( newComparator( sortPropName ) );
+            FeatureSource fs, Filter filter, Comparator sortOrder ) {
+        super( sortOrder );
         this.viewer = viewer;
         this.fs = fs;
         this.filter = filter;
-        this.sortPropName = sortPropName;
+        this.tableForeground = this.viewer.getTable().getForeground();
     }
 
 
-    private static Comparator newComparator( final String sortPropName ) {
-        return new Comparator<IFeatureTableElement>() {
-            public int compare( IFeatureTableElement elm1, IFeatureTableElement elm2 ) {
-                String value1 = (String)elm1.getValue( sortPropName );
-                String value2 = (String)elm2.getValue( sortPropName );
-                return value1.compareTo( value2 );
-            }
-        };
-    }
-
-    
     @SuppressWarnings("hiding")
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
         super.inputChanged( viewer, null, new Model() );
     }
 
-
+    
+    protected void markTableLoading( final boolean loading ) {
+        Display display = viewer.getTable().getDisplay();
+        display.asyncExec( new Runnable() {
+            public void run() {
+                if (viewer.getTable().isDisposed()) {
+                    return;
+                }
+                if (loading) {
+                    viewer.getTable().setForeground( LOADING_FOREGROUND );
+                }
+                else {
+                    viewer.getTable().setForeground( tableForeground );
+                }
+            }
+        });
+    }
+    
+    
     /*
      * 
      */
@@ -108,6 +122,9 @@ class DeferredFeatureContentProvider
                 log.info( "Fetcher job done." );
             }
             
+            if (viewer.getTable().isDisposed()) {
+                return;
+            }
             listener.setContents( ArrayUtils.EMPTY_OBJECT_ARRAY );
             
             job = new Job( Messages.get( "FeatureTableFetcher_name" ) ) {
@@ -118,13 +135,12 @@ class DeferredFeatureContentProvider
                     int c;
                     
                     try {
-                        // XXX add SortBy to the query!?
                         coll = fs.getFeatures( filter );
                         monitor.beginTask( getName(), coll.size() );
 
                         it = coll.iterator();
                         List chunk = new ArrayList( 256 );
-                        int chunkSize = 2;
+                        int chunkSize = 8;
                         
                         for (c=0; it.hasNext(); c++) {
                             chunk.add( new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs ) );
@@ -135,16 +151,23 @@ class DeferredFeatureContentProvider
                             }
                             
                             if (chunk.size() >= chunkSize) {
-                                Thread.sleep( 1000 );
                                 chunkSize *= 2;
-                                log.info( "adding chunk to table. size=" + chunk.size() );
+                                log.debug( "adding chunk to table. size=" + chunk.size() );
                                 listener.add( chunk.toArray() );
                                 chunk.clear();
+                                
                                 viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
+
+                                markTableLoading( true );
+                                
+                                // let the UI thread update the table so that the user sees
+                                // first results quickly
+                                Thread.sleep( 100 );
                             }
                         }
                         listener.add( chunk.toArray() );
                         viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
+                        markTableLoading( false );
                         return Status.OK_STATUS;
                     }
                     catch (Exception e) {

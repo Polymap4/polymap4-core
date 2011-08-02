@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,16 +11,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
-package org.polymap.core.project.actions;
+package org.polymap.core.data.ui.featuretable;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -31,25 +22,21 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import org.eclipse.ui.IObjectActionDelegate;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionDelegate;
 
+import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ui.FeatureTableView;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public class FeatureTableAction
+public class SourceFeatureTableAction
         extends ActionDelegate
         implements IObjectActionDelegate {
 
@@ -66,16 +53,13 @@ public class FeatureTableAction
     public void runWithEvent( IAction action, Event ev ) {
         Display.getCurrent().asyncExec( new Runnable() {
             public void run() {
-                try {
-                    IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-                    page.showView( FeatureTableView.ID );
-                    
-                    IViewPart view = page.findView( FeatureTableView.ID );
-                    if (view instanceof FeatureTableView) {
-                        ((FeatureTableView)view).setLayer( selectedLayer );
-                    }
+                try {            
+                    // FIXME check blocking
+                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( selectedLayer, false );
+
+                    SourceFeatureTableView.open( fs );
                 }
-                catch (PartInitException e) {
+                catch (Exception e) {
                     throw new RuntimeException( e.getMessage(), e );
                 }
             }

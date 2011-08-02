@@ -42,6 +42,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -50,8 +51,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * {@link GeoSelectionView}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
+ * @deprecated See {@link GeoSelectionView}.
  */
 class ModifierFeatureCollection<T extends FeatureType, F extends Feature>
         extends DecoratingFeatureCollection<T, F>
@@ -60,11 +61,14 @@ class ModifierFeatureCollection<T extends FeatureType, F extends Feature>
     private static Log log = LogFactory.getLog( ModifierFeatureCollection.class );
 
     private FeatureStore                    fs;
+
+    private ILayer                          layer;
     
 
-    public ModifierFeatureCollection( FeatureStore fs, FeatureCollection<T, F> delegate ) {
+    public ModifierFeatureCollection( ILayer layer, FeatureStore fs, FeatureCollection<T, F> delegate ) {
         super( delegate );
         this.fs = fs;
+        this.layer = layer;
     }
 
     public Object getAdapter( Class adapter ) {

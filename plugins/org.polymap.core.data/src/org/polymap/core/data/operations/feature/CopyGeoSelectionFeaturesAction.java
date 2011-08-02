@@ -27,7 +27,7 @@ import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
+import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -41,20 +41,17 @@ public class CopyGeoSelectionFeaturesAction
 
     private static Log log = LogFactory.getLog( CopyGeoSelectionFeaturesAction.class );
 
-    private GeoSelectionView    view;
+    private FeatureSelectionView        view;
 
 
     public void init( IViewPart _view ) {
-        if (_view instanceof GeoSelectionView) {
-            log.debug( "init(): found GeoSelectionView..." );
-            this.view = (GeoSelectionView)_view;
-        }
+        this.view = (FeatureSelectionView)_view;
     }
 
 
     public void run( IAction action ) {
         try {
-            PipelineFeatureSource fs = (PipelineFeatureSource)view.getFeatureStore();
+            PipelineFeatureSource fs = view.getFeatureStore();
             DefaultQuery query = new DefaultQuery( fs.getSchema().getName().getLocalPart(),
                     view.getFilter() );
 

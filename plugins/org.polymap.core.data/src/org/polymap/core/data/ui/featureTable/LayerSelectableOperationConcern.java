@@ -69,10 +69,12 @@ public class LayerSelectableOperationConcern
                                 for (ILayer layer : layers) {                                
                                     if (op instanceof LayerSelectableOperation && layer.isSelectable()
                                             || op instanceof LayerEditableOperation && layer.isEditable()) {
-                                        GeoSelectionView.open( layer, true );
+//                                        GeoSelectionView.open( layer, true );
+                                        FeatureSelectionView.open( layer );                                        
                                     }
                                     else {
-                                        GeoSelectionView.close( layer );
+//                                        GeoSelectionView.close( layer );
+                                        FeatureSelectionView.close( layer );                                        
                                     }
                                 }
                             }

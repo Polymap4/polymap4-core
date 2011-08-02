@@ -33,7 +33,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.core.commands.ExecutionException;
 
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
+import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.PipelineProcessorConfiguration;
@@ -52,13 +52,11 @@ public class AddFilterProcessorAction
 
     private static Log log = LogFactory.getLog( AddFilterProcessorAction.class );
 
-    private GeoSelectionView        selectionView;
+    private FeatureSelectionView        selectionView;
 
     
     public void init( IViewPart view ) {
-        if (view instanceof GeoSelectionView) {
-            selectionView = (GeoSelectionView)view;
-        }
+        selectionView = (FeatureSelectionView)view;
     }
 
 

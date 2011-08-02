@@ -60,10 +60,4 @@ public class FeatureCollectionContentProvider
         throw new RuntimeException( "not yet implemented." );
     }
 
-
-    @Override
-    public void updateElement( int index ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
 }

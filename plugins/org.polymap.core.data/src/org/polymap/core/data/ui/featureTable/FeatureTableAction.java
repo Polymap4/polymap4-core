@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.data.ui.featureTable;
 
 import org.opengis.filter.Filter;
@@ -46,7 +37,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class FeatureTableAction
@@ -68,7 +58,7 @@ public class FeatureTableAction
             public void run() {
                 try {
                     // ensure that the view is shown
-                    GeoSelectionView view = GeoSelectionView.open( selectedLayer, true );
+                    FeatureSelectionView view = FeatureSelectionView.open( selectedLayer );
 
                     if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
                             "Achtung", "Mit dieser Operation werden alle Objekte geladen.\n" + 
@@ -78,16 +68,6 @@ public class FeatureTableAction
                         
                         view.loadTable( Filter.INCLUDE );
                     }
-                    
-//                    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
-//                    
-//                    // FIXME use LayerFeatureSelectionmanager
-//                    // emulate a selection event so that the view can
-//                    GeoEvent event = new GeoEvent( GeoEvent.Type.FEATURE_SELECTED, 
-//                            selectedLayer.getMap().getLabel(), 
-//                            selectedLayer.getGeoResource().getIdentifier().toURI() );
-//                    event.setFilter( Filter.INCLUDE );
-//                    GeoHub.instance().send( event );
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Fehler beim Öffnen der Attributtabelle.", e );

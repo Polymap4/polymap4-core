@@ -90,6 +90,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
+ * @deprecated Use FeatureTableViewer instead.
  */
 public class GeoSelectionView
         extends ViewPart {
@@ -460,7 +461,7 @@ public class GeoSelectionView
                             viewer.getControl().setSize( 1200, 200 /*size.y, size.x*/ );
                         }
                         viewer.setFeatures( allowModify
-                                ? new ModifierFeatureCollection( (FeatureStore)fs, fc )
+                                ? new ModifierFeatureCollection( layer, (FeatureStore)fs, fc )
                                 : fc );
 
                         // view title
