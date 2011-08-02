@@ -68,6 +68,18 @@ public class SimpleFeatureTableElement
     }
 
 
+    public boolean equals( Object other ) {
+        return other instanceof IFeatureTableElement
+                ? fid.equals( ((IFeatureTableElement)other).fid() )
+                : false;
+    }
+
+    
+    public int hashCode() {
+        return fid.hashCode();
+    }
+    
+    
     public String fid() {
         return fid;
     }

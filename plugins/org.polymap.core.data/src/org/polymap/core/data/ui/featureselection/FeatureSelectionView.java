@@ -34,7 +34,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
@@ -58,7 +57,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  */
 public class FeatureSelectionView
         extends ViewPart 
-        implements PropertyChangeListener {
+        implements PropertyChangeListener, ISelectionChangedListener {
 
     private static Log log = LogFactory.getLog( FeatureSelectionView.class );
     
@@ -97,6 +96,7 @@ public class FeatureSelectionView
         return result[0];
     }
 
+    
     public static void close( final ILayer layer ) {
         Polymap.getSessionDisplay().asyncExec( new Runnable() {
             public void run() {
@@ -181,7 +181,7 @@ public class FeatureSelectionView
 
     
     public IFeatureTableElement[] getTableElements() {
-        return viewer.getTableElements();
+        return viewer.getElements();
     }
     
     
@@ -202,15 +202,7 @@ public class FeatureSelectionView
                 }
             }
         });
-        viewer.addSelectionChangedListener( new ISelectionChangedListener() {
-            public void selectionChanged( SelectionChangedEvent ev ) {
-                IStructuredSelection sel = (IStructuredSelection)ev.getSelection();
-                IFeatureTableElement elm = (IFeatureTableElement)sel.getFirstElement();
-                
-                LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
-                fsm.setHovered( elm.fid() );
-            }            
-        });
+        viewer.addSelectionChangedListener( this );
         
         // columns
         assert fs != null : "fs not set. Call init() first.";
@@ -237,28 +229,39 @@ public class FeatureSelectionView
 
     
     /*
-     * Feature selection has changed.
+     * Other party has changed feature selection.
      */
     public void propertyChange( final PropertyChangeEvent ev ) {
-        LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
         
-        // select
-        if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                // select
+                if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
                     loadTable( (Filter)ev.getNewValue() );
                 }
-            });
-        }
-        // hover
-        if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
-//            viewer.removeSelectionChangedListener( tableSelectionListener );
-//            viewer.setSelection( new StructuredSelection( fsm.getHovered() ) );
-//            viewer.addSelectionChangedListener( tableSelectionListener );
-        }
-
+                // hover
+                if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+                    LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
+                    viewer.removeSelectionChangedListener( FeatureSelectionView.this );
+                    viewer.selectElement( fsm.getHovered(), true );
+                    viewer.addSelectionChangedListener( FeatureSelectionView.this );
+                }
+            }
+        });
     }
 
+    
+    /*
+     * Element was selected in the table.
+     */
+    public void selectionChanged( SelectionChangedEvent ev ) {
+        IStructuredSelection sel = (IStructuredSelection)ev.getSelection();
+        IFeatureTableElement elm = (IFeatureTableElement)sel.getFirstElement();
+        
+        LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+        fsm.setHovered( elm.fid() );
+    }            
+    
     
     public void setFocus() {
     }

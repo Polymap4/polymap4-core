@@ -35,6 +35,8 @@ import org.eclipse.swt.widgets.TableColumn;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.polymap.core.data.PipelineFeatureSource;
@@ -51,7 +53,7 @@ public class FeatureTableViewer
     private static Log log = LogFactory.getLog( FeatureTableViewer.class );
 
     /** Property type that is fired when the content of the viewer has changed. */
-    public static final String          PROP_CONTENT_SIZE = "contentsize";
+    public static final String              PROP_CONTENT_SIZE = "contentsize";
     
     private Map<String,IFeatureTableColumn> displayed = new HashMap();
 
@@ -69,12 +71,8 @@ public class FeatureTableViewer
         getTable().setLinesVisible( true );
         getTable().setHeaderVisible( true );
         getTable().setLayout( new TableLayout() );
-
-//        getTable().addSelectionListener( new SelectionAdapter() {
-//            public void widgetDefaultSelected( SelectionEvent e ) {
-//                log.info( "calling setInput() ..." );
-//            }
-//        } );
+        
+//        setUseHashlookup( true );
     }
 
 
@@ -87,19 +85,52 @@ public class FeatureTableViewer
     }
 
 
-    public int getItemCount() {
+    public int getElementCount() {
         return doGetItemCount();
     }
     
 
-    public IFeatureTableElement[] getTableElements() {
-        IFeatureTableElement[] result = new IFeatureTableElement[ getItemCount() ];
-        for (int i=0; i<getItemCount(); i++) {
+    public IFeatureTableElement[] getElements() {
+        IFeatureTableElement[] result = new IFeatureTableElement[ getElementCount() ];
+        for (int i=0; i<getElementCount(); i++) {
             result[i] = (IFeatureTableElement)getElementAt( i );
         }
         return result;
     }
     
+
+    /**
+     * Selects the element with the given feature id.
+     * 
+     * @param fid
+     * @param reveal
+     */
+    public void selectElement( final String fid, boolean reveal ) {
+        assert fid != null;
+        IFeatureTableElement searchElm = new IFeatureTableElement() {
+            public Object getValue( String name ) {
+                throw new RuntimeException( "not yet implemented." );
+            }
+    
+            public String fid() {
+                return fid;
+            }
+            
+            public boolean equals( Object other ) {
+                return other instanceof IFeatureTableElement
+                        ? fid.equals( ((IFeatureTableElement)other).fid() )
+                        : false;
+            }
+
+            public int hashCode() {
+                return fid.hashCode();
+            }
+        };
+        ISelection sel = new StructuredSelection( searchElm );
+        setSelection( sel, reveal );
+        getTable().layout();
+    }
+
 
     public void addColumn( IFeatureTableColumn column ) {
         column.setViewer( this );

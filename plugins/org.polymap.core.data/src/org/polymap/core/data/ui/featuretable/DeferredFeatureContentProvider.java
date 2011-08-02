@@ -16,8 +16,10 @@ package org.polymap.core.data.ui.featuretable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
@@ -54,6 +56,7 @@ import org.polymap.core.data.Messages;
  */
 class DeferredFeatureContentProvider
         extends DeferredContentProvider {
+        //implements IIndexableLazyContentProvider {
 
     private static Log log = LogFactory.getLog( DeferredFeatureContentProvider.class );
     
@@ -66,6 +69,8 @@ class DeferredFeatureContentProvider
     private Filter              filter;
     
     private Color               tableForeground;
+    
+    private Map<String,Integer> fidIndex = new HashMap();
    
     
     DeferredFeatureContentProvider( FeatureTableViewer viewer,
@@ -102,6 +107,16 @@ class DeferredFeatureContentProvider
     }
     
     
+    public int findElement( Object element ) {
+        if (element instanceof IFeatureTableElement) {
+            String fid = ((IFeatureTableElement)element).fid();
+            Integer result = fidIndex.get( fid );
+            return result != null ? result : -1;
+        }
+        return -1;
+    }
+
+
     /*
      * 
      */
@@ -125,6 +140,7 @@ class DeferredFeatureContentProvider
             if (viewer.getTable().isDisposed()) {
                 return;
             }
+            fidIndex.clear();
             listener.setContents( ArrayUtils.EMPTY_OBJECT_ARRAY );
             
             job = new Job( Messages.get( "FeatureTableFetcher_name" ) ) {
@@ -143,7 +159,9 @@ class DeferredFeatureContentProvider
                         int chunkSize = 8;
                         
                         for (c=0; it.hasNext(); c++) {
-                            chunk.add( new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs ) );
+                            SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs );
+                            chunk.add( elm );
+                            fidIndex.put( elm.fid(), c );
                             monitor.worked( 1 );
 
                             if (monitor.isCanceled() || Thread.interrupted()) {
