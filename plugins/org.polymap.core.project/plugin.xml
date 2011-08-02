@@ -28,13 +28,6 @@
             name="%views_layers"
             restorable="true">
       </view>
-      <view
-            class="org.polymap.core.project.ui.FeatureTableView"
-            icon="icons/eview16/table_view.gif"
-            id="org.polymap.core.project.FeatureTableView"
-            name="%views_sourceFeatureTable"
-            restorable="true">
-      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -159,16 +152,6 @@
                label="%actions_deleteLayer"
                style="push"
                tooltip="%actions_deleteLayer">
-         </action>
-         <action
-               class="org.polymap.core.project.actions.FeatureTableAction"
-               enablesFor="+"
-               icon="icons/eview16/table_view.gif"
-               id="org.polymap.core.project.action.tableView"
-               label="%actions_showFeatureTable"
-               menubarPath="content"
-               style="push"
-               tooltip="%actions_showFeatureTable_tip">
          </action>
          <action
                class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"

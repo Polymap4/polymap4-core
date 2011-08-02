@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.ui.featureTable;
+package org.polymap.core.data.ui.featureselection;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -155,7 +155,7 @@ public class GeoSelectionView
     /**
      * The ID of the view as specified by the extension.
      */
-    public static final String      ID = "org.polymap.core.data.ui.featureTable.view";
+    public static final String      ID = "org.polymap.core.data.ui.featureselection.view";
 
     private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
 

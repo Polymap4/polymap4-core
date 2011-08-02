@@ -137,7 +137,7 @@
          point="org.eclipse.ui.viewActions">
       <viewContribution
             id="org.polymap.rhei.featureTableContribution"
-            targetID="org.polymap.core.data.ui.featureTable.view">
+            targetID="org.polymap.core.data.FeatureSelectionView">
          <!--action
                class="org.polymap.rhei.internal.form.NewFormAction"
                icon="icons/elcl16/add_co.gif"
@@ -162,6 +162,7 @@
                icon="icons/etool16/open_form_editor.gif"
                id="org.polymap.rhei.OpenFormAction"
                label="%actions_openForm"
+               state="false"
                style="push"
                toolbarPath="rhei"
                tooltip="%actions_openFormTip">

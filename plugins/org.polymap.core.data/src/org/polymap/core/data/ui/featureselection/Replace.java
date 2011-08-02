@@ -1,4 +1,4 @@
-package org.polymap.core.data.ui.featureTable;
+package org.polymap.core.data.ui.featureselection;
 
 import org.eclipse.jface.action.IAction;
 

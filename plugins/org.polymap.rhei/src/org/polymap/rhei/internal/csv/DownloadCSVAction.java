@@ -35,7 +35,7 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
+import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.RheiPlugin;
 

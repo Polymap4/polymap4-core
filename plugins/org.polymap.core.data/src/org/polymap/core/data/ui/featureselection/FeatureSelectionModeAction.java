@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.ui.featureTable;
+package org.polymap.core.data.ui.featureselection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

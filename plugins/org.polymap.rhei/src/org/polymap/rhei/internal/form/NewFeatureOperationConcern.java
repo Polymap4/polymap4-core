@@ -33,7 +33,7 @@ import org.eclipse.core.runtime.IStatus;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.operations.NewFeatureOperation;
-import org.polymap.core.data.ui.featureTable.LayerSelectableOperationConcern;
+import org.polymap.core.data.ui.featureselection.LayerSelectableOperationConcern;
 import org.polymap.core.operation.IOperationConcernFactory;
 import org.polymap.core.operation.OperationConcernAdapter;
 import org.polymap.core.operation.OperationInfo;

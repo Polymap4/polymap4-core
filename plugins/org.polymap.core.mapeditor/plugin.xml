@@ -37,7 +37,7 @@
       </viewContribution>
       <viewContribution
             id="org.polymap.core.mapeditor.geoSelectionContribution"
-            targetID="org.polymap.core.data.ui.featureTable.GeoSelectionView">
+            targetID="org.polymap.core.data.ui.featureselection.GeoSelectionView">
          <action
                class="org.polymap.core.mapeditor.actions.DeleteFeaturesAction"
                enablesFor="+"

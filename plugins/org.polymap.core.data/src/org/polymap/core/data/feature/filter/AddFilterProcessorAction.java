@@ -33,7 +33,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.core.commands.ExecutionException;
 
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
+import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.PipelineProcessorConfiguration;

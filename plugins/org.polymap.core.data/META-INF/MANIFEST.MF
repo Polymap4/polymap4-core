@@ -54,7 +54,7 @@ Export-Package: com.healthmarketscience.jackcess,
  org.polymap.core.data.image,
  org.polymap.core.data.operations,
  org.polymap.core.data.pipeline,
- org.polymap.core.data.ui.featureTable,
+ org.polymap.core.data.ui.featureselection,
  org.polymap.core.data.ui.featuretable,
  org.polymap.core.data.ui.featuretypeeditor,
  org.polymap.core.data.util

@@ -26,7 +26,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
+import org.polymap.core.data.ui.featureselection.GeoSelectionView;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 

@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.data.ui.featureTable;
+package org.polymap.core.data.ui.featureselection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

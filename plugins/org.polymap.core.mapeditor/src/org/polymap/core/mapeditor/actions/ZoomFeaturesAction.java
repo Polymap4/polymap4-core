@@ -40,7 +40,7 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
+import org.polymap.core.data.ui.featureselection.GeoSelectionView;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.workbench.PolymapWorkbench;
 

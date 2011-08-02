@@ -27,7 +27,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
+import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.data.ui.featuretable.SimpleFeatureTableElement;
 import org.polymap.rhei.form.FormEditor;
 

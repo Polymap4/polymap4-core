@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.ui.featureTable;
+package org.polymap.core.data.ui.featureselection;
 
 import org.opengis.filter.Filter;
 import org.eclipse.swt.widgets.Display;
@@ -39,7 +39,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
-public class FeatureTableAction
+public class FeatureAllSelectionAction
         extends ActionDelegate
         implements IObjectActionDelegate {
 

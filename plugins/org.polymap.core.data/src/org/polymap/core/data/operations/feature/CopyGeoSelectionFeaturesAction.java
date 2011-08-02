@@ -27,7 +27,7 @@ import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.ui.featureTable.FeatureSelectionView;
+import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 

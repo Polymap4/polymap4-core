@@ -45,7 +45,7 @@
       <view
             allowMultiple="true"
             category="org.polymap.core.project"
-            class="org.polymap.core.data.ui.featureTable.FeatureSelectionView"
+            class="org.polymap.core.data.ui.featureselection.FeatureSelectionView"
             icon="icons/eview16/table_view.gif"
             id="org.polymap.core.data.FeatureSelectionView"
             name="%views_featureTable"
@@ -68,7 +68,7 @@
             id="org.polymap.core.project.layerContribution"
             objectClass="org.polymap.core.project.ILayer">
          <action
-               class="org.polymap.core.data.ui.featureTable.FeatureTableAction"
+               class="org.polymap.core.data.ui.featureselection.FeatureAllSelectionAction"
                enablesFor="+"
                icon="icons/eview16/table_view.gif"
                id="org.polymap.core.data.action.tableView"
@@ -275,7 +275,7 @@
                toolbarPath="data">
          </action>
          <action
-               class="org.polymap.core.data.ui.featureTable.Replace"
+               class="org.polymap.core.data.ui.featureselection.Replace"
                icon="icons/etool16/select_replace.gif"
                id="org.polymap.core.data.FeatureSelectionMode"
                label="REPLACE"
@@ -285,7 +285,7 @@
                toolbarPath="selection">
          </action>
          <action
-               class="org.polymap.core.data.ui.featureTable.Add"
+               class="org.polymap.core.data.ui.featureselection.Add"
                icon="icons/etool16/select_add.gif"
                id="org.polymap.core.data.FeatureSelectionMode_add"
                label="ADD"
@@ -294,7 +294,7 @@
                toolbarPath="selection">
          </action>
          <action
-               class="org.polymap.core.data.ui.featureTable.Intersect"
+               class="org.polymap.core.data.ui.featureselection.Intersect"
                icon="icons/etool16/select_intersect.gif"
                id="org.polymap.core.data.FeatureSelectionMode_intersect"
                label="INTERSECT"
@@ -303,7 +303,7 @@
                toolbarPath="selection">
          </action>
          <action
-               class="org.polymap.core.data.ui.featureTable.Difference"
+               class="org.polymap.core.data.ui.featureselection.Difference"
                icon="icons/etool16/select_difference.gif"
                id="org.polymap.core.data.FeatureSelectionMode_difference"
                label="DIFF"
@@ -321,7 +321,7 @@
    <extension
          point="org.polymap.core.operation.concerns">
       <concern
-            class="org.polymap.core.data.ui.featureTable.LayerSelectableOperationConcern"
+            class="org.polymap.core.data.ui.featureselection.LayerSelectableOperationConcern"
             id="org.polymap.core.data.layerSelectableConcern">
       </concern>
    </extension>

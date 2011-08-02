@@ -157,15 +157,15 @@ public class FeatureTableViewer
 
 
     protected void firePropChange( final String name, Object oldValue, final Object newValue ) {
-        if (getTable().isDisposed()) {
-            return;
-        }
         final PropertyChangeEvent ev = new PropertyChangeEvent( this, name, oldValue, newValue );
 
         Display display = getTable().getDisplay();
         display.asyncExec( new Runnable() {
         
             public void run() {
+                if (getTable().isDisposed()) {
+                    return;
+                }
 //                if (PROP_CONTENT_SIZE.equals( name ) ) {
 //                    getTable().setForeground( Graphics.getColor( 0x70, 0x70, 0x80 ) );
 //                }

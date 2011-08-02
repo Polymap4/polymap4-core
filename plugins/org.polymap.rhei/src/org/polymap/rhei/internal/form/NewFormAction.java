@@ -28,7 +28,7 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import org.polymap.core.data.operations.NewFeatureOperation;
-import org.polymap.core.data.ui.featureTable.GeoSelectionView;
+import org.polymap.core.data.ui.featureselection.GeoSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
