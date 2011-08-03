@@ -83,7 +83,11 @@ public class StandardFilterProvider
         IGeoResource geores = layer.getGeoResource();
 
         if (geores.canResolve( FeatureSource.class )) {
-            return Collections.singletonList( new StandardFilter( layer ) );
+            // FIXME this may block
+            FeatureSource fs = layer.getGeoResource().resolve( FeatureSource.class, new NullProgressMonitor() );
+            if (fs != null) {
+                return Collections.singletonList( new StandardFilter( layer, fs ) );
+            }
         }
         return null;
     }
@@ -100,13 +104,11 @@ public class StandardFilterProvider
         private FeatureType             schema;
         
         
-        public StandardFilter( ILayer layer ) 
+        public StandardFilter( ILayer layer, FeatureSource fs ) 
         throws IOException {
             super( layer.id(), layer, "Standard", null, null, maxResults );
-            
-            // FIXME this may block
-            fs = layer.getGeoResource().resolve( FeatureSource.class, new NullProgressMonitor() );
-            schema = fs.getSchema();
+            this.fs = fs;
+            this.schema = fs.getSchema();
         }
 
         

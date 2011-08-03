@@ -92,10 +92,23 @@ public class CompositesFeatureContentProvider
             this.composite = composite;
         }
 
-        public Object getValue( String name )
-        throws Exception {
-            log.debug( "getValue(): name=" + name );
-            return compositeType.getProperty( name ).getValue( composite );
+        public Object getValue( String name ) {
+            try {
+                log.debug( "getValue(): name=" + name );
+                return compositeType.getProperty( name ).getValue( composite );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }
+
+        public String fid() {
+            if (composite instanceof Entity) {
+                return ((Entity)composite).id();
+            }
+            else {
+                throw new RuntimeException( "Don't know how to build fid out of: " + composite );
+            }
         }
 
     }

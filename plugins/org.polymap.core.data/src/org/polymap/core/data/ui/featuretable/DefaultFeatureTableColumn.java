@@ -115,7 +115,7 @@ public class DefaultFeatureTableColumn
                     TableColumn sortColumn = viewer.getTable().getSortColumn();
                     final TableColumn selectedColumn = (TableColumn)ev.widget;
                     int dir = viewer.getTable().getSortDirection();
-                    log.info( "Sort: sortColumn=" + sortColumn.getText() + ", selectedColumn=" + selectedColumn.getText() + ", dir=" + dir );
+                    //log.info( "Sort: sortColumn=" + sortColumn.getText() + ", selectedColumn=" + selectedColumn.getText() + ", dir=" + dir );
 
                     if (sortColumn == selectedColumn) {
                         dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;

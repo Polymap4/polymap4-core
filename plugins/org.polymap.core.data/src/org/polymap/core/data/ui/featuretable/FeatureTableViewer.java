@@ -40,6 +40,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.runtime.ListenerList;
@@ -239,10 +241,18 @@ public class FeatureTableViewer
      */
     protected void sortContent( Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
         IContentProvider contentProvider = getContentProvider();
+        // deferred
         if (contentProvider instanceof DeferredFeatureContentProvider) {
             ((DeferredFeatureContentProvider)contentProvider).setSortOrder( comparator );
         }
-        
+        // normal
+        else {
+            setComparator( new ViewerComparator( comparator ) {
+                public int compare( Viewer viewer, Object e1, Object e2 ) {
+                    return getComparator().compare( e1, e2 );
+                }
+            });
+        }
         getTable().setSortColumn( column );
         getTable().setSortDirection( dir );
     }
