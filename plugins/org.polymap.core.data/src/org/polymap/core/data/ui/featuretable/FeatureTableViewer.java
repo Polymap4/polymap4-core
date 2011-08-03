@@ -35,10 +35,12 @@ import org.eclipse.swt.widgets.TableColumn;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
+
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.runtime.ListenerList;
 
@@ -72,7 +74,7 @@ public class FeatureTableViewer
         getTable().setHeaderVisible( true );
         getTable().setLayout( new TableLayout() );
         
-//        setUseHashlookup( true );
+        //setUseHashlookup( true );
     }
 
 
@@ -107,7 +109,7 @@ public class FeatureTableViewer
      */
     public void selectElement( final String fid, boolean reveal ) {
         assert fid != null;
-        IFeatureTableElement searchElm = new IFeatureTableElement() {
+        IFeatureTableElement search = new IFeatureTableElement() {
             public Object getValue( String name ) {
                 throw new RuntimeException( "not yet implemented." );
             }
@@ -126,8 +128,26 @@ public class FeatureTableViewer
                 return fid.hashCode();
             }
         };
-        ISelection sel = new StructuredSelection( searchElm );
-        setSelection( sel, reveal );
+        
+        int index = -1;
+        if (getContentProvider() instanceof DeferredFeatureContentProvider) {
+            // find index from content provider
+            index = ((DeferredFeatureContentProvider)getContentProvider()).findElement( search );
+            // select table
+            getTable().setSelection( index );
+            log.info( "getTable().getSelectionIndex(): " + getTable().getSelectionIndex() );
+            if (reveal) {
+                getTable().showSelection();
+            }
+            // fire event
+            ISelection sel = getSelection();
+            log.info( "getSelection(): " + sel );
+            updateSelection( sel );
+        }
+        else {
+            ISelection sel = new StructuredSelection( search );
+            setSelection( sel, reveal );
+        }
         getTable().layout();
     }
 
@@ -218,7 +238,10 @@ public class FeatureTableViewer
      * @param column
      */
     protected void sortContent( Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
-        ((DeferredFeatureContentProvider)getContentProvider()).setSortOrder( comparator );
+        IContentProvider contentProvider = getContentProvider();
+        if (contentProvider instanceof DeferredFeatureContentProvider) {
+            ((DeferredFeatureContentProvider)contentProvider).setSortOrder( comparator );
+        }
         
         getTable().setSortColumn( column );
         getTable().setSortDirection( dir );

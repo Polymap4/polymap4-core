@@ -80,6 +80,11 @@ public class SimpleFeatureTableElement
     }
     
     
+    public String toString() {
+        return "SimpleFeatureTableElement [fid=" + fid + "]";
+    }
+
+
     public String fid() {
         return fid;
     }

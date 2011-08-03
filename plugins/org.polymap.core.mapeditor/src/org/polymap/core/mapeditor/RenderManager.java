@@ -157,7 +157,7 @@ public class RenderManager {
             for (ILayer layer : descriptor.layers) {
                 LayerFeatureBufferManager buffer = 
                         LayerFeatureBufferManager.forLayer( layer, true );
-                buffer.addFeatureChangeListener( mapDomainListener );
+                buffer.removeFeatureChangeListener( mapDomainListener );
             }
         }
         descriptors.clear();

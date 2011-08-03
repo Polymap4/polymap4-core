@@ -90,7 +90,7 @@ public class DefaultFeatureTableColumn
 
 
     public EditingSupport getEditingSupport() {
-        throw new RuntimeException( "not yet implementd" );
+        throw new RuntimeException( "not yet implemented" );
     }
 
     
@@ -99,6 +99,9 @@ public class DefaultFeatureTableColumn
                 ? SWT.RIGHT : SWT.CENTER;
 
         TableViewerColumn viewerColumn = new TableViewerColumn( viewer, align );
+        viewerColumn.getColumn().setMoveable( true );
+        viewerColumn.getColumn().setResizable( true );
+        
         viewerColumn.setLabelProvider( newLabelProvider() );
         viewerColumn.getColumn().setText( header != null ? header : getName() );
 

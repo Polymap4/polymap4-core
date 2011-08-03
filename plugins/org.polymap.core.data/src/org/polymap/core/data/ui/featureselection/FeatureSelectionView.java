@@ -154,14 +154,15 @@ public class FeatureSelectionView
     
     
     public void dispose() {
-        LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( this );
+        super.dispose();
+        
+        LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( this );        
         
         if (viewer != null) {
             viewer.dispose();
         }
         layer = null;
         fs = null;
-        super.dispose();
     }
 
     

@@ -16,11 +16,8 @@ package org.polymap.core.data.ui.featuretable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
@@ -39,6 +36,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.deferred.AbstractConcurrentModel;
 import org.eclipse.jface.viewers.deferred.DeferredContentProvider;
 import org.eclipse.jface.viewers.deferred.IConcurrentModelListener;
+import org.eclipse.jface.viewers.deferred.LazySortedCollection;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -60,18 +58,22 @@ class DeferredFeatureContentProvider
 
     private static Log log = LogFactory.getLog( DeferredFeatureContentProvider.class );
     
-    private static final Color  LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
+    private static final Color      LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
     
-    private FeatureTableViewer  viewer;
+    private FeatureTableViewer      viewer;
     
-    private FeatureSource       fs;
+    private FeatureSource           fs;
     
-    private Filter              filter;
+    private Filter                  filter;
     
-    private Color               tableForeground;
-    
-    private Map<String,Integer> fidIndex = new HashMap();
-   
+    private Color                   tableForeground;
+
+    /*
+     * XXX This is used by BackgroundContentProvider as well for sorting; for equal
+     * elements we have different order though
+     */
+    private LazySortedCollection    sortedElements;
+
     
     DeferredFeatureContentProvider( FeatureTableViewer viewer,
             FeatureSource fs, Filter filter, Comparator sortOrder ) {
@@ -80,12 +82,13 @@ class DeferredFeatureContentProvider
         this.fs = fs;
         this.filter = filter;
         this.tableForeground = this.viewer.getTable().getForeground();
+        this.sortedElements = new LazySortedCollection( sortOrder );
     }
 
 
     @SuppressWarnings("hiding")
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
-        super.inputChanged( viewer, null, new Model() );
+        super.inputChanged( viewer, null, newInput != null ? new Model() : null );
     }
 
     
@@ -107,11 +110,22 @@ class DeferredFeatureContentProvider
     }
     
     
-    public int findElement( Object element ) {
-        if (element instanceof IFeatureTableElement) {
-            String fid = ((IFeatureTableElement)element).fid();
-            Integer result = fidIndex.get( fid );
-            return result != null ? result : -1;
+    public void setSortOrder( Comparator sortOrder ) {
+        this.sortedElements = new LazySortedCollection( sortOrder );
+        super.setSortOrder( sortOrder );
+    }
+
+
+    public int findElement( Object search ) {
+        assert search != null;
+        if (search instanceof IFeatureTableElement) {
+            int c = 0;
+            for (Object elm : sortedElements.getItems( true )) {
+                if (search.equals( elm )) {
+                    return c;
+                }
+                ++c;
+            }
         }
         return -1;
     }
@@ -140,7 +154,7 @@ class DeferredFeatureContentProvider
             if (viewer.getTable().isDisposed()) {
                 return;
             }
-            fidIndex.clear();
+            sortedElements.clear();
             listener.setContents( ArrayUtils.EMPTY_OBJECT_ARRAY );
             
             job = new Job( Messages.get( "FeatureTableFetcher_name" ) ) {
@@ -161,7 +175,7 @@ class DeferredFeatureContentProvider
                         for (c=0; it.hasNext(); c++) {
                             SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs );
                             chunk.add( elm );
-                            fidIndex.put( elm.fid(), c );
+                            sortedElements.add( elm );
                             monitor.worked( 1 );
 
                             if (monitor.isCanceled() || Thread.interrupted()) {
@@ -170,13 +184,11 @@ class DeferredFeatureContentProvider
                             
                             if (chunk.size() >= chunkSize) {
                                 chunkSize *= 2;
-                                log.debug( "adding chunk to table. size=" + chunk.size() );
+                                log.info( "adding chunk to table. size=" + chunk.size() );
                                 listener.add( chunk.toArray() );
-                                chunk.clear();
-                                
                                 viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
-
                                 markTableLoading( true );
+                                chunk.clear();
                                 
                                 // let the UI thread update the table so that the user sees
                                 // first results quickly
@@ -186,6 +198,10 @@ class DeferredFeatureContentProvider
                         listener.add( chunk.toArray() );
                         viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
                         markTableLoading( false );
+
+                        // pre-sort elements in the Job after all chunks are sent
+                        sortedElements.getItems( true );
+
                         return Status.OK_STATUS;
                     }
                     catch (Exception e) {
