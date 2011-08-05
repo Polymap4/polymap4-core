@@ -130,7 +130,13 @@ public class DefaultFeatureTableColumn
         }
         
         TableLayout tableLayout = (TableLayout)viewer.getTable().getLayout();
-        tableLayout.addColumnData( new ColumnWeightData( 10, 80, true ) );
+
+        if (String.class.isAssignableFrom( propBinding )) {
+            tableLayout.addColumnData( new ColumnWeightData( 20, 120, true ) );
+        }
+        else {
+            tableLayout.addColumnData( new ColumnWeightData( 10, 80, true ) );            
+        }
         return viewerColumn;
     }
 

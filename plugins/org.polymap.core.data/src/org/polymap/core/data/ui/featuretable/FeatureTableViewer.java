@@ -29,9 +29,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TableColumn;
+
+import org.eclipse.rwt.graphics.Graphics;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
@@ -58,6 +61,8 @@ public class FeatureTableViewer
 
     /** Property type that is fired when the content of the viewer has changed. */
     public static final String              PROP_CONTENT_SIZE = "contentsize";
+
+    private static final Color              LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
     
     private Map<String,IFeatureTableColumn> displayed = new HashMap();
 
@@ -67,6 +72,8 @@ public class FeatureTableViewer
     
     private ListenerList<PropertyChangeListener> listeners = new ListenerList();
 
+    private Color                           foreground;
+
 
     public FeatureTableViewer( Composite parent, int style ) {
         super( parent, style | SWT.VIRTUAL );
@@ -75,6 +82,8 @@ public class FeatureTableViewer
         getTable().setLinesVisible( true );
         getTable().setHeaderVisible( true );
         getTable().setLayout( new TableLayout() );
+
+        this.foreground = getTable().getForeground();
         
         //setUseHashlookup( true );
     }
@@ -132,9 +141,9 @@ public class FeatureTableViewer
         };
         
         int index = -1;
-        if (getContentProvider() instanceof DeferredFeatureContentProvider) {
+        if (getContentProvider() instanceof IDeferredFeatureContentProvider) {
             // find index from content provider
-            index = ((DeferredFeatureContentProvider)getContentProvider()).findElement( search );
+            index = ((IDeferredFeatureContentProvider)getContentProvider()).findElement( search );
             // select table
             getTable().setSelection( index );
             log.info( "getTable().getSelectionIndex(): " + getTable().getSelectionIndex() );
@@ -183,7 +192,7 @@ public class FeatureTableViewer
         }
         IFeatureTableColumn sortTableColumn = displayed.get( sortColumn.getText() );
 
-        setContentProvider( new DeferredFeatureContentProvider( this, fs, filter,
+        setContentProvider( new DeferredFeatureContentProvider2( this, fs, filter,
                 sortTableColumn.newComparator( sortDir ) ) );
         setInput( fs );
     }
@@ -242,8 +251,8 @@ public class FeatureTableViewer
     protected void sortContent( Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
         IContentProvider contentProvider = getContentProvider();
         // deferred
-        if (contentProvider instanceof DeferredFeatureContentProvider) {
-            ((DeferredFeatureContentProvider)contentProvider).setSortOrder( comparator );
+        if (contentProvider instanceof IDeferredFeatureContentProvider) {
+            ((IDeferredFeatureContentProvider)contentProvider).setSortOrder( comparator );
         }
         // normal
         else {
@@ -255,6 +264,26 @@ public class FeatureTableViewer
         }
         getTable().setSortColumn( column );
         getTable().setSortDirection( dir );
+    }
+
+    
+    protected void markTableLoading( final boolean loading ) {
+        Display display = getTable().getDisplay();
+        display.asyncExec( new Runnable() {
+            public void run() {
+                if (getTable().isDisposed()) {
+                    return;
+                }
+                if (loading) {
+                    getTable().setForeground( LOADING_FOREGROUND );
+//                    setBusy( true );
+                }
+                else {
+                    getTable().setForeground( foreground );
+//                    setBusy( false );
+                }
+            }
+        });
     }
 
 }

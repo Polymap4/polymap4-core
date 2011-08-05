@@ -28,10 +28,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
-
-import org.eclipse.rwt.graphics.Graphics;
-
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.deferred.AbstractConcurrentModel;
 import org.eclipse.jface.viewers.deferred.DeferredContentProvider;
@@ -53,12 +49,10 @@ import org.polymap.core.data.Messages;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class DeferredFeatureContentProvider
-        extends DeferredContentProvider {
-        //implements IIndexableLazyContentProvider {
+        extends DeferredContentProvider
+        implements IDeferredFeatureContentProvider {
 
     private static Log log = LogFactory.getLog( DeferredFeatureContentProvider.class );
-    
-    private static final Color      LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
     
     private FeatureTableViewer      viewer;
     
@@ -92,24 +86,6 @@ class DeferredFeatureContentProvider
     }
 
     
-    protected void markTableLoading( final boolean loading ) {
-        Display display = viewer.getTable().getDisplay();
-        display.asyncExec( new Runnable() {
-            public void run() {
-                if (viewer.getTable().isDisposed()) {
-                    return;
-                }
-                if (loading) {
-                    viewer.getTable().setForeground( LOADING_FOREGROUND );
-                }
-                else {
-                    viewer.getTable().setForeground( tableForeground );
-                }
-            }
-        });
-    }
-    
-    
     public void setSortOrder( Comparator sortOrder ) {
         this.sortedElements = new LazySortedCollection( sortOrder );
         super.setSortOrder( sortOrder );
@@ -141,14 +117,15 @@ class DeferredFeatureContentProvider
         
         public synchronized void requestUpdate( final IConcurrentModelListener listener ) {
             if (job != null) {
-                log.info( "Fetcher job found, cancel and waiting..." );
-                job.cancel();
-                try {
-                    job.join();
-                }
-                catch (InterruptedException e) {
-                }
-                log.info( "Fetcher job done." );
+                log.info( "Fetcher job found, returning..." );
+                return;
+//                job.cancel();
+//                try {
+//                    job.join();
+//                }
+//                catch (InterruptedException e) {
+//                }
+//                log.info( "Fetcher job done." );
             }
             
             if (viewer.getTable().isDisposed()) {
@@ -167,6 +144,7 @@ class DeferredFeatureContentProvider
                     try {
                         coll = fs.getFeatures( filter );
                         monitor.beginTask( getName(), coll.size() );
+                        viewer.markTableLoading( true );
 
                         it = coll.iterator();
                         List chunk = new ArrayList( 256 );
@@ -183,11 +161,10 @@ class DeferredFeatureContentProvider
                             }
                             
                             if (chunk.size() >= chunkSize) {
-                                chunkSize *= 2;
+                                chunkSize = Math.min( 2*chunkSize, 1024 );
                                 log.info( "adding chunk to table. size=" + chunk.size() );
                                 listener.add( chunk.toArray() );
                                 viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
-                                markTableLoading( true );
                                 chunk.clear();
                                 
                                 // let the UI thread update the table so that the user sees
@@ -197,7 +174,6 @@ class DeferredFeatureContentProvider
                         }
                         listener.add( chunk.toArray() );
                         viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
-                        markTableLoading( false );
 
                         // pre-sort elements in the Job after all chunks are sent
                         sortedElements.getItems( true );
@@ -209,6 +185,7 @@ class DeferredFeatureContentProvider
                         return new Status( IStatus.ERROR, DataPlugin.PLUGIN_ID, "", e );
                     }
                     finally {
+                        viewer.markTableLoading( false );
                         coll.close( it );
                         monitor.done();
                     }
