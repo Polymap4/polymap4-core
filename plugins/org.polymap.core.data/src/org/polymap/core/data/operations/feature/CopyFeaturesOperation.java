@@ -18,13 +18,16 @@ import java.util.Properties;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
+import net.refractions.udig.ui.OffThreadProgressMonitor;
 
 import org.geotools.data.Query;
+import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,6 +68,7 @@ import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.WeakListener;
 
 /**
@@ -161,7 +165,7 @@ public class CopyFeaturesOperation
         final FeatureEditorPage2 featureEditorPage = new FeatureEditorPage2();
         wizard.addPage( featureEditorPage );
 
-        // get/set  chosen layer
+        // get/set chosen layer
         wizard.addPageChangedListener( new IPageChangedListener() {
             public void pageChanged( PageChangedEvent ev ) {
                 log.info( "Page: " + ev.getSelectedPage() );
@@ -170,19 +174,53 @@ public class CopyFeaturesOperation
                 }
             }
         });
+        monitor.worked( 1 );
 
         // copy features
         if (OperationWizard.openDialog( wizard )) {
-            monitor.worked( 1 );
             try {
-                monitor.subTask( "Objekte kopieren..." );
-                PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
+                final IProgressMonitor copyMonitor = new OffThreadProgressMonitor(
+                        new SubProgressMonitor( monitor, 8 ), Polymap.getSessionDisplay() );
+                
+                final PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
                 FeatureCollection features = sourceQuery != null
                         ? source.getFeatures( sourceQuery )
                         : source.getFeatures();
-                destFs.addFeatures( features,
-                        new ProgressListenerAdaptor( new SubProgressMonitor( monitor, 7 ) ) );
-                monitor.worked( 1 );
+
+                copyMonitor.subTask( "Objekte kopieren..." );
+                copyMonitor.beginTask( "Objekte kopieren...", features.size() );
+                
+                CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
+//                final MathTransform transform = CRS.findMathTransform( 
+//                        source.getSchema().getCoordinateReferenceSystem(), destCrs );
+
+//                // all features
+//                int c = 0;
+////                List<Feature> chunk = new ArrayList( DataSourceProcessor.DEFAULT_CHUNK_SIZE );
+//                features.accepts( new FeatureVisitor() {
+//                    public void visit( Feature feature ) {
+//                        try {
+//                            GeometryAttribute geomAttr = feature.getDefaultGeometryProperty();
+//                            Geometry geom = (Geometry)geomAttr.getValue();
+//                            Geometry transformed = JTS.transform( geom, transform );
+//                            geomAttr.setValue( transformed );
+//                            
+//                            FeatureCollection coll = FeatureCollections.newCollection();
+//                            coll.add( feature );
+//                            
+//                            destFs.addFeatures( coll );
+//                            copyMonitor.worked( 1 );
+//                        }
+//                        catch (Exception e) {
+//                            throw new RuntimeException( e );
+//                        }
+//                    }
+//                }, null );
+                
+                ReprojectingFeatureCollection reprojected = new ReprojectingFeatureCollection( features, destCrs );
+                destFs.addFeatures( reprojected, new ProgressListenerAdaptor( copyMonitor ) );
+                
+                monitor.done();
                 return Status.OK_STATUS;
             }
             catch (Exception e) {
