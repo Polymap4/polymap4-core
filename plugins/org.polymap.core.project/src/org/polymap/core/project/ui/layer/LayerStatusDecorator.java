@@ -26,10 +26,13 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.rwt.graphics.Graphics;
 
 import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -38,10 +41,11 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.polymap.core.project.Messages;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.runtime.Polymap;
-
 
 /**
  * 
@@ -66,6 +70,8 @@ public class LayerStatusDecorator
     private static final String     selectable = "icons/ovr16/selectable_ovr_small.png";
     private static final String     editable = "icons/ovr16/write_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
+    
+    private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
     
     private Map<String,ILayer>      decorated = new HashMap();
 
@@ -114,6 +120,14 @@ public class LayerStatusDecorator
                 decoration.addOverlay( ovr, TOP_LEFT );
             }
 
+            if (layer.getLayerStatus() == LayerStatus.STATUS_MISSING) {
+                decoration.setForegroundColor( MISSING_COLOR );    
+                decoration.addSuffix( Messages.get( "LayerStatusDecorator_missing") );    
+            }
+            else if (layer.getLayerStatus() == LayerStatus.STATUS_WAITING) {
+                decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );    
+            }
+            
             // register listener
             if (decorated.put( layer.id(), layer ) == null) {
                 layer.addPropertyChangeListener( this );
@@ -191,7 +205,8 @@ public class LayerStatusDecorator
         if (ev.getSource() instanceof ILayer
                 && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
                 || ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
-                || ev.getPropertyName().equals( ILayer.PROP_EDITABLE ))) {
+                || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
+                || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS ))) {
 
             Runnable runnable = new Runnable() {
                 public void run() {

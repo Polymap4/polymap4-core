@@ -46,6 +46,7 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
  * Re-implementation of the job/thread related methods provided by
  * {@link PlatformGIS}. 
  *
+ * @deprecated See {@link org.polymap.core.runtime.UIJob} instead.
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  *         <li>26.10.2009: created</li>
  * @version POLYMAP3 ($Revision$)
@@ -115,7 +116,7 @@ public class PlatformJobs
         synchronized (done) {
             while (done.get() == false) {
                 try {
-                    //System.out.println( "readAndDispatch()..." );
+                    System.out.println( "readAndDispatch()..." );
                     Thread.yield();
                     if (display == null) {
                         done.wait( 300 );

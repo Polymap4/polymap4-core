@@ -2,6 +2,8 @@ package org.polymap.core.project.ui;
 
 import java.util.HashSet;
 
+import net.refractions.udig.catalog.IGeoResource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,12 +43,15 @@ public class LayerPropertySource
     
     private ILayer                  layer;
 
+    private IGeoResource            geores;
+    
     
     /**
      * 
      */
     public LayerPropertySource( ILayer layer ) {
         this.layer = layer;
+        this.geores = layer.getGeoResource();
     }
 
     
@@ -88,6 +93,8 @@ public class LayerPropertySource
     public Object getPropertyValue( Object id ) {
         //layer.setLayerStatus( LayerStatus.STATUS_OK );
         try {
+            String noGeoRes = "No geores found for this layer";
+
             if (id.equals( ILayer.PROP_LABEL )) {
                 return layer.getLabel();
             }
@@ -97,17 +104,20 @@ public class LayerPropertySource
                 return value != null ? value : "";
             }
             else if (id.equals( "type" )) {
-                return StringUtils.substringAfterLast( layer.getGeoResource().getClass().getName(), "." );
+                return geores != null
+                        ? StringUtils.substringAfterLast( geores.getClass().getName(), "." )
+                        : noGeoRes;
             }
             else if (id.equals( ILayer.PROP_CRSCODE )) {
                 return layer.getCRSCode();
             }
             else if (id.equals( "datacrs" )) {
-                CoordinateReferenceSystem dataCRS = layer.getGeoResource().getInfo( new NullProgressMonitor() ).getCRS();
+                CoordinateReferenceSystem dataCRS = geores != null
+                        ? geores.getInfo( new NullProgressMonitor() ).getCRS() : null;
                 return dataCRS != null ? dataCRS.getName().getCode() : "[unspecified]";
             }
             else if (id.equals( ILayer.PROP_GEORESID )) {
-                return layer.getGeoResource().getIdentifier();
+                return geores != null ? geores.getIdentifier() : noGeoRes;
             }
             else if (id.equals( ILayer.PROP_ORDERKEY )) {
                 Integer result = layer.getOrderKey();

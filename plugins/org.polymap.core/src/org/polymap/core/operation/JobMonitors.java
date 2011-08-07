@@ -30,9 +30,12 @@ import net.refractions.udig.ui.OffThreadProgressMonitor;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import org.polymap.core.runtime.UIJob;
+
 /**
  * Provides access to the progress monitor of the current thread. 
  *
+ * @deprecated Use {@link UIJob} instead.
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0

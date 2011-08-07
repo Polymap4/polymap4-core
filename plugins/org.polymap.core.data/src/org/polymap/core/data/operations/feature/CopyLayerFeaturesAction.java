@@ -28,7 +28,6 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.actions.ActionDelegate;
 
-import org.eclipse.core.commands.ExecutionException;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.operation.OperationSupport;
@@ -46,38 +45,33 @@ public class CopyLayerFeaturesAction
 
     private static Log log = LogFactory.getLog( CopyLayerFeaturesAction.class );
 
-    private PipelineFeatureSource       source;
+    private ILayer          layer;
 
 
     public void runWithEvent( IAction action, Event event ) {
         try {
+            PipelineFeatureSource source = PipelineFeatureSource.forLayer( layer, false );
             CopyFeaturesOperation op = new CopyFeaturesOperation( source, null );
             OperationSupport.instance().execute( op, true, true );
         }
-        catch (ExecutionException e) {
+        catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
         }
     }
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        source = null;
+        layer = null;
         action.setEnabled( false );
 
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
             if (elm != null && elm instanceof ILayer) {
-                try {
-                    source = PipelineFeatureSource.forLayer( (ILayer)elm, false );
-                    action.setEnabled( true );
+                layer = (ILayer)elm;
+                action.setEnabled( true );
 
-                    // check ACL permission
-                    //action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
-                }
-                catch (Exception e) {
-                    log.warn( "" );
-                    log.debug( "", e );
-                }
+                // check ACL permission
+                //action.setEnabled( ACLUtils.checkPermission( acl, AclPermission.WRITE, false ) );
             }
         }
     }

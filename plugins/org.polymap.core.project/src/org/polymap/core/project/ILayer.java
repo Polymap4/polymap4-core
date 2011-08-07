@@ -64,6 +64,8 @@ public interface ILayer
     public static final String      PROP_EDITABLE = "editable";
     public static final String      PROP_SELECTABLE = "selectable";
 
+    public static final String      PROP_LAYERSTATUS = "layerstatus";
+
     /** The layer type returned by {@link #getLayerType()}. */
     public static final int         LAYER_VECTOR        = 1;
     
@@ -188,7 +190,7 @@ public interface ILayer
      */
     public LayerStatus getLayerStatus();
     
-    @TransientProperty("layerStatus")
+    @TransientProperty(PROP_LAYERSTATUS)
     public void setLayerStatus( LayerStatus status );
 
 

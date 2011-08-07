@@ -25,7 +25,6 @@ package org.polymap.core.project;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 
 import net.refractions.udig.catalog.CatalogPlugin;
@@ -34,16 +33,13 @@ import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IResolve.Status;
 import net.refractions.udig.core.internal.CorePlugin;
-import net.refractions.udig.ui.PlatformJobs;
 
-import org.eclipse.swt.widgets.Display;
-
-import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 
-import org.polymap.core.operation.JobMonitors;
+import org.polymap.core.runtime.UIJob;
 
 /**
  * Provides the default implementation that finds geo resources in the
@@ -56,42 +52,45 @@ import org.polymap.core.operation.JobMonitors;
 public class DefaultGeoResourceResolver
         implements IGeoResourceResolver {
 
+    private static Log log = LogFactory.getLog( DefaultGeoResourceResolver.class );
+
+    
     public List<IGeoResource> resolve( final String identifier )
     throws Exception {
+        log.debug( "resolving: " + identifier );
+        
         final List<IGeoResource> results = new ArrayList<IGeoResource>();
         final ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
 
-        IProgressMonitor monitor = JobMonitors.get() != null
-                ? JobMonitors.get() : new NullProgressMonitor();
-
-        IRunnableWithProgress runnable = new IRunnableWithProgress(){
-            public void run( IProgressMonitor _monitor ) 
-            throws InvocationTargetException {
-                try {
-                    URL url  = new URL( null, identifier, CorePlugin.RELAXED_HANDLER );
-                    List<IResolve> canditates = catalog.find( url, _monitor );
-                    for (IResolve resolve : canditates) {
-                        if (resolve.getStatus() == Status.BROKEN) {
-                            continue;
-                        }
-                        if (resolve instanceof IGeoResource) {
-                            results.add( (IGeoResource)resolve );
-                        }
+        UIJob job = new UIJob( Messages.get( "GeoResResolver_jobTitle" ) ) {
+            public void runWithException( IProgressMonitor monitor ) 
+            throws Exception {
+                monitor.beginTask( Messages.get( "GeoResResolver_beginTask" ) + identifier, 5 );
+                monitor.worked( 1 );
+                
+                URL url  = new URL( null, identifier, CorePlugin.RELAXED_HANDLER );
+                List<IResolve> canditates = catalog.find( url, monitor );
+                for (IResolve resolve : canditates) {
+                    monitor.worked( 1 );
+                    if (resolve.getStatus() == Status.BROKEN) {
+                        continue;
                     }
-                } 
-                catch (Exception e) {
-                    //e.printStackTrace();
-                    throw new InvocationTargetException( e );
+                    if (resolve instanceof IGeoResource) {
+                        results.add( (IGeoResource)resolve );
+                    }
                 }
+                monitor.done();
             }
         };
-        if (Display.getCurrent() != null) {
-            PlatformJobs.runSync( runnable, monitor );
+        job.setShowProgressDialog( null, true );
+        job.schedule();
+        
+        boolean success = job.joinAndDispatch( 15000 );
+        
+        if (!success) {
+            job.cancelAndInterrupt();
         }
-        else {
-            runnable.run( monitor );
-        }
-
+        
         return results;
     }
 

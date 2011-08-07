@@ -24,13 +24,12 @@
 package org.polymap.core.project.model;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.IOException;
 import java.net.URL;
 
-import net.refractions.udig.catalog.CatalogPlugin;
-import net.refractions.udig.catalog.ICatalog;
 import net.refractions.udig.catalog.ID;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.core.internal.CorePlugin;
@@ -103,14 +102,14 @@ public interface LayerState
 
         /** The cache of the {@link #georesId()} property. */
         private IGeoResource                    geores;
+
+        private ReadWriteLock                   georesLock = new ReentrantReadWriteLock();
         
         /** The cache of the {@link #crsCode()} property. */
         private CoordinateReferenceSystem       crs;
         
         /** The cache of the {@link #styleId()} property. */
         private IStyle                          style;
-        
-        private AtomicBoolean                   isGettingGeoResources = new AtomicBoolean( false );
         
         private LayerStatus                     layerStatus = LayerStatus.STATUS_OK;
         
@@ -345,34 +344,34 @@ public interface LayerState
             georesId().set( resolver.createIdentifier( geores ) );
         }
 
+
         /**
          * Used to find the associated service in the catalog.
-         * <p>
+         * <p/>
          * On the off chance *no* services exist an empty list is returned. All this
-         * means is that the service is down, or the user has not connected to it
-         * yet (perhaps they are waiting on security permissions.
-         * <p>
-         * When the real service comes along we will find out based on catalog
+         * means is that the service is down, or the user has not connected to it yet
+         * (perhaps they are waiting on security permissions.
+         * <p/>
+         * When the real service comes along we should find out based on catalog
          * events.
-         * <p>
+         * <p/>
          * getGeoResource() is a blocking method but it must not block UI thread.
          * With this purpose the new imlementation is done to avoid UI thread
          * blocking because of synchronization.
          */
         public synchronized IGeoResource getGeoResource() {
-            if (geores == null) {
-                isGettingGeoResources.set( true );
-                setLayerStatus( LayerStatus.STATUS_WAITING );
-                try {
-                    final ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
-
+            georesLock.readLock().lock();
+            try {
+                if (geores == null
+                        && layerStatus != LayerStatus.STATUS_MISSING) {
+                    georesLock.readLock().unlock();
+                    georesLock.writeLock().lock();
+                    
+                    setLayerStatus( LayerStatus.STATUS_WAITING );
                     try { 
                         IGeoResourceResolver resolver = ProjectPlugin.geoResourceResolver( this );
                         List<IGeoResource> results = resolver.resolve( georesId().get() );
                         if (results.isEmpty()) {
-//                            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this
-//                                    , "Layer: " + getLabel() + " could not find a GeoResource with id:" + georesId().get()
-//                                    , null );
                             setLayerStatus( LayerStatus.STATUS_MISSING );
                             geores = null;
                         } 
@@ -387,12 +386,16 @@ public interface LayerState
                                 , e );
                         setLayerStatus( new LayerStatus( IStatus.ERROR, LayerStatus.MISSING, Messages.get( "LayerStatus_connectionFailed" ), e ) ); //$NON-NLS-1$
                     }
+                    finally {
+                        georesLock.readLock().lock();
+                        georesLock.writeLock().unlock();
+                    }
                 } 
-                finally {
-                    isGettingGeoResources.set( false );
-                }
+                return geores;
             }
-            return geores;
+            finally {
+                georesLock.readLock().unlock();
+            }
         }
 
     }
