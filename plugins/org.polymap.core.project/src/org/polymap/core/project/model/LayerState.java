@@ -228,7 +228,7 @@ public interface LayerState
                 IStyleCatalog catalog = StylePlugin.getStyleCatalog();
 
                 try {
-                    setLayerStatus( LayerStatus.STATUS_WAITING );
+                    //setLayerStatus( LayerStatus.STATUS_WAITING );
 
                     String style_id = styleId().get();
                     if (style_id != null) {

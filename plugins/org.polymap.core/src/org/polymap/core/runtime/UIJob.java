@@ -231,6 +231,7 @@ public abstract class UIJob
                     ? title : Messages.get( "UIJob_ProgressDialog_title" );
             this.showRunInBackground = showRunInBackground;
             setCancelable( true );
+            setSystem( false );
 //            setBlockOnOpen( true );
             
             // job listener

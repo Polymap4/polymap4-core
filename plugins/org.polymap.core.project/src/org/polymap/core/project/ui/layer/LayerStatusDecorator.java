@@ -120,11 +120,15 @@ public class LayerStatusDecorator
                 decoration.addOverlay( ovr, TOP_LEFT );
             }
 
-            if (layer.getLayerStatus() == LayerStatus.STATUS_MISSING) {
+            LayerStatus layerStatus = layer.getLayerStatus();
+            if (layerStatus == LayerStatus.STATUS_MISSING) {
                 decoration.setForegroundColor( MISSING_COLOR );    
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_missing") );    
             }
-            else if (layer.getLayerStatus() == LayerStatus.STATUS_WAITING) {
+            else if (layerStatus == LayerStatus.STATUS_OK) {
+                //
+            }
+            else if (layerStatus == LayerStatus.STATUS_WAITING) {
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );    
             }
             
