@@ -36,6 +36,7 @@ import org.eclipse.rwt.graphics.Graphics;
 
 import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
@@ -69,22 +70,28 @@ public class LayerStatusDecorator
     private static final String     visible = "icons/ovr16/visible_ovr2.gif";    
     private static final String     selectable = "icons/ovr16/selectable_ovr_small.png";
     private static final String     editable = "icons/ovr16/write_ovr.gif";
+    private static final String     waiting = "icons/ovr16/clock0_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
     
     private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
+    private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
     
     private Map<String,ILayer>      decorated = new HashMap();
 
-    private Font                    bold;
+    private Font                    bold, italic;
 
     
     public LayerStatusDecorator() {
-//        final Display display = RWTLifeCycle.getSessionDisplay();
+        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT ); 
+        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ); 
+        
+//        final Display display = Polymap.getSessionDisplay();
 //        display.syncExec( new Runnable() {
 //            public void run() {
 //                Font systemFont = display.getSystemFont();
 //                FontData fd = systemFont.getFontData()[0];
 //                bold = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.BOLD );
+//                italic = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.ITALIC );
 //                //font = new Font( systemFont.getDevice(), fd.getName(), fd.getHeight(), SWT.BOLD );
 //            }
 //        });
@@ -112,12 +119,18 @@ public class LayerStatusDecorator
             // visible
             else if (layer.isVisible()) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible );
+                decoration.setFont( bold );
                 decoration.addOverlay( ovr, TOP_RIGHT );
             }
             // selectable
             if (layer.isSelectable()) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, selectable );
                 decoration.addOverlay( ovr, TOP_LEFT );
+            }
+
+            // inactive == not visible
+            if (!layer.isVisible()) {
+                decoration.setForegroundColor( INACTIVE_COLOR );
             }
 
             LayerStatus layerStatus = layer.getLayerStatus();
@@ -129,7 +142,10 @@ public class LayerStatusDecorator
                 //
             }
             else if (layerStatus == LayerStatus.STATUS_WAITING) {
-                decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );    
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, waiting );
+                decoration.setFont( italic );
+                decoration.addOverlay( ovr, TOP_RIGHT );
+                decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );
             }
             
             // register listener
@@ -205,7 +221,7 @@ public class LayerStatusDecorator
 
 
     public void propertyChange( PropertyChangeEvent ev ) {
-        log.info( "propertyChange(): " + ev.getSource() + " : " + ev.getPropertyName() );
+        log.debug( "propertyChange(): " + ev.getSource() + " : " + ev.getPropertyName() );
         if (ev.getSource() instanceof ILayer
                 && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
                 || ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )

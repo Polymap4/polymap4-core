@@ -15,7 +15,6 @@
  */
 package org.polymap.core.qi4j.event;
 
-
 /**
  * Uniform API to access the modification status of an entity.
  * 

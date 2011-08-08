@@ -22,33 +22,33 @@
  */
 package org.polymap.core.project.ui;
 
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
+import java.beans.PropertyChangeEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.IDecoration;
-import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
-import org.eclipse.ui.internal.util.BundleUtility;
-
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.ListenerList;
 
-import org.polymap.core.model.Entity;
 import org.polymap.core.model.event.GlobalModelChangeEvent;
 import org.polymap.core.model.event.GlobalModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.PropertyEventFilter;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.EntityChangeStatus;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * 
@@ -58,98 +58,101 @@ import org.polymap.core.qi4j.event.ModelChangeSupport;
  * @since 3.0
  */
 public class EntityModificationDecorator
-        implements ILightweightLabelDecorator, GlobalModelChangeListener {
+        extends BaseLabelProvider
+        implements ILightweightLabelDecorator, GlobalModelChangeListener, ModelChangeListener {
 
     private static final Log log = LogFactory.getLog( EntityModificationDecorator.class );
     
-    private static final ImageDescriptor locallyModified =  
-            ImageDescriptor.createFromFile( EntityModificationDecorator.class, "icons/sample_decorator.gif");
+    private static final String         dirtyImage = "icons/ovr16/outgo_synch3.gif";
+    private static final String         pendingImage = "icons/ovr16/changed_ovr.gif";
+    private static final String         warningImage = "icons/ovr16/warning_ovr.gif";
+    private static final String         conflictImage = "icons/ovr16/error_ovr.gif";
 
     private IConfigurationElement       configElement;
 
-    private ImageDescriptor             dirtyImage, pendingImage, warningImage, conflictImage;
-    
-    private ListenerList                listeners = new ListenerList( ListenerList.IDENTITY );
-
     private ProjectRepository           module;
     
+    private Map<String,ModelChangeSupport>   decorated = new HashMap();
+
     private Display                     display;
     
-    
+
+    public EntityModificationDecorator() {
+        display = Polymap.getSessionDisplay();
+        module = ProjectRepository.instance();
+        
+        module.addGlobalModelChangeListener( this );
+        
+        module.addModelChangeListener( this, new PropertyEventFilter() {
+            public boolean accept( PropertyChangeEvent ev ) {
+                if (ev.getSource() instanceof ModelChangeSupport) {
+                    ModelChangeSupport entity = (ModelChangeSupport)ev.getSource();
+                    return decorated.containsKey( entity.id() );
+                }
+                return false;
+            }
+        });
+    }
+
     public void dispose() {
-        listeners.clear();
+        super.dispose();
+        decorated.clear();
+        
         if (module != null) {
+            module.removeModelChangeListener( this );
             module.removeGlobalModelChangeListener( this );
             module = null;
-            display = null;
         }
     }
 
-    public void addListener( ILabelProviderListener listener ) {
-        log.debug( "add: listener=" + listener );
-        listeners.add( listener );
-    }
-
-    public void removeListener( ILabelProviderListener listener ) {
-        log.debug( "add: listener=" + listener );
-        listeners.add( listener );
-    }
-
-    protected void fireEvent() {
-        LabelProviderChangedEvent ev = new LabelProviderChangedEvent( this );
-        for (Object l : listeners.getListeners()) {
-            ((ILabelProviderListener)l).labelProviderChanged( ev );
-        }
-    }
-    
-    
     public void decorate( Object elm, IDecoration decoration ) {
-        // init
-        if (dirtyImage == null) {
-            URL url = BundleUtility.find( ProjectPlugin.PLUGIN_ID, "icons/ovr16/write_ovr.gif" );
-            assert (url != null) : "No image found.";
-            dirtyImage = ImageDescriptor.createFromURL( url );
-            
-            url = BundleUtility.find( ProjectPlugin.PLUGIN_ID, "icons/ovr16/changed_ovr.gif" );
-            assert (url != null) : "No image found.";
-            pendingImage = ImageDescriptor.createFromURL( url );
-            
-            url = BundleUtility.find( ProjectPlugin.PLUGIN_ID, "icons/ovr16/warning_ovr.gif" );
-            assert (url != null) : "No image found.";
-            warningImage = ImageDescriptor.createFromURL( url );
-            
-            url = BundleUtility.find( ProjectPlugin.PLUGIN_ID, "icons/ovr16/error_ovr.gif" );
-            assert (url != null) : "No image found.";
-            conflictImage = ImageDescriptor.createFromURL( url );
-            
-            display = Display.getDefault();
-            
-            module = ProjectRepository.instance();
-            module.addGlobalModelChangeListener( this );
-        }
-        
-        Entity entity = (Entity)elm;
+        ModelChangeSupport entity = (ModelChangeSupport)elm;
         log.debug( "### Decorating: entity=" + entity.id() );
-        EntityChangeStatus entityState = EntityChangeStatus.forEntity( (ModelChangeSupport)entity );
+        EntityChangeStatus entityState = EntityChangeStatus.forEntity( entity );
         
         boolean dirty = entityState.isLocallyChanged();
         boolean pendingChanges = entityState.isGloballyChanged();
         boolean pendingCommits = entityState.isGloballyCommitted();
 
         if (dirty && pendingCommits) {
-            decoration.addOverlay( conflictImage, IDecoration.BOTTOM_RIGHT );
+            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, conflictImage );
+            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
         }
         else if (dirty && pendingChanges) {
-            decoration.addOverlay( warningImage, IDecoration.BOTTOM_RIGHT );
+            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, warningImage );
+            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
         }
         else if (dirty && !pendingChanges && !pendingCommits) {
-            decoration.addOverlay( dirtyImage, IDecoration.BOTTOM_RIGHT );
+            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, dirtyImage );
+            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
         }
         else if (!dirty && (pendingChanges || pendingCommits)) {
-            decoration.addOverlay( pendingImage, IDecoration.BOTTOM_RIGHT );
+            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, pendingImage );
+            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
         }
+
+        // register
+        decorated.put( entity.id(), entity );
     }
 
+    
+    // ModelChangeListener
+    
+    public void modelChanged( ModelChangeEvent ev ) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+            }
+        };
+        if (Display.getCurrent() != null) {
+            runnable.run();
+        }
+        else {
+            Polymap.getSessionDisplay().syncExec( runnable );
+        }
+    }
+    
+    
     // GlobalModelChangeListener
     
     public boolean isValid() {
@@ -157,10 +160,8 @@ public class EntityModificationDecorator
     }
 
     public void modelChanged( final GlobalModelChangeEvent ev ) {
-        log.debug( "Global change: ev= " + ev );
-        
         // make sure that display is not disposed and our session is still valid
-        if (display == null) {
+        if (module == null) {
             return;
         }
         if (display.isDisposed()) {
@@ -181,10 +182,4 @@ public class EntityModificationDecorator
         }
     }
     
-
-    public boolean isLabelProperty( Object element, String property ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
-
 }
