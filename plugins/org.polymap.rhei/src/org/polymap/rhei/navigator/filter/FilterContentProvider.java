@@ -20,6 +20,10 @@ package org.polymap.rhei.navigator.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.ArrayUtils;
+
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -41,7 +45,13 @@ public class FilterContentProvider
     public Object[] getChildren( Object elm ) {
         // folder
         if (elm instanceof ILayer) {
-            return new Object[] { new FiltersFolderItem( (ILayer)elm ) };
+            try {
+                String id = ((ILayer)elm).id();
+                return new Object[] { new FiltersFolderItem( (ILayer)elm ) };
+            }
+            catch (NoSuchEntityException e) {
+                return ArrayUtils.EMPTY_OBJECT_ARRAY;
+            }
         }
         // filters
         else if (elm instanceof FiltersFolderItem) {
@@ -70,7 +80,11 @@ public class FilterContentProvider
 
     public Object getParent( Object elm ) {
         if (elm instanceof ILayer) {
-            return ((ILayer)elm).getMap();
+            try {
+                return ((ILayer)elm).getMap();
+            }
+            catch (NoSuchEntityException e) {
+            }
         }
         return null;
     }

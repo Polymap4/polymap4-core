@@ -17,6 +17,8 @@
  */
 package org.polymap.rhei.navigator.layer;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -37,7 +39,7 @@ public class LayerContentProvider
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
             AssocCollection<ILayer> layers = ((IMap)elm).getLayers();
-            return (ILayer[]) layers.toArray(new ILayer[layers.size()]);
+            return layers.toArray(new ILayer[layers.size()]);
         }
         return null;
     }
@@ -45,7 +47,11 @@ public class LayerContentProvider
 
     public Object getParent( Object elm ) {
         if (elm instanceof ILayer) {
-            return ((ILayer)elm).getMap();
+            try {
+                return ((ILayer)elm).getMap();
+            }
+            catch (NoSuchEntityException e) {
+            }
         }
         return null;
     }

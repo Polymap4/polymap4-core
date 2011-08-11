@@ -82,8 +82,7 @@ public class StandardFilterProvider
         this.layer = _layer;
         IGeoResource geores = layer.getGeoResource();
 
-        if (geores.canResolve( FeatureSource.class )) {
-            // FIXME this may block
+        if (geores != null && geores.canResolve( FeatureSource.class )) {
             FeatureSource fs = layer.getGeoResource().resolve( FeatureSource.class, new NullProgressMonitor() );
             if (fs != null) {
                 return Collections.singletonList( new StandardFilter( layer, fs ) );

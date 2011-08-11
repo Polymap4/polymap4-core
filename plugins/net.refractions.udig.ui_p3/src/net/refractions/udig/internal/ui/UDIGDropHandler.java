@@ -313,7 +313,7 @@ public class UDIGDropHandler extends DropTargetAdapter {
         }
 
         protected IStatus run( IProgressMonitor monitor2 ) {
-            monitor2.beginTask( Messages.UDIGDropHandler_performing_task, IProgressMonitor.UNKNOWN );
+            monitor2.beginTask( getName(), IProgressMonitor.UNKNOWN );
             Collection<DropActionRunnable> next;
             while (!Thread.currentThread().isInterrupted()) {
                 next = null;
@@ -333,8 +333,7 @@ public class UDIGDropHandler extends DropTargetAdapter {
                     DropActionRunnable action = iterator.next();
                     IProgressMonitor monitor = new ProgressMonitorTaskNamer( monitor2, 10 );
 
-                    monitor2.setTaskName( Messages.UDIGDropHandler_performing_task
-                            + ": " + action.action.getName() ); //$NON-NLS-1$
+                    monitor2.subTask( /*Messages.UDIGDropHandler_performing_task + ": " +*/ action.action.getName() ); 
 
                     // run the next job
                     UICallBack.runNonUIThreadWithFakeContext( display, action );

@@ -187,7 +187,6 @@ public class RheiNavigator
             extends DefaultPartListener {
         
         public void partActivated( IWorkbenchPart part ) {
-            log.debug( "part= " + part );
             if (part instanceof IEditorPart) {
                 IEditorPart editor = (IEditorPart)part;
                 IMap newMap = (IMap)editor.getEditorInput().getAdapter( IMap.class );
@@ -198,7 +197,6 @@ public class RheiNavigator
         }
 
         public void partDeactivated( IWorkbenchPart part ) {
-            log.debug( "part= " +part );
         }
 
     }
