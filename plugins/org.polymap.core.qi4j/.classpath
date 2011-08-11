@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/cglib-nodep-2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/cglib-nodep-2.2.jar" sourcepath="/home/falko/.m2/repository/cglib/cglib-nodep/2.2/cglib-nodep-2.2-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-api-1.0.jar" sourcepath="packages"/>
 	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-bootstrap-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/qi4j-core-runtime-1.0.jar" sourcepath="packages"/>

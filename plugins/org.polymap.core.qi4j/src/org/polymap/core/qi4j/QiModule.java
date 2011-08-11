@@ -38,6 +38,7 @@ import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
 
 import org.eclipse.core.commands.operations.IUndoableOperation;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.model.CompletionException;
 import org.polymap.core.model.Composite;
@@ -161,13 +162,14 @@ public abstract class QiModule
     public class OperationSaveListener
     implements IOperationSaveListener {
 
-        public void prepareSave( OperationSupport os )
+        public void prepareSave( OperationSupport os, IProgressMonitor monitor )
         throws Exception {
             //
         }
 
-        public void save( OperationSupport os ) {
+        public void save( OperationSupport os, IProgressMonitor monitor ) {
             try {
+                monitor.beginTask( getClass().getSimpleName(), 1 );
                 commitChanges();
             }
             catch (Exception e) {
@@ -175,11 +177,12 @@ public abstract class QiModule
             }
         }
 
-        public void rollback( OperationSupport os ) {
+        public void rollback( OperationSupport os, IProgressMonitor monitor ) {
             // no prepare -> no rollback
         }
 
-        public void revert( OperationSupport os ) {
+        public void revert( OperationSupport os, IProgressMonitor monitor ) {
+            monitor.beginTask( getClass().getSimpleName(), 1 );
             revertChanges();
         }
     }

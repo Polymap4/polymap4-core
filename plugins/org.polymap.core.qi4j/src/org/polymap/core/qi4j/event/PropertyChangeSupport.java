@@ -15,6 +15,8 @@
  */
 package org.polymap.core.qi4j.event;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -41,8 +43,9 @@ import org.qi4j.runtime.entity.EntityInstance;
 
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
-import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.Qi4jPlugin;
+import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -67,7 +70,7 @@ public interface PropertyChangeSupport
 
     public void removePropertyChangeListener( PropertyChangeListener l );
 
-    public void fireEvent( QualifiedName name, @Optional Object newValue, @Optional Object oldValue );
+    public void fireEvent( QualifiedName name, @Optional Object newValue, @Optional Object oldValue, @Optional Object propOrAssoc );
     
 
     /**
@@ -79,22 +82,30 @@ public interface PropertyChangeSupport
         private static final Log log = LogFactory.getLog( PropertyChangeSupport.class );
 
         @This
-        protected PropertyChangeSupport                 composite;
+        private PropertyChangeSupport                   composite;
+        
+//        @State
+//        private EntityStateHolder                       entityState;
         
         private ListenerList<PropertyChangeListener>    listeners;
 
         
         public void create()
         throws LifecycleException {
-            log.info( "Entity created: " + composite.toString() );
-            fireEvent( QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_CREATED ), composite, null );
+            log.debug( "Entity created: " + composite.toString() );
+            QiModule repo = Qi4jPlugin.Session.instance().resolveModule( composite );
+            QualifiedName qname = QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_CREATED );
+            fireEvent( qname, composite, repo, composite );
         }
 
 
         public void remove()
         throws LifecycleException {
-            log.info( "Entity removed: " + composite.toString() );
-            fireEvent( QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_REMOVED ), composite, null );
+            log.debug( "Entity removed: " + composite.toString() );
+            // FIXME save entity state
+            QiModule repo = Qi4jPlugin.Session.instance().resolveModule( composite );
+            QualifiedName qname = QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_REMOVED );
+            fireEvent( qname, composite, repo, composite );
         }
 
         
@@ -115,8 +126,11 @@ public interface PropertyChangeSupport
             }
         }
 
-        public void fireEvent( QualifiedName name, Object newValue, Object oldValue ) {
-            PropertyChangeEvent ev = new StoredPropertyChangeEvent( composite, name.name(), oldValue, newValue );
+
+        public void fireEvent( QualifiedName name, Object newValue, Object oldValue, Object propOrAssoc ) {
+            PropertyChangeEvent ev = propOrAssoc != null
+                    ? new StoredPropertyChangeEvent( composite, name.name(), oldValue, newValue, propOrAssoc )
+                    : new PropertyChangeEvent( composite, name.name(), oldValue, newValue );
 
             if (globalListeners != null) {
                 for (PropertyChangeListener listener : globalListeners) {
@@ -157,6 +171,14 @@ public interface PropertyChangeSupport
 
         public Object invoke( Object proxy, Method method, Object[] args )
         throws Throwable {
+            
+//            // skip my own methods
+//            if (method.getName().equals( "fireEvent" )
+//                    || method.getName().equals( "addPropertyChangeListener" )
+//                    || method.getName().equals( "removePropertyChangeListener" )) {
+//                return null;
+//            }
+            
             // call underlying
             Object result = next.invoke( proxy, method, args );
             
@@ -172,7 +194,8 @@ public interface PropertyChangeSupport
                 }
                 else {
                     String propName = a2 != null ? a2.value() : a.value();
-                    composite.fireEvent( QualifiedName.fromClass( method.getDeclaringClass(), propName ), args[0], null );
+                    QualifiedName qname = QualifiedName.fromClass( method.getDeclaringClass(), propName );
+                    composite.fireEvent( qname, args[0], null, null );
                 }
             }
             
@@ -205,6 +228,8 @@ public interface PropertyChangeSupport
     static final class PropertyWrapper
             implements Property {
         
+        private static final Log log = LogFactory.getLog( PropertyWrapper.class );
+
         private Property                delegate;
         
         private EntityInstance          entityInstance;
@@ -224,14 +249,23 @@ public interface PropertyChangeSupport
         }
 
         public Object get() {
-            return delegate.get();
+            Object value = delegate.get();
+            if (value instanceof Collection) {
+                log.warn( "Collection values are not tracked for property changes!" );
+            }
+            return value;
         }
 
         public void set( Object newValue )
                 throws IllegalArgumentException, IllegalStateException {
             Object oldValue = delegate.get();
+            
+            // make a copy so that the collection can be changed afterwards
+            if (oldValue instanceof Collection) {
+                oldValue = new ArrayList( (Collection)oldValue );
+            }
             delegate.set( newValue );
-            entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), newValue, oldValue );
+            entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), newValue, oldValue, this );
         }
 
         public boolean isComputed() {
@@ -280,7 +314,7 @@ public interface PropertyChangeSupport
                 throws IllegalArgumentException {
             Object oldValue = delegate.get();
             delegate.set( associated );
-            entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), associated, oldValue );
+            entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), associated, oldValue, this );
         }
 
         public boolean isAggregated() {
@@ -323,25 +357,28 @@ public interface PropertyChangeSupport
         }
 
         public boolean add( int i, Object entity ) {
+            List oldValue = toList();
             boolean result = delegate.add( i, entity );
             if (result) {
-                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), entity, Integer.valueOf( i ) );
+                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), oldValue, toList(), this );
             }
             return result;
         }
 
         public boolean add( Object entity ) {
+            List oldValue = toList();
             boolean result = delegate.add( entity );
             if (result) {
-                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), entity, Integer.valueOf( Integer.MAX_VALUE ) );
+                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), oldValue, toList(), this );
             }
             return result;
         }
 
         public boolean remove( Object entity ) {
+            List oldValue = toList();
             boolean result = delegate.remove( entity );
             if (result) {
-                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), entity, Integer.valueOf( -1 ) );
+                entityInstance.<PropertyChangeSupport>proxy().fireEvent( qualifiedName(), oldValue, toList(), this );
             }
             return result;
         }

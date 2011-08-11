@@ -53,8 +53,12 @@ import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * Provides most of the implementation to support entity event handling. {@link QiModule}
- * delegates handling of property and model listeners to the ModelChangeTracker.
+ * Provides most of the implementation to support entity event handling.
+ * {@link QiModule} delegates handling of property and model listeners to the
+ * ModelChangeTracker.
+ * <p/>
+ * ModelChangeTracker relies entirely on {@link AbstractModelChangeOperation} to
+ * generate and fire {@link ModelChangeEvent}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
@@ -113,8 +117,10 @@ public class ModelChangeTracker
     
     // instance *******************************************
  
+    /** EQUALITY is mandatory in order to support inplace {@link FilteredPropertyChangeListener} support. */
     private ListenerList<ModelChangeListener>       modelListeners = new ListenerList( ListenerList.EQUALITY );
     
+    /** EQUALITY is mandatory in order to support inplace {@link FilteredPropertyChangeListener} support. */
     private ListenerList<PropertyChangeListener>    propertyListeners = new ListenerList( ListenerList.EQUALITY );
 
 
@@ -222,12 +228,12 @@ public class ModelChangeTracker
      * The listener receives events from all entities of all modules of the
      * current session.
      */
-    public void addPropertyChangeListener( PropertyChangeListener l, PropertyEventFilter f ) {
-        propertyListeners.add( new FilteredPropertyChangeListener( l, f ) );
+    public boolean addPropertyChangeListener( PropertyChangeListener l, PropertyEventFilter f ) {
+        return propertyListeners.add( new FilteredPropertyChangeListener( l, f ) );
     }
     
-    public void removePropertyChangeListener( PropertyChangeListener l ) {
-        propertyListeners.remove( new FilteredPropertyChangeListener( l, null ) );
+    public boolean removePropertyChangeListener( PropertyChangeListener l ) {
+        return propertyListeners.remove( new FilteredPropertyChangeListener( l, null ) );
     }
     
     /*
@@ -254,8 +260,8 @@ public class ModelChangeTracker
             if (obj == this) {
                 return true;
             }
-            else if (obj instanceof FilteredModelChangeListener) {
-                return delegate == ((FilteredModelChangeListener)obj).delegate;
+            else if (obj instanceof FilteredPropertyChangeListener) {
+                return delegate == ((FilteredPropertyChangeListener)obj).delegate;
             }
             return false;
         }

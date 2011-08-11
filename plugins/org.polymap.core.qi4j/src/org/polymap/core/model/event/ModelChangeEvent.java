@@ -15,6 +15,7 @@
  */
 package org.polymap.core.model.event;
 
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,6 +27,8 @@ import java.beans.PropertyChangeListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.qi4j.event.StoredPropertyChangeEvent;
 
 /**
  * Collection of {@link PropertyChangeEvent}s collected while execution of an
@@ -51,13 +54,12 @@ public class ModelChangeEvent
         super( source );
     }
 
-    public ModelChangeEvent( Object source, List<PropertyChangeEvent> events ) {
+    public ModelChangeEvent( Object source, List<StoredPropertyChangeEvent> events ) {
         super( source );
-        this.events = events;
+        this.events = new ArrayList( events );
     }
 
     public void propertyChange( PropertyChangeEvent ev ) {
-        log.info( "propertyChange(): ev= " + ev );
         events.add( ev );
     }
     
