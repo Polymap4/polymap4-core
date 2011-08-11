@@ -37,7 +37,7 @@ import org.qi4j.bootstrap.ModuleAssembly;
 import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
 
 import org.polymap.core.project.model.MapComposite;
-import org.polymap.core.project.model.operations.SetPropertyOperation;
+import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;

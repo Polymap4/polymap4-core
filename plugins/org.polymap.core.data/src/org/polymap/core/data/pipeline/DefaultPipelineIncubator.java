@@ -99,7 +99,7 @@ public class DefaultPipelineIncubator
             for (ProcessorExtension ext : ProcessorExtension.allExtensions()) {
                 if (ext.isTerminal()) {
                     try {
-                        log.info( "    Terminal processor type found: " + ext.getId() );
+                        log.debug( "    Terminal processor type found: " + ext.getId() );
                         terminals.add( (Class<? extends ITerminalPipelineProcessor>)ext.newProcessor().getClass() );
                     }
                     catch (Exception e) {
@@ -113,7 +113,7 @@ public class DefaultPipelineIncubator
 
     public Pipeline newPipeline( LayerUseCase usecase, IMap map, ILayer layer, IService service )
     throws PipelineIncubationException {
-        log.info( "New pipeline for service: " + service );
+        log.debug( "New pipeline for service: " + service );
 //        IGeoResource geores = layer.getGeoResource();
 
         // terminal

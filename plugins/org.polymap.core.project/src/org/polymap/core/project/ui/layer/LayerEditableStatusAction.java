@@ -44,6 +44,7 @@ import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectPlugin;
+import org.polymap.core.project.operations.LayerEditableOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -53,7 +54,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @since 3.1
  */
 public class LayerEditableStatusAction
-        //extends ActionDelegate
         implements IObjectActionDelegate, IViewActionDelegate, PropertyChangeListener {
 
     private static Log log = LogFactory.getLog( LayerEditableStatusAction.class );
@@ -79,13 +79,11 @@ public class LayerEditableStatusAction
         try {
             LayerEditableOperation op = new LayerEditableOperation( 
                     new ArrayList<ILayer>( layers ), _action.isChecked() );
-            OperationSupport.instance().execute( op, false, false );
+            OperationSupport.instance().execute( op, true, false );
         }
         catch (ExecutionException e) {
             PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "", e );
         }
-
-        selectionChanged( _action, new StructuredSelection( layers ) );
     }
 
 

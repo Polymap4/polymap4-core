@@ -33,8 +33,8 @@ import org.polymap.core.operation.IOperationConcernFactory;
 import org.polymap.core.operation.OperationConcernAdapter;
 import org.polymap.core.operation.OperationInfo;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ui.layer.LayerEditableOperation;
-import org.polymap.core.project.ui.layer.LayerSelectableOperation;
+import org.polymap.core.project.operations.LayerEditableOperation;
+import org.polymap.core.project.operations.LayerSelectableOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

@@ -5,14 +5,6 @@
    <extension-point id="org.polymap.rhei.filter.filterProviders" name="FilterProviders" schema="schema/form.filterProviders.exsd"/>
    <extension
          point="org.eclipse.ui.views">
-      <view
-            category="org.polymap.rhei.ViewsCategory"
-            class="org.polymap.rhei.navigator.RheiNavigator"
-            icon="icons/eview16/navigator_view.gif"
-            id="org.polymap.rhei.RheiNavigator"
-            name="%NavigatorView_name"
-            restorable="true">
-      </view>
       <category
             id="org.polymap.rhei.ViewsCategory"
             name="%ViewsCategory_name">
@@ -54,11 +46,8 @@
    </extension>
    <extension
          point="org.eclipse.rap.ui.navigator.viewer">
-      <viewer
-            viewerId="org.polymap.rhei.RheiNavigator">
-      </viewer>
       <viewerContentBinding
-            viewerId="org.polymap.rhei.RheiNavigator">
+            viewerId="org.polymap.core.project.LayerNavigator">
          <includes>
             <contentExtension
                   pattern="org.polymap.rhei.*">
@@ -66,7 +55,7 @@
          </includes>
       </viewerContentBinding>
       <viewerActionBinding
-            viewerId="org.polymap.rhei.RheiNavigator">
+            viewerId="org.polymap.core.project.LayerNavigator">
          <includes>
             <actionExtension
                   pattern="org.polymap.rhei.*">
@@ -76,35 +65,6 @@
    </extension>
    <extension
          point="org.eclipse.rap.ui.navigator.navigatorContent">
-      <navigatorContent
-            activeByDefault="true"
-            contentProvider="org.polymap.rhei.navigator.layer.LayerContentProvider"
-            id="org.polymap.rhei.navigator.layerContent"
-            labelProvider="org.polymap.rhei.navigator.layer.LayerLabelProvider"
-            name="%LayerContent_name"
-            priority="highest">
-         <triggerPoints>
-            <or>
-               <instanceof
-                     value="org.polymap.core.project.ILayer">
-               </instanceof>
-               <instanceof
-                     value="org.polymap.core.project.IMap">
-               </instanceof>
-            </or>
-         </triggerPoints>
-         <dropAssistant
-               class="org.polymap.rhei.navigator.layer.LayerDropAdapterAssistant"
-               id="org.polymap.rhei.layerDropAssistant">
-            <possibleDropTargets>
-               <instanceof
-                     value="org.polymap.core.project.ILayer">
-               </instanceof></possibleDropTargets>
-         </dropAssistant>
-         <actionProvider
-               class="org.polymap.rhei.navigator.layer.LayerActionProvider">
-         </actionProvider>
-      </navigatorContent>
       <navigatorContent
             activeByDefault="true"
             contentProvider="org.polymap.rhei.navigator.filter.FilterContentProvider"
@@ -168,43 +128,6 @@
                tooltip="%actions_openFormTip">
          </action>
       </viewContribution>
-      <viewContribution
-            id="org.polymap.rhei.RheiNavigatorContribution"
-            targetID="org.polymap.rhei.RheiNavigator">
-         <action
-               class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
-               enablesFor="1"
-               icon="icons/etool16/layer_editable.gif"
-               id="org.polymap.rhei.action3"
-               label="%actions_layerEditableStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_layerEditableStatusTip">
-         </action>
-         <action
-               class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"
-               enablesFor="+"
-               icon="icons/etool16/layer_selectable.gif"
-               id="org.polymap.rhei.action2"
-               label="%actions_layerSelectableStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_layerSelectableStatusTip">
-         </action>
-         <action
-               class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
-               enablesFor="+"
-               icon="icons/elcl16/eye.png"
-               id="org.polymap.rhei.action1"
-               label="%actions_layerVisibleStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_layerVisibleStatusTip">
-         </action>
-      </viewContribution>
    </extension>
    <extension
          point="org.eclipse.ui.popupMenus">
@@ -247,7 +170,7 @@
             path="/csv">
       </servlet>
    </extension>
-   <extension
+   <!--extension
          point="net.refractions.udig.ui.dropAction">
       <action
             class="org.polymap.rhei.navigator.layer.AddLayerToMapDropAction"
@@ -268,10 +191,10 @@
          </destination>
       </action>
       <action
-            class="org.polymap.core.project.actions.SortLayerDropAction"
+            class="org.polymap.core.project.ui.dnd.LayerOrderDropAction"
             name="SortLayerDropAction">
          <destination
-               class="org.polymap.core.project.ui.MapLayersView">
+               class="org.polymap.core.project.ui.layer.MapLayersView">
          </destination>
          <acceptedType
                class="org.polymap.core.project.ILayer">
@@ -280,7 +203,7 @@
                class="org.polymap.core.project.ILayer">
          </destination>
       </action>
-   </extension>
+   </extension-->
    <extension
          point="org.polymap.core.operation.concerns">
       <concern

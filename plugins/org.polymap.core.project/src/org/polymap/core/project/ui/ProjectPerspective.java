@@ -31,6 +31,9 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.IPlaceholderFolderLayout;
 
+import org.polymap.core.project.ui.layer.LayerNavigator;
+import org.polymap.core.project.ui.project.ProjectView;
+
 /**
  *
  *
@@ -60,9 +63,9 @@ public class ProjectPerspective
 
         topLeft.addView( ProjectView.ID );
 
-        bottomLeft.addView( "org.polymap.rhei.RheiNavigator" );
+        bottomLeft.addView( LayerNavigator.ID );
 //        bottomLeft.addView( "org.polymap.core.project.MapLayersView" );
-        bottomLeft.addPlaceholder( "org.polymap.core.project.MapLayersView" );
+//        bottomLeft.addPlaceholder( "org.polymap.core.project.MapLayersView" );
         bottomLeft.addPlaceholder( "org.polymap.rhei.FilterView:*" );
 
         bottom.addPlaceholder( "org.polymap.*:*" );

@@ -75,7 +75,7 @@ public class MaxExtendEditorAction
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        log.info( "Selection: " + sel );
+        log.debug( "Selection: " + sel );
     }
 
 }

@@ -70,7 +70,7 @@ public class UndoAction
 
 
     public void historyNotification( OperationHistoryEvent ev ) {
-        log.info( "History changed: " + ev.getOperation().getLabel() + ", type=" + ev.getEventType() );
+        log.debug( "History changed: " + ev.getOperation().getLabel() + ", type=" + ev.getEventType() );
         Polymap.getSessionDisplay().asyncExec( new Runnable() {
             public void run() {
                 IUndoableOperation op = operationSupport.getUndoOperation();

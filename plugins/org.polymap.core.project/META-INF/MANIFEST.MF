@@ -8,13 +8,14 @@ Bundle-Vendor: polymap.org
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.polymap.core.project,
- org.polymap.core.project.actions,
  org.polymap.core.project.model,
- org.polymap.core.project.model.operations,
+ org.polymap.core.project.operations,
  org.polymap.core.project.ui,
  org.polymap.core.project.ui.layer,
+ org.polymap.core.project.ui.project,
  org.polymap.core.project.ui.util
 Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.rap.ui.navigator;bundle-version="3.5.0";visibility:=reexport,
  net.refractions.udig.catalog;bundle-version="1.2.0",
  net.refractions.udig.ui;bundle-version="1.2.0",
  net.refractions.udig.catalog.ui;bundle-version="1.2.0",

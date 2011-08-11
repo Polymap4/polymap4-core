@@ -41,7 +41,8 @@ import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ui.MapLayersView;
+import org.polymap.core.project.ui.layer.MapLayersView;
+
 import org.polymap.styler.ui.StyleView;
 
 /**

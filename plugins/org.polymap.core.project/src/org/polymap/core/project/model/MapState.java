@@ -45,7 +45,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.MapStatus;
 import org.polymap.core.project.RenderStatus;
-import org.polymap.core.project.ui.MapPropertySource;
+import org.polymap.core.project.ui.properties.MapPropertySource;
 import org.polymap.core.qi4j.AssocCollectionImpl;
 
 /**

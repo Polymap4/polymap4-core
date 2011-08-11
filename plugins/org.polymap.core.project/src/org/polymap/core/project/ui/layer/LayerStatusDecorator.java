@@ -15,9 +15,7 @@
  */
 package org.polymap.core.project.ui.layer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
@@ -34,7 +32,6 @@ import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.graphics.Graphics;
 
-import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.BaseLabelProvider;
@@ -243,60 +240,60 @@ public class LayerStatusDecorator
     }
 
 
-    /*
-     * 
-     */
-    static class DecoratedImageDescriptor
-            extends CompositeImageDescriptor {
-
-        private Image                   baseImage;
-        
-        private List<String>            overlays = new ArrayList();
-        
-        private List<Integer>           quadrants = new ArrayList();
-        
-        
-        public DecoratedImageDescriptor( String baseImageName ) {
-            this.baseImage = ProjectPlugin.getDefault().imageForName( baseImageName );
-        }
-        
-        public DecoratedImageDescriptor( Image image ) {
-            this.baseImage = image;
-        }
-
-        public void addDecoration( String overlayImageName, int quadrant ) {
-            overlays.add( overlayImageName );
-            quadrants.add( quadrant );
-        }
-
-        protected void drawCompositeImage( int width, int height ) {
-            drawImage( baseImage.getImageData(), 0, 0 );
-            
-            for (int i=0; i<overlays.size(); i++) {
-                Image ovrImage = ProjectPlugin.getDefault().imageForName( overlays.get( i ) );
-                switch (quadrants.get( i )) {
-                    case TOP_RIGHT: 
-                        drawImage( ovrImage.getImageData(), 9, 0 ); 
-                        break;
-                    case TOP_LEFT: 
-                        drawImage( ovrImage.getImageData(), 0, 0 ); 
-                        break;
-                    case BOTTOM_LEFT: 
-                        drawImage( ovrImage.getImageData(), 0, 8 ); 
-                        break;
-                    case BOTTOM_RIGHT: 
-                        drawImage( ovrImage.getImageData(), 9, 8 ); 
-                        break;
-                    default:
-                        throw new IllegalArgumentException( "Unknown quadrant: " + quadrants.get( i ) );
-                }
-            }
-        }
-
-        protected Point getSize() {
-            return DEFAULT_SIZE;
-        }
-
-    }
+//    /*
+//     * 
+//     */
+//    static class DecoratedImageDescriptor
+//            extends CompositeImageDescriptor {
+//
+//        private Image                   baseImage;
+//        
+//        private List<String>            overlays = new ArrayList();
+//        
+//        private List<Integer>           quadrants = new ArrayList();
+//        
+//        
+//        public DecoratedImageDescriptor( String baseImageName ) {
+//            this.baseImage = ProjectPlugin.getDefault().imageForName( baseImageName );
+//        }
+//        
+//        public DecoratedImageDescriptor( Image image ) {
+//            this.baseImage = image;
+//        }
+//
+//        public void addDecoration( String overlayImageName, int quadrant ) {
+//            overlays.add( overlayImageName );
+//            quadrants.add( quadrant );
+//        }
+//
+//        protected void drawCompositeImage( int width, int height ) {
+//            drawImage( baseImage.getImageData(), 0, 0 );
+//            
+//            for (int i=0; i<overlays.size(); i++) {
+//                Image ovrImage = ProjectPlugin.getDefault().imageForName( overlays.get( i ) );
+//                switch (quadrants.get( i )) {
+//                    case TOP_RIGHT: 
+//                        drawImage( ovrImage.getImageData(), 9, 0 ); 
+//                        break;
+//                    case TOP_LEFT: 
+//                        drawImage( ovrImage.getImageData(), 0, 0 ); 
+//                        break;
+//                    case BOTTOM_LEFT: 
+//                        drawImage( ovrImage.getImageData(), 0, 8 ); 
+//                        break;
+//                    case BOTTOM_RIGHT: 
+//                        drawImage( ovrImage.getImageData(), 9, 8 ); 
+//                        break;
+//                    default:
+//                        throw new IllegalArgumentException( "Unknown quadrant: " + quadrants.get( i ) );
+//                }
+//            }
+//        }
+//
+//        protected Point getSize() {
+//            return DEFAULT_SIZE;
+//        }
+//
+//    }
 
 }

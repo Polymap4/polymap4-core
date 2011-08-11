@@ -56,7 +56,7 @@ import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.RenderStatus;
-import org.polymap.core.project.ui.LayerPropertySource;
+import org.polymap.core.project.ui.properties.LayerPropertySource;
 import org.polymap.core.style.IStyle;
 import org.polymap.core.style.IStyleCatalog;
 import org.polymap.core.style.StylePlugin;

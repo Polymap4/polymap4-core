@@ -57,7 +57,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.model.operations.SetPropertyOperation;
+import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.style.IStyle;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.styler.DispatchStyleChangeListener;

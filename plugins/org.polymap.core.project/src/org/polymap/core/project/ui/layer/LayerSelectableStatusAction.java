@@ -41,6 +41,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectPlugin;
+import org.polymap.core.project.operations.LayerSelectableOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -70,13 +71,11 @@ public class LayerSelectableStatusAction
         try {
             LayerSelectableOperation op = new LayerSelectableOperation( 
                     new ArrayList<ILayer>( layers ), _action.isChecked() );
-            OperationSupport.instance().execute( op, false, false );
+            OperationSupport.instance().execute( op, true, false );
         }
         catch (ExecutionException e) {
             PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "", e );
         }
-        
-        selectionChanged( _action, new StructuredSelection( layers ) );
     }
 
 

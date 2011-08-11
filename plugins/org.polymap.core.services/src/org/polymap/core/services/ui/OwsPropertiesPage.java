@@ -48,7 +48,7 @@ import org.eclipse.core.runtime.IAdaptable;
 
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.model.operations.SetPropertyOperation;
+import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.services.IProvidedService;
 import org.polymap.core.services.Messages;

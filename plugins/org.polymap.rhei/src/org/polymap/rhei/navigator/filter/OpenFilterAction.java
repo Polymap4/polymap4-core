@@ -27,7 +27,7 @@ import org.polymap.core.data.DataPlugin;
 import org.polymap.core.geohub.LayerFeatureSelectionOperation;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ui.layer.LayerSelectableOperation;
+import org.polymap.core.project.operations.LayerSelectableOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
 import org.polymap.rhei.RheiPlugin;

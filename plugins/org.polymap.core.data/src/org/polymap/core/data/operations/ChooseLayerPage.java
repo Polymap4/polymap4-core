@@ -13,7 +13,7 @@ import org.eclipse.jface.wizard.WizardPage;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.ProjectTreeViewer;
+import org.polymap.core.project.ui.project.ProjectTreeViewer;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.WeakListener;
 

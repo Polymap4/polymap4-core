@@ -80,7 +80,7 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.DefaultPartListener;
+import org.polymap.core.project.ui.PartListenerAdapter;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.WeakListener;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -187,7 +187,7 @@ public class GeoSelectionView
 
     private GeoSelectionListener    geoSelectionListener = new GeoSelectionListener();
 
-    private DefaultPartListener     partListener = new PartListener();
+    private PartListenerAdapter     partListener = new PartListener();
 
     private PropertyChangeListener  layerChangeListener = new LayerChangeListener();
 
@@ -546,7 +546,7 @@ public class GeoSelectionView
      *
      */
     protected class PartListener
-            extends DefaultPartListener {
+            extends PartListenerAdapter {
         public void partActivated( IWorkbenchPart part ) {
             log.debug( "partActivated: " + part );
 //            IEditorPart editor = getSite().getWorkbenchWindow().getActivePage().getActiveEditor();

@@ -41,7 +41,7 @@ import org.eclipse.ui.PlatformUI;
 import org.polymap.core.mapeditor.operations.SetLayerBoundsOperation;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ui.MapLayersView;
+import org.polymap.core.project.ui.layer.MapLayersView;
 
 /**
  * 

@@ -84,6 +84,8 @@ public abstract class UIJob
         super( name );
         this.display = Polymap.getSessionDisplay();
         assert display != null : "Unable to determine current session/display.";
+
+        setSystem( false );
     }
 
 
@@ -154,7 +156,6 @@ public abstract class UIJob
 //        if (progressDialog == null) {
 //            progressDialog = new ProgressDialog( dialogTitle, showRunInBackground );
 //        }
-        setSystem( false );
         setUser( true );
         return this;
     }

@@ -13,21 +13,65 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            category="org.polymap.core.project"
-            class="org.polymap.core.project.ui.ProjectView"
+            category="org.polymap.core.project.ViewCategory"
+            class="org.polymap.core.project.ui.project.ProjectView"
             icon="icons/eview16/project_view.gif"
             id="org.polymap.core.project.ProjectView"
             name="%views_maps"
             restorable="true">
       </view>
       <view
-            category="org.polymap.core.project"
-            class="org.polymap.core.project.ui.MapLayersView"
+            category="org.polymap.core.project.ViewCategory"
+            class="org.polymap.core.project.ui.layer.LayerNavigator"
             icon="icons/eview16/layer_view.gif"
-            id="org.polymap.core.project.MapLayersView"
+            id="org.polymap.core.project.LayerNavigator"
             name="%views_layers"
             restorable="true">
       </view>
+      <category
+            id="org.polymap.core.project.ViewCategory"
+            name="%views_category">
+      </category>
+   </extension>
+   <extension
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="org.polymap.core.project.LayerNavigatorContribution"
+            targetID="org.polymap.core.project.LayerNavigator">
+         <action
+               class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
+               enablesFor="1"
+               icon="icons/etool16/layer_editable.gif"
+               id="org.polymap.rhei.action3"
+               label="%actions_layerEditableStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_layerEditableStatusTip">
+         </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"
+               enablesFor="+"
+               icon="icons/etool16/layer_selectable.gif"
+               id="org.polymap.rhei.action2"
+               label="%actions_layerSelectableStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_layerSelectableStatusTip">
+         </action>
+         <action
+               class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
+               enablesFor="+"
+               icon="icons/elcl16/eye.png"
+               id="org.polymap.rhei.action1"
+               label="%actions_layerVisibleStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_layerVisibleStatusTip">
+         </action>
+      </viewContribution>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -42,9 +86,15 @@
          <viewShortcut
                id="org.polymap.core.project.ProjectView">
          </viewShortcut>
-         <actionSet
-               id="org.polymap.core.project.actionSet1">
-         </actionSet>
+         <view
+               id="org.polymap.core.project.LayerNavigator"
+               minimized="false"
+               relationship="stack"
+               visible="true">
+         </view>
+         <viewShortcut
+               id="org.polymap.core.project.LayerNavigator">
+         </viewShortcut>
       </perspectiveExtension>
    </extension>
    <extension
@@ -72,7 +122,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="org.polymap.core.project.actions.AddLayerFromCatalogHandler"
+            class="org.polymap.core.project.ui.AddLayerFromCatalogHandler"
             commandId="org.polymap.core.project.command.addLayerToMap">
       </handler>
    </extension>
@@ -112,7 +162,7 @@
       <wizard
             canFinishEarly="true"
             category="org.polymap.core.project.ui.newWizardCategory"
-            class="org.polymap.core.project.ui.NewMapWizard"
+            class="org.polymap.core.project.ui.project.NewMapWizard"
             descriptionImage="icons/wizban/newmap_wiz.gif"
             icon="icons/etool16/newmap_wiz.gif"
             id="org.polymap.core.project.ui.NewMapWizard"
@@ -129,7 +179,7 @@
             id="org.polymap.core.project.layerContribution"
             objectClass="org.polymap.core.project.ILayer">
          <action
-               class="org.polymap.core.project.actions.PropertiesAction"
+               class="org.polymap.core.project.ui.PropertiesAction"
                id="org.polymap.core.project.action.properties"
                label="%actions_properties"
                menubarPath="properties"
@@ -137,7 +187,7 @@
                tooltip="%actions_properties">
          </action>
          <action
-               class="org.polymap.core.project.actions.PropertyDialogAction"
+               class="org.polymap.core.project.ui.PropertyDialogAction"
                id="org.polymap.core.project.action.propertiesDialog"
                label="%actions_propertiesDialog"
                menubarPath="properties"
@@ -145,7 +195,7 @@
                tooltip="%actions_propertiesDialog">
          </action>
          <action
-               class="org.polymap.core.project.actions.RemoveLayerAction"
+               class="org.polymap.core.project.ui.layer.RemoveLayerAction"
                enablesFor="+"
                icon="icons/etool16/delete.gif"
                id="org.polymap.core.project.action.removeLayer"
@@ -189,7 +239,7 @@
             id="org.polymap.core.project.mapContribution"
             objectClass="org.polymap.core.project.IMap">
          <action
-               class="org.polymap.core.project.actions.PropertiesAction"
+               class="org.polymap.core.project.ui.PropertiesAction"
                id="org.polymap.core.project.action.properties"
                label="%actions_properties"
                menubarPath="properties"
@@ -197,7 +247,7 @@
                tooltip="%actions_properties">
          </action>
          <action
-               class="org.polymap.core.project.actions.PropertyDialogAction"
+               class="org.polymap.core.project.ui.PropertyDialogAction"
                id="org.polymap.core.project.action.mapPropertiesDialog"
                label="%actions_propertiesDialog"
                menubarPath="properties"
@@ -205,7 +255,7 @@
                tooltip="%actions_propertiesDialog">
          </action>
          <action
-               class="org.polymap.core.project.actions.RemoveMapAction"
+               class="org.polymap.core.project.ui.project.RemoveMapAction"
                enablesFor="+"
                icon="icons/etool16/delete.gif"
                id="org.polymap.core.project.action.removeMap"
@@ -301,11 +351,11 @@
    <extension
          point="net.refractions.udig.ui.dropAction">
       <action
-            class="org.polymap.core.project.actions.AddLayerToMapDropAction"
+            class="org.polymap.core.project.ui.dnd.AddLayerToMapDropAction"
             enablesFor="+"
             name="AddLayerToMapDropAction">
          <destination
-               class="org.polymap.core.project.ui.ProjectView">
+               class="org.polymap.core.project.ui.project.ProjectView">
          </destination>
          <acceptedType
                adapt="true"
@@ -318,14 +368,14 @@
                class="org.polymap.core.project.ILayer">
          </destination>
          <destination
-               class="org.polymap.core.project.ui.MapLayersView">
+               class="org.polymap.core.project.ui.layer.LayerNavigator">
          </destination>
       </action>
       <action
-            class="org.polymap.core.project.actions.SortLayerDropAction"
+            class="org.polymap.core.project.ui.dnd.LayerOrderDropAction"
             name="SortLayerDropAction">
          <destination
-               class="org.polymap.core.project.ui.MapLayersView">
+               class="org.polymap.core.project.ui.layer.LayerNavigator">
          </destination>
          <acceptedType
                class="org.polymap.core.project.ILayer">
@@ -334,6 +384,55 @@
                class="org.polymap.core.project.ILayer">
          </destination>
       </action>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.navigator.navigatorContent">
+      <navigatorContent
+            activeByDefault="true"
+            contentProvider="org.polymap.core.project.ui.layer.LayerContentProvider"
+            id="org.polymap.rhei.navigator.layerContent"
+            labelProvider="org.polymap.core.project.ui.layer.LayerLabelProvider"
+            name="%LayerNavigator_layerContent"
+            priority="highest">
+         <triggerPoints>
+            <or>
+               <instanceof
+                     value="org.polymap.core.project.ILayer">
+               </instanceof>
+               <instanceof
+                     value="org.polymap.core.project.IMap">
+               </instanceof>
+            </or>
+         </triggerPoints>
+         <actionProvider
+               class="org.polymap.core.project.ui.layer.LayerActionProvider">
+         </actionProvider>
+         <commonSorter
+               class="org.polymap.core.project.ui.layer.ZPriorityLayerSorter">
+         </commonSorter>
+      </navigatorContent>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.navigator.viewer">
+      <viewer
+            viewerId="org.polymap.core.project.LayerNavigator">
+      </viewer>
+      <viewerContentBinding
+            viewerId="org.polymap.core.project.LayerNavigator">
+         <includes>
+            <contentExtension
+                  pattern="org.polymap.core.project.*">
+            </contentExtension>
+         </includes>
+      </viewerContentBinding>
+      <viewerActionBinding
+            viewerId="org.polymap.core.project.LayerNavigator">
+         <includes>
+            <actionExtension
+                  pattern="org.polymap.core.project.*">
+            </actionExtension>
+         </includes>
+      </viewerActionBinding>
    </extension>
 
 </plugin>
