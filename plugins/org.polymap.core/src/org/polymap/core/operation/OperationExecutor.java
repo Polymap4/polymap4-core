@@ -16,6 +16,7 @@
 package org.polymap.core.operation;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -32,11 +33,13 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.polymap.core.runtime.Polymap;
 
 /**
+ * Implements chained execution of an operation and its concerns as provided by
+ * {@link IOperationConcernFactory}.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @since 3.1
  */
-public class OperationExecutor
+class OperationExecutor
         implements InvocationHandler, OperationInfo {
 
     private static Log log = LogFactory.getLog( OperationExecutor.class );
@@ -56,12 +59,21 @@ public class OperationExecutor
     private Display                     display;
     
     private int                         concernIndex = 0;
-    
+
+    private ReentrantLock               lock = new ReentrantLock();
+        
     
     protected OperationExecutor( IUndoableOperation op ) {
         super();
         this.op = op;
         this.concerns = IOperationConcernFactory.concernsForOperation( op, this );
+        
+        // check concerns
+        for (IUndoableOperation concern : concerns) {
+            if (!(concern instanceof OperationConcernAdapter)) {
+                throw new IllegalArgumentException( "Operation concern does not implement OperationConcernAdapter: " + concern );
+            }
+        }
 
         this.display = Polymap.getSessionDisplay();
         assert this.display != null;
@@ -81,14 +93,30 @@ public class OperationExecutor
     }
     
     
-    public synchronized Object invoke( Object proxy, Method method, Object[] args )
+    public Object invoke( Object proxy, Method method, Object[] args )
     throws Throwable {
-        try {
-            concernIndex = 0;
-            return method.invoke( next(), args );
+        if (method.getName().equals( "equals" )) {
+            return proxy == args[0];
         }
-        catch (InvocationTargetException e) {
-            throw e.getTargetException();
+        else if (method.getName().equals( "hashCode" )) {
+            return hashCode();
+        }
+        else {
+            try {
+                if (lock.isHeldByCurrentThread()) {
+                    throw new IllegalStateException( "Reentrant calls from operation and/or concerns into same operation are not allowed." );
+                }
+                lock.lockInterruptibly();
+                
+                concernIndex = 0;
+                return method.invoke( next(), args );
+            }
+            catch (InvocationTargetException e) {
+                throw e.getTargetException();
+            }
+            finally {
+                lock.unlock();
+            }
         }
     }
 

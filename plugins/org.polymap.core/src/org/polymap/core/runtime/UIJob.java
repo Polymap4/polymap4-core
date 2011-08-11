@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
@@ -150,9 +151,11 @@ public abstract class UIJob
      *        "showInBackground" button.
      */
     public UIJob setShowProgressDialog( String dialogTitle, boolean showRunInBackground ) {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog( dialogTitle, showRunInBackground );
-        }
+//        if (progressDialog == null) {
+//            progressDialog = new ProgressDialog( dialogTitle, showRunInBackground );
+//        }
+        setSystem( false );
+        setUser( true );
         return this;
     }
 
@@ -177,8 +180,8 @@ public abstract class UIJob
      */
     public boolean joinAndDispatch( long timeoutMillis ) {
         Display threadDisplay = Display.getCurrent();
-        assert threadDisplay != null : "joinWithDispatch() must be called from UIThread.";
-        assert threadDisplay == display;
+//        assert threadDisplay != null : "joinWithDispatch() must be called from UIThread.";
+//        assert threadDisplay == display;
 
         final AtomicBoolean done = new AtomicBoolean( false );
 
@@ -194,26 +197,94 @@ public abstract class UIJob
         final Timer timer = new Timer();
         while (!done.get() 
                 && timer.elapsedTime() < timeoutMillis
-                && !threadDisplay.isDisposed() ) {
+                && (threadDisplay == null || !threadDisplay.isDisposed()) ) {
 
             Thread.yield();
-            if (!threadDisplay.readAndDispatch()) {
-                // just waiting on done causes the UIThread to hang, so use
-                // timerExec and sleep
-                threadDisplay.timerExec( 250, new Runnable() {
-                    public void run() {
-                        // just wakeup thread                                
+            if (threadDisplay != null) {
+                if (!threadDisplay.readAndDispatch()) {
+                    // just waiting on done causes the UIThread to hang, so use
+                    // timerExec and sleep
+                    threadDisplay.timerExec( 250, new Runnable() {
+                        public void run() {
+                            // just wakeup thread                                
+                        }
+                    });
+                    threadDisplay.sleep();
+                }
+            }
+            else {
+                synchronized (done) {
+                    try {
+                        done.wait( 250 );
                     }
-                });
-                display.sleep();
+                    catch (InterruptedException e) {
+                    }
+                }
             }
         }
         return done.get();
     }
+
     
-    
-    /*
+    public final void addJobChangeListenerWithContext( final IJobChangeListener listener ) {
+        super.addJobChangeListener( new IJobChangeListener() {
+            
+            public void sleeping( final IJobChangeEvent event ) {
+                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                    public void run() {
+                        listener.sleeping( event );    
+                    }
+                });
+            }
+            
+            public void scheduled( final IJobChangeEvent event ) {
+                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                    public void run() {
+                        listener.scheduled( event );    
+                    }
+                });
+            }
+            
+            public void running( final IJobChangeEvent event ) {
+                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                    public void run() {
+                        listener.running( event );    
+                    }
+                });
+            }
+            
+            public void done( final IJobChangeEvent event ) {
+                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                    public void run() {
+                        listener.done( event );    
+                    }
+                });
+            }
+        
+            public void awake( final IJobChangeEvent event ) {
+                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                    public void run() {
+                        listener.awake( event );    
+                    }
+                });
+            }
+        
+            public void aboutToRun( final IJobChangeEvent event ) {
+                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                    public void run() {
+                        listener.aboutToRun( event );    
+                    }
+                });
+            }
+        });
+    }
+
+
+    /**
      * 
+     * @deprecated Seems that this was written by udig developers just for fun, since
+     *             setUser() provides this already. I found out to late and ported
+     *             the code... well... just for fun :(
      */
     class ProgressDialog
             extends ProgressMonitorDialog {

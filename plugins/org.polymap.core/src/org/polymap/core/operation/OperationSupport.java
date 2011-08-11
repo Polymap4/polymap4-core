@@ -23,19 +23,10 @@
 package org.polymap.core.operation;
 
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import net.refractions.udig.ui.OffThreadProgressMonitor;
-import net.refractions.udig.ui.PlatformJobs;
-
-import org.eclipse.swt.widgets.Display;
-
 import org.eclipse.rwt.SessionSingletonBase;
-
-import org.eclipse.jface.operation.IRunnableWithProgress;
 
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
@@ -49,6 +40,11 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
+
+import org.polymap.core.Messages;
+import org.polymap.core.runtime.UIJob;
 
 
 /**
@@ -118,6 +114,14 @@ public class OperationSupport
     }
 
 
+    public boolean canUndo() {
+        return history.canUndo( context );
+    }
+    
+    public boolean canRedo() {
+        return history.canRedo( context );
+    }
+    
     /**
      * Get the operation that will next be undone in the given undo context.
      * 
@@ -148,46 +152,6 @@ public class OperationSupport
         return history;
     }
 
-    public void undo()
-    throws ExecutionException {
-        final IUndoableOperation op = getUndoOperation();
-        assert op != null && op.canUndo();
-        
-        IRunnableWithProgress runnable = new IRunnableWithProgress(){
-            public void run( IProgressMonitor _monitor ) 
-            throws InvocationTargetException {
-                try {
-                    _monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
-                    history.undo( context, _monitor, null );
-                } 
-                catch (Exception e) {
-                    throw new InvocationTargetException( e );
-                }
-            }
-        };
-        doExecute( runnable, op.getLabel(), true, true );
-    }
-    
-    public void redo()
-    throws ExecutionException {
-        final IUndoableOperation op = getRedoOperation();
-        assert op != null && op.canRedo();
-        
-        IRunnableWithProgress runnable = new IRunnableWithProgress(){
-            public void run( IProgressMonitor _monitor ) 
-            throws InvocationTargetException {
-                try {
-                    _monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
-                    history.redo( context, _monitor, null );
-                } 
-                catch (Exception e) {
-                    throw new InvocationTargetException( e );
-                }
-            }
-        };
-        doExecute( runnable, op.getLabel(), true, true );
-    }
-    
     public void addOperationHistoryListener( IOperationHistoryListener l ) {
         history.addOperationHistoryListener( l );
     }
@@ -196,93 +160,131 @@ public class OperationSupport
         history.removeOperationHistoryListener( l );
     }
 
-
+    
+    public void undo()
+    throws ExecutionException {
+        IUndoableOperation op = getUndoOperation();
+        assert op != null && op.canUndo();
+        
+        OperationJob job = new OperationJob( op ) {
+            protected void run() throws Exception {
+                monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                history.undo( context, monitor, null );
+            }
+        };
+        run( job, true, true );
+    }
+    
+    
+    public void redo()
+    throws ExecutionException {
+        IUndoableOperation op = getRedoOperation();
+        assert op != null && op.canRedo();
+        
+        OperationJob job = new OperationJob( op ) {
+            protected void run() throws Exception {
+                monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                history.redo( context, monitor, null );
+            }
+        };
+        run( job, true, true );
+    }
+    
+    
     /**
-     * Example operation:
-     * <pre>
-     * try {
-     *     OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor );
-     *     JobMonitors.set( monitor );
+     * Executes the given operation inside a {@link UIJob job}.
      * 
-     *     monitor.subTask( getLabel() );
-     *     ... do it ...
-     *     monitor.worked( 1 );
-     * }
-     * catch (Exception e) {
-     *     throw new ExecutionException( &quot;Failure obtaining bounds&quot;, e );
-     * }
-     * finally {
-     *     JobMonitors.remove();
-     * }
-     * return Status.OK_STATUS;
-     * </pre>
-
      * @param op
-     * @param async
+     * @param async Indicates that the calling thread should not block execution and
+     *        return imediatelly.
      * @param progress Indicates the the operation is executed inside a progress
      *        dialog.
      * @throws ExecutionException
      */
-    public void execute( final IUndoableOperation op, boolean async, boolean progress )
-            throws ExecutionException {
-
-        IRunnableWithProgress runnable = new IRunnableWithProgress(){
-            public void run( IProgressMonitor _monitor ) 
-            throws InvocationTargetException {
-                try {
-                    _monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+    public void execute( final IUndoableOperation op, boolean async, boolean progress, IJobChangeListener... listeners )
+    throws ExecutionException {
+        UIJob job = UIJob.forThread();
+        
+        // nested operation
+        if (job != null && job instanceof OperationJob) {
+            throw new RuntimeException( "Nested operations are not yet supported." );
+//            IUndoableOperation parentOp = ((OperationJob)job).op;
+//            
+//            SubProgressMonitor subMonitor = new SubProgressMonitor( ((OperationJob)job).monitor, IProgressMonitor.UNKNOWN );
+//            subMonitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+//            
+//            OperationExecutor executor = OperationExecutor.newInstance( op );
+//            IUndoableOperation executorOp = executor.getOperation();
+//            executorOp.addContext( context );
+//            
+//            history.execute( executorOp, subMonitor, executor.getInfo() );
+        }
+        
+        // start job
+        else {
+            job = new OperationJob( op ) {
+                protected void run() throws Exception {
+                    // try to preset task name without beginTask()
+                    monitor.setTaskName( op.getLabel() );
+                    
                     OperationExecutor executor = OperationExecutor.newInstance( op );
                     IUndoableOperation executorOp = executor.getOperation();
                     executorOp.addContext( context );
-                    history.execute( executorOp, _monitor, executor.getInfo() );
-                } 
-                catch (Exception e) {
-                    throw new InvocationTargetException( e );
+                    
+                    history.execute( executorOp, monitor, executor.getInfo() );
                 }
+            };
+            for (IJobChangeListener l : listeners) {
+                job.addJobChangeListenerWithContext( l );
             }
-        };
-        doExecute( runnable, op.getLabel(), async, progress );
-    }
-
-
-    protected void doExecute( IRunnableWithProgress runnable, String label, boolean async, boolean progress )
-            throws ExecutionException {
-        try {
-            // run in new job
-            if (Display.getCurrent() != null) {
-                if (progress) {
-                    PlatformJobs.runInProgressDialog( label, true, runnable, async );
-                }
-                else if (async) {
-                    PlatformJobs.run( runnable, null, label );
-                }
-                else {
-                    PlatformJobs.runSync( runnable, null );
-                }
-            }
-            // non-UI thread (job)
-            else {
-                OffThreadProgressMonitor monitor = JobMonitors.get();
-                // XXX ignoring the async flag assuming that we are in a job
-                // already
-                runnable.run( monitor );
-            }
-        }
-        catch (InvocationTargetException e) {
-            Throwable ee = e.getTargetException();
-            if (ee instanceof ExecutionException) {
-                throw (ExecutionException)ee;
-            }
-            else {
-                throw new ExecutionException( e.getMessage(), ee );
-            }
-        }
-        catch (InterruptedException e) {
-            throw new ExecutionException( "Ausführung der Operation wurde unterbrochen.", e );
+            run( (OperationJob)job, async, progress );
         }
     }
 
 
+    protected void run( OperationJob job, boolean async, boolean progress )
+    throws ExecutionException {
+        if (progress) {
+            job.setShowProgressDialog( null, true );
+        }
+        
+        job.schedule();
+        
+        if (!async) {
+            job.joinAndDispatch( 3 * 60 * 1000 );
+        }
+    }
+
+    
+    /*
+     * 
+     */
+    abstract class OperationJob
+            extends UIJob {
+    
+        protected IUndoableOperation        op;
+
+        protected IProgressMonitor          monitor;
+        
+        
+        public OperationJob( IUndoableOperation op ) {
+            super( op.getLabel() );
+            this.op = op;
+        }
+
+        @SuppressWarnings("hiding")
+        protected void runWithException( IProgressMonitor monitor )
+        throws Exception {
+            this.monitor = monitor;
+            run();
+        }
+
+        protected abstract void run()
+        throws Exception;
+        
+    }
+
+    
     // save / revert **************************************
     
     public void addOperationSaveListener( IOperationSaveListener listener ) {
@@ -302,29 +304,63 @@ public class OperationSupport
      */
     public void saveChanges()
     throws Exception {
-        Object[] listeners = saveListeners.getListeners();
-        try {
-            // prepare
-            for (Object listener : listeners) {
-                ((IOperationSaveListener)listener).prepareSave( this );
+        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
+            
+            protected void runWithException( IProgressMonitor monitor )
+            throws Exception {
+            
+                Object[] listeners = saveListeners.getListeners();
+
+                monitor.beginTask( getName(), listeners.length * 11 );
+                try {
+                    // prepare
+                    for (Object listener : listeners) {
+                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Preparing" );
+                        ((IOperationSaveListener)listener).prepareSave( OperationSupport.this, subMon );
+                        if (monitor.isCanceled()) {
+                            throw new OperationCanceledException( "Operation wurde abgebrochen." );
+                        }
+                        subMon.done();
+                    }
+                    // commit
+                    for (Object listener : listeners) {
+                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Committing" );
+                        ((IOperationSaveListener)listener).save( OperationSupport.this, subMon );
+                        subMon.done();
+                    }
+                    history.dispose( context, true, true, false );
+                }
+                catch (Throwable e) {
+                    // rollback
+                    for (Object listener : listeners) {
+                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Rolling back" );
+                        ((IOperationSaveListener)listener).rollback( OperationSupport.this, subMon );
+                        subMon.done();
+                    }
+                    if (e instanceof Exception) {
+                        throw (Exception)e;
+                    }
+                    else if (e instanceof Error) {
+                        throw (Error)e;
+                    }
+                }
             }
-            // commit
-            for (Object listener : listeners) {
-                ((IOperationSaveListener)listener).save( this );
-            }
-            history.dispose( context, true, true, false );
+        };
+
+        job.setShowProgressDialog( null, true );
+        job.schedule();
+        
+        job.joinAndDispatch( Long.MAX_VALUE );
+        
+        Throwable e = job.getResult().getException();
+        if (e == null) {
+            return;
         }
-        catch (Throwable e) {
-            // rollback
-            for (Object listener : listeners) {
-                ((IOperationSaveListener)listener).rollback( this );
-            }
-            if (e instanceof Exception) {
-                throw (Exception)e;
-            }
-            else if (e instanceof Error) {
-                throw (Error)e;
-            }
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException)e;
+        }
+        else {
+            throw (Exception)e;
         }
     }
 
@@ -334,11 +370,45 @@ public class OperationSupport
      * Afterwards the history of operations is disposed.
      */
     public void revertChanges() {
-        Object[] listeners = saveListeners.getListeners();
-        for (Object listener : listeners) {
-            ((IOperationSaveListener)listener).revert( this );
-        }        
-        history.dispose( context, true, true, true );
+        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
+            
+            protected void runWithException( IProgressMonitor monitor )
+            throws Exception {
+            
+                monitor.beginTask( getName(), saveListeners.size() * 10 );
+
+                Object[] listeners = saveListeners.getListeners();
+                for (Object listener : listeners) {
+                    SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Revert" );
+                    ((IOperationSaveListener)listener).revert( OperationSupport.this, subMon );
+                    subMon.done();
+                }        
+                history.dispose( context, true, true, true );
+            }
+        };
+
+        job.setShowProgressDialog( null, true );
+        job.schedule();
     }
 
+    
+    /*
+     * 
+     */
+    class SubProgressMonitor
+            extends org.eclipse.core.runtime.SubProgressMonitor {
+
+        private String          taskPrefix;
+        
+        public SubProgressMonitor( IProgressMonitor monitor, int ticks, String taskPrefix ) {
+            super( monitor, ticks, PREPEND_MAIN_LABEL_TO_SUBTASK );
+            this.taskPrefix = taskPrefix;
+        }
+
+        public void beginTask( String name, int totalWork ) {
+            super.beginTask( taskPrefix + " : " + name, totalWork );
+        }
+
+    }
+    
 }

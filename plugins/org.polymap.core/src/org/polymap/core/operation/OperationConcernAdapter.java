@@ -23,9 +23,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
 /**
+ * Base class of all operation concern implementations. Provides a default
+ * implementation of all operation methods that delegates the call to the next
+ * concern in the chain.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * qsince 3.1
  */
 public abstract class OperationConcernAdapter
         implements IUndoableOperation {

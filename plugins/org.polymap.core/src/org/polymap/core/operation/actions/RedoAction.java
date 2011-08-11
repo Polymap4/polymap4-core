@@ -37,6 +37,7 @@ import org.eclipse.core.commands.operations.OperationHistoryEvent;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -78,18 +79,22 @@ public class RedoAction
 
     public void historyNotification( OperationHistoryEvent ev ) {
         //log.info( "History changed: ev= " + ev );
-        IUndoableOperation op = operationSupport.getRedoOperation();
-        enabled = op != null && op.canRedo();
-        if (action != null) {
-            action.setEnabled( enabled );
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                IUndoableOperation op = operationSupport.getRedoOperation();
+                enabled = op != null && op.canRedo();
+                if (action != null) {
+                    action.setEnabled( enabled );
 
-            action.setToolTipText( enabled
-                    ? actionTooltip + " " + op.getLabel() 
-                    : actionTooltip );
-            action.setText( enabled
-                    ? actionText + " " + op.getLabel() 
-                    : actionText );
-        }
+                    action.setToolTipText( enabled
+                            ? actionTooltip + " " + op.getLabel() 
+                                    : actionTooltip );
+                    action.setText( enabled
+                            ? actionText + " " + op.getLabel() 
+                                    : actionText );
+                }
+            }
+        });
     }
 
 

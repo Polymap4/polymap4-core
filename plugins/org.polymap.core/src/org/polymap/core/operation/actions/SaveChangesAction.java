@@ -92,7 +92,6 @@ public class SaveChangesAction
             operationSupport.saveChanges();
         }
         catch (Throwable e) {
-            // XXX extra handle concurrent modification
             PolymapWorkbench.handleError( CorePlugin.ID, this, e.getLocalizedMessage(), e );
         }
     }

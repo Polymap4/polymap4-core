@@ -16,6 +16,8 @@ package org.polymap.core.operation;
 
 import java.util.EventListener;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 /**
  * Implement this interface to get notified when the stack of operations should be
  * saved or discarded. Listeners are registered with the {@link OperationSupport}.
@@ -34,7 +36,7 @@ public interface IOperationSaveListener
      * @param os
      * @throws Exception
      */
-    public void prepareSave( OperationSupport os )
+    public void prepareSave( OperationSupport os, IProgressMonitor monitor )
     throws Exception;
     
     /**
@@ -42,7 +44,7 @@ public interface IOperationSaveListener
      * 
      * @param os
      */
-    public void save( OperationSupport os );
+    public void save( OperationSupport os, IProgressMonitor monitor );
 
 
     /**
@@ -51,9 +53,9 @@ public interface IOperationSaveListener
      * 
      * @param os
      */
-    public void rollback( OperationSupport os );
+    public void rollback( OperationSupport os, IProgressMonitor monitor );
     
     
-    public void revert( OperationSupport os );
+    public void revert( OperationSupport os, IProgressMonitor monitor );
     
 }

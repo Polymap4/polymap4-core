@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.operation.actions;
 
@@ -37,13 +29,13 @@ import org.eclipse.core.commands.operations.OperationHistoryEvent;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class UndoAction
@@ -53,7 +45,7 @@ public class UndoAction
 
     private boolean                 enabled = false;
     
-    /** The action we are working for. Can I just store this and use in modelChanged() ? */
+    /** The action we are working for. */
     private IAction                 action;
     
     /** The original tooltip text of the {@link #action}. */
@@ -78,19 +70,24 @@ public class UndoAction
 
 
     public void historyNotification( OperationHistoryEvent ev ) {
-        //log.info( "History changed: ev= " + ev );
-        IUndoableOperation op = operationSupport.getUndoOperation();
-        enabled = op != null && op.canUndo();
-        if (action != null) {
-            action.setEnabled( enabled );
+        log.info( "History changed: " + ev.getOperation().getLabel() + ", type=" + ev.getEventType() );
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                IUndoableOperation op = operationSupport.getUndoOperation();
+                enabled = operationSupport.canUndo();
+                
+                if (action != null) {
+                    action.setEnabled( enabled );
 
-            action.setToolTipText( enabled
-                    ? actionTooltip + " " + op.getLabel() 
-                    : actionTooltip );
-            action.setText( enabled
-                    ? actionText + " " + op.getLabel() 
-                    : actionText );
-        }
+                    action.setToolTipText( enabled
+                            ? actionTooltip + " " + op.getLabel() 
+                            : actionTooltip );
+                    action.setText( enabled
+                            ? actionText + " " + op.getLabel() 
+                            : actionText );
+                }
+            }
+        });
     }
 
 

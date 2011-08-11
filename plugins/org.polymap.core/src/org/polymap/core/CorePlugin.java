@@ -89,13 +89,11 @@ public class CorePlugin
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
 
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.services.geoserver", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
@@ -109,11 +107,15 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.anta2", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.eclipse.rwt.widgets.codemirror", "debug" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.edit", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.operations", "debug" );
+
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
+
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
 	}
 
 

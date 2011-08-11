@@ -30,6 +30,8 @@ import org.apache.commons.logging.LogFactory;
  * A weak listener reference can be used whereever the listener interface is directly
  * implemented by the caller or if the listener is implemented by an inner class and the
  * instance is a member of the caller.
+ * <p/>
+ * The generated proxy always implements {@link ListenerReference}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -44,6 +46,8 @@ public class WeakListener
      * delegate. But it holds just a {@link WeakReference} to the delegate, so that the
      * reference in the {@link ListenerList} does not prevent the listener from being
      * reclaimed by the GC.
+     * <p/>
+     * The returned proxy always implements {@link ListenerReference}.
      * 
      * @param delegate
      * @return A proxy that implements all interfaces from the delegate.
@@ -99,5 +103,5 @@ public class WeakListener
             return method.invoke( delegate, args );
         }
     }
-    
+
 }
