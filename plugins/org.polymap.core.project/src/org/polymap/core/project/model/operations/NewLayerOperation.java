@@ -90,10 +90,6 @@ public interface NewLayerOperation
 
         private static Log log = LogFactory.getLog( Mixin.class );
         
-//        private static int idCounter = 0;
-//
-//        private int                 id = idCounter++;
-        
         private IMap                map;
 
         private IGeoResource        geores;
@@ -106,29 +102,19 @@ public interface NewLayerOperation
         public void init( IMap _map, IGeoResource _geores ) {
             this.map = _map;
             this.geores = _geores;
-            setLabel( '"' + geores.getTitle() + "\" anlegen" );
+            setLabel( Messages.get( "NewLayerOperation_title", geores.getTitle() ) );
         }
 
         
         public void dispose() {
-            log.info( "dispose(): ..." );
             super.dispose();
         }
 
         
-//        public boolean equals( Object obj ) {
-//            log.debug( "equals(): obj= " + obj.getClass().getName() );
-//            return (obj instanceof NewLayerOperation) ? id == obj.hashCode() : false;
-//        }
-//
-//        public int hashCode() {
-//            return id;
-//        }
-
-
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
+                monitor.beginTask( getLabel(), 5 );
                 ProjectRepository repo = ProjectRepository.instance();
                 final ILayer layer = repo.newEntity( ILayer.class, null );
                 
@@ -153,7 +139,7 @@ public interface NewLayerOperation
                 
                 // check layer CRS
                 try {
-                    monitor.subTask( "checking source CRS..." );
+                    monitor.subTask( Messages.get( "NewLayerOperation_checkingCRS" ) );
 //                    String crsCode = geores.getInfo( monitor ).getCRS().getName().getCode();
 //                    layerClass.getAttribute( "crsCode", true ).set( layer, crsCode );
                     layer.setCRS( geores.getInfo( monitor).getCRS() );
@@ -164,7 +150,7 @@ public interface NewLayerOperation
                         public void run() {
                             Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
                             CRSChooserDialog dialog = new CRSChooserDialog( shell, map.getCRS(),
-                                    Messages.get( "NewLayerOperation_noCRS" ));
+                                    Messages.get( "NewLayerOperation_noCRS" ) );
 //                            InputDialog dialog = new InputDialog( shell, "Layer CRS", 
 //                                    Messages.get( "NewLayerOperation_noCRS" ), "EPSG:4326",
 //                                    new IInputValidator() {
@@ -190,18 +176,21 @@ public interface NewLayerOperation
                         }
                     });
                 }
+                monitor.worked( 1 );
 
                 // transformed layerBBox
                 ReferencedEnvelope layerBBox = SetLayerBoundsOperation.Helper.obtainBoundsFromResources( layer, map.getCRS(), monitor );
                 if (layerBBox != null && !layerBBox.isNull()) {
-                    monitor.subTask( "transforming bounds..." );
+                    monitor.subTask( Messages.get( "NewLayerOperation_transforming" ) );
                     if (!layerBBox.getCoordinateReferenceSystem().equals( map.getCRS() )) {
                         layerBBox = layerBBox.transform( map.getCRS(), true );
                     }
                     log.debug( "transformed: " + layerBBox );
                     monitor.worked( 1 );
                 }
+                
                 // no max extent -> set 
+                monitor.subTask( Messages.get( "NewLayerOperation_checkingMaxExtent" ) );
                 if (map.getMaxExtent() == null) {
                     if (layerBBox != null && !layerBBox.isNull()) {
                         log.info( "### Map: maxExtent= " + layerBBox );
@@ -233,8 +222,8 @@ public interface NewLayerOperation
                             public void run() {
                                 Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
                                 MessageBox box = new MessageBox( shell, SWT.YES | SWT.NO );
-                                box.setText( "Layer bounding box." );
-                                box.setMessage( "Layer is outside the current map max extent.\nExpanding map max extent?" );
+                                box.setText( Messages.get( "NewLayerOperation_BBoxDialog_title" ) );
+                                box.setMessage( Messages.get( "NewLayerOperation_BBoxDialog_msg" ) );
                                 int answer = box.open();
                                 if (answer == SWT.YES) {
                                     map.setMaxExtent( newMaxExtent );
@@ -244,6 +233,7 @@ public interface NewLayerOperation
                         
                     }
                 }
+                monitor.worked( 1 );
             }
             catch (Throwable e) {
                 throw new ExecutionException( e.getMessage(), e );

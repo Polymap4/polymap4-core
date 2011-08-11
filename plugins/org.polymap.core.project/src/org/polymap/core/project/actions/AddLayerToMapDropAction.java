@@ -156,7 +156,7 @@ public class AddLayerToMapDropAction
             NewLayerOperation op = ProjectRepository.instance().newOperation( NewLayerOperation.class ); 
             op.init( map, geores ); 
             // XXX JobMonitors?
-            OperationSupport.instance().execute( op, false, false );
+            OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
             PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );

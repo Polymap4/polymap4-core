@@ -24,6 +24,8 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -93,7 +95,12 @@ public class LayerEditableStatusAction
 
     public void selectionChanged( IAction _action, ISelection _sel ) {
         for (ILayer layer : layers) {
-            layer.removePropertyChangeListener( this );            
+            try {
+                layer.removePropertyChangeListener( this );
+            }
+            catch (NoSuchEntityException e) {
+                // layer might have been removed
+            }            
         }
         layers.clear();
         action = _action;

@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.Messages;
 
@@ -53,11 +52,8 @@ public class LayerSelectableOperation
     private boolean                     selectable;
     
 
-    /**
-     * 
-     */
     public LayerSelectableOperation( List<ILayer> layers, boolean selectable ) {
-        super( Messages.get( "LayerSelectableOperation_labelPrefix" ) + layers.iterator().next().getLabel() );
+        super( Messages.get( "LayerSelectableOperation_label", layers.iterator().next().getLabel() ) );
         this.layers = layers;
         this.selectable = selectable;
     }
@@ -71,23 +67,15 @@ public class LayerSelectableOperation
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
         try {
-//            Display display = Polymap.getSessionDisplay();
-//            log.debug( "### Display: " + display );
-//            OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor );
-//            JobMonitors.set( monitor );
-            monitor.subTask( getLabel() );
-            
+            monitor.beginTask( getLabel(), 1 );            
             // do all work in the domain listeners
             for (ILayer layer : layers) {
                 layer.setSelectable( selectable );
             }
-            monitor.worked( 1 );
+            monitor.done();
         }
         catch (Exception e) {
             throw new ExecutionException( "Failure...", e );
-        }
-        finally {
-            JobMonitors.remove();
         }
         return Status.OK_STATUS;
     }
@@ -98,9 +86,11 @@ public class LayerSelectableOperation
     }
 
     public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
+        monitor.beginTask( getLabel(), 1 );            
         for (ILayer layer : layers) {
             layer.setSelectable( !selectable );
         }
+        monitor.done();
         return Status.OK_STATUS;
     }
 
@@ -110,9 +100,11 @@ public class LayerSelectableOperation
 
     public IStatus redo( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
+        monitor.beginTask( getLabel(), 1 );            
         for (ILayer layer : layers) {
             layer.setSelectable( selectable );
         }
+        monitor.done();
         return Status.OK_STATUS;
     }
 

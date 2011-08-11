@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.Messages;
 
@@ -54,7 +53,7 @@ public class LayerEditableOperation
     
 
     public LayerEditableOperation( List<ILayer> layers, boolean selectable ) {
-        super( Messages.get( "LayerEditableableOperation_labelPrefix" ) + layers.iterator().next().getLabel() );
+        super( Messages.get( "LayerEditableOperation_label", layers.iterator().next().getLabel() ) );
         this.layers = layers;
         this.editable = selectable;
     }
@@ -72,7 +71,7 @@ public class LayerEditableOperation
 //            log.debug( "### Display: " + display );
 //            OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor );
 //            JobMonitors.set( monitor );
-            monitor.subTask( getLabel() );
+//            monitor.subTask( getLabel() );
             
             // do all work in the domain listeners
             for (ILayer layer : layers) {
@@ -82,9 +81,6 @@ public class LayerEditableOperation
         }
         catch (Exception e) {
             throw new ExecutionException( "Error...", e );
-        }
-        finally {
-            JobMonitors.remove();
         }
         return Status.OK_STATUS;
     }

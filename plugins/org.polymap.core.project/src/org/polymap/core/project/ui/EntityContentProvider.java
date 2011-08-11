@@ -84,7 +84,6 @@ public abstract class EntityContentProvider
 
 
     public void modelChanged( ModelChangeEvent ev ) {
-        log.info( "..." );
         // XXX check if and which of our entities are affected
         childrenMap.clear();
         

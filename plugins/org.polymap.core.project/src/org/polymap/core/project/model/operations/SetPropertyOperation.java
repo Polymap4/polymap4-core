@@ -95,7 +95,7 @@ public interface SetPropertyOperation
             this.obj = _obj;
             this.propName = _propName;
             this.newValue = _newValue;
-            setLabel( '"' + propName + "\" ändern" );
+            setLabel( "Eigenschaft ändern: " + _newValue.toString() );
         }
 
 //        public final IStatus execute( IProgressMonitor monitor, IAdaptable info )
@@ -140,6 +140,12 @@ public interface SetPropertyOperation
                 }
             }
             return Status.OK_STATUS;
+        }
+
+
+        public boolean canUndo() {
+            // use implementation from AbstractModelChangeOperation
+            return true;
         }
 
     }

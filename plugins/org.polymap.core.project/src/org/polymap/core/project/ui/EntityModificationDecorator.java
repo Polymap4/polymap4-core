@@ -72,7 +72,7 @@ public class EntityModificationDecorator
 
     private ProjectRepository           module;
     
-    private Map<String,ModelChangeSupport>   decorated = new HashMap();
+    private Map<String,ModelChangeSupport> decorated = new HashMap();
 
     private Display                     display;
     
@@ -95,13 +95,16 @@ public class EntityModificationDecorator
     }
 
     public void dispose() {
-        super.dispose();
-        decorated.clear();
-        
         if (module != null) {
-            module.removeModelChangeListener( this );
-            module.removeGlobalModelChangeListener( this );
-            module = null;
+            try {
+                super.dispose();
+                decorated = null;
+                module.removeModelChangeListener( this );
+                module.removeGlobalModelChangeListener( this );
+            }
+            finally {
+                module = null;
+            }
         }
     }
 
@@ -148,7 +151,7 @@ public class EntityModificationDecorator
             runnable.run();
         }
         else {
-            Polymap.getSessionDisplay().syncExec( runnable );
+            Polymap.getSessionDisplay().asyncExec( runnable );
         }
     }
     

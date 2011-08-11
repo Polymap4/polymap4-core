@@ -237,7 +237,7 @@ public class LayerStatusDecorator
                 runnable.run();
             }
             else {
-                Polymap.getSessionDisplay().syncExec( runnable );
+                Polymap.getSessionDisplay().asyncExec( runnable );
             }
         }
     }

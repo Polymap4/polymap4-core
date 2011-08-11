@@ -23,11 +23,9 @@
 
 package org.polymap.core.project;
 
-import java.util.ResourceBundle;
-
-import org.apache.commons.lang.StringUtils;
-
 import org.eclipse.rwt.RWT;
+
+import org.polymap.core.runtime.MessagesImpl;
 
 /**
  * The messages of the <code>org.polymap.core.project</code> plugin.
@@ -39,55 +37,20 @@ public class Messages {
 
     private static final String BUNDLE_NAME = ProjectPlugin.PLUGIN_ID + ".messages"; //$NON-NLS-1$
 
-    private static final String SEP = "_";
+    private static final MessagesImpl   instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
 
     private Messages() {
         // prevent instantiation
     }
 
-
-    public static String get( String key ) {
-        try {
-            ClassLoader cl = Messages.class.getClassLoader();
-            // getBundle() caches the bundles
-            ResourceBundle bundle = ResourceBundle.getBundle( BUNDLE_NAME, RWT.getLocale(), cl );
-            return bundle.getString( key );
-        }
-        catch (Exception e) {
-            return StringUtils.substringAfterLast( key, "_" );
-        }
-    }
-    
-
-    public static String get( Class cl, String _key ) {
-        StringBuffer key = new StringBuffer( 64 );
-        key.append( StringUtils.substringAfterLast( cl.getName(), "." ) ) 
-                .append( SEP )
-                .append( _key );
-        return get( key.toString() );
+    public static String get( String key, Object... args ) {
+        return instance.get( key, args );
     }
 
-
-//    public static String getForClass( String keySuffix ) {
-//        
-//        Exception e = new Exception();
-//        e.fillInStackTrace();
-//        StackTraceElement[] trace = e.getStackTrace();
-//        StackTraceElement elm = trace[trace.length-1];
-//        
-//        StringBuffer key = new StringBuffer( 64 );
-//        key.append( StringUtils.substringAfterLast( elm.getClassName(), "." ) ) 
-//                .append( "_" )
-//                .append( key );
-//        
-//        ClassLoader cl = Messages.class.getClassLoader();
-//        // getBundle() caches the bundles
-//        ResourceBundle bundle =
-//                ResourceBundle.getBundle( BUNDLE_NAME, RWT.getLocale(), cl );
-//        return bundle.getString( key.toString() );
-//    }
-    
+    public static String get2( Object caller, String key, Object... args ) {
+        return instance.get( caller, key, args );
+    }
     
     public static Messages get() {
         Class clazz = Messages.class;
