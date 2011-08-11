@@ -41,10 +41,14 @@ import org.eclipse.jface.action.IAction;
 
 import org.eclipse.ui.IEditorActionDelegate;
 
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
@@ -120,11 +124,18 @@ public class ModifyFeatureEditorAction
             String property = fs.getSchema().getGeometryDescriptor().getLocalName();
             ModifyFeaturesOperation op = new ModifyFeaturesOperation( support.layer,
                     fs, feature.getID(), property, feature.getDefaultGeometry() );
-            OperationSupport.instance().execute( op, false, false );
             
-            // redraw map layer
-            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
-            olayer.redraw( true );
+            OperationSupport.instance().execute( op, true, false, new JobChangeAdapter() {
+                public void done( IJobChangeEvent event ) {
+                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                        public void run() {
+                            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
+                            olayer.redraw( true );
+                        }
+                    });
+                }
+            });
+            
         }
         catch (Throwable e) {
             log.warn( "", e );

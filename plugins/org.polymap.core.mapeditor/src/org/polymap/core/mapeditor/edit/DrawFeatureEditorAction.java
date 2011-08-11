@@ -126,7 +126,7 @@ public class DrawFeatureEditorAction
         
         try {
             NewFeatureOperation op = new NewFeatureOperation( support.layer, null, payload.get( "features" ) );
-            OperationSupport.instance().execute( op, false, false );
+            OperationSupport.instance().execute( op, true, false );
             
 //            // redraw map layer
 //            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
