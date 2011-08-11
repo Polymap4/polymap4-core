@@ -44,6 +44,9 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.geohub.LayerFeatureSelectionOperation;
 import org.polymap.core.mapeditor.IMapEditorSupport;
@@ -360,10 +363,12 @@ class SelectFeatureSupport
                 // change feature selection
                 LayerFeatureSelectionOperation op = new LayerFeatureSelectionOperation();
                 op.init( layer, filter, null, this );
-                OperationSupport.instance().execute( op, false, false );
-//                fsm.changeSelection( filter, null, this );
+                OperationSupport.instance().execute( op, true, false, new JobChangeAdapter() {
+                    public void done( IJobChangeEvent event ) {
+                        selectFeatures( fsm.getFeatureCollection() );
+                    }
+                });
                 
-                selectFeatures( fsm.getFeatureCollection() );
             }
             catch (final Exception e) {
                 log.warn( e.getLocalizedMessage(), e );

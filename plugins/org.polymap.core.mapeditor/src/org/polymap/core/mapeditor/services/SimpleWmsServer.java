@@ -66,12 +66,10 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.mapeditor.MapEditor;
-import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.services.http.WmsService;
-import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Provides a very simple WMS server to be used by the {@link MapEditor}. It
@@ -156,9 +154,9 @@ public class SimpleWmsServer
             // process
             final ServletOutputStream out = response.getOutputStream();
             
+            final Exception[] exception = new Exception[1];
             UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
                 public void run() {
-
                     try {
                         pipeline.process( pr, new ResponseHandler() {
                             public void handle( ProcessorResponse pipeResponse )
@@ -170,19 +168,27 @@ public class SimpleWmsServer
                         });
                     }
                     catch (Exception e) {
-                        PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, SimpleWmsServer.this, "Cannot process display pipeline.", e );
+                        exception[0] = e;
                     }
-                }});
+                }
+            });
+            if (exception[0] != null) {
+                throw exception[0];
+            }
             
             log.debug( "    flushing response stream..." );
             out.flush();
-            //out.close();
         }
-        catch( Exception e ) {
-            log.error( e.toString(), e );
+        catch (IOException e) {
+            // assuming that this is an EOF exception
+            log.info( "Exception: " + e );
+        }
+        catch (Exception e) {
+            log.warn( e.toString(), e );
         }
         finally {
             // XXX do I have to close out?
+            //out.close();
         }
     }
     

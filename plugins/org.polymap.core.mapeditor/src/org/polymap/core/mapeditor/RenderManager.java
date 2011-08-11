@@ -125,6 +125,7 @@ public class RenderManager {
 
     
     public void dispose() {
+        clearPipelines();
         if (mapDomainListener != null && map != null) {
             ProjectRepository module = ProjectRepository.instance();
             module.removePropertyChangeListener( mapDomainListener );
@@ -134,7 +135,6 @@ public class RenderManager {
             deleteWms( wmsService );
             wmsService = null;
         }
-        clearPipelines();
         this.map = null;
         this.mapEditor = null;
     }

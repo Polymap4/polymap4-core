@@ -105,7 +105,7 @@ public class OpenMapHandler
         IWorkbenchPage page = window.getActivePage();
 
         OpenMapOperation op = new OpenMapOperation( ProjectPlugin.getSelectedMap(), page );
-        OperationSupport.instance().execute( op, true, false );
+        OperationSupport.instance().execute( op, true, true );
         return null;
     }
     
