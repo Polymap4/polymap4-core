@@ -44,6 +44,10 @@ public interface IFeatureBuffer {
     throws Exception;
 
 
+    public int size()
+    throws Exception;
+
+
     public Iterable<FeatureBufferState> content();
 
 

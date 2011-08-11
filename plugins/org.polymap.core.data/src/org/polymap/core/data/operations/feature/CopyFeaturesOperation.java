@@ -18,8 +18,6 @@ import java.util.Properties;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
-import net.refractions.udig.ui.OffThreadProgressMonitor;
-
 import org.geotools.data.Query;
 import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
@@ -68,7 +66,6 @@ import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.WeakListener;
 
 /**
@@ -179,16 +176,15 @@ public class CopyFeaturesOperation
         // copy features
         if (OperationWizard.openDialog( wizard )) {
             try {
-                final IProgressMonitor copyMonitor = new OffThreadProgressMonitor(
-                        new SubProgressMonitor( monitor, 8 ), Polymap.getSessionDisplay() );
+                final IProgressMonitor copyMonitor = new SubProgressMonitor( monitor, 8,
+                        SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK );
                 
                 final PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
                 FeatureCollection features = sourceQuery != null
                         ? source.getFeatures( sourceQuery )
                         : source.getFeatures();
 
-                copyMonitor.subTask( "Objekte kopieren..." );
-                copyMonitor.beginTask( "Objekte kopieren...", features.size() );
+                copyMonitor.beginTask( "Objekte kopieren", features.size() );
                 
                 CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
 //                final MathTransform transform = CRS.findMathTransform( 

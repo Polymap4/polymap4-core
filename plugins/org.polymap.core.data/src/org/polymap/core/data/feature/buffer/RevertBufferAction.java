@@ -28,6 +28,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
+
 import org.polymap.core.data.Messages;
 
 import org.polymap.core.project.ILayer;
@@ -55,7 +57,7 @@ public class RevertBufferAction
             for (ILayer layer : layers) {
                 LayerFeatureBufferManager buffer = LayerFeatureBufferManager.forLayer( layer, false );
                 if (buffer != null) {
-                    buffer.revert( null );
+                    buffer.revert( null, new NullProgressMonitor() );
                 }
             }
         }

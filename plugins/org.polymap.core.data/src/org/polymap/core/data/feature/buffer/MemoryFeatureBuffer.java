@@ -82,9 +82,14 @@ class MemoryFeatureBuffer
     }
 
 
-    public boolean isEmpty()
+    public boolean isEmpty() 
     throws Exception {
         return buffer.isEmpty();
+    }
+
+    public int size() 
+    throws Exception {
+        return buffer.size();
     }
 
 

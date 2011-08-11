@@ -6,7 +6,9 @@ import org.opengis.util.ProgressListener;
 
 /**
  *
- *
+ * <p/>
+ * beginTask() has to be called on the underlying monitor!
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProgressListenerAdaptor
@@ -60,7 +62,9 @@ public class ProgressListenerAdaptor
     }
 
     public void started() {
-        monitor.beginTask( description, 100 );
+        // don't call beginTask() here as we dont know what the total amount of work is;
+        // let the caller do this on the underlying monitor.
+//        monitor.beginTask( description, 100 );
     }
 
     public void warningOccurred( String arg0, String arg1, String arg2 ) {

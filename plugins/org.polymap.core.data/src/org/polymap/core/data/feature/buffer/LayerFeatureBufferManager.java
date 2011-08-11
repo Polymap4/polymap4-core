@@ -50,6 +50,8 @@ import edu.emory.mathcs.backport.java.util.Collections;
 
 import org.eclipse.rwt.SessionSingletonBase;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.buffer.FeatureChangeEvent.Type;
@@ -199,11 +201,13 @@ public class LayerFeatureBufferManager
     }
 
 
-    public void save( OperationSupport os ) {
+    public void save( OperationSupport os, IProgressMonitor monitor ) {
         if (tx == null) {
             return;
         }
         try {
+            monitor.beginTask( layer.getLabel() , buffer.size() );
+
             storeVersion = FeatureStoreVersion.checkSetForLayer( layer, storeVersion );
             try {
                 tx.commit();
@@ -213,6 +217,7 @@ public class LayerFeatureBufferManager
                 tx.close();
                 tx = null;
             }
+            monitor.done();
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Unable to commit the transaction. The data has inconsistent state! Please contact the administrator.", e );
@@ -220,11 +225,12 @@ public class LayerFeatureBufferManager
     }
 
 
-    public void rollback( OperationSupport os ) {
+    public void rollback( OperationSupport os, IProgressMonitor monitor ) {
         if (tx == null) {
             return;
         }
         try {
+            monitor.beginTask( layer.getLabel() , buffer.size() );
             try {
                 tx.rollback();
             }
@@ -232,6 +238,7 @@ public class LayerFeatureBufferManager
                 tx.close();
                 tx = null;
             }
+            monitor.done();
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Unable to rollback transaction. The data has inconsistent state! Please contact the administrator.", e );
@@ -239,7 +246,7 @@ public class LayerFeatureBufferManager
     }
 
 
-    public void prepareSave( OperationSupport os )
+    public void prepareSave( OperationSupport os, IProgressMonitor monitor )
     throws Exception {
         if (tx != null) {
             throw new IllegalStateException( "Pending transaction found." );
@@ -248,6 +255,8 @@ public class LayerFeatureBufferManager
         if (buffer.isEmpty()) {
             return;
         }
+        
+        monitor.beginTask( layer.getLabel() , buffer.size() );
         tx = new DefaultTransaction( "Submit buffer: layer-" + layer.id() + "-" + System.currentTimeMillis() );
 
         // store directly to the underlying store; so the buffer processor MUST be
@@ -257,7 +266,14 @@ public class LayerFeatureBufferManager
   
         fs.setTransaction( tx );
 
+        int count = 0;
         for (FeatureBufferState buffered : buffer.content()) {
+            if (monitor.isCanceled()) {
+                return;
+            }
+            if (count++ % 10 == 0) {
+                monitor.subTask( "Features: " + count );
+            }
             if (buffered.isAdded()) {
                 checkSubmitAdded( fs, buffered );
             }
@@ -269,15 +285,21 @@ public class LayerFeatureBufferManager
             }
             else {
                 log.warn( "Buffered feature is not added/removed/modified!" );
-            }                
+            }
+            monitor.worked( 1 );
         }
+        monitor.done();
     }
 
     
-    public void revert( OperationSupport os ) {
+    public void revert( OperationSupport os, IProgressMonitor monitor ) {
         try {
+            monitor.beginTask( layer.getLabel() , buffer.size() );
+
             buffer.clear();
             fireFeatureChangeEvent( FeatureChangeEvent.Type.FLUSHED, null );
+            
+            monitor.done();
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "Unable to revert changes.", e );

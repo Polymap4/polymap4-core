@@ -49,6 +49,8 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
+import org.geotools.util.SimpleInternationalString;
+
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
@@ -384,9 +386,9 @@ public class PipelineFeatureSource
                     }
                 });
                 log.info( "chunk sent down the pipe: " + chunk.size() );
-                //monitor.setTask( new SimpleInternationalString( "Objekte verarbeitet: " + count ) );
+                monitor.setTask( new SimpleInternationalString( "" + count ) );
                 monitor.progress( chunk.size() );
-                //Thread.sleep( 50 );
+//                Thread.sleep( 50 );
             }
 
             // fire event
