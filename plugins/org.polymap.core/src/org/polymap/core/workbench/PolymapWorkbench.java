@@ -159,7 +159,10 @@ public class PolymapWorkbench
     
     public int createUI() {
         log.debug( "..." );
-
+        
+        // see http://www.eclipse.org/forums/index.php/m/91519/
+//        UICallBack.activate( String.valueOf( this.hashCode() ) );
+        
         ScopedPreferenceStore prefStore = (ScopedPreferenceStore)PrefUtil.getAPIPreferenceStore();
         String keyPresentationId = IWorkbenchPreferenceConstants.PRESENTATION_FACTORY_ID;
         String presentationId = prefStore.getString( keyPresentationId );

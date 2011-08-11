@@ -29,6 +29,8 @@ import net.refractions.udig.catalog.CatalogPlugin;
 
 import org.eclipse.rwt.internal.service.ContextProvider;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;
@@ -126,12 +128,12 @@ public class CatalogRepository
     class OperationSaveListener
     implements IOperationSaveListener {
 
-        public void prepareSave( OperationSupport os )
+        public void prepareSave( OperationSupport os, IProgressMonitor monitor )
         throws Exception {
             //
         }
 
-        public void save( OperationSupport os ) {
+        public void save( OperationSupport os, IProgressMonitor monitor ) {
             try {
                 commitChanges();
                 
@@ -146,10 +148,10 @@ public class CatalogRepository
             }
         }
         
-        public void rollback( OperationSupport os ) {
+        public void rollback( OperationSupport os, IProgressMonitor monitor ) {
         }
 
-        public void revert( OperationSupport os ) {
+        public void revert( OperationSupport os, IProgressMonitor monitor ) {
             log.debug( "..." );
             revertChanges();
         }
