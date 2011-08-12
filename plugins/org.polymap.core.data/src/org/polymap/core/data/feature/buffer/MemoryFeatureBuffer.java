@@ -176,8 +176,8 @@ class MemoryFeatureBuffer
             for (FeatureBufferState buffered : buffer.values()) {
 
                 if (filter.evaluate( buffered.feature() )) {
-                    modifyFeature( buffered.feature(), type, value );
                     buffered.evolveState( FeatureBufferState.State.MODIFIED );
+                    modifyFeature( buffered.feature(), type, value );
                     
                     features.add( buffered.feature() );
                     fids.add( buffered.feature().getIdentifier() );

@@ -271,8 +271,8 @@ public class LayerFeatureBufferManager
             if (monitor.isCanceled()) {
                 return;
             }
-            if (count++ % 10 == 0) {
-                monitor.subTask( "Features: " + count );
+            if ((++count % 100) == 0) {
+                monitor.subTask( "(" + count + ")" );
             }
             if (buffered.isAdded()) {
                 checkSubmitAdded( fs, buffered );
@@ -309,13 +309,15 @@ public class LayerFeatureBufferManager
     
     protected void checkSubmitAdded( FeatureStore fs, FeatureBufferState buffered ) 
     throws Exception {
-        // check concurrent modifications
-        FeatureId fid = buffered.feature().getIdentifier();
-        Id fidFilter = ff.id( Collections.singleton( fid ) );
-        
-        if (!fs.getFeatures( fidFilter ).isEmpty()) {
-            throw new ConcurrentModificationException( "Feature has been added concurrently: " + fid );
-        }
+        // as the fid is probably the primary key we can ommit this
+        // explicit check
+//        // check concurrent add
+//        FeatureId fid = buffered.feature().getIdentifier();
+//        Id fidFilter = ff.id( Collections.singleton( fid ) );
+//        
+//        if (!fs.getFeatures( fidFilter ).isEmpty()) {
+//            throw new ConcurrentModificationException( "Feature has been added concurrently: " + fid );
+//        }
         
         // write down
         FeatureCollection coll = FeatureCollections.newCollection();

@@ -58,11 +58,15 @@ public class FeatureBufferState {
         this.original = original;
         this.state = State.REGISTERED;
         
-        // XXX complex types
-        this.feature = SimpleFeatureBuilder.copy( (SimpleFeature)original );
+        // copy-on-write in evolveState()
+        this.feature = original;
         this.feature.getUserData().put( USER_DATA_KEY, state.toString() );
     }
     
+    /**
+     *
+     * @param modify Indicates that the returned feature is intended to be modified by the caller.
+     */
     public Feature feature() {
         return feature;
     }
@@ -70,7 +74,18 @@ public class FeatureBufferState {
     public Feature original() {
         return original;    
     }
-    
+
+
+    /**
+     * Evolve the state of this feature. 
+     * <p/>
+     * This method implementy copy-on-write for the underlying feature. So this MUST
+     * be called <b>before</b> {@link #feature()} is called to modify the underlying
+     * feature.
+     * 
+     * @param newState
+     * @return The new state.
+     */
     public State evolveState( State newState ) {
         if (newState == State.ADDED) {
             if (state != State.REGISTERED && state != State.ADDED) {
@@ -79,6 +94,11 @@ public class FeatureBufferState {
             state = newState;
         }
         else if (newState == State.MODIFIED) {
+            // copy original feature            
+            if (state == State.REGISTERED) {
+                this.feature = SimpleFeatureBuilder.copy( (SimpleFeature)original );
+            }
+
             if (state == State.REMOVED) {
                 throw new IllegalStateException( "Attempt to modify removed feature: " + original.toString() );
             }
