@@ -57,13 +57,15 @@ class AsyncPipelineFeatureCollection
 
     protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
     
-    protected static final int              DEFAULT_QUEUE_SIZE = 10000/DataSourceProcessor.DEFAULT_CHUNK_SIZE;
+    protected static final int              DEFAULT_QUEUE_SIZE = 5000 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
-    protected PipelineFeatureSource     fs;
-
-    protected Query                     query;
+    private static int                      fetcherCount = 0;
     
-    private int                         size = -1;
+    protected PipelineFeatureSource         fs;
+
+    protected Query                         query;
+    
+    private int                             size = -1;
 
 
     protected AsyncPipelineFeatureCollection( PipelineFeatureSource fs, Query query ) {
@@ -119,15 +121,17 @@ class AsyncPipelineFeatureCollection
         
         protected AsyncPipelineIterator() {
 
-            Runnable task = new Runnable() {
+            Runnable fetcher = new Runnable() {
+                private int fetcherNumber = fetcherCount++;
                 public void run() {
                     try {
                         fs.fetchFeatures( query, new FeatureResponseHandler() {
                             public void handle( List<Feature> features )
                             throws Exception {
                                 if (checkEnd()) {
-                                    //log.info( "Async fetcher: deque=" + deque.size() );
+                                    //log.debug( "Async fetcher[" + fetcherNumber + "]: deque=" + deque.size() );
                                     deque.putLast( features );
+                                    Thread.yield();
                                 }
                             }
                             public void endOfResponse()
@@ -161,7 +165,7 @@ class AsyncPipelineFeatureCollection
                     }
                 }
             };
-            Polymap.executorService().execute( task );
+            Polymap.executorService().execute( fetcher );
         }
         
         public void close() {

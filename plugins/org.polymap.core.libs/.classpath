@@ -6,7 +6,7 @@
 	<classpathentry exported="true" kind="lib" path="resource/json_simple-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="resource/json-lib-2.2.3-jdk15.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ant-1.8.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-2.6.4.jar" sourcepath="lib/sources/geoapi-pending-2.3-M1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-2.6.4.jar" sourcepath="lib/sources/gt-metadata-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.1.1.jar" sourcepath="lib/sources/commons-logging-1.1.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-codec-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar"/>

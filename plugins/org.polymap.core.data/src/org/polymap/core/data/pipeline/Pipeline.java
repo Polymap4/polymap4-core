@@ -44,8 +44,6 @@ import org.polymap.core.project.IMap;
 public class Pipeline
         implements Iterable<PipelineProcessor> {
 
-//    private AtomicBoolean       isWorking = new AtomicBoolean( false );
-
     private IMap                        map;
 
     private Set<ILayer>                 layers = new HashSet();

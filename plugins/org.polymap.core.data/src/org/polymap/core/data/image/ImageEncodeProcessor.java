@@ -28,6 +28,7 @@ import java.awt.Image;
 import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.image.RenderedImage;
+import java.io.IOException;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -35,10 +36,11 @@ import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.objectplanet.image.PngEncoder;
 
 import org.geotools.image.ImageWorker;
 
@@ -116,7 +118,7 @@ public class ImageEncodeProcessor
             Image image = response.getImage();
             doImageResponse( image, context );
         }
-        // ImageResponse
+        // GetLayerTypes
         else if (r instanceof GetLayerTypesResponse
                 || r == ProcessorResponse.EOP) {
             context.sendResponse( r );
@@ -140,8 +142,85 @@ public class ImageEncodeProcessor
         };
 
         // load image data
-        new javax.swing.ImageIcon( image ).getImage();
+        //new javax.swing.ImageIcon( image ).getImage();
+        
+        String format = (String)context.get( "format" );
+        if ("image/jpeg".equals( format )) {
+            imageioEncodeJPEG( image, out );
+        }
+        else {
+            opEncodePNG( image, out );
+        }
+        log.debug( "encode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
+        
+        out.flush();
+        context.sendResponse( ProcessorResponse.EOP );
+        log.debug( "...all data sent. (" + out.getTotalSent() + " bytes " + format + ")" );
+    }
+    
+    
+    private void gtEncodePNG( Image image, ChunkedResponseOutputStream out )
+    throws IOException {
+        // using ImageWorker allows for native accelaration
+        boolean nativeAcceleration = true;
+        RenderedImage rimage = (RenderedImage)image;
+        boolean paletted = false;  //rimage.getColorModel() instanceof IndexColorModel;
+        new ImageWorker( rimage ).writePNG( out, "FILTERED", 0.9f, 
+                nativeAcceleration, paletted );
+    }
+    
 
+    private void opEncodePNG( Image image, ChunkedResponseOutputStream out )
+    throws IOException {
+        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA );
+        encoder.encode( image, out );
+    }
+    
+
+    /**
+     *
+     * @param formatName "png" or "jpeg"
+     * @throws IOException
+     */
+    private void imageioEncode( Image image, ChunkedResponseOutputStream out, String formatName )
+    throws IOException {
+        ImageIO.write( (RenderedImage)image, formatName, out );
+    }
+
+    
+    private void imageioEncodeJPEG( Image image, ChunkedResponseOutputStream out )
+    throws IOException {
+        // this code is from http://forums.sun.com/thread.jspa?threadID=5197061
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        param.setSourceBands(new int[] {0,1,2});
+        ColorModel cm = new DirectColorModel( 24,
+                                      0x00ff0000,   // Red
+                                      0x0000ff00,   // Green
+                                      0x000000ff,   // Blue
+                                      0x0 );        // Alpha
+        param.setDestinationType(
+                new ImageTypeSpecifier(
+                    cm,
+                    cm.createCompatibleSampleModel( 1, 1 ) ) );
+         
+        ImageOutputStream imageOut =
+                ImageIO.createImageOutputStream( out );
+        writer.setOutput( imageOut );
+        writer.write( null, new IIOImage( (RenderedImage)image, null, null), param );
+        writer.dispose();
+        imageOut.close();        
+    }
+    
+    
+//    private void jaiEncodePNG( Image image, ChunkedResponseOutputStream out )
+//    throws IOException {
+//        JAI.create( "encode", image, out, "PNG", null );
+//    }
+
+
+//    private void imageioEncodePNG( Image image, ChunkedResponseOutputStream out )
+//    throws IOException {
 //        // encode PNG
 //        PngEncoder pngEncoder = new PngEncoder( image, true, null, 9 );
 //        pngEncoder.encode( out );
@@ -149,48 +228,6 @@ public class ImageEncodeProcessor
 //        log.debug( "encode: ready." );
 //        context.sendResponse( ProcessorResponse.EOP );
 //        log.debug( "...all data sent. (" + out.getTotalSent() + " bytes)" );
-        
-        //JAI.create( "encode", src, out, "PNG", null);
+//    }
 
-        String format = (String)context.get( "format" );
-        if ("image/jpeg".equals( format )) {
-//            ImageIO.write( (RenderedImage)image, "jpeg", out );
-            
-            // this code is from http://forums.sun.com/thread.jspa?threadID=5197061
-            ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
-            ImageWriteParam param = writer.getDefaultWriteParam();
-            param.setSourceBands(new int[] {0,1,2});
-            ColorModel cm = new DirectColorModel( 24,
-                                          0x00ff0000,   // Red
-                                          0x0000ff00,   // Green
-                                          0x000000ff,   // Blue
-                                          0x0 );        // Alpha
-            param.setDestinationType(
-                    new ImageTypeSpecifier(
-                        cm,
-                        cm.createCompatibleSampleModel( 1, 1 ) ) );
-             
-            ImageOutputStream imageOut =
-                    ImageIO.createImageOutputStream( out );
-            writer.setOutput( imageOut );
-            writer.write( null, new IIOImage( (RenderedImage)image, null, null), param );
-            writer.dispose();
-            imageOut.close();
-        }
-        else {
-//            ImageIO.write( (RenderedImage)image, "png", out );
-
-            // using ImageWorker allows for native accelaration
-            boolean nativeAcceleration = true;
-            RenderedImage rimage = (RenderedImage)image;
-            boolean paletted = false;  //rimage.getColorModel() instanceof IndexColorModel;
-            new ImageWorker( rimage ).writePNG( out, "FILTERED", 0.8f, 
-                    nativeAcceleration, paletted );
-        }
-
-        log.debug( "encode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
-        context.sendResponse( ProcessorResponse.EOP );
-        log.debug( "...all data sent. (" + out.getTotalSent() + " bytes " + format + ")" );
-    }
-    
 }

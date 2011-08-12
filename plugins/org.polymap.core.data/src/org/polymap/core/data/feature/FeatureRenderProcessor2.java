@@ -28,9 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -46,7 +44,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.opengis.feature.simple.SimpleFeature;
 
-import org.geotools.data.DataStore;
 import org.geotools.data.FeatureSource;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.DefaultMapContext;
@@ -54,18 +51,13 @@ import org.geotools.map.MapContext;
 import org.geotools.renderer.RenderListener;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
-import org.geotools.util.logging.Logging;
-
 import net.refractions.udig.catalog.IService;
-import net.refractions.udig.catalog.PostgisService2;
-
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.ProcessorRequest;
@@ -133,6 +125,8 @@ public class FeatureRenderProcessor2
         
     protected MapContext              mapContext;
     
+    protected ReentrantReadWriteLock  mapContextLock = new ReentrantReadWriteLock();
+    
     /** The styles used in the current {@link #mapContext}, used to check if new context is needed. */
     protected Map<ILayer,Style>       styles = new HashMap();
     
@@ -178,11 +172,13 @@ public class FeatureRenderProcessor2
 
 
     protected Image getMap( Set<ILayer> layers, int width, int height, ReferencedEnvelope bbox ) {
-        Logger wfsLog = Logging.getLogger( "org.geotools.data.wfs.protocol.http" );
-        wfsLog.setLevel( Level.FINEST );
+//        Logger wfsLog = Logging.getLogger( "org.geotools.data.wfs.protocol.http" );
+//        wfsLog.setLevel( Level.FINEST );
 
         // mapContext
-        synchronized (this) {
+        try {
+            mapContextLock.readLock().lock();
+            
             // check style objects
             boolean needsNewContext = false;
             if (mapContext != null) {
@@ -205,6 +201,9 @@ public class FeatureRenderProcessor2
             }
             // create mapContext
             if (mapContext == null || needsNewContext) {
+                mapContextLock.readLock().unlock();
+                mapContextLock.writeLock().lock();
+                
                 // sort z-priority
                 TreeMap<String,ILayer> sortedLayers = new TreeMap();
                 for (ILayer layer : layers) {
@@ -236,12 +235,17 @@ public class FeatureRenderProcessor2
                     }
                 }
             }
-            else {
+        }
+        finally {
+            if (mapContextLock.writeLock().isHeldByCurrentThread()) {
+                mapContextLock.readLock().lock();
+                mapContextLock.writeLock().unlock();
             }
+            mapContextLock.readLock().unlock();
         }
         
         // render
-        BufferedImage result = new BufferedImage( width, height, BufferedImage.TYPE_4BYTE_ABGR);
+        BufferedImage result = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
         final Graphics2D g = result.createGraphics();
         try {
             StreamingRenderer renderer = new StreamingRenderer();

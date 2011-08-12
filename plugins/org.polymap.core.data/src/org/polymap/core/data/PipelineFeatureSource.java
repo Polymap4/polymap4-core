@@ -159,15 +159,13 @@ public class PipelineFeatureSource
     throws PipelineIncubationException, IOException {
         // find service for layer
         log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
-//        IProgressMonitor monitor = JobMonitors.get();
-//        monitor.subTask( "Find geo-resource of layer: " + layer.getLabel() );
+
         IGeoResource res = layer.getGeoResource();
         if (res == null) {
             throw new IllegalStateException( "Unable to find geo resource of layer: " + layer );
         }
         IService service = res.service( null );
         log.debug( "service: " + service );
-//        monitor.worked( 1 );
 
         // create pipeline
         LayerUseCase useCase = transactional

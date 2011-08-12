@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -98,6 +99,8 @@ public class SimpleWmsServer
     /** Maps layer name into corresponding Pipeline. */
     private Map<String,Pipeline>    pipelines = new HashMap();
     
+    private ReentrantReadWriteLock  pipelinesLock = new ReentrantReadWriteLock();
+    
     private Display                 display;
 
     
@@ -152,6 +155,7 @@ public class SimpleWmsServer
                     Arrays.asList( layers ), srsCode, bbox, format, width, height );  
 
             // process
+            log.debug( "HTTP BUFFER: " + response.getBufferSize() );
             final ServletOutputStream out = response.getOutputStream();
             
             final Exception[] exception = new Exception[1];
@@ -209,15 +213,28 @@ public class SimpleWmsServer
             throw new ServletException( "Wrong layers param: " + layers );
         }
 
-        synchronized (pipelines) {
+        try {
+            pipelinesLock.readLock().lock();
             Pipeline pipeline = pipelines.get( layers[0] );
+            
             if (pipeline == null) {
                 ILayer layer = findLayer( layers[0] );
                 IService service = findService( layer );
                 pipeline = pipelineIncubator.newPipeline( usecase, layer.getMap(), layer, service );
+                
+                pipelinesLock.readLock().unlock();
+                pipelinesLock.writeLock().lock();
+                
                 pipelines.put( layer.getLabel(), pipeline );
             }
             return pipeline;
+        }
+        finally {
+            if (pipelinesLock.writeLock().isHeldByCurrentThread()) {
+                pipelinesLock.readLock().lock();
+                pipelinesLock.writeLock().unlock();
+            }
+            pipelinesLock.readLock().unlock();
         }
     }
 

@@ -75,7 +75,7 @@ public class DataSourceProcessor
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
-    public static final int                 DEFAULT_CHUNK_SIZE = 1000;
+    public static final int                 DEFAULT_CHUNK_SIZE = 500;
 
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
@@ -231,12 +231,11 @@ public class DataSourceProcessor
         Iterator it = null;
         try {
             ArrayList<Feature> chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
-            for (it=fc.iterator(); it.hasNext(); ) {
+            for (it = fc.iterator(); it.hasNext(); ) {
                 Feature feature = (Feature)it.next();
-                //System.out.println( "              feature: " + feature );
+
                 chunk.add( feature );
                 if (chunk.size() >= DEFAULT_CHUNK_SIZE) {
-                    chunk.trimToSize();
                     log.debug( "                sending chunk: " + chunk.size() );
                     context.sendResponse( new GetFeaturesResponse( chunk ) );
                     chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
