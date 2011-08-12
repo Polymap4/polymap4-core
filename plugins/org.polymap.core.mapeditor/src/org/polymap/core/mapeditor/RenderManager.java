@@ -109,8 +109,6 @@ public class RenderManager {
                 }
                 if (ev.getSource() instanceof IMap) {
                     IMap eventMap = (IMap)ev.getSource();
-                    log.info( ":: " + eventMap.id() );
-                    log.info( "-- " + RenderManager.this.map.id() );
                     return RenderManager.this.map.equals( eventMap );
                 }
                 else if (ev.getSource() instanceof ILayer) {

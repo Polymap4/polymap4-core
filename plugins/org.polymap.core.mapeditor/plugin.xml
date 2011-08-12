@@ -188,10 +188,19 @@
                tooltip="%actions_mapBackwardTip">
          </action>
          <action
+               class="org.polymap.core.mapeditor.actions.SetLayerBoundsAction"
+               icon="icons/elcl16/zoom_layer_co.gif"
+               id="org.polymap.core.mapeditor.ZoomToLayerAction"
+               label="%actions_zoomToLayer"
+               style="push"
+               toolbarPath="mouseMode"
+               tooltip="%actions_zoomToLayer">
+         </action>
+         <action
                class="org.polymap.core.mapeditor.navigation.MaxExtendEditorAction"
-               icon="icons/elcl16/home_nav.gif"
+               icon="icons/etool16/zoom_extent_co.gif"
                id="org.polymap.core.mapeditor.action.mapMaxExtent_editor"
-               label="%actions_mapMaxExtentTip"
+               label="%actions_mapMaxExtent"
                style="push"
                toolbarPath="mouseMode"
                tooltip="%actions_mapMaxExtentTip">

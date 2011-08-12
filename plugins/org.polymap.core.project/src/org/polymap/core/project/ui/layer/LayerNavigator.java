@@ -64,7 +64,7 @@ public class LayerNavigator
 
     private UDIGViewerDropAdapter       dropAdapter;
 
-    private LayerStatusLineAdapter statusLineAdapter;
+    private LayerStatusLineAdapter      statusLineAdapter;
 
 
     public void createPartControl( Composite parent ) {

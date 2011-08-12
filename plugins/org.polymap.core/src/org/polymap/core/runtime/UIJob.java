@@ -34,6 +34,7 @@ import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
@@ -65,19 +66,33 @@ public abstract class UIJob
     
     private static final ThreadLocal<UIJob> threadJob = new ThreadLocal();
     
+    private static final NullProgressMonitor nullMonitor = new NullProgressMonitor();
+    
     
     public static UIJob forThread() {
         return threadJob.get();
     }
 
+
+    /**
+     * Returns the progress monitor of the job of the current thread a
+     * {@link NullProgressMonitor} if the current thread is not a job.
+     */
+    public static IProgressMonitor monitorForThread() {
+        UIJob job = forThread();
+        return job != null ? job.executionMonitor : nullMonitor;
+    }
+    
     
     // instance *******************************************
     
-    private IStatus         resultStatus;
+    private IStatus             resultStatus;
     
-    private Display         display;
+    private Display             display;
 
-    private ProgressDialog  progressDialog;
+    private ProgressDialog      progressDialog;
+    
+    private IProgressMonitor    executionMonitor;
     
     
     public UIJob( String name ) {
@@ -115,6 +130,7 @@ public abstract class UIJob
             public void run() {
                 if (!PlatformUI.getWorkbench().isClosing()) {
                     try {
+                        executionMonitor = monitor;
                         threadJob.set( UIJob.this );
 
                         IProgressMonitor mon = progressDialog != null
@@ -136,6 +152,7 @@ public abstract class UIJob
                     }
                     finally {
                         threadJob.set( null );
+                        executionMonitor = null;
                     }
                 }
             }

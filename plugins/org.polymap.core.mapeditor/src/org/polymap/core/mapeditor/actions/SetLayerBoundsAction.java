@@ -22,7 +22,12 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 
+import org.eclipse.ui.IEditorActionDelegate;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IObjectActionDelegate;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
@@ -40,13 +45,20 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @since 3.0
  */
 public class SetLayerBoundsAction
-        implements IObjectActionDelegate, IViewActionDelegate {
+        implements IObjectActionDelegate, IEditorActionDelegate, IViewActionDelegate, ISelectionListener {
 
     private static Log log = LogFactory.getLog( SetLayerBoundsAction.class );
 
     private LayerNavigator          view;
     
     private ILayer                  layer;
+
+    /* The selection service if used as an editor action. */
+    private ISelectionService       selectionService;
+    
+    private IAction                 action;
+    
+    private String                  origTooltip;
     
     
     public void init( IViewPart view0 ) {
@@ -68,10 +80,13 @@ public class SetLayerBoundsAction
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
+        log.info( "sel: " + sel );
         if (sel instanceof StructuredSelection) {
             Object elm = ((StructuredSelection)sel).getFirstElement();
             if (elm instanceof ILayer) {
                 layer = (ILayer)elm;
+                origTooltip = origTooltip == null ? action.getToolTipText() : origTooltip;
+                action.setToolTipText( origTooltip + " : " + layer.getLabel() );
                 action.setEnabled( true );
                 return;
             }
@@ -82,6 +97,29 @@ public class SetLayerBoundsAction
 
 
     public void setActivePart( IAction action, IWorkbenchPart targetPart ) {
+        this.action = action;
+    }
+
+
+    public void setActiveEditor( IAction action, IEditorPart targetEditor ) {
+        if (selectionService != null) {
+            selectionService.removeSelectionListener( this );
+        }
+        
+        if (targetEditor != null) {
+            IEditorSite editorSite = targetEditor.getEditorSite();
+            selectionService = editorSite.getWorkbenchWindow().getSelectionService();
+            selectionService.addSelectionListener( this );
+            this.action = action;
+        }
+        else {
+            action.setEnabled( false );
+        }
+    }
+
+
+    public void selectionChanged( IWorkbenchPart part, ISelection selection ) {
+        selectionChanged( action, selection );
     }
 
 }

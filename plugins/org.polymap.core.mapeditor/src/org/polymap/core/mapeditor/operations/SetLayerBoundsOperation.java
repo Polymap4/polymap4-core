@@ -143,7 +143,9 @@ public class SetLayerBoundsOperation
 
 
     public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
-        layer.getMap().setExtent( oldExtent );
+        if (oldExtent != null) {
+            layer.getMap().setExtent( oldExtent );
+        }
         return Status.OK_STATUS;
     }
 

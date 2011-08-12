@@ -34,11 +34,11 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 
-import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ui.EntityContentProvider;
 import org.polymap.core.project.ui.LabeledLabelProvider;
 
@@ -109,8 +109,13 @@ public class ProjectTreeViewer
             extends LabeledLabelProvider {
 
         public Image getImage( Object elm ) {
-            String imageKey = (elm instanceof IMap) ? ISharedImages.IMG_OBJ_FOLDER : ISharedImages.IMG_OBJ_ELEMENT;
-            return PlatformUI.getWorkbench().getSharedImages().getImage( imageKey );
+            if (elm instanceof IMap) {
+                return ProjectPlugin.getDefault().imageForName( "icons/obj16/map_obj.gif" );
+            }
+            else if (elm instanceof ILayer) {
+                return ProjectPlugin.getDefault().imageForName( "icons/obj16/layer_obj.gif" );
+            }
+            return null;
         }
 
     }
