@@ -54,13 +54,13 @@ import org.polymap.core.mapeditor.services.SimpleWmsServer;
 import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.ModelChangeListener;
 import org.polymap.core.model.event.PropertyEventFilter;
-import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.services.http.HttpServiceFactory;
 import org.polymap.core.services.http.WmsService;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -87,15 +87,12 @@ public class RenderManager {
 
     private WmsService              wmsService;
     
-    //private Map<IService,OwsServer> pipelines = new HashMap();
     private TreeMap<String,RenderLayerDescriptor> descriptors = new TreeMap();
     
     private MapDomainListener       mapDomainListener = new MapDomainListener();
     
     /** The layer that is currently in edit (vector) mode or null. */
     private ILayer                  editLayer;
-    
-//    private IPipelineIncubator      pipelineIncubator = new DefaultPipelineIncubator();
     
     
     public RenderManager( IMap map, MapEditor mapEditor ) {
@@ -111,7 +108,10 @@ public class RenderManager {
                     return false;
                 }
                 if (ev.getSource() instanceof IMap) {
-                    return RenderManager.this.map.equals( ev.getSource() );
+                    IMap eventMap = (IMap)ev.getSource();
+                    log.info( ":: " + eventMap.id() );
+                    log.info( "-- " + RenderManager.this.map.id() );
+                    return RenderManager.this.map.equals( eventMap );
                 }
                 else if (ev.getSource() instanceof ILayer) {
                     ILayer layer = (ILayer)ev.getSource();
@@ -176,7 +176,7 @@ public class RenderManager {
      */
     protected synchronized void updatePipelines() {
         clearPipelines();
-        IProgressMonitor monitor = JobMonitors.get();
+        IProgressMonitor monitor = UIJob.monitorForThread();
 
         if (wmsService != null) {
             deleteWms( wmsService );
@@ -272,45 +272,8 @@ public class RenderManager {
     }
     
     
-//    ReferencedEnvelope calcLayersBounds( Collection<ILayer> layers, CoordinateReferenceSystem crs )
-//            throws Exception {
-//        log.debug( "### mapCRS: " + crs );
-//
-//        ReferencedEnvelope result = null;  //new ReferencedEnvelope( crs );
-//        for (ILayer layer : layers) {
-//            try {
-//                IGeoResource res = layer.getGeoResource();
-//                if (res == null) {
-//                    continue;
-//                }
-//                ReferencedEnvelope bbox = SetLayerBoundsOperation
-//                        .obtainBoundsFromResources( layer, crs, new NullProgressMonitor() );
-//                bbox = bbox.transform( crs, true );
-//                log.debug( "layer: " + layer + ", bbox= " + bbox );
-//                
-//                if (result == null) {
-//                    result = bbox;
-//                } else {
-//                    result.expandToInclude( bbox );
-//                }
-//                log.debug( "result: bbox= " + result );
-//            }
-//            catch (Exception e) {
-//                // XXX mark layers!?
-//                log.debug( "", e );
-//                log.warn( "skipping layer: " + layer.getLabel() + " (" + e.toString() );
-//            }
-//        }
-//        return result;
-//    }
-
-    
     /**
      * 
-     *
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
-     * @since 3.0
      */
     class MapDomainListener
             implements PropertyChangeListener, ModelChangeListener, IFeatureChangeListener {
@@ -324,18 +287,12 @@ public class RenderManager {
         }
 
         public void propertyChange( PropertyChangeEvent ev ) {
-            //log.debug( "property: name= " + ev.getPropertyName() );
+            log.debug( "property: name= " + ev.getPropertyName() );
             // ILayer
             if (ev.getSource() instanceof ILayer) {
                 ILayer layer = (ILayer)ev.getSource();
                 RenderLayerDescriptor descriptor = findDescriptorForLayer( layer );
                 
-                // check event source
-                if (!map.equals( layer.getMap() )) {
-                    log.info( "Event: foreign layer -> skipping." );
-                    return;
-                }
-                // handle event
                 if ("visible".equals( ev.getPropertyName() )) {
                     updatePipelines();
                 }
@@ -371,12 +328,6 @@ public class RenderManager {
             }
             // IMap
             else if (ev.getSource() instanceof IMap) {
-                // check event source
-                if (map != ev.getSource()) {
-                    log.info( "Event: foreign map -> skipping." );
-                    return;
-                }
-                // handle event
                 if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
                     ReferencedEnvelope extent = (ReferencedEnvelope)ev.getNewValue();
                     mapEditor.setMapExtent( extent );

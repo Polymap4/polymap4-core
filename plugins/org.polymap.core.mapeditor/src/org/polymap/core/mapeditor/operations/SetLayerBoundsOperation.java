@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,16 +11,10 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.mapeditor.operations;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.IOException;
 
@@ -31,6 +24,11 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Envelope;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.MessageBox;
+
+import org.eclipse.ui.PlatformUI;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IGeoResourceInfo;
@@ -45,20 +43,18 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.Polymap;
 
 /**
- * Returns the bounds of the layer as best estimated. The bounds will be
- * reprojected into the crs provided. If the crs parameter is null then the
- * native envelope will be returned. If the native projection is not known or if
- * a transformation is not possible then the native envelope will be returned..
- * This method may be blocking.
- * <p>
+ * Returns the bounds of the layer as best estimated. The bounds will be reprojected
+ * into the crs provided. If the crs parameter is null then the native envelope will
+ * be returned. If the native projection is not known or if a transformation is not
+ * possible then the native envelope will be returned.
+ * <p/>
  * Result: the envelope of the layer. If the native crs is not known or if a
- * transformation is not possible then the untransformed envelope will be
- * returned.
+ * transformation is not possible then the untransformed envelope will be returned.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class SetLayerBoundsOperation
@@ -73,6 +69,8 @@ public class SetLayerBoundsOperation
 
     public ReferencedEnvelope           result;
     
+    private ReferencedEnvelope          oldExtent;
+    
 
     /**
      * 
@@ -86,14 +84,11 @@ public class SetLayerBoundsOperation
 
 
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
-            throws ExecutionException {
+    throws ExecutionException {
+        // obtain bounds
         try {
-//            monitor.subTask( "sleeping..." );
-//            log.debug( "sleeping..." );
-//            Thread.sleep( 10000 );
-//            monitor.worked( 1 );
-            
-            monitor.subTask( "obtaining bounds..." );
+            monitor.beginTask( getLabel(), 3 );
+            monitor.subTask( "Obtaining bounds" );
             result = obtainBoundsFromResources( layer, crs, monitor );
             monitor.worked( 1 );
         }
@@ -101,10 +96,11 @@ public class SetLayerBoundsOperation
             throw new ExecutionException( "Failure obtaining bounds", e );
         }
 
+        // transform
         if (result != null && !result.isNull()) {
             if (crs != null) {
                 try {
-                    monitor.subTask( "transforming bounds..." );
+                    monitor.subTask( "Transforming bounds" );
                     result = result.transform( crs, true );
                     monitor.worked( 1 );
                 } 
@@ -116,19 +112,45 @@ public class SetLayerBoundsOperation
         else {
             result = new ReferencedEnvelope( new Envelope(), null );
         }
-        return Status.OK_STATUS;
+        
+        // set map extent
+        monitor.subTask( "Setting map extent" );
+        
+        final AtomicInteger dialogResult = new AtomicInteger();
+        Polymap.getSessionDisplay().syncExec( new Runnable() {
+            public void run() {
+                MessageBox mbox = new MessageBox( 
+                        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                        SWT.YES | SWT.NO | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL );
+                mbox.setMessage( "X : " + result.getMinX() + " - " + result.getMaxX() +
+                        "\nY : " + result.getMinY() + " - " + result.getMaxY() );
+                mbox.setText( getLabel() );
+                dialogResult.set( mbox.open() );
+            }
+        });
+        
+        if (dialogResult.get() == SWT.YES) {
+            oldExtent = layer.getMap().getExtent();
+            
+            layer.getMap().setExtent( result );
+            monitor.done();
+            return Status.OK_STATUS;
+        }
+        else {
+            return Status.CANCEL_STATUS;
+        }
     }
 
 
     public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
-        // ignore
+        layer.getMap().setExtent( oldExtent );
         return Status.OK_STATUS;
     }
 
 
     public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-            throws ExecutionException {
-        // ignore
+    throws ExecutionException {
+        layer.getMap().setExtent( result );
         return Status.OK_STATUS;
     }
 

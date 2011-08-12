@@ -68,7 +68,7 @@
             objectClass="org.polymap.core.project.ILayer">
          <action
                class="org.polymap.core.mapeditor.actions.SetLayerBoundsAction"
-               enablesFor="+"
+               enablesFor="1"
                icon="icons/elcl16/zoom_layer_co.gif"
                id="org.polymap.core.mapeditor.action.zoomToLayer_layers"
                label="%actions_zoomToLayer"
