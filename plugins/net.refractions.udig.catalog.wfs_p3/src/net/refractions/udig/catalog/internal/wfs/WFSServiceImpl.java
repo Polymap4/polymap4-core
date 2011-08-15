@@ -22,8 +22,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.jfree.util.Log;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;

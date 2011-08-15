@@ -19,9 +19,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.lf5.util.StreamUtils;
 
 import com.healthmarketscience.jackcess.Database;
 
@@ -123,13 +123,14 @@ public class MdbImportPage
     
     public void uploadFinished( UploadEvent ev ) {
         UploadItem item = upload.getUploadItem();
+        FileOutputStream out = null;
         try {
             log.info( "Uploaded: " + item.getFileName() + ", path=" + item.getFilePath() );
 
             File uploadDir = Polymap.getWorkspacePath().toFile();
             dbFile = new File( uploadDir, item.getFileName() );
-            FileOutputStream out = new FileOutputStream( dbFile );
-            StreamUtils.copyThenClose( item.getFileInputStream(), out );
+            out = new FileOutputStream( dbFile );
+            IOUtils.copy( item.getFileInputStream(), out );
             log.info( "### copied to: " + dbFile );
 
             Database db = Database.open( dbFile );
@@ -142,6 +143,9 @@ public class MdbImportPage
         } 
         catch (IOException e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, MdbImportPage.this, "Fehler beim Upload der Daten.", e );
+        }
+        finally {
+            IOUtils.closeQuietly( out );
         }
         checkFinish();
     }

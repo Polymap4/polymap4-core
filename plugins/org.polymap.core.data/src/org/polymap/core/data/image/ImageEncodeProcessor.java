@@ -40,8 +40,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.objectplanet.image.PngEncoder;
-
 import org.geotools.image.ImageWorker;
 
 import org.polymap.core.data.pipeline.PipelineProcessor;
@@ -149,7 +147,7 @@ public class ImageEncodeProcessor
             imageioEncodeJPEG( image, out );
         }
         else {
-            opEncodePNG( image, out );
+            gtEncodePNG( image, out );
         }
         log.debug( "encode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
         
@@ -170,11 +168,11 @@ public class ImageEncodeProcessor
     }
     
 
-    private void opEncodePNG( Image image, ChunkedResponseOutputStream out )
-    throws IOException {
-        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA );
-        encoder.encode( image, out );
-    }
+//    private void opEncodePNG( Image image, ChunkedResponseOutputStream out )
+//    throws IOException {
+//        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA );
+//        encoder.encode( image, out );
+//    }
     
 
     /**

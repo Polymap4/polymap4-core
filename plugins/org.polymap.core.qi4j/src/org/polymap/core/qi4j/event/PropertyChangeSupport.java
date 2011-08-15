@@ -93,9 +93,11 @@ public interface PropertyChangeSupport
         public void create()
         throws LifecycleException {
             log.debug( "Entity created: " + composite.toString() );
-            QiModule repo = Qi4jPlugin.Session.instance().resolveModule( composite );
-            QualifiedName qname = QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_CREATED );
-            fireEvent( qname, composite, repo, composite );
+            if (Polymap.getSessionDisplay() != null) {
+                QiModule repo = Qi4jPlugin.Session.instance().resolveModule( composite );
+                QualifiedName qname = QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_CREATED );
+                fireEvent( qname, composite, repo, composite );
+            }
         }
 
 
