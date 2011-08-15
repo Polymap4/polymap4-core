@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -39,10 +40,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.simple.SimpleFeature;
+import net.refractions.udig.catalog.IService;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -51,7 +49,11 @@ import org.geotools.map.MapContext;
 import org.geotools.renderer.RenderListener;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
-import net.refractions.udig.catalog.IService;
+import org.opengis.feature.simple.SimpleFeature;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;

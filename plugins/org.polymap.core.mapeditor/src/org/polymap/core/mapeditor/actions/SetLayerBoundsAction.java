@@ -80,7 +80,7 @@ public class SetLayerBoundsAction
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        log.info( "sel: " + sel );
+        //log.info( "sel: " + sel );
         if (sel instanceof StructuredSelection) {
             Object elm = ((StructuredSelection)sel).getFirstElement();
             if (elm instanceof ILayer) {

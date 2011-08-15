@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -65,6 +64,7 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.Timer;
 
 /**
  * Feature cache backed by Lucene.
@@ -87,18 +87,35 @@ public class LuceneCache {
     
     private static Map<String,LuceneCache>  instances = new HashMap();
     
+    private static ReentrantReadWriteLock   instancesLock = new ReentrantReadWriteLock();
+    
     
     public static synchronized LuceneCache aquire( ILayer layer, FeatureType schema )
     throws IOException {
-        LuceneCache cache = instances.get( layer.id() );
-        if (cache == null) {
-            cache = new LuceneCache( layer, schema );
-            instances.put( layer.id(), cache );
+        try {
+            instancesLock.readLock().lock();
+            LuceneCache cache = instances.get( layer.id() );
+            
+            if (cache == null) {
+                instancesLock.readLock().unlock();
+                instancesLock.writeLock().lock();
+                
+                cache = new LuceneCache( layer, schema );
+                instances.put( layer.id(), cache );
+            }
+            return cache;
         }
-        return cache;
+        finally {
+            if (instancesLock.writeLock().isHeldByCurrentThread()) {
+                instancesLock.readLock().lock();
+                instancesLock.writeLock().unlock();
+            }
+            instancesLock.readLock().unlock();
+        }
     }
+
     
-    public static void releade( LuceneCache cache ) {
+    public static void release( LuceneCache cache ) {
     }
     
     
@@ -119,10 +136,17 @@ public class LuceneCache {
     private GeometryJSON        jsonCoder = new GeometryJSON( 6 );
     
     private boolean             isEmpty = false;
-    
-    /** Document number into Feature. */
-    private ConcurrentReferenceHashMap<Object,Feature> cache = new ConcurrentReferenceHashMap( 1024, 
-            ConcurrentReferenceHashMap.ReferenceType.SOFT, ConcurrentReferenceHashMap.ReferenceType.STRONG );
+
+    /**
+     * The memory cache (see {@link #cacheKey(int, Query)}.
+     * <p/>
+     * For normal Browser settings with 6-8 concurrent requests 4 concurrent threads
+     * in the cache is insufficient, but in most cases actual concurrent cache
+     * request are between 1-4. The smaller the number the faster the cache reads.
+     */
+    private ConcurrentReferenceHashMap<Object,Feature> cache = 
+            new ConcurrentReferenceHashMap( 16*1024, 0.75f, 4, 
+            ConcurrentReferenceHashMap.ReferenceType.STRONG, ConcurrentReferenceHashMap.ReferenceType.SOFT, null );
     
     
     LuceneCache( ILayer layer, FeatureType schema ) 
@@ -182,7 +206,7 @@ public class LuceneCache {
     
     public Iterable<Feature> getFeatures( final Query query ) 
     throws IOException {
-        long start = System.currentTimeMillis();
+        Timer timer = new Timer();
         
         LuceneQueryParser queryParser = new LuceneQueryParser( schema, query.getFilter() );
 
@@ -211,7 +235,7 @@ public class LuceneCache {
         TopDocs topDocs = searcher.search( queryParser.getQuery(), query.getMaxFeatures() );
         final ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         final int count = scoreDocs.length;
-        log.info( "    results: " + count + " (" + (System.currentTimeMillis()-start) + "ms)" );
+        log.info( "    results: " + count + " (" + timer.elapsedTime() + "ms)" );
 
         // skip unwanted properties
         final FieldSelector fieldSelector = new FieldSelector() {
@@ -226,7 +250,6 @@ public class LuceneCache {
                 else if (StringUtils.indexOfAny( fieldName, propNames ) == 0) {
                     result = FieldSelectorResult.LOAD;
                 }
-//                log.info( "    selector: field=" + fieldName + " -> " + result );
                 return result;
             }
         };
@@ -267,13 +290,15 @@ public class LuceneCache {
                             throw new NoSuchElementException( "Query result count: " + scoreDocs.length );
                         }
                         try {
-                            Feature result = null;
                             int docnum = scoreDocs[ index++ ].doc;
-//                            Feature result = cache.get( cacheKey( docnum, query ) );
-//                            if (result != null) {
-//                                ++cacheHits;
-//                                return result;
-//                            }
+                            
+                            Feature result = null;
+                            
+                            result = cache.get( cacheKey( docnum, query ) );
+                            if (result != null) {
+                                ++cacheHits;
+                                return result;
+                            }
                             
                             Document doc = searcher.doc( docnum, fieldSelector );
 //                            result = new LuceneFeature( doc, (SimpleFeatureType)schema );
@@ -307,7 +332,7 @@ public class LuceneCache {
                             }
                             result = builder.buildFeature( fid );
 
-//                            cache.put( cacheKey( docnum, query ), result );
+                            cache.put( cacheKey( docnum, query ), result );
                             return result;
                         }
                         catch (Exception e) {
@@ -411,7 +436,7 @@ public class LuceneCache {
     }
 
     
-    protected Object cacheKey( int docnum, Query query ) {
+    private Object cacheKey( int docnum, Query query ) {
         // this is not exact but I don't want to store the big joined strings
         // as keys in the cache
         long propNamesHash = 0;

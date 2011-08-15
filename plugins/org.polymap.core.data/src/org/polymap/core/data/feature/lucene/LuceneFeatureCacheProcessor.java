@@ -45,7 +45,7 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.project.LayerUseCase;
 
 /**
- * Feature cache backed by Lucene.
+ * Feature cache backed by a {@link LuceneCache}.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1

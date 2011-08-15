@@ -347,7 +347,7 @@ class LuceneQueryParser {
         // value / type
         String fieldname = prop.getPropertyName();
         Class valueType = schema.getDescriptor( prop.getPropertyName() ).getType().getBinding();
-        Fieldable field = ValueCoder.encode( fieldname, literal, valueType, Field.Store.NO, false );
+        Fieldable field = ValueCoder.encode( fieldname, literal, valueType, Field.Store.NO, true );
         String value = field.stringValue();
 
         value = StringUtils.replace( value, predicate.getWildCard(), "*" );
