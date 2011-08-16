@@ -39,8 +39,9 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionListener;
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.services.http.HttpService;
-import org.polymap.core.services.http.HttpServiceFactory;
+
+import org.polymap.service.http.HttpService;
+import org.polymap.service.http.HttpServiceFactory;
 
 /**
  * SPI/API and factory for HTTP server providing {@link SimpleFeature}s as

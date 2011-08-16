@@ -70,7 +70,8 @@ import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
-import org.polymap.core.services.http.WmsService;
+
+import org.polymap.service.http.WmsService;
 
 /**
  * Provides a very simple WMS server to be used by the {@link MapEditor}. It

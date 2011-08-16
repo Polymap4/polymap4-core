@@ -58,7 +58,8 @@ import org.apache.log4j.lf5.util.StreamUtils;
 import org.geoserver.logging.LoggingStartupContextListener;
 
 import org.polymap.core.project.IMap;
-import org.polymap.core.services.http.WmsService;
+
+import org.polymap.service.http.WmsService;
 
 /**
  * 

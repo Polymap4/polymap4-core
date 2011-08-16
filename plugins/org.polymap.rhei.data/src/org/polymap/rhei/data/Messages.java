@@ -18,7 +18,6 @@ package org.polymap.rhei.data;
 import java.util.ResourceBundle;
 
 import org.apache.commons.lang.StringUtils;
-import org.jfree.util.Log;
 
 import org.eclipse.rwt.RWT;
 
@@ -56,7 +55,6 @@ public class Messages {
         e.fillInStackTrace();
         StackTraceElement[] trace = e.getStackTrace();
         StackTraceElement elm = trace[trace.length-1];
-        Log.debug( "### stack element: " + elm );
         
         StringBuffer key = new StringBuffer( 64 );
         key.append( StringUtils.substringAfterLast( elm.getClassName(), "." ) ) 

@@ -92,9 +92,10 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
-import org.polymap.core.services.ServicesPlugin;
 import org.polymap.core.services.geoserver.GeoServerWms;
 import org.polymap.core.style.IStyle;
+
+import org.polymap.service.ServicesPlugin;
 
 /**
  * Initializes GeoServer configuration and catalog on startup.

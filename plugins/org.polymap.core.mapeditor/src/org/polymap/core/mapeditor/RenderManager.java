@@ -61,8 +61,8 @@ import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
-import org.polymap.core.services.http.HttpServiceFactory;
-import org.polymap.core.services.http.WmsService;
+import org.polymap.service.http.HttpServiceFactory;
+import org.polymap.service.http.WmsService;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
