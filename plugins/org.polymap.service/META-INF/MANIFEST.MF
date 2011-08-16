@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: POLYMAP3 Service
+Bundle-Name: Services
 Bundle-SymbolicName: org.polymap.service;singleton:=true
 Bundle-Version: 3.1.0.qualifier
 Bundle-Activator: org.polymap.service.ServicesPlugin

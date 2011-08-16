@@ -42,7 +42,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
@@ -142,16 +141,20 @@ public class GeoServerWms
             context.setAttribute( "enableVersioning", "false" );
             context.setAttribute( "GEOSERVER_DATA_DIR", dataDir.getAbsoluteFile() );
 
-            servers.set( this );
-            
-            loaders.add( new LoggingStartupContextListener() );
-            loaders.add( new ContextLoaderListener() );
+            try {
+                servers.set( this );
 
-            ServletContextEvent ev = new ServletContextEvent( context );
-            for (ServletContextListener loader : loaders) {
-                loader.contextInitialized( ev );
+                loaders.add( new LoggingStartupContextListener() );
+                loaders.add( new ContextLoaderListener() );
+
+                ServletContextEvent ev = new ServletContextEvent( context );
+                for (ServletContextListener loader : loaders) {
+                    loader.contextInitialized( ev );
+                }
             }
-            servers.set( null );
+            finally {
+                servers.set( null );
+            }
 
             dispatcher = new DispatcherServlet();
             log.debug( "Dispatcher: " + dispatcher.getClass().getClassLoader() );
