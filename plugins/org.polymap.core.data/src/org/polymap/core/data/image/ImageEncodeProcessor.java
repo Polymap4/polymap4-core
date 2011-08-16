@@ -50,6 +50,8 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.util.ChunkedResponseOutputStream;
 import org.polymap.core.project.LayerUseCase;
 
+import com.objectplanet.image.PngEncoder;
+
 /**
  * Encode the image of a {@link ImageResponse} into PNG byte chunks of an
  * {@link EncodedImageResponse}.
@@ -147,7 +149,7 @@ public class ImageEncodeProcessor
             imageioEncodeJPEG( image, out );
         }
         else {
-            gtEncodePNG( image, out );
+            opEncodePNG( image, out );
         }
         log.debug( "encode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
         
@@ -168,11 +170,11 @@ public class ImageEncodeProcessor
     }
     
 
-//    private void opEncodePNG( Image image, ChunkedResponseOutputStream out )
-//    throws IOException {
-//        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA );
-//        encoder.encode( image, out );
-//    }
+    private void opEncodePNG( Image image, ChunkedResponseOutputStream out )
+    throws IOException {
+        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA );
+        encoder.encode( image, out );
+    }
     
 
     /**

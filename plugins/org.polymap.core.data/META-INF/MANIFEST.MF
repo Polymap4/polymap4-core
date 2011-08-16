@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Data Plugin
+Bundle-Name: Core Data Plugin
 Bundle-SymbolicName: org.polymap.core.data;singleton:=true
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 3.1.0.qualifier
 Bundle-Activator: org.polymap.core.data.DataPlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.core.runtime,
@@ -65,4 +65,5 @@ Bundle-ClassPath: .,
  lib/ehcache-1.4.1.jar,
  lib/jsr107cache-1.0.jar,
  lib/lucene-core-3.1.0.jar,
- lib/jackcess-1.1.18.jar
+ lib/jackcess-1.1.18.jar,
+ lib-static/com.objectplanet.image.PngEncoder.jar
