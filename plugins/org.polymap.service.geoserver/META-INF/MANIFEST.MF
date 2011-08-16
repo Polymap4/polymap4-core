@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: GeoServer OWS
-Bundle-SymbolicName: org.polymap.core.services.geoserver;singleton:=true
-Bundle-Version: 3.0.0.qualifier
-Bundle-Activator: org.polymap.core.services.geoserver.GeoServerPlugin
+Bundle-Name: GeoServer Web Services
+Bundle-SymbolicName: org.polymap.service.geoserver;singleton:=true
+Bundle-Version: 3.1.0.qualifier
+Bundle-Activator: org.polymap.service.geoserver.GeoServerPlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.core.runtime,
  net.refractions.udig.catalog;bundle-version="1.2.0",

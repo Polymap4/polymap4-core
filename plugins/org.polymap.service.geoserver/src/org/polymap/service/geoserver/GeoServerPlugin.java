@@ -1,4 +1,4 @@
-package org.polymap.core.services.geoserver;
+package org.polymap.service.geoserver;
 
 import org.osgi.framework.BundleContext;
 
@@ -42,7 +42,7 @@ public class GeoServerPlugin
     private static Log log = LogFactory.getLog( GeoServerPlugin.class );
 
     // The plug-in ID
-	public static final String PLUGIN_ID = "org.polymap.core.services.geoserver";
+	public static final String PLUGIN_ID = "org.polymap.service.geoserver";
 
 	// The shared instance
 	private static GeoServerPlugin plugin;

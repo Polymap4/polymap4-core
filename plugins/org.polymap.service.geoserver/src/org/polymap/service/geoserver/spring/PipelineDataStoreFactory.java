@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.geoserver.spring;
+package org.polymap.service.geoserver.spring;
 
 import java.util.Map;
 

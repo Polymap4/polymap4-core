@@ -98,7 +98,7 @@ public abstract class UIJob
     public UIJob( String name ) {
         super( name );
         this.display = Polymap.getSessionDisplay();
-        assert display != null : "Unable to determine current session/display.";
+//        assert display != null : "Unable to determine current session/display.";
 
         setSystem( false );
     }
@@ -125,10 +125,9 @@ public abstract class UIJob
     
 
     protected final IStatus run( final IProgressMonitor monitor ) {
-        // give the runnable to correct session context
-        UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+        Runnable runnable = new Runnable() {
             public void run() {
-                if (!PlatformUI.getWorkbench().isClosing()) {
+                if (display == null || !PlatformUI.getWorkbench().isClosing()) {
                     try {
                         executionMonitor = monitor;
                         threadJob.set( UIJob.this );
@@ -156,7 +155,14 @@ public abstract class UIJob
                     }
                 }
             }
-        });
+        };
+        if (display != null) {
+            // give the runnable to correct session context
+            UICallBack.runNonUIThreadWithFakeContext( display, runnable );
+        }
+        else {
+            runnable.run();
+        }
         return resultStatus;
     }
 
@@ -170,10 +176,13 @@ public abstract class UIJob
      *        "showInBackground" button.
      */
     public UIJob setShowProgressDialog( String dialogTitle, boolean showRunInBackground ) {
+        // enable UI only if we have a display
+        if (display != null) {
 //        if (progressDialog == null) {
 //            progressDialog = new ProgressDialog( dialogTitle, showRunInBackground );
 //        }
-        setUser( true );
+            setUser( true );
+        }
         return this;
     }
 

@@ -60,7 +60,7 @@
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  The fully qulifief name of a class that extends org.polymap.core.services.http.WmsService.
+                  The fully qualified name of a class that extends org.polymap.service.http.WmsService.
                </documentation>
                <appinfo>
                   <meta.attribute kind="java" basedOn="org.polymap.service.http.WmsService:"/>

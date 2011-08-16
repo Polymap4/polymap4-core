@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.geoserver.spring;
+package org.polymap.service.geoserver.spring;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,10 +92,10 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
-import org.polymap.core.services.geoserver.GeoServerWms;
 import org.polymap.core.style.IStyle;
 
 import org.polymap.service.ServicesPlugin;
+import org.polymap.service.geoserver.GeoServerWms;
 
 /**
  * Initializes GeoServer configuration and catalog on startup.
@@ -232,6 +232,12 @@ public class GeoServerLoader
                 String typeName = simpleName( layer.getLabel() );
                 ds = wrapCoverageLayer( layer, typeName );
                 schema = ds.getSchema( typeName );
+            }
+            // no geores found or something
+            catch (Exception e) {
+                log.warn( "Error while creating catalog: " + e.getLocalizedMessage() );
+                log.debug( "", e );
+                break;
             }
                 
                 // DataStore

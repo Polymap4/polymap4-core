@@ -2,9 +2,9 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.polymap.core.services.wms">
+         point="org.polymap.service.wms">
       <wms
-            class="org.polymap.core.services.geoserver.GeoServerWms">
+            class="org.polymap.service.geoserver.GeoServerWms">
       </wms>
    </extension>
 

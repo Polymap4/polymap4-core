@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.geoserver;
+package org.polymap.service.geoserver;
 
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -150,7 +150,7 @@ public class GeoServerClassLoader
         }
         return !name.startsWith( "org.geoserver." ) && 
                 !name.startsWith( "org.vfny." ) &&
-                !name.startsWith( "org.polymap.core.services.geoserver.spring" );
+                !name.startsWith( "org.polymap.service.geoserver.spring" );
         
 //        String[] system_classes = _context.getSystemClasses();
 //        if (system_classes != null) {

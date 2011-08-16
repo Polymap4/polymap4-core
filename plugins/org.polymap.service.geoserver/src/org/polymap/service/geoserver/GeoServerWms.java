@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.geoserver;
+package org.polymap.service.geoserver;
 
 import java.util.ArrayList;
 import java.util.Enumeration;

@@ -20,7 +20,7 @@
  *
  * $Id$
  */
-package org.polymap.core.services.geoserver.spring;
+package org.polymap.service.geoserver.spring;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +75,8 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
-import org.polymap.core.services.geoserver.GeoServerPlugin;
+
+import org.polymap.service.geoserver.GeoServerPlugin;
 
 /**
  * This {@link GetMapProducer} allows to use the pipelines rendering of POLYMAP

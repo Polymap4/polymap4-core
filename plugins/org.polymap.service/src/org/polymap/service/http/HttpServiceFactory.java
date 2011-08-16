@@ -49,7 +49,7 @@ public class HttpServiceFactory {
 
     private static final Log log = LogFactory.getLog( HttpServiceFactory.class );
 
-    private static final String             WMS_EXTENSION_POINT_ID = "org.polymap.core.services.wms";
+    private static final String             WMS_EXTENSION_POINT_ID = "org.polymap.service.wms";
 
     private static IConfigurationElement    wmsExt, wfsExt;
     
@@ -59,7 +59,7 @@ public class HttpServiceFactory {
     static {
         // wms extension
         IConfigurationElement[] exts = Platform.getExtensionRegistry().getConfigurationElementsFor( 
-                WMS_EXTENSION_POINT_ID ); //$NON-NLS-1$
+                WMS_EXTENSION_POINT_ID ); 
         log.info( "WMS extensions found: " + exts.length ); //$NON-NLS-1$
 
         if (exts.length == 0) {
@@ -139,7 +139,7 @@ public class HttpServiceFactory {
             }
         }
 
-        HttpServiceRegistry.registerServlet( pathSpec, (HttpServlet)server, null, null );
+        HttpServiceRegistry.registerServlet( pathSpec, server, null, null );
         return url;
     }
     

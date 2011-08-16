@@ -30,7 +30,7 @@
     <!-- bean id="secureCatalog" class="org.geoserver.security.SecureCatalogImpl">
         <constructor-arg ref="rawCatalog" />
     </bean-->
-    <!--bean id="polymapCatalog" class="org.polymap.core.services.geoserver.CatalogImpl">
+    <!--bean id="polymapCatalog" class="org.polymap.service.geoserver.CatalogImpl">
          <property name="resourceLoader" ref="resourceLoader"/>  
     </bean-->
     <!-- Switch this when you want to enable the secure catalog by default -->
@@ -42,7 +42,7 @@
     <!--bean id="geoServerLoader" class="org.geoserver.config.GeoServerLoader">
       <constructor-arg ref="resourceLoader"/>
     </bean-->
-    <bean id="geoServerLoader" class="org.polymap.core.services.geoserver.spring.GeoServerLoader">
+    <bean id="geoServerLoader" class="org.polymap.service.geoserver.spring.GeoServerLoader">
       <constructor-arg ref="resourceLoader"/>
     </bean>
     
@@ -393,7 +393,7 @@
     </bean-->
     <bean id="PNGMapProducer"
         singleton="false"
-        class="org.polymap.core.services.geoserver.spring.PipelineMapProducer">
+        class="org.polymap.service.geoserver.spring.PipelineMapProducer">
         <constructor-arg index="0" ref="wms"/>
         <constructor-arg index="1" ref="geoServerLoader"/>
     </bean>
@@ -898,7 +898,7 @@
     
     
     <!-- _p3: the bridge to polymap pipeline system -->
-    <bean id="pipelineDataStoreFactoryInitializer" class="org.polymap.core.services.geoserver.spring.PipelineDataStoreFactoryInitializer">
+    <bean id="pipelineDataStoreFactoryInitializer" class="org.polymap.service.geoserver.spring.PipelineDataStoreFactoryInitializer">
         <property name="resourceLoader" ref="resourceLoader"/>
     </bean>
     

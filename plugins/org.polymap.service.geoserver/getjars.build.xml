@@ -4,7 +4,7 @@
  from several maven repositories on the net. See copy.properties for
  general settings. 
  -->
-<project name="org.polymap.core.services.geoserver" default="build" basedir="." 
+<project name="org.polymap.service.geoserver" default="build" basedir="." 
 	   xmlns:artifact="antlib:org.apache.maven.artifact.ant"
 	   xmlns:rsel="antlib:org.apache.tools.ant.types.resources.selectors">
 	
@@ -104,7 +104,6 @@
 		</copy>
 
 		<!-- (flat) copy downloaded source JARs (sources) to plugin directory ${libs_src_dir} -->
-		<!--
 		<copy todir="${libs_src_dir}" flatten="true" verbose="true">
 			<fileset refid="sources.dependency.fileset" />
 			<chainedmapper>
@@ -112,7 +111,6 @@
 				<globmapper from="*-sources.jar" to="*-sources.zip" />
 			</chainedmapper>
 		</copy>
-		-->
 		<!-- <eclipse.refreshLocal resource="net.refractions.udig.libs/lib" depth="infinite"/>	-->
 	</target>
 
