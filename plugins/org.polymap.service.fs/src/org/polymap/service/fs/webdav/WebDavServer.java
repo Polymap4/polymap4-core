@@ -14,7 +14,9 @@
  */
 package org.polymap.service.fs.webdav;
 
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
 import java.io.IOException;
 
 import javax.servlet.ServletConfig;
@@ -27,17 +29,18 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.Response;
-import com.ettrema.http.fs.FileSystemResourceFactory;
-import com.ettrema.http.fs.NullSecurityManager;
+import com.bradmcevoy.http.SecurityManager;
+import com.ettrema.http.fs.SimpleSecurityManager;
 
 import org.polymap.service.http.WmsService;
 
 /**
- * HTTP servlet based on Milton.
+ * WebDAV server/servlet based on Milton.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -46,26 +49,26 @@ public class WebDavServer
 
     private static Log log = LogFactory.getLog( WebDavServer.class );
     
-    private static final ThreadLocal<HttpServletRequest>  originalRequest  = new ThreadLocal<HttpServletRequest>();
+    private static final ThreadLocal<Request>       threadRequest  = new ThreadLocal<Request>();
 
-    private static final ThreadLocal<HttpServletResponse> originalResponse = new ThreadLocal<HttpServletResponse>();
+    private static final ThreadLocal<Response>      threadResponse = new ThreadLocal<Response>();
 
-    private static final ThreadLocal<ServletConfig>       tlServletConfig  = new ThreadLocal<ServletConfig>();
+    private static final ThreadLocal<ServletConfig> threadServletConfig  = new ThreadLocal<ServletConfig>();
 
 
-    public static HttpServletRequest request() {
-        return originalRequest.get();
+    public static Request request() {
+        return WebDavServer.threadRequest.get();
     }
 
-    public static HttpServletResponse response() {
-        return originalResponse.get();
+    public static Response response() {
+        return WebDavServer.threadResponse.get();
     }
 
     /**
      * Make the servlet config available to any code on this thread.
      */
     public static ServletConfig servletConfig() {
-        return tlServletConfig.get();
+        return threadServletConfig.get();
     }
 
     
@@ -76,6 +79,8 @@ public class WebDavServer
     private HttpManager                 httpManager;
     
     private ResourceFactory             resourceFactory;
+    
+    private SecurityManager             securityManager;
 
 
     public void init( ServletConfig _config )
@@ -84,7 +89,16 @@ public class WebDavServer
         try {
             this.config = _config;
             
-            this.resourceFactory = new FileSystemResourceFactory( new File( "/home/falko/packages" ), new NullSecurityManager(), "webdav" );
+            Map<String,String> users = new HashMap();
+            users.put( "admin", "admin" );
+            users.put( "falko", "." );
+            securityManager = new SimpleSecurityManager( "POLYMAP3 WebDAV", users );
+            
+            this.resourceFactory = new WebDavResourceFactory( securityManager );
+            
+//            this.resourceFactory = new FileSystemResourceFactory( 
+//                    new File( "/tmp/webdav/" ), securityManager, "webdav/" );
+            
             this.httpManager = new HttpManager( resourceFactory );
         }
         catch (Throwable ex) {
@@ -95,6 +109,10 @@ public class WebDavServer
     
     
     public void destroy() {
+        httpManager = null;
+        //resourceFactory.dispose();
+        resourceFactory = null;
+        securityManager = null;
     }
 
 
@@ -103,28 +121,26 @@ public class WebDavServer
         HttpServletRequest req = (HttpServletRequest)servletRequest;
         HttpServletResponse resp = (HttpServletResponse)servletResponse;
         log.info( "Request: " + req.getPathInfo() );
+
         try {
             Request request = new com.bradmcevoy.http.ServletRequest( req );
             Response response = new com.bradmcevoy.http.ServletResponse( resp );
+            threadRequest.set( request );
+            threadResponse.set( response );
+
+            log.info( "    useragent: " + request.getUserAgentHeader() );
+            Auth auth = request.getAuthorization();
+            log.info( "    user: " + (auth != null ? auth.getUser() : "null") );
+            
             httpManager.process( request, response );
         }
         finally {
+            threadRequest.set( null );
+            threadResponse.set( null );
+            
             servletResponse.getOutputStream().flush();
             servletResponse.flushBuffer();
         }
     }
-    
-    
-//    /*
-//     * 
-//     */
-//    class TestResourceFactory
-//            implements ResourceFactory {
-//
-//        public Resource getResource( String host, String path ) {
-//            log.info( "WebDav Request: " + path );
-//        }
-//        
-//    }
     
 }

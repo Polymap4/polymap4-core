@@ -12,43 +12,40 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.service.fs;
-
-import org.osgi.framework.BundleContext;
+package org.polymap.service.fs.spi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FsPlugin
-        extends AbstractUIPlugin {
+public class Range {
 
-    private static Log log = LogFactory.getLog( FsPlugin.class );
-    
-    // The plug-in ID
-    public static final String      PLUGIN_ID = "org.polymap.service.fs";
-    
-    private static FsPlugin         plugin;
+    private static Log log = LogFactory.getLog( Range.class );
 
-    
-    public void start( BundleContext context )
-    throws Exception {
-        plugin = this;
+    private final long          start;
+
+    private final long          finish;
+
+
+    public Range(long start, long finish) {
+        this.start = start;
+        this.finish = finish;
     }
 
-    public void stop( BundleContext context )
-    throws Exception {
-        plugin = null;
+    public long getStart() {
+        return start;
     }
-    
-    public static FsPlugin getDefault() {
-        return plugin;
+
+    public long getFinish() {
+        return finish;
+    }
+
+    public String toString() {
+        return "bytes " + start + "-" + finish;
     }
 
 }

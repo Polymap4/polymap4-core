@@ -12,43 +12,34 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.service.fs;
+package org.polymap.service.fs.spi;
 
-import org.osgi.framework.BundleContext;
+import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.core.runtime.IPath;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FsPlugin
-        extends AbstractUIPlugin {
+public class DefaultContentFolder
+        extends DefaultContentNode
+        implements IContentFolder {
 
-    private static Log log = LogFactory.getLog( FsPlugin.class );
-    
-    // The plug-in ID
-    public static final String      PLUGIN_ID = "org.polymap.service.fs";
-    
-    private static FsPlugin         plugin;
+    private static Log log = LogFactory.getLog( DefaultContentFolder.class );
 
-    
-    public void start( BundleContext context )
-    throws Exception {
-        plugin = this;
+
+    public DefaultContentFolder( String name, IPath parentPath, IContentProvider provider, Object source ) {
+        super( name, parentPath, provider, source );
     }
 
-    public void stop( BundleContext context )
-    throws Exception {
-        plugin = null;
-    }
-    
-    public static FsPlugin getDefault() {
-        return plugin;
+
+    public Date getModifiedDate() {
+        return null;
     }
 
 }
