@@ -14,6 +14,8 @@
  */
 package org.polymap.service.fs.spi;
 
+import java.util.Locale;
+
 import org.eclipse.core.runtime.IPath;
 
 /**
@@ -23,10 +25,12 @@ import org.eclipse.core.runtime.IPath;
  */
 public interface IContentSite {
 
-    public IContentFolder parentFolder( IPath path );
+    public IContentFolder getFolder( IPath path );
     
     public Object put( String key, Object value );
     
     public Object get( String key );
+    
+    public Locale getLocale();
     
 }

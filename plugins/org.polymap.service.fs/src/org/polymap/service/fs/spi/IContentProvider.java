@@ -25,6 +25,6 @@ import org.eclipse.core.runtime.IPath;
  */
 public interface IContentProvider {
 
-    public List<IContentNode> getChildren( IPath path, IContentSite site );
+    public List<? extends IContentNode> getChildren( IPath parentPath, IContentSite site );
     
 }

@@ -85,6 +85,7 @@ public class WebDavServer
 
     public void init( ServletConfig _config )
     throws ServletException {
+        super.init( _config );
         log.info( "WebDAV Server: " + _config.getServletContext().getContextPath() );
         try {
             this.config = _config;
@@ -94,7 +95,7 @@ public class WebDavServer
             users.put( "falko", "." );
             securityManager = new SimpleSecurityManager( "POLYMAP3 WebDAV", users );
             
-            this.resourceFactory = new WebDavResourceFactory( securityManager );
+            this.resourceFactory = new WebDavResourceFactory( securityManager, "webdav" );
             
 //            this.resourceFactory = new FileSystemResourceFactory( 
 //                    new File( "/tmp/webdav/" ), securityManager, "webdav/" );

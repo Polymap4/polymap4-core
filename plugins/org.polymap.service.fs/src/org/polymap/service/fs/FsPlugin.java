@@ -39,11 +39,13 @@ public class FsPlugin
     
     public void start( BundleContext context )
     throws Exception {
+        super.start( context );
         plugin = this;
     }
 
     public void stop( BundleContext context )
     throws Exception {
+        super.stop( context );
         plugin = null;
     }
     

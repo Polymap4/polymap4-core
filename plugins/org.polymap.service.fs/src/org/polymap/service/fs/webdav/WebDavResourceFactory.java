@@ -15,9 +15,13 @@
 package org.polymap.service.fs.webdav;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -26,6 +30,7 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SecurityManager;
+import com.bradmcevoy.http.ServletRequest;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFile;
@@ -52,10 +57,20 @@ class WebDavResourceFactory
     private ReentrantReadWriteLock          lock = new ReentrantReadWriteLock();
 
     private SecurityManager                 securityManager;
-    
-    
-    protected WebDavResourceFactory( SecurityManager securityManager ) {
+
+    private String                          contextPath;
+
+
+    /**
+     * 
+     * @param securityManager
+     * @param contextPath - this is the leading part of URL's to ignore. For example
+     *        if you're application is deployed to http://localhost:8080/webdav-fs,
+     *        the context path should be webdav-fs
+     */
+    protected WebDavResourceFactory( SecurityManager securityManager, String contextPath ) {
         this.securityManager = securityManager;
+        this.contextPath = contextPath;
     }
 
     
@@ -82,7 +97,12 @@ class WebDavResourceFactory
                 lock.readLock().unlock();
                 lock.writeLock().lock();
                 
-                contentManager = ContentManager.forUser( user );
+                HttpServletRequest httpRequest = ServletRequest.getRequest();
+                Locale locale = httpRequest != null 
+                        ? httpRequest.getLocale()
+                        : Locale.getDefault();
+                
+                contentManager = ContentManager.forUser( user, locale );
                 contentManagers.put( user, contentManager );
             }
         }
@@ -95,7 +115,8 @@ class WebDavResourceFactory
         }
         
         // get content
-        IContentNode node = contentManager.getNode( path );
+        path = StringUtils.substringAfter( path, contextPath );
+        IContentNode node = contentManager.getNode( contentManager.parsePath( path ) );
         return wrapContentNode( node, contentManager, securityManager );
     }
     

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-jcl-1.5.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-fileupload-1.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/milton-api-1.6.2.jar" sourcepath="lib/sources/milton-api-1.6.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/milton-filesystem-1.6.2.jar" sourcepath="lib/sources/milton-filesystem-1.6.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/milton-json-1.6.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/milton-servlet-1.6.2.jar" sourcepath="lib/sources/milton-servlet-1.6.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-1.5.8.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/slf4j-log4j12-1.5.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="output" path="build/eclipse"/>

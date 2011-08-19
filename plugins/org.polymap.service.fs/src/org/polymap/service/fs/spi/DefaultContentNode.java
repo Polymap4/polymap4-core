@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 /**
  * Default implementation of an content node. 
@@ -58,6 +59,11 @@ public abstract class DefaultContentNode
     
     public IPath getParentPath() {
         return parentPath;
+    }
+
+    
+    public IPath getPath() {
+        return parentPath != null ? parentPath.append( getName() ) : new Path( getName() );
     }
 
 

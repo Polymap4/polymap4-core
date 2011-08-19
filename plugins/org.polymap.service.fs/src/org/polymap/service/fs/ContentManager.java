@@ -16,6 +16,7 @@ package org.polymap.service.fs;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -44,14 +45,16 @@ public class ContentManager {
     private static Log log = LogFactory.getLog( ContentManager.class );
     
     
-    public static ContentManager forUser( String username ) {
-        return new ContentManager( username );    
+    public static ContentManager forUser( String username, Locale locale ) {
+        return new ContentManager( username, locale );    
     }
     
     
     // instance *******************************************
 
     private String                      username;
+    
+    private Locale                      locale;
     
     private ContentSite                 site;
     
@@ -61,55 +64,95 @@ public class ContentManager {
      */
     private Map<IPath,Map<String,IContentNode>> nodes = new HashMap( 256 );
     
+    private DefaultContentFolder        rootNode;
     
-    protected ContentManager( String username ) {
+    
+    protected ContentManager( String username, Locale locale ) {
         this.username = username;
+        this.locale = locale;
         this.site = new ContentSite();
+        
+        // root node
+        this.rootNode = new DefaultContentFolder( "[root]", null, null, null ) {
+
+            private IPath       path = parsePath( "/" );
+            
+            public IPath getPath() {
+                return path;
+            }
+            
+        };
     }
     
     
-    public IContentNode getNode( String pathString ) {
-        IPath path = createPath( pathString );
+    public IContentNode getNode( IPath path ) {
+        
+        checkInitContent( path );
+
+        IContentNode result = null;
         if (path.segmentCount() == 0) {
-            return new DefaultContentFolder( "root", null, null, null );
+            result = rootNode;
         }
         else {
             IPath parentPath = path.removeLastSegments( 1 );
             String nodeName = path.lastSegment();
-            return nodes.get( parentPath ).get( nodeName );
+            Map<String, IContentNode> parentChildren = nodes.get( parentPath );
+            result = parentChildren.get( nodeName );
         }
+        
+        return result;
     }
     
     
-    public Iterable<IContentNode> getChildren( String pathString ) {
-        IPath path = createPath( pathString );
+    public Iterable<IContentNode> getChildren( IPath path ) {
+        
+        checkInitContent( path );
+        
         Map<String,IContentNode> result = nodes.get( path );
+        return result.values();
+    }
 
-        if (result == null) {
-            result = new HashMap( 64 );
-            
-            for (ContentProviderExtension ext : ContentProviderExtension.all()) {
-                List<IContentNode> candidates = ext.getProvider().getChildren( path, site );
-                if (candidates != null) {
-                    for (IContentNode candidate : candidates) {
-                        IContentNode old = result.put( candidate.getName(), candidate );
-                        if (old != null) {
-                            log.warn( "Child node name already exists: " + candidate.getName() );
+
+    /**
+     * Initialize the content tree up to the given path, including the children of
+     * the last node.
+     * 
+     * @param path
+     */
+    private void checkInitContent( IPath path ) {
+        assert path != null;
+
+        IPath initPath = rootNode.getPath();
+        
+        for (int i=-1; i < path.segmentCount(); i++) {
+
+            // first loop for the root
+            initPath = (i >= 0) ? initPath.append( path.segment( i ) ) : initPath;
+
+            Map<String, IContentNode> result = nodes.get( initPath );
+            if (result == null) {
+                result = new HashMap( 64 );
+
+                for (ContentProviderExtension ext : ContentProviderExtension.all()) {
+
+                    List<? extends IContentNode> children = ext.getProvider().getChildren( path, site );
+
+                    if (children != null) {
+                        for (IContentNode child : children) {
+                            IContentNode old = result.put( child.getName(), child );
+                            if (old != null) {
+                                log.warn( "Child node name already exists: " + child.getName() );
+                            }
                         }
                     }
                 }
+                nodes.put( initPath, result );
             }
-            
-            if (result.isEmpty()) {
-                return null;
-            }
-            nodes.put( path, result );
         }
-        return result.values();
     }
-    
-    
-    private IPath createPath( String pathString ) {
+
+
+    public IPath parsePath( String pathString ) {
         return Path.fromOSString( pathString );
     }
 
@@ -123,9 +166,15 @@ public class ContentManager {
         private Map<String,Object>          data = new HashMap();
         
         
-        public IContentFolder parentFolder( IPath path ) {
+        public IContentFolder getFolder( IPath path ) {
             log.info( "path=" + path );
-            throw new RuntimeException( "not yet implemented" );
+            assert path != null;
+            assert path.segmentCount() >= 1;
+            
+            IPath parentPath = path.removeLastSegments( 1 );
+            String nodeName = path.lastSegment();
+            Map<String, IContentNode> parentChildren = nodes.get( parentPath );
+            return (IContentFolder)parentChildren.get( nodeName );
         }
         
         public Object put( String key, Object value ) {
@@ -134,6 +183,10 @@ public class ContentManager {
         
         public Object get( String key ) {
             return data.get( key );
+        }
+
+        public Locale getLocale() {
+            return locale;
         }
         
     }

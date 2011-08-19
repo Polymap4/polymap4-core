@@ -50,7 +50,7 @@ abstract class AbstractResource
         this.securityManager = securityManager;
     }
 
-
+    
     public String getName() {
         return node.getName();
     }

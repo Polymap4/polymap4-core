@@ -15,6 +15,7 @@
  */
 package org.polymap.core.runtime;
 
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import java.text.MessageFormat;
@@ -24,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.internal.service.ContextProvider;
 
 /**
  * Provides a default implementation as a backend for the static Messages class of a
@@ -31,6 +33,7 @@ import org.eclipse.rwt.RWT;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings("restriction")
 public class MessagesImpl {
 
     private static Log log = LogFactory.getLog( MessagesImpl.class );
@@ -40,11 +43,22 @@ public class MessagesImpl {
     private String              bundleName;
 
     private ClassLoader         cl;
+    
+    private Locale              defaultLocale = Locale.GERMAN;
 
 
     public MessagesImpl( String bundleName, ClassLoader cl ) {
         this.bundleName = bundleName;
         this.cl = cl;
+    }
+
+    
+    public Locale getDefaultLocale() {
+        return defaultLocale;
+    }
+
+    public void setDefaultLocale( Locale defaultLocale ) {
+        this.defaultLocale = defaultLocale;
     }
 
 
@@ -57,9 +71,24 @@ public class MessagesImpl {
      * @return The message for the given key.
      */
     public String get( String key, Object... args ) {
+        Locale locale = ContextProvider.hasContext() ? RWT.getLocale() : defaultLocale;
+        return get( locale, key, args );
+    }
+
+
+    /**
+     * Find the localized message for the given key. If arguments are given, then the
+     * result message is formatted via {@link MessageFormat}.
+     *
+     * @param locale The locale to use to localize the given message.
+     * @param key
+     * @param args If not null, then the message is formatted via {@link MessageFormat}
+     * @return The message for the given key.
+     */
+    public String get( Locale locale, String key, Object... args ) {
         try {
             // getBundle() caches the bundles
-            ResourceBundle bundle = ResourceBundle.getBundle( bundleName, RWT.getLocale(), cl );
+            ResourceBundle bundle = ResourceBundle.getBundle( bundleName, locale, cl );
             if (args == null || args.length == 0) {
                 return bundle.getString( key );
             }

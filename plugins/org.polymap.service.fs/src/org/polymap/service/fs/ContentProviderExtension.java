@@ -46,7 +46,7 @@ class ContentProviderExtension {
         bundleContext.addBundleListener( new BundleListener() {
             
             public void bundleChanged( BundleEvent event ) {
-                // force reload after bundle has changed
+                // force reloading extensions after bundle has changed
                 extensions = null;
             }
         });

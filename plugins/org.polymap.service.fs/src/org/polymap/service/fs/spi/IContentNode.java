@@ -37,7 +37,7 @@ public interface IContentNode {
      */
     public String getName();
 
-    public IPath getParentPath();
+    public IPath getPath();
 
     /**
      * The date and time that this resource, or any part of this resource, was last

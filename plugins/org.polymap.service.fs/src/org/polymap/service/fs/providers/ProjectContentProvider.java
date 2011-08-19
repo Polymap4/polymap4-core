@@ -15,6 +15,7 @@
 package org.polymap.service.fs.providers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -25,7 +26,9 @@ import org.eclipse.core.runtime.IPath;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 
+import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.DefaultContentFolder;
+import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentProvider;
 import org.polymap.service.fs.spi.IContentSite;
@@ -35,22 +38,32 @@ import org.polymap.service.fs.spi.IContentSite;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class MapContentProvider
+public class ProjectContentProvider
         implements IContentProvider {
 
-    private static Log log = LogFactory.getLog( MapContentProvider.class );
+    private static Log log = LogFactory.getLog( ProjectContentProvider.class );
 
     public static final String      PROJECT_REPOSITORY_KEY = "projectRepository";
     
 
-    public List<IContentNode> getChildren( IPath path, IContentSite site ) {
+    public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
+        
+        // project root
         if (path.segmentCount() == 0) {
             // XXX user specific!
             ProjectRepository repo = ProjectRepository.globalInstance();
-            assert site.get( PROJECT_REPOSITORY_KEY ) == null;
+//            assert site.get( PROJECT_REPOSITORY_KEY ) == null;
             site.put( PROJECT_REPOSITORY_KEY, repo );
             
+            String name = Messages.get( site.getLocale(), "ProjectContentProvider_projectNode" );
+            return Collections.singletonList( new DefaultContentFolder( name, path, this, null ) );
+        }
+
+        // projects
+        IContentFolder parent = site.getFolder( path );
+        if (parent != null && parent.getProvider() == this) {
             List<IContentNode> result = new ArrayList();
+            ProjectRepository repo = (ProjectRepository)site.get( PROJECT_REPOSITORY_KEY );
             for (IMap map : repo.getRootMap().getMaps()) {
                 result.add( new DefaultContentFolder( map.getLabel(), path, this, map ) );
             }
