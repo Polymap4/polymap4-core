@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,6 +65,8 @@ public class ContentManager {
      */
     private Map<IPath,Map<String,IContentNode>> nodes = new HashMap( 256 );
     
+    private ReentrantReadWriteLock      nodesLock = new ReentrantReadWriteLock();
+    
     private DefaultContentFolder        rootNode;
     
     
@@ -98,10 +101,17 @@ public class ContentManager {
             result = rootNode;
         }
         else {
-            IPath parentPath = path.removeLastSegments( 1 );
-            String nodeName = path.lastSegment();
-            Map<String, IContentNode> parentChildren = nodes.get( parentPath );
-            result = parentChildren.get( nodeName );
+            try {
+                nodesLock.readLock().lock();
+
+                IPath parentPath = path.removeLastSegments( 1 );
+                String nodeName = path.lastSegment();
+                Map<String, IContentNode> parentChildren = nodes.get( parentPath );
+                result = parentChildren.get( nodeName );
+            }
+            finally {
+                nodesLock.readLock().unlock();
+            }
         }
         
         return result;
@@ -112,8 +122,14 @@ public class ContentManager {
         
         checkInitContent( path );
         
-        Map<String,IContentNode> result = nodes.get( path );
-        return result.values();
+        try {
+            nodesLock.readLock().lock();
+            Map<String,IContentNode> result = nodes.get( path );
+            return result.values();
+        }
+        finally {
+            nodesLock.readLock().unlock();
+        }
     }
 
 
@@ -126,32 +142,47 @@ public class ContentManager {
     private void checkInitContent( IPath path ) {
         assert path != null;
 
-        IPath initPath = rootNode.getPath();
-        
-        for (int i=-1; i < path.segmentCount(); i++) {
+        try {
+            nodesLock.readLock().lock();
 
-            // first loop for the root
-            initPath = (i >= 0) ? initPath.append( path.segment( i ) ) : initPath;
+            IPath initPath = rootNode.getPath();
+            for (int i=-1; i < path.segmentCount(); i++) {
 
-            Map<String, IContentNode> result = nodes.get( initPath );
-            if (result == null) {
-                result = new HashMap( 64 );
+                // first loop for the root
+                initPath = (i >= 0) ? initPath.append( path.segment( i ) ) : initPath;
 
-                for (ContentProviderExtension ext : ContentProviderExtension.all()) {
+                Map<String, IContentNode> result = nodes.get( initPath );
+                if (result == null) {
+                    if (!nodesLock.writeLock().isHeldByCurrentThread()) {
+                        nodesLock.readLock().unlock();
+                        nodesLock.writeLock().lock();
+                    }
+                    
+                    result = new HashMap( 64 );
 
-                    List<? extends IContentNode> children = ext.getProvider().getChildren( path, site );
+                    for (ContentProviderExtension ext : ContentProviderExtension.all()) {
 
-                    if (children != null) {
-                        for (IContentNode child : children) {
-                            IContentNode old = result.put( child.getName(), child );
-                            if (old != null) {
-                                log.warn( "Child node name already exists: " + child.getName() );
+                        List<? extends IContentNode> children = ext.getProvider().getChildren( initPath, site );
+
+                        if (children != null) {
+                            for (IContentNode child : children) {
+                                IContentNode old = result.put( child.getName(), child );
+                                if (old != null) {
+                                    log.warn( "Child node name already exists: " + child.getName() );
+                                }
                             }
                         }
                     }
+                    nodes.put( initPath, result );
                 }
-                nodes.put( initPath, result );
             }
+        }
+        finally {
+            if (nodesLock.writeLock().isHeldByCurrentThread()) {
+                nodesLock.readLock().lock();
+                nodesLock.writeLock().unlock();
+            }
+            nodesLock.readLock().unlock();
         }
     }
 
@@ -171,23 +202,29 @@ public class ContentManager {
         
         
         public IContentFolder getFolder( IPath path ) {
-            log.info( "path=" + path );
             assert path != null;
             
             if (path.segmentCount() == 0) {
                 return rootNode;
             }
             else {
-                IPath parentPath = path.removeLastSegments( 1 );
-                String nodeName = path.lastSegment();
-                Map<String, IContentNode> parentChildren = nodes.get( parentPath );
-                
-                if (parentChildren != null) {
-                    IContentNode node = parentChildren.get( nodeName );
-                    return node instanceof IContentFolder ? (IContentFolder)node : null;
+                try {
+                    nodesLock.readLock().lock();
+
+                    IPath parentPath = path.removeLastSegments( 1 );
+                    String nodeName = path.lastSegment();
+                    Map<String, IContentNode> parentChildren = nodes.get( parentPath );
+
+                    if (parentChildren != null) {
+                        IContentNode node = parentChildren.get( nodeName );
+                        return node instanceof IContentFolder ? (IContentFolder)node : null;
+                    }
+                    else {
+                        return null;
+                    }
                 }
-                else {
-                    return null;
+                finally {
+                    nodesLock.readLock().unlock();
                 }
             }
         }
