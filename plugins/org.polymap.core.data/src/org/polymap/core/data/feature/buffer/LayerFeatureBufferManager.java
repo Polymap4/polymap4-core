@@ -49,7 +49,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import edu.emory.mathcs.backport.java.util.Collections;
 
 import org.eclipse.rwt.SessionSingletonBase;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
@@ -60,6 +59,7 @@ import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -95,24 +95,27 @@ public class LayerFeatureBufferManager
 
     public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
 
-    
     /**
      * The Session holds the managers of the session.
      */
     static class Session
             extends SessionSingletonBase { 
         
+        private static final Session        globalSession = new Session();
+        
         protected WeakHashMap<ILayer,LayerFeatureBufferManager> managers = new WeakHashMap();
         
         public static Session instance() {
-            return (Session)getInstance( Session.class );
+            return Polymap.getSessionDisplay() != null
+                    ? (Session)getInstance( Session.class )
+                    : globalSession;
         }
     }
 
 
     /**
      * Gets the buffer manager for the given layer of the current session. If no
-     * manager exists yet than a new one is created with default buffer type/impl and
+     * manager exists yet a new one is created with default buffer type/impl and
      * settings if <code>create</code> is true, otherwise null might be returned.
      * 
      * @param layer
@@ -164,7 +167,9 @@ public class LayerFeatureBufferManager
         
         processor = new FeatureBufferProcessor( buffer );
         
-        OperationSupport.instance().addOperationSaveListener( this );
+        if (Polymap.getSessionDisplay() != null) {
+            OperationSupport.instance().addOperationSaveListener( this );
+        }
     }
 
     

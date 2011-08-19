@@ -173,14 +173,23 @@ public class ContentManager {
         public IContentFolder getFolder( IPath path ) {
             log.info( "path=" + path );
             assert path != null;
-            assert path.segmentCount() >= 1;
             
-            IPath parentPath = path.removeLastSegments( 1 );
-            String nodeName = path.lastSegment();
-            Map<String, IContentNode> parentChildren = nodes.get( parentPath );
-            return (parentChildren != null)
-                    ? (IContentFolder)parentChildren.get( nodeName )
-                    : null;
+            if (path.segmentCount() == 0) {
+                return rootNode;
+            }
+            else {
+                IPath parentPath = path.removeLastSegments( 1 );
+                String nodeName = path.lastSegment();
+                Map<String, IContentNode> parentChildren = nodes.get( parentPath );
+                
+                if (parentChildren != null) {
+                    IContentNode node = parentChildren.get( nodeName );
+                    return node instanceof IContentFolder ? (IContentFolder)node : null;
+                }
+                else {
+                    return null;
+                }
+            }
         }
         
         public Object put( String key, Object value ) {

@@ -14,6 +14,7 @@
  */
 package org.polymap.service.fs.webdav;
 
+import java.util.Date;
 import java.util.Map;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.SecurityManager;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -39,7 +41,7 @@ import org.polymap.service.fs.spi.IContentFile;
  */
 public class WebDavFileResource
         extends AbstractResource
-        implements GetableResource {
+        implements GetableResource, PropFindableResource {
 
     private static Log log = LogFactory.getLog( WebDavFileResource.class );
     
@@ -73,7 +75,9 @@ public class WebDavFileResource
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType )
     throws IOException, NotAuthorizedException, BadRequestException {
         try {
-            org.polymap.service.fs.spi.Range fsRange = new org.polymap.service.fs.spi.Range( range.getStart(), range.getFinish() );
+            org.polymap.service.fs.spi.Range fsRange = range != null
+                    ? new org.polymap.service.fs.spi.Range( range.getStart(), range.getFinish() )
+                    : null;
             delegate().sendContent( out, fsRange, params, contentType );
         }
         catch (IOException e) {
@@ -82,6 +86,11 @@ public class WebDavFileResource
         catch (org.polymap.service.fs.spi.BadRequestException e) {
             throw new BadRequestException( this, e.getMessage() );
         }
+    }
+
+
+    public Date getCreateDate() {
+        return null;
     }
 
 }

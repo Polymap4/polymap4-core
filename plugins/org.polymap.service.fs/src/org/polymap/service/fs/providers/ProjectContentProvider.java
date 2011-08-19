@@ -35,8 +35,9 @@ import org.polymap.service.fs.spi.IContentProvider;
 import org.polymap.service.fs.spi.IContentSite;
 
 /**
- * Provides content nodes for every {@link IMap} under "/" path.  
- *
+ * Provides content nodes for {@link IMap} and {@link ILayer} and a 'projects' node
+ * as root for this structure.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProjectContentProvider
@@ -62,6 +63,7 @@ public class ProjectContentProvider
 
         // maps
         IContentFolder parent = site.getFolder( path );
+        log.info( "parent: " + parent );
         if (parent instanceof ProjectsFolder) {
             List<IContentNode> result = new ArrayList();
             ProjectRepository repo = (ProjectRepository)site.get( PROJECT_REPOSITORY_KEY );
@@ -131,7 +133,7 @@ public class ProjectContentProvider
             super( layer.getLabel(), parentPath, provider, layer );
         }
 
-        public ILayer getMap() {
+        public ILayer getLayer() {
             return (ILayer)getSource();
         }
         

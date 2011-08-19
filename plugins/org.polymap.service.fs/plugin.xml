@@ -17,6 +17,16 @@
             id="org.polymap.service.fs.ProjectContentProvider"
             name="Projects">
       </contentProvider>
+      <contentProvider
+            class="org.polymap.service.fs.providers.ShapefileContentProvider"
+            id="org.polymap.service.fs.ShapefileContentProvider"
+            name="Shapefiles">
+      </contentProvider>
+      <contentProvider
+            class="org.polymap.service.fs.providers.GeoJsonContentProvider"
+            id="org.polymap.service.fs.GeoJsonContentProvider"
+            name="GeoJSON">
+      </contentProvider>
    </extension>
 
 </plugin>
