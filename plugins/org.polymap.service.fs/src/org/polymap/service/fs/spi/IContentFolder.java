@@ -21,5 +21,7 @@ package org.polymap.service.fs.spi;
  */
 public interface IContentFolder
         extends IContentNode {
+    
+    public String getDescription( String contentType );
 
 }

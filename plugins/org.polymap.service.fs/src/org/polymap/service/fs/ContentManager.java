@@ -80,6 +80,10 @@ public class ContentManager {
             public IPath getPath() {
                 return path;
             }
+
+            public String getDescription( String contentType ) {
+                return "Das ist das Basisverzeichnis des <b>POLYMAP3 Webdav Servers</b>.";
+            }
             
         };
     }
@@ -174,7 +178,9 @@ public class ContentManager {
             IPath parentPath = path.removeLastSegments( 1 );
             String nodeName = path.lastSegment();
             Map<String, IContentNode> parentChildren = nodes.get( parentPath );
-            return (IContentFolder)parentChildren.get( nodeName );
+            return (parentChildren != null)
+                    ? (IContentFolder)parentChildren.get( nodeName )
+                    : null;
         }
         
         public Object put( String key, Object value ) {

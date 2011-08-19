@@ -42,4 +42,9 @@ public class DefaultContentFolder
         return null;
     }
 
+
+    public String getDescription( String contentType ) {
+        return null;
+    }
+
 }

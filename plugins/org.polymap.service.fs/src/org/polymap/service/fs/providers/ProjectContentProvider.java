@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 
@@ -48,7 +49,7 @@ public class ProjectContentProvider
 
     public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
         
-        // project root
+        // projects root
         if (path.segmentCount() == 0) {
             // XXX user specific!
             ProjectRepository repo = ProjectRepository.globalInstance();
@@ -56,20 +57,88 @@ public class ProjectContentProvider
             site.put( PROJECT_REPOSITORY_KEY, repo );
             
             String name = Messages.get( site.getLocale(), "ProjectContentProvider_projectNode" );
-            return Collections.singletonList( new DefaultContentFolder( name, path, this, null ) );
+            return Collections.singletonList( new ProjectsFolder( name, path, this ) );
         }
 
-        // projects
+        // maps
         IContentFolder parent = site.getFolder( path );
-        if (parent != null && parent.getProvider() == this) {
+        if (parent instanceof ProjectsFolder) {
             List<IContentNode> result = new ArrayList();
             ProjectRepository repo = (ProjectRepository)site.get( PROJECT_REPOSITORY_KEY );
             for (IMap map : repo.getRootMap().getMaps()) {
-                result.add( new DefaultContentFolder( map.getLabel(), path, this, map ) );
+                result.add( new MapFolder( path, this, map ) );
+            }
+            return result;
+        }
+
+        // layers
+        else if (parent instanceof MapFolder) {
+            List<IContentNode> result = new ArrayList();
+            for (ILayer layer : ((MapFolder)parent).getMap().getLayers()) {
+                result.add( new LayerFolder( path, this, layer ) );
             }
             return result;
         }
         return null;
+    }
+    
+    
+    /*
+     * 
+     */
+    public class ProjectsFolder
+            extends DefaultContentFolder {
+
+        public ProjectsFolder( String name, IPath parentPath, IContentProvider provider ) {
+            super( name, parentPath, provider, null );
+        }
+
+        public String getDescription( String contentType ) {
+            return "Dieses Verzeichnis enthält eine Auflistung <b>aller Projekte</b>, auf die Sie im Moment Zugriff haben.";
+        }
+        
+    }
+
+    
+    /*
+     * 
+     */
+    public class MapFolder
+            extends DefaultContentFolder {
+
+        public MapFolder( IPath parentPath, IContentProvider provider, IMap map ) {
+            super( map.getLabel(), parentPath, provider, map );
+        }
+
+        public IMap getMap() {
+            return (IMap)getSource();
+        }
+        
+        public String getDescription( String contentType ) {
+            return "Dieses Verzeichnis enthält Daten des <b>Projektes</b> \"" + getName() + "\".";
+        }
+        
+    }
+    
+
+    /*
+     * 
+     */
+    public class LayerFolder
+            extends DefaultContentFolder {
+
+        public LayerFolder( IPath parentPath, IContentProvider provider, ILayer layer ) {
+            super( layer.getLabel(), parentPath, provider, layer );
+        }
+
+        public ILayer getMap() {
+            return (ILayer)getSource();
+        }
+        
+        public String getDescription( String contentType ) {
+            return "Dieses Verzeichnis enthält Daten der <b>Ebene</b> \"" + getName() + "\".";
+        }
+        
     }
     
 }

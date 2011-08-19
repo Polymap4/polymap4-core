@@ -117,7 +117,7 @@ class WebDavResourceFactory
         // get content
         path = StringUtils.substringAfter( path, contextPath );
         IContentNode node = contentManager.getNode( contentManager.parsePath( path ) );
-        return wrapContentNode( node, contentManager, securityManager );
+        return node != null ? wrapContentNode( node, contentManager, securityManager ) : null;
     }
     
     
