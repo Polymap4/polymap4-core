@@ -88,7 +88,7 @@ public class ProjectContentProvider
     /*
      * 
      */
-    public class ProjectsFolder
+    public static class ProjectsFolder
             extends DefaultContentFolder {
 
         public ProjectsFolder( String name, IPath parentPath, IContentProvider provider ) {
@@ -105,7 +105,7 @@ public class ProjectContentProvider
     /*
      * 
      */
-    public class MapFolder
+    public static class MapFolder
             extends DefaultContentFolder {
 
         public MapFolder( IPath parentPath, IContentProvider provider, IMap map ) {
@@ -126,7 +126,7 @@ public class ProjectContentProvider
     /*
      * 
      */
-    public class LayerFolder
+    public static class LayerFolder
             extends DefaultContentFolder {
 
         public LayerFolder( IPath parentPath, IContentProvider provider, ILayer layer ) {

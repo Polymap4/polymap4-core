@@ -34,6 +34,7 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.fs.spi.BadRequestException;
+import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentNode;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
@@ -55,12 +56,17 @@ public class GeoJsonContentProvider
 
 
     public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
-        
         IContentFolder parent = site.getFolder( path );
         
-        if (parent != null && parent.getSource() instanceof ILayer) {
+        // file
+        if (parent instanceof GeoJsonFolder) {
             return Collections.singletonList( 
                     new GeoJsonFile( path, this, (ILayer)parent.getSource() ) );
+        }
+        // folder
+        else if (parent instanceof ProjectContentProvider.LayerFolder) {
+            return Collections.singletonList( 
+                    new GeoJsonFolder( path, this, (ILayer)parent.getSource() ) );
         }
         return null;
     }
@@ -69,7 +75,28 @@ public class GeoJsonContentProvider
     /*
      * 
      */
-    public class GeoJsonFile
+    public static class GeoJsonFolder
+            extends DefaultContentFolder {
+
+        public GeoJsonFolder( IPath parentPath, IContentProvider provider, ILayer layer ) {
+            super( "geojson", parentPath, provider, layer );
+        }
+
+        public ILayer getLayer() {
+            return (ILayer)getSource();
+        }
+        
+        public String getDescription( String contentType ) {
+            return "Dieses Verzeichnis enthält die die Daten der Ebene \"" + getLayer().getLabel() 
+                    + "\" im <b>GeoJSON-Format</b>.";
+        }
+    }
+
+
+    /*
+     * 
+     */
+    public static class GeoJsonFile
             extends DefaultContentNode
             implements IContentFile {
 

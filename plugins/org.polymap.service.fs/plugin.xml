@@ -20,7 +20,7 @@
       <contentProvider
             class="org.polymap.service.fs.providers.ShapefileContentProvider"
             id="org.polymap.service.fs.ShapefileContentProvider"
-            name="Shapefiles">
+            name="Shapefile">
       </contentProvider>
       <contentProvider
             class="org.polymap.service.fs.providers.GeoJsonContentProvider"

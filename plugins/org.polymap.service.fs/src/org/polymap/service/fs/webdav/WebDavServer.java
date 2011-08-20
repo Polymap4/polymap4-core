@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.ResourceFactory;
@@ -121,7 +120,7 @@ public class WebDavServer
     throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest)servletRequest;
         HttpServletResponse resp = (HttpServletResponse)servletResponse;
-        log.info( "Request: " + req.getPathInfo() );
+//        log.info( "Request: " + req.getPathInfo() );
 
         try {
             Request request = new com.bradmcevoy.http.ServletRequest( req );
@@ -129,9 +128,9 @@ public class WebDavServer
             threadRequest.set( request );
             threadResponse.set( response );
 
-            log.info( "    useragent: " + request.getUserAgentHeader() );
-            Auth auth = request.getAuthorization();
-            log.info( "    user: " + (auth != null ? auth.getUser() : "null") );
+//            log.info( "    useragent: " + request.getUserAgentHeader() );
+//            Auth auth = request.getAuthorization();
+//            log.info( "    user: " + (auth != null ? auth.getUser() : "null") );
             
             httpManager.process( request, response );
         }

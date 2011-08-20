@@ -38,8 +38,8 @@ import org.polymap.service.fs.spi.IContentFile;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class WebDavFileResource
-        extends AbstractResource
+class WebDavFileResource
+        extends WebDavResource
         implements GetableResource, PropFindableResource {
 
     private static Log log = LogFactory.getLog( WebDavFileResource.class );

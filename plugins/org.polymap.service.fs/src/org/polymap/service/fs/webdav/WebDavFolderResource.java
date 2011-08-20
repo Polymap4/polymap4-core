@@ -46,7 +46,7 @@ import org.polymap.service.fs.spi.IContentNode;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class WebDavFolderResource
-        extends AbstractResource
+        extends WebDavResource
         implements CollectionResource, GetableResource, PropFindableResource {
 
     private static Log log = LogFactory.getLog( WebDavFolderResource.class );

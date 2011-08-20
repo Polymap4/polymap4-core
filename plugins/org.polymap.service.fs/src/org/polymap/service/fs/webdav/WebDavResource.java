@@ -32,10 +32,10 @@ import org.polymap.service.fs.spi.IContentNode;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-abstract class AbstractResource
+abstract class WebDavResource
         implements Resource {
 
-    private static Log log = LogFactory.getLog( AbstractResource.class );
+    private static Log log = LogFactory.getLog( WebDavResource.class );
 
     protected ContentManager        contentManager;
     
@@ -44,7 +44,7 @@ abstract class AbstractResource
     protected SecurityManager       securityManager;
 
 
-    public AbstractResource( ContentManager contentManager, IContentNode node, SecurityManager securityManager ) {
+    public WebDavResource( ContentManager contentManager, IContentNode node, SecurityManager securityManager ) {
         this.contentManager = contentManager;
         this.node = node;
         this.securityManager = securityManager;
