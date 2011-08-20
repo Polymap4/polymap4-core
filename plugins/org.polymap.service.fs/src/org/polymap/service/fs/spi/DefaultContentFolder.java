@@ -32,14 +32,28 @@ public class DefaultContentFolder
 
     private static Log log = LogFactory.getLog( DefaultContentFolder.class );
 
+    protected Date              modified = new Date();
+    
 
     public DefaultContentFolder( String name, IPath parentPath, IContentProvider provider, Object source ) {
         super( name, parentPath, provider, source );
     }
 
 
+    /**
+     * This default implementation always returns the creation date of the object
+     * stored in {@link #modified}.
+     */
     public Date getModifiedDate() {
-        return null;
+        return modified;
+    }
+
+
+    /**
+     * This default implementation always returns 60.
+     */
+    public Long getMaxAgeSeconds() {
+        return (long)60;
     }
 
 

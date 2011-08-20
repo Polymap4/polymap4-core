@@ -77,6 +77,8 @@ public class GeoJsonContentProvider
         
         private Exception               lastException;
         
+        private Date                    modified = new Date();
+        
         
         public GeoJsonFile( IPath parentPath, IContentProvider provider, ILayer layer ) {
             super( layer.getLabel() + ".json", parentPath, provider, layer );
@@ -107,7 +109,12 @@ public class GeoJsonContentProvider
 
 
         public Long getMaxAgeSeconds() {
-            return null;
+            return (long)60;
+        }
+
+
+        public Date getModifiedDate() {
+            return modified;
         }
 
 
@@ -124,11 +131,6 @@ public class GeoJsonContentProvider
             }
         }
 
-
-        public Date getModifiedDate() {
-            return null;
-        }
-        
 
         protected synchronized byte[] checkInitContent() {
             byte[] result = contentRef != null ? contentRef.get() : null;
@@ -148,6 +150,7 @@ public class GeoJsonContentProvider
                     
                     result = out.toByteArray();
                     contentRef = new SoftReference( result );
+                    modified = new Date();
                 }
                 catch (Exception e) {
                     log.warn( "", e );

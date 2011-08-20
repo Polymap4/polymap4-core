@@ -64,13 +64,6 @@ public interface IContentFile
 
 
     /**
-     * How many seconds to allow the content to be cached for, or null if caching is
-     * not allowed
-     */
-    Long getMaxAgeSeconds();
-
-
-    /**
      * Given a comma separated listed of preferred content types acceptable for a
      * client, return one content type which is the best. Returns the most preferred
      * MIME type. E.g. text/html, image/jpeg, etc

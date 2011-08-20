@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
@@ -64,11 +63,6 @@ public class WebDavFileResource
 
     public String getContentType( String accepts ) {
         return delegate().getContentType( accepts );
-    }
-
-
-    public Long getMaxAgeSeconds( Auth auth ) {
-        return delegate().getMaxAgeSeconds();
     }
 
 

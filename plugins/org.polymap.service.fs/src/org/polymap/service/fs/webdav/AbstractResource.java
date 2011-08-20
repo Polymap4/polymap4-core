@@ -60,7 +60,12 @@ abstract class AbstractResource
         return node.getModifiedDate();
     }
 
+    
+    public Long getMaxAgeSeconds( Auth auth ) {
+        return node.getMaxAgeSeconds();
+    }
 
+    
     public String getUniqueId() {
         return String.valueOf( node.hashCode() );
     }

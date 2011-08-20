@@ -57,6 +57,12 @@ public interface IContentNode {
      */
     public Date getModifiedDate();
 
+    /**
+     * How many seconds to allow the content to be cached for, or null if caching is
+     * not allowed
+     */
+    public Long getMaxAgeSeconds();
+
     public IContentProvider getProvider();
     
     public Object getSource();

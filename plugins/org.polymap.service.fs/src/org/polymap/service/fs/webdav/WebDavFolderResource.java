@@ -25,7 +25,6 @@ import java.io.OutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PropFindableResource;
@@ -71,11 +70,6 @@ class WebDavFolderResource
             result.add( WebDavResourceFactory.wrapContentNode( child, contentManager, securityManager ) );
         }
         return result;
-    }
-
-
-    public Long getMaxAgeSeconds( Auth auth ) {
-        return null;
     }
 
 
