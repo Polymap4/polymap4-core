@@ -36,6 +36,7 @@ import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.ReplaceableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
@@ -177,11 +178,12 @@ class WebDavResourceFactory
             if (node instanceof IContentWriteable) {
                 WebDavFilePostable postable = new WebDavFilePostable( contentManager, (IContentWriteable)node, securityManager );
                 handlers.put( PostableResource.class, postable );
+                handlers.put( ReplaceableResource.class, postable );
             }
             if (node instanceof IContentDeletable) {
                 WebDavFileDeletable deletable = new WebDavFileDeletable( contentManager, (IContentDeletable)node, securityManager );
                 handlers.put( DeletableResource.class, deletable );
-           }
+            }
         }
 
 
@@ -193,7 +195,7 @@ class WebDavResourceFactory
         
         public Object invoke( Object proxy, Method method, Object[] args )
         throws Throwable {
-            log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
+            log.info( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
 
             Object handler = handlers.get( method.getDeclaringClass() );
             

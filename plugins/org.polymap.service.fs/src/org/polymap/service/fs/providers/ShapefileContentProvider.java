@@ -25,6 +25,7 @@ import java.util.zip.ZipOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,6 +54,7 @@ import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentProvider;
 import org.polymap.service.fs.spi.IContentSite;
+import org.polymap.service.fs.spi.IContentWriteable;
 import org.polymap.service.fs.spi.Range;
 
 /**
@@ -154,8 +156,16 @@ public class ShapefileContentProvider
             modified = new Date();
         }
         
+
+        public OutputStream getOutputStream( String fileSuffix )
+        throws IOException {
+            File f = Path.fromOSString( file.getAbsolutePath() )
+                    .removeFileExtension().addFileExtension( fileSuffix ).toFile();
+            return new FileOutputStream( f );
+        }
         
-        public InputStream getFileContent( String fileSuffix )
+        
+        public InputStream getInputStream( String fileSuffix )
         throws IOException {
             // init shapefile
             getFileSize( fileSuffix );
@@ -209,7 +219,7 @@ public class ShapefileContentProvider
      */
     public class ShapefileFile
             extends DefaultContentNode
-            implements IContentFile {
+            implements IContentFile, IContentWriteable {
 
         private ShapefileContainer  container;
         
@@ -235,6 +245,38 @@ public class ShapefileContentProvider
         }
 
 
+        public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
+        throws IOException, BadRequestException {
+            log.info( "range: " + range + ", params: " + params + ", contentType: " + contentType );
+            
+            if (container.exception != null) {
+                log.warn( "", container.exception );
+            }
+            else {
+                InputStream in = container.getInputStream( fileSuffix );                
+                try {
+                    IOUtils.copy( in, out );
+                }
+                finally {
+                    IOUtils.closeQuietly( in );
+                }
+            }
+        }
+
+
+        public void replaceContent( InputStream in, Long length )
+        throws IOException, BadRequestException {
+            log.info( "replaceContent(): " + fileSuffix + " : " + length );
+            OutputStream out = container.getOutputStream( fileSuffix );
+            try {
+                IOUtils.copy( in, out );
+            }
+            finally {
+                IOUtils.closeQuietly( out );
+            }
+        }
+
+
         public String getContentType( String accepts ) {
             return "application/octec-stream";
         }
@@ -247,25 +289,6 @@ public class ShapefileContentProvider
 
         public Date getModifiedDate() {
             return container.modified;
-        }
-
-
-        public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
-        throws IOException, BadRequestException {
-            log.info( "range: " + range + ", params: " + params + ", contentType: " + contentType );
-            
-            if (container.exception != null) {
-                log.warn( "", container.exception );
-            }
-            else {
-                InputStream in = container.getFileContent( fileSuffix );                
-                try {
-                    IOUtils.copy( in, out );
-                }
-                finally {
-                    IOUtils.closeQuietly( in );
-                }
-            }
         }
 
     }
@@ -425,7 +448,7 @@ public class ShapefileContentProvider
 
                     for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
                         zipOut.putNextEntry( new ZipEntry( basename + "." + fileSuffix ) );
-                        in = container.getFileContent( fileSuffix );
+                        in = container.getInputStream( fileSuffix );
                         IOUtils.copy( in, zipOut );
                         in.close();
                         

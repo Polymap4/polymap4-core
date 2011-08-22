@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.Map;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
@@ -27,6 +28,7 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.ReplaceableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.SecurityManager;
@@ -43,7 +45,7 @@ import org.polymap.service.fs.spi.IContentWriteable;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class WebDavFilePostable
-        implements PostableResource {
+        implements PostableResource, ReplaceableResource {
 
     private static Log log = LogFactory.getLog( WebDavFilePostable.class );
 
@@ -60,13 +62,28 @@ class WebDavFilePostable
         this.securityManager = securityManager;
     }
 
-    
+
+    public void replaceContent( InputStream in, Long length )
+    throws BadRequestException, ConflictException, NotAuthorizedException {
+        log.info( "length: " + length );
+        try {
+            node.replaceContent( in, length );
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
+        catch (org.polymap.service.fs.spi.BadRequestException e) {
+            log.warn( "", e );
+            throw new BadRequestException( this, e.getLocalizedMessage() );
+        }
+    }
+
 
     public String processForm( Map<String, String> params, Map<String, FileItem> files )
     throws BadRequestException, NotAuthorizedException, ConflictException {
         log.info( "params: " + params );
         log.info( "files: " + files );
-        return null;
+        throw new RuntimeException( "not yet implemented." );
     }
 
     

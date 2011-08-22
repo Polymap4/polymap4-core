@@ -14,11 +14,17 @@
  */
 package org.polymap.service.fs.spi;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface IContentWriteable {
+
+    void replaceContent( InputStream in, Long length )
+    throws IOException, BadRequestException;
 
 }
