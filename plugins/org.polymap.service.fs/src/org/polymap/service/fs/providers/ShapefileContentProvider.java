@@ -28,9 +28,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.SoftReference;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,9 +43,11 @@ import org.eclipse.core.runtime.Path;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 
+import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentNode;
+import org.polymap.service.fs.spi.IContentDeletable;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
@@ -78,6 +83,9 @@ public class ShapefileContentProvider
                 
             }
 
+            // snapshot.txt
+            result.add( new SnapshotFile( path, this, (ILayer)parent.getSource(), container, site ) );
+            
             // shape-zip
             result.add( new ShapeZipFile( path, this, (ILayer)parent.getSource(), container ) );
             
@@ -134,6 +142,19 @@ public class ShapefileContentProvider
         }
 
         
+        public void flush() {
+            if (file != null) {
+                for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
+                    File f = resolveFile( fileSuffix );
+                    FileUtils.deleteQuietly( f );
+                }
+                file = null;
+                exception = null;
+            }
+            modified = new Date();
+        }
+        
+        
         public InputStream getFileContent( String fileSuffix )
         throws IOException {
             // init shapefile
@@ -167,13 +188,17 @@ public class ShapefileContentProvider
                 }
             }
             if (exception == null) {
-                File f = Path.fromOSString( file.getAbsolutePath() )
-                        .removeFileExtension().addFileExtension( fileSuffix ).toFile();
-                return f.length();
+                return resolveFile( fileSuffix ).length();
             }
             else {
                 return null;
             }
+        }
+        
+
+        protected File resolveFile( String fileSuffix ) {
+            return Path.fromOSString( file.getAbsolutePath() )
+                    .removeFileExtension().addFileExtension( fileSuffix ).toFile();
         }
         
     }
@@ -249,6 +274,73 @@ public class ShapefileContentProvider
     /*
      * 
      */
+    public static class SnapshotFile
+            extends DefaultContentNode
+            implements IContentFile, IContentDeletable {
+
+        private static final FastDateFormat df = FastDateFormat.getInstance( "yyyy-MM-dd@HH-mm-ss" );
+        
+        private ShapefileContainer          container;
+        
+        private IContentSite                site;
+        
+        
+        public SnapshotFile( IPath parentPath, IContentProvider provider, ILayer layer,
+                ShapefileContainer container, IContentSite site ) {
+            super( "snapshot.txt", parentPath, provider, layer );
+            this.container = container;
+            this.site = site;
+        }
+
+
+        public void delete()
+        throws BadRequestException {
+            container.flush();   
+        }
+
+
+        public byte[] content() {
+            try {
+                String modified = df.format( container.modified );
+                return Messages.get( site.getLocale(), "SnapshotFile_content", 
+                        ((ILayer)getSource()).getLabel(), modified ).getBytes( "UTF-8" );
+            }
+            catch (UnsupportedEncodingException e) {
+                throw new RuntimeException( e );
+            }
+        }
+
+
+        public Long getContentLength() {
+            return (long)content().length;
+        }
+
+
+        public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType )
+        throws IOException, BadRequestException {
+            out.write( content() );
+        }
+
+
+        public String getContentType( String accepts ) {
+            return "text/txt";
+        }
+
+
+        public Long getMaxAgeSeconds() {
+            return (long)60;
+        }
+
+
+        public Date getModifiedDate() {
+            return container.modified;
+        }
+    }
+    
+
+    /*
+     * 
+     */
     public class ShapeZipFile
             extends DefaultContentNode
             implements IContentFile {
@@ -315,7 +407,7 @@ public class ShapefileContentProvider
 
             byte[] result = contentRef != null ? contentRef.get() : null;
             
-            if (result == null) {
+            if (result == null || container.modified.after( modified )) {
                 // generate shapefile
                 container.getFileSize( "shp" );
 
