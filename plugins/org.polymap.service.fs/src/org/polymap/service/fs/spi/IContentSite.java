@@ -32,5 +32,7 @@ public interface IContentSite {
     public Object get( String key );
     
     public Locale getLocale();
-    
+
+    public String getUserName();
+
 }

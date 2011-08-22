@@ -28,17 +28,28 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.project.ILayer;
+
+import org.polymap.service.fs.FsPlugin;
+import org.polymap.service.fs.spi.IContentSite;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ShapefileGenerator {
+class ShapefileGenerator {
 
     private static Log log = LogFactory.getLog( ShapefileGenerator.class );
+
+    /** The file extensions generated with standard settings. */
+    public static final String[]        FILE_SUFFIXES = {"shp", "shx", "qix", "fix", "dbf", "prj"};
+
     
     private File                newFile;
     
@@ -49,11 +60,14 @@ public class ShapefileGenerator {
 
 
     /**
-     * Create a temporary file in "java.io.tmpdir" to store the new shapefile in.
+     * Create a temporary file in {@link FsPlugin#getCacheDir()} to store the new shapefile in.
      */
-    public ShapefileGenerator() {
-        File tmpDir = new File( System.getProperty("java.io.tmpdir") );
-        this.newFile = new File( tmpDir, "polymap-temp-" + hashCode() + ".shp" );
+    public ShapefileGenerator( ILayer layer, IContentSite site ) {
+        File tmpDir = FsPlugin.getDefault().getCacheDir();
+        String basename = FilenameUtils.normalize( layer.getLabel() );
+        String projectname = FilenameUtils.normalize( layer.getMap().getLabel() );
+        String username = site.getUserName() != null ? site.getUserName() : "null";
+        this.newFile = new File( tmpDir, username + "@" + projectname + "@" + basename + ".shp" );
     }
 
 
@@ -67,10 +81,11 @@ public class ShapefileGenerator {
         params.put( "url", newFile.toURI().toURL() );
         params.put( "create spatial index", Boolean.TRUE );
 
-        ShapefileDataStore shapeDs = (ShapefileDataStore)shapeFactory.createNewDataStore(params);
+        ShapefileDataStore shapeDs = (ShapefileDataStore)shapeFactory.createNewDataStore( params );
         shapeDs.createSchema( srcSchema );
 
-        //ds.forceSchemaCRS(DefaultGeographicCRS.WGS84);
+        //shapeDs.forceSchemaCRS(DefaultGeographicCRS.WGS84);
+        //shapeDs.setStringCharset( )
         
         // write shapefile
         Transaction tx = new DefaultTransaction( "create" );

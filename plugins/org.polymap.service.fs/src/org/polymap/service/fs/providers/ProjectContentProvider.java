@@ -63,7 +63,6 @@ public class ProjectContentProvider
 
         // maps
         IContentFolder parent = site.getFolder( path );
-        log.info( "parent: " + parent );
         if (parent instanceof ProjectsFolder) {
             List<IContentNode> result = new ArrayList();
             ProjectRepository repo = (ProjectRepository)site.get( PROJECT_REPOSITORY_KEY );

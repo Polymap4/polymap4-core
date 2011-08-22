@@ -14,12 +14,17 @@
  */
 package org.polymap.service.fs;
 
+import java.io.File;
+
 import org.osgi.framework.BundleContext;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.polymap.core.runtime.Polymap;
 
 /**
  * 
@@ -35,12 +40,19 @@ public class FsPlugin
     public static final String      PLUGIN_ID = "org.polymap.service.fs";
     
     private static FsPlugin         plugin;
+    
+    private File                    cacheDir;
 
     
     public void start( BundleContext context )
     throws Exception {
         super.start( context );
         plugin = this;
+        
+        cacheDir = new File( Polymap.getCacheDir(), PLUGIN_ID );
+        log.info( "Cleaning cache dir: " + cacheDir.getAbsolutePath() + " ..." );
+        FileUtils.deleteDirectory( cacheDir );
+        cacheDir.mkdirs();
     }
 
     public void stop( BundleContext context )
@@ -53,4 +65,8 @@ public class FsPlugin
         return plugin;
     }
 
+    public File getCacheDir() {
+        return cacheDir;
+    }
+    
 }

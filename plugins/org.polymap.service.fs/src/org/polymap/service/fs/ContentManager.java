@@ -241,6 +241,9 @@ public class ContentManager {
             return locale;
         }
         
+        public String getUserName() {
+            return username;
+        }
     }
     
 }

@@ -19,12 +19,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.SoftReference;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -57,28 +61,26 @@ public class ShapefileContentProvider
 
     private static Log log = LogFactory.getLog( ShapefileContentProvider.class );
 
-
+    
     public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
         IContentFolder parent = site.getFolder( path );
         
-        // shapefile
+        // files
         if (parent instanceof ShapefileFolder) {
             List<IContentNode> result = new ArrayList();
             
+            // shapefile
             ILayer layer = ((ShapefileFolder)parent).getLayer();
-            ShapefileContainer container = new ShapefileContainer( layer );
-            result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                    , container, "shp" ) );
-            result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                    , container, "shx" ) );
-            result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                    , container, "qix" ) );
-            result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                    , container, "fix" ) );
-            result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                    , container, "dbf" ) );
-            result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                    , container, "prj" ) );
+            ShapefileContainer container = new ShapefileContainer( layer, site );
+            for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
+                result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
+                        , container, fileSuffix ) );
+                
+            }
+
+            // shape-zip
+            result.add( new ShapeZipFile( path, this, (ILayer)parent.getSource(), container ) );
+            
             return result;
         }
         // folder
@@ -122,12 +124,16 @@ public class ShapefileContentProvider
         ILayer          layer;
         
         Date            modified = new Date();
+
+        IContentSite    site;
         
         
-        public ShapefileContainer( ILayer layer ) {
+        public ShapefileContainer( ILayer layer, IContentSite site ) {
             this.layer = layer;
+            this.site = site;
         }
 
+        
         public InputStream getFileContent( String fileSuffix )
         throws IOException {
             // init shapefile
@@ -150,7 +156,7 @@ public class ShapefileContentProvider
                     exception = null;
                     PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
 
-                    ShapefileGenerator generator = new ShapefileGenerator();
+                    ShapefileGenerator generator = new ShapefileGenerator( layer, site );
                     file = generator.writeShapefile( fs.getFeatures() );
 
                     modified = new Date();
@@ -193,11 +199,6 @@ public class ShapefileContentProvider
         }
 
         
-        public ILayer getLayer() {
-            return (ILayer)getSource();
-        }
-
-        
         public Long getContentLength() {
             if (container.exception != null) {
                 log.warn( "", container.exception );
@@ -210,7 +211,7 @@ public class ShapefileContentProvider
 
 
         public String getContentType( String accepts ) {
-            return "application/octec-stream ";
+            return "application/octec-stream";
         }
 
 
@@ -242,6 +243,116 @@ public class ShapefileContentProvider
             }
         }
 
+    }
+
+
+    /*
+     * 
+     */
+    public class ShapeZipFile
+            extends DefaultContentNode
+            implements IContentFile {
+
+        private ShapefileContainer      container;
+        
+        private SoftReference<byte[]>   contentRef;
+        
+        private Date                    modified = new Date();
+        
+        
+        public ShapeZipFile( IPath parentPath, IContentProvider provider, ILayer layer,
+                ShapefileContainer container ) {
+            super( layer.getLabel() + ".shp.zip", parentPath, provider, layer );
+            this.container = container;
+        }
+
+        
+        public String getContentType( String accepts ) {
+            return "application/zip";
+        }
+
+
+        public Long getMaxAgeSeconds() {
+            return (long)60;
+        }
+
+
+        public Date getModifiedDate() {
+            return modified;
+        }
+
+
+        public Long getContentLength() {
+            try {
+                return (long)checkInitContent().length;
+            }
+            catch (Exception e) {
+                throw new RuntimeException( "", e );
+            }
+        }
+
+
+        public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
+        throws IOException, BadRequestException {
+            log.info( "range: " + range + ", params: " + params + ", contentType: " + contentType );
+
+            try {
+                byte[] content = checkInitContent();
+                out.write( content );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( "", e );
+            }
+        }
+
+        
+        protected synchronized byte[] checkInitContent() 
+        throws Exception {
+            if (container.exception != null) {
+                log.warn( "Last exception from container: ", container.exception );
+                throw container.exception;
+            }
+
+            byte[] result = contentRef != null ? contentRef.get() : null;
+            
+            if (result == null) {
+                // generate shapefile
+                container.getFileSize( "shp" );
+
+                if (container.exception != null) {
+                    log.warn( "Last exception from container: ", container.exception );
+                    throw container.exception;
+                }
+
+                InputStream in = null;
+                try {
+                    ByteArrayOutputStream bout = new ByteArrayOutputStream( 1024 * 1024 );
+                    ZipOutputStream zipOut = new ZipOutputStream( bout );
+
+                    String basename = container.layer.getLabel();
+
+                    for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
+                        zipOut.putNextEntry( new ZipEntry( basename + "." + fileSuffix ) );
+                        in = container.getFileContent( fileSuffix );
+                        IOUtils.copy( in, zipOut );
+                        in.close();
+                        
+                    }
+                    zipOut.close();
+                    
+                    result = bout.toByteArray();
+                    contentRef = new SoftReference( result );
+                    modified = new Date();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException( e );
+                }
+                finally {
+                    IOUtils.closeQuietly( in );
+                }
+            }
+            return result;
+        }
     }
 
 }

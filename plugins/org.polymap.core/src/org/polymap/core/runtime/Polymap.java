@@ -109,6 +109,16 @@ public final class Polymap
 
 
     /**
+     *
+     */
+    public static File getCacheDir() {
+        File cacheDir = new File( getWorkspacePath().toFile(), "cache" );
+        cacheDir.mkdirs();
+        return cacheDir;
+    }
+
+
+    /**
      * The {@link Display} of the session of the current thread. Null, if the
      * current thread has no session. The result is equivalent to
      * {@link Display#getCurrent()} except that the calling thread does need to
@@ -160,7 +170,7 @@ public final class Polymap
     public static ExecutorService executorService() {
         if (executorService == null) {
             int procNum = Runtime.getRuntime().availableProcessors();
-            ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum * 4, 100, 5, TimeUnit.MINUTES, globalQueue );      
+            ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum * 4, 100, 5, TimeUnit.MINUTES, globalQueue );
             executorService = pool;
         }
         return executorService;
