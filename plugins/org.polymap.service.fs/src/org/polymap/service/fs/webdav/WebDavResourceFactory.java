@@ -156,7 +156,7 @@ class WebDavResourceFactory
     
     
     /*
-     * Provides an InvocationHandler for a proxy that exposes the different
+     * InvocationHandler of a proxy that exposes the different
      * interfaces for Getable, Postable, Deletable, etc.
      */
     static class WebDavFileHandler
@@ -195,7 +195,7 @@ class WebDavResourceFactory
         
         public Object invoke( Object proxy, Method method, Object[] args )
         throws Throwable {
-            log.info( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
+            log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
 
             Object handler = handlers.get( method.getDeclaringClass() );
             

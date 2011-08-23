@@ -63,7 +63,7 @@ import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * The API and meditor of the feature buffer system.
+ * The API and mediator of the feature buffer system.
  * <p/>
  * There is one buffer per layer per session. The buffer content is injected into the
  * feature pipeline by the {@link FeatureBufferProcessor}. The processor is installed
@@ -73,7 +73,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * to the underlying data store. <b>Concurrent changes</b> are checked against the
  * original copy of the features that the buffer is providing via
  * {@link FeatureBufferState}. This strategy might be memory consuming but it is also
- * a robust way to check consurrent changes that does not depend on a timestamp in
+ * a robust way to check concurrent changes that does not depend on a timestamp in
  * the data type.
  * <p/>
  * The buffer manager writes down the changes to the underlying FeatureStore directly

@@ -23,25 +23,19 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.SoftReference;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.fs.Messages;
@@ -125,101 +119,9 @@ public class ShapefileContentProvider
     /*
      * 
      */
-    static class ShapefileContainer {
-        
-        File            file;
-        
-        Exception       exception;
-        
-        ILayer          layer;
-        
-        Date            modified = new Date();
-
-        IContentSite    site;
-        
-        
-        public ShapefileContainer( ILayer layer, IContentSite site ) {
-            this.layer = layer;
-            this.site = site;
-        }
-
-        
-        public void flush() {
-            if (file != null) {
-                for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
-                    File f = resolveFile( fileSuffix );
-                    FileUtils.deleteQuietly( f );
-                }
-                file = null;
-                exception = null;
-            }
-            modified = new Date();
-        }
-        
-
-        public OutputStream getOutputStream( String fileSuffix )
-        throws IOException {
-            File f = Path.fromOSString( file.getAbsolutePath() )
-                    .removeFileExtension().addFileExtension( fileSuffix ).toFile();
-            return new FileOutputStream( f );
-        }
-        
-        
-        public InputStream getInputStream( String fileSuffix )
-        throws IOException {
-            // init shapefile
-            getFileSize( fileSuffix );
-            
-            if (exception == null) {
-                File f = Path.fromOSString( file.getAbsolutePath() )
-                        .removeFileExtension().addFileExtension( fileSuffix ).toFile();
-                return new FileInputStream( f );
-            }
-            else {
-                throw (IOException)exception;
-            }
-        }
-        
-    
-        public synchronized Long getFileSize( String fileSuffix ) {
-            if (file == null) {
-                try {
-                    exception = null;
-                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-
-                    ShapefileGenerator generator = new ShapefileGenerator( layer, site );
-                    file = generator.writeShapefile( fs.getFeatures() );
-
-                    modified = new Date();
-                }
-                catch (Exception e) {
-                    log.warn( "", e );
-                    exception = e;
-                }
-            }
-            if (exception == null) {
-                return resolveFile( fileSuffix ).length();
-            }
-            else {
-                return null;
-            }
-        }
-        
-
-        protected File resolveFile( String fileSuffix ) {
-            return Path.fromOSString( file.getAbsolutePath() )
-                    .removeFileExtension().addFileExtension( fileSuffix ).toFile();
-        }
-        
-    }
-    
-    
-    /*
-     * 
-     */
     public class ShapefileFile
             extends DefaultContentNode
-            implements IContentFile, IContentWriteable {
+            implements IContentFile, IContentWriteable, IContentDeletable {
 
         private ShapefileContainer  container;
         
@@ -234,6 +136,13 @@ public class ShapefileContentProvider
         }
 
         
+        public void delete()
+        throws BadRequestException {
+            // QGIS deletes files before writing, so support delete but do nothing.
+            log.info( "delete: " + fileSuffix + " (skipping)" );
+        }
+
+
         public Long getContentLength() {
             if (container.exception != null) {
                 log.warn( "", container.exception );
@@ -266,7 +175,7 @@ public class ShapefileContentProvider
 
         public void replaceContent( InputStream in, Long length )
         throws IOException, BadRequestException {
-            log.info( "replaceContent(): " + fileSuffix + " : " + length );
+            log.info( "replace: " + fileSuffix + " : " + length );
             OutputStream out = container.getOutputStream( fileSuffix );
             try {
                 IOUtils.copy( in, out );
@@ -288,7 +197,7 @@ public class ShapefileContentProvider
 
 
         public Date getModifiedDate() {
-            return container.modified;
+            return container.lastModified;
         }
 
     }
@@ -324,7 +233,7 @@ public class ShapefileContentProvider
 
         public byte[] content() {
             try {
-                String modified = df.format( container.modified );
+                String modified = df.format( container.lastModified );
                 return Messages.get( site.getLocale(), "SnapshotFile_content", 
                         ((ILayer)getSource()).getLabel(), modified ).getBytes( "UTF-8" );
             }
@@ -356,7 +265,7 @@ public class ShapefileContentProvider
 
 
         public Date getModifiedDate() {
-            return container.modified;
+            return container.lastModified;
         }
     }
     
@@ -430,7 +339,7 @@ public class ShapefileContentProvider
 
             byte[] result = contentRef != null ? contentRef.get() : null;
             
-            if (result == null || container.modified.after( modified )) {
+            if (result == null || container.lastModified.after( modified )) {
                 // generate shapefile
                 container.getFileSize( "shp" );
 
