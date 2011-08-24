@@ -22,6 +22,7 @@ import org.polymap.core.data.pipeline.IPipelineIncubationListener;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * Installs a buffer processor in every feature pipeline using the
@@ -39,6 +40,10 @@ public class InstallBufferPipelineListener
         PipelineProcessor source = pipeline.get( pipeline.length() - 1 );
 
         if (source instanceof DataSourceProcessor) {
+            if (Polymap.getSessionDisplay() == null) {
+                log.warn( "NO BUFFER OUTSIDE USER SESSION!" );
+                return;
+            }
             if (pipeline.getLayers().size() > 1) {
                 log.warn( "Pipeline with more that one layer!" );
             }

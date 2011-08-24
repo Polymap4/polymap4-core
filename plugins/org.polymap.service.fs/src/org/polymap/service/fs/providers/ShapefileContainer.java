@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureSource;
+import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.factory.CommonFactoryFinder;
@@ -79,22 +82,30 @@ class ShapefileContainer {
     
     public static final long            UPDATE_JOB_DELAY = 5000;
     
-    File                        file;
+    File                            file;
     
-    Exception                   exception;
+    Exception                       exception;
     
-    ILayer                      layer;
+    ILayer                          layer;
     
-    Date                        lastModified = new Date();
+    Date                            lastModified = new Date();
 
-    IContentSite                site;
+    IContentSite                    site;
     
-    private UpdateJob           updateJob;
+    private UpdateJob               updateJob;
+    
+    private PipelineFeatureSource   layerFs;
     
     
     public ShapefileContainer( ILayer layer, IContentSite site ) {
         this.layer = layer;
         this.site = site;
+        try {
+            this.layerFs = PipelineFeatureSource.forLayer( layer, true );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
     
@@ -155,10 +166,9 @@ class ShapefileContainer {
         if (file == null) {
             try {
                 exception = null;
-                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
 
                 ShapefileGenerator generator = new ShapefileGenerator( layer, site );
-                file = generator.writeShapefile( fs.getFeatures() );
+                file = generator.writeShapefile( layerFs.getFeatures() );
 
                 lastModified = new Date();
             }
@@ -183,7 +193,7 @@ class ShapefileContainer {
     
     
     /**
-     * Update the underlying layer data store.
+     * Do the update on the underlying layer data store.
      * <ol>
      *   <li>make a copy of the orig shapefile</li>
      *   <li>find modifications</li>
@@ -201,12 +211,17 @@ class ShapefileContainer {
             super( "ShapefileContainer.UpdateJob" );
 
             // make a copy of the original data
-            origDataDir = new File( file.getParentFile(), file.getName() + ".original" );
-            log.info( "UpdateJob: copying to: " + origDataDir.getAbsolutePath() );
-            for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
-                File src = resolveFile( fileSuffix );
-                File dest = new File( origDataDir, src.getName() );
-                FileUtils.copyFile( src, dest );
+            origDataDir = new File( file.getParentFile(), "original" );
+            if (origDataDir.exists()) {
+                log.warn( "UpdateJob: 'original' data dir already exists: " + origDataDir.getAbsolutePath() );
+            }
+            else {
+                log.info( "UpdateJob: copying to: " + origDataDir.getAbsolutePath() );
+                for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
+                    File src = resolveFile( fileSuffix );
+                    File dest = new File( origDataDir, src.getName() );
+                    FileUtils.copyFile( src, dest );
+                }
             }
         }
 
@@ -222,7 +237,7 @@ class ShapefileContainer {
                 params.put( "url", file.toURI().toURL() );
                 params.put( "create spatial index", Boolean.TRUE );
 
-                ShapefileDataStore modifiedDs = (ShapefileDataStore)shapeFactory.createNewDataStore( params );
+                ShapefileDataStore modifiedDs = shapeFactory.createDataStore( params );
                 String typeName = modifiedDs.getTypeNames()[0];
                 final FeatureSource<SimpleFeatureType, SimpleFeature> modifiedFs = modifiedDs.getFeatureSource( typeName );
 
@@ -231,7 +246,7 @@ class ShapefileContainer {
                 params.put( "url", new File( origDataDir, file.getName() ).toURI().toURL() );
                 params.put( "create spatial index", Boolean.TRUE );
 
-                ShapefileDataStore origDs = (ShapefileDataStore)shapeFactory.createNewDataStore( params );
+                ShapefileDataStore origDs = shapeFactory.createDataStore( params );
                 final FeatureSource<SimpleFeatureType, SimpleFeature> origFs = origDs.getFeatureSource( typeName );
 
                 // modifications
@@ -240,8 +255,10 @@ class ShapefileContainer {
                 final List<SimpleFeature> removed = new ArrayList();
                 
                 // find added, modified
+                final AtomicInteger newSize = new AtomicInteger( 0 );
                 modifiedFs.getFeatures().accepts( new FeatureVisitor() {
                     public void visit( Feature candidate ) {
+                        newSize.incrementAndGet();
                         try {
                             Id fid = ff.id( Collections.singleton( candidate.getIdentifier() ) );
                             Object[] orig = origFs.getFeatures( fid ).toArray();
@@ -263,62 +280,89 @@ class ShapefileContainer {
                 }, null );
 
                 // find removed
-                origFs.getFeatures().accepts( new FeatureVisitor() {
-                    public void visit( Feature candidate ) {
-                        try {
-                            Id fid = ff.id( Collections.singleton( candidate.getIdentifier() ) );
-                            Object[] found = modifiedFs.getFeatures( fid ).toArray();
-                            
-                            if (found.length == 0) {
-                                log.info( "   Feature has been removed: " + candidate.getIdentifier() );
-                                removed.add( (SimpleFeature)candidate );
+                FeatureCollection origFeatures = origFs.getFeatures();
+                // check only if necessary
+                if (newSize.get() != (origFeatures.size() - added.size())) {
+                    origFeatures.accepts( new FeatureVisitor() {
+                        public void visit( Feature candidate ) {
+                            try {
+                                Id fid = ff.id( Collections.singleton( candidate.getIdentifier() ) );
+                                Object[] found = modifiedFs.getFeatures( fid ).toArray();
+
+                                if (found.length == 0) {
+                                    log.info( "   Feature has been removed: " + candidate.getIdentifier() );
+                                    removed.add( (SimpleFeature)candidate );
+                                }
+                            }
+                            catch (IOException e) {
+                                log.warn( "", e );
                             }
                         }
-                        catch (IOException e) {
-                            log.warn( "", e );
-                        }
-                    }
-                }, null );
+                    }, null );
+                }
                 
                 // write own modifications
-                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, true );
+                Transaction tx = new DefaultTransaction( layer.getLabel() + "-write-back" );
+                try {
 
-                // added
-                FeatureCollection coll = FeatureCollections.newCollection();
-                coll.addAll( added );
-                fs.addFeatures( coll );
+                    // added
+                    if (!added.isEmpty()) {
+                        FeatureCollection coll = FeatureCollections.newCollection();
+                        coll.addAll( added );
+                        layerFs.addFeatures( coll );
+                    }
                 
-                // removed
-                Set<Identifier> removeIds = new HashSet();
-                for (SimpleFeature feature : removed) {
-                    removeIds.add( feature.getIdentifier() );
-                }
-                fs.removeFeatures( ff.id( removeIds ) );
+                    // removed
+                    if (!removed.isEmpty()) {
+                        Set<Identifier> removeIds = new HashSet();
+                        for (SimpleFeature feature : removed) {
+                            removeIds.add( feature.getIdentifier() );
+                        }
+                        layerFs.removeFeatures( ff.id( removeIds ) );
+                    }
 
-                // modified
-                for (SimpleFeature[] feature : modified) {
-                    AttributeDescriptor[] type = {};
-                    Object[] value = {};
+                    // modified
+                    for (SimpleFeature[] feature : modified) {
+                        AttributeDescriptor[] type = {};
+                        Object[] value = {};
 
-                    SimpleFeature orig = feature[1];
-                    SimpleFeature modi = feature[0];
-                    for (Property origProp : orig.getProperties()) {
-                        if (origProp.getDescriptor() instanceof AttributeDescriptor) {
-                            Property newProp = modi.getProperty( origProp.getName() );
-                            if (isPropertyModified( origProp.getValue(), newProp.getValue() )) {
-                                type = (AttributeDescriptor[])ArrayUtils.add( type, origProp.getDescriptor() );
-                                value = ArrayUtils.add( value, newProp.getValue() );
+                        SimpleFeature orig = feature[1];
+                        SimpleFeature modi = feature[0];
+                        for (Property origProp : orig.getProperties()) {
+                            if (origProp.getDescriptor() instanceof AttributeDescriptor) {
+                                Property newProp = modi.getProperty( origProp.getName() );
+                                if (isPropertyModified( origProp.getValue(), newProp.getValue() )) {
+                                    type = (AttributeDescriptor[])ArrayUtils.add( type, origProp.getDescriptor() );
+                                    value = ArrayUtils.add( value, newProp.getValue() );
 
-                                log.info( "Attribute modified: " + origProp.getDescriptor().getName() + " = " + newProp.getValue() + " (" + orig.getID() + ")" );
+                                    log.info( "    Attribute modified: " + origProp.getDescriptor().getName() + " = " + newProp.getValue() + " (" + orig.getID() + ")" );
+                                }
                             }
                         }
+                        String origFid = (String)orig.getAttribute( ShapefileGenerator.ORIG_FID_FIELD );
+                        log.info( "        fid: shape: " + orig.getID() + ", orig: " + origFid );
+                        layerFs.modifyFeatures( type, value, ff.id( Collections.singleton( ff.featureId( origFid ) ) ) );
                     }
-                    fs.modifyFeatures( type, value, ff.id( Collections.singleton( orig.getIdentifier() ) ) );
+                    tx.commit();
+                    log.info( "    Transaction committed." );
+                }
+                catch (Exception e) {
+                    log.warn( "    Transaction rolled back!" );
+                    tx.rollback();
+                    throw e;
+                }
+                finally {
+                    tx.close();
                 }
                 
-                // delete 'original' dir
-//                log.info( "    deleting: " + origDataDir.getAbsolutePath() );
-//                FileUtils.deleteDirectory( origDataDir );
+//                log.info( "   saving layer buffer..." );
+//                LayerFeatureBufferManager buffer = LayerFeatureBufferManager.forLayer( layer, false );
+//                buffer.prepareSave( null, new NullProgressMonitor() );
+//                buffer.save( null, new NullProgressMonitor() );
+                
+                // delete 'original' dir, if we get here without exception
+                log.info( "    deleting: " + origDataDir.getAbsolutePath() );
+                FileUtils.deleteDirectory( origDataDir );
                 
                 // XXX force re-fetch
 //                flush();

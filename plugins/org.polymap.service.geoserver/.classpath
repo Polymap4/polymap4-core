@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/main-2.0.2.jar" sourcepath="packages/geoserver-2.0.2-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/main-2.0.2.jar" sourcepath="lib/sources/main-2.0.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/ows-2.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/platform-2.0.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/wfs-2.0.2.jar" sourcepath="packages/geoserver-2.0.2-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/wfs-2.0.2.jar" sourcepath="lib/sources/wfs-2.0.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/wms-2.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ezmorph-1.0.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-lib-2.2.3-jdk15.jar"/>

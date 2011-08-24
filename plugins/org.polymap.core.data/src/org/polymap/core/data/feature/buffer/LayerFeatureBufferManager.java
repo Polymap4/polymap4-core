@@ -101,14 +101,14 @@ public class LayerFeatureBufferManager
     static class Session
             extends SessionSingletonBase { 
         
-        private static final Session        globalSession = new Session();
+        private static final Session        global = new Session();
         
         protected WeakHashMap<ILayer,LayerFeatureBufferManager> managers = new WeakHashMap();
         
         public static Session instance() {
             return Polymap.getSessionDisplay() != null
                     ? (Session)getInstance( Session.class )
-                    : globalSession;
+                    : global;
         }
     }
 
