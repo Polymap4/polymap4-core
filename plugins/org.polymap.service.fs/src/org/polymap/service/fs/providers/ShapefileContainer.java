@@ -32,6 +32,8 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import org.geotools.data.DefaultTransaction;
+import org.geotools.data.FeatureEvent;
+import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -65,6 +67,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.WeakListener;
 
 import org.polymap.service.fs.spi.IContentSite;
 
@@ -74,13 +77,14 @@ import org.polymap.service.fs.spi.IContentSite;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class ShapefileContainer {
+class ShapefileContainer
+        implements FeatureListener {
     
     private static Log log = LogFactory.getLog( ShapefileContainer.class );
 
     private static final FilterFactory  ff = CommonFactoryFinder.getFilterFactory( null );
     
-    public static final long            UPDATE_JOB_DELAY = 5000;
+    public static final long        UPDATE_JOB_DELAY = 5000;
     
     File                            file;
     
@@ -102,6 +106,8 @@ class ShapefileContainer {
         this.site = site;
         try {
             this.layerFs = PipelineFeatureSource.forLayer( layer, true );
+            
+            layerFs.addFeatureListener( WeakListener.forListener( this ) );
         }
         catch (Exception e) {
             throw new RuntimeException( e );
@@ -109,6 +115,11 @@ class ShapefileContainer {
     }
 
     
+    public void changed( FeatureEvent ev ) {
+        log.info( "ev= " + ev );
+    }
+
+
     public void flush() {
         if (file != null) {
             for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
@@ -216,7 +227,7 @@ class ShapefileContainer {
                 log.warn( "UpdateJob: 'original' data dir already exists: " + origDataDir.getAbsolutePath() );
             }
             else {
-                log.info( "UpdateJob: copying to: " + origDataDir.getAbsolutePath() );
+                log.debug( "UpdateJob: copying to: " + origDataDir.getAbsolutePath() );
                 for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
                     File src = resolveFile( fileSuffix );
                     File dest = new File( origDataDir, src.getName() );
@@ -340,11 +351,11 @@ class ShapefileContainer {
                             }
                         }
                         String origFid = (String)orig.getAttribute( ShapefileGenerator.ORIG_FID_FIELD );
-                        log.info( "        fid: shape: " + orig.getID() + ", orig: " + origFid );
+                        log.debug( "        fid: shape: " + orig.getID() + ", orig: " + origFid );
                         layerFs.modifyFeatures( type, value, ff.id( Collections.singleton( ff.featureId( origFid ) ) ) );
                     }
                     tx.commit();
-                    log.info( "    Transaction committed." );
+                    log.debug( "    Transaction committed." );
                 }
                 catch (Exception e) {
                     log.warn( "    Transaction rolled back!" );
@@ -361,7 +372,7 @@ class ShapefileContainer {
 //                buffer.save( null, new NullProgressMonitor() );
                 
                 // delete 'original' dir, if we get here without exception
-                log.info( "    deleting: " + origDataDir.getAbsolutePath() );
+                log.debug( "    deleting: " + origDataDir.getAbsolutePath() );
                 FileUtils.deleteDirectory( origDataDir );
                 
                 // XXX force re-fetch

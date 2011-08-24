@@ -139,7 +139,7 @@ public class ShapefileContentProvider
         public void delete()
         throws BadRequestException {
             // QGIS deletes files before writing, so support delete but do nothing.
-            log.info( "delete: " + fileSuffix + " (skipping)" );
+            log.debug( "delete: " + fileSuffix + " (skipping)" );
         }
 
 
@@ -156,7 +156,7 @@ public class ShapefileContentProvider
 
         public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
         throws IOException, BadRequestException {
-            log.info( "range: " + range + ", params: " + params + ", contentType: " + contentType );
+            log.debug( "range: " + range + ", params: " + params + ", contentType: " + contentType );
             
             if (container.exception != null) {
                 log.warn( "", container.exception );
@@ -175,7 +175,7 @@ public class ShapefileContentProvider
 
         public void replaceContent( InputStream in, Long length )
         throws IOException, BadRequestException {
-            log.info( "replace: " + fileSuffix + " : " + length );
+            log.debug( "replace: " + fileSuffix + " : " + length );
             OutputStream out = container.getOutputStream( fileSuffix );
             try {
                 IOUtils.copy( in, out );
@@ -318,8 +318,7 @@ public class ShapefileContentProvider
 
         public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
         throws IOException, BadRequestException {
-            log.info( "range: " + range + ", params: " + params + ", contentType: " + contentType );
-
+            log.debug( "range: " + range + ", params: " + params + ", contentType: " + contentType );
             try {
                 byte[] content = checkInitContent();
                 out.write( content );
