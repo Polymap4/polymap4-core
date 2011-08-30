@@ -78,7 +78,7 @@ public class ProjectRepository
 
     private IMap                    rootMap;
     
-    private OperationSaveListener   operationListener = new OperationSaveListener();
+    private OperationSaveListener   operationListener;
     
 
     protected ProjectRepository( QiModuleAssembler assembler ) {
@@ -88,6 +88,7 @@ public class ProjectRepository
         // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
         // is no request context
         if (ContextProvider.hasContext()) {
+            operationListener = new OperationSaveListener();
             OperationSupport.instance().addOperationSaveListener( operationListener );
         }
     }

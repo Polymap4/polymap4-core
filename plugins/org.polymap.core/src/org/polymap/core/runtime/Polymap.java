@@ -20,7 +20,6 @@
  *
  * $Id$
  */
-
 package org.polymap.core.runtime;
 
 import java.util.HashMap;
@@ -50,11 +49,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.SessionSingletonBase;
 import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
-import org.eclipse.rwt.service.SessionStoreEvent;
-import org.eclipse.rwt.service.SessionStoreListener;
-
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -78,8 +73,7 @@ import org.polymap.core.security.UserPrincipal;
  * @since 3.0
  */
 @SuppressWarnings("restriction")
-public final class Polymap
-        extends SessionSingletonBase {
+public final class Polymap {
 
     private static Log log = LogFactory.getLog( Polymap.class );
 
@@ -93,7 +87,7 @@ public final class Polymap
      * current thread.
      */
     public static Polymap instance() {
-        return (Polymap)getInstance( Polymap.class );
+        return SessionSingleton.instance( Polymap.class );
     }
     
 
@@ -134,28 +128,28 @@ public final class Polymap
     }
 
     
-    /**
-     * Returns a named attribute for the session of the current thread.
-     * 
-     * @param key
-     * @return The value found for the given key, or null if there is no such attribute.
-     */
-    public static Object getSessionAttribute( String key ) {
-        return instance().attributes.get( key );    
-    }
-
-
-    /**
-     * Sets the named attribute for the session of the current thread.
-     * 
-     * @param key
-     * @param value
-     * @return The old value for the given key, or null of there was no such
-     *         attribute.
-     */
-    public static Object setSessionAttribute( String key, Object value ) {
-        return instance().attributes.put( key, value );
-    }
+//    /**
+//     * Returns a named attribute for the session of the current thread.
+//     * 
+//     * @param key
+//     * @return The value found for the given key, or null if there is no such attribute.
+//     */
+//    public static Object getSessionAttribute( String key ) {
+//        return instance().attributes.get( key );    
+//    }
+//
+//
+//    /**
+//     * Sets the named attribute for the session of the current thread.
+//     * 
+//     * @param key
+//     * @param value
+//     * @return The old value for the given key, or null of there was no such
+//     *         attribute.
+//     */
+//    public static Object setSessionAttribute( String key, Object value ) {
+//        return instance().attributes.put( key, value );
+//    }
     
     
     private static ExecutorService      executorService;
@@ -198,13 +192,13 @@ public final class Polymap
     }
 
 
-    public void addSessionShutdownHook( final SessionListener l ) {
-        RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
-            public void beforeDestroy( SessionStoreEvent event ) {
-                l.beforeDestroy();
-            }
-        });
-    }
+//    public void addSessionShutdownHook( final ISessionListener l ) {
+//        RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
+//            public void beforeDestroy( SessionStoreEvent event ) {
+//                l.beforeDestroy();
+//            }
+//        });
+//    }
 
 
     /**

@@ -1,0 +1,70 @@
+/* 
+ * polymap.org
+ * Copyright 2011, Polymap GmbH. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
+package org.polymap.core.runtime;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+/**
+ * Provides a unique API to the context of the session of the current thread. The
+ * different front-end systems (RWT, GeoServer/OGC, WebDAV, etc.) can register a
+ * specific {@link ISessionContextProvider}.
+ * <p>
+ * SessionContext also provides the API and SPI of the application context. This
+ * interface is independent from HTTP/Servlet session context API.
+ * 
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ */
+public abstract class SessionContext {
+
+    private static Log log = LogFactory.getLog( SessionContext.class );
+
+    private static ISessionContextProvider[]     providers = {};
+    
+
+    public static void addProvider( ISessionContextProvider provider ) {
+        providers = (ISessionContextProvider[])ArrayUtils.add( providers, provider );
+    }
+    
+    
+    public static void removeProvider( ISessionContextProvider provider ) {
+        providers = (ISessionContextProvider[])ArrayUtils.removeElement( providers, provider );
+    }
+    
+    
+    public static final SessionContext current() {
+        for (ISessionContextProvider provider : providers) {
+            SessionContext context = provider.currentContext();
+            if (context != null) {
+                log.debug( "current(): " + context );
+                return context;
+            }
+        }
+        return null;
+    }
+    
+    
+    // API ************************************************
+    
+    public abstract String getSessionKey();
+
+    public abstract <T> T sessionSingleton( Class<T> type );
+
+    public abstract boolean addSessionListener( ISessionListener l );
+    
+    public abstract boolean removeSessionListener( ISessionListener l );
+    
+}

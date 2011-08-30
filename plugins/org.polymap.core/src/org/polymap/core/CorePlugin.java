@@ -47,6 +47,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.http.HttpServiceRegistry;
+import org.polymap.core.runtime.SessionContext;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -94,32 +95,36 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime", "debug" );
+
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.services.geoserver", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.edit", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.operations.NewLayerOperation", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.impl.MapImpl", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.eu.hydrologis.jgrass.csv2shape.importwizard", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.anta2", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.eclipse.rwt.widgets.codemirror", "debug" );
-
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
-
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.edit", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.operations", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
+
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
 	}
+
+	
+	// instance *******************************************
+	
+    private RapSessionContextProvider rapSessionContextProvider;
 
 
 	public CorePlugin() {
@@ -133,10 +138,14 @@ public class CorePlugin
 
 
     public void start( final BundleContext context )
-            throws Exception {
+    throws Exception {
         super.start( context );
         log.debug( "start..." );
         plugin = this;
+        
+        //
+        this.rapSessionContextProvider = new RapSessionContextProvider();
+        SessionContext.addProvider( rapSessionContextProvider );
 
         // start HttpServiceRegistry
         context.addBundleListener( new BundleListener() {
@@ -164,10 +173,13 @@ public class CorePlugin
 
 
     public void stop( BundleContext context )
-            throws Exception {
+    throws Exception {
         log.debug( "stop..." );
         plugin = null;
         super.stop( context );
+        
+        SessionContext.removeProvider( rapSessionContextProvider );
+        rapSessionContextProvider = null;
     }
 
 

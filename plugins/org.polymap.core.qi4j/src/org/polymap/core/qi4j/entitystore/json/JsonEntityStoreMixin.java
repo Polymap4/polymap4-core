@@ -151,7 +151,7 @@ public class JsonEntityStoreMixin
 
             EntityDescriptor entityDescriptor = module.entityDescriptor( type );
             if (entityDescriptor == null) {
-                log.warn( "Type not found: " + type + ". Trying 'qi4j' -> 'model'..." );
+                log.debug( "Type not found: " + type + ". Trying 'qi4j' -> 'model'..." );
                 type = StringUtils.replace( type, "qi4j", "model" );
                 entityDescriptor = module.entityDescriptor( type );
             }

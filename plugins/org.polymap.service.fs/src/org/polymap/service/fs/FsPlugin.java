@@ -24,7 +24,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.SessionContext;
 
 /**
  * 
@@ -43,23 +45,35 @@ public class FsPlugin
     
     private File                    cacheDir;
 
+    public DefaultSessionContextProvider sessionContextProvider;
+
     
     public void start( BundleContext context )
     throws Exception {
         super.start( context );
         plugin = this;
         
+        // init cacheDir
         cacheDir = new File( Polymap.getCacheDir(), PLUGIN_ID );
         log.info( "Cleaning cache dir: " + cacheDir.getAbsolutePath() + " ..." );
         FileUtils.deleteDirectory( cacheDir );
         cacheDir.mkdirs();
+        
+        // register session context provider
+        this.sessionContextProvider = new DefaultSessionContextProvider();
+        SessionContext.addProvider( sessionContextProvider );
     }
 
+    
     public void stop( BundleContext context )
     throws Exception {
         super.stop( context );
         plugin = null;
+
+        SessionContext.removeProvider( sessionContextProvider );
+        sessionContextProvider = null;
     }
+    
     
     public static FsPlugin getDefault() {
         return plugin;

@@ -81,7 +81,7 @@ public class ServiceRepository
 
     private ServiceListComposite    serviceList;
     
-    private OperationSaveListener   operationListener = new OperationSaveListener();
+    private OperationSaveListener   operationListener;
     
 
     protected ServiceRepository( QiModuleAssembler assembler ) {
@@ -90,6 +90,7 @@ public class ServiceRepository
         // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
         // is no request context
         if (ContextProvider.hasContext()) {
+            operationListener = new OperationSaveListener();
             OperationSupport.instance().addOperationSaveListener( operationListener );
         }
 

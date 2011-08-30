@@ -253,7 +253,7 @@ public interface PropertyChangeSupport
         public Object get() {
             Object value = delegate.get();
             if (value instanceof Collection) {
-                log.warn( "Collection values are not tracked for property changes!" );
+                log.debug( "Collection values are not tracked for property changes!" );
             }
             return value;
         }

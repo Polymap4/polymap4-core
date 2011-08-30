@@ -25,7 +25,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionBindingEvent;
+import javax.servlet.http.HttpSessionBindingListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -36,6 +38,9 @@ import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.SecurityManager;
 import com.ettrema.http.fs.SimpleSecurityManager;
 
+import org.polymap.core.runtime.SessionContext;
+
+import org.polymap.service.fs.FsPlugin;
 import org.polymap.service.http.WmsService;
 
 /**
@@ -120,9 +125,27 @@ public class WebDavServer
     throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest)servletRequest;
         HttpServletResponse resp = (HttpServletResponse)servletResponse;
-//        log.info( "Request: " + req.getPathInfo() );
 
         try {
+            HttpSession session = req.getSession( true );
+            FsPlugin.getDefault().sessionContextProvider.mapContext( session.getId() );
+
+            // register session listener
+            if (session.isNew()) {
+                log.info( "New session created..." );
+                session.setMaxInactiveInterval( 30 );
+                final SessionContext sessionContext = SessionContext.current();
+                
+                session.setAttribute( "sessionListener", new HttpSessionBindingListener() {
+                    public void valueBound( HttpSessionBindingEvent ev ) {
+                    }
+                    public void valueUnbound( HttpSessionBindingEvent ev ) {
+                        FsPlugin.getDefault().sessionContextProvider.destroyContext(
+                                sessionContext.getSessionKey() );
+                    }
+                });
+            }
+            
             Request request = new com.bradmcevoy.http.ServletRequest( req );
             Response response = new com.bradmcevoy.http.ServletResponse( resp );
             threadRequest.set( request );
@@ -135,6 +158,8 @@ public class WebDavServer
             httpManager.process( request, response );
         }
         finally {
+            FsPlugin.getDefault().sessionContextProvider.unmapContext();
+
             threadRequest.set( null );
             threadResponse.set( null );
             

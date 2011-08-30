@@ -21,7 +21,6 @@ import java.util.zip.GZIPOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +36,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionListener;
+import org.polymap.core.runtime.ISessionListener;
+import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.Timer;
 
 import org.polymap.service.http.HttpService;
@@ -51,7 +52,8 @@ import org.polymap.service.http.HttpServiceFactory;
  * @since 3.0
  */
 public class SimpleJsonServer 
-        extends HttpService implements SessionListener {
+        extends HttpService 
+        implements ISessionListener {
 
     private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
 
@@ -60,19 +62,30 @@ public class SimpleJsonServer
     // static factory *************************************
     
     public static synchronized SimpleJsonServer instance() {
-        SimpleJsonServer instance = (SimpleJsonServer)Polymap.getSessionAttribute( "SimpleJsonServer" );
-        if (instance == null) {
-            if (instance == null) {
-                try {
-                    instance = new SimpleJsonServer( "/mapeditorjson-" + Polymap.instance().hashCode() );
-                    Polymap.instance().addSessionShutdownHook( instance );
-                    Polymap.setSessionAttribute( "SimpleJsonServer", instance );
-                }
-                catch (Exception e) {
-                    throw new RuntimeException( e );
-                }
+        SimpleJsonServer instance = SessionSingleton.instance( SimpleJsonServer.class );
+        if (instance.getPathSpec() == null) {
+            try {
+                instance.init( "/mapeditorjson-" + Polymap.instance().hashCode() );
+                SessionContext.current().addSessionListener( instance );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
             }
         }
+        
+//        SimpleJsonServer instance = (SimpleJsonServer)Polymap.getSessionAttribute( "SimpleJsonServer" );
+//        if (instance == null) {
+//            if (instance == null) {
+//                try {
+//                    instance = new SimpleJsonServer( "/mapeditorjson-" + Polymap.instance().hashCode() );
+//                    SessionContext.current().addSessionListener( instance );
+//                    Polymap.setSessionAttribute( "SimpleJsonServer", instance );
+//                }
+//                catch (Exception e) {
+//                    throw new RuntimeException( e );
+//                }
+//            }
+//        }
         return instance;
     }
     
@@ -90,9 +103,12 @@ public class SimpleJsonServer
     private int                     totalLayers;
     
     
-    public SimpleJsonServer( String _pathSpec ) 
+    public SimpleJsonServer() {
+    }
+
+
+    protected void init( String _pathSpec )
     throws Exception {
-        super();
         super.init( _pathSpec, null );
         
         log.debug( "URL: " + getURL() );
@@ -110,7 +126,7 @@ public class SimpleJsonServer
     }
 
     
-    /* SessionListener */
+    /* ISessionListener */
     public void beforeDestroy() {
         dispose();
     }

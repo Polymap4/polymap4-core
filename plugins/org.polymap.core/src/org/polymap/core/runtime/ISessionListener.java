@@ -19,7 +19,7 @@ package org.polymap.core.runtime;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface SessionListener {
+public interface ISessionListener {
 
     public void beforeDestroy();
 

@@ -77,7 +77,7 @@ public class CatalogRepository
 
     private CatalogComposite        catalog;
     
-    private OperationSaveListener   operationListener = new OperationSaveListener();
+    private OperationSaveListener   operationListener;
     
 
     protected CatalogRepository( QiModuleAssembler assembler ) {
@@ -86,6 +86,7 @@ public class CatalogRepository
         // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
         // is no request context
         if (ContextProvider.hasContext()) {
+            operationListener = new OperationSaveListener();
             OperationSupport.instance().addOperationSaveListener( operationListener );
         }
 
