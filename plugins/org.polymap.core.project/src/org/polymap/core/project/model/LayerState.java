@@ -352,14 +352,11 @@ public interface LayerState
          * means is that the service is down, or the user has not connected to it yet
          * (perhaps they are waiting on security permissions.
          * <p/>
-         * When the real service comes along we should find out based on catalog
-         * events.
-         * <p/>
          * getGeoResource() is a blocking method but it must not block UI thread.
          * With this purpose the new imlementation is done to avoid UI thread
          * blocking because of synchronization.
          */
-        public synchronized IGeoResource getGeoResource() {
+        public IGeoResource getGeoResource() {
             georesLock.readLock().lock();
             try {
                 if (geores == null
