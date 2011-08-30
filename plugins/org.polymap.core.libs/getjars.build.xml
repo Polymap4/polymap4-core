@@ -42,10 +42,10 @@
 			<!-- remoteRepository refid="udig.snapshot.repository" /-->
 
 			<remoteRepository refid="geotools.repository" />
-			<remoteRepository refid="geotools.repository.snapshot" />
+			<!-- remoteRepository refid="geotools.repository.snapshot" /-->
 			<remoteRepository refid="central.repository" />
 			<remoteRepository refid="jaitoolsmaven.repository" />
-			<remoteRepository refid="geosolutionsmaven.repository" />
+			<!-- remoteRepository refid="geosolutionsmaven.repository" /-->
 
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />
@@ -90,7 +90,7 @@
             <dependency groupId="org.geotools" artifactId="gt-postgis" version="${geotools.version}" scope="provided"/>
             <!-- dependency groupId="org.geotools" artifactId="gt-postgis-versioned" version="${geotools.version}" /-->
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-sqlserver" version="${geotools.version}" /-->
-            <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" /-->
+            <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" />
             <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-h2" version="${geotools.version}" />
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-oracle" version="${geotools.version}" /-->
 
