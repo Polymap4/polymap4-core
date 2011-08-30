@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +33,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import org.geotools.data.DefaultTransaction;
-import org.geotools.data.FeatureEvent;
-import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -64,11 +63,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
 
+import org.polymap.core.data.GlobalFeatureChangeListener;
+import org.polymap.core.data.GlobalFeatureChangeManager;
+import org.polymap.core.data.GlobalFeatureEvent;
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
-import org.polymap.core.runtime.WeakListener;
-
 import org.polymap.service.fs.spi.IContentSite;
 
 /**
@@ -78,7 +79,7 @@ import org.polymap.service.fs.spi.IContentSite;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class ShapefileContainer
-        implements FeatureListener {
+        implements GlobalFeatureChangeListener {
     
     private static Log log = LogFactory.getLog( ShapefileContainer.class );
 
@@ -98,6 +99,8 @@ class ShapefileContainer
     
     private UpdateJob               updateJob;
     
+    private ReentrantReadWriteLock  lock = new ReentrantReadWriteLock();
+    
     private PipelineFeatureSource   layerFs;
     
     
@@ -107,27 +110,41 @@ class ShapefileContainer
         try {
             this.layerFs = PipelineFeatureSource.forLayer( layer, true );
             
-            layerFs.addFeatureListener( WeakListener.forListener( this ) );
+            GlobalFeatureChangeManager.addFeatureListener( this );
         }
         catch (Exception e) {
             throw new RuntimeException( e );
         }
     }
 
-    
-    public void changed( FeatureEvent ev ) {
+
+    public void featureChange( GlobalFeatureEvent ev ) {
         log.info( "ev= " + ev );
+        if (ev.getSource() instanceof LayerFeatureBufferManager) {
+            LayerFeatureBufferManager bufferManager = (LayerFeatureBufferManager)ev.getSource();
+            if (layer.id().equals( bufferManager.getLayer().id() )) {
+                log.info( "flushing..." );
+                flush();
+            }
+        }
     }
 
 
     public void flush() {
         if (file != null) {
-            for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
-                File f = resolveFile( fileSuffix );
-                FileUtils.deleteQuietly( f );
+            try {
+                lock.writeLock().lock();
+             
+                for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
+                    File f = resolveFile( fileSuffix );
+                    FileUtils.deleteQuietly( f );
+                }
+                file = null;
+                exception = null;
             }
-            file = null;
-            exception = null;
+            finally {
+                lock.writeLock().unlock();
+            }
         }
         lastModified = new Date();
     }
@@ -135,6 +152,7 @@ class ShapefileContainer
 
     public OutputStream getOutputStream( String fileSuffix )
     throws IOException {
+        // FIXME locking?
         File f = Path.fromOSString( file.getAbsolutePath() )
                 .removeFileExtension().addFileExtension( fileSuffix ).toFile();
         
@@ -159,6 +177,7 @@ class ShapefileContainer
     
     public InputStream getInputStream( String fileSuffix )
     throws IOException {
+        // FIXME locking?
         // init shapefile
         getFileSize( fileSuffix );
         
@@ -240,6 +259,7 @@ class ShapefileContainer
         protected void runWithException( IProgressMonitor monitor )
         throws Exception {
             log.info( "UpdateJob: starting..." );
+            lock.writeLock().lock();
             try {
                 ShapefileDataStoreFactory shapeFactory = new ShapefileDataStoreFactory();
 
@@ -380,6 +400,7 @@ class ShapefileContainer
             }
             finally {
                 updateJob = null;
+                lock.writeLock().unlock();
                 log.info( "UpdateJob: done." );
             }
         }

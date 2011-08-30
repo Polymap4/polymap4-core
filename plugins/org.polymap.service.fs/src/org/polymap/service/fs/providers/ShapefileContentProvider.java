@@ -36,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.fs.Messages;
@@ -76,21 +77,25 @@ public class ShapefileContentProvider
             for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
                 result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
                         , container, fileSuffix ) );
-                
             }
-
             // snapshot.txt
             result.add( new SnapshotFile( path, this, (ILayer)parent.getSource(), container, site ) );
-            
             // shape-zip
             result.add( new ShapeZipFile( path, this, (ILayer)parent.getSource(), container ) );
-            
             return result;
         }
+
         // folder
         else if (parent instanceof ProjectContentProvider.LayerFolder) {
-            return Collections.singletonList( 
-                    new ShapefileFolder( path, this, (ILayer)parent.getSource() ) );
+            ILayer layer = (ILayer)parent.getSource();
+            try {
+                // try to build an fs for it
+                PipelineFeatureSource.forLayer( layer, true );
+                return Collections.singletonList( new ShapefileFolder( path, this, layer ) );
+            }
+            catch (Exception e) {
+                log.info( "Layer has no feature source: " + layer.getLabel() );
+            }
         }
         return null;
     }
