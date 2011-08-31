@@ -27,8 +27,6 @@ import org.apache.commons.logging.LogFactory;
 
 import net.refractions.udig.catalog.CatalogPlugin;
 
-import org.eclipse.rwt.internal.service.ContextProvider;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.operation.IOperationSaveListener;
@@ -36,7 +34,6 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
-import org.polymap.core.qi4j.Qi4jPlugin.Session;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -46,7 +43,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@SuppressWarnings("restriction")
 public class CatalogRepository
         extends QiModule
         implements org.polymap.core.model.Module {
@@ -62,17 +58,6 @@ public class CatalogRepository
     }
 
 
-    /**
-     * The global instance used outside any user session.
-     * 
-     * @return A newly created {@link Session} instance. It is up to the caller
-     *         to store and re-use if necessary.
-     */
-    public static final CatalogRepository globalInstance() {
-        return (CatalogRepository)Qi4jPlugin.Session.globalInstance().module( CatalogRepository.class );
-    }
-    
-
     // instance *******************************************
 
     private CatalogComposite        catalog;
@@ -83,12 +68,8 @@ public class CatalogRepository
     protected CatalogRepository( QiModuleAssembler assembler ) {
         super( assembler );
         
-        // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
-        // is no request context
-        if (ContextProvider.hasContext()) {
-            operationListener = new OperationSaveListener();
-            OperationSupport.instance().addOperationSaveListener( operationListener );
-        }
+        operationListener = new OperationSaveListener();
+        OperationSupport.instance().addOperationSaveListener( operationListener );
 
         catalog = uow.get( CatalogComposite.class, "catalog" );
         System.out.println( "Catalog: " + catalog );

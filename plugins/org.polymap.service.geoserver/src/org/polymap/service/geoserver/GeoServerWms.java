@@ -58,6 +58,7 @@ import org.geoserver.logging.LoggingStartupContextListener;
 
 import org.polymap.core.project.IMap;
 
+import org.polymap.service.ServicesPlugin;
 import org.polymap.service.http.WmsService;
 
 /**
@@ -184,7 +185,8 @@ public class GeoServerWms
 
 
     protected void service( final HttpServletRequest req, HttpServletResponse resp )
-            throws ServletException, IOException {
+    throws ServletException, IOException {
+        
         final String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
         log.debug( "Request: servletPath=" + servletPath + ", pathInfo=" + pathInfo );
@@ -211,8 +213,11 @@ public class GeoServerWms
         // services
         ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader( context.cl );
-        
+                
         try {
+            // session context
+            ServicesPlugin.getDefault().mapContext( req.getSession().getId() );
+
 //        HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper( req ) {
 //
 //            public String getServletPath() {
@@ -264,6 +269,8 @@ public class GeoServerWms
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );
+
+            ServicesPlugin.getDefault().unmapContext();
         }
     }
 

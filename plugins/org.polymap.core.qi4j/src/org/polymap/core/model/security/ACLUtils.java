@@ -52,11 +52,11 @@ public final class ACLUtils {
             boolean throwException)
             throws SecurityException {
         
-        // check daemon thread (no session)
-        if (Polymap.getSessionDisplay() == null) {
-            // daemon threads are on admin level
-            return true;
-        }
+//        // check daemon thread (no session)
+//        if (Polymap.getSessionDisplay() == null) {
+//            // daemon threads are on admin level
+//            return true;
+//        }
         
         // user session principals
         for (Principal principal : Polymap.instance().getPrincipals()) {

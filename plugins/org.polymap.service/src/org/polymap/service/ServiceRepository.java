@@ -31,16 +31,12 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.rwt.internal.service.ContextProvider;
-
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
-import org.polymap.core.qi4j.Qi4jPlugin.Session;
-
 import org.polymap.service.model.ServiceListComposite;
 
 /**
@@ -50,7 +46,6 @@ import org.polymap.service.model.ServiceListComposite;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@SuppressWarnings("restriction")
 public class ServiceRepository
         extends QiModule
         implements org.polymap.core.model.Module {
@@ -66,17 +61,6 @@ public class ServiceRepository
     }
 
 
-    /**
-     * The global instance used outside any user session.
-     * 
-     * @return A newly created {@link Session} instance. It is up to the caller
-     *         to store and re-use if necessary.
-     */
-    public static final ServiceRepository globalInstance() {
-        return (ServiceRepository)Qi4jPlugin.Session.globalInstance().module( ServiceRepository.class );
-    }
-    
-
     // instance *******************************************
 
     private ServiceListComposite    serviceList;
@@ -87,12 +71,8 @@ public class ServiceRepository
     protected ServiceRepository( QiModuleAssembler assembler ) {
         super( assembler );
         
-        // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
-        // is no request context
-        if (ContextProvider.hasContext()) {
-            operationListener = new OperationSaveListener();
-            OperationSupport.instance().addOperationSaveListener( operationListener );
-        }
+        operationListener = new OperationSaveListener();
+        OperationSupport.instance().addOperationSaveListener( operationListener );
 
         serviceList = uow.get( ServiceListComposite.class, "serviceList" );
         log.debug( "ServiceList: " + serviceList );

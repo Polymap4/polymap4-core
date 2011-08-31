@@ -39,13 +39,13 @@ import org.qi4j.bootstrap.AssemblyException;
 import org.qi4j.bootstrap.Energy4Java;
 import org.qi4j.spi.structure.ApplicationSPI;
 
-import org.eclipse.rwt.SessionSingletonBase;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
+
+import org.polymap.core.runtime.SessionSingleton;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -146,7 +146,7 @@ public class Qi4jPlugin
      * This is the user session specific part of the API of the plugin instance.
      */
 	public static final class Session
-	        extends SessionSingletonBase {
+	        extends SessionSingleton {
 	
 	    private Map<Class,QiModule>        modules = new HashMap();
 	    
@@ -155,21 +155,10 @@ public class Qi4jPlugin
          * Get or create the instance for the current user session.
          */
         public static final Session instance() {
-            return (Session)getInstance( Session.class );
+            return instance( Session.class );
         }
 
 
-        /**
-         * The global instance used outside any user session.
-         * 
-         * @return A newly created {@link Session} instance. It is up to the
-         *         caller to store and re-use if necessary.
-         */
-        public static final synchronized Session globalInstance() {
-            return new Session();
-        }
-        
-        
 	    Session() {
 	    	// lazily init the plugin
 	        try {
@@ -223,7 +212,7 @@ public class Qi4jPlugin
 	        }
 	        // called by the modules
 	        else if (appliesTo instanceof Class) {
-	            return modules.get( (Class)appliesTo );
+	            return modules.get( appliesTo );
 	        }
 	        // Entity
 	        else if (appliesTo instanceof QiEntity) {

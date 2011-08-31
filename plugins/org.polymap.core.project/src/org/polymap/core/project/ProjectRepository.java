@@ -27,14 +27,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
-import org.eclipse.rwt.internal.service.ContextProvider;
-
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.model.MapState;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
+import org.polymap.core.runtime.ISessionContextProvider;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -47,7 +46,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@SuppressWarnings("restriction")
 public class ProjectRepository
         extends QiModule
         implements org.polymap.core.model.Module {
@@ -66,11 +64,13 @@ public class ProjectRepository
     /**
      * The global instance used outside any user session.
      * 
-     * @return A newly created {@link Session} instance. It is up to the caller
-     *         to store and re-use if necessary.
+     * @deprecated The same as {@link #instance()}. Session contexts a provided by an
+     *             {@link ISessionContextProvider}.
+     * @return A newly created {@link Session} instance. It is up to the caller to
+     *         store and re-use if necessary.
      */
     public static final ProjectRepository globalInstance() {
-        return (ProjectRepository)Qi4jPlugin.Session.globalInstance().module( ProjectRepository.class );
+        return instance();
     }
     
 
@@ -85,12 +85,8 @@ public class ProjectRepository
         super( assembler );
         log.debug( "uow: " + uow.isOpen() );
         
-        // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
-        // is no request context
-        if (ContextProvider.hasContext()) {
-            operationListener = new OperationSaveListener();
-            OperationSupport.instance().addOperationSaveListener( operationListener );
-        }
+        operationListener = new OperationSaveListener();
+        OperationSupport.instance().addOperationSaveListener( operationListener );
     }
     
     

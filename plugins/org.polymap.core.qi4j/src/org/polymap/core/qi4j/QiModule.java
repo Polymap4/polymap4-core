@@ -32,11 +32,6 @@ import org.qi4j.api.unitofwork.UnitOfWork;
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 import org.qi4j.api.unitofwork.UnitOfWorkException;
 
-import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.internal.service.ContextProvider;
-import org.eclipse.rwt.service.SessionStoreEvent;
-import org.eclipse.rwt.service.SessionStoreListener;
-
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -56,6 +51,8 @@ import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.event.ModelChangeTracker;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
+import org.polymap.core.runtime.ISessionListener;
+import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -70,7 +67,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
-@SuppressWarnings("restriction")
 public abstract class QiModule
         implements Module {
 
@@ -90,18 +86,14 @@ public abstract class QiModule
         this.assembler = assembler;
         this.uow = assembler.getModule().unitOfWorkFactory().newUnitOfWork();
 
-        // for the global instance of the module (Qi4jPlugin.Session.globalInstance()) there
-        // is no request context
-        if (ContextProvider.hasContext()) {
-            RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
-                public void beforeDestroy( SessionStoreEvent ev ) {
+        SessionContext sessionContext = SessionContext.current();
+        if (sessionContext != null) {
+            sessionContext.addSessionListener( new ISessionListener() {
+                public void beforeDestroy() {
                     log.info( "Session closed: removing module..."  );
                     done();
                 }
             });
-        }
-        else {
-            log.debug( "Module instantiated outside request context." );
         }
     }
 

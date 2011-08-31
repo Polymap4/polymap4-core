@@ -63,7 +63,6 @@ import org.eclipse.core.runtime.Platform;
 import org.polymap.core.catalog.CatalogPlugin;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.AclPermission;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -88,9 +87,7 @@ public class CatalogImpl
 
 
     public CatalogImpl() {
-        delegate = Polymap.getSessionDisplay() != null
-                ? CatalogRepository.instance().getCatalog()    
-                : CatalogRepository.globalInstance().getCatalog();    
+        delegate = CatalogRepository.instance().getCatalog();    
         delegate.setFacade( this );
         
         catalogListeners = new ListenerList( ListenerList.IDENTITY );

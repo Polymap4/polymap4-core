@@ -17,23 +17,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import net.refractions.udig.catalog.internal.CatalogImpl;
-import net.refractions.udig.catalog.internal.Messages;
 import net.refractions.udig.catalog.internal.ResolveManager;
 import net.refractions.udig.catalog.internal.ServiceFactoryImpl;
 import net.refractions.udig.core.internal.ExtensionPointProcessor;
 import net.refractions.udig.core.internal.ExtensionPointUtil;
-import net.refractions.udig.ui.PreShutdownTask;
-import net.refractions.udig.ui.ProgressManager;
-import net.refractions.udig.ui.ShutdownTaskList;
-
-import org.eclipse.swt.widgets.Display;
-
-import org.eclipse.rwt.SessionSingletonBase;
-
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -41,17 +30,17 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
+import org.polymap.core.runtime.SessionSingleton;
+
 /**
  * The session dependent part of the {@link CatalogPlugin} API and
  * implementation.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
  *         <li>12.10.2009: created; taken from CatalogPlugin</li>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public class CatalogPluginSession
-        extends SessionSingletonBase {
+public class CatalogPluginSession {
 
     private static Log log = LogFactory.getLog( CatalogPluginSession.class );
 
@@ -62,7 +51,7 @@ public class CatalogPluginSession
      * current thread.
      */
     public static CatalogPluginSession instance() {
-        return (CatalogPluginSession)getInstance( CatalogPluginSession.class );
+        return SessionSingleton.instance( CatalogPluginSession.class );
     }
     
 
@@ -92,7 +81,6 @@ public class CatalogPluginSession
         
         try {
             restoreFromPreferences();
-            addSaveLocalCatalogShutdownHook();
         }
         catch (BackingStoreException e) {
             CatalogPlugin.log( null, e );
@@ -105,43 +93,43 @@ public class CatalogPluginSession
     }
 
     
-    private void addSaveLocalCatalogShutdownHook() {
-        ShutdownTaskList.instance().addPreShutdownTask(new PreShutdownTask(){
-
-            public int getProgressMonitorSteps() {
-                try {
-                    return getLocalCatalog().members( ProgressManager.instance().get() ).size();
-                }
-                catch (IOException e) {
-                    return 0;
-                }
-            }
-
-            public boolean handlePreShutdownException( Throwable t, boolean forced ) {
-                CatalogPlugin.log( "Error storing local catalog", t ); //$NON-NLS-1$
-                return true;
-            }
-
-
-            public boolean preShutdown( IProgressMonitor monitor, IWorkbench workbench,
-                    boolean forced )
-                    throws Exception {
-                log.warn( "_p3: XXX save catalog on shutdown commented out." );
-//                ISearch[] toDispose = getCatalogs();
-//                monitor.beginTask( Messages.CatalogPlugin_SavingCatalog,
-//                        4 + (4 * toDispose.length) );
-//                SubProgressMonitor subProgressMonitor = new SubProgressMonitor( monitor, 4 );
-//                storeToPreferences( subProgressMonitor );
-//                subProgressMonitor.done();
-//                for (ISearch catalog : toDispose) {
-//                    subProgressMonitor = new SubProgressMonitor( monitor, 4 );
-//                    catalog.dispose( subProgressMonitor );
-//                    subProgressMonitor.done();
+//    private void addSaveLocalCatalogShutdownHook() {
+//        ShutdownTaskList.instance().addPreShutdownTask(new PreShutdownTask(){
+//
+//            public int getProgressMonitorSteps() {
+//                try {
+//                    return getLocalCatalog().members( ProgressManager.instance().get() ).size();
 //                }
-                return true;
-            }
-        });
-    }
+//                catch (IOException e) {
+//                    return 0;
+//                }
+//            }
+//
+//            public boolean handlePreShutdownException( Throwable t, boolean forced ) {
+//                CatalogPlugin.log( "Error storing local catalog", t ); //$NON-NLS-1$
+//                return true;
+//            }
+//
+//
+//            public boolean preShutdown( IProgressMonitor monitor, IWorkbench workbench,
+//                    boolean forced )
+//                    throws Exception {
+//                log.warn( "_p3: XXX save catalog on shutdown commented out." );
+////                ISearch[] toDispose = getCatalogs();
+////                monitor.beginTask( Messages.CatalogPlugin_SavingCatalog,
+////                        4 + (4 * toDispose.length) );
+////                SubProgressMonitor subProgressMonitor = new SubProgressMonitor( monitor, 4 );
+////                storeToPreferences( subProgressMonitor );
+////                subProgressMonitor.done();
+////                for (ISearch catalog : toDispose) {
+////                    subProgressMonitor = new SubProgressMonitor( monitor, 4 );
+////                    catalog.dispose( subProgressMonitor );
+////                    subProgressMonitor.done();
+////                }
+//                return true;
+//            }
+//        });
+//    }
 
     
     /**
@@ -157,12 +145,12 @@ public class CatalogPluginSession
         catch (IOException ioe) {
             CatalogPlugin.log( "Could not make a back up of the corrupted local catalog.", ioe ); //$NON-NLS-1$
         }
-        boolean addShutdownHook = MessageDialog.openQuestion(
-                Display.getDefault().getActiveShell(), Messages.CatalogPlugin_ErrorLoading,
-                Messages.CatalogPlugin__ErrorLoadingMessage );
-        if (addShutdownHook) {
-            addSaveLocalCatalogShutdownHook();
-        }
+//        boolean addShutdownHook = MessageDialog.openQuestion(
+//                Display.getDefault().getActiveShell(), Messages.CatalogPlugin_ErrorLoading,
+//                Messages.CatalogPlugin__ErrorLoadingMessage );
+//        if (addShutdownHook) {
+//            addSaveLocalCatalogShutdownHook();
+//        }
     }
 
 

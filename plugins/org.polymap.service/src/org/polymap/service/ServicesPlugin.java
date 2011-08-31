@@ -25,6 +25,9 @@ import org.polymap.core.CorePlugin;
 import org.polymap.core.model.event.GlobalModelChangeEvent;
 import org.polymap.core.model.event.GlobalModelChangeListener;
 import org.polymap.core.model.event.GlobalModelChangeEvent.EventType;
+import org.polymap.core.runtime.DefaultSessionContext;
+import org.polymap.core.runtime.DefaultSessionContextProvider;
+import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.ui.GeneralPreferencePage;
@@ -90,6 +93,11 @@ public class ServicesPlugin
     
     /** The base URL explicitly set by the user via {@link GeneralPreferencePage}. */
     private String                  proxyBaseUrl;
+    
+    /** The session context shared by all services. */
+    private DefaultSessionContext   sessionContext;
+    
+    public DefaultSessionContextProvider contextProvider;
 
     
     public ServicesPlugin() {
@@ -110,6 +118,15 @@ public class ServicesPlugin
             throws Exception {
         super.start( context );
         plugin = this;
+        
+        // sessionContext
+        sessionContext = new DefaultSessionContext( "services" );
+        contextProvider = new DefaultSessionContextProvider() {
+            protected DefaultSessionContext newContext( String sessionKey ) {
+                return sessionContext;
+            }
+        };
+        SessionContext.addProvider( contextProvider );
         
         // start HttpServiceRegistry
         context.addBundleListener( new BundleListener() {
@@ -146,7 +163,7 @@ public class ServicesPlugin
                         log.info( "Proxy URL set to: " + proxyBaseUrl );
 
                         httpService = (HttpService) context.getService( httpReferences[0] );
-                        startServices( httpService );
+                        startServices( httpService );                            
                         started = true;
                     } 
                     else {
@@ -166,17 +183,32 @@ public class ServicesPlugin
             throws Exception {
         plugin = null;
         super.stop( context );
+        
+        SessionContext.removeProvider( contextProvider );
+        contextProvider = null;
     }
 
+    
+    public void mapContext( String sessionKey ) {
+        contextProvider.mapContext( sessionContext.getSessionKey(), false );    
+    }
 
+    
+    public void unmapContext() {
+        contextProvider.unmapContext();
+    }
+    
+    
     /**
      * Start all global services and register model change listener
      * and preference listener.
      */
     protected void startServices( HttpService httpService ) {
         try {
+            contextProvider.mapContext( sessionContext.getSessionKey(), true );
+            
             //
-            repo = ServiceRepository.globalInstance();
+            repo = ServiceRepository.instance();
             for (IProvidedService service : repo.allServices()) {
                 if (service.isEnabled()) {
                     try {
@@ -223,6 +255,9 @@ public class ServicesPlugin
         catch (Exception e) {
             CorePlugin.logError( "Error while starting services.", log, e );
         }
+        finally {
+            contextProvider.unmapContext();
+        }
     }
 
 
@@ -231,25 +266,40 @@ public class ServicesPlugin
         for (IProvidedService service : repo.allServices()) {
             if (service.isEnabled()) {
                 try {
+                    contextProvider.mapContext( sessionContext.getSessionKey(), false );
                     service.stop();
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim Anhalten des Dienstes.", e );
                 }
+                finally {
+                    contextProvider.unmapContext();
+                }
             }
         }
         
-        // get new repositoty and (re)start new services
-        repo = ServiceRepository.globalInstance();
-        for (IProvidedService service : repo.allServices()) {
-            if (service.isEnabled()) {
-                try {
-                    service.start();
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim (Re)Start des Dienstes.", e );
+        // destroy current session
+        contextProvider.destroyContext( sessionContext.getSessionKey() );
+        sessionContext = new DefaultSessionContext( "services" );
+
+        // get new repository and (re)start new services
+        try {
+            contextProvider.mapContext( sessionContext.getSessionKey(), true );
+
+            repo = ServiceRepository.instance();
+            for (IProvidedService service : repo.allServices()) {
+                if (service.isEnabled()) {
+                    try {
+                        service.start();
+                    }
+                    catch (Exception e) {
+                        PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim (Re)Start des Dienstes.", e );
+                    }
                 }
             }
+        }
+        finally {
+            contextProvider.unmapContext();
         }
     }
     
