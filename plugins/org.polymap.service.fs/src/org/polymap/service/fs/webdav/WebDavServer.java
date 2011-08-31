@@ -14,10 +14,9 @@
  */
 package org.polymap.service.fs.webdav;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.Locale;
 import java.io.IOException;
+import java.security.Principal;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -36,10 +35,11 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.SecurityManager;
-import com.ettrema.http.fs.SimpleSecurityManager;
 
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 
+import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;
 import org.polymap.service.http.WmsService;
 
@@ -52,6 +52,8 @@ public class WebDavServer
         extends WmsService {
 
     private static Log log = LogFactory.getLog( WebDavServer.class );
+    
+    private static final String                     NULL_USER_NAME = "null";
     
     private static final ThreadLocal<Request>       threadRequest  = new ThreadLocal<Request>();
 
@@ -94,15 +96,12 @@ public class WebDavServer
         try {
             this.config = _config;
             
-            Map<String,String> users = new HashMap();
-            users.put( "admin", "admin" );
-            users.put( "falko", "." );
-            securityManager = new SimpleSecurityManager( "POLYMAP3 WebDAV", users );
+//            Map<String,String> users = new HashMap();
+//            users.put( "admin", "admin" );
+//            users.put( "falko", "." );
+            securityManager = new SecurityManagerAdapter( "POLYMAP3 WebDAV" );
             
             this.resourceFactory = new WebDavResourceFactory( securityManager, "webdav" );
-            
-//            this.resourceFactory = new FileSystemResourceFactory( 
-//                    new File( "/tmp/webdav/" ), securityManager, "webdav/" );
             
             this.httpManager = new HttpManager( resourceFactory );
         }
@@ -127,15 +126,30 @@ public class WebDavServer
         HttpServletResponse resp = (HttpServletResponse)servletResponse;
 
         try {
-            HttpSession session = req.getSession( true );
-            FsPlugin.getDefault().sessionContextProvider.mapContext( session.getId() );
+            Request request = new com.bradmcevoy.http.ServletRequest( req );
+            Response response = new com.bradmcevoy.http.ServletResponse( resp );
+            threadRequest.set( request );
+            threadResponse.set( response );
 
-            // register session listener
+            // map session context
+            HttpSession session = req.getSession( true );
+            FsPlugin.getDefault().sessionContextProvider.mapContext( session.getId(), true );
+
+            // init new session
             if (session.isNew()) {
-                log.info( "New session created..." );
                 session.setMaxInactiveInterval( 30 );
                 final SessionContext sessionContext = SessionContext.current();
                 
+                // login
+//                Auth auth = request.getAuthorization();
+//                String user = auth != null ? auth.getUser() : NULL_USER_NAME;
+                Principal user = Polymap.instance().getUser();
+
+                // ContentManager
+                Locale locale = req.getLocale();
+                sessionContext.setAttribute( "contentManager", 
+                        ContentManager.forUser( user.getName(), locale ) ); 
+                        
                 session.setAttribute( "sessionListener", new HttpSessionBindingListener() {
                     public void valueBound( HttpSessionBindingEvent ev ) {
                     }
@@ -144,13 +158,9 @@ public class WebDavServer
                                 sessionContext.getSessionKey() );
                     }
                 });
+                log.info( "New session: " + session.getId() + ", user: " + user );
             }
             
-            Request request = new com.bradmcevoy.http.ServletRequest( req );
-            Response response = new com.bradmcevoy.http.ServletResponse( resp );
-            threadRequest.set( request );
-            threadResponse.set( response );
-
 //            log.info( "    useragent: " + request.getUserAgentHeader() );
 //            Auth auth = request.getAuthorization();
 //            log.info( "    user: " + (auth != null ? auth.getUser() : "null") );

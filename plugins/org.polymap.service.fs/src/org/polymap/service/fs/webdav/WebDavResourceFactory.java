@@ -15,23 +15,17 @@
 package org.polymap.service.fs.webdav;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PostableResource;
@@ -41,7 +35,7 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.ServletRequest;
+import org.polymap.core.runtime.SessionContext;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentDeletable;
@@ -60,14 +54,6 @@ class WebDavResourceFactory
         implements ResourceFactory {
 
     private static Log log = LogFactory.getLog( WebDavResourceFactory.class );
-
-    private static final String             NULL_USER_NAME = "null";
-    
-    /** Maps username into {@link ContentManager}. */
-    private Map<String,ContentManager>      contentManagers = new HashMap();
-
-    /** Synchronizes access to {@link #contentManagers}. */
-    private ReentrantReadWriteLock          lock = new ReentrantReadWriteLock();
 
     private SecurityManager                 securityManager;
 
@@ -88,8 +74,6 @@ class WebDavResourceFactory
 
     
     public void dispose() {
-        contentManagers = null;
-        lock = null;
     }
 
     
@@ -97,35 +81,8 @@ class WebDavResourceFactory
         Request request = WebDavServer.request();
         assert request != null;
         
-        Auth auth = request.getAuthorization();
-        String user = auth != null ? auth.getUser() : NULL_USER_NAME;
-        
-        // check/get ContentManager
-        ContentManager contentManager = null;
-        try {
-            lock.readLock().lock();
-            
-            contentManager = contentManagers.get( user );
-            if (contentManager == null) {
-                lock.readLock().unlock();
-                lock.writeLock().lock();
-                
-                HttpServletRequest httpRequest = ServletRequest.getRequest();
-                Locale locale = httpRequest != null 
-                        ? httpRequest.getLocale()
-                        : Locale.getDefault();
-                
-                contentManager = ContentManager.forUser( user, locale );
-                contentManagers.put( user, contentManager );
-            }
-        }
-        finally {
-            if (lock.writeLock().isHeldByCurrentThread()) {
-                lock.readLock().lock();
-                lock.writeLock().unlock();
-            }
-            lock.readLock().unlock();
-        }
+        ContentManager contentManager = (ContentManager)SessionContext.current()
+                .getAttribute( "contentManager" ); 
         
         // get content
         path = StringUtils.substringAfter( path, contextPath );

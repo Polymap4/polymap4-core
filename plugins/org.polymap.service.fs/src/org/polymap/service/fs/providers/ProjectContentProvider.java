@@ -53,7 +53,7 @@ public class ProjectContentProvider
         // projects root
         if (path.segmentCount() == 0) {
             // XXX user specific!
-            ProjectRepository repo = ProjectRepository.globalInstance();
+            ProjectRepository repo = ProjectRepository.instance();
 //            assert site.get( PROJECT_REPOSITORY_KEY ) == null;
             site.put( PROJECT_REPOSITORY_KEY, repo );
             
