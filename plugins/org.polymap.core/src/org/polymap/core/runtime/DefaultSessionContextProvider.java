@@ -43,17 +43,34 @@ public class DefaultSessionContextProvider
      * exists yet, then a new one is created.
      * 
      * @param sessionKey
+     * @param create Indicates that a new context should be created if no context
+     *        exists for the given key. Otherwise an exception is thrown.
      */
-    public void mapContext( final String sessionKey ) {
+    public void mapContext( final String sessionKey, final boolean create ) {
+        SessionContext current = currentContext();
+        if (current != null) {
+            if (current.getSessionKey().equals( sessionKey )) {
+                throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
+            }
+            else {
+                throw new IllegalStateException( "Another context is mapped to this thread: " + current.getSessionKey() );                
+            }
+        }
+        
         LockUtils.withReadLock( contextsLock, new Runnable() {
             public void run() {
                 DefaultSessionContext context = contexts.get( sessionKey );
                 log.debug( "mapContext(): sessionKey= " + sessionKey + ", current= " + context );
                 if (context == null) {
-                    LockUtils.upgrade( contextsLock );
-                    
-                    context = newContext( sessionKey );
-                    contexts.put( sessionKey, context );
+                    if (create) {
+                        LockUtils.upgrade( contextsLock );
+
+                        context = newContext( sessionKey );
+                        contexts.put( sessionKey, context );
+                    }
+                    else {
+                        throw new IllegalStateException( "No such session context: " + sessionKey );
+                    }
                 }
                 currentContext.set( context );
             }
@@ -75,8 +92,20 @@ public class DefaultSessionContextProvider
         currentContext.set( null );
     }
 
+    
+    public void inContext( String sessionKey, Runnable task ) {
+        try {
+            mapContext( sessionKey, false );
+            task.run();
+        }
+        finally {
+            unmapContext();
+        }
+    }
 
+    
     protected DefaultSessionContext newContext( String sessionKey ) {
+        log.debug( "newSessionContext(): " + sessionKey );
         return new DefaultSessionContext( sessionKey );
     }
     
@@ -91,14 +120,18 @@ public class DefaultSessionContextProvider
             public void run() {
                 LockUtils.upgrade( contextsLock );
 
-                DefaultSessionContext context = contexts.remove( sessionKey );
+                log.debug( "destroyContext(): " + sessionKey );
+                DefaultSessionContext context = contexts.get( sessionKey );
                 if (context != null) {
+                    mapContext( context.getSessionKey(), false );
                     context.destroy();
+                    unmapContext();
+                    // remove after destroy
+                    contexts.remove( sessionKey );
                 }
                 else {
                     log.warn( "No context for sessionKey: " + sessionKey + "!" );
                 }
-                currentContext.set( context );
             }
         });    
             

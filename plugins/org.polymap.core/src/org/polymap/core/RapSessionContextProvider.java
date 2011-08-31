@@ -91,6 +91,18 @@ public class RapSessionContextProvider
             // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );
         }
+
+
+        public Object getAttribute( String key ) {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public void setAttribute( String key, Object value ) {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
+        }
         
     }
     

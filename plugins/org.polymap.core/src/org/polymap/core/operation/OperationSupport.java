@@ -26,11 +26,6 @@ package org.polymap.core.operation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.rwt.SessionSingletonBase;
-
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PlatformUI;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.DefaultOperationHistory;
 import org.eclipse.core.commands.operations.IOperationHistory;
@@ -44,27 +39,24 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
 
 
 /**
  * The API and implementation of the operations system.
- * <p>
+ * <p/>
  * Besides the undo/redo history the <code>OperationSupport</code> also provides
  * the API and SPI to handle Save/Revert/Merge changes to the domain model of
  * the systems.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class OperationSupport
-        extends SessionSingletonBase {
-        //implements IWorkbenchOperationSupport {
+        extends SessionSingleton {
 
     private static Log log = LogFactory.getLog( OperationSupport.class );
-
-//    private IWorkbenchOperationSupport  operationSupport;
 
     private IUndoContext                context;
 
@@ -81,19 +73,11 @@ public class OperationSupport
      * This method must be called from the UI thread.
      */
     public static OperationSupport instance() {
-        return (OperationSupport)getInstance( OperationSupport.class );
+        return instance( OperationSupport.class );
     }
     
     
     protected OperationSupport() {
-        IWorkbench workbench = PlatformUI.getWorkbench();
-        
-        // this just returnes one static instance :(
-        //operationSupport = workbench.getOperationSupport();
-
-        // this uses a static history 
-        //operationSupport = new WorkbenchOperationSupport();
-        
         // context
         context = new ObjectUndoContext( this, "Workbench Context" ); //$NON-NLS-1$
 

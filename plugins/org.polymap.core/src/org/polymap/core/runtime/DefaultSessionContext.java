@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import java.lang.reflect.Constructor;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -57,7 +59,10 @@ public class DefaultSessionContext
             }
         }
         listeners.clear();
+        listeners = null;
         attributes.clear();
+        attributes = null;
+        sessionKey = null;
     }
 
 
@@ -74,7 +79,15 @@ public class DefaultSessionContext
                     if (result == null) {
                         LockUtils.upgrade( attributesLock );
                         
-                        result = type.newInstance();
+                        Constructor constructor = type.getDeclaredConstructor( new Class[] {} );
+                        if (constructor.isAccessible()) {
+                            result = type.newInstance();
+                        }
+                        else {
+                            constructor.setAccessible( true );
+                            result = (T)constructor.newInstance( new Object[] {} );
+                        }
+
                         attributes.put( type.getName(), result );
                     }
                     return result;
@@ -88,12 +101,35 @@ public class DefaultSessionContext
 
 
     public boolean addSessionListener( ISessionListener l ) {
+        log.debug( "addListener(): " + l );
         return listeners.add( l );
     }
 
 
     public boolean removeSessionListener( ISessionListener l ) {
         return listeners.remove( l );
+    }
+
+
+    public Object getAttribute( String key ) {
+        try {
+            attributesLock.readLock().lock();
+            return attributes.get( key );
+        }
+        finally {
+            attributesLock.readLock().unlock();            
+        }
+    }
+
+
+    public void setAttribute( String key, Object value ) {
+        try {
+            attributesLock.writeLock().lock();
+            attributes.put( key, value );
+        }
+        finally {
+            attributesLock.writeLock().unlock();            
+        }
     }
 
 }

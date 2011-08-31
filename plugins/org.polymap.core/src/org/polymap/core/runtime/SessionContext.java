@@ -49,7 +49,6 @@ public abstract class SessionContext {
         for (ISessionContextProvider provider : providers) {
             SessionContext context = provider.currentContext();
             if (context != null) {
-                log.debug( "current(): " + context );
                 return context;
             }
         }
@@ -66,5 +65,16 @@ public abstract class SessionContext {
     public abstract boolean addSessionListener( ISessionListener l );
     
     public abstract boolean removeSessionListener( ISessionListener l );
+
+    /**
+     * Binds an object to this session, using the name specified. If an object of the
+     * same name is already bound to the session, the object is replaced.
+     * 
+     * @param string
+     * @param value
+     */
+    public abstract void setAttribute( String key, Object value );
+    
+    public abstract Object getAttribute( String key );
     
 }

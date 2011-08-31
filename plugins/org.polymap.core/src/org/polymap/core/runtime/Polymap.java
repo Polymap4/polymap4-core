@@ -42,6 +42,7 @@ import java.security.Principal;
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
 
+import org.apache.commons.collections.SetUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -180,7 +181,7 @@ public final class Polymap {
     
     private Subject         subject;
     
-    private Set<Principal>  principals;
+    private Set<Principal>  principals = SetUtils.EMPTY_SET;
     
     private UserPrincipal   user;
     
