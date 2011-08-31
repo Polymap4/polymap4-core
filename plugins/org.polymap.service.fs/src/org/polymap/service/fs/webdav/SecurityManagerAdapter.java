@@ -14,6 +14,8 @@
  */
 package org.polymap.service.fs.webdav;
 
+import javax.security.auth.login.LoginException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -25,10 +27,11 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
 
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.security.UserPrincipal;
 
 /**
- * Adapter to the POLYMAP authentication. 
- *
+ * Adapter to the POLYMAP authentication.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class SecurityManagerAdapter
@@ -43,24 +46,42 @@ public class SecurityManagerAdapter
         this.realm = realm;
     }
    
+    
     public String getRealm( String host ) {
         return realm;
     }
 
+    
     public boolean isDigestAllowed() {
         return false;
     }
 
+    
     public Object authenticate( DigestResponse digestRequest ) {
         throw new RuntimeException( "not yet implemented." );
     }
 
+    
     public Object authenticate( String user, String passwd ) {
-        log.info( "authenticate(): " + user + "/" + passwd );
-        log.info( "authenticate(): " + Polymap.instance() );
-        return (user != null && user.length() > 3) ? user : null;
+        UserPrincipal sessionUser = (UserPrincipal)Polymap.instance().getUser();
+
+        // WebDavServer sets a dummy user for first request with passwd == null
+        if (sessionUser == null || sessionUser.getPassword() == null) {
+            try {
+                log.debug( "    login: " + user /*+ "/" + passwd*/ );
+                Polymap.instance().login( user, passwd );
+                return Polymap.instance().getUser();
+            }
+            catch (LoginException e) {
+                log.warn( e );
+                return null;
+            }
+        }
+        return sessionUser != null && sessionUser.getName().equals( user ) 
+                ? sessionUser : null;
     }
 
+    
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
         return auth != null && auth.getTag() != null;
     }

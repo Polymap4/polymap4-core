@@ -27,7 +27,10 @@ import org.polymap.core.model.event.GlobalModelChangeListener;
 import org.polymap.core.model.event.GlobalModelChangeEvent.EventType;
 import org.polymap.core.runtime.DefaultSessionContext;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.security.SecurityUtils;
+import org.polymap.core.security.UserPrincipal;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.ui.GeneralPreferencePage;
@@ -206,6 +209,7 @@ public class ServicesPlugin
     protected void startServices( HttpService httpService ) {
         try {
             contextProvider.mapContext( sessionContext.getSessionKey(), true );
+            Polymap.instance().addPrincipal( new AdminPrincipal() );
             
             //
             repo = ServiceRepository.instance();
@@ -285,6 +289,7 @@ public class ServicesPlugin
         // get new repository and (re)start new services
         try {
             contextProvider.mapContext( sessionContext.getSessionKey(), true );
+            Polymap.instance().addPrincipal( new AdminPrincipal() );
 
             repo = ServiceRepository.instance();
             for (IProvidedService service : repo.allServices()) {
@@ -301,6 +306,23 @@ public class ServicesPlugin
         finally {
             contextProvider.unmapContext();
         }
+    }
+    
+    
+    /*
+     * 
+     */
+    class AdminPrincipal
+            extends UserPrincipal {
+
+        public AdminPrincipal() {
+            super( SecurityUtils.ADMIN_USER );
+        }
+
+        public String getPassword() {
+            throw new RuntimeException( "not yet implemented." );
+        }
+        
     }
     
 }

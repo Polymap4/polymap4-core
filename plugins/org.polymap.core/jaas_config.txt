@@ -8,6 +8,13 @@ POLYMAP {
         dialogTitle="POLYMAP3 Workbench";
 };
  
+Services {
+    org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
+        extensionId="org.polymap.core.security.DummyLoginModule"
+        configFile="login_config.properties"
+        dialogTitle="POLYMAP3 Workbench";
+};
+ 
 UNIX {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.eclipse.rap.security.demo.unixLoginModule";

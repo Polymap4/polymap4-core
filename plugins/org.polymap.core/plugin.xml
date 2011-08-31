@@ -136,17 +136,31 @@
       </loginModule>
    </extension>
    <extension
-         id="org.polymap.core.security.DummyCallbackHandler"
+         id="org.polymap.core.security.LoginDialogCallbackHandler"
          point="org.eclipse.equinox.security.callbackHandler">
       <callbackHandler
             class="org.polymap.core.security.LoginDialog">
       </callbackHandler>
    </extension>
    <extension
+         id="org.polymap.core.security.ServicesCallbackHandler"
+         point="org.eclipse.equinox.security.callbackHandler">
+      <callbackHandler
+            class="org.polymap.core.security.ServicesCallbackHandler">
+      </callbackHandler>
+   </extension>
+   <extension
          point="org.eclipse.equinox.security.callbackHandlerMapping">
       <callbackHandlerMapping
-            callbackHandlerId="org.polymap.core.security.DummyCallbackHandler"
+            callbackHandlerId="org.polymap.core.security.LoginDialogCallbackHandler"
             configName="POLYMAP">
+      </callbackHandlerMapping>
+   </extension>
+   <extension
+         point="org.eclipse.equinox.security.callbackHandlerMapping">
+      <callbackHandlerMapping
+            callbackHandlerId="org.polymap.core.security.ServicesCallbackHandler"
+            configName="Services">
       </callbackHandlerMapping>
    </extension>
    <extension

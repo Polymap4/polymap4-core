@@ -16,8 +16,6 @@ package org.polymap.service.fs.webdav;
 
 import java.util.Locale;
 import java.io.IOException;
-import java.security.Principal;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -38,6 +36,7 @@ import com.bradmcevoy.http.SecurityManager;
 
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.security.UserPrincipal;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;
@@ -137,19 +136,26 @@ public class WebDavServer
 
             // init new session
             if (session.isNew()) {
-                session.setMaxInactiveInterval( 30 );
+                session.setMaxInactiveInterval( 30*60 );
                 final SessionContext sessionContext = SessionContext.current();
+
+                String user = request.getAuthorization().getUser();
                 
-                // login
-//                Auth auth = request.getAuthorization();
-//                String user = auth != null ? auth.getUser() : NULL_USER_NAME;
-                Principal user = Polymap.instance().getUser();
+                // FIXME the SecurityManager is called *after* the content of the request was processed;
+                // so the user is preset here; realy awkward since the SecurityManager sets the real
+                // principal afterwards (and may fail because of wrong password)
+                Polymap.instance().addPrincipal( new UserPrincipal( user ) {
+                    public String getPassword() {
+                        return null;
+                    }
+                });
 
                 // ContentManager
                 Locale locale = req.getLocale();
                 sessionContext.setAttribute( "contentManager", 
-                        ContentManager.forUser( user.getName(), locale ) ); 
-                        
+                        ContentManager.forUser( user, locale ) ); 
+                
+                // session destroy listener
                 session.setAttribute( "sessionListener", new HttpSessionBindingListener() {
                     public void valueBound( HttpSessionBindingEvent ev ) {
                     }

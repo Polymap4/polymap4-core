@@ -143,7 +143,7 @@ public class DummyLoginModule
         }
 
         Callback label = new TextOutputCallback( TextOutputCallback.INFORMATION,
-                "POLYMAP 3 Workbench" );
+                "POLYMAP3 Workbench" );
         NameCallback nameCallback = new NameCallback( "Nutzername", "admin" );
         PasswordCallback passwordCallback = new PasswordCallback( "Passwort", false );
         try {

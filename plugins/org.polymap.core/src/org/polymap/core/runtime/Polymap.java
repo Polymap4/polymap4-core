@@ -42,7 +42,6 @@ import java.security.Principal;
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
 
-import org.apache.commons.collections.SetUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,6 +63,7 @@ import org.eclipse.equinox.security.auth.ILoginContext;
 import org.eclipse.equinox.security.auth.LoginContextFactory;
 
 import org.polymap.core.CorePlugin;
+import org.polymap.core.security.ServicesCallbackHandler;
 import org.polymap.core.security.UserPrincipal;
 
 /**
@@ -79,6 +79,7 @@ public final class Polymap {
     private static Log log = LogFactory.getLog( Polymap.class );
 
     public static final String      DEFAULT_LOGIN_CONFIG = "POLYMAP";
+    public static final String      SERVICES_LOGIN_CONFIG = "Services";
     
 
     // static factory *************************************
@@ -129,30 +130,6 @@ public final class Polymap {
     }
 
     
-//    /**
-//     * Returns a named attribute for the session of the current thread.
-//     * 
-//     * @param key
-//     * @return The value found for the given key, or null if there is no such attribute.
-//     */
-//    public static Object getSessionAttribute( String key ) {
-//        return instance().attributes.get( key );    
-//    }
-//
-//
-//    /**
-//     * Sets the named attribute for the session of the current thread.
-//     * 
-//     * @param key
-//     * @param value
-//     * @return The old value for the given key, or null of there was no such
-//     *         attribute.
-//     */
-//    public static Object setSessionAttribute( String key, Object value ) {
-//        return instance().attributes.put( key, value );
-//    }
-    
-    
     private static ExecutorService      executorService;
 
     private static final BlockingQueue  globalQueue = new SynchronousQueue();           
@@ -181,7 +158,7 @@ public final class Polymap {
     
     private Subject         subject;
     
-    private Set<Principal>  principals = SetUtils.EMPTY_SET;
+    private Set<Principal>  principals = new HashSet();
     
     private UserPrincipal   user;
     
@@ -191,15 +168,6 @@ public final class Polymap {
      */
     private Polymap() {
     }
-
-
-//    public void addSessionShutdownHook( final ISessionListener l ) {
-//        RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
-//            public void beforeDestroy( SessionStoreEvent event ) {
-//                l.beforeDestroy();
-//            }
-//        });
-//    }
 
 
     /**
@@ -264,7 +232,49 @@ public final class Polymap {
         }
     }
 
+    
+    public void login( String username, String passwd )
+    throws LoginException {
+        String jaasConfigFile = "jaas_config.txt";
+        File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
 
+        ServicesCallbackHandler.challenge( username, passwd );
+        
+        // create secureContext
+        try {
+            secureContext = LoginContextFactory.createContext( SERVICES_LOGIN_CONFIG, 
+                    configFile.toURI().toURL() );
+        }
+        catch (MalformedURLException e) {
+            throw new RuntimeException( "Should never happen.", e );
+        }
+        
+        // login
+        secureContext.login();
+        subject = secureContext.getSubject();
+        principals = new HashSet( subject.getPrincipals() );
+
+        // find user
+        for (Principal principal : principals) {
+            if (principal instanceof UserPrincipal) {
+                user = (UserPrincipal)principal;
+                break;
+            }
+        }
+        if (user == null) {
+            throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
+        }
+    }
+
+    
+    public void addPrincipal( Principal principal ) {
+        principals.add( principal );
+        if (principal instanceof UserPrincipal) {
+            user = (UserPrincipal)principal;
+        }
+    }
+    
+    
     public Set<Principal> getPrincipals() {
         return principals;
     }
