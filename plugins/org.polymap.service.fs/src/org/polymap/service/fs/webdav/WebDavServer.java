@@ -15,7 +15,10 @@
 package org.polymap.service.fs.webdav;
 
 import java.util.Locale;
+
 import java.io.IOException;
+import java.security.Principal;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -25,9 +28,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.ResourceFactory;
@@ -35,9 +40,7 @@ import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.SecurityManager;
 
 import org.polymap.core.runtime.ISessionListener;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
-import org.polymap.core.security.UserPrincipal;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;
@@ -101,9 +104,11 @@ public class WebDavServer
 //            users.put( "falko", "." );
             securityManager = new SecurityManagerAdapter( "POLYMAP3 WebDAV" );
             
-            this.resourceFactory = new WebDavResourceFactory( securityManager, "webdav" );
+            resourceFactory = new WebDavResourceFactory( securityManager, "webdav" );
             
-            this.httpManager = new HttpManager( resourceFactory );
+            httpManager = new HttpManager( resourceFactory );
+            httpManager.addFilter( 0, new PreAuthenticationFilter( 
+                    httpManager.getResponseHandler(), securityManager ) );
         }
         catch (Throwable ex) {
             log.error( "Exception while starting", ex );
@@ -131,53 +136,13 @@ public class WebDavServer
             threadRequest.set( request );
             threadResponse.set( response );
 
-            // map session context
+            // map/create session context
             final HttpSession session = req.getSession( true );
             FsPlugin.getDefault().sessionContextProvider.mapContext( session.getId(), true );
             final SessionContext sessionContext = SessionContext.current();
 
-            // init new session
-            if (session.isNew()) {
-                session.setMaxInactiveInterval( 30*60 );
-
-                String user = request.getAuthorization().getUser();
-                
-                // FIXME the SecurityManager is called *after* the content of the request was processed;
-                // so the user is preset here; realy awkward since the SecurityManager sets the real
-                // principal afterwards (and may fail because of wrong password)
-                Polymap.instance().addPrincipal( new UserPrincipal( user ) {
-                    public String getPassword() {
-                        return null;
-                    }
-                });
-
-                // ContentManager
-                Locale locale = req.getLocale();
-                sessionContext.setAttribute( "contentManager", 
-                        ContentManager.forUser( user, locale, sessionContext ) ); 
-                
-                // invalidate HTTP session when context is destroyed
-                sessionContext.addSessionListener( new ISessionListener() {
-                    public void beforeDestroy() {
-                        log.info( "SessionContext is destroyed -> invalidating HTTP session" );
-                        session.invalidate();
-                    }
-                });
-                // session destroy listener
-                session.setAttribute( "sessionListener", new HttpSessionBindingListener() {
-                    public void valueBound( HttpSessionBindingEvent ev ) {
-                    }
-                    public void valueUnbound( HttpSessionBindingEvent ev ) {
-                        FsPlugin.getDefault().sessionContextProvider.destroyContext(
-                                sessionContext.getSessionKey() );
-                    }
-                });
-                log.info( "New session: " + session.getId() + ", user: " + user );
-            }
-            
-//            log.info( "    useragent: " + request.getUserAgentHeader() );
-//            Auth auth = request.getAuthorization();
-//            log.info( "    user: " + (auth != null ? auth.getUser() : "null") );
+            Auth auth = request.getAuthorization();
+            log.debug( "Auth: " + auth );
             
             httpManager.process( request, response );
         }
@@ -191,5 +156,48 @@ public class WebDavServer
             servletResponse.flushBuffer();
         }
     }
+
     
+    /**
+     * Initializes a new session for the given user.
+     * <p/>
+     * This method is called by {@link SecurityManagerAdapter}
+     * 
+     * @param user
+     * @return The specified user.
+     */
+    public static Principal createNewSession( Principal user ) {
+        HttpServletRequest req = com.bradmcevoy.http.ServletRequest.getRequest();
+        final HttpSession session = req.getSession();
+  
+        // HTTP session timeout
+        session.setMaxInactiveInterval( 30*60 );
+        
+        final SessionContext sessionContext = SessionContext.current();
+        
+        // ContentManager
+        Locale locale = req.getLocale();
+        sessionContext.setAttribute( "contentManager", 
+                ContentManager.forUser( user.getName(), locale, sessionContext ) ); 
+        
+        // invalidate HTTP session when context is destroyed
+        sessionContext.addSessionListener( new ISessionListener() {
+            public void beforeDestroy() {
+                log.info( "SessionContext is destroyed -> invalidating HTTP session" );
+                session.invalidate();
+            }
+        });
+        // session destroy listener
+        session.setAttribute( "sessionListener", new HttpSessionBindingListener() {
+            public void valueBound( HttpSessionBindingEvent ev ) {
+            }
+            public void valueUnbound( HttpSessionBindingEvent ev ) {
+                FsPlugin.getDefault().sessionContextProvider.destroyContext(
+                        sessionContext.getSessionKey() );
+            }
+        });
+        log.info( "New session: " + session.getId() + ", user: " + user );
+        return user;
+    }
+
 }

@@ -34,7 +34,6 @@ import com.bradmcevoy.http.SecurityManager;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-
 import org.eclipse.core.runtime.IPath;
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFolder;
@@ -88,14 +87,18 @@ class WebDavFolderResource
         XmlWriter w = new XmlWriter( out );
         w.open( "html" );
         w.open( "body" );
-        w.begin( "h1" ).open().writeText( "Folder: " + this.getName() ).close();
+        w.begin( "h1" ).open().writeText( "Folder: " + node.getPath().toString() ).close();
 
         w.open( "table" );
         for (Resource r : getChildren()) {
             w.open( "tr" );
 
             w.open( "td" );
-            String path = "#";
+            // FIXME hard coded servlet path
+            String path = "/webdav" + node.getPath().toString() + "/" + r.getName();
+            log.info( path );
+//            log.info( HttpManager.request().getAbsoluteUrl() );
+
             w.begin( "a" ).writeAtt( "href", path ).open().writeText( r.getName() ).close();
 
 //            w.begin( "a" ).writeAtt( "href", "#" ).writeAtt( "onclick",

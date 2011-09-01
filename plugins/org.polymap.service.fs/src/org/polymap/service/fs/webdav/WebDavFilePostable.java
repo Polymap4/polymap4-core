@@ -76,6 +76,10 @@ class WebDavFilePostable
             log.warn( "", e );
             throw new BadRequestException( this, e.getLocalizedMessage() );
         }
+        catch (org.polymap.service.fs.spi.NotAuthorizedException e) {
+            log.warn( "", e );
+            throw new NotAuthorizedException( this );
+        }
     }
 
 

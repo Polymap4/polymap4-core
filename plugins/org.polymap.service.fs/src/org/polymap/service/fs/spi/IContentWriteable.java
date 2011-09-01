@@ -25,6 +25,6 @@ import java.io.InputStream;
 public interface IContentWriteable {
 
     void replaceContent( InputStream in, Long length )
-    throws IOException, BadRequestException;
+            throws IOException, BadRequestException, NotAuthorizedException;
 
 }

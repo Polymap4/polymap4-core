@@ -22,6 +22,6 @@ package org.polymap.service.fs.spi;
 public interface IContentDeletable {
 
     public void delete()
-    throws BadRequestException;
+    throws BadRequestException, NotAuthorizedException;
     
 }

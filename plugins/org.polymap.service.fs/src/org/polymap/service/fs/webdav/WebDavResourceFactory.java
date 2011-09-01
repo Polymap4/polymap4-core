@@ -17,6 +17,7 @@ package org.polymap.service.fs.webdav;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -77,12 +78,17 @@ class WebDavResourceFactory
     }
 
     
+    public String getContextPath() {
+        return contextPath;
+    }
+
+
     public Resource getResource( String host, String path ) {
         Request request = WebDavServer.request();
         assert request != null;
         
         ContentManager contentManager = (ContentManager)SessionContext.current()
-                .getAttribute( "contentManager" ); 
+                .getAttribute( "contentManager" );
         
         // get content
         path = StringUtils.substringAfter( path, contextPath );
@@ -97,7 +103,7 @@ class WebDavResourceFactory
         }
         // folder
         else if (node instanceof IContentFolder) {
-            return new WebDavFolderResource( contentManager, (IContentFolder)node, securityManager );  
+            return new WebDavFolderResource( contentManager, (IContentFolder)node, securityManager );
         }
         // file
         else if (node instanceof IContentFile) {

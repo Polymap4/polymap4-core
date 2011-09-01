@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.SoftReference;
+import java.security.Principal;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.time.FastDateFormat;
@@ -37,7 +38,11 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IPath;
 
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.model.security.ACL;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.Polymap;
 
 import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.BadRequestException;
@@ -50,6 +55,7 @@ import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentProvider;
 import org.polymap.service.fs.spi.IContentSite;
 import org.polymap.service.fs.spi.IContentWriteable;
+import org.polymap.service.fs.spi.NotAuthorizedException;
 import org.polymap.service.fs.spi.Range;
 
 /**
@@ -101,6 +107,16 @@ public class ShapefileContentProvider
     }
     
 
+    protected void checkPermission( ACL entity, AclPermission permission )
+    throws NotAuthorizedException {
+        assert entity != null;
+        Principal user = Polymap.instance().getUser();
+        if (!ACLUtils.checkPermission( entity, permission, false )) {
+            throw new NotAuthorizedException( "Permission denied" );
+        }
+    }
+    
+    
     /*
      * 
      */
@@ -140,9 +156,10 @@ public class ShapefileContentProvider
             this.fileSuffix = fileSuffix;
         }
 
-        
         public void delete()
-        throws BadRequestException {
+        throws BadRequestException, NotAuthorizedException {
+            checkPermission( (ILayer)getSource(), AclPermission.WRITE );
+            
             // QGIS deletes files before writing, so support delete but do nothing.
             log.debug( "delete: " + fileSuffix + " (skipping)" );
         }
@@ -179,8 +196,10 @@ public class ShapefileContentProvider
 
 
         public void replaceContent( InputStream in, Long length )
-        throws IOException, BadRequestException {
+        throws IOException, BadRequestException, NotAuthorizedException {
             log.debug( "replace: " + fileSuffix + " : " + length );
+            checkPermission( (ILayer)getSource(), AclPermission.WRITE );
+            
             OutputStream out = container.getOutputStream( fileSuffix );
             try {
                 IOUtils.copy( in, out );

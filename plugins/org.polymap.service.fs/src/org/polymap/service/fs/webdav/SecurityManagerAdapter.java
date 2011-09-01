@@ -15,7 +15,6 @@
 package org.polymap.service.fs.webdav;
 
 import javax.security.auth.login.LoginException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -65,12 +64,12 @@ public class SecurityManagerAdapter
     public Object authenticate( String user, String passwd ) {
         UserPrincipal sessionUser = (UserPrincipal)Polymap.instance().getUser();
 
-        // WebDavServer sets a dummy user for first request with passwd == null
-        if (sessionUser == null || sessionUser.getPassword() == null) {
+        if (sessionUser == null) {
             try {
-                log.debug( "    login: " + user /*+ "/" + passwd*/ );
+                log.info( "Login: " + user /*+ "/" + passwd*/ );
                 Polymap.instance().login( user, passwd );
-                return Polymap.instance().getUser();
+                
+                return WebDavServer.createNewSession( Polymap.instance().getUser() );
             }
             catch (LoginException e) {
                 log.warn( e );
