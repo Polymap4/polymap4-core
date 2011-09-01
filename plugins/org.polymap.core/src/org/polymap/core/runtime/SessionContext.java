@@ -61,6 +61,8 @@ public abstract class SessionContext {
     public abstract String getSessionKey();
 
     public abstract <T> T sessionSingleton( Class<T> type );
+    
+    public abstract void execute( Runnable task );
 
     public abstract boolean addSessionListener( ISessionListener l );
     

@@ -100,6 +100,27 @@ public class DefaultSessionContext
     }
 
 
+    public void execute( Runnable task ) {
+        SessionContext current = DefaultSessionContextProvider.currentContext.get();
+        if (current != null) {
+            if (current.getSessionKey().equals( sessionKey )) {
+                throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
+            }
+            else {
+                throw new IllegalStateException( "Another context is mapped to this thread: " + current.getSessionKey() );                
+            }
+        }
+
+        try {
+            DefaultSessionContextProvider.currentContext.set( this );
+            task.run();
+        }
+        finally {
+            DefaultSessionContextProvider.currentContext.set( null );            
+        }
+    }
+
+
     public boolean addSessionListener( ISessionListener l ) {
         log.debug( "addListener(): " + l );
         return listeners.add( l );

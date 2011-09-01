@@ -17,10 +17,14 @@ package org.polymap.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.widgets.Display;
+
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.SessionSingletonBase;
+import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
 import org.eclipse.rwt.internal.service.ContextProvider;
 import org.eclipse.rwt.internal.service.ServiceContext;
+import org.eclipse.rwt.lifecycle.UICallBack;
 import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
 
@@ -56,10 +60,13 @@ public class RapSessionContextProvider
             extends SessionContext {
 
         private ServiceContext      serviceContext;
+        
+        private Display             display;
 
 
         RapSessionContext( ServiceContext serviceContext ) {
             this.serviceContext = serviceContext;
+            this.display = RWTLifeCycle.getSessionDisplay();
         }
 
 
@@ -74,6 +81,11 @@ public class RapSessionContextProvider
         
         public <T> T sessionSingleton( Class<T> type ) {
             return (T)SessionSingletonBase.getInstance( type );
+        }
+
+
+        public void execute( Runnable task ) {
+            UICallBack.runNonUIThreadWithFakeContext( display, task );
         }
 
 

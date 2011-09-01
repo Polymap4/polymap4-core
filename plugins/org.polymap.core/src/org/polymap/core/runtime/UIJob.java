@@ -93,10 +93,13 @@ public abstract class UIJob
     private ProgressDialog      progressDialog;
     
     private IProgressMonitor    executionMonitor;
+
+    private SessionContext      sessionContext;
     
     
     public UIJob( String name ) {
         super( name );
+        this.sessionContext = SessionContext.current();
         this.display = Polymap.getSessionDisplay();
 //        assert display != null : "Unable to determine current session/display.";
 
@@ -156,13 +159,16 @@ public abstract class UIJob
                 }
             }
         };
-        if (display != null) {
-            // give the runnable to correct session context
-            UICallBack.runNonUIThreadWithFakeContext( display, runnable );
-        }
-        else {
-            runnable.run();
-        }
+        sessionContext.execute( runnable );
+        
+//        if (display != null) {
+//            // give the runnable to correct session context
+//            UICallBack.runNonUIThreadWithFakeContext( display, runnable );
+//            
+//        }
+//        else {
+//            runnable.run();
+//        }
         return resultStatus;
     }
 

@@ -31,12 +31,19 @@ public class DefaultSessionContextProvider
 
     private static Log log = LogFactory.getLog( DefaultSessionContextProvider.class );
 
+    /**
+     * This is static to allow {@link DefaultSessionContext} to execute a task.
+     * However, several DefaultSessionContextProviders may exists. They share this
+     * ThreadLocal which leads to problems if more than one DefaultSessionContext is
+     * mapped to the same thread. This is valid but not allowed with this static
+     * ThreadLocal.
+     */
+    static final ThreadLocal<SessionContext>    currentContext = new ThreadLocal();
+
     private Map<String,DefaultSessionContext>   contexts = new HashMap();
     
     private ReentrantReadWriteLock              contextsLock = new ReentrantReadWriteLock();
     
-    private ThreadLocal<SessionContext>         currentContext = new ThreadLocal();
-
 
     /**
      * Map the current thread to the context with the given sessionKey. If no context
@@ -93,15 +100,15 @@ public class DefaultSessionContextProvider
     }
 
     
-    public void inContext( String sessionKey, Runnable task ) {
-        try {
-            mapContext( sessionKey, false );
-            task.run();
-        }
-        finally {
-            unmapContext();
-        }
-    }
+//    public void inContext( String sessionKey, Runnable task ) {
+//        try {
+//            mapContext( sessionKey, false );
+//            task.run();
+//        }
+//        finally {
+//            unmapContext();
+//        }
+//    }
 
     
     protected DefaultSessionContext newContext( String sessionKey ) {
