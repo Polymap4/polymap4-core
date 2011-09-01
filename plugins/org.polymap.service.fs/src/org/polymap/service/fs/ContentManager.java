@@ -26,6 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+import org.polymap.core.runtime.SessionContext;
+
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
@@ -46,13 +48,15 @@ public class ContentManager {
     private static Log log = LogFactory.getLog( ContentManager.class );
     
     
-    public static ContentManager forUser( String username, Locale locale ) {
-        return new ContentManager( username, locale );    
+    public static ContentManager forUser( String username, Locale locale, SessionContext sessionContext ) {
+        return new ContentManager( username, locale, sessionContext );    
     }
     
     
     // instance *******************************************
 
+    private SessionContext              sessionContext;
+    
     private String                      username;
     
     private Locale                      locale;
@@ -70,7 +74,8 @@ public class ContentManager {
     private DefaultContentFolder        rootNode;
     
     
-    protected ContentManager( String username, Locale locale ) {
+    protected ContentManager( String username, Locale locale, SessionContext sessionContext ) {
+        this.sessionContext = sessionContext;
         this.username = username;
         this.locale = locale;
         this.site = new ContentSite();
@@ -229,6 +234,13 @@ public class ContentManager {
             }
         }
         
+        public void invalidateNode( IContentNode node ) {
+            if (sessionContext != null) {
+                FsPlugin.getDefault().invalidateSession( sessionContext );
+                sessionContext = null;
+            }
+        }
+
         public Object put( String key, Object value ) {
             return data.put( key, value );
         }

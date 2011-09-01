@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.model.event.GlobalModelChangeEvent;
+import org.polymap.core.model.event.GlobalModelChangeListener;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
@@ -47,14 +49,15 @@ public class ProjectContentProvider
 
     public static final String      PROJECT_REPOSITORY_KEY = "projectRepository";
     
+    IContentSite                    contentSite;
+    
 
     public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
+        this.contentSite = site;
         
         // projects root
         if (path.segmentCount() == 0) {
-            // XXX user specific!
             ProjectRepository repo = ProjectRepository.instance();
-//            assert site.get( PROJECT_REPOSITORY_KEY ) == null;
             site.put( PROJECT_REPOSITORY_KEY, repo );
             
             String name = Messages.get( site.getLocale(), "ProjectContentProvider_projectNode" );
@@ -105,10 +108,13 @@ public class ProjectContentProvider
      * 
      */
     public static class MapFolder
-            extends DefaultContentFolder {
+            extends DefaultContentFolder 
+            implements GlobalModelChangeListener {
 
         public MapFolder( IPath parentPath, IContentProvider provider, IMap map ) {
             super( map.getLabel(), parentPath, provider, map );
+            
+            ProjectRepository.instance().addGlobalModelChangeListener( this );
         }
 
         public IMap getMap() {
@@ -117,6 +123,17 @@ public class ProjectContentProvider
         
         public String getDescription( String contentType ) {
             return "Dieses Verzeichnis enthält Daten des <b>Projektes</b> \"" + getName() + "\".";
+        }
+
+        public boolean isValid() {
+            return true;
+        }
+
+        public void modelChanged( GlobalModelChangeEvent ev ) {
+            if (ev.hasChanged( getMap() )) {
+                log.info( "modelChanged(): " + ev + " - SKIPPED" );
+                //((ProjectContentProvider)getProvider()).contentSite.invalidateNode( this );
+            }
         }
         
     }

@@ -34,5 +34,7 @@ public interface IContentSite {
     public Locale getLocale();
 
     public String getUserName();
+    
+    public void invalidateNode( IContentNode node );
 
 }

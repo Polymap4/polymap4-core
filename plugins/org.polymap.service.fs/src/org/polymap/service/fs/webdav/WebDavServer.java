@@ -34,6 +34,7 @@ import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.SecurityManager;
 
+import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.security.UserPrincipal;
@@ -131,13 +132,13 @@ public class WebDavServer
             threadResponse.set( response );
 
             // map session context
-            HttpSession session = req.getSession( true );
+            final HttpSession session = req.getSession( true );
             FsPlugin.getDefault().sessionContextProvider.mapContext( session.getId(), true );
+            final SessionContext sessionContext = SessionContext.current();
 
             // init new session
             if (session.isNew()) {
                 session.setMaxInactiveInterval( 30*60 );
-                final SessionContext sessionContext = SessionContext.current();
 
                 String user = request.getAuthorization().getUser();
                 
@@ -153,8 +154,15 @@ public class WebDavServer
                 // ContentManager
                 Locale locale = req.getLocale();
                 sessionContext.setAttribute( "contentManager", 
-                        ContentManager.forUser( user, locale ) ); 
+                        ContentManager.forUser( user, locale, sessionContext ) ); 
                 
+                // invalidate HTTP session when context is destroyed
+                sessionContext.addSessionListener( new ISessionListener() {
+                    public void beforeDestroy() {
+                        log.info( "SessionContext is destroyed -> invalidating HTTP session" );
+                        session.invalidate();
+                    }
+                });
                 // session destroy listener
                 session.setAttribute( "sessionListener", new HttpSessionBindingListener() {
                     public void valueBound( HttpSessionBindingEvent ev ) {

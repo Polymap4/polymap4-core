@@ -43,6 +43,14 @@ public class FsPlugin
     
     private static FsPlugin         plugin;
     
+
+    public static FsPlugin getDefault() {
+        return plugin;
+    }
+
+    
+    // instance *******************************************
+    
     private File                    cacheDir;
 
     public DefaultSessionContextProvider sessionContextProvider;
@@ -75,10 +83,12 @@ public class FsPlugin
     }
     
     
-    public static FsPlugin getDefault() {
-        return plugin;
+    public void invalidateSession( SessionContext sessionContext ) {
+        assert sessionContext != null;
+        sessionContextProvider.destroyContext( sessionContext.getSessionKey() );    
     }
-
+    
+    
     public File getCacheDir() {
         return cacheDir;
     }
