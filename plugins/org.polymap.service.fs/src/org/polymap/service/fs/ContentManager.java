@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -193,6 +194,7 @@ public class ContentManager {
 
 
     public IPath parsePath( String pathString ) {
+        pathString = StringUtils.replace( pathString, "//", "/" );
         return Path.fromOSString( pathString );
     }
 

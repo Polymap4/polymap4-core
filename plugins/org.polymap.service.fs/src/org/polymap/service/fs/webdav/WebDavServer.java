@@ -170,8 +170,8 @@ public class WebDavServer
         HttpServletRequest req = com.bradmcevoy.http.ServletRequest.getRequest();
         final HttpSession session = req.getSession();
   
-        // HTTP session timeout
-        session.setMaxInactiveInterval( 30*60 );
+        // HTTP session timeout: 3h
+        session.setMaxInactiveInterval( 3*60*60 );
         
         final SessionContext sessionContext = SessionContext.current();
         

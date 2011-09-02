@@ -27,6 +27,11 @@
             id="org.polymap.service.fs.GeoJsonContentProvider"
             name="GeoJSON">
       </contentProvider>
+      <contentProvider
+            class="org.polymap.service.fs.providers.SldContentProvider"
+            id="org.polymap.service.fs.SldContentProvider"
+            name="SLD">
+      </contentProvider>
    </extension>
 
 </plugin>

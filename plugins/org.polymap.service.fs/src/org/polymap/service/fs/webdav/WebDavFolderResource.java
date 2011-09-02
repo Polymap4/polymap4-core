@@ -22,6 +22,7 @@ import java.util.Map;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -95,7 +96,8 @@ class WebDavFolderResource
 
             w.open( "td" );
             // FIXME hard coded servlet path
-            String path = "/webdav" + node.getPath().toString() + "/" + r.getName();
+            String basePath = FilenameUtils.normalizeNoEndSeparator( node.getPath().toString() );
+            String path = "/webdav" + basePath + "/" + r.getName();
             log.info( path );
 //            log.info( HttpManager.request().getAbsoluteUrl() );
 

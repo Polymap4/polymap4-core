@@ -19,19 +19,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 
-import org.geotools.geojson.feature.FeatureJSON;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.style.IStyle;
 
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
@@ -44,29 +43,28 @@ import org.polymap.service.fs.spi.IContentSite;
 import org.polymap.service.fs.spi.Range;
 
 /**
- * Provides a Geo JSON encoded file in every parent folder that exposes an {@link ILayer}
- * as source.
+ * Provides the style of the {@link ILayer} as SLD.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class GeoJsonContentProvider
+public class SldContentProvider
         implements IContentProvider {
 
-    private static Log log = LogFactory.getLog( GeoJsonContentProvider.class );
+    private static Log log = LogFactory.getLog( SldContentProvider.class );
 
 
     public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
         IContentFolder parent = site.getFolder( path );
         
         // file
-        if (parent instanceof GeoJsonFolder) {
+        if (parent instanceof SldFolder) {
             return Collections.singletonList( 
-                    new GeoJsonFile( path, this, (ILayer)parent.getSource() ) );
+                    new SldFile( path, this, (ILayer)parent.getSource() ) );
         }
         // folder
         else if (parent instanceof ProjectContentProvider.LayerFolder) {
             return Collections.singletonList( 
-                    new GeoJsonFolder( path, this, (ILayer)parent.getSource() ) );
+                    new SldFolder( path, this, (ILayer)parent.getSource() ) );
         }
         return null;
     }
@@ -75,11 +73,11 @@ public class GeoJsonContentProvider
     /*
      * 
      */
-    public static class GeoJsonFolder
+    public static class SldFolder
             extends DefaultContentFolder {
 
-        public GeoJsonFolder( IPath parentPath, IContentProvider provider, ILayer layer ) {
-            super( "geojson", parentPath, provider, layer );
+        public SldFolder( IPath parentPath, IContentProvider provider, ILayer layer ) {
+            super( "sld", parentPath, provider, layer );
         }
 
         public ILayer getLayer() {
@@ -87,8 +85,8 @@ public class GeoJsonContentProvider
         }
         
         public String getDescription( String contentType ) {
-            return "Dieses Verzeichnis enthält die Daten der Ebene \"" + getLayer().getLabel() 
-                    + "\" im <b>GeoJSON-Format</b>.";
+            return "Dieses Verzeichnis enthält die <b>SLD-Daten</b> Ebene \"" + getLayer().getLabel() 
+                    + "\".";
         }
     }
 
@@ -96,7 +94,7 @@ public class GeoJsonContentProvider
     /*
      * 
      */
-    public static class GeoJsonFile
+    public static class SldFile
             extends DefaultContentNode
             implements IContentFile {
 
@@ -107,8 +105,8 @@ public class GeoJsonContentProvider
         private Date                    modified = new Date();
         
         
-        public GeoJsonFile( IPath parentPath, IContentProvider provider, ILayer layer ) {
-            super( layer.getLabel() + ".json", parentPath, provider, layer );
+        public SldFile( IPath parentPath, IContentProvider provider, ILayer layer ) {
+            super( layer.getLabel() + ".sld", parentPath, provider, layer );
         }
 
         
@@ -131,7 +129,7 @@ public class GeoJsonContentProvider
 
 
         public String getContentType( String accepts ) {
-            return "application/json";
+            return "text/plain";
         }
 
 
@@ -164,18 +162,11 @@ public class GeoJsonContentProvider
             if (result == null) { 
                 try {
                     lastException = null;
-                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( getLayer(), false );
+                    IStyle layerStyle = getLayer().getStyle();
 
-                    FeatureJSON encoder = new FeatureJSON();
-                    encoder.setEncodeFeatureBounds( false );
-                    encoder.setEncodeFeatureCollectionBounds( false );
-                    encoder.setEncodeFeatureCollectionCRS( false );
-                    encoder.setEncodeFeatureCRS( false );
-
-                    ByteArrayOutputStream out = new ByteArrayOutputStream( 128*1024 );
-                    encoder.writeFeatureCollection( fs.getFeatures(), out );
+                    String sld = layerStyle.createSLD( new NullProgressMonitor() );
+                    result = sld.getBytes( "UTF-8" );
                     
-                    result = out.toByteArray();
                     contentRef = new SoftReference( result );
                     modified = new Date();
                 }

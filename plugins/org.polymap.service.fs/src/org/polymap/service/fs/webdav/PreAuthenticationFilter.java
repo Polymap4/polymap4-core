@@ -128,7 +128,6 @@ public class PreAuthenticationFilter
      * Returns null if no handlers support the request
      *
      * @param request
-     * @return
      */
     public Object authenticate( Request request ) {
         for (AuthenticationHandler h : authenticationHandlers) {
