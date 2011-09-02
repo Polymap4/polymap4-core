@@ -321,13 +321,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.openlayers.rap.lib_provider"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.polymap.styler"
          download-size="0"
          install-size="0"
@@ -349,13 +342,6 @@
 
    <plugin
          id="org.polymap.core.qi4j"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.polymap.core.services"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -466,13 +452,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.core.services.geoserver"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.polymap.core.catalog"
          download-size="0"
          install-size="0"
@@ -537,6 +516,13 @@
 
    <plugin
          id="org.eclipse.rap.ui.navigator"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.service"
          download-size="0"
          install-size="0"
          version="0.0.0"
