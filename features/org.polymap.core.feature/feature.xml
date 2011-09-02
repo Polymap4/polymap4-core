@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="polymap3_feature"
-      label="Polymap3_feature"
-      version="1.0.0"
+      id="org.polymap.core.feature"
+      label="Polymap3 Core Feature"
+      version="3.1.0"
       provider-name="polymap.org"
       os="linux,win32"
       ws="gtk,win32"
@@ -473,13 +473,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.biotop"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.polymap.catalog.dxf"
          download-size="0"
          install-size="0"
@@ -523,6 +516,13 @@
 
    <plugin
          id="org.polymap.service"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.service.fs"
          download-size="0"
          install-size="0"
          version="0.0.0"
