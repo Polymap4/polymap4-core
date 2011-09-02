@@ -14,6 +14,7 @@
  */
 package org.polymap.service.fs.providers;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -40,6 +41,8 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -66,8 +69,12 @@ class ShapefileGenerator {
     public static final String[]        FILE_SUFFIXES = {"shp", "shx", "qix", "fix", "dbf", "prj"};
 
     public static final String          ORIG_FID_FIELD = "orig-fid"; 
+    public static final String          TIMESTAMP_FIELD = "timestamp";
     
-    private File                newFile;
+    public static final FastDateFormat  timestampFormat = DateFormatUtils.ISO_DATETIME_FORMAT;
+    
+    
+    private File                        newFile;
     
     
     public ShapefileGenerator( File newFile ) {
@@ -99,10 +106,12 @@ class ShapefileGenerator {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.init( srcSchema );
         builder.add( ORIG_FID_FIELD, String.class );
+        builder.add( TIMESTAMP_FIELD, String.class );
         final SimpleFeatureType shapeSchema = builder.buildFeatureType();
         
         // retyped collection
         final SimpleFeatureBuilder fb = new SimpleFeatureBuilder( shapeSchema );
+        final Date now = new Date();
         FeatureCollection<SimpleFeatureType,SimpleFeature> retyped = 
                 new RetypingFeatureCollection<SimpleFeatureType,SimpleFeature>( src, shapeSchema ) {
 
@@ -112,6 +121,7 @@ class ShapefileGenerator {
                             fb.set( attrType.getName(), value );
                         }
                         fb.set( ORIG_FID_FIELD, feature.getID() );
+                        fb.set( TIMESTAMP_FIELD, timestampFormat.format( now ) );
                         return fb.buildFeature( feature.getID() );
                     }
         };

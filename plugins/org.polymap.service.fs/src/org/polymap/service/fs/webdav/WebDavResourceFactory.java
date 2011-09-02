@@ -158,7 +158,7 @@ class WebDavResourceFactory
         
         public Object invoke( Object proxy, Method method, Object[] args )
         throws Throwable {
-            log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
+            //log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
 
             Object handler = handlers.get( method.getDeclaringClass() );
             

@@ -46,6 +46,7 @@ import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.identity.Identifier;
@@ -89,7 +90,11 @@ class ShapefileContainer
     
     File                            file;
     
+    /** The exception from last shapefile creation, or null if ok. */
     Exception                       exception;
+    
+    /** The exception from last update, or null if none. */
+    Exception                       updateException;
     
     ILayer                          layer;
     
@@ -301,6 +306,13 @@ class ShapefileContainer
                             else if (orig.length == 1
                                     && isFeatureModified( (SimpleFeature)candidate, (SimpleFeature)orig[0] )) {
                                 log.info( "   Feature has been modified: " + candidate.getIdentifier() );
+                                
+                                // check timestamps
+                                if (!isSameTimestamp( (SimpleFeature)candidate, (SimpleFeature)orig[0] )) {
+                                    updateException = new IllegalStateException( "Timestamps of features do not match." );
+                                    log.warn( updateException.getLocalizedMessage(), updateException );
+                                    return;
+                                }
                                 modified.add( new SimpleFeature[] { (SimpleFeature)candidate, (SimpleFeature)orig[0] } );
                             }
                         }
@@ -361,12 +373,15 @@ class ShapefileContainer
                         SimpleFeature modi = feature[0];
                         for (Property origProp : orig.getProperties()) {
                             if (origProp.getDescriptor() instanceof AttributeDescriptor) {
-                                Property newProp = modi.getProperty( origProp.getName() );
-                                if (isPropertyModified( origProp.getValue(), newProp.getValue() )) {
-                                    type = (AttributeDescriptor[])ArrayUtils.add( type, origProp.getDescriptor() );
-                                    value = ArrayUtils.add( value, newProp.getValue() );
+                                Name propName = origProp.getName();
+                                if (!propName.getLocalPart().equals( ShapefileGenerator.TIMESTAMP_FIELD )) {
+                                    Property newProp = modi.getProperty( propName );
+                                    if (isPropertyModified( origProp.getValue(), newProp.getValue() )) {
+                                        type = (AttributeDescriptor[])ArrayUtils.add( type, origProp.getDescriptor() );
+                                        value = ArrayUtils.add( value, newProp.getValue() );
 
-                                    log.info( "    Attribute modified: " + origProp.getDescriptor().getName() + " = " + newProp.getValue() + " (" + orig.getID() + ")" );
+                                        log.info( "    Attribute modified: " + origProp.getDescriptor().getName() + " = " + newProp.getValue() + " (" + orig.getID() + ")" );
+                                    }
                                 }
                             }
                         }
@@ -411,8 +426,8 @@ class ShapefileContainer
             SimpleFeatureType schema = original.getType(); 
             for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
                 
-                Object value1 = (feature).getAttribute( attribute.getName() );
-                Object value2 = (original).getAttribute( attribute.getName() );
+                Object value1 = feature.getAttribute( attribute.getName() );
+                Object value2 = original.getAttribute( attribute.getName() );
                 
                 if (isPropertyModified( value1, value2 )) {
                     return true;
@@ -435,6 +450,18 @@ class ShapefileContainer
             return false;
         }
 
+    
+        private boolean isSameTimestamp( SimpleFeature feature, SimpleFeature original ) {
+            try {
+                String value1 = (String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
+                String value2 = (String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
+                return value1 != null && value2 != null && value1.equals( value2 );
+            }
+            catch (Exception e) {
+                log.debug( "Exception while checking timestamps: " + e, e );
+                return false;
+            }
+        }
     }
     
     
