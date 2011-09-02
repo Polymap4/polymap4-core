@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime;
 
+import java.util.concurrent.Callable;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,8 +64,21 @@ public abstract class SessionContext {
 
     public abstract <T> T sessionSingleton( Class<T> type );
     
+    /**
+     * Executes the given Runnable inside this session context.
+     * 
+     * @param task The task to be executed. 
+     */
     public abstract void execute( Runnable task );
 
+    /**
+     * Executes the given Callable inside this session context.
+     * 
+     * @param task The task to be executed. 
+     */
+    public abstract <T> T execute( final Callable<T> task ) 
+    throws Exception;
+    
     public abstract boolean addSessionListener( ISessionListener l );
     
     public abstract boolean removeSessionListener( ISessionListener l );

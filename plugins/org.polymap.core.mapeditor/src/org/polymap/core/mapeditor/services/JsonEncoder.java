@@ -44,7 +44,7 @@ public abstract class JsonEncoder {
 
     public static JsonEncoder newInstance() {
         // slower than GtJsonEncoder but handles almost all cases
-        return new GsJsonEncoder();
+        return new GtJsonEncoder();
     }
     
     

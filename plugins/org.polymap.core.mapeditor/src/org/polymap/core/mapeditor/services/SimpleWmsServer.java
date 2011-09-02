@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.IOException;
@@ -42,10 +43,6 @@ import org.osgi.framework.ServiceException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.eclipse.swt.widgets.Display;
-
-import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -70,6 +67,7 @@ import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.SessionContext;
 
 import org.polymap.service.http.WmsService;
 
@@ -102,7 +100,7 @@ public class SimpleWmsServer
     
     private ReentrantReadWriteLock  pipelinesLock = new ReentrantReadWriteLock();
     
-    private Display                 display;
+    private SessionContext          sessionContext;
 
     
     public SimpleWmsServer( ) 
@@ -110,10 +108,10 @@ public class SimpleWmsServer
     }
 
     
-    public void init( String _pathSpec, IMap _map, Display _display )
+    public void init( String _pathSpec, IMap _map )
     throws MalformedURLException {
         super.init( _pathSpec, _map );
-        this.display = _display;
+        this.sessionContext = SessionContext.current();
     }
 
     
@@ -121,68 +119,60 @@ public class SimpleWmsServer
     throws ServletException, IOException {
         log.debug( "Request: " + request.getQueryString() );
         
-        Map<String,String> kvp = parseKvpSet( request.getQueryString() );
+        final Map<String,String> kvp = parseKvpSet( request.getQueryString() );
         
         try {
-            String[] layers = StringUtils.split( kvp.get( "LAYERS" ), INNER_DELIMETER );
+            sessionContext.execute( new Callable() {
+                public Object call() throws Exception {
+                    final String[] layers = StringUtils.split( kvp.get( "LAYERS" ), INNER_DELIMETER );
 
-            // width/height
-            int width = Integer.parseInt( kvp.get( "WIDTH" ) );
-            int height = Integer.parseInt( kvp.get( "HEIGHT" ) );
-            
-            // BBOX
-            ReferencedEnvelope bbox = parseBBox( kvp.get( "BBOX" ) );
-            String srsCode = kvp.get( "SRS" );
-            // XXX hack support for EPSG:3857 : send different srs and crs
-            CoordinateReferenceSystem crs = srsCode.equals( "EPSG:3857" )
-                    ? CRS.decode( "EPSG:900913" )
-                    : CRS.decode( srsCode );
-            bbox = new ReferencedEnvelope( bbox, crs );
+                    // width/height
+                    int width = Integer.parseInt( kvp.get( "WIDTH" ) );
+                    int height = Integer.parseInt( kvp.get( "HEIGHT" ) );
 
-            // FORMAT
-            String format = kvp.get( "FORMAT" );
-            format = format != null ? format : "image/png";
-                
-            log.debug( "    --layers= " + layers );
-            log.debug( "    --imageSize= " + width + "x" + height );
-            log.debug( "    --bbox= " + bbox );
-            crs = bbox.getCoordinateReferenceSystem();
-            log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
-            
-            // find/create pipeline
-            final Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
-            
-            final ProcessorRequest pr = new GetMapRequest( 
-                    Arrays.asList( layers ), srsCode, bbox, format, width, height );  
+                    // BBOX
+                    ReferencedEnvelope bbox = parseBBox( kvp.get( "BBOX" ) );
+                    String srsCode = kvp.get( "SRS" );
+                    // XXX hack support for EPSG:3857 : send different srs and crs
+                    CoordinateReferenceSystem crs = srsCode.equals( "EPSG:3857" )
+                            ? CRS.decode( "EPSG:900913" )
+                            : CRS.decode( srsCode );
+                    bbox = new ReferencedEnvelope( bbox, crs );
 
-            // process
-            log.debug( "HTTP BUFFER: " + response.getBufferSize() );
-            final ServletOutputStream out = response.getOutputStream();
+                    // FORMAT
+                    String format = kvp.get( "FORMAT" );
+                    format = format != null ? format : "image/png";
+
+                    log.debug( "    --layers= " + layers );
+                    log.debug( "    --imageSize= " + width + "x" + height );
+                    log.debug( "    --bbox= " + bbox );
+                    crs = bbox.getCoordinateReferenceSystem();
+                    log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
             
-            final Exception[] exception = new Exception[1];
-            UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                public void run() {
-                    try {
-                        pipeline.process( pr, new ResponseHandler() {
-                            public void handle( ProcessorResponse pipeResponse )
-                            throws Exception {
-                                byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
-                                int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
-                                out.write( chunk, 0, len );
-                            }
-                        });
-                    }
-                    catch (Exception e) {
-                        exception[0] = e;
-                    }
+                    // find/create pipeline
+                    final Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
+
+                    final ProcessorRequest pr = new GetMapRequest( 
+                            Arrays.asList( layers ), srsCode, bbox, format, width, height );  
+
+                    // process
+                    log.debug( "HTTP BUFFER: " + response.getBufferSize() );
+                    final ServletOutputStream out = response.getOutputStream();
+
+                    pipeline.process( pr, new ResponseHandler() {
+                        public void handle( ProcessorResponse pipeResponse )
+                        throws Exception {
+                            byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
+                            int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
+                            out.write( chunk, 0, len );
+                        }
+                    });
+                    
+                    log.debug( "    flushing response stream..." );
+                    out.flush();
+                    return null;
                 }
             });
-            if (exception[0] != null) {
-                throw exception[0];
-            }
-            
-            log.debug( "    flushing response stream..." );
-            out.flush();
         }
         catch (IOException e) {
             // assuming that this is an EOF exception

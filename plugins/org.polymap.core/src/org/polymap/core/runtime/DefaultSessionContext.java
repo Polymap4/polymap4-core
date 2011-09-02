@@ -100,7 +100,8 @@ public class DefaultSessionContext
     }
 
 
-    public void execute( Runnable task ) {
+    public <T> T execute( final Callable<T> task ) 
+    throws Exception {
         SessionContext current = DefaultSessionContextProvider.currentContext.get();
         if (current != null) {
             if (current.getSessionKey().equals( sessionKey )) {
@@ -113,14 +114,32 @@ public class DefaultSessionContext
 
         try {
             DefaultSessionContextProvider.currentContext.set( this );
-            task.run();
+            return task.call();
         }
         finally {
             DefaultSessionContextProvider.currentContext.set( null );            
         }
     }
 
-
+    
+    public void execute( final Runnable task ) {
+        try {
+            execute( new Callable() {
+                public Object call() throws Exception {
+                    task.run();
+                    return null;
+                }
+            });
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException( "Should never happen.", e );
+        }
+    }
+    
+    
     public boolean addSessionListener( ISessionListener l ) {
         log.debug( "addListener(): " + l );
         return listeners.add( l );

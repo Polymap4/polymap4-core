@@ -14,6 +14,9 @@
  */
 package org.polymap.core;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -86,6 +89,30 @@ public class RapSessionContextProvider
 
         public void execute( Runnable task ) {
             UICallBack.runNonUIThreadWithFakeContext( display, task );
+        }
+
+
+        public <T> T execute( final Callable<T> task ) 
+        throws Exception {
+            final AtomicReference<Exception> ee = new AtomicReference();
+            final AtomicReference<T> result = new AtomicReference();
+            
+            UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
+                public void run() {
+                    try {
+                        result.set( task.call() );
+                    }
+                    catch (Exception e) {
+                        ee.set( e );
+                    }
+                }
+            });
+            if (ee.get() != null) {
+                throw ee.get();
+            }
+            else {
+                return result.get();
+            }
         }
 
 
