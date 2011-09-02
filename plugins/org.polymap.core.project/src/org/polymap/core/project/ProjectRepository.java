@@ -38,12 +38,11 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Factory and repository for the domain model artifacts.
- * <p>
- * XXX This depends on the Qi4j model implementation; extract the
- * interface and move impl to {@link org.polymap.core.project.model}.
+ * <p/>
+ * XXX This depends on the Qi4j model implementation; extract the interface and move
+ * impl to {@link org.polymap.core.project.model}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class ProjectRepository

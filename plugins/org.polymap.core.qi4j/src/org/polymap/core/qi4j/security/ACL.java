@@ -154,8 +154,7 @@ public interface ACL
         }
         
         protected void serialize() {
-            Set<String> aclEntries = aclEntries().get();
-            aclEntries.clear();
+            Set<String> aclEntries = new HashSet();
             
             for (AclEntry entry : entries.values()) {
                 StringBuffer buf = new StringBuffer( entry.getPrincipal().getName() )
@@ -168,6 +167,8 @@ public interface ACL
                 }
                 aclEntries.add( buf.toString() );
             }
+            
+            aclEntries().set( aclEntries );
         }
 
         
