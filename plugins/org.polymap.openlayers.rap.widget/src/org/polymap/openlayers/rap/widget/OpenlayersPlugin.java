@@ -1,7 +1,5 @@
-package org.polymap.openlayers.rap.lib_provider;
+package org.polymap.openlayers.rap.widget;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -14,20 +12,18 @@ import org.osgi.service.http.NamespaceException;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator 
+public class OpenlayersPlugin 
         extends Plugin {
 
-    private static final Log log = LogFactory.getLog(Activator.class);
-
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.polymap.openlayers.rap.lib_provider";
+	public static final String         PLUGIN_ID = "org.polymap.openlayers.rap.widget";
 
-	private static Activator       plugin;
+	private static OpenlayersPlugin    plugin;
 
-	public boolean                 started = false;
+	public boolean                     started = false;
 
 	
-	public Activator() {
+	public OpenlayersPlugin() {
 	}
 
 
@@ -35,8 +31,6 @@ public class Activator
     throws Exception {
         super.start( context );
 
-        log.info( "HttpService: " + HttpService.class );
-        
         // start HttpServiceRegistry
         if (HttpService.class != null) {
             startService( context );
@@ -77,8 +71,6 @@ public class Activator
             String port = context.getProperty( "org.osgi.service.http.port" );
             String hostname = context.getProperty( "org.osgi.service.http.hostname" );
 
-            log.info( "found http service on hostname:" + hostname + "/ port:" + port );
-
             httpService = (HttpService)context.getService( httpReferences[0] );
 
             try {
@@ -89,13 +81,10 @@ public class Activator
                 e.printStackTrace();
             }
         }
-        else {
-            log.debug( "No http service yet available - waiting for next BundleEvent" );
-        }
     }
 
     
-	public static Activator getDefault() {
+	public static OpenlayersPlugin getDefault() {
 		return plugin;
 	}
 	

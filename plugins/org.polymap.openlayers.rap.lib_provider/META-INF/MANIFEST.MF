@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Lib_provider
+Bundle-Name: OpenLayers Libraries
 Bundle-SymbolicName: org.polymap.openlayers.rap.lib_provider;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: org.polymap.openlayers.rap.lib_provider.Activator
