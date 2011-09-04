@@ -38,8 +38,8 @@ import org.polymap.core.runtime.mp.ForEachExecutor.ProcessorContext;
  * 
  * <p/>
  * <pre>
- *   -XX:+UseConcMarkSweepGC -XX:+UseParNewGC
- *   -XX:+UseParallelGC
+ *   -XX:+UseConcMarkSweepGC 
+ *   -XX:+UseParNewGC
  * </pre> 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -98,8 +98,18 @@ public class AsyncExecutor<T,S>
     private Iterator                currentResultChunk;
     
     private T                       next;
-    
-    
+
+
+    /**
+     * Creates a new executor with default settings.
+     * <p/>
+     * The queueCapacity is set to: <code>2 * numOfProcs</code>.
+     * <p/>
+     * The number of elements in every chunk is set to:
+     * <code>source.size()/(queueCapacity*2)</code>.
+     * 
+     * @param forEach
+     */
     public AsyncExecutor( ForEach<T, S> forEach ) {
         this.forEach = forEach;
         this.source = forEach.source().iterator();

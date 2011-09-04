@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.runtime.mp.AsyncExecutor;
 import org.polymap.core.runtime.mp.ForEach;
 import org.polymap.core.runtime.mp.Parallel;
 import org.polymap.core.runtime.mp.Processor;
@@ -39,9 +38,9 @@ public class MPTest
 
     private static Log log = LogFactory.getLog( MPTest.class );
 
-    private int                 arraySize = 500*1000;
+    private int                 arraySize = 300*1000;
     
-    private List<String>        source;
+    private List<StringBuilder> source;
     
     private List                result;
     
@@ -54,11 +53,15 @@ public class MPTest
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
 
         timer = new Timer();
-        StringBuilder sb = new StringBuilder( "StringBuilder sb = new StringBuilder();" );
         
         source = new ArrayList( arraySize );
         for (int i=0; i<arraySize; i++) {
-            source.add( "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) );
+            source.add( new StringBuilder( 
+                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) ) );
         }
         System.out.println( "Data created: " + timer.elapsedTime() + "ms" );
     }
@@ -75,11 +78,11 @@ public class MPTest
     }
 
 
-    public void testAsync()
-    throws Exception {
-        ForEach.executorFactory = new AsyncExecutor.AsyncFactory();
-        process();   
-    }
+//    public void testAsync()
+//    throws Exception {
+//        ForEach.executorFactory = new AsyncExecutor.AsyncFactory();
+//        process();   
+//    }
 
 
     public void testSync()
@@ -90,12 +93,14 @@ public class MPTest
 
 
     protected void process() {
-        result = ForEach.in( source )/* .chunked( 10000 ) */
-            .doFirst( new Parallel<StringBuilder,String>() {
-                public StringBuilder process( String elm ) {
-                    return new StringBuilder( elm );
-                }
-            })
+        result = ForEach.in( source ) /*.chunked( 10000 )*/
+//            .doFirst( new Parallel<StringBuilder,String>() {
+//                public StringBuilder process( String elm ) {
+//                    return new StringBuilder( elm );
+//                }
+//            })
+            .doNext( new UpperCase() )
+            .doNext( new LowerCase() )
             .doNext( new UpperCase() )
             .doNext( new LowerCase() )
             .doNext( new Quote() )
@@ -106,8 +111,18 @@ public class MPTest
     public void testPlain()
     throws Exception {
         result = new ArrayList();
-        for (String s : source) {
-            StringBuilder elm = new StringBuilder( s );
+        for (StringBuilder elm : source) {
+            //StringBuilder elm = new StringBuilder( s );
+            // upperCase
+            for (int i = 0; i < elm.length(); i++) {
+                char c = Character.toUpperCase( elm.charAt( i ) );
+                elm.setCharAt( i, c );
+            }
+            // lowerCase
+            for (int i = 0; i < elm.length(); i++) {
+                char c = Character.toLowerCase( elm.charAt( i ) );
+                elm.setCharAt( i, c );
+            }
             // upperCase
             for (int i = 0; i < elm.length(); i++) {
                 char c = Character.toUpperCase( elm.charAt( i ) );

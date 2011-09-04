@@ -30,8 +30,10 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -132,20 +134,37 @@ public final class Polymap {
     
     private static ExecutorService      executorService;
 
-    private static final BlockingQueue  globalQueue = new SynchronousQueue();           
-
     /**
      * Returns the {@link ExecutorService} for the calling session. This should be
      * used whenever working threads are needed for multi processing. The default
      * Eclipse {@link Job} should be used for normal async business logic operations.
      */
     public static ExecutorService executorService() {
-        if (executorService == null) {
-            int procNum = Runtime.getRuntime().availableProcessors();
-            ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum * 4, 100, 5, TimeUnit.MINUTES, globalQueue );
-            executorService = pool;
-        }
         return executorService;
+    }
+
+    
+    static {
+        ThreadFactory threadFactory = new ThreadFactory() {
+
+            final AtomicInteger threadNumber = new AtomicInteger( 1 );
+
+            public Thread newThread( Runnable r ) {
+                String prefix = "polymap-pool-";
+                Thread t = new Thread( r, prefix + threadNumber.getAndIncrement() );
+                t.setDaemon( false );
+                t.setPriority( Thread.NORM_PRIORITY );
+                return t;
+            }
+        };
+
+        BlockingQueue queue = new SynchronousQueue();           
+
+        int procNum = Runtime.getRuntime().availableProcessors();
+        ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum, 
+                100, 3, TimeUnit.MINUTES, queue );
+        pool.setThreadFactory( threadFactory );
+        executorService = pool;
     }
     
     
