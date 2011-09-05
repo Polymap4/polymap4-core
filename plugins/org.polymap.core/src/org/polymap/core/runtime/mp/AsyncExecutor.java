@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -49,22 +48,17 @@ public class AsyncExecutor<T,S>
     private static Log log = LogFactory.getLog( AsyncExecutor.class );
 
     private static final int                DEFAULT_PIPELINE_QUEUE_CAPACITY = 
-            3 * Runtime.getRuntime().availableProcessors();
+            2 * Runtime.getRuntime().availableProcessors();
     
-    private static final BlockingQueue      globalQueue = new SynchronousQueue();           
-
     private static ThreadPoolExecutor       executorService = (ThreadPoolExecutor)Polymap.executorService();
     
-    static {
-        log.info( "Prestarting all core threads..." );
-        executorService.prestartAllCoreThreads();
-    }
-    
+
     public static class AsyncFactory implements Factory {
         public ForEachExecutor newExecutor( ForEach foreach ) {
             return new AsyncExecutor( foreach );
         }
     }
+    
     
     // instance *******************************************
     
@@ -89,9 +83,9 @@ public class AsyncExecutor<T,S>
     private int                     queueCapacity = DEFAULT_PIPELINE_QUEUE_CAPACITY;
     
     /**
-     * The current number of enqueued task/chunks.
+     * The number of currently enqueued tasks/chunks.
      */
-    private int                     queueSize = 0;
+    private volatile int            queueSize = 0;
     
     private BlockingQueue<Chunk>    results = new LinkedBlockingDeque();
     
@@ -106,7 +100,7 @@ public class AsyncExecutor<T,S>
      * The queueCapacity is set to: <code>2 * numOfProcs</code>.
      * <p/>
      * The number of elements in every chunk is set to:
-     * <code>source.size()/(queueCapacity*2)</code>.
+     * <code>source.size() / (queueCapacity * 4)</code>.
      * 
      * @param forEach
      */
@@ -117,7 +111,10 @@ public class AsyncExecutor<T,S>
         // preset chunkSize
         if (forEach.source() instanceof Collection) {
             Collection sourceColl = (Collection)forEach.source();
-            chunkSize = Math.max( 1, sourceColl.size() / (queueCapacity*2) );
+            chunkSize = Math.max( 1, sourceColl.size() / (queueCapacity*4) );
+        }
+        else {
+            chunkSize = 1000;
         }
         
         // create processor contexts
@@ -162,7 +159,9 @@ public class AsyncExecutor<T,S>
         }
         else {
             try {
-                if (isEndOfProcessing()) {
+                fillPipeline();
+                
+                if (queueSize == 0) {
                     log.debug( "End of processing." );
                     return false;
                 }
@@ -204,9 +203,7 @@ public class AsyncExecutor<T,S>
     protected boolean isEndOfProcessing() {
         fillPipeline();
         
-        synchronized (this) {
-            return queueSize == 0 && results.isEmpty();
-        }
+        return queueSize == 0 && results.isEmpty();
     }
     
     protected int remainingCapacity() {
@@ -218,7 +215,7 @@ public class AsyncExecutor<T,S>
     }
 
     
-    public synchronized void put( Chunk chunk ) {
+    public void put( Chunk chunk ) {
         try {
             results.put( chunk );
             queueSize--;

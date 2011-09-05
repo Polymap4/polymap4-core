@@ -16,6 +16,7 @@
 package org.polymap.core.runtime.mp.test;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import junit.framework.TestCase;
 
@@ -23,9 +24,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.mp.AsyncExecutor;
 import org.polymap.core.runtime.mp.ForEach;
 import org.polymap.core.runtime.mp.Parallel;
 import org.polymap.core.runtime.mp.Processor;
+import org.polymap.core.runtime.mp.Producer;
 import org.polymap.core.runtime.mp.SyncExecutor;
 
 /**
@@ -40,30 +43,36 @@ public class MPTest
 
     private int                 arraySize = 300*1000;
     
-    private List<StringBuilder> source;
+//    private List<StringBuilder> source;
     
-    private List                result;
+//    private List                result;
     
     private List<Processor>     procs = new ArrayList();
 
     private Timer               timer;
     
+
+//    static {
+//        log.info( "Prestarting all core threads..." );
+//        Polymap.executorService().prestartAllCoreThreads();
+//    }
     
+
     public MPTest() {
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
 
         timer = new Timer();
         
-        source = new ArrayList( arraySize );
-        for (int i=0; i<arraySize; i++) {
-            source.add( new StringBuilder( 
-                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) ) );
-        }
-        System.out.println( "Data created: " + timer.elapsedTime() + "ms" );
+//        source = new ArrayList( arraySize );
+//        for (int i=0; i<arraySize; i++) {
+//            source.add( new StringBuilder( 
+//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
+//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) ) );
+//        }
+//        System.out.println( "Data created: " + timer.elapsedTime() + "ms" );
     }
     
 
@@ -73,16 +82,15 @@ public class MPTest
 
 
     protected void tearDown() throws Exception {
-        System.out.println( "*** Result: " + result.size() );
         System.out.println( "*** Time: " + timer.elapsedTime() + "ms" );
     }
 
 
-//    public void testAsync()
-//    throws Exception {
-//        ForEach.executorFactory = new AsyncExecutor.AsyncFactory();
-//        process();   
-//    }
+    public void testAsync()
+    throws Exception {
+        ForEach.executorFactory = new AsyncExecutor.AsyncFactory();
+        process();   
+    }
 
 
     public void testSync()
@@ -93,7 +101,7 @@ public class MPTest
 
 
     protected void process() {
-        result = ForEach.in( source ) /*.chunked( 10000 )*/
+        int count = ForEach.in( new SBProducer() ) /*.chunked( 10000 )*/
 //            .doFirst( new Parallel<StringBuilder,String>() {
 //                public StringBuilder process( String elm ) {
 //                    return new StringBuilder( elm );
@@ -104,15 +112,16 @@ public class MPTest
             .doNext( new UpperCase() )
             .doNext( new LowerCase() )
             .doNext( new Quote() )
-            .asList();
+            .start();
+        
+        System.out.println( "*** Result: " + count );
     }
 
 
     public void testPlain()
     throws Exception {
-        result = new ArrayList();
-        for (StringBuilder elm : source) {
-            //StringBuilder elm = new StringBuilder( s );
+        for (Iterator<StringBuilder> it=new SBProducer().iterator(); it.hasNext(); ) {
+            StringBuilder elm = it.next();
             // upperCase
             for (int i = 0; i < elm.length(); i++) {
                 char c = Character.toUpperCase( elm.charAt( i ) );
@@ -134,9 +143,33 @@ public class MPTest
                 elm.setCharAt( i, c );
             }
             // quote
-            result.add( elm.insert( 0, '\'' ).append( '\'' ) );
+            elm.insert( 0, '\'' ).append( '\'' );
         }
     }
+
+
+    private final class SBProducer
+            extends Producer<StringBuilder> {
+
+        String          s;
+        
+        
+        public SBProducer() {
+            StringBuilder sb = new StringBuilder( 1024 );
+            sb.append( "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" );
+            sb.append( "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" );
+            sb.append( "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" );
+            s = sb.toString();
+        }
+
+        public StringBuilder produce() {
+            return new StringBuilder( s );
+        }
+
+        public int size() {
+            return arraySize;
+        }
+    };
 
 
     private final class Quote

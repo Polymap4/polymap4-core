@@ -117,8 +117,17 @@ public class ForEach<T, S>
     }
 
     
+    public int start() {
+        int count = 0;
+        for (T elm : this) {
+            ++count;
+        }
+        return count;
+    }
+
+
     // executor
-    
+
     List<Processor> processors() {
         return processors;
     }
