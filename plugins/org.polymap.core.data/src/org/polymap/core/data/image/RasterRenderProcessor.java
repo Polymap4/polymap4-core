@@ -73,12 +73,10 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 
 /**
- * This processor renders features using the geotools {@link StreamingRenderer}.
- * The features are fetched through a sub pipeline for usecase
- * {@link LayerUseCase#FEATURES}.
+ * This processor renders raster data of {@link AbstractRasterService} using the
+ * geotools {@link StreamingRenderer}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
 public class RasterRenderProcessor
@@ -106,7 +104,6 @@ public class RasterRenderProcessor
         return false;
     }
     
-
     
     // instance *******************************************
     

@@ -345,8 +345,7 @@ public class PipelineFeatureSource
     // FeatureStore ***************************************
 
     public void setTransaction( Transaction transaction ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        log.warn( "PipelinedFeatureSource: no transaction support as updates are bufferd by LayerFeatureBufferManager!" );
     }
 
 

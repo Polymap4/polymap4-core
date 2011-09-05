@@ -76,7 +76,7 @@ abstract class AbstractPipelineFeatureCollection
     }
 
     public void changed( FeatureEvent featureEvent ) {
-        log.info( "changed(): ev=" + featureEvent );
+        log.debug( "changed(): ev=" + featureEvent );
         int type = CollectionEvent.FEATURES_CHANGED;
         switch (featureEvent.getType()) {
             case ADDED:

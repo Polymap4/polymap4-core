@@ -37,6 +37,9 @@ public class InstallBufferPipelineListener
 
 
     public void pipelineCreated( Pipeline pipeline ) {
+        if (pipeline.length() == 0) {
+            return;
+        }
         PipelineProcessor source = pipeline.get( pipeline.length() - 1 );
 
         if (source instanceof DataSourceProcessor) {

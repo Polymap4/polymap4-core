@@ -53,8 +53,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
-import net.refractions.udig.catalog.PostgisService2;
-
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
@@ -98,8 +96,9 @@ public class DataSourceProcessor
     }
 
     public static boolean isCompatible( IService service ) {
-        // Postgres
-        if (service instanceof PostgisService2) {
+        // FIXME Postgres does not resolve to a DataStore!? :( Anyway, isCompatible should
+        // receive a IGeiResource instead of an IService
+        if (service.getClass().getSimpleName().equals( "PostgisService2" ) ) {
             return true;
         }
         // WFS, Memory, ...
@@ -266,7 +265,7 @@ public class DataSourceProcessor
         FeatureType schema = fs.getSchema();
         for (Feature feature : features) {
             // adopt schema and properties; I'm not sure if this is the proper place to
-            // di this; here I know the proper target schema and iterating over features
+            // do this; here I know the proper target schema and iterating over features
             // is done anyway
             if (!feature.getType().equals( schema )) {
                 log.debug( "addFeatures(): FeatureType does not match: " + feature.getType() );

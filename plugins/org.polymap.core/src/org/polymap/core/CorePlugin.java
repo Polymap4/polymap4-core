@@ -95,7 +95,7 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.mp", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.services.geoserver", "debug" );
 
