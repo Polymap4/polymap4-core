@@ -18,6 +18,8 @@ import java.util.Collection;
 
 import org.opengis.feature.Feature;
 
+import org.polymap.core.data.FeatureChangeEvent;
+
 /**
  * 
  *

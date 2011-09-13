@@ -144,7 +144,6 @@ public class FeatureSelectionView
 
             LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( this );
             
-            // FIXME check blocking
             this.fs = PipelineFeatureSource.forLayer( layer, false );
         }
         catch (Exception e) {

@@ -25,6 +25,7 @@ import org.geotools.data.DefaultQuery;
 import org.opengis.feature.Feature;
 import org.opengis.filter.identity.FeatureId;
 
+import org.polymap.core.data.FeatureChangeTracker;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
@@ -44,7 +45,11 @@ import org.polymap.core.project.LayerUseCase;
 
 /**
  *
- *
+ * <p/>
+ * This processor presets the {@link FeatureBufferState#TIMESTAMP_KEY} in the features. This
+ * helps {@link LayerFeatureBufferManager} together with {@link FeatureChangeTracker} to find
+ * concurrent changes between feature rad and {@link IFeatureBuffer#registerFeatures(Collection)}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
  */
@@ -189,6 +194,18 @@ public class FeatureBufferProcessor
             else {
                 GetFeaturesRequest request = (GetFeaturesRequest)context.get( "request" );
                 Collection<Feature> features = buffer.blendFeatures( request.getQuery(), response.getFeatures() );
+                
+                // check/set timestamps
+                // XXX need when in edit mode only
+                Long now = System.currentTimeMillis();
+                for (Feature feature : features) {
+                    // there are probable more un-modified features with no timestamp set, so
+                    // do put() first to avoid one call of contains()
+                    Long old = (Long)feature.getUserData().put( FeatureBufferState.TIMESTAMP_KEY, now );
+                    if (old != null) {
+                        feature.getUserData().put( FeatureBufferState.TIMESTAMP_KEY, old );
+                    }
+                }
                 context.sendResponse( new GetFeaturesResponse( (List<Feature>)features ) );
             }
         }

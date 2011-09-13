@@ -20,6 +20,10 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.model.event.IModelHandleable;
+import org.polymap.core.model.event.ModelHandle;
+
 /**
  * A {@link Feature} facade that handles the buffer state of the feature.
  * <p>
@@ -29,11 +33,13 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FeatureBufferState {
+public class FeatureBufferState
+        implements IModelHandleable {
 
     private static Log log = LogFactory.getLog( FeatureBufferState.class );
     
-    public static final String  USER_DATA_KEY = "buffer_state";
+    public static final String  BUFFER_STATE_KEY = "buffer_state";
+    public static final String  TIMESTAMP_KEY = "timestamp";
     
     public enum State {
         /** 
@@ -51,7 +57,9 @@ public class FeatureBufferState {
     private Feature             original;
 
     private State               state;
-
+    
+    private long                timestamp;
+    
     
     public FeatureBufferState( Feature original ) {
         super();
@@ -60,7 +68,11 @@ public class FeatureBufferState {
         
         // copy-on-write in evolveState()
         this.feature = original;
-        this.feature.getUserData().put( USER_DATA_KEY, state.toString() );
+        this.feature.getUserData().put( BUFFER_STATE_KEY, state.toString() );
+        
+        //
+        Long featureTimestamp = (Long)feature.getUserData().get( TIMESTAMP_KEY );
+        timestamp = featureTimestamp != null ? featureTimestamp : System.currentTimeMillis();
     }
     
     /**
@@ -75,7 +87,17 @@ public class FeatureBufferState {
         return original;    
     }
 
+    public long timestamp() {
+        return timestamp;
+    }
 
+    public ModelHandle handle() {
+        String id = feature.getIdentifier().getID();
+        String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + feature.getType().getName().getLocalPart();
+        return ModelHandle.instance( id, type );
+    }
+
+    
     /**
      * Evolve the state of this feature. 
      * <p/>
@@ -107,7 +129,7 @@ public class FeatureBufferState {
         else if (newState == State.REMOVED) {
             state = state == State.ADDED ? State.REGISTERED : newState;
         }
-        feature.getUserData().put( USER_DATA_KEY, state.toString() );
+        feature.getUserData().put( BUFFER_STATE_KEY, state.toString() );
         return state;
     }
     

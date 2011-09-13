@@ -14,8 +14,8 @@
  */
 package org.polymap.core.data.feature.buffer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +30,15 @@ import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeListener;
+import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureEventManager;
+import org.polymap.core.data.FeatureStoreEvent;
+import org.polymap.core.data.FeatureStoreListener;
+import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 
@@ -40,7 +49,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public class LayerBufferDecorator
         extends BaseLabelProvider
-        implements ILightweightLabelDecorator, IFeatureChangeListener, IFeatureStoreListener {
+        implements ILightweightLabelDecorator {
 
     private static Log log = LogFactory.getLog( LayerBufferDecorator.class );
 
@@ -55,15 +64,45 @@ public class LayerBufferDecorator
     private static final String     INCOMING = "icons/ovr16/incom_synch.gif";    
     private static final String     CONFLICT = "icons/ovr16/conf_synch.gif";    
 
-    private Map<String,LayerFeatureBufferManager>   decorated = new HashMap();
+    /** The ids of the decorated layers. */
+    private Set<String>             decorated = new HashSet();
+
+    private FeatureChangeListener   changeListener;
+    
+    private FeatureStoreListener    storeListener;
+    
+    private Display                 display;
+    
+    
+    public LayerBufferDecorator() {
+        this.display = Polymap.getSessionDisplay();
+        
+        // FeatureChangeListener
+        changeListener = new FeatureChangeListener() {
+            public void featureChange( FeatureChangeEvent ev ) {
+                LayerBufferDecorator.this.featureChange( ev );
+            }
+        };
+        FeatureEventManager.instance().addFeatureChangeListener( changeListener, new IEventFilter<FeatureChangeEvent>() {
+            public boolean accept( FeatureChangeEvent ev ) {
+                return decorated.contains( ev.getSource().id() );
+            }
+        });
+        
+        // FeatureStoreListener
+        storeListener = new FeatureStoreListener() {
+            public void featureChange( FeatureStoreEvent ev ) {
+                LayerBufferDecorator.this.featureChange( ev );
+            }
+        };
+        FeatureChangeTracker.instance().addFeatureListener( storeListener );
+    }
 
     
     public void dispose() {
-        for (LayerFeatureBufferManager layerBuffer : decorated.values()) {
-            layerBuffer.removeFeatureChangeListener( this );
-        }
+        FeatureEventManager.instance().removeFeatureChangeListener( changeListener );
+        FeatureChangeTracker.instance().removeFeatureListener( storeListener );
         decorated.clear();
-        FeatureStoreVersion.removeListener( this );
     }
 
 
@@ -78,7 +117,10 @@ public class LayerBufferDecorator
             
             try {
                 boolean outgoing = !layerBuffer.getBuffer().isEmpty();
-                boolean incoming = FeatureStoreVersion.forLayer( layer ) != layerBuffer.getStoreVersion();
+                
+                ModelHandle layerHandle = FeatureChangeTracker.layerHandle( layer );
+                boolean incoming = ModelChangeTracker.instance().isConflicting( 
+                        layerHandle, layerBuffer.getLayerTimestamp() );
                 
                 if (outgoing && incoming) {
                     decoration.addPrefix( "# " );                    
@@ -97,12 +139,7 @@ public class LayerBufferDecorator
                 // XXX add question mark overlay
             }
 
-            // register listener
-            if (decorated.put( layer.id(), layerBuffer ) == null) {
-                layerBuffer.addFeatureChangeListener( this );
-                
-                FeatureStoreVersion.addListener( this );
-            }
+            decorated.add( layer.id() );
         }
     }
 
@@ -139,7 +176,7 @@ public class LayerBufferDecorator
 //                // XXX add question mark overlay
 //            }
 //
-//            // register listener
+//            // register changeListener
 //            if (decorated.put( layer.id(), layerBuffer ) == null) {
 //                layerBuffer.getBuffer().addFeatureChangeListener( this );
 //            }
@@ -164,13 +201,13 @@ public class LayerBufferDecorator
             runnable.run();
         }
         else {
-            Polymap.getSessionDisplay().asyncExec( runnable );
+            display.asyncExec( runnable );
         }
     }
 
 
-    public void featureStoreChange( FeatureStoreEvent ev ) {
-        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+    public void featureChange( FeatureStoreEvent ev ) {
+        display.asyncExec( new Runnable() {
             public void run() {
                 fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
             }

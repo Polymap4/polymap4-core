@@ -12,18 +12,33 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.buffer;
+package org.polymap.core.data;
 
-import java.util.EventListener;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.ModelStoreEvent;
 
 /**
- * Listen to feature store changes. Register with {@link FeatureStoreVersion}. 
- *
+ * 
+ * @see FeatureChangeTracker
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IFeatureStoreListener
-        extends EventListener {
+public abstract class FeatureStoreListener
+        implements IModelStoreListener {
 
-    void featureStoreChange( FeatureStoreEvent ev );
+    private static Log log = LogFactory.getLog( FeatureStoreListener.class );
+
+    public abstract void featureChange( FeatureStoreEvent ev );
+
+
+    public boolean isValid() {
+        return true;
+    }
+
+    public void modelChanged( ModelStoreEvent ev ) {
+        featureChange( new FeatureStoreEvent( ev ) );
+    }
     
 }

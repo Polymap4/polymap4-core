@@ -12,15 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature.buffer;
+package org.polymap.core.data;
 
 import java.util.Collection;
-import java.util.EventObject;
 
 import org.opengis.feature.Feature;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.project.ILayer;
 
 /**
  * 
@@ -28,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureChangeEvent
-        extends EventObject {
+        extends ModelChangeEvent {
 
     private static Log log = LogFactory.getLog( FeatureChangeEvent.class );
     
@@ -51,8 +53,8 @@ public class FeatureChangeEvent
         this.features = features;
     }
 
-    public LayerFeatureBufferManager getSource() {
-        return (LayerFeatureBufferManager)super.getSource();
+    public ILayer getSource() {
+        return (ILayer)super.getSource();
     }
 
     public Collection<Feature> getFeatures() {
@@ -62,5 +64,13 @@ public class FeatureChangeEvent
     public Type getType() {
         return type;
     }
+
+//    public Iterable<PropertyChangeEvent> events() {
+//        throw new RuntimeException( "not yet implemented." );
+//    }
+//
+//    public Iterable<PropertyChangeEvent> events( IEventFilter f ) {
+//        throw new RuntimeException( "not yet implemented." );
+//    }
     
 }

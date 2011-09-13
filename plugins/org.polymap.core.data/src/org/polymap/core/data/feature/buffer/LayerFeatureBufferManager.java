@@ -48,18 +48,23 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
-import org.eclipse.rwt.SessionSingletonBase;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureEventManager;
+import org.polymap.core.data.FeatureChangeEvent.Type;
 import org.polymap.core.data.feature.DataSourceProcessor;
-import org.polymap.core.data.feature.buffer.FeatureChangeEvent.Type;
 import org.polymap.core.model.ConcurrentModificationException;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.model.event.ModelChangeTracker.Updater;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -83,8 +88,10 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * XXX Currently the original state of an modified feature is requested from the
  * underlying store not before the modification request arrives. This may lead to
  * <b>lost updates</b> if the feature has changed meanwhile. In order to detect
- * <b>every</b> modification a cache could be used that holds the states of all
- * features read in this session.
+ * <b>every</b> modification the {@link FeatureBufferProcessor} presets the timestamp
+ * in the feature and {@link FeatureBufferState#timestamp()} recognizes this.
+ * {@link FeatureChangeTracker} should be able to detect concurrent modufication now.
+ * Not fully tested.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -95,20 +102,17 @@ public class LayerFeatureBufferManager
 
     public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
 
+    
     /**
      * The Session holds the managers of the session.
      */
     static class Session
-            extends SessionSingletonBase { 
-        
-        private static final Session        global = new Session();
+            extends SessionSingleton { 
         
         protected WeakHashMap<ILayer,LayerFeatureBufferManager> managers = new WeakHashMap();
         
         public static Session instance() {
-            return Polymap.getSessionDisplay() != null
-                    ? (Session)getInstance( Session.class )
-                    : global;
+            return instance( Session.class );
         }
     }
 
@@ -148,15 +152,16 @@ public class LayerFeatureBufferManager
     
     private Transaction             tx;
     
-    private ListenerList<IFeatureChangeListener> listeners = new ListenerList();
-    
-    private long                    storeVersion;
+    private long                    layerTimestamp;
+
+    /** The feature event assembled during {@link #prepareSave(OperationSupport, IProgressMonitor)}. */
+    private Updater                 updater;
     
 
     protected LayerFeatureBufferManager( ILayer layer ) {
         super();
         this.layer = layer;
-        this.storeVersion = FeatureStoreVersion.forLayer( layer );
+        this.layerTimestamp = System.currentTimeMillis();
         
         buffer = new MemoryFeatureBuffer();
         buffer.init( new IFeatureBufferSite() {
@@ -173,19 +178,9 @@ public class LayerFeatureBufferManager
     }
 
     
-    public void addFeatureChangeListener( IFeatureChangeListener l ) {
-        listeners.add( l );
-    }
-    
-    public void removeFeatureChangeListener( IFeatureChangeListener l ) {
-        listeners.remove( l );
-    }
-    
     protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
-        FeatureChangeEvent ev = new FeatureChangeEvent( this, type, features );
-        for (IFeatureChangeListener l : listeners) {
-            l.featureChange( ev );
-        }
+        FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, features );
+        FeatureEventManager.instance().fireEvent( ev );
     }
     
     
@@ -201,8 +196,8 @@ public class LayerFeatureBufferManager
         return processor;
     }
     
-    public long getStoreVersion() {
-        return storeVersion;
+    public long getLayerTimestamp() {
+        return layerTimestamp;
     }
 
 
@@ -213,14 +208,19 @@ public class LayerFeatureBufferManager
         try {
             monitor.beginTask( layer.getLabel() , buffer.size() );
 
-            storeVersion = FeatureStoreVersion.checkSetForLayer( layer, storeVersion );
             try {
                 tx.commit();
                 buffer.clear();
+                
+                updater.apply( layer, false );
+                layerTimestamp = updater.getStartTime();
             }
             finally {
                 tx.close();
                 tx = null;
+                
+                updater.done();
+                updater = null;
             }
             monitor.done();
         }
@@ -242,6 +242,9 @@ public class LayerFeatureBufferManager
             finally {
                 tx.close();
                 tx = null;
+
+                updater.done();
+                updater = null;
             }
             monitor.done();
         }
@@ -261,7 +264,7 @@ public class LayerFeatureBufferManager
             return;
         }
         
-        monitor.beginTask( layer.getLabel() , buffer.size() );
+        monitor.beginTask( layer.getLabel(), buffer.size() );
         tx = new DefaultTransaction( "Submit buffer: layer-" + layer.id() + "-" + System.currentTimeMillis() );
 
         // store directly to the underlying store; so the buffer processor MUST be
@@ -271,6 +274,8 @@ public class LayerFeatureBufferManager
   
         fs.setTransaction( tx );
 
+        updater = ModelChangeTracker.instance().newUpdater();
+        
         int count = 0;
         for (FeatureBufferState buffered : buffer.content()) {
             if (monitor.isCanceled()) {
@@ -279,6 +284,10 @@ public class LayerFeatureBufferManager
             if ((++count % 100) == 0) {
                 monitor.subTask( "(" + count + ")" );
             }
+
+            // update feature timestamp (check concurrent modifications within this JVM)
+            updater.checkSet( buffered.handle(), buffered.timestamp(), null );
+
             if (buffered.isAdded()) {
                 checkSubmitAdded( fs, buffered );
             }
@@ -292,6 +301,13 @@ public class LayerFeatureBufferManager
                 log.warn( "Buffered feature is not added/removed/modified!" );
             }
             monitor.worked( 1 );
+        }
+        
+        // none of the features had concurrent modifications, so just upgrade
+        // timestamp for the layer (no checking is needed and done)
+        if (count > 0) {
+            ModelHandle layerHandle = FeatureChangeTracker.layerHandle( layer );
+            updater.checkSet( layerHandle, updater.getStartTime(), null );
         }
         monitor.done();
     }
@@ -333,7 +349,7 @@ public class LayerFeatureBufferManager
 
     protected void checkSubmitModified( FeatureStore fs, FeatureBufferState buffered ) 
     throws Exception {
-        // check concurrent modifications
+        // check concurrent modifications with the store
         FeatureId fid = buffered.feature().getIdentifier();
         Id fidFilter = ff.id( Collections.singleton( fid ) );
         
@@ -345,7 +361,7 @@ public class LayerFeatureBufferManager
             throw new IllegalStateException( "More than one feature for id: " + fid + "!?" );
         }
         if (isFeatureModified( stored.get( 0 ), buffered.original() )) {
-            throw new ConcurrentModificationException( "Feature has been modified concurrently: " + fid );
+            throw new ConcurrentModificationException( "Objekt wurde von einem anderen Nutzer gleichzeitig geändert: " + fid );
         }
         
         // write down

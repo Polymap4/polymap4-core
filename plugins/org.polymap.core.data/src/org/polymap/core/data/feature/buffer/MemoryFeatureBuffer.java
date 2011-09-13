@@ -31,7 +31,7 @@ import org.opengis.filter.identity.FeatureId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.feature.buffer.FeatureChangeEvent.Type;
+import org.polymap.core.data.FeatureChangeEvent.Type;
 
 /**
  * Provides a simple in-memory feature buffer backed by {@link HashMap} and
@@ -50,7 +50,7 @@ class MemoryFeatureBuffer
     
     private ReentrantReadWriteLock          lock = new ReentrantReadWriteLock();
 
-    private IFeatureBufferSite               site;
+    private IFeatureBufferSite              site;
     
     
     MemoryFeatureBuffer() {
