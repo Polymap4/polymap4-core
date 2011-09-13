@@ -82,7 +82,7 @@ import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.SourceClassPropertyEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
@@ -124,7 +124,7 @@ public class MapLayersView
 
     private Action                  doubleClickAction;
 
-    private ModelChangeListener     modelListener;
+    private IModelChangeListener     modelListener;
 
     private LayersCheckStateListener checkStateListener;
     
@@ -275,7 +275,7 @@ public class MapLayersView
             viewer.setInput( root );
             viewer.refresh();
             
-            modelListener = new ModelChangeListener() {
+            modelListener = new IModelChangeListener() {
                 public void modelChanged( ModelChangeEvent ev ) {
                     log.debug( "ev= " + ev + ", display= " + Display.getCurrent() );
                     viewer.getControl().getDisplay().asyncExec( new Runnable() {

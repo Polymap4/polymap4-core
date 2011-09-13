@@ -32,8 +32,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.LayerStatusLineAdapter;
@@ -60,7 +60,7 @@ public class LayerNavigator
 
     private PartListener                partListener;
 
-    private ModelChangeListener         modelListener;
+    private IModelChangeListener        modelListener;
 
     private UDIGViewerDropAdapter       dropAdapter;
 
@@ -151,7 +151,7 @@ public class LayerNavigator
             getCommonViewer().setInput( this.map );
             getCommonViewer().refresh();
             // new listener
-            modelListener = new ModelChangeListener() {
+            modelListener = new IModelChangeListener() {
                 public void modelChanged( ModelChangeEvent ev ) {
                     log.debug( "ev= " + ev + ", display= " + Display.getCurrent() );
                     getCommonViewer().getControl().getDisplay().asyncExec( new Runnable() {
@@ -162,7 +162,7 @@ public class LayerNavigator
                     });
                 }
             };
-            ProjectRepository.instance().addModelChangeListener( modelListener, PropertyEventFilter.ALL );
+            ProjectRepository.instance().addModelChangeListener( modelListener, IEventFilter.ALL );
         }
     }
 

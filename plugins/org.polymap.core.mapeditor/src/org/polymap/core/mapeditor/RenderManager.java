@@ -23,6 +23,7 @@
 
 package org.polymap.core.mapeditor;
 
+import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
@@ -47,13 +48,13 @@ import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import org.polymap.core.data.feature.buffer.FeatureChangeEvent;
-import org.polymap.core.data.feature.buffer.IFeatureChangeListener;
-import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
+import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeListener;
+import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
@@ -99,10 +100,10 @@ public class RenderManager {
         this.map = map;
         this.mapEditor = mapEditor;
         
-        // register listeners
+        // model listener
         ProjectRepository module = ProjectRepository.instance();
-        module.addPropertyChangeListener( mapDomainListener, new PropertyEventFilter() {
-            public boolean accept( PropertyChangeEvent ev ) {
+        module.addPropertyChangeListener( mapDomainListener, new IEventFilter() {
+            public boolean accept( EventObject ev ) {
                 if (RenderManager.this.map == null || ev.getSource() == null) {
                     return false;
                 }
@@ -116,6 +117,17 @@ public class RenderManager {
                 }
                 log.info( "Skipping: " + ev );
                 return false;
+            }
+        });
+        
+        // feature listener
+        FeatureEventManager fem = FeatureEventManager.instance();
+        fem.addFeatureChangeListener( mapDomainListener, new IEventFilter<FeatureChangeEvent>() {
+            public boolean accept( FeatureChangeEvent ev ) {
+                if (RenderManager.this.map == null || ev.getSource() == null) {
+                    return false;
+                }
+                return RenderManager.this.map.equals( ev.getSource().getMap() );
             }
         });
     }
@@ -150,11 +162,6 @@ public class RenderManager {
         for (RenderLayerDescriptor descriptor : descriptors.values()) {
             if (mapEditor != null) {
                 mapEditor.removeLayer( descriptor );
-            }
-            for (ILayer layer : descriptor.layers) {
-                LayerFeatureBufferManager buffer = 
-                        LayerFeatureBufferManager.forLayer( layer, true );
-                buffer.removeFeatureChangeListener( mapDomainListener );
             }
         }
         descriptors.clear();
@@ -215,9 +222,6 @@ public class RenderManager {
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
                     
-                    LayerFeatureBufferManager buffer = LayerFeatureBufferManager.forLayer( layer, true );
-                    buffer.addFeatureChangeListener( mapDomainListener );
-                    
 //                    String key = descriptor.renderLayerKey();
 //                    RenderLayerDescriptor old = descriptors.get( key );
 //                    if (old == null) {
@@ -273,11 +277,11 @@ public class RenderManager {
      * 
      */
     class MapDomainListener
-            implements PropertyChangeListener, ModelChangeListener, IFeatureChangeListener {
+            extends FeatureChangeListener
+            implements PropertyChangeListener, IModelChangeListener {
 
         public void featureChange( FeatureChangeEvent ev ) {
-            LayerFeatureBufferManager buffer = ev.getSource();
-            RenderLayerDescriptor descriptor = findDescriptorForLayer( buffer.getLayer() );
+            RenderLayerDescriptor descriptor = findDescriptorForLayer( ev.getSource() );
             if (descriptor != null) {
                 mapEditor.reloadLayer( descriptor );
             }

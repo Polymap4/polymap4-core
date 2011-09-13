@@ -28,8 +28,8 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ProjectRepository;
 
 /**
@@ -39,7 +39,7 @@ import org.polymap.core.project.ProjectRepository;
  * @since 3.0
  */
 public abstract class EntityContentProvider
-        implements ITreeContentProvider, ModelChangeListener {
+        implements ITreeContentProvider, IModelChangeListener {
 
     private static Log log = LogFactory.getLog( EntityContentProvider.class );
 
@@ -69,7 +69,7 @@ public abstract class EntityContentProvider
         dispose();
         this.input = newInput;
         if (input != null) {
-            ProjectRepository.instance().addModelChangeListener( this, PropertyEventFilter.ALL );
+            ProjectRepository.instance().addModelChangeListener( this, IEventFilter.ALL );
         }
         this.viewer = _viewer;
     }

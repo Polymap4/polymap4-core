@@ -46,10 +46,8 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
-import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.ModifyFeatureControl;
@@ -139,7 +137,9 @@ public class ModifyFeatureEditorAction
         }
         catch (Throwable e) {
             log.warn( "", e );
-            PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
+            
+            // bad inside process_event()
+            //PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
         }
     }
 

@@ -22,10 +22,10 @@
  */
 package org.polymap.core.project.ui;
 
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.beans.PropertyChangeEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,11 +39,11 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 
-import org.polymap.core.model.event.GlobalModelChangeEvent;
-import org.polymap.core.model.event.GlobalModelChangeListener;
+import org.polymap.core.model.event.ModelStoreEvent;
+import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.EntityChangeStatus;
@@ -59,7 +59,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public class EntityModificationDecorator
         extends BaseLabelProvider
-        implements ILightweightLabelDecorator, GlobalModelChangeListener, ModelChangeListener {
+        implements ILightweightLabelDecorator, IModelStoreListener, IModelChangeListener {
 
     private static final Log log = LogFactory.getLog( EntityModificationDecorator.class );
     
@@ -81,10 +81,10 @@ public class EntityModificationDecorator
         display = Polymap.getSessionDisplay();
         module = ProjectRepository.instance();
         
-        module.addGlobalModelChangeListener( this );
+        module.addModelStoreListener( this );
         
-        module.addModelChangeListener( this, new PropertyEventFilter() {
-            public boolean accept( PropertyChangeEvent ev ) {
+        module.addModelChangeListener( this, new IEventFilter() {
+            public boolean accept( EventObject ev ) {
                 if (ev.getSource() instanceof ModelChangeSupport) {
                     ModelChangeSupport entity = (ModelChangeSupport)ev.getSource();
                     return decorated.containsKey( entity.id() );
@@ -100,7 +100,7 @@ public class EntityModificationDecorator
                 super.dispose();
                 decorated = null;
                 module.removeModelChangeListener( this );
-                module.removeGlobalModelChangeListener( this );
+                module.removeModelStoreListener( this );
             }
             finally {
                 module = null;
@@ -113,25 +113,24 @@ public class EntityModificationDecorator
         log.debug( "### Decorating: entity=" + entity.id() );
         EntityChangeStatus entityState = EntityChangeStatus.forEntity( entity );
         
-        boolean dirty = entityState.isLocallyChanged();
-        boolean pendingChanges = entityState.isGloballyChanged();
-        boolean pendingCommits = entityState.isGloballyCommitted();
+        boolean dirty = entityState.isDirty();
+        boolean pendingConflict = entityState.isConcurrentlyDirty();
+        boolean conflicting = entityState.isConflicting();
 
-        if (dirty && pendingCommits) {
+        if (dirty && conflicting) {
             ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, conflictImage );
             decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+            decoration.addPrefix( "# " );
         }
-        else if (dirty && pendingChanges) {
+        else if (!dirty && conflicting) {
             ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, warningImage );
-            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+            //decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+            decoration.addPrefix( "< " );
         }
-        else if (dirty && !pendingChanges && !pendingCommits) {
+        else if (dirty) {
             ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, dirtyImage );
             decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-        }
-        else if (!dirty && (pendingChanges || pendingCommits)) {
-            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, pendingImage );
-            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+            decoration.addPrefix( "> " );
         }
 
         // register
@@ -139,30 +138,17 @@ public class EntityModificationDecorator
     }
 
     
-    // ModelChangeListener
+    // model listeners ************************************
     
     public void modelChanged( ModelChangeEvent ev ) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
-            }
-        };
-        if (Display.getCurrent() != null) {
-            runnable.run();
-        }
-        else {
-            Polymap.getSessionDisplay().asyncExec( runnable );
-        }
+        modelChanged( (ModelStoreEvent)null );
     }
-    
-    
-    // GlobalModelChangeListener
     
     public boolean isValid() {
         return true;
     }
 
-    public void modelChanged( final GlobalModelChangeEvent ev ) {
+    public void modelChanged( final ModelStoreEvent ev ) {
         // make sure that display is not disposed and our session is still valid
         if (module == null) {
             return;
@@ -173,13 +159,8 @@ public class EntityModificationDecorator
         else {
             display.asyncExec( new Runnable() {
                 public void run() {
-                    log.warn( "Skipping global event: " + ev );
-//                    try {
-//                        fireEvent();
-//                    }
-//                    catch (Throwable e) {
-//                        log.info( "Error while modelChange(): " + e.getLocalizedMessage() );
-//                    }
+                    fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+//                    log.warn( "Skipping global event: " + ev );
                 }
             });
         }
