@@ -92,9 +92,7 @@ public class FeatureBufferState
     }
 
     public ModelHandle handle() {
-        String id = feature.getIdentifier().getID();
-        String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + feature.getType().getName().getLocalPart();
-        return ModelHandle.instance( id, type );
+        return FeatureChangeTracker.featureHandle( feature );
     }
 
     

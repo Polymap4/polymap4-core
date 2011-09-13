@@ -23,12 +23,13 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
 
-import org.polymap.core.model.event.GlobalModelChangeEvent;
-import org.polymap.core.model.event.GlobalModelChangeListener;
+import org.polymap.core.model.event.IModelHandleable;
+import org.polymap.core.model.event.ModelStoreEvent;
+import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
-
 import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.IContentFolder;
@@ -109,12 +110,12 @@ public class ProjectContentProvider
      */
     public static class MapFolder
             extends DefaultContentFolder 
-            implements GlobalModelChangeListener {
+            implements IModelStoreListener {
 
         public MapFolder( IPath parentPath, IContentProvider provider, IMap map ) {
             super( map.getLabel(), parentPath, provider, map );
             
-            ProjectRepository.instance().addGlobalModelChangeListener( this );
+            ProjectRepository.instance().addModelStoreListener( this );
         }
 
         public IMap getMap() {
@@ -129,10 +130,13 @@ public class ProjectContentProvider
             return true;
         }
 
-        public void modelChanged( GlobalModelChangeEvent ev ) {
-            if (ev.hasChanged( getMap() )) {
-                log.info( "modelChanged(): " + ev + " - SKIPPED" );
-                //((ProjectContentProvider)getProvider()).contentSite.invalidateNode( this );
+        public void modelChanged( ModelStoreEvent ev ) {
+            if (ev.getEventType() == EventType.COMMIT) {
+                if (ev.hasChanged( (IModelHandleable)getMap() )) {
+
+                    log.info( "modelChanged(): " + ev );
+                    ((ProjectContentProvider)getProvider()).contentSite.invalidateNode( this );
+                }
             }
         }
         

@@ -96,9 +96,10 @@ public class ShapefileContentProvider
             ILayer layer = (ILayer)parent.getSource();
             try {
                 // try to build an fs for it
-                PipelineFeatureSource.forLayer( layer, true );
+                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, true );
                 return Collections.singletonList( new ShapefileFolder( path, this, layer ) );
             }
+            // FIXME this check does not work
             catch (Exception e) {
                 log.info( "Layer has no feature source: " + layer.getLabel() );
             }

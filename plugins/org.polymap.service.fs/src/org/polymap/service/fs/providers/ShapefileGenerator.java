@@ -22,6 +22,9 @@ import java.util.Map;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
@@ -41,8 +44,6 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -66,13 +67,28 @@ class ShapefileGenerator {
     private static Log log = LogFactory.getLog( ShapefileGenerator.class );
 
     /** The file extensions generated with standard settings. */
-    public static final String[]        FILE_SUFFIXES = {"shp", "shx", "qix", "fix", "dbf", "prj"};
+    public static final String[]            FILE_SUFFIXES = {"shp", "shx", "qix", "fix", "dbf", "prj"};
 
-    public static final String          ORIG_FID_FIELD = "orig-fid"; 
-    public static final String          TIMESTAMP_FIELD = "timestamp";
+    public static final String              ORIG_FID_FIELD = "orig-fid"; 
+    public static final String              TIMESTAMP_FIELD = "timestamp";
+
+    private static final ThreadLocal<DateFormat>    formatters = new ThreadLocal();
     
-    public static final FastDateFormat  timestampFormat = DateFormatUtils.ISO_DATETIME_FORMAT;
     
+    /**
+     * Returns the timestamp formatter of teh current thread.
+     */
+    public static DateFormat timestampFormat() {
+        DateFormat formatter = formatters.get();
+        if (formatter == null) {
+            formatter = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
+            formatters.set( formatter );
+        }
+        return formatter;
+    }
+    
+    
+    // instance *******************************************
     
     private File                        newFile;
     
@@ -111,7 +127,7 @@ class ShapefileGenerator {
         
         // retyped collection
         final SimpleFeatureBuilder fb = new SimpleFeatureBuilder( shapeSchema );
-        final Date now = new Date();
+        final String timestamp = timestampFormat().format( new Date() );
         FeatureCollection<SimpleFeatureType,SimpleFeature> retyped = 
                 new RetypingFeatureCollection<SimpleFeatureType,SimpleFeature>( src, shapeSchema ) {
 
@@ -121,7 +137,10 @@ class ShapefileGenerator {
                             fb.set( attrType.getName(), value );
                         }
                         fb.set( ORIG_FID_FIELD, feature.getID() );
-                        fb.set( TIMESTAMP_FIELD, timestampFormat.format( now ) );
+                        // FIXME this should be the proper global timestamp from FeatureChangeTracker;
+                        // otherwise each and every re-generate of the shapfile causes (wrong) exceptions
+                        // on save; see ShapefileContainer for more info
+                        fb.set( TIMESTAMP_FIELD, timestamp );
                         return fb.buildFeature( feature.getID() );
                     }
         };

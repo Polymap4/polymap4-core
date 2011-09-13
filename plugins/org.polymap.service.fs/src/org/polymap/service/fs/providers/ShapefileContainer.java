@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
 
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureSource;
@@ -64,11 +66,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
 
-import org.polymap.core.data.GlobalFeatureChangeListener;
-import org.polymap.core.data.GlobalFeatureChangeManager;
-import org.polymap.core.data.GlobalFeatureEvent;
+import org.polymap.core.data.FeatureStoreListener;
+import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureStoreEvent;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.model.event.ModelChangeTracker.Updater;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.service.fs.spi.IContentSite;
@@ -80,7 +84,7 @@ import org.polymap.service.fs.spi.IContentSite;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class ShapefileContainer
-        implements GlobalFeatureChangeListener {
+        extends FeatureStoreListener {
     
     private static Log log = LogFactory.getLog( ShapefileContainer.class );
 
@@ -115,7 +119,7 @@ class ShapefileContainer
         try {
             this.layerFs = PipelineFeatureSource.forLayer( layer, true );
             
-            GlobalFeatureChangeManager.addFeatureListener( this );
+            FeatureChangeTracker.instance().addFeatureListener( this );
         }
         catch (Exception e) {
             throw new RuntimeException( e );
@@ -123,35 +127,32 @@ class ShapefileContainer
     }
 
 
-    public void featureChange( GlobalFeatureEvent ev ) {
+    public void featureChange( FeatureStoreEvent ev ) {
         log.info( "ev= " + ev );
-        if (ev.getSource() instanceof LayerFeatureBufferManager) {
-            LayerFeatureBufferManager bufferManager = (LayerFeatureBufferManager)ev.getSource();
-            if (layer.id().equals( bufferManager.getLayer().id() )) {
-                log.info( "flushing..." );
-                flush();
-            }
+        if (layer.id().equals( ev.getSource().id() )) {
+            log.info( "flushing..." );
+            flush();
         }
     }
 
 
     public void flush() {
-        if (file != null) {
-            try {
-                lock.writeLock().lock();
-             
+        try {
+            lock.writeLock().lock();
+
+            if (file != null) {
                 for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
                     File f = resolveFile( fileSuffix );
                     FileUtils.deleteQuietly( f );
                 }
                 file = null;
                 exception = null;
-            }
-            finally {
-                lock.writeLock().unlock();
+                lastModified = new Date();
             }
         }
-        lastModified = new Date();
+        finally {
+            lock.writeLock().unlock();
+        }
     }
     
 
@@ -239,6 +240,8 @@ class ShapefileContainer
             extends UIJob {
 
         private File        origDataDir;
+        
+        private DateFormat  timestampFormat = ShapefileGenerator.timestampFormat();
 
 
         public UpdateJob() 
@@ -265,6 +268,9 @@ class ShapefileContainer
         throws Exception {
             log.info( "UpdateJob: starting..." );
             lock.writeLock().lock();
+
+            final Updater updater = ModelChangeTracker.instance().newUpdater();
+
             try {
                 ShapefileDataStoreFactory shapeFactory = new ShapefileDataStoreFactory();
 
@@ -289,11 +295,14 @@ class ShapefileContainer
                 final List<SimpleFeature> added = new ArrayList();
                 final List<SimpleFeature[]> modified = new ArrayList();
                 final List<SimpleFeature> removed = new ArrayList();
-                
+
                 // find added, modified
                 final AtomicInteger newSize = new AtomicInteger( 0 );
                 modifiedFs.getFeatures().accepts( new FeatureVisitor() {
                     public void visit( Feature candidate ) {
+                        if (updateException != null) {
+                            return;
+                        }
                         newSize.incrementAndGet();
                         try {
                             Id fid = ff.id( Collections.singleton( candidate.getIdentifier() ) );
@@ -307,21 +316,41 @@ class ShapefileContainer
                                     && isFeatureModified( (SimpleFeature)candidate, (SimpleFeature)orig[0] )) {
                                 log.info( "   Feature has been modified: " + candidate.getIdentifier() );
                                 
-                                // check timestamps
-                                if (!isSameTimestamp( (SimpleFeature)candidate, (SimpleFeature)orig[0] )) {
-                                    updateException = new IllegalStateException( "Timestamps of features do not match." );
-                                    log.warn( updateException.getLocalizedMessage(), updateException );
-                                    return;
-                                }
+                                // FIXME check timestamps; this was done to find out if the features received from client
+                                // are based on the last created shapefile, otherwise we cannot figure what properties
+                                // the client has actually changed; however, see ShapefileGenerator for correct
+                                // creation of timestamps
+//                                if (!isSameTimestamp( (SimpleFeature)candidate, (SimpleFeature)orig[0] )) {
+//                                    throw new IllegalStateException( "Timestamps of features do not match." );
+//                                }
+                                
+                                // update feature timestamp (check concurrent modifications within this JVM)
+                                //ModelHandle key = FeatureChangeTracker.featureHandle( (Feature)orig[0] );
+                                String id = (String)((SimpleFeature)candidate).getAttribute( ShapefileGenerator.ORIG_FID_FIELD );
+                                String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + layerFs.getSchema().getName().getLocalPart();
+                                ModelHandle key = ModelHandle.instance( id, type );
+
+                                Long timestamp = timestamp( (SimpleFeature)candidate );
+                                updater.checkSet( key, timestamp, null );
+                                
                                 modified.add( new SimpleFeature[] { (SimpleFeature)candidate, (SimpleFeature)orig[0] } );
                             }
                         }
                         catch (IOException e) {
                             log.warn( "", e );
                         }
+                        catch (Exception e) {
+                            updateException = e;
+                            log.warn( updateException.getLocalizedMessage(), updateException );
+                        }
                     }
                 }, null );
 
+                // throw exception from FeaatureVisitor
+                if (updateException != null) {
+                    throw updateException;
+                }
+                
                 // find removed
                 FeatureCollection origFeatures = origFs.getFeatures();
                 // check only if necessary
@@ -390,6 +419,10 @@ class ShapefileContainer
                         layerFs.modifyFeatures( type, value, ff.id( Collections.singleton( ff.featureId( origFid ) ) ) );
                     }
                     tx.commit();
+                    
+                    // apply timestamp updates
+                    updater.apply( layer, true );
+                    
                     log.debug( "    Transaction committed." );
                 }
                 catch (Exception e) {
@@ -406,17 +439,25 @@ class ShapefileContainer
 //                buffer.prepareSave( null, new NullProgressMonitor() );
 //                buffer.save( null, new NullProgressMonitor() );
                 
-                // delete 'original' dir, if we get here without exception
-                log.debug( "    deleting: " + origDataDir.getAbsolutePath() );
-                FileUtils.deleteDirectory( origDataDir );
-                
-                // XXX force re-fetch
-//                flush();
             }
             finally {
-                updateJob = null;
+                if (updater != null) {
+                    updater.done();
+                }
+
+                // delete 'original' dir, even in case of exception; there is no other way
+                log.debug( "    deleting: " + origDataDir.getAbsolutePath() );
+                FileUtils.deleteDirectory( origDataDir );
+
+                // re-create shapefile in order to update timestamps; otherwise next concurrent
+                // modification check would fail; do this even on error so that client sees the
+                // 'actual' state of the features
+                flush();
+                
                 lock.writeLock().unlock();
+
                 log.info( "UpdateJob: done." );
+                updateJob = null;
             }
         }
         
@@ -453,14 +494,21 @@ class ShapefileContainer
     
         private boolean isSameTimestamp( SimpleFeature feature, SimpleFeature original ) {
             try {
-                String value1 = (String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
-                String value2 = (String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
+                Long value1 = timestamp( feature ); //(String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
+                Long value2 = timestamp( original );  //(String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
                 return value1 != null && value2 != null && value1.equals( value2 );
             }
             catch (Exception e) {
                 log.debug( "Exception while checking timestamps: " + e, e );
                 return false;
             }
+        }
+
+        
+        private Long timestamp( SimpleFeature feature )
+        throws ParseException {
+            String value = (String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
+            return value != null ? ((Date)timestampFormat.parseObject( value )).getTime() : null;
         }
     }
     

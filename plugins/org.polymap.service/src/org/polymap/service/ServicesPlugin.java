@@ -22,9 +22,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.CorePlugin;
-import org.polymap.core.model.event.GlobalModelChangeEvent;
-import org.polymap.core.model.event.GlobalModelChangeListener;
-import org.polymap.core.model.event.GlobalModelChangeEvent.EventType;
+import org.polymap.core.model.event.ModelStoreEvent;
+import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.runtime.DefaultSessionContext;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
@@ -89,7 +89,7 @@ public class ServicesPlugin
     
     private ServiceRepository       repo;
     
-    private GlobalModelChangeListener modelChangeListener;
+    private IModelStoreListener modelChangeListener;
     
     /** The base URL on the local machine (without proxy). */
     private String                  localBaseUrl;
@@ -225,8 +225,8 @@ public class ServicesPlugin
             }
             
             // listen to global change events of the maps
-            modelChangeListener = new GlobalModelChangeListener() {
-                public void modelChanged( GlobalModelChangeEvent ev ) {
+            modelChangeListener = new IModelStoreListener() {
+                public void modelChanged( ModelStoreEvent ev ) {
                     // XXX avoid restart on *every* global entity event
                     log.debug( "Global entity event: source= " + ev.getSource() );
                     if (ev.getEventType() == EventType.COMMIT
@@ -238,7 +238,7 @@ public class ServicesPlugin
                     return true;
                 }
             };
-            repo.addGlobalModelChangeListener( modelChangeListener );
+            repo.addModelStoreListener( modelChangeListener );
 
             // listen to preference changes
             final ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), getBundle().getSymbolicName() );
