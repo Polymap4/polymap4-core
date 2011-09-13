@@ -15,7 +15,7 @@
  */
 package org.polymap.core.model.event;
 
-import java.beans.PropertyChangeEvent;
+import java.util.EventObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,7 +28,7 @@ import org.apache.commons.logging.LogFactory;
  * @since 3.1
  */
 public class SourceClassPropertyEventFilter
-        implements PropertyEventFilter {
+        implements IEventFilter {
 
     private static Log log = LogFactory.getLog( SourceClassPropertyEventFilter.class );
 
@@ -39,7 +39,7 @@ public class SourceClassPropertyEventFilter
         this.allowed = allowed;
     }
 
-    public boolean accept( PropertyChangeEvent ev ) {
+    public boolean accept( EventObject ev ) {
         Class<? extends Object> sourceClass = ev.getSource().getClass();
         for (Class cl : allowed) {
             if (!cl.isAssignableFrom( sourceClass )) {

@@ -41,7 +41,8 @@ import org.eclipse.core.runtime.Status;
 //import org.polymap.core.model.EntityType.Property;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.ModelEventManager;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.qi4j.QiModule;
 
 /**
@@ -130,8 +131,8 @@ public abstract class AbstractModelChangeOperation
             List<StoredPropertyChangeEvent> revertEvents = revert();
 
             // fire ModelChangeEvent
-            ModelChangeTracker tracker = ModelChangeTracker.instance();
-            tracker.fireModelChangeEvent( new ModelChangeEvent( this, revertEvents ) );
+            ModelEventManager manager = ModelEventManager.instance();
+            manager.fireModelChangeEvent( new ModelChangeEvent( this, revertEvents ) );
 
             return Status.OK_STATUS;
         }
@@ -162,16 +163,16 @@ public abstract class AbstractModelChangeOperation
 
     
     protected void start() {
-        ModelChangeTracker.instance().addPropertyChangeListener( this, PropertyEventFilter.ALL );
+        ModelEventManager.instance().addPropertyChangeListener( this, IEventFilter.ALL );
     }
 
     
     protected void end( boolean fireEvent ) {
-        ModelChangeTracker tracker = ModelChangeTracker.instance();
-        if (!tracker.removePropertyChangeListener( this )) {
+        ModelEventManager manager = ModelEventManager.instance();
+        if (!manager.removePropertyChangeListener( this )) {
             throw new IllegalStateException( "Unable to remove property change listener" );
         }
-        tracker.fireModelChangeEvent( new ModelChangeEvent( this, events ) );
+        manager.fireModelChangeEvent( new ModelChangeEvent( this, events ) );
     }
     
     

@@ -15,9 +15,8 @@
  */
 package org.polymap.core.model.event;
 
+import java.util.EventObject;
 import java.util.regex.Pattern;
-
-import java.beans.PropertyChangeEvent;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
  * @since 3.1
  */
 public class RegexPropertyEventFilter
-        implements PropertyEventFilter {
+        implements IEventFilter {
 
     private static Log log = LogFactory.getLog( RegexPropertyEventFilter.class );
 
@@ -46,7 +45,7 @@ public class RegexPropertyEventFilter
         this.pattern = Pattern.compile( pattern, flags );
     }
 
-    public boolean accept( PropertyChangeEvent ev ) {
+    public boolean accept( EventObject ev ) {
         Object source = ev.getSource();
         return pattern.matcher( source.getClass().getName() ).matches();
     }

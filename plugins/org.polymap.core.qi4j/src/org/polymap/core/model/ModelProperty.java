@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.model;
 
 import java.lang.annotation.Documented;
@@ -36,8 +27,11 @@ import org.polymap.core.qi4j.event.PropertyChangeSupport;
  * This annotion marks methods that change the persistent state of the entity. A
  * {@link PropertyChangeEvent} is fired when such a method has been called. A
  * {@link ModelChangeEvent} is fired when the enclosing operation is finished.
+ * <p/>
+ * For normal operation {@link PropertyChangeSupport} fires events automatically when
+ * a property of an entity changes. This annotation allows to explicitly fire event
+ * for a particular method.
  * 
- * @deprecated Use {@link PropertyChangeSupport} instead.
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */

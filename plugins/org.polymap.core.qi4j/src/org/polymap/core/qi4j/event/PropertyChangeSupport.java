@@ -43,6 +43,7 @@ import org.qi4j.runtime.entity.EntityInstance;
 
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
+import org.polymap.core.model.event.ModelEventManager;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.QiModule;
@@ -62,8 +63,6 @@ public interface PropertyChangeSupport
     
     public static final String              PROP_ENTITY_CREATED = "_entity_created_";
     public static final String              PROP_ENTITY_REMOVED = "_entity_removed_";
-    
-    static final ListenerList<PropertyChangeListener> globalListeners = new ListenerList();
     
     
     public void addPropertyChangeListener( PropertyChangeListener l );
@@ -134,15 +133,9 @@ public interface PropertyChangeSupport
                     ? new StoredPropertyChangeEvent( composite, name.name(), oldValue, newValue, propOrAssoc )
                     : new PropertyChangeEvent( composite, name.name(), oldValue, newValue );
 
-            if (globalListeners != null) {
-                for (PropertyChangeListener listener : globalListeners) {
-                    try {
-                        listener.propertyChange( ev );
-                    }
-                    catch (Throwable e) {
-                        PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, listener, "Error while changing object: " + composite, e );
-                    }
-                }
+            ModelEventManager instance = ModelEventManager.instance();
+            if (instance != null) {
+                instance.firePropertyChangeEvent( ev );
             }
 
             if (listeners != null) {

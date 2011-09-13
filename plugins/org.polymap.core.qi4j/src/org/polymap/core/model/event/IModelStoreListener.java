@@ -7,7 +7,7 @@ import org.polymap.core.model.Module;
 /**
  * 
  */
-public interface GlobalModelChangeListener
+public interface IModelStoreListener
         extends EventListener {
 
     /**
@@ -27,5 +27,5 @@ public interface GlobalModelChangeListener
      * This method must never block and return quickly. Implementations have to be thread save
      * and aware of reentrance of the method. 
      */
-    public void modelChanged( GlobalModelChangeEvent ev );
+    public void modelChanged( ModelStoreEvent ev );
 }

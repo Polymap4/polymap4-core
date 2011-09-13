@@ -20,7 +20,6 @@
  *
  * $Id$
  */
-
 package org.polymap.core.model.event;
 
 import java.util.EventListener;
@@ -29,10 +28,9 @@ import java.util.EventListener;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public interface ModelChangeListener
+public interface IModelChangeListener
         extends EventListener {
 
     public void modelChanged( ModelChangeEvent ev );

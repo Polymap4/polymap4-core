@@ -1,17 +1,3 @@
-/*
- * Copyright (c) 2008, Rickard Öberg. All Rights Reserved.
- * Copyright (c) 2008, Falko Bräutigam. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
 package org.polymap.core.qi4j.entitystore;
 
 import java.util.ArrayList;
@@ -37,21 +23,18 @@ import org.qi4j.spi.entitystore.EntityStoreUnitOfWork;
 import org.qi4j.spi.entitystore.StateCommitter;
 
 import org.polymap.core.model.Entity;
-import org.polymap.core.qi4j.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelHandle;
 
 /**
  * Concern that helps EntityStores to track entity modifications together with
- * {@link GlobalEntityVersions}.
- * <p/>
- * It caches the versions of state that it loads, and forgets them when the
- * state is committed. For normal operation this means that it does not have to
- * go down to the underlying store to get the current version. Whenever there is
- * a concurrent modification the store will most likely have to check with the
- * underlying store what the current version is.
+ * {@link GlobalModelChangeTracker}.
  * <p/>
  * This implementation does never go to the underlying store. It holds all
  * versions of every entity that was saved for the livetime of this store
  * (probably JVM run).
+ * 
+ * @deprecated Now handled by {@link GlobalModelChangeTracker}.
  */
 public abstract class ModificationTrackConcern
         extends ConcernOf<EntityStore>
@@ -147,8 +130,9 @@ public abstract class ModificationTrackConcern
                         // check concurrent change
                         Long entityLastModified = entityLastModified( entityState );
 
-                        boolean valid = tracker.isConcurrentlyCommitted( entityState.identity().identity(),
-                                entityState.entityDescriptor().type(), entityLastModified );
+                        ModelHandle handle = ModelHandle.instance( entityState.identity().identity(),
+                                entityState.entityDescriptor().type().getName() );
+                        boolean valid = tracker.isConflicting( handle, entityLastModified );
                         
                         if (!valid) {
                             log.debug( "CHANGED: " + entityState.identity() 

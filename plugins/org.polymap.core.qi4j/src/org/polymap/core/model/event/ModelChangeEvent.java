@@ -28,8 +28,6 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.qi4j.event.StoredPropertyChangeEvent;
-
 /**
  * Collection of {@link PropertyChangeEvent}s collected while execution of an
  * operation.
@@ -54,7 +52,7 @@ public class ModelChangeEvent
         super( source );
     }
 
-    public ModelChangeEvent( Object source, List<StoredPropertyChangeEvent> events ) {
+    public ModelChangeEvent( Object source, List<? extends PropertyChangeEvent> events ) {
         super( source );
         this.events = new ArrayList( events );
     }
@@ -67,7 +65,7 @@ public class ModelChangeEvent
         return events;
     }
 
-    public Iterable<PropertyChangeEvent> events( final PropertyEventFilter f ) {
+    public Iterable<PropertyChangeEvent> events( final IEventFilter f ) {
         return new Iterable<PropertyChangeEvent>() {
             
             public Iterator<PropertyChangeEvent> iterator() {

@@ -48,7 +48,7 @@ import org.qi4j.api.property.Property;
 
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
+import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
@@ -87,7 +87,7 @@ public interface ACL
      * The mixin.
      */
     abstract static class Mixin
-            implements ACL, ModelChangeListener {
+            implements ACL, IModelChangeListener {
 
         private Acl                     acl;
         
@@ -129,7 +129,7 @@ public interface ACL
 //                if (Polymap.getSessionDisplay() != null) {
 //                    final QiModule module = Qi4jPlugin.Session.instance().resolveModule( entity );
 //                    if (module != null) {
-//                        module.addModelChangeListener( new ModelChangeListener() {
+//                        module.addModelChangeListener( new IModelChangeListener() {
 //                        });
 //                    }
 //                }

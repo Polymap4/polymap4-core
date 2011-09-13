@@ -15,14 +15,14 @@
  */
 package org.polymap.core.qi4j.event;
 
-import java.beans.PropertyChangeEvent;
+import java.util.EventObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.QiModule;
 
@@ -33,7 +33,7 @@ import org.polymap.core.qi4j.QiModule;
  * @since 3.1
  */
 public class ModulePropertyEventFilter
-        implements PropertyEventFilter {
+        implements IEventFilter {
 
     private static Log log = LogFactory.getLog( ModulePropertyEventFilter.class );
 
@@ -44,7 +44,7 @@ public class ModulePropertyEventFilter
         this.module = module;
     }
 
-    public boolean accept( PropertyChangeEvent ev ) {
+    public boolean accept( EventObject ev ) {
         QiEntity entity = (QiEntity)ev.getSource();
         try {
             module.findEntity( entity.getCompositeType(), entity.id() );

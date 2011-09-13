@@ -15,6 +15,9 @@
  */
 package org.polymap.core.qi4j.event;
 
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelHandle;
+
 /**
  * Uniform API to access the modification status of an entity.
  * 
@@ -32,20 +35,34 @@ public class EntityChangeStatus {
     
     private ModelChangeSupport      entity;
     
+    
     protected EntityChangeStatus( ModelChangeSupport entity ) {
         this.entity = entity;
     }
 
-    public boolean isLocallyChanged() {
+    /**
+     * True if this entity has uncommited changes in the local session.
+     */
+    public boolean isDirty() {
         return entity.isDirty();
     }
     
-    public boolean isGloballyChanged() {
-        return ModelChangeTracker.instance().isConcurrentlyChanged( entity );            
+    
+    public boolean isConcurrentlyDirty() {
+        ModelHandle key = ModelHandle.instance( entity.id(), entity.getEntityType().getName() );
+        return ModelChangeTracker.instance().isConcurrentlyTracked( key );            
     }
     
-    public boolean isGloballyCommitted() {
-        return ModelChangeTracker.instance().isConcurrentlyCommitted( entity );
+    
+    public boolean isConflicting() {
+        ModelHandle key = ModelHandle.instance( entity.id(), entity.getEntityType().getName() );
+        Long timestamp = entity._lastModified().get();
+        
+        if (timestamp == null) {
+            return false;
+        }
+        
+        return ModelChangeTracker.instance().isConflicting( key, timestamp );            
     }
 
 }

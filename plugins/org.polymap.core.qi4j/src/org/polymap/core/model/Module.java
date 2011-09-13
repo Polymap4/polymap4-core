@@ -22,10 +22,10 @@ import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 
 import org.eclipse.core.runtime.jobs.Job;
 
-import org.polymap.core.model.event.GlobalModelChangeListener;
+import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeListener;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.IEventFilter;
 
 /**
  * Provides the API of one module of the domain model. A {@link Module} instance
@@ -70,7 +70,7 @@ public interface Module {
      * <p/>
      * The listener receives events from entities of the module only.
      */
-    public void addPropertyChangeListener( PropertyChangeListener l, PropertyEventFilter f );
+    public void addPropertyChangeListener( PropertyChangeListener l, IEventFilter f );
 
     public void removePropertyChangeListener( PropertyChangeListener l );
 
@@ -85,9 +85,9 @@ public interface Module {
      * delivers all the {@link PropertyChangeEvent}s that has been fired during
      * operation.
      */
-    public void addModelChangeListener( ModelChangeListener l, PropertyEventFilter f );
+    public void addModelChangeListener( IModelChangeListener l, IEventFilter f );
     
-    public void removeModelChangeListener( ModelChangeListener l );
+    public void removeModelChangeListener( IModelChangeListener l );
 
 
     /**
@@ -99,8 +99,8 @@ public interface Module {
      * The listener is probably called from a {@link Job}. So proper
      * synchronization with the UI has to be done.
      */
-    public void addGlobalModelChangeListener( GlobalModelChangeListener l );
+    public void addModelStoreListener( IModelStoreListener l );
 
-    public void removeGlobalModelChangeListener( GlobalModelChangeListener l );
+    public void removeModelStoreListener( IModelStoreListener l );
 
 }

@@ -15,7 +15,8 @@
  */
 package org.polymap.core.qi4j;
 
-import java.beans.PropertyChangeEvent;
+import java.util.EventObject;
+
 import java.beans.PropertyChangeListener;
 
 import org.apache.commons.logging.Log;
@@ -41,15 +42,16 @@ import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.model.Module;
-import org.polymap.core.model.event.GlobalModelChangeListener;
-import org.polymap.core.model.event.ModelChangeListener;
-import org.polymap.core.model.event.PropertyEventFilter;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelEventManager;
+import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.qi4j.event.ModelChangeTracker;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
@@ -103,10 +105,10 @@ public abstract class QiModule
         }
     }
 
-    public void addPropertyChangeListener( final PropertyChangeListener l, final PropertyEventFilter f ) {
-        ModelChangeTracker.instance().addPropertyChangeListener( l,
-            new PropertyEventFilter() {
-                public boolean accept( PropertyChangeEvent ev ) {
+    public void addPropertyChangeListener( final PropertyChangeListener l, final IEventFilter f ) {
+        ModelEventManager.instance().addPropertyChangeListener( l,
+            new IEventFilter() {
+                public boolean accept( EventObject ev ) {
                     QiEntity entity = (QiEntity)ev.getSource();
                     try {
                         // check if entity is part of this module
@@ -121,7 +123,7 @@ public abstract class QiModule
     }
 
     public void removePropertyChangeListener( PropertyChangeListener l ) {
-        ModelChangeTracker.instance().removePropertyChangeListener( l );
+        ModelEventManager.instance().removePropertyChangeListener( l );
     }
 
     public void commitChanges()
@@ -182,56 +184,41 @@ public abstract class QiModule
 
     // events ***
 
-    public void addGlobalModelChangeListener( GlobalModelChangeListener l ) {
-        ModelChangeTracker.addGlobalModelChangeListener( l );
+    public void addModelStoreListener( IModelStoreListener l ) {
+        ModelChangeTracker.instance().addListener( l );
     }
 
-    public void removeGlobalModelChangeListener( GlobalModelChangeListener l ) {
-        ModelChangeTracker.removeGlobalModelChangeListener( l );
+    public void removeModelStoreListener( IModelStoreListener l ) {
+        ModelChangeTracker.instance().removeListener( l );
     }
 
-    public void addModelChangeListener( ModelChangeListener l, final PropertyEventFilter f ) {
-        ModelChangeTracker.instance().addModelChangeListener( l,
-            new PropertyEventFilter() {
-                public boolean accept( PropertyChangeEvent ev ) {
-                    QiEntity entity = (QiEntity)ev.getSource();
-                    try {
-                        // check if entity is part of this module
-                        findEntity( entity.getCompositeType(), entity.id() );
-                        return f.accept( ev );
+    public void addModelChangeListener( IModelChangeListener l, final IEventFilter f ) {
+        ModelEventManager.instance().addModelChangeListener( l,
+            new IEventFilter() {
+                public boolean accept( EventObject ev ) {
+                    if (ev.getSource() instanceof QiEntity) {
+                        QiEntity entity = (QiEntity)ev.getSource();
+                        try {
+                            // check if entity is part of this module
+                            findEntity( entity.getCompositeType(), entity.id() );
+                            return f.accept( ev );
+                        }
+                        catch (UnitOfWorkException e) {
+                            return false;
+                        }
                     }
-                    catch (UnitOfWorkException e) {
-                        return false;
-                    }
+                    return false;
                 }
             });
     }
 
-    public void removeModelChangeListener( ModelChangeListener l ) {
-        ModelChangeTracker.instance().removeModelChangeListener( l );
+    public void removeModelChangeListener( IModelChangeListener l ) {
+        ModelEventManager.instance().removeModelChangeListener( l );
     }
 
     protected boolean appliesTo( org.qi4j.api.structure.Module rhs ) {
         return assembler.getModule().equals( rhs );
     }
-
-//    /**
-//     * @deprecated Use {@link ModelChangeTracker} instead.
-//     */
-//    public synchronized void startOperation() {
-//        ModelChangeTracker.instance().startOperation();
-//    }
-//
-//    public synchronized void endOperation( boolean fireEvents ) {
-//        ModelChangeTracker.instance().endOperation();
-//    }
-//
-//    /**
-//     * @deprecated Use {@link ModelChangeTracker} instead.
-//     */
-//    public boolean hasOperation() {
-//        return ModelChangeTracker.instance().hasOperation();
-//    }
 
 
     // factory methods ***

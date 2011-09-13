@@ -15,7 +15,7 @@
  */
 package org.polymap.core.model.event;
 
-import java.beans.PropertyChangeEvent;
+import java.util.EventObject;
 
 /**
  * 
@@ -23,13 +23,13 @@ import java.beans.PropertyChangeEvent;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
-public interface PropertyEventFilter {
+public interface IEventFilter<T extends EventObject> {
     
     /**
      * 
      */
-    public static PropertyEventFilter ALL = new PropertyEventFilter() {
-        public boolean accept( PropertyChangeEvent ev ) {
+    public static IEventFilter ALL = new IEventFilter() {
+        public boolean accept( EventObject ev ) {
             return true;
         }
     };
@@ -38,17 +38,17 @@ public interface PropertyEventFilter {
      * Checks if <b>all</b> the given filters accept an event. 
      */
     public class And
-            implements PropertyEventFilter {
+            implements IEventFilter {
         
-        PropertyEventFilter[]   children;
+        IEventFilter[]   children;
         
-        public And( PropertyEventFilter... children ) {
+        public And( IEventFilter... children ) {
             assert children != null;
             this.children = children;
         }
 
-        public boolean accept( PropertyChangeEvent ev ) {
-            for (PropertyEventFilter filter : children) {
+        public boolean accept( EventObject ev ) {
+            for (IEventFilter filter : children) {
                 if (filter.accept( ev ) == false) {
                     return false;
                 }
@@ -61,6 +61,6 @@ public interface PropertyEventFilter {
     
     // interface ******************************************
     
-    boolean accept( PropertyChangeEvent ev );
+    boolean accept( T ev );
 
 }

@@ -15,9 +15,7 @@
  */
 package org.polymap.core.qi4j.event;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,17 +32,28 @@ import org.qi4j.spi.entity.EntityState;
 import org.qi4j.spi.entity.EntityStatus;
 import org.qi4j.spi.entitystore.ConcurrentEntityStateModificationException;
 
-import org.polymap.core.model.Entity;
+import org.polymap.core.model.ConcurrentModificationException;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelEventManager;
+import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.model.event.IModelHandleable;
+import org.polymap.core.model.event.ModelChangeTracker.Updater;
+import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.runtime.Polymap;
 
 /**
+ * ...
+ * <p/>
+ * Implements {@link UnitOfWorkCallback}. This seems to be the only way in Qi4j to
+ * get informed about commit/rollback in the client code.
  * 
- *
+ * @see ModelChangeTracker
+ * @see ModelEventManager
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
 public interface ModelChangeSupport
-        extends EntityComposite, Entity, UnitOfWorkCallback {
+        extends IModelHandleable, EntityComposite, QiEntity, UnitOfWorkCallback {
 
     static final Log log = LogFactory.getLog( ModelChangeSupport.class );
 
@@ -68,11 +77,21 @@ public interface ModelChangeSupport
     abstract static class Mixin
             implements ModelChangeSupport {
 
+        private static ThreadLocal<Updater> threadUpdater = new ThreadLocal();
+        
         @This 
         private ModelChangeSupport          composite;
         
-        private static ThreadLocal<List<ModelChangeSupport>> updated = new ThreadLocal();
-    
+        private ModelHandle                 handle;
+        
+        
+        public ModelHandle handle() {
+            if (handle == null) {
+                handle = ModelHandle.instance( id(), getEntityType().getName() );
+            }
+            return handle;
+        }
+        
         
         public boolean isDirty() {
             // avoid the injected reference to save memory
@@ -98,19 +117,30 @@ public interface ModelChangeSupport
                 case REMOVED: {
                     log.info( "UOW -- beforeCompletion(): updated/removed id=" + id() );
 
-                    List<ModelChangeSupport> updatedEntities = updated.get();
-                    if (updatedEntities == null) {
-                        updatedEntities = new ArrayList( 128 );
+                    Updater updater = threadUpdater.get();
+                    if (updater == null) {
+                        updater = ModelChangeTracker.instance().newUpdater();
+                        threadUpdater.set( updater );
                     }
-                    updatedEntities.add( composite );
-                    
-                    // check concurrent modification
-                    if (ModelChangeTracker.instance().isConcurrentlyCommitted( composite )) {
+
+                    Long set = System.currentTimeMillis();
+                    try {
+                        ModelHandle key = ModelHandle.instance( 
+                                composite.id(), composite.getEntityType().getName() );
+                        Long timestamp = composite._lastModified().get();
+                        updater.checkSet( key, timestamp, set );
+                    }
+                    catch (ConcurrentModificationException e) {
+                        // afterCompletion() might not be called after the exception
+                        updater.done();
+                        threadUpdater.set( null );
+                        
                         throw new ConcurrentEntityStateModificationException(
                                 Collections.singletonList( EntityReference.getEntityReference( composite ) ) );
                     }
+
                     // update lastModified
-                    _lastModified().set( System.currentTimeMillis() );
+                    _lastModified().set( set );
                     _lastModifiedBy().set( Polymap.instance().getUser().getName() );
                 }
             }
@@ -118,20 +148,21 @@ public interface ModelChangeSupport
 
         
         public void afterCompletion( UnitOfWorkStatus status ) {
-            List<ModelChangeSupport> updatedEntities = updated.get();
-            log.info( "UOW -- afterCompletion(): updatedEntities= " + updatedEntities != null ? updatedEntities.size() : "null" );
+            Updater updater = threadUpdater.get();
 
-            if (updatedEntities != null) {
-                updated.set( null );
-                
+            if (updater != null) {
+                threadUpdater.set( null );
+                log.info( "UOW -- afterCompletion(): updater.size(): " + updater.size() );
+
                 // completed
                 if (status == UnitOfWorkStatus.COMPLETED) {
-                    ModelChangeTracker.instance().updateVersions( updatedEntities );
+                    updater.apply( updater, false );
                 }
                 // discarded
                 else {
                     // restore lastModified properties?
                 }
+                updater.done();
             }
         }
         
