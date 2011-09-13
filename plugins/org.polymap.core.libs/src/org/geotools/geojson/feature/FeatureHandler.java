@@ -204,10 +204,13 @@ public class FeatureHandler extends DelegatingHandler<SimpleFeature> {
             Object valu = values.get(i);
             typeBuilder.add(prop, valu != null ? valu.getClass() : Object.class);
         }
-        if (geometry != null) {
+        
+        // FIXME: falko: OpenLayers send properties first and then Geometry; this leads to no geometry
+        // in the feature with the default code.
+//        if (geometry != null) {
             typeBuilder.add("geometry", geometry != null ? geometry.getClass() : Geometry.class);
             typeBuilder.setDefaultGeometry("geometry");    
-        }
+//        }
         
         return new SimpleFeatureBuilder(typeBuilder.buildFeatureType());
     }
@@ -216,7 +219,7 @@ public class FeatureHandler extends DelegatingHandler<SimpleFeature> {
       
         SimpleFeatureType featureType = builder.getFeatureType();
         if (geometry != null) {
-            builder.set(featureType.getGeometryDescriptor().getLocalName(), geometry);    
+            builder.set(featureType.getGeometryDescriptor().getLocalName(), geometry);
         }
         
         return builder.buildFeature(id);
