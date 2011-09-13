@@ -212,21 +212,28 @@ public abstract class UIJob
      *         calling thread was interrupted.
      */
     public boolean joinAndDispatch( long timeoutMillis ) {
-        Display threadDisplay = Display.getCurrent();
-//        assert threadDisplay != null : "joinWithDispatch() must be called from UIThread.";
-//        assert threadDisplay == display;
 
-        final AtomicBoolean done = new AtomicBoolean( false );
+        final AtomicBoolean done = new AtomicBoolean( 
+                getState() == Job.NONE );
 
-        addJobChangeListener( new JobChangeAdapter() {
+        IJobChangeListener jobListener = new JobChangeAdapter() {
             public void done( IJobChangeEvent event ) {
                 synchronized (done) {
                     done.set( true );
                     done.notify();
                 }
             }
-        });
+        };
+        addJobChangeListener( jobListener );
 
+        // check if job is done already - after the listener has been
+        // registered; this avoids race cond. between the two
+        if (getState() == Job.NONE) {
+            removeJobChangeListener( jobListener );
+            return true;
+        }
+
+        Display threadDisplay = Display.getCurrent();
         final Timer timer = new Timer();
         while (!done.get() 
                 && timer.elapsedTime() < timeoutMillis
@@ -255,6 +262,7 @@ public abstract class UIJob
                 }
             }
         }
+        removeJobChangeListener( jobListener );
         return done.get();
     }
 

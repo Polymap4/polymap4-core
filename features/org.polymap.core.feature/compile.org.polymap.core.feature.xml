@@ -34,7 +34,6 @@
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.mapeditor" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.rhei" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.rhei.data" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap3-biotop/plugins/org.polymap.biotop" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.styler" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.catalog.geotiff_p3" target="build.jars"/>
 	</target>

@@ -153,6 +153,10 @@ public class ListenerList<T>
     }
 
 
+    public int size() {
+       return list.length;    
+    }
+    
     public void clear() {
         list = (T[])EMPTY;
     }
