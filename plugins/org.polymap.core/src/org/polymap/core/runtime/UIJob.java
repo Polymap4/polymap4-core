@@ -161,14 +161,6 @@ public abstract class UIJob
         };
         sessionContext.execute( runnable );
         
-//        if (display != null) {
-//            // give the runnable to correct session context
-//            UICallBack.runNonUIThreadWithFakeContext( display, runnable );
-//            
-//        }
-//        else {
-//            runnable.run();
-//        }
         return resultStatus;
     }
 
@@ -270,6 +262,7 @@ public abstract class UIJob
     public final void addJobChangeListenerWithContext( final IJobChangeListener listener ) {
         super.addJobChangeListener( new IJobChangeListener() {
             
+            // XXX use sessionContext instead of UICallBack
             public void sleeping( final IJobChangeEvent event ) {
                 UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
                     public void run() {

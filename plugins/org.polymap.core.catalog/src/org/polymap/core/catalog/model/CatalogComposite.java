@@ -67,15 +67,19 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
 import org.polymap.core.runtime.Polymap;
 
 /**
+ * ... 
+ * <p/>
+ * Previous version needed {@link MethodOperationBoundsConcern} to wrap every method
+ * call in a single operation the meet the requirements of the operation system. This
+ * is obsolet now. The downside is that just importing a new data source into the catalog
+ * is no oparation: no undo/redo, no save. 
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
 @Concerns({
         ACLCheckConcern.class, 
         ACLFilterConcern.class,
-        MethodOperationBoundsConcern.class,
         PropertyChangeSupport.Concern.class
 })
 @Mixins({
@@ -140,6 +144,7 @@ public interface CatalogComposite
     public static abstract class Mixin
             implements CatalogComposite {
         
+        @SuppressWarnings("hiding")
         private static Log log = LogFactory.getLog( Mixin.class );
 
         @This CatalogComposite          composite;

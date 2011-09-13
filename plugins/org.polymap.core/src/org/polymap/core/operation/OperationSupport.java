@@ -187,15 +187,33 @@ public class OperationSupport
      */
     public void execute( final IUndoableOperation op, boolean async, boolean progress, IJobChangeListener... listeners )
     throws ExecutionException {
-        UIJob job = UIJob.forThread();
+        OperationJob job = new OperationJob( op ) {
+            protected void run() throws Exception {
+                // try to preset task name without beginTask()
+                monitor.setTaskName( op.getLabel() );
+                
+                OperationExecutor executor = OperationExecutor.newInstance( op );
+                IUndoableOperation executorOp = executor.getOperation();
+                executorOp.addContext( context );
+                
+                history.execute( executorOp, monitor, executor.getInfo() );
+            }
+        };
+        for (IJobChangeListener l : listeners) {
+            job.addJobChangeListenerWithContext( l );
+        }
+
+        // check nested
+        UIJob parent = UIJob.forThread();
         
-        // nested operation
-        if (job != null && job instanceof OperationJob) {
-            throw new RuntimeException( "Nested operations are not yet supported." );
-//            IUndoableOperation parentOp = ((OperationJob)job).op;
+        if (parent != null && parent instanceof OperationJob) {
+            log.info( "Nested operation: " + op );
+            run( job, true, progress );
+
+//            IUndoableOperation parentOp = ((OperationJob)parent).op;
 //            
-//            SubProgressMonitor subMonitor = new SubProgressMonitor( ((OperationJob)job).monitor, IProgressMonitor.UNKNOWN );
-//            subMonitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+//            SubProgressMonitor subMonitor = new SubProgressMonitor( 
+//                    UIJob.monitorForThread(), IProgressMonitor.UNKNOWN, parentOp.getLabel() );
 //            
 //            OperationExecutor executor = OperationExecutor.newInstance( op );
 //            IUndoableOperation executorOp = executor.getOperation();
@@ -206,22 +224,7 @@ public class OperationSupport
         
         // start job
         else {
-            job = new OperationJob( op ) {
-                protected void run() throws Exception {
-                    // try to preset task name without beginTask()
-                    monitor.setTaskName( op.getLabel() );
-                    
-                    OperationExecutor executor = OperationExecutor.newInstance( op );
-                    IUndoableOperation executorOp = executor.getOperation();
-                    executorOp.addContext( context );
-                    
-                    history.execute( executorOp, monitor, executor.getInfo() );
-                }
-            };
-            for (IJobChangeListener l : listeners) {
-                job.addJobChangeListenerWithContext( l );
-            }
-            run( (OperationJob)job, async, progress );
+            run( job, async, progress );
         }
     }
 

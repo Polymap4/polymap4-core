@@ -128,6 +128,8 @@ public interface ModelChangeSupport
                         ModelHandle key = ModelHandle.instance( 
                                 composite.id(), composite.getEntityType().getName() );
                         Long timestamp = composite._lastModified().get();
+                        // newly created entities might not have an timestamp
+                        timestamp = timestamp != null ? timestamp : set;
                         updater.checkSet( key, timestamp, set );
                     }
                     catch (ConcurrentModificationException e) {
@@ -137,6 +139,13 @@ public interface ModelChangeSupport
                         
                         throw new ConcurrentEntityStateModificationException(
                                 Collections.singletonList( EntityReference.getEntityReference( composite ) ) );
+                    }
+                    catch (RuntimeException e) {
+                        // afterCompletion() might not be called after the exception
+                        updater.done();
+                        threadUpdater.set( null );
+                        
+                        throw e;
                     }
 
                     // update lastModified

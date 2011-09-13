@@ -151,7 +151,7 @@ public class ModelChangeTracker
             }
 
             Long storedTs = stored.get( key );
-            log.info( "key= " + key + ", timestamp= " + check );
+            log.debug( "key= " + key + ", timestamp= " + check );
             
             log.debug( "CHECK: " + check + " -- " + storedTs );
             return storedTs != null  
@@ -227,7 +227,7 @@ public class ModelChangeTracker
          */
         public void checkSet( ModelHandle key, Long check, Long set )
         throws ConcurrentModificationException {
-            log.info( "check(): key= " + key /*+ ", timestamp= " + entry.getValue()*/ );
+            log.debug( "check(): key= " + key /*+ ", timestamp= " + entry.getValue()*/ );
             
             check = check != null ? check : tracked.get( key );
             if (check == null) {
