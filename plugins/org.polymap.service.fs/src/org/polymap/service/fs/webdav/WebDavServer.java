@@ -166,12 +166,12 @@ public class WebDavServer
      * @param user
      * @return The specified user.
      */
-    public static Principal createNewSession( Principal user ) {
+    public static Principal createNewSession( final Principal user ) {
         HttpServletRequest req = com.bradmcevoy.http.ServletRequest.getRequest();
         final HttpSession session = req.getSession();
   
-        // HTTP session timeout: 3h
-        session.setMaxInactiveInterval( 3*60*60 );
+        // HTTP session timeout: 30min
+        session.setMaxInactiveInterval( 30*60 );
         
         final SessionContext sessionContext = SessionContext.current();
         
@@ -192,11 +192,15 @@ public class WebDavServer
             public void valueBound( HttpSessionBindingEvent ev ) {
             }
             public void valueUnbound( HttpSessionBindingEvent ev ) {
+                //
                 FsPlugin.getDefault().sessionContextProvider.destroyContext(
                         sessionContext.getSessionKey() );
+                //
+                ContentManager.releaseSession( user.getName() );
+                log.info( "HTTP Session destroyed: " + session.getId() + ", user: " + user );
             }
         });
-        log.info( "New session: " + session.getId() + ", user: " + user );
+        log.info( "New HTTP session: " + session.getId() + ", user: " + user );
         return user;
     }
 

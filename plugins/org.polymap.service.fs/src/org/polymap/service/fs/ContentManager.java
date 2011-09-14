@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,21 +38,50 @@ import org.polymap.service.fs.spi.IContentProvider;
 import org.polymap.service.fs.spi.IContentSite;
 
 /**
- * A ContentManager represents a session corresponding to one user. It provides the
- * {@link IContentSite context} for the content nodes created by the different
- * {@link IContentProvider content providers}. On the other hand it provides
- * a facade to the several content providers. This facade is used by the front end
- * systems like the WebDAV service.
+ * A ContentManager represents a content session corresponding to one user. It
+ * provides the {@link IContentSite context} for the content nodes created by the
+ * different {@link IContentProvider content providers}. On the other hand it
+ * provides a facade to the several content providers. This facade is used by the
+ * front end systems like the WebDAV service.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ContentManager {
 
     private static Log log = LogFactory.getLog( ContentManager.class );
-    
-    
+
+    private static ConcurrentHashMap<String,ContentManager> managers = new ConcurrentHashMap( 64, 0.75f, 4 );
+
+    /**
+     * As the content providers don't know about (HTTP) sessions, there is just one
+     * {@link ContentManager} per user. Several sessions may share one manager and
+     * the generated/cached content.
+     * 
+     * @param username
+     * @param locale
+     * @param sessionContext
+     * @return The ContentManager for the given user.
+     */
     public static ContentManager forUser( String username, Locale locale, SessionContext sessionContext ) {
-        return new ContentManager( username, locale, sessionContext );    
+        ContentManager newManager = new ContentManager( username, locale, sessionContext );
+        ContentManager result = managers.putIfAbsent( username, newManager ); 
+        result = result != null ? result : newManager; 
+        int count = result.sessionCount.incrementAndGet();
+        log.info( "ContentManager: user=" + username + ", sessions=" + count );
+        return result;
+    }
+    
+    /**
+     * Hint that a session for the given user was closed.
+     * 
+     * @param username
+     */
+    public static boolean releaseSession( String username ) {
+        ContentManager manager = managers.get( username );
+        if (manager != null && manager.sessionCount.decrementAndGet() <= 0) {
+            return managers.remove( username, manager );
+        }
+        return false;
     }
     
     
@@ -59,6 +90,8 @@ public class ContentManager {
     private SessionContext              sessionContext;
     
     private String                      username;
+    
+    private AtomicInteger               sessionCount = new AtomicInteger();
     
     private Locale                      locale;
     
