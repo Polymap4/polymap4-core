@@ -32,6 +32,7 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
  * update operation is then used to propagate the changes - without the need to
  * reload the entire model.
  * 
+ * @deprecated
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0

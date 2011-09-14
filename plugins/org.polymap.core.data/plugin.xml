@@ -3,6 +3,7 @@
 <plugin>
    <extension-point id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors" schema="schema/org.polymap.core.data.pipeline.processors.exsd"/>
    <extension-point id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners" schema="schema/org.polymap.core.data.pipeline.listeners.exsd"/>
+   <extension-point id="org.polymap.core.data.featureOperations" name="FeatureOperations" schema="schema/org.polymap.core.data.featureOperations.exsd"/>
    <!--extension
          point="org.eclipse.ui.actionSets">
       <actionSet
@@ -114,6 +115,14 @@
                menubarPath="buffer"
                style="push">
          </action>
+         <menu
+               id="org.polymap.core.data.menu2"
+               label="Feature Operations"
+               path="data">
+            <separator
+                  name="org.polymap.core.data.separator1">
+            </separator>
+         </menu>
       </objectContribution>
       <objectContribution
             adaptable="false"
@@ -324,5 +333,26 @@
             class="org.polymap.core.data.ui.featureselection.LayerSelectableOperationConcern"
             id="org.polymap.core.data.layerSelectableConcern">
       </concern>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any">
+         <dynamic
+               class="org.polymap.core.data.operation.LayerMenuContribution"
+               id="org.polymap.core.data.layerOperationMenuContribution">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </dynamic>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.polymap.core.data.featureOperations">
+      <featureOperation
+            class="org.polymap.core.data.operations.feature.CountFeaturesOperation"
+            id="org.polymap.core.data.CountFeaturesOperation"
+            label="Anzahl der Elemente">
+      </featureOperation>
    </extension>
 </plugin>
