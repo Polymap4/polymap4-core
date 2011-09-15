@@ -31,6 +31,7 @@
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.data" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service.fs" target="build.jars"/>
+		<ant antfile="build.xml" dir="../../plugins/org.polymap.service.geoserver" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.mapeditor" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.rhei" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.rhei.data" target="build.jars"/>

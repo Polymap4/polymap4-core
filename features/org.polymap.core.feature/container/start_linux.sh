@@ -16,8 +16,8 @@ PORT=8080
 export LANG=en_US.UTF-8
 
 cd $DIRNAME/bin
-
-export VMARGS='-Xverify:none -XX:+UseParallelGC -Xmx512M -XX:MaxPermSize=128M -Dorg.eclipse.rwt.compression=true'
+export SUN_VM='-XX:MaxPermSize=128M -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=50'
+export VMARGS='-Xverify:none $SUN_VM -Xmx512M -Dorg.eclipse.rwt.compression=true'
 export ARGS='-console -consolelog -registryMultiLanguage'
 #export LOGARGS='-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog'
 
