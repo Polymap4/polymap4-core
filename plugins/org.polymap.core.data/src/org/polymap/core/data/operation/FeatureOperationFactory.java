@@ -20,6 +20,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.core.runtime.IAdaptable;
+
 
 /**
  * 
@@ -29,32 +31,67 @@ import org.apache.commons.logging.LogFactory;
 class FeatureOperationFactory {
 
     private static Log log = LogFactory.getLog( FeatureOperationFactory.class );
-    
-    private static final FeatureOperationFactory instance = new FeatureOperationFactory();
-    
-    public static FeatureOperationFactory instance() {
-        return instance;    
+
+    /**
+     * 
+     */
+    public interface IContextProvider {
+
+        /**
+         * Creates a new context in the given environment and for the
+         * {@link #currentSelection()}.
+         * 
+         * @return A new context, or null it there is nothing to contribute.
+         */
+        public DefaultOperationContext newContext();
+
     }
+
     
-    
+    public static FeatureOperationFactory forContext( IContextProvider provider ) {
+        return new FeatureOperationFactory( provider );    
+    }
+
+
     // instance *******************************************
     
-    public List<FeatureOperationAction> actionsFor( IFeatureOperationContext context ) {
+    private IContextProvider provider;
+
+
+    public FeatureOperationFactory( IContextProvider provider ) {
+        this.provider = provider;
+    }
+
+
+    public List<FeatureOperationAction> actions() {
         List<FeatureOperationAction> result = new ArrayList();
-        for (IFeatureOperation op : operationsFor( context )) {
-            FeatureOperationAction action = new FeatureOperationAction( op, context );
+        for (IFeatureOperation op : operations()) {
+            FeatureOperationAction action = new FeatureOperationAction( op );
             result.add( action );
         }
         return result;
     }
     
     
-    public List<IFeatureOperation> operationsFor( IFeatureOperationContext context ) {
+    public List<IFeatureOperation> operations() {
         List<IFeatureOperation> result = new ArrayList();
-        for (FeatureOperationExtension ext : FeatureOperationExtension.all()) {
+        for (final FeatureOperationExtension ext : FeatureOperationExtension.all()) {
+            
             IFeatureOperation op = ext.newOperation();
-            if (op.init( context )) {
+            DefaultOperationContext context = provider.newContext();
+            
+            if (context != null && op.init( context )) {
                 result.add( op );
+                
+                // adapt to FeatureOperatioNExtension
+                context.addAdapter( new IAdaptable() {
+                    public Object getAdapter( Class adapter ) {
+                        if (adapter.equals( FeatureOperationExtension.class )) {
+                            return ext;
+                        }
+                        return null;
+                    }
+                });
             }
         }
         return result;

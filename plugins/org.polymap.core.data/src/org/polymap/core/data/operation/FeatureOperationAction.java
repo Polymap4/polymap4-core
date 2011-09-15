@@ -17,8 +17,6 @@ package org.polymap.core.data.operation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.widgets.Event;
-
 import org.eclipse.jface.action.Action;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -42,23 +40,24 @@ class FeatureOperationAction
     private IFeatureOperationContext    context;
     
     
-    public FeatureOperationAction( IFeatureOperation op, IFeatureOperationContext context ) {
-        super( op.getLabel(), op.getImageDescriptor() );
+    public FeatureOperationAction( IFeatureOperation op ) {
+        super();
+        
         this.op = op;
-        this.context = context;
+        this.context = op.getContext();
+        
+        FeatureOperationExtension ext = context.adapt( FeatureOperationExtension.class );
+        setText( ext.getLabel() );
+        setToolTipText( ext.getTooltip() );
+        setImageDescriptor( ext.getIcon() );
     }
 
 
-    public String getToolTipText() {
-        return op.getTooltip();
-    }
-
-
-    public void runWithEvent( Event ev ) {
+    public void run() {
         log.debug( "" );
         
         try {
-            FeatureOperationContainer container = new FeatureOperationContainer( op, context );
+            FeatureOperationContainer container = new FeatureOperationContainer( op, getText() );
             OperationSupport.instance().execute( container, true, true );
         }
         catch (ExecutionException e) {

@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
+import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -36,39 +37,88 @@ class FeatureOperationContainer
     
     private IFeatureOperation           delegate;
     
-    private IFeatureOperationContext    context;
-
     
-    public FeatureOperationContainer( IFeatureOperation delegate, IFeatureOperationContext context ) {
-        super( delegate.getLabel() );
+    public FeatureOperationContainer( IFeatureOperation delegate, String label ) {
+        super( label );
         this.delegate = delegate;
-        this.context = context;
+        
+        // add this to context
+        DefaultOperationContext context = (DefaultOperationContext)delegate.getContext();
+        context.addAdapter( new IAdaptable() {
+            public Object getAdapter( Class adapter ) {
+                if (adapter.equals( IUndoableOperation.class )) {
+                    return FeatureOperationContainer.this;
+                }
+                return null;
+            }
+        });
     }
 
     
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
         try {
-            delegate.execute( context, monitor );
-            return Status.OK_STATUS;
+            // add info to context
+            DefaultOperationContext context = (DefaultOperationContext)delegate.getContext();
+            context.addAdapter( info );
+            
+            // preset task name without beginTask()
+            monitor.setTaskName( getLabel() );
+            
+            switch (delegate.execute( monitor )) {
+                case OK :
+                    return Status.OK_STATUS;
+                case Cancel :
+                    return Status.CANCEL_STATUS;
+                default:
+                    return Status.CANCEL_STATUS;
+            }
         }
         catch (Exception e) {
-            throw new ExecutionException( "", e );
+            throw new ExecutionException( e.getLocalizedMessage(), e );
         }
     }
 
     
     public IStatus redo( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        try {
+            // preset task name without beginTask()
+            monitor.setTaskName( getLabel() );
+            
+            switch (delegate.redo( monitor )) {
+                case OK :
+                    return Status.OK_STATUS;
+                case Cancel :
+                    return Status.CANCEL_STATUS;
+                default:
+                    return Status.CANCEL_STATUS;
+            }
+        }
+        catch (Exception e) {
+            throw new ExecutionException( e.getLocalizedMessage(), e );
+        }
     }
 
     
     public IStatus undo( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        try {
+            // preset task name without beginTask()
+            monitor.setTaskName( getLabel() );
+            
+            switch (delegate.redo( monitor )) {
+                case OK :
+                    return Status.OK_STATUS;
+                case Cancel :
+                    return Status.CANCEL_STATUS;
+                default:
+                    return Status.CANCEL_STATUS;
+            }
+        }
+        catch (Exception e) {
+            throw new ExecutionException( e.getLocalizedMessage(), e );
+        }
     }
 
     

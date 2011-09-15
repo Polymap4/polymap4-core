@@ -14,8 +14,6 @@
  */
 package org.polymap.core.data.operation;
 
-import org.eclipse.jface.resource.ImageDescriptor;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
@@ -41,18 +39,20 @@ public interface IFeatureOperation {
      */
     public boolean init( IFeatureOperationContext context );
 
-    /**
-     * Return the label that should be used to show the name of the operation to the
-     * user. This label is typically combined with the command strings shown to the
-     * user in "Undo" and "Redo" user interfaces.
-     * 
-     * @return the String label. Should never be <code>null</code>.
-     */
-    public String getLabel();
-
-    public ImageDescriptor getImageDescriptor();
+    public IFeatureOperationContext getContext();
     
-    public String getTooltip();
+//    /**
+//     * Return the label that should be used to show the name of the operation to the
+//     * user. This label is typically combined with the command strings shown to the
+//     * user in "Undo" and "Redo" user interfaces.
+//     * 
+//     * @return the String label. Should never be <code>null</code>.
+//     */
+//    public String getLabel();
+//
+//    public ImageDescriptor getImageDescriptor();
+//    
+//    public String getTooltip();
 
     /**
      * Returns whether the operation can be executed in its current state.
@@ -85,17 +85,17 @@ public interface IFeatureOperation {
      *         represent an incompletion of the execution.
      * @throws ExecutionException if an exception occurred during execution.
      */
-    public Status execute( IFeatureOperationContext context, IProgressMonitor monitor )
+    public Status execute( IProgressMonitor monitor )
     throws Exception;
     
     public boolean canUndo();
 
-    public Status undo( IFeatureOperationContext context, IProgressMonitor monitor )
+    public Status undo( IProgressMonitor monitor )
     throws Exception;
     
     public boolean canRedo();
 
-    public Status redo( IFeatureOperationContext context, IProgressMonitor monitor )
+    public Status redo( IProgressMonitor monitor )
     throws Exception;
     
 }

@@ -17,6 +17,11 @@ package org.polymap.core.data.operation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ToolBar;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IContributionItem;
@@ -27,37 +32,43 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CompoundContributionItem;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
+
+import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.operation.FeatureOperationFactory.IContextProvider;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-abstract class BaseMenuContribution
+abstract class DefaultMenuContribution
         extends CompoundContributionItem
-        implements IExecutableExtension {
+        implements IExecutableExtension, IContextProvider {
 
-    private static Log log = LogFactory.getLog( BaseMenuContribution.class );
+    private static Log log = LogFactory.getLog( DefaultMenuContribution.class );
 
     
-    public BaseMenuContribution() {
+    public DefaultMenuContribution() {
     }
 
-    public BaseMenuContribution( String id ) {
+    public DefaultMenuContribution( String id ) {
         super( id );
     }
 
 
-    /**
-     * Creates a new context in the given environment and for the
-     * {@link #currentSelection()}.
-     * 
-     * @return A new context, or null it there is nothing to contribute.
-     */
-    protected abstract IFeatureOperationContext newContext();
+    public void fill( Menu menu, int index ) {
+        super.fill( menu, index );
+        
+        Image icon = DataPlugin.getDefault().imageForName( "icons/etool16/feature_ops.gif" );
+        MenuItem item = menu.getParentItem();
+        if (item != null) {
+            item.setImage( icon );
+        }
+    }
 
 
     public IStructuredSelection currentSelection() {
@@ -72,17 +83,22 @@ abstract class BaseMenuContribution
     }
 
     
+    public void fill( ToolBar parent, int index ) {
+        super.fill( parent, index );
+    }
+
     protected IContributionItem[] getContributionItems() {
-        IFeatureOperationContext context = newContext();
+        DefaultOperationContext context = newContext();
 
         if (context == null) {
             return new IContributionItem[] {};
         }
         
-        MenuManager subMenu = new MenuManager( "Feature Operations", "featureOperations" );
+        MenuManager subMenu = new MenuManager( "Massenoperationen", "featureOperations" );
+        subMenu.setVisible( true );
 
-        FeatureOperationFactory factory = FeatureOperationFactory.instance();
-        for (Action action : factory.actionsFor( context )) {
+        FeatureOperationFactory factory = FeatureOperationFactory.forContext( this );
+        for (Action action : factory.actions()) {
             ActionContributionItem item = new ActionContributionItem( action ); 
             item.setVisible( true );
             subMenu.add( item );

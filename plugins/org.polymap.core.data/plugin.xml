@@ -345,14 +345,50 @@
                   checkEnabled="true">
             </visibleWhen>
          </dynamic>
+         <dynamic
+               class="org.polymap.core.data.operation.GeoresMenuContribution"
+               id="org.polymap.core.data.georesOperationMenuContribution">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </dynamic>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.polymap.core.data.FeatureSelectionView">
+         <dynamic
+               class="org.polymap.core.data.operation.FeatureSelectionViewMenuContribution"
+               id="org.polymap.core.data.operation.SelectionMenuContribution">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </dynamic>
+      </menuContribution>
+      <menuContribution
+            locationURI="menu:org.polymap.core.data.FeatureSelectionView">
+         <dynamic
+               class="org.polymap.core.data.operation.FeatureSelectionViewMenuContribution"
+               id="org.polymap.core.data.operation.SelectionMenuContribution2">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </dynamic>
       </menuContribution>
    </extension>
    <extension
          point="org.polymap.core.data.featureOperations">
       <featureOperation
             class="org.polymap.core.data.operations.feature.CountFeaturesOperation"
+            icon="icons/etool16/feature_ops.gif"
             id="org.polymap.core.data.CountFeaturesOperation"
-            label="Anzahl der Elemente">
+            label="%CountFeaturesOperation_label"
+            tooltip="%CountFeaturesOperation_label">
+      </featureOperation>
+      <featureOperation
+            class="org.polymap.core.data.operations.feature.CopyFeaturesOperation2"
+            icon="icons/etool16/copy_features.gif"
+            id="org.polymap.core.data.CopyFeaturesOperation"
+            label="%CopyFeaturesOperation_label"
+            tooltip="%CopyFeaturesOperation_tip">
       </featureOperation>
    </extension>
 </plugin>

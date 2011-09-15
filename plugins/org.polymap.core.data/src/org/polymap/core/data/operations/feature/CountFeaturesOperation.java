@@ -20,12 +20,10 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.operation.DefaultFeatureOperation;
 import org.polymap.core.data.operation.IFeatureOperation;
-import org.polymap.core.data.operation.IFeatureOperationContext;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -35,31 +33,15 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class CountFeaturesOperation
+        extends DefaultFeatureOperation
         implements IFeatureOperation {
 
     private static Log log = LogFactory.getLog( CountFeaturesOperation.class );
 
 
-    public boolean init( IFeatureOperationContext context ) {
-        return true;
-    }
-
-    public String getLabel() {
-        return "Elementzahl";
-    }
-
-    public String getTooltip() {
-        return "Anzahl der Elemente";
-    }
-
-    public ImageDescriptor getImageDescriptor() {
-        return null;
-    }
-
-
-    public Status execute( IFeatureOperationContext context, IProgressMonitor monitor )
+    public Status execute( IProgressMonitor monitor )
     throws Exception {
-        final int result = context.featuresSize();
+        final int result = context.features().size();
         
         Polymap.getSessionDisplay().asyncExec( new Runnable() {
             public void run() {
@@ -71,13 +53,13 @@ public class CountFeaturesOperation
     }
 
 
-    public Status undo( IFeatureOperationContext context, IProgressMonitor monitor )
+    public Status undo( IProgressMonitor monitor )
     throws Exception {
         return Status.OK;
     }
 
 
-    public Status redo( IFeatureOperationContext context, IProgressMonitor monitor )
+    public Status redo( IProgressMonitor monitor )
     throws Exception {
         return Status.OK;
     }

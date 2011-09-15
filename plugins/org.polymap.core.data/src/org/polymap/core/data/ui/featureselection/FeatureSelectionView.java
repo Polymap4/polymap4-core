@@ -61,6 +61,10 @@ public class FeatureSelectionView
 
     private static Log log = LogFactory.getLog( FeatureSelectionView.class );
     
+    public static final String              ID = "org.polymap.core.data.FeatureSelectionView";
+
+    private static final FilterFactory      ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
+
     /* Bad but effective way to pass the layer to the view. */
     private static final ThreadLocal<ILayer>    initLayer = new ThreadLocal();
     
@@ -79,7 +83,6 @@ public class FeatureSelectionView
             public void run() {
                 try {
                     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-//                    ensureMaxViews( page );
 
                     initLayer.set( layer );
                     result[0] = (FeatureSelectionView)page.showView(
@@ -118,10 +121,6 @@ public class FeatureSelectionView
 
 
     // instance *******************************************
-
-    public static final String      ID = "org.polymap.core.data.FeatureSelectionView";
-
-    private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
 
     private ILayer                  layer;
     

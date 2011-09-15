@@ -20,6 +20,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 
@@ -31,14 +33,14 @@ import org.polymap.core.data.DataPlugin;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
-class FeatureOperationExtension {
+public class FeatureOperationExtension {
 
     private static Log log = LogFactory.getLog( FeatureOperationExtension.class );
     
     public static final String          EXTENSION_POINT_NAME = "featureOperations";
 
     
-    public static List<FeatureOperationExtension> all() {
+    static List<FeatureOperationExtension> all() {
         // find all extensions
         IConfigurationElement[] elms = Platform.getExtensionRegistry()
                 .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
@@ -65,15 +67,24 @@ class FeatureOperationExtension {
         return elm.getAttribute( "id" );
     }
 
-    public String getName() {
-        return elm.getAttribute( "name" );
+    public String getLabel() {
+        return elm.getAttribute( "label" );
+    }
+    
+    public ImageDescriptor getIcon() {
+        String path = elm.getAttribute( "icon" );
+        return DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, path );
     }
     
     public String getDescription() {
         return elm.getAttribute( "description" );
     }
     
-    public IFeatureOperation newOperation() {
+    public String getTooltip() {
+        return elm.getAttribute( "tooltip" );
+    }
+    
+    IFeatureOperation newOperation() {
         try {
             return (IFeatureOperation)elm.createExecutableExtension( "class" );
         }
