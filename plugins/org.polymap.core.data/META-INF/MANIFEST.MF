@@ -65,4 +65,5 @@ Bundle-ClassPath: .,
  lib/jsr107cache-1.0.jar,
  lib/lucene-core-3.1.0.jar,
  lib/jackcess-1.1.18.jar,
- lib-static/com.objectplanet.image.PngEncoder.jar
+ lib-static/com.objectplanet.image.PngEncoder.jar,
+ lib/SuperCSV-1.52.jar

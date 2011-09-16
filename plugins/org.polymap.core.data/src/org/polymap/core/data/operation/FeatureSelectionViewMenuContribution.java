@@ -60,7 +60,7 @@ public class FeatureSelectionViewMenuContribution
 
 
     public void fill( final ToolBar parent, int index ) {
-        ToolItem item = new ToolItem( parent, SWT.DROP_DOWN, index);
+        final ToolItem item = new ToolItem( parent, SWT.DROP_DOWN, index );
         Image icon = DataPlugin.getDefault().imageForName( "icons/etool16/feature_ops.gif" );
         item.setImage( icon );
         

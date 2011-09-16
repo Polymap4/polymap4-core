@@ -390,5 +390,17 @@
             label="%CopyFeaturesOperation_label"
             tooltip="%CopyFeaturesOperation_tip">
       </featureOperation>
+      <featureOperation
+            class="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"
+            id="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"
+            label="Export to CSV">
+      </featureOperation>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.serviceHandler">
+      <serviceHandler
+            class="org.polymap.core.data.operation.DownloadServiceHandler"
+            id="org.polymap.core.data.DownloadServiceHandler">
+      </serviceHandler>
    </extension>
 </plugin>

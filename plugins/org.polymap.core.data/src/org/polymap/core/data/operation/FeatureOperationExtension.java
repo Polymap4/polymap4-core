@@ -73,7 +73,7 @@ public class FeatureOperationExtension {
     
     public ImageDescriptor getIcon() {
         String path = elm.getAttribute( "icon" );
-        return DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, path );
+        return path != null ? DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, path ) : null;
     }
     
     public String getDescription() {
