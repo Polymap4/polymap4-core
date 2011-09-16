@@ -284,6 +284,14 @@
                toolbarPath="data">
          </action>
          <action
+               class="org.polymap.core.data.ui.featureselection.ZoomFeatureSelectionAction"
+               icon="icons/elcl16/zoom_selection_co.gif"
+               id="org.polymap.core.data.ui.featureselection.ZoomSelectionAction"
+               label="Zoom auf Auswahl"
+               style="push"
+               toolbarPath="data">
+         </action>
+         <action
                class="org.polymap.core.data.ui.featureselection.Replace"
                icon="icons/etool16/select_replace.gif"
                id="org.polymap.core.data.FeatureSelectionMode"
@@ -364,7 +372,7 @@
          </dynamic>
       </menuContribution>
       <menuContribution
-            locationURI="menu:org.polymap.core.data.FeatureSelectionView">
+            locationURI="menu:org.polymap.core.data.FeatureSelectionView?after=data">
          <dynamic
                class="org.polymap.core.data.operation.FeatureSelectionViewMenuContribution"
                id="org.polymap.core.data.operation.SelectionMenuContribution2">

@@ -99,10 +99,16 @@ public class FeatureRenderProcessor2
 
     public static boolean isCompatible( IService service ) {
         // we are compatible to everything a feature pipeline can be build for
-        return DataSourceProcessor.isCompatible( service );
+        if (DataSourceProcessor.isCompatible( service )) {
+            return true;
+        }
+        // FIXME hack to get biotop working
+        else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
+            return true;
+        }
+        return false;
     }
     
-
     
     // instance *******************************************
         

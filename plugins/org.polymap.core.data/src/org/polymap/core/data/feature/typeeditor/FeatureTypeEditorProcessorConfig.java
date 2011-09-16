@@ -25,8 +25,6 @@ package org.polymap.core.data.feature.typeeditor;
 import java.util.Iterator;
 import java.util.Properties;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.FeatureSource;
@@ -39,8 +37,6 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.internal.ui.UiPlugin;
-import net.refractions.udig.ui.PlatformJobs;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
@@ -54,12 +50,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.ui.dialogs.PropertyPage;
-
-import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.pipeline.ProcessorExtension.ProcessorPropertyPage;
@@ -184,22 +177,16 @@ public class FeatureTypeEditorProcessorConfig
             // FIXME directly accessing type of ds bypassing upstream procs
             if (holder instanceof ILayer) {
                 try {
-                    PlatformJobs.runSync( new IRunnableWithProgress() {
-                        public void run( IProgressMonitor monitor )
-                        throws InvocationTargetException, InterruptedException {
-                            try {
-                                IGeoResource geores = ((ILayer)holder).getGeoResource();
-                                FeatureSource fs = geores.resolve( FeatureSource.class, null );
-                                sourceFeatureType = (SimpleFeatureType)fs.getSchema();
-                                log.debug( "        DataSource schema: " + sourceFeatureType );
-                            }
-                            catch (Exception e) {
-                                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-                            }
-                        }
-                    }, null );
+                    IGeoResource geores = ((ILayer)holder).getGeoResource();
+                    if (geores == null) {
+                        throw new IllegalStateException( "No GeoResource for layer: " + ((ILayer)holder).getLabel() );
+                    }
+                    FeatureSource fs = geores.resolve( FeatureSource.class, null );
+                    sourceFeatureType = (SimpleFeatureType)fs.getSchema();
+                    log.debug( "        DataSource schema: " + sourceFeatureType );
                 }
                 catch (Exception e) {
+                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
                     sourceFeatureType = null;
                     log.warn( "", e );
                 }

@@ -34,6 +34,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
+import org.polymap.core.project.ILayer;
+
 /**
  * 
  *
@@ -50,13 +52,17 @@ public class FormEditorInput
     
     private Feature             feature;
     
-    
-    public FormEditorInput( FeatureStore fs, Feature feature ) {
+    /** The layer of the feature, or null if none was provided. */
+    private ILayer              layer;
+
+
+    public FormEditorInput( FeatureStore fs, Feature feature, ILayer layer ) {
         super();
         assert fs != null : "fs is null!";
         assert feature != null : "feature is null!";
         this.feature = feature;
         this.fs = fs;
+        this.layer = layer;
     }
 
     public boolean equals( Object obj ) {
@@ -81,6 +87,11 @@ public class FormEditorInput
 
     public Feature getFeature() {
         return feature;
+    }
+
+    /** The layer of the feature, or null if none was provided. */
+    public ILayer getLayer() {
+        return layer;
     }
 
     public String getEditorId() {

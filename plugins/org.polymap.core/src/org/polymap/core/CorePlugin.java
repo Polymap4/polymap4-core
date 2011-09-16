@@ -99,7 +99,7 @@ public class CorePlugin
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.services.geoserver", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.edit", "debug" );
 
@@ -115,11 +115,13 @@ public class CorePlugin
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
+        
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
 	}
 
 	

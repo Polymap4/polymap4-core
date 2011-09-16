@@ -41,7 +41,7 @@ import org.polymap.rhei.RheiPlugin;
 
 /**
  *
- *
+ * @deprecated Has been refactored into {@link org.polymap.core.data.operationDownloadServiceHandler}.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class DownloadCSVAction

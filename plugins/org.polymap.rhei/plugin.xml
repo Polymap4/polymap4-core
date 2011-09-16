@@ -107,7 +107,7 @@
                toolbarPath="rhei"
                tooltip="%actions_newFormTip">
          </action-->
-         <action
+         <!--action
                class="org.polymap.rhei.internal.csv.DownloadCSVAction"
                icon="icons/etool16/export_csv.gif"
                id="org.polymap.rhei.DownloadCsvAction"
@@ -115,7 +115,7 @@
                style="push"
                toolbarPath="data"
                tooltip="%actions_downloadCsvTip">
-         </action>
+         </action-->
          <action
                class="org.polymap.rhei.internal.form.OpenFormAction"
                enablesFor="+"

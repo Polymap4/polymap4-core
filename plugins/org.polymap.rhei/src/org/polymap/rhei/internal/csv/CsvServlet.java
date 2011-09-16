@@ -44,7 +44,8 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Provides the content of a FeatureCollection encoded as CSV via HTTP/REST
  * interface.
- *
+ * 
+ * @deprecated CSV export has been refactored into {@link org.polymap.core.data} plugin.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 1.0
  */

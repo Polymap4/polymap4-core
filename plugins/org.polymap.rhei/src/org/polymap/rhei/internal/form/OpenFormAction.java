@@ -53,7 +53,7 @@ public class OpenFormAction
 
 
     public void run( IAction action ) {
-        FormEditor.open( view.getFeatureStore(), selectedElm.feature() );
+        FormEditor editor = FormEditor.open( view.getFeatureStore(), selectedElm.feature(), view.getLayer() );
     }
 
 

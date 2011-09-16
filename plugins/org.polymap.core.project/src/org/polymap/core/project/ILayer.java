@@ -81,8 +81,9 @@ public interface ILayer
      * instead.
      * <p>
      * This method dynamically resolves the {@link IGeoResource} from the local
-     * catalog. Therefore it may block and/or return null. Run inside an
-     * {@link IUndoableOperation} or job.
+     * catalog. Therefore it may block for some time and/or return null. The
+     * process runs {@link IUndoableOperation} that the user can cancel. In this
+     * case null is returned.
      * 
      * @see OperationSupport
      * @return The {@link IGeoResource} of this layer or null if the resource is

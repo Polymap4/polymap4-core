@@ -209,14 +209,21 @@ public class SimpleWmsServer
             Pipeline pipeline = pipelines.get( layers[0] );
             
             if (pipeline == null) {
-                ILayer layer = findLayer( layers[0] );
-                IService service = findService( layer );
-                pipeline = pipelineIncubator.newPipeline( usecase, layer.getMap(), layer, service );
-                
                 pipelinesLock.readLock().unlock();
                 pipelinesLock.writeLock().lock();
-                
-                pipelines.put( layer.getLabel(), pipeline );
+
+                pipeline = pipelines.get( layers[0] );
+                if (pipeline == null) {
+                    ILayer layer = findLayer( layers[0] );
+                    IService service = findService( layer );
+                    pipeline = pipelineIncubator.newPipeline( usecase, layer.getMap(), layer, service );
+                    
+                    if (pipeline.length() == 0) {
+                        throw new ServiceException( "Unable to build processor pipeline for layer: " + layer );                        
+                    }
+
+                    pipelines.put( layer.getLabel(), pipeline );
+                }
             }
             return pipeline;
         }

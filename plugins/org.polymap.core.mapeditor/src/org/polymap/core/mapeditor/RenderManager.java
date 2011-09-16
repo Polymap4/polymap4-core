@@ -43,6 +43,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -60,6 +61,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.service.http.HttpServiceFactory;
 import org.polymap.service.http.WmsService;
@@ -332,6 +334,15 @@ public class RenderManager {
                 if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
                     ReferencedEnvelope extent = (ReferencedEnvelope)ev.getNewValue();
                     mapEditor.setMapExtent( extent );
+                    
+                    // XXX refactor this out to MapEditor so that it can be used elsewhere 
+                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                        public void run() {
+                            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                            IWorkbenchPage page = window.getActivePage();
+                            page.activate( mapEditor );
+                        }
+                    });
                 }
                 else if (IMap.PROP_MAXEXTENT.equals( ev.getPropertyName() )) {
                     mapEditor.getEditorSite().getShell().getDisplay().syncExec( new Runnable() {

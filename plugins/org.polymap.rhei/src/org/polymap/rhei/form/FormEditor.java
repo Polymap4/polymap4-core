@@ -25,11 +25,14 @@ import java.util.Map;
 
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureCollections;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,7 +55,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
+import org.polymap.core.data.operations.ZoomFeatureBoundsOperation;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.IMap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
 import org.polymap.rhei.RheiPlugin;
@@ -80,12 +86,14 @@ public class FormEditor
      *
      * @param fs
      * @param feature
+     * @param layer Hint this editor about the layer of the edited feature. Might be null.
+
      * @return The editor of the given feature, or null.
      */
-    public static FormEditor open( FeatureStore fs, Feature feature ) {
+    public static FormEditor open( FeatureStore fs, Feature feature, ILayer layer ) {
         try {
             log.debug( "open(): feature= " + feature );
-            FormEditorInput input = new FormEditorInput( fs, feature );
+            FormEditorInput input = new FormEditorInput( fs, feature, layer );
 
             // check current editors
             IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -130,7 +138,7 @@ public class FormEditor
     private Action                      submitAction;
 
     private Action                      revertAction;
-
+    
 
     public FormEditor() {
     }
@@ -140,6 +148,32 @@ public class FormEditor
             throws PartInitException {
         super.init( site, input );
 
+        // zoom feature action
+        final ILayer layer = ((FormEditorInput)getEditorInput()).getLayer();
+        if (layer != null) {
+            Action zoomAction = new Action( Messages.get( "FormEditor_zoom" ) ) {
+                public void run() {
+                    try {
+                        IMap map = layer.getMap();
+                        CoordinateReferenceSystem crs = map.getCRS();
+                        FeatureCollection features = FeatureCollections.newCollection();
+                        features.add( getFeature() );
+                        ZoomFeatureBoundsOperation op = new ZoomFeatureBoundsOperation( features, map, crs );
+
+                        OperationSupport.instance().execute( op, true, true );
+                    }
+                    catch (Exception e) {
+                        PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "", e );
+                    }
+                }
+            };
+            zoomAction.setImageDescriptor( ImageDescriptor.createFromURL(
+                    RheiPlugin.getDefault().getBundle().getResource( "icons/elcl16/zoom_selection_co.gif" ) ) );
+            zoomAction.setToolTipText( Messages.get( "FormEditor_zoomTip" ) );
+            zoomAction.setEnabled( true );
+            standardPageActions.add( zoomAction );
+        }
+        
         // submit action
         submitAction = new Action( Messages.get( "FormEditor_submit" ) ) {
             public void run() {
