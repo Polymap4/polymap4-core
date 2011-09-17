@@ -27,8 +27,6 @@ import net.refractions.udig.catalog.IGeoResourceInfo;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ITransientResolve;
 
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FeatureStore;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -105,8 +103,8 @@ public class EntityGeoResourceImpl
             return false;
         }
         return adaptee.isAssignableFrom( IGeoResourceInfo.class )
-                || adaptee.isAssignableFrom( FeatureStore.class )
-                || adaptee.isAssignableFrom( FeatureSource.class )
+//                || adaptee.isAssignableFrom( FeatureStore.class )
+//                || adaptee.isAssignableFrom( FeatureSource.class )
                 || adaptee.isAssignableFrom( IService.class )
                 || adaptee.isAssignableFrom( ITransientResolve.class )
                 || adaptee.isAssignableFrom( SimpleFeatureType.class )

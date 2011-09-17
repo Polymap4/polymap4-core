@@ -38,8 +38,7 @@ import edu.emory.mathcs.backport.java.util.Collections;
 
 import org.eclipse.swt.widgets.Composite;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
-
+import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 
@@ -82,9 +81,12 @@ public class StandardFilterProvider
         this.layer = _layer;
         IGeoResource geores = layer.getGeoResource();
 
-        if (geores != null && geores.canResolve( FeatureSource.class )) {
-            FeatureSource fs = layer.getGeoResource().resolve( FeatureSource.class, new NullProgressMonitor() );
-            if (fs != null) {
+        if (geores != null && 
+                (geores.canResolve( FeatureSource.class ) ||
+                 geores.getClass().getSimpleName().equals( "EntityGeoResourceImpl" ))) {
+            
+            PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
+            if (fs != null && fs.getPipeline().length() > 0) {
                 return Collections.singletonList( new StandardFilter( layer, fs ) );
             }
         }

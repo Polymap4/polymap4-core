@@ -148,7 +148,10 @@ class Feature2EntityFilterConverter {
             // build children
             List<BooleanExpression> children = new ArrayList<BooleanExpression>();
             for (Filter filter : filters) {
-                children.add( Feature2EntityFilterConverter.this.convert( filter ) );
+                BooleanExpression child = Feature2EntityFilterConverter.this.convert( filter );
+                if (child != null) {
+                    children.add( child );
+                }
             }
             
             switch (children.size()) {
