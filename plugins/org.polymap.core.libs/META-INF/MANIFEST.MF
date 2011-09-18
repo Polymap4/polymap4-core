@@ -2137,7 +2137,6 @@ Bundle-ClassPath: .,
  lib/xsd-2.2.2.jar,
  lib/log4j-1.2.12.jar,
  lib/ant-1.8.0.jar,
- lib/gt-jdbc-spatialite-2.6.4.jar,
  lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"

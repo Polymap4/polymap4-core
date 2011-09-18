@@ -270,7 +270,7 @@ public class FormEditor
                         addPage( wrapper );
                         pages.add( wrapper );
 
-                        if (ext.isStandard()) {
+                        if (ext.isStandard() && getActivePage() == -1) {
                             setActivePage( page.getId() );
                             //setPartName( page.getTitle() );
                         }

@@ -27,7 +27,8 @@ interface IFeatureTableColumn {
     public void setViewer( FeatureTableViewer viewer );
     
     /**
-     * The name of this column.
+     * The name of the property this column represents. The header of the
+     * column may differ.
      */
     public String getName();
 

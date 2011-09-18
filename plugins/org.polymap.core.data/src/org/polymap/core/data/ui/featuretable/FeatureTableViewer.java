@@ -43,6 +43,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 
@@ -165,7 +166,8 @@ public class FeatureTableViewer
 
     public void addColumn( IFeatureTableColumn column ) {
         column.setViewer( this );
-        column.newViewerColumn();
+        TableViewerColumn viewerColumn = column.newViewerColumn();
+        viewerColumn.getColumn().setData( "name", column.getName() );
 
         available.put( column.getName(), column );
         displayed.put( column.getName(), column );
@@ -190,7 +192,9 @@ public class FeatureTableViewer
         else {
             sortDir = getTable().getSortDirection();
         }
-        IFeatureTableColumn sortTableColumn = displayed.get( sortColumn.getText() );
+        
+        String colName = (String)sortColumn.getData( "name" );
+        IFeatureTableColumn sortTableColumn = displayed.get( colName );
 
         setContentProvider( new DeferredFeatureContentProvider2( this, fs, filter,
                 sortTableColumn.newComparator( sortDir ) ) );

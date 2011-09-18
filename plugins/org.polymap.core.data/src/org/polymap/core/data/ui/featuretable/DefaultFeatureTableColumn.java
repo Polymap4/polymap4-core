@@ -20,6 +20,7 @@ import java.util.Comparator;
 import org.opengis.feature.type.PropertyDescriptor;
 
 import org.apache.commons.collections.comparators.ReverseComparator;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -103,8 +104,9 @@ public class DefaultFeatureTableColumn
         viewerColumn.getColumn().setResizable( true );
         
         viewerColumn.setLabelProvider( newLabelProvider() );
-        viewerColumn.getColumn().setText( header != null ? header : getName() );
-
+        String normalizedName = StringUtils.capitalize( getName() );
+        viewerColumn.getColumn().setText( header != null ? header : normalizedName );
+        
         // sort listener for supported prop bindings
         Class propBinding = prop.getType().getBinding();
         if (String.class.isAssignableFrom( propBinding )

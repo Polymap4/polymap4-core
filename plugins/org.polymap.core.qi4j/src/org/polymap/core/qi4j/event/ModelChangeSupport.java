@@ -55,8 +55,6 @@ import org.polymap.core.runtime.Polymap;
 public interface ModelChangeSupport
         extends IModelHandleable, EntityComposite, QiEntity, UnitOfWorkCallback {
 
-    static final Log log = LogFactory.getLog( ModelChangeSupport.class );
-
     @Optional
     Property<Long>          _lastModified();
     
@@ -76,6 +74,8 @@ public interface ModelChangeSupport
      */
     abstract static class Mixin
             implements ModelChangeSupport {
+
+        static final Log log = LogFactory.getLog( ModelChangeSupport.Mixin.class );
 
         private static ThreadLocal<Updater> threadUpdater = new ThreadLocal();
         
