@@ -136,7 +136,7 @@ public class PicklistFormField
      *  
      * @param values Maps labels into property values
      */
-    public PicklistFormField( Map<String,Object> values ) {
+    public PicklistFormField( Map<String,? extends Object> values ) {
         setForceTextMatch( true );
         setTextEditable( false );
 
