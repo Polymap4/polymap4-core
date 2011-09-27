@@ -230,7 +230,7 @@ public class ServicesPlugin
                     // XXX avoid restart on *every* global entity event
                     log.debug( "Global entity event: source= " + ev.getSource() );
                     if (ev.getEventType() == EventType.COMMIT
-                            && ServiceRepository.class.isAssignableFrom( ev.getSource().getClass() )) {
+                            /*&& ServiceRepository.class.isAssignableFrom( ev.getSource().getClass() )*/) {
                         restartServices();
                     }
                 }
@@ -257,7 +257,7 @@ public class ServicesPlugin
 
         }
         catch (Exception e) {
-            CorePlugin.logError( "Error while starting services.", log, e );
+            log.warn( "Error while starting services.", e );
         }
         finally {
             contextProvider.unmapContext();
@@ -292,6 +292,8 @@ public class ServicesPlugin
             Polymap.instance().addPrincipal( new AdminPrincipal() );
 
             repo = ServiceRepository.instance();
+            repo.addModelStoreListener( modelChangeListener );
+
             for (IProvidedService service : repo.allServices()) {
                 if (service.isEnabled()) {
                     try {

@@ -14,11 +14,8 @@
  */
 package org.polymap.core.runtime;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.Constructor;
 
 import org.apache.commons.logging.Log;
@@ -34,13 +31,13 @@ public class DefaultSessionContext
 
     private static Log log = LogFactory.getLog( DefaultSessionContext.class );
     
-    private String                  sessionKey;
+    private String                          sessionKey;
     
-    private Map<String,Object>      attributes = new HashMap();
+    private ConcurrentHashMap<String,Object> attributes = new ConcurrentHashMap( 32, 0.75f, 4 );
     
-    private ReentrantReadWriteLock  attributesLock = new ReentrantReadWriteLock();
+    //private ReentrantReadWriteLock  attributesLock = new ReentrantReadWriteLock();
     
-    private ListenerList<ISessionListener> listeners = new ListenerList();
+    private ListenerList<ISessionListener>  listeners = new ListenerList();
 
 
     public DefaultSessionContext( String sessionKey ) {
@@ -73,26 +70,24 @@ public class DefaultSessionContext
     
     public final <T> T sessionSingleton( final Class<T> type ) {
         try {
-            return LockUtils.withReadLock( attributesLock, new Callable<T>() {
-                public T call() throws Exception {
-                    T result = (T)attributes.get( type.getName() );
-                    if (result == null) {
-                        LockUtils.upgrade( attributesLock );
-                        
-                        Constructor constructor = type.getDeclaredConstructor( new Class[] {} );
-                        if (constructor.isAccessible()) {
-                            result = type.newInstance();
-                        }
-                        else {
-                            constructor.setAccessible( true );
-                            result = (T)constructor.newInstance( new Object[] {} );
-                        }
+            T result = (T)attributes.get( type.getName() );
+            if (result == null) {
 
-                        attributes.put( type.getName(), result );
-                    }
-                    return result;
+                // create an instance (without write lock)
+                Constructor constructor = type.getDeclaredConstructor( new Class[] {} );
+                if (constructor.isAccessible()) {
+                    result = type.newInstance();
                 }
-            });
+                else {
+                    constructor.setAccessible( true );
+                    result = (T)constructor.newInstance( new Object[] {} );
+                }
+
+                Object old = attributes.putIfAbsent( type.getName(), result );
+                // as there is no lock we have to check after put what object was added actually
+                result = old != null ? (T)old : result;
+            }
+            return result;
         }
         catch (Exception e) {
             throw new RuntimeException( e );
@@ -152,24 +147,12 @@ public class DefaultSessionContext
 
 
     public Object getAttribute( String key ) {
-        try {
-            attributesLock.readLock().lock();
-            return attributes.get( key );
-        }
-        finally {
-            attributesLock.readLock().unlock();            
-        }
+        return attributes.get( key );
     }
 
 
     public void setAttribute( String key, Object value ) {
-        try {
-            attributesLock.writeLock().lock();
-            attributes.put( key, value );
-        }
-        finally {
-            attributesLock.writeLock().unlock();            
-        }
+        attributes.put( key, value );
     }
 
 }

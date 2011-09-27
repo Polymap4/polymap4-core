@@ -45,7 +45,11 @@ public class SessionSingleton {
 
     
     public static final <T> T instance( Class<T> type ) {
-        return SessionContext.current().sessionSingleton( type );
+        SessionContext current = SessionContext.current();
+        if (current == null) {
+            throw new IllegalStateException( "No session context maps to the current thread: " + Thread.currentThread() );
+        }
+        return current.sessionSingleton( type );
     }
     
 }

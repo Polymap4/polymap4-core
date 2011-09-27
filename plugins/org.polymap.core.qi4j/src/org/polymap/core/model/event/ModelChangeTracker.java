@@ -17,9 +17,6 @@ package org.polymap.core.model.event;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -51,10 +48,13 @@ public class ModelChangeTracker
 
     private static Log log = LogFactory.getLog( ModelChangeTracker.class );
     
-    /** The global map of stored entities and their tracked. */
-    private static Map<ModelHandle,Long>    stored = new HashMap( 1024 );
-
-    private static ReadWriteLock            storedLock = new ReentrantReadWriteLock();
+    /** 
+     * The global map of stored entities and their tracked.
+     * <p/>
+     * XXX access should be read/write locked; however, I don't seem to be able to release
+     * locks in all cases; so I'm ignoring race cond between prepare and apply in Updater 
+     */
+    private static Map<ModelHandle,Long>    stored = new ConcurrentHashMap( 1024, 0.75f, 4 );
 
     private static EventJob                 lastJob;
     
@@ -142,24 +142,17 @@ public class ModelChangeTracker
      *        that the tracked timestamp of the session is to be used.
      */
     public boolean isConflicting( ModelHandle key, Long check ) {
-        try {
-            storedLock.readLock().lock();
-
-            check = check != null ? check : tracked.get( key );
-            if (check == null) {
-                throw new IllegalArgumentException( "No timestamp given and no tracked timestamp." );
-            }
-
-            Long storedTs = stored.get( key );
-            log.debug( "key= " + key + ", timestamp= " + check );
-            
-            log.debug( "CHECK: " + check + " -- " + storedTs );
-            return storedTs != null  
-                    && storedTs.compareTo( check ) > 0;
+        check = check != null ? check : tracked.get( key );
+        if (check == null) {
+            throw new IllegalArgumentException( "No timestamp given and no tracked timestamp." );
         }
-        finally {
-            storedLock.readLock().unlock();
-        }
+
+        Long storedTs = stored.get( key );
+        log.debug( "key= " + key + ", timestamp= " + check );
+
+        log.debug( "CHECK: " + check + " -- " + storedTs );
+        return storedTs != null  
+        && storedTs.compareTo( check ) > 0;
     }
 
 
@@ -196,12 +189,10 @@ public class ModelChangeTracker
             this.startTime = System.currentTimeMillis();
             
             monitor.beginTask( "ModelChangeTracker", IProgressMonitor.UNKNOWN );
-            storedLock.readLock().lock();
         }
         
         
         public void done() {
-            storedLock.readLock().unlock();
             monitor.done();
         }
 
@@ -229,6 +220,9 @@ public class ModelChangeTracker
         throws ConcurrentModificationException {
             log.debug( "check(): key= " + key /*+ ", timestamp= " + entry.getValue()*/ );
             
+            // check/set should be atomic; however, its unlikely that different threads of the
+            // same session modify the same object at the same time (isn't it?)
+            
             check = check != null ? check : tracked.get( key );
             if (check == null) {
                 throw new IllegalArgumentException( "No timestamp given and no tracked timestamp." );
@@ -246,16 +240,7 @@ public class ModelChangeTracker
          * 
          */
         public void apply( Object eventSource, boolean omitMySession ) {
-            try {
-                storedLock.readLock().unlock();
-                storedLock.writeLock().lock();
-                
-                stored.putAll( checked );
-            }
-            finally {
-                storedLock.readLock().lock();
-                storedLock.writeLock().unlock();
-            }
+            stored.putAll( checked );
 
             ModelChangeTracker src = omitMySession ? null : ModelChangeTracker.this;
             ModelStoreEvent ev = new ModelStoreEvent( eventSource, checked.keySet(), EventType.COMMIT );

@@ -14,10 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,9 +37,9 @@ public class DefaultSessionContextProvider
      */
     static final ThreadLocal<SessionContext>    currentContext = new ThreadLocal();
 
-    private Map<String,DefaultSessionContext>   contexts = new HashMap();
+    private ConcurrentHashMap<String,DefaultSessionContext> contexts = new ConcurrentHashMap( 32, 0.75f, 4 );
     
-    private ReentrantReadWriteLock              contextsLock = new ReentrantReadWriteLock();
+    //private ReentrantReadWriteLock              contextsLock = new ReentrantReadWriteLock();
     
 
     /**
@@ -64,24 +61,21 @@ public class DefaultSessionContextProvider
             }
         }
         
-        LockUtils.withReadLock( contextsLock, new Runnable() {
-            public void run() {
-                DefaultSessionContext context = contexts.get( sessionKey );
-                log.debug( "mapContext(): sessionKey= " + sessionKey + ", current= " + context );
-                if (context == null) {
-                    if (create) {
-                        LockUtils.upgrade( contextsLock );
-
-                        context = newContext( sessionKey );
-                        contexts.put( sessionKey, context );
-                    }
-                    else {
-                        throw new IllegalStateException( "No such session context: " + sessionKey );
-                    }
-                }
-                currentContext.set( context );
+        DefaultSessionContext context = contexts.get( sessionKey );
+        log.debug( "mapContext(): sessionKey= " + sessionKey + ", current= " + context );
+        if (context == null) {
+            if (create) {
+                context = newContext( sessionKey );
+                log.info( "new session context: " + sessionKey );
+                DefaultSessionContext old = contexts.putIfAbsent( sessionKey, context );
+                // no lock -> check after put
+                context = old != null ? old : context;
             }
-        });    
+            else {
+                throw new IllegalStateException( "No such session context: " + sessionKey );
+            }
+        }
+        currentContext.set( context );
     }
 
 
@@ -123,25 +117,20 @@ public class DefaultSessionContextProvider
      * @param sessionKey
      */
     public void destroyContext( final String sessionKey ) {
-        LockUtils.withReadLock( contextsLock, new Runnable() {
-            public void run() {
-                LockUtils.upgrade( contextsLock );
+        log.debug( "destroyContext(): " + sessionKey );
+        DefaultSessionContext context = contexts.get( sessionKey );
+        if (context != null) {
+            mapContext( context.getSessionKey(), false );
 
-                log.debug( "destroyContext(): " + sessionKey );
-                DefaultSessionContext context = contexts.get( sessionKey );
-                if (context != null) {
-                    mapContext( context.getSessionKey(), false );
-                    context.destroy();
-                    unmapContext();
-                    // remove after destroy
-                    contexts.remove( sessionKey );
-                }
-                else {
-                    log.warn( "No context for sessionKey: " + sessionKey + "!" );
-                }
-            }
-        });    
-            
+            context.destroy();
+            unmapContext();
+
+            // remove after destroy
+            contexts.remove( sessionKey );
+        }
+        else {
+            log.warn( "No context for sessionKey: " + sessionKey + "!" );
+        }
     }
     
     

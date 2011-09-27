@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
+import org.qi4j.api.concern.Concerns;
 import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.mixin.Mixins;
@@ -38,8 +39,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
-import org.polymap.core.runtime.Polymap;
-
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.service.IProvidedService;
 import org.polymap.service.ServicesPlugin;
 import org.polymap.service.http.HttpServiceFactory;
@@ -51,13 +51,17 @@ import org.polymap.service.http.WmsService;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
+@Concerns( {
+    PropertyChangeSupport.Concern.class
+})
 @Mixins( {
     ProvidedServiceComposite.Mixin.class,
+    PropertyChangeSupport.Mixin.class,
     ModelChangeSupport.Mixin.class,
     QiEntity.Mixin.class
 } )
 public interface ProvidedServiceComposite
-        extends QiEntity, IProvidedService, EntityComposite {
+        extends QiEntity, IProvidedService, PropertyChangeSupport, ModelChangeSupport, EntityComposite {
 
     @Optional
     @UseDefaults
@@ -108,9 +112,7 @@ public interface ProvidedServiceComposite
         }
         
         public IMap getMap() {
-            return Polymap.getSessionDisplay() != null
-                    ? ProjectRepository.instance().findEntity( IMap.class, mapId().get() )
-                    : ProjectRepository.globalInstance().findEntity( IMap.class, mapId().get() );
+            return ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
         }
 
         public void setMap( IMap map ) {
@@ -149,9 +151,9 @@ public interface ProvidedServiceComposite
         
         public void start() 
         throws Exception {
-            assert wms == null : "Service is started already.";
+//            assert wms == null : "Service is started already.";
             // services are started outside a request
-            IMap map = ProjectRepository.globalInstance().findEntity( IMap.class, mapId().get() );
+            IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
             log.info( "   Starting service for map: " + map.getLabel() + " ..." );
             
             String pathSpec = pathSpec().get();
@@ -168,8 +170,8 @@ public interface ProvidedServiceComposite
 
         public void stop() 
         throws Exception {
-            assert wms != null : "Service is not yet started.";
-            IMap map = ProjectRepository.globalInstance().findEntity( IMap.class, mapId().get() );
+//            assert wms != null : "Service is not yet started.";
+            IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
             log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
             
             HttpServiceFactory.unregisterServer( wms, false );

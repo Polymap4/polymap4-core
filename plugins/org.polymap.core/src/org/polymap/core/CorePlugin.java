@@ -47,6 +47,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.http.HttpServiceRegistry;
+import org.polymap.core.runtime.RapSessionContextProvider;
 import org.polymap.core.runtime.SessionContext;
 
 /**
@@ -97,7 +98,7 @@ public class CorePlugin
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.mp", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.services.geoserver", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.service.geoserver", "debug" );
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );

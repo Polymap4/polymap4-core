@@ -24,10 +24,7 @@
 package org.polymap.core.qi4j;
 
 import java.util.AbstractCollection;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-
 import org.apache.commons.collections.ListUtils;
 import org.qi4j.api.entity.association.ManyAssociation;
 
@@ -43,17 +40,15 @@ public class AssocCollectionImpl<E>
         extends AbstractCollection<E>
         implements AssocCollection<E> {
 
-    private ManyAssociation     underlying;
-    
-    private List                content;
+    private ManyAssociation[]     underlying;
     
     
-    public AssocCollectionImpl( ManyAssociation underlying ) {
+    public AssocCollectionImpl( ManyAssociation... underlying ) {
         this.underlying = underlying;
     }
     
     public boolean isEmpty() {
-        return underlying.count() == 0;
+        return size() == 0;
     }
 
     public Iterator<E> iterator() {
@@ -61,20 +56,55 @@ public class AssocCollectionImpl<E>
             return ListUtils.EMPTY_LIST.iterator();
         }
         else {
-            return underlying.iterator();
+            return new IteratorImpl();
         }
     }
 
     public int size() {
-        return underlying.count();
+        int result = 0;
+        for (ManyAssociation assoc : underlying) {
+            result += assoc.count();
+        }
+        return result;
     }
     
-    private final synchronized void checkFetch() {
-        if (content == null) {
-            content = new ArrayList();
-            for (Object elm : underlying) {
-                content.add( elm );
+    
+    /*
+     * 
+     */
+    class IteratorImpl<T>
+            implements Iterator<T> {
+
+        private int             index = 0;
+        
+        private Iterator<T>     it;
+     
+        
+        public boolean hasNext() {
+            if (it != null && it.hasNext()) {
+                return true;
             }
+            
+            it = null;
+            while (it == null && index < underlying.length) {
+                Iterator next = underlying[ index++ ].iterator();
+                if (next.hasNext()) {
+                    it = next;
+                }
+            }
+            return it != null && it.hasNext();
         }
+
+
+        public T next() {
+            return it.next();
+        }
+
+
+        public void remove() {
+            throw new RuntimeException( "not yet implemented." );
+        }
+        
     }
+    
 }

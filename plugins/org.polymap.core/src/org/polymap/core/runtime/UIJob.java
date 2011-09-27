@@ -47,7 +47,7 @@ import org.polymap.core.Messages;
 /**
  * Extended Job implementation that provides:
  * <ul>
- * <li>implicite handling of RWT session context</li>
+ * <li>implicite handling of (RWT) {@link SessionContext}</li>
  * <li>support for progress dialog</li>
  * <li>simplified exception handling</li>
  * <li>access to the {@link #forThread() job of the current thread} and its monitor and status</li>

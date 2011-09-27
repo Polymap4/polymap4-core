@@ -59,8 +59,6 @@ import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.image.EncodedImageResponse;
@@ -75,8 +73,7 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
-
-import org.polymap.service.geoserver.GeoServerPlugin;
+import org.polymap.core.runtime.UIJob;
 
 /**
  * This {@link GetMapProducer} allows to use the pipelines rendering of POLYMAP
@@ -161,8 +158,9 @@ public class PipelineMapProducer
             for (final MapLayer mapLayer : mapContext.getLayers()) {
                 final ILayer layer = findLayer( mapLayer );
                 // job
-                Job job = new Job( getClass().getSimpleName() + ": " + layer.getLabel() ) {
-                    protected IStatus run( IProgressMonitor monitor ) {
+                UIJob job = new UIJob( getClass().getSimpleName() + ": " + layer.getLabel() ) {
+                    protected void runWithException( IProgressMonitor monitor )
+                    throws Exception {
                         try {
                             Pipeline pipeline = getOrCreatePipeline( layer, LayerUseCase.IMAGE );
 
@@ -174,13 +172,12 @@ public class PipelineMapProducer
                                     images.put( mapLayer, layerImage );
                                 }
                             });
-                            return Status.OK_STATUS;
                         }
                         catch (Exception e) {
                             // XXX put a special image in the map
                             log.warn( "", e );
                             images.put( mapLayer, null );
-                            return new Status( Status.ERROR, GeoServerPlugin.PLUGIN_ID, "", e );
+                            throw e;
                         }
                     }
                 };

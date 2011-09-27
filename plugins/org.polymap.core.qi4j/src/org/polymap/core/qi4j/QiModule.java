@@ -184,6 +184,11 @@ public abstract class QiModule
 
     // events ***
 
+    /**
+     * Register the given listener for the current session.
+     * <p/>
+     * All listeners are disposed when the session is destroyed.
+     */
     public void addModelStoreListener( IModelStoreListener l ) {
         ModelChangeTracker.instance().addListener( l );
     }

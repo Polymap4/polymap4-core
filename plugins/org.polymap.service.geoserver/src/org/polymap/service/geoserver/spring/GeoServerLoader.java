@@ -216,6 +216,9 @@ public class GeoServerLoader
             // try feature/vector resource
             try {
                 PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
+                if (fs.getPipeline().length() == 0) {
+                    throw new PipelineIncubationException( "WMS layer? : " + layer.getLabel() );
+                }
 
                 // set name/namespace for target schema
 //                IGeoResource geores = layer.getGeoResource();

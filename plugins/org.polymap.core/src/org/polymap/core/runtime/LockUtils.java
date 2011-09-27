@@ -82,6 +82,10 @@ public class LockUtils {
     }
     
     
+    /**
+     * Simply *release* read lock and aquire write lock afterwards.
+     * @param rwLock
+     */
     public static void upgrade( ReentrantReadWriteLock rwLock ) {
         rwLock.readLock().unlock();
         rwLock.writeLock().lock();

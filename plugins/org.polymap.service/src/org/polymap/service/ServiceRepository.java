@@ -75,7 +75,7 @@ public class ServiceRepository
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
         serviceList = uow.get( ServiceListComposite.class, "serviceList" );
-        log.debug( "ServiceList: " + serviceList );
+        log.info( "ServiceList: " + serviceList.getServices() );
     }
     
     

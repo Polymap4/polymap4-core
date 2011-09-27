@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core;
+package org.polymap.core.runtime;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,9 +31,6 @@ import org.eclipse.rwt.lifecycle.UICallBack;
 import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
 
-import org.polymap.core.runtime.ISessionContextProvider;
-import org.polymap.core.runtime.ISessionListener;
-import org.polymap.core.runtime.SessionContext;
 
 /**
  * 
