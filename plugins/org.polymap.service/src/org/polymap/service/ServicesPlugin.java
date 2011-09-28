@@ -228,7 +228,7 @@ public class ServicesPlugin
             modelChangeListener = new IModelStoreListener() {
                 public void modelChanged( ModelStoreEvent ev ) {
                     // XXX avoid restart on *every* global entity event
-                    log.debug( "Global entity event: source= " + ev.getSource() );
+                    log.info( "Global entity event: source= " + ev.getSource() );
                     if (ev.getEventType() == EventType.COMMIT
                             /*&& ServiceRepository.class.isAssignableFrom( ev.getSource().getClass() )*/) {
                         restartServices();

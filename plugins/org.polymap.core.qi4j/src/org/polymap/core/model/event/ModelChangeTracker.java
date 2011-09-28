@@ -273,13 +273,13 @@ public class ModelChangeTracker
             }
         };
         
-        private ModelChangeTracker    src;
+        private ModelChangeTracker      src;
         
-        private ModelStoreEvent      ev;
+        private ModelStoreEvent         ev;
         
         
         EventJob( ModelChangeTracker src, ModelStoreEvent ev ) {
-            super( "GlobalEventJob" );
+            super( "Model store event" );
             this.src = src;
             this.ev = ev;
             setPriority( Job.LONG );
@@ -289,7 +289,7 @@ public class ModelChangeTracker
         
         protected void runWithException( IProgressMonitor monitor )
         throws Exception {
-            monitor.beginTask( "Globale Events", IProgressMonitor.UNKNOWN );
+            monitor.beginTask( "Model store event", IProgressMonitor.UNKNOWN );
             for (ModelChangeTracker instance : instances.keySet()) {
                 if (!instance.equals( src )) {
                     for (IModelStoreListener listener : instance.listeners) {
