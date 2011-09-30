@@ -35,7 +35,9 @@ public class ProgressListenerAdaptor
         description = null;
     }
 
-    public void exceptionOccurred( Throwable arg0 ) {
+    public void exceptionOccurred( Throwable e ) {
+        e.printStackTrace();
+        monitor.setCanceled( true );
     }
 
     public String getDescription() {
