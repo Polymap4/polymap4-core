@@ -266,7 +266,7 @@
       </objectContribution>
    </extension>
    <extension
-         point="org.polymap.core.qi4j.moduleAssemblers">
+         point="org.polymap.core.model.moduleAssemblers">
       <assembler
             class="org.polymap.core.project.ProjectRepositoryAssembler">
       </assembler>

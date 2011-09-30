@@ -341,13 +341,6 @@
          version="0.0.0"/>
 
    <plugin
-         id="org.polymap.core.qi4j"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.eclipse.core.databinding.beans"
          download-size="0"
          install-size="0"
@@ -523,6 +516,41 @@
 
    <plugin
          id="org.polymap.service.fs"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.biotop"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.service.geoserver"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.qi4j.entitystore.lucene"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="qi4j-core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.core.model"
          download-size="0"
          install-size="0"
          version="0.0.0"

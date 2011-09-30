@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Local Catalog
 Bundle-SymbolicName: org.polymap.core.catalog;singleton:=true
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 3.1.0.qualifier
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.polymap.core.catalog.CatalogPlugin
 Bundle-Localization: plugin
@@ -10,7 +10,7 @@ Require-Bundle: net.refractions.udig.core;bundle-version="1.2.0",
  net.refractions.udig.catalog;bundle-version="1.2.0",
  net.refractions.udig.ui;bundle-version="1.2.0",
  org.polymap.core;bundle-version="3.0.0",
- org.polymap.core.qi4j;bundle-version="3.0.0"
+ org.polymap.core.model;bundle-version="3.1.0"
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.polymap.core.catalog,

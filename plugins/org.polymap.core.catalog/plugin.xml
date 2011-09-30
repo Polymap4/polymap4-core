@@ -9,7 +9,7 @@
    </extension>
    <extension
          id="org.polymap.core.catalog.qi4j.assambler"
-         point="org.polymap.core.qi4j.moduleAssemblers">
+         point="org.polymap.core.model.moduleAssemblers">
       <assembler
             class="org.polymap.core.catalog.model.CatalogRepositoryAssembler">
       </assembler>

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Project Plugin
 Bundle-SymbolicName: org.polymap.core.project;singleton:=true
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 3.1.0.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: polymap.org
 Bundle-Localization: plugin
@@ -22,6 +22,6 @@ Require-Bundle: org.eclipse.core.runtime,
  net.refractions.udig.core;bundle-version="1.2.0",
  org.polymap.core;bundle-version="3.0.0",
  org.polymap.core.style;bundle-version="3.0.0",
- org.polymap.core.qi4j
+ org.polymap.core.model;bundle-version="3.1.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.polymap.core.project.ProjectPlugin

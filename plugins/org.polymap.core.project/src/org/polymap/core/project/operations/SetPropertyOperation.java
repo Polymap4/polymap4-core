@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
-import org.qi4j.library.constraints.annotation.NotEmpty;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -61,7 +60,7 @@ public interface SetPropertyOperation
      *        {@link ModelProperty} of the setter of that property.
      * @param newValue The new value of the property.
      */
-    public void init( Class type, Object obj, @NotEmpty String propName, Object newValue );
+    public void init( Class type, Object obj, /*@NotEmpty*/ String propName, Object newValue );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );

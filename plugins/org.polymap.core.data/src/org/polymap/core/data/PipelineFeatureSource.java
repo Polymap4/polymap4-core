@@ -373,7 +373,7 @@ public class PipelineFeatureSource
                     chunk.add( it.next() );
                     count++;
                 }
-                log.info( "chunk red from source: " + chunk.size() );
+                log.debug( "chunk red from source: " + chunk.size() );
                 // request
                 AddFeaturesRequest request = new AddFeaturesRequest( type, chunk );
                 pipeline.process( request, new ResponseHandler() {
@@ -382,7 +382,7 @@ public class PipelineFeatureSource
                         fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() );
                     }
                 });
-                log.info( "chunk sent down the pipe: " + chunk.size() );
+                log.debug( "chunk sent down the pipe: " + chunk.size() );
                 monitor.setTask( new SimpleInternationalString( "" + count ) );
                 monitor.progress( chunk.size() );
 //                Thread.sleep( 50 );

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="org.polymap.core.model.moduleAssemblers" name="moduleAssemblers" schema="schema/org.polymap.core.qi4j.moduleAssemblers.exsd"/>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="org.polymap.core.model.security.ACLPropertiesPage"
+            id="org.polymap.core.model.ui.ACLPropertiesPage"
+            name="%propsPage_acl">
+         <enabledWhen>
+            <or>
+               <instanceof
+                     value="org.polymap.core.model.security.ACL">
+               </instanceof>
+               <adapt
+                     type="org.polymap.core.model.security.ACL">
+               </adapt>
+            </or>
+         </enabledWhen>
+      </page>
+   </extension>
+
+</plugin>

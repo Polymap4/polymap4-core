@@ -2,15 +2,15 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MapEditor
 Bundle-SymbolicName: org.polymap.core.mapeditor;singleton:=true
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 3.1.0.qualifier
 Bundle-Activator: org.polymap.core.mapeditor.MapEditorPlugin
 Bundle-Vendor: polymap.org
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.core.runtime,
  org.polymap.core;bundle-version="3.0.0",
  org.polymap.core.project;bundle-version="3.0.0",
+ org.polymap.core.model;bundle-version="3.1.0",
  org.polymap.core.data;bundle-version="3.0.0",
- org.polymap.core.qi4j;bundle-version="1.0.0",
  org.polymap.openlayers.rap.widget;bundle-version="1.0.0",
  net.refractions.udig.catalog;bundle-version="1.2.0",
  net.refractions.udig.catalog.shp;bundle-version="1.2.0",

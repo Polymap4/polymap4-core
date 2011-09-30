@@ -7,7 +7,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/common-2.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-beanutils-1.7.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-codec-1.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.1.jar" sourcepath="/home/falko/.m2/repository/commons-collections/commons-collections/3.1/commons-collections-3.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-dbcp-1.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-1.4.jar" sourcepath="lib/sources/commons-io-1.4-sources.zip"/>
@@ -20,14 +20,14 @@
 	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/geodb-0.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/google-collections-0.8.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/jts-1.10-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-data-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-graph-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-graph-2.6.4.jar" sourcepath="lib/sources/gt-graph-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-image-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-imageio-ext-gdal-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-imagemosaic-2.6.4.jar"/>
@@ -41,7 +41,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-process-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-property-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-render-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-render-2.6.4.jar" sourcepath="lib/sources/gt-render-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-svg-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-validation-2.6.4.jar"/>
