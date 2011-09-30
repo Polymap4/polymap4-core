@@ -32,19 +32,18 @@ import org.eclipse.rwt.RWT;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.help.AbstractHelpUI;
 
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IToc;
 
+import org.polymap.core.workbench.PolymapWorkbench;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class HelpUI
@@ -52,6 +51,12 @@ public class HelpUI
 
     private static Log log = LogFactory.getLog( HelpUI.class );
 
+    public static final String  HELP_SERVER_URL = "http://polymap.org/polymap3/wiki/UserGuide";
+        
+    private Shell               window;
+    
+    private Browser             browser;
+    
     
     public HelpUI() {
     }
@@ -61,6 +66,12 @@ public class HelpUI
         for (IToc toc : HelpSystem.getTocs()) {
             log.debug( "TOC: " + toc.getLabel() );
         }
+        openHelpWindow( HELP_SERVER_URL + "/Start" );
+    }
+
+
+    public void displaySearch() {
+        openHelpWindow( "http://polymap.org/polymap3/search" );
     }
 
 
@@ -84,7 +95,7 @@ public class HelpUI
     public void displayContext( IContext context, int x, int y ) {
         log.debug( "displayContext(): context= " + context );
         String text = context.getText();
-        MessageDialog.openInformation( getActiveShell(), "Context Help", text );
+        MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(), "Context Help", text );
     }
 
 
@@ -97,27 +108,28 @@ public class HelpUI
 
 
     private void openHelpWindow( String url ) {
-        Shell parentShell = getActiveShell();
-        Shell shell = new Shell( parentShell, SWT.SHELL_TRIM );
-        GridLayout layout = new GridLayout( 1, false );
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-        shell.setLayout( layout );
-        shell.setSize( 600, 480 );
-        shell.setLocation( 150, 150 );
+        if (window == null || window.isDisposed()) {
+            Shell parentShell = PolymapWorkbench.getShellToParentOn();
+            window = new Shell( parentShell, SWT.CLOSE | SWT.TITLE | SWT.MAX | SWT.RESIZE | SWT.APPLICATION_MODAL );
+            GridLayout layout = new GridLayout( 1, false );
+            layout.marginHeight = 0;
+            layout.marginWidth = 0;
+            window.setLayout( layout );
+            window.setSize( 970, 750 );
+            window.setLocation( 100, 50 );
 
-        Browser browser = new Browser( shell, SWT.NONE );
-        browser.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+            browser = new Browser( window, SWT.NONE );
+            browser.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+        }
         browser.setUrl( url );
-
-        shell.open();
+        window.open();
     }
 
 
-    private Shell getActiveShell() {
-        IWorkbench workbench = PlatformUI.getWorkbench();
-        Shell parentShell = workbench.getActiveWorkbenchWindow().getShell();
-        return parentShell;
-    }
+//    private Shell getActiveShell() {
+//        IWorkbench workbench = PlatformUI.getWorkbench();
+//        Shell parentShell = workbench.getActiveWorkbenchWindow().getShell();
+//        return parentShell;
+//    }
 
 }

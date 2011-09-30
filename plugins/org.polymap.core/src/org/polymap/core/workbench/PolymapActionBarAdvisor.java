@@ -29,7 +29,6 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 
-import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -169,25 +168,6 @@ public class PolymapActionBarAdvisor
 //        introAction = ActionFactory.INTRO.create( window );
 //        register( introAction );
 
-        newEditorAction = new Action() {
-            public void run() {
-                log.info( "action is commented out!" ); //$NON-NLS-1$
-//                try {
-//                    window.getActivePage().openEditor(
-//                            new FooEditorInput( PolymapActionBarAdvisor.this ),
-//                            "org.eclipse.rap.demo.editor", true );
-//                }
-//                catch (PartInitException e) {
-//                    e.printStackTrace();
-//                }
-            }
-        };
-        newEditorAction.setText( "Open new editor" ); //$NON-NLS-1$
-        newEditorAction.setId( "org.eclipse.rap.demo.neweditor" ); //$NON-NLS-1$
-        newEditorAction.setImageDescriptor( window.getWorkbench().getSharedImages()
-                .getImageDescriptor( ISharedImages.IMG_TOOL_NEW_WIZARD ) );
-        register( newEditorAction );
-
         aboutAction = new Action() {
             public void run() {
                 Shell shell = window.getShell();
@@ -202,8 +182,8 @@ public class PolymapActionBarAdvisor
                 
                 MessageDialog.openInformation( shell, Messages.get( "PolymapActionBarAdvisor_about" ), //$NON-NLS-1$
                         "POLYMAP " + coreVersion + "\n" + //$NON-NLS-1$
-                        "Running on RAP version " + rapVersion + "\n" +
-                        "GeoTools version " + GeoTools.getVersion() ); //$NON-NLS-1$
+                        "Running on RAP Version " + rapVersion + "\n" +
+                        "GeoTools Version " + GeoTools.getVersion() ); //$NON-NLS-1$
             }
         };
         aboutAction.setText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
@@ -217,17 +197,17 @@ public class PolymapActionBarAdvisor
                 browserSupport = PlatformUI.getWorkbench().getBrowserSupport();
                 try {
                     int style = IWorkbenchBrowserSupport.AS_EXTERNAL;
-                    browser = browserSupport
-                            .createBrowser( style, polymapWebSiteAction.getId(), "", "" ); //$NON-NLS-1$ //$NON-NLS-2$
-                    browser.openURL( new URL( "http://www.polymap.org" ) ); //$NON-NLS-1$
+                    browser = browserSupport.createBrowser( style, 
+                            polymapWebSiteAction.getId(), "", "" );
+                    browser.openURL( new URL( "http://www.polymap.org/polymap3/" ) );
                 }
                 catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
-        polymapWebSiteAction.setText( "POLYMAP Home Page" ); //$NON-NLS-1$
-        polymapWebSiteAction.setId( "polymap3.core.rapWebSite" ); //$NON-NLS-1$
+        polymapWebSiteAction.setText( "POLYMAP3 Website" );
+        polymapWebSiteAction.setId( "polymap3.core.rapWebSite" );
         polymapWebSiteAction.setImageDescriptor( rapWebSiteActionImage );
         register( polymapWebSiteAction );
         
@@ -377,32 +357,22 @@ public class PolymapActionBarAdvisor
     
 
     protected void fillCoolBar( final ICoolBarManager coolBar ) {
-        createToolBar( coolBar, "main" ); //$NON-NLS-1$
-        createToolBar( coolBar, "editor" ); //$NON-NLS-1$
+        createToolBar( coolBar, "main" );
+//        createToolBar( coolBar, "editor" );
     }
 
 
     private void createToolBar( final ICoolBarManager coolBar, final String name ) {
         IToolBarManager toolbar = new ToolBarManager( SWT.FLAT | SWT.RIGHT );
         coolBar.add( new ToolBarContributionItem( toolbar, name ) );
-        if (name != "editor") { //$NON-NLS-1$
-//            toolbar.add( wizardAction );
-//            toolbar.add( browserAction );
-
-//            toolbar.add( aboutAction );
-//            toolbar.add( exitAction );
-        }
-        else {
+        if (name == "main") { 
             toolbar.add( new2Action );
-//            toolbar.add( newEditorAction );
-//            toolbar.add( saveAction );
-//            toolbar.add( undoAction );
-//            toolbar.add( redoAction );
         }
     }
 
 
     protected void fillStatusLine( final IStatusLineManager statusLine ) {
         statusLine.add( aboutAction );
+        statusLine.add( helpContentsAction );
     }
 }
