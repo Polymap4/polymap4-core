@@ -31,20 +31,24 @@ public class OpenlayersPlugin
     throws Exception {
         super.start( context );
 
-        // start HttpServiceRegistry
+        // start
         if (HttpService.class != null) {
             startService( context );
         }
-        else {
-            context.addBundleListener( new BundleListener() {
-                public void bundleChanged( BundleEvent ev ) {
-                    if (ev.getType() == BundleEvent.STOPPED
-                            && !started && (HttpService.class != null)) {
-                        startService( context );
-                    }
+
+        // listen to bundle events
+        context.addBundleListener( new BundleListener() {
+            public void bundleChanged( BundleEvent ev ) {
+                if (ev.getType() == BundleEvent.STARTED
+                        && !started && HttpService.class != null) {
+                    startService( context );
                 }
-            });
-        }
+//                if (ev.getType() == BundleEvent.STOPPED
+//                        && started && HttpService.class == null) {
+//                    stopService( context );
+//                }
+            }
+        });
 
 		plugin = this;
 	}
