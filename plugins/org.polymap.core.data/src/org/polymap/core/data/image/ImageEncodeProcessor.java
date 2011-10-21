@@ -49,6 +49,7 @@ import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.util.ChunkedResponseOutputStream;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.Timer;
 
 import com.objectplanet.image.PngEncoder;
 
@@ -131,7 +132,7 @@ public class ImageEncodeProcessor
     
     protected void doImageResponse( Image image, final ProcessorContext context )
             throws Exception {
-        long start = System.currentTimeMillis();
+        Timer timer = new Timer();
 
         // chunked reponse output stream
         ChunkedResponseOutputStream out = new ChunkedResponseOutputStream( context ) {
@@ -151,7 +152,7 @@ public class ImageEncodeProcessor
         else {
             opEncodePNG( image, out );
         }
-        log.debug( "encode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
+        log.debug( "encode: ready. (" + timer.elapsedTime() + "ms)" );
         
         out.flush();
         context.sendResponse( ProcessorResponse.EOP );
@@ -172,7 +173,7 @@ public class ImageEncodeProcessor
 
     private void opEncodePNG( Image image, ChunkedResponseOutputStream out )
     throws IOException {
-        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA );
+        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA /*, PngEncoder.BEST_COMPRESSION*/ );
         encoder.encode( image, out );
     }
     

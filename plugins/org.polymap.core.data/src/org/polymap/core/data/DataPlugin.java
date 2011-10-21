@@ -118,6 +118,4 @@ public class DataPlugin
         return image;
     }
 
-
-
 }

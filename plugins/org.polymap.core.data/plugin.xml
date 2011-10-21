@@ -4,6 +4,20 @@
    <extension-point id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors" schema="schema/org.polymap.core.data.pipeline.processors.exsd"/>
    <extension-point id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners" schema="schema/org.polymap.core.data.pipeline.listeners.exsd"/>
    <extension-point id="org.polymap.core.data.featureOperations" name="FeatureOperations" schema="schema/org.polymap.core.data.featureOperations.exsd"/>
+   <extension-point id="org.polymap.core.data.csvimport.operations" name="CSV Import Operation" schema="schema/org.polymap.core.data.csvimport.operations.exsd"/>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <wizard
+            category="net.refractions.udig.catalog.ui_p3.dataImportCategory"
+            class="org.polymap.core.data.ui.csvimport.CsvImportWizard"
+            icon="icons/prop_ps.gif"
+            id="org.polymap.core.data.csvimport.CsvImportWizard"
+            name="CSV import">
+         <description>
+            Import a file in the CSV format from the local file system into the workspace.
+         </description>
+      </wizard>
+   </extension>
    <!--extension
          point="org.eclipse.ui.actionSets">
       <actionSet
