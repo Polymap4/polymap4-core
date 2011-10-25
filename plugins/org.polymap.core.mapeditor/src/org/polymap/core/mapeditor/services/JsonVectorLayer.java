@@ -14,6 +14,7 @@
  */
 package org.polymap.core.mapeditor.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,8 +41,8 @@ public class JsonVectorLayer
             JsonEncoder jsonEncoder, StyleMap styleMap ) {
         
         super( name, new Protocol( Protocol.TYPE.HTTP, 
-                jsonServer.getURL() + "/" + jsonEncoder.getName(), "GeoJSON" ), 
-                styleMap );
+                StringUtils.removeStart( jsonServer.getPathSpec(), "/" ) + "/" + jsonEncoder.getName(),
+                "GeoJSON" ), styleMap );
         this.jsonEncoder = jsonEncoder;
         this.jsonServer = jsonServer;
         log.debug( "URL: " + jsonServer.getURL() + "/" + jsonEncoder.getName() );
