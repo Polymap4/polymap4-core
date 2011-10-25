@@ -233,7 +233,7 @@ public interface CatalogComposite
             for (IService service : persistentAndTransientServices()) {
                 boolean found = false;
                 for (ServiceTypeFolder folder : folders) {
-                    if (folder.type.isAssignableFrom( service.getClass() )) {
+                    if (service != null && folder.type.isAssignableFrom( service.getClass() )) {
                         folder.services.add( service );
                         found  = true;
                         break;
@@ -272,7 +272,7 @@ public interface CatalogComposite
             URL url = id.toURL();
             if (IResolve.class.isAssignableFrom( type )) {
                 for (IService service : persistentAndTransientServices()) {
-                    if (URLUtils.urlEquals( url, service.getIdentifier(), true )) {
+                    if (service != null && URLUtils.urlEquals( url, service.getIdentifier(), true )) {
                         IResolve child = findChildById( service, id, false, monitor2 );
                         if (child != null) {
                             return type.cast( child );
@@ -424,7 +424,7 @@ public interface CatalogComposite
             // first pass 1.1- use urlEquals on CONNECTED service for subset
             // check
             for (IService service : persistentAndTransientServices()) {
-                if (service.getStatus() != Status.CONNECTED) {
+                if (service == null || service.getStatus() != Status.CONNECTED) {
                     continue; // skip non connected service
                 }
                 URL identifier = service.getIdentifier();
