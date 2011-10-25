@@ -56,8 +56,12 @@ public class EntityChangeStatus {
     
     public boolean isConflicting() {
         ModelHandle key = ModelHandle.instance( entity.id(), entity.getEntityType().getName() );
-        Long timestamp = entity._lastModified().get();
-        
+        // older versions have Integer
+        Number lastModified = entity._lastModified().get();
+        Long timestamp = lastModified != null
+                ? lastModified.longValue()
+                : null;
+
         if (timestamp == null) {
             return false;
         }

@@ -127,7 +127,11 @@ public interface ModelChangeSupport
                     try {
                         ModelHandle key = ModelHandle.instance( 
                                 composite.id(), composite.getEntityType().getName() );
-                        Long timestamp = composite._lastModified().get();
+                        // older versions have Integer
+                        Number lastModified = composite._lastModified().get();
+                        Long timestamp = lastModified != null
+                                ? lastModified.longValue()
+                                : null;
                         // newly created entities might not have an timestamp
                         timestamp = timestamp != null ? timestamp : set;
                         updater.checkSet( key, timestamp, set );
