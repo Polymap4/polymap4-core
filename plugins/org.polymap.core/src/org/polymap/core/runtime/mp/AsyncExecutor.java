@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Condition;
@@ -210,8 +211,8 @@ public class AsyncExecutor<T,S>
         return queueCapacity - queueSize;    
     }
     
-    protected void enqueue( Runnable task ) {
-        executorService.execute( task );
+    protected void enqueue( Callable task ) {
+        executorService.submit( task );
     }
 
     
@@ -274,8 +275,9 @@ public class AsyncExecutor<T,S>
             }
             
             // enqueue new task
-            enqueue( new Runnable() {
-                public void run() {
+            enqueue( new Callable() {
+                public Object call()
+                throws Exception {
                     int size = chunk.elements.size();
                     for (int i=0; i<size; i++) {
                         chunk.elements.set( i, processor.process( chunk.elements.get( i ) ) );
@@ -296,6 +298,7 @@ public class AsyncExecutor<T,S>
                     }
 
                     chain[ chainNum+1 ].put( chunk );
+                    return null;
                 }
             });
         }

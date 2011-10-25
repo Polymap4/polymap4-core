@@ -22,6 +22,6 @@ package org.polymap.core.runtime.mp;
  */
 public interface Processor<T,S> {
     
-    public T process( S elm );
+    public T process( S elm ) throws Exception;
     
 }

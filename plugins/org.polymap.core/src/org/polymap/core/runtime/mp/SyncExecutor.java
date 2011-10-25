@@ -62,11 +62,16 @@ public class SyncExecutor<T,S>
     }
 
     public T next() {
-        Object next = source.next();
-        for (int i=0; i<chain.length; i++) {
-            next = chain[i].process( next );
+        try {
+            Object next = source.next();
+            for (int i=0; i<chain.length; i++) {
+                next = chain[i].process( next );
+            }
+            return (T)next;
         }
-        return (T)next;
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
     public void remove() {

@@ -107,8 +107,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.operations.NewLayerOperation", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.impl.MapImpl", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.eu.hydrologis.jgrass.csv2shape.importwizard", "debug" );
-
+        
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
@@ -117,6 +116,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
 
