@@ -135,7 +135,7 @@ public class ProjectContentProvider
                 if (ev.hasChanged( (IModelHandleable)getMap() )) {
 
                     log.info( "modelChanged(): " + ev );
-                    ((ProjectContentProvider)getProvider()).contentSite.invalidateNode( this );
+                    ((ProjectContentProvider)getProvider()).contentSite.invalidateSession();
                 }
             }
         }

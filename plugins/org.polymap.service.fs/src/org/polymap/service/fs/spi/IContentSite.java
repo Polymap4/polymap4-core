@@ -34,7 +34,13 @@ public interface IContentSite {
     public Locale getLocale();
 
     public String getUserName();
-    
-    public void invalidateNode( IContentNode node );
 
+    /**
+     * Invalidates the children of the given folder. The next time the content of the
+     * folder is requested, it is re-created by asking the {@link IContentProvider}.
+     */
+    public void invalidateFolder( IContentFolder node );
+    
+    public void invalidateSession();
+        
 }

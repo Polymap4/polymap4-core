@@ -83,11 +83,24 @@ class WebDavFilePostable
     }
 
 
-    public String processForm( Map<String, String> params, Map<String, FileItem> files )
+    public String processForm( Map<String,String> params, Map<String,FileItem> files )
     throws BadRequestException, NotAuthorizedException, ConflictException {
         log.info( "params: " + params );
         log.info( "files: " + files );
-        throw new RuntimeException( "not yet implemented." );
+        try {
+            return node.processForm( params, files );
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
+        catch (org.polymap.service.fs.spi.BadRequestException e) {
+            log.warn( "", e );
+            throw new BadRequestException( this, e.getLocalizedMessage() );
+        }
+        catch (org.polymap.service.fs.spi.NotAuthorizedException e) {
+            log.warn( "", e );
+            throw new NotAuthorizedException( this );
+        }
     }
 
     

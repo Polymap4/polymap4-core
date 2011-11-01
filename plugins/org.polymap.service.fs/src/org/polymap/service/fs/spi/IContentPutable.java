@@ -14,26 +14,29 @@
  */
 package org.polymap.service.fs.spi;
 
-import java.util.Map;
-
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.bradmcevoy.http.FileItem;
-
 /**
  * 
- * <p/>
- * Also allows upload via browser for folders via {@link #processForm(Map, Map)}.
- * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IContentWriteable {
+public interface IContentPutable
+        extends IContentFolder {
 
-    void replaceContent( InputStream in, Long length )
-            throws IOException, BadRequestException, NotAuthorizedException;
-
-    String processForm( Map<String,String> params, Map<String,FileItem> files )
-            throws IOException, BadRequestException, NotAuthorizedException;
+    /**
+     * Create a new resource, or overwrite an existing one
+     *
+     * @param newName - the name to create within the collection. E.g. myFile.txt
+     * @param inputStream - the data to populate the resource with
+     * @param length - the length of the data
+     * @param contentType - the content type to create
+     * @return A reference to the new resource
+     * @throws IOException
+     * @throws NotAuthorizedException
+     */
+    IContentFile createNew( String newName, InputStream inputStream, Long length, String contentType )
+    throws IOException, NotAuthorizedException, BadRequestException;
 
 }

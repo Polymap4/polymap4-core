@@ -35,6 +35,8 @@ import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.bradmcevoy.http.FileItem;
+
 import org.eclipse.core.runtime.IPath;
 
 import org.polymap.core.data.PipelineFeatureSource;
@@ -211,6 +213,12 @@ public class ShapefileContentProvider
         }
 
 
+        public String processForm( Map<String, String> params, Map<String, FileItem> files )
+        throws IOException, BadRequestException, NotAuthorizedException {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+        
         public String getContentType( String accepts ) {
             return "application/octec-stream";
         }

@@ -269,7 +269,29 @@ public class ContentManager {
             }
         }
         
-        public void invalidateNode( IContentNode node ) {
+        public void invalidateFolder( IContentFolder node ) {
+            try {
+                nodesLock.writeLock().lock();
+                
+//                IPath path = node.getPath();
+//                IPath parentPath = path.removeLastSegments( 1 );
+//                String nodeName = path.lastSegment();
+//                Map<String,IContentNode> parentChildren = nodes.get( parentPath );
+//
+//                if (parentChildren != null) {
+//                    IContentNode found = parentChildren.get( nodeName );
+//                    if (found == node) {
+//                        parentChildren.remove( nodeName );
+//                    }
+//                }
+                nodes.remove( node.getPath() );
+            }
+            finally {
+                nodesLock.writeLock().unlock();
+            }
+        }
+        
+        public void invalidateSession() {
             if (sessionContext != null) {
                 FsPlugin.getDefault().invalidateSession( sessionContext );
                 sessionContext = null;

@@ -27,10 +27,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.ReplaceableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
@@ -43,6 +45,7 @@ import org.polymap.service.fs.spi.IContentDeletable;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
+import org.polymap.service.fs.spi.IContentPutable;
 import org.polymap.service.fs.spi.IContentWriteable;
 
 /**
@@ -103,7 +106,9 @@ class WebDavResourceFactory
         }
         // folder
         else if (node instanceof IContentFolder) {
-            return new WebDavFolderResource( contentManager, (IContentFolder)node, securityManager );
+            WebDavFolderHandler folderHandler = new WebDavFolderHandler( contentManager, (IContentFolder)node, securityManager);
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            return (Resource)Proxy.newProxyInstance( cl, folderHandler.getInterfaces(), folderHandler );
         }
         // file
         else if (node instanceof IContentFile) {
@@ -146,6 +151,66 @@ class WebDavResourceFactory
             if (node instanceof IContentDeletable) {
                 WebDavFileDeletable deletable = new WebDavFileDeletable( contentManager, (IContentDeletable)node, securityManager );
                 handlers.put( DeletableResource.class, deletable );
+            }
+        }
+
+
+        public Class[] getInterfaces() {
+            Set<Class> result = handlers.keySet();
+            return result.toArray( new Class[ result.size()] );
+        }
+        
+        
+        public Object invoke( Object proxy, Method method, Object[] args )
+        throws Throwable {
+            //log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
+
+            Object handler = handlers.get( method.getDeclaringClass() );
+            
+            if (handler == null) {
+                throw new IllegalStateException( "No handler for declaringClass: " + method.getDeclaringClass().getName() );
+            }
+            
+            try {
+                return method.invoke( handler, args );
+            }
+            catch (InvocationTargetException e) {
+                throw e.getTargetException();
+            }
+        }
+        
+    }
+    
+
+    /*
+     * InvocationHandler of a proxy that exposes the different
+     * interfaces for Getable, Postable, Deletable, etc.
+     */
+    static class WebDavFolderHandler
+            implements InvocationHandler {
+
+        private IContentFolder      node;
+        
+        private Map<Class,Object>   handlers = new HashMap();
+        
+        
+        public WebDavFolderHandler( ContentManager contentManager, IContentFolder node, SecurityManager securityManager ) {
+            this.node = node;
+            
+            WebDavFolderResource getable = new WebDavFolderResource( contentManager, node, securityManager );       
+            handlers.put( Resource.class, getable );
+            handlers.put( GetableResource.class, getable );
+            handlers.put( CollectionResource.class, getable );
+            handlers.put( PropFindableResource.class, getable );
+            
+            if (node instanceof IContentPutable) {
+                WebDavFolderPutable putable = new WebDavFolderPutable( contentManager, (IContentPutable)node, securityManager );
+                handlers.put( PutableResource.class, putable );
+            }
+            if (node instanceof IContentWriteable) {
+                WebDavFilePostable postable = new WebDavFilePostable( contentManager, (IContentWriteable)node, securityManager );
+                handlers.put( PostableResource.class, postable );
+                handlers.put( ReplaceableResource.class, postable );
             }
         }
 
