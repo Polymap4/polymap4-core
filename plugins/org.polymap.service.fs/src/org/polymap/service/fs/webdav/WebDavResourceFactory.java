@@ -102,7 +102,8 @@ class WebDavResourceFactory
     
     static Resource wrapContentNode( IContentNode node, ContentManager contentManager, SecurityManager securityManager ) {
         if (node == null) {
-            throw new RuntimeException( "Node is null." );
+            log.warn( "wrapContentNode(): node is null." );
+            return null;
         }
         // folder
         else if (node instanceof IContentFolder) {
