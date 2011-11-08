@@ -303,7 +303,8 @@ public class PipelineMapProducer
                 mapContext.getAreaOfInterest(), 
                 getContentType(), 
                 mapContext.getMapWidth(), 
-                mapContext.getMapHeight() );
+                mapContext.getMapHeight(),
+                -1);
         return request;
     }
     

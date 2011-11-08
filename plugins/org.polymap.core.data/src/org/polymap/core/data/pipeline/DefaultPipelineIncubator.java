@@ -34,6 +34,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.rwt.SessionSingletonBase;
+
 import org.eclipse.core.runtime.CoreException;
 
 import org.polymap.core.data.DataPlugin;
@@ -63,6 +65,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.project.PipelineProcessorConfiguration;
+import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -110,6 +113,45 @@ public class DefaultPipelineIncubator
         }
     }
 
+
+//    /**
+//     * Add a {@link IPageChangedListener} to the global list of listeners of this
+//     * session.
+//     */
+//    public static void addIncubationListener( IPipelineIncubationListener l ) {
+//        Session.instance().listeners.add( l );
+//    }
+//    
+//    public static void removeIncubationListener( IPipelineIncubationListener l ) {
+//        Session.instance().listeners.remove( l );
+//    }
+
+
+    /**
+     * Session bound incubation listeners. 
+     */
+    static class Session
+            extends SessionSingletonBase {
+
+        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
+
+        public static Session instance() {
+            return (Session)getInstance( Session.class );
+        }
+
+        protected Session() {
+            for (PipelineListenerExtension ext : PipelineListenerExtension.allExtensions()) {
+                try {
+                    IPipelineIncubationListener listener = ext.newListener();
+                    listeners.add( listener );
+                }
+                catch (CoreException e) {
+                    log.error( "Unable to create a new IPipelineIncubationListener: " + ext.getId() );
+                }
+            }
+        }
+        
+    }
 
     public Pipeline newPipeline( LayerUseCase usecase, IMap map, ILayer layer, IService service )
     throws PipelineIncubationException {
@@ -182,6 +224,12 @@ public class DefaultPipelineIncubator
             processor.init( props );
             pipeline.addLast( processor );
         }
+        
+        // call listeners
+        for (IPipelineIncubationListener listener : Session.instance().listeners) {
+            listener.pipelineCreated( pipeline );
+        }
+
         return pipeline;
     }
 

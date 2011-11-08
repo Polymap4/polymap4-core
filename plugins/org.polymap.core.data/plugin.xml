@@ -252,7 +252,13 @@
             class="org.polymap.core.data.feature.buffer.InstallBufferPipelineListener"
             description="Gets the concurrent stuff working... :)"
             id="org.polymap.core.data.InstallBufferListener"
-            name="Install Buffer Listener">
+            name="InstallBufferListener">
+      </listener>
+      <listener
+            class="org.polymap.core.data.image.cache304.Cache304PipelineDecorator"
+            description="Gets the HTTP 304 magic working for us :)"
+            id="org.polymap.core.data.Cache304ImageCache"
+            name="ImageCache304">
       </listener>
    </extension>
    <extension

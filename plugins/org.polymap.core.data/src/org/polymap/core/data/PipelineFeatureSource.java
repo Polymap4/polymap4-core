@@ -23,12 +23,6 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.rwt.SessionSingletonBase;
-
-import org.eclipse.jface.dialogs.IPageChangedListener;
-
-import org.eclipse.core.runtime.CoreException;
-
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -66,16 +60,12 @@ import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
 import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
-import org.polymap.core.data.pipeline.IPipelineIncubationListener;
-import org.polymap.core.data.pipeline.IPipelineIncubator;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
-import org.polymap.core.data.pipeline.PipelineListenerExtension;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
-import org.polymap.core.runtime.ListenerList;
 
 /**
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}
@@ -91,58 +81,9 @@ public class PipelineFeatureSource
 
     private static final Log log = LogFactory.getLog( PipelineFeatureSource.class );
 
-    private static IPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
+    private static DefaultPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
 
 
-    // static incubation listeners ************************
-
-    private static Session      global = new Session();
-    
-    /*
-     * 
-     */
-    static class Session
-            extends SessionSingletonBase {
-
-        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
-
-        public static Session instance() {
-            try {
-                return (Session)getInstance( Session.class );
-            }
-            catch (IllegalStateException e) {
-                return global;
-            }
-        }
-
-        protected Session() {
-            for (PipelineListenerExtension ext : PipelineListenerExtension.allExtensions()) {
-                try {
-                    IPipelineIncubationListener listener = ext.newListener();
-                    listeners.add( listener );
-                }
-                catch (CoreException e) {
-                    log.error( "Unable to create a new IPipelineIncubationListener: " + ext.getId() );
-                }
-            }
-        }
-        
-    }
-
-
-    /**
-     * Add a {@link IPageChangedListener} to the global list of listeners of this
-     * session.
-     */
-    public static void addIncubationListener( IPipelineIncubationListener l ) {
-        Session.instance().listeners.add( l );
-    }
-    
-    public static void removeIncubationListener( IPipelineIncubationListener l ) {
-        Session.instance().listeners.remove( l );
-    }
-    
-    
     // static factory *************************************
 
     /**
@@ -173,11 +114,6 @@ public class PipelineFeatureSource
                 : LayerUseCase.FEATURES;
         Pipeline pipe = pipelineIncubator.newPipeline( useCase, layer.getMap(), layer, service );
 
-        // call listeners
-        for (IPipelineIncubationListener listener : Session.instance().listeners) {
-            listener.pipelineCreated( pipe );
-        }
-        
         // create FeatureSource
         PipelineFeatureSource result = new PipelineFeatureSource( pipe );
         return result;

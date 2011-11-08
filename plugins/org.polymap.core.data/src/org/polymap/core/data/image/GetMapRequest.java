@@ -73,14 +73,18 @@ public class GetMapRequest
 
 //    private HashMap<String, Filter> filters = new HashMap<String, Filter>();
 
+    private long                     ifModifiedSince = -1;
     
-    public GetMapRequest( List<String> layers, String crs, ReferencedEnvelope bbox, String format, int width, int height ) {
+
+    public GetMapRequest( List<String> layers, String crs, ReferencedEnvelope bbox, String format, int width, int height,
+            long ifModifiedSince ) {
         this.layers = layers;
         this.crs = crs;
         this.bbox = bbox;
         this.format = format;
         this.width = width;
         this.height = height;
+        this.ifModifiedSince = ifModifiedSince;
     }
 
     public GetMapRequest( GetMapRequest rhs ) {
@@ -91,6 +95,12 @@ public class GetMapRequest
         this.format = rhs.format;
         this.width = rhs.width;
         this.height = rhs.height;
+        this.ifModifiedSince = rhs.ifModifiedSince;
+    }
+
+    
+    public long getIfModifiedSince() {
+        return ifModifiedSince;
     }
 
     /**

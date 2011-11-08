@@ -6,7 +6,6 @@ Bundle-Version: 3.1.0.qualifier
 Bundle-Activator: org.polymap.core.data.DataPlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.core.resources;bundle-version="3.5.100",
  org.polymap.core;bundle-version="3.1.0",
  org.polymap.core.model;bundle-version="3.1.0",
  org.polymap.core.catalog;bundle-version="3.1.0",
@@ -60,13 +59,13 @@ Export-Package: com.healthmarketscience.jackcess,
  org.polymap.core.data.ui.featuretable,
  org.polymap.core.data.ui.featuretypeeditor,
  org.polymap.core.data.util
-Import-Package: org.osgi.service.http;version="1.2.1"
+Import-Package: org.eclipse.core.resources,
+ org.osgi.service.http;version="1.2.1"
 Bundle-Localization: plugin
 Bundle-ClassPath: .,
  lib/backport-util-concurrent-3.1.jar,
  lib/ehcache-1.4.1.jar,
  lib/jsr107cache-1.0.jar,
- lib/lucene-core-3.1.0.jar,
  lib/jackcess-1.1.18.jar,
  lib-static/com.objectplanet.image.PngEncoder.jar,
  lib/SuperCSV-1.52.jar

@@ -47,6 +47,9 @@
 			<remoteRepository refid="jaitoolsmaven.repository" />
 			<!-- remoteRepository refid="geosolutionsmaven.repository" /-->
 
+            <!--  used for runtime.recordstore and others -->
+            <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.4.0" />
+
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-common" version="3.0" />

@@ -152,8 +152,10 @@ public class SimpleWmsServer
                     // find/create pipeline
                     final Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
 
+                    long modifiedSince = request.getDateHeader( "If-Modified-Since" );
+
                     final ProcessorRequest pr = new GetMapRequest( 
-                            Arrays.asList( layers ), srsCode, bbox, format, width, height );  
+                            Arrays.asList( layers ), srsCode, bbox, format, width, height, modifiedSince );  
 
                     // process
                     log.debug( "HTTP BUFFER: " + response.getBufferSize() );
@@ -162,14 +164,27 @@ public class SimpleWmsServer
                     pipeline.process( pr, new ResponseHandler() {
                         public void handle( ProcessorResponse pipeResponse )
                         throws Exception {
-                            byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
-                            int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
-                            out.write( chunk, 0, len );
+                            if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
+                                response.setStatus( 304 );
+                                response.flushBuffer();
+                            }
+                            else {
+                                long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
+                                if (lastModified > 0) {
+                                    response.setDateHeader( "Last-Modified", lastModified );
+                                    response.setHeader( "Cache-Control", "must-revalidate" );
+                                }
+
+                                byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
+                                int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
+                                out.write( chunk, 0, len );
+                            }
                         }
                     });
                     
                     log.debug( "    flushing response stream..." );
                     out.flush();
+                    response.flushBuffer();
                     return null;
                 }
             });

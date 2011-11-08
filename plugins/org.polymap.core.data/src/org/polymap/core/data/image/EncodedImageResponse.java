@@ -28,15 +28,23 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class EncodedImageResponse
         implements ProcessorResponse {
 
+    /** 
+     * This might be returned by a processor as pesponse the a {@link GetMapRequest} with
+     * ifModifiedSince field set.
+     */
+    public static final EncodedImageResponse NOT_MODIFIED = new EncodedImageResponse( null, -1 );
+    
     private byte[]          chunk;
     
     private int             chunkSize;
+    
+    private long            lastModified = -1;
+    
     
     public EncodedImageResponse( byte[] chunk, int chunkSize ) {
         super();
@@ -51,5 +59,13 @@ public class EncodedImageResponse
     public int getChunkSize() {
         return chunkSize;
     }
+    
+    public void setLastModified( long lastModified ) {
+        this.lastModified = lastModified;
+    }
 
+    public long getLastModified() {
+        return lastModified;
+    }
+    
 }
