@@ -17,9 +17,11 @@ package org.polymap.core.data.image.cache304;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.RecordQuery;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
@@ -58,6 +60,8 @@ public class CacheUpdateQueue {
     
             
     public synchronized void flush() {
+        Timer timer = new Timer();
+        
         Updater updater = cache.store.prepareUpdate();
         log.debug( "flush(): elements in queue: " + queue.size() );
         while (!queue.isEmpty()) {
@@ -69,6 +73,7 @@ public class CacheUpdateQueue {
             }
         }
         updater.apply();
+        log.debug( "flush(): done. (" + timer.elapsedTime() + "ms)" );
     }
     
     
@@ -113,5 +118,30 @@ public class CacheUpdateQueue {
         }
     
     }
+
+    
+    /**
+     * 
+     */
+    static class TouchCommand
+            extends Command {
+        
+        private CachedTile          tile;
+        
+
+        public TouchCommand( CachedTile tile ) {
+            this.tile = tile;
+        }
+        
+        public void apply( Updater updater ) 
+        throws Exception {
+            updater.store( tile.state() );
+        }
+
+        public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
+        }
+    
+    }
+    
     
 }

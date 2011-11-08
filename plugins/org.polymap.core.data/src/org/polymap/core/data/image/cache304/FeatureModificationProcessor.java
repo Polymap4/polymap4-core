@@ -67,8 +67,6 @@ class FeatureModificationProcessor
 
     public void processRequest( ProcessorRequest r, ProcessorContext context )
             throws Exception {
-        log.debug( "    Request: " + r.getClass().getSimpleName() );
-        
         context.sendRequest( r );
     }
 

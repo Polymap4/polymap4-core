@@ -17,6 +17,7 @@ package org.polymap.core.data.image.cache304;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import java.io.File;
 
@@ -25,7 +26,11 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.project.ILayer;
@@ -39,8 +44,16 @@ import org.polymap.core.runtime.recordstore.IRecordStore.ResultSet;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**
+ * The central API and mediator of the module.
+ * <p/>
+ * The cache uses the {@link org.polymap.core.runtime.recordstore} package to provide
+ * a fast, persistent, plugable persistent backend store. By default the based Lucene
+ * engine is used. The structure of the records in the store are defined by
+ * {@link CachedTile}.
+ * <p/>
+ * Updating the backend store is done by the {@link CacheUpdateQueue} only. It
+ * bufferes updates as queue of {@link CacheUpdateQueue#Command}s.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
@@ -65,6 +78,19 @@ public class Cache304 {
     IRecordStore                store;
     
     private CacheUpdateQueue    updateQueue = new CacheUpdateQueue( this );
+
+    private TimeUnit            liveTimeUnit = TimeUnit.HOURS;
+
+    /**
+     * The default livetime of all tiles in cache. Tiles are considered invalid if
+     * their creation time is before current time - {@link #maxTileLiveTime}. 
+     */
+    private int                 maxTileLiveTime = 24;
+    
+    private Updater             updater = new Updater();
+    
+    /** Defaults to 100MB. */
+    private int                 maxStoreSizeInBytes = 100 * 1024 * 1024; 
     
     
     protected Cache304() {
@@ -90,10 +116,21 @@ public class Cache304 {
             if (resultSet.count() > 1) {
                 log.warn( "More than one tile for query: " + request ); 
             }
+
+            long now = System.currentTimeMillis();
             
             List<CachedTile> result = new ArrayList();
             for (IRecordState state : resultSet) {
-                result.add( new CachedTile( state ) );
+                CachedTile cachedTile = new CachedTile( state );
+                
+                // check max livetime
+                long deadline = liveTimeUnit.toMillis( maxTileLiveTime );
+                if (deadline < cachedTile.created.get()) {
+                    result.add( cachedTile );
+                }
+                else {
+                    log.debug( "Tile has reached max livetime: " + cachedTile );
+                }
             }
             
             updateQueue.adaptCacheResult( result, query );
@@ -102,7 +139,17 @@ public class Cache304 {
                 log.warn( "More than one tile in result: " + result.size() ); 
             }
             
-            return !result.isEmpty() ? result.get( 0 ) : null;
+            if (!result.isEmpty()) {
+                CachedTile cachedTile = result.get( 0 );
+                cachedTile.lastAccessed.put( now );
+                
+                updateQueue.push( new CacheUpdateQueue.TouchCommand( cachedTile ) );
+                updater.reSchedule();
+                return cachedTile;
+            }
+            else {
+                return null;
+            }
         }
         catch (Exception e) {
             log.error( "", e );
@@ -119,6 +166,7 @@ public class Cache304 {
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord() );
                 long now = System.currentTimeMillis();
+                cachedTile.created.put( now );
                 cachedTile.lastModified.put( now );
                 cachedTile.lastAccessed.put( now );
 
@@ -141,6 +189,7 @@ public class Cache304 {
                 cachedTile.data.put( data );
                 
                 updateQueue.push( new CacheUpdateQueue.StoreCommand( cachedTile ) );
+                updater.reSchedule();
             }
             return cachedTile;
         }
@@ -190,6 +239,58 @@ public class Cache304 {
             query.eq( CachedTile.TYPE.style.name(), styleHash );
         }
         return query;
+    }
+    
+    
+    /**
+     * The Updater triggers the {@link CacheUpdateQueue} to flush its queue
+     * and it prunes cache store afterwards.
+     */
+    class Updater
+            extends Job {
+
+        private long            scheduleDelay = 5000;
+        
+        private long            lastAccess = System.currentTimeMillis(); 
+        
+        
+        public Updater() {
+            super( "Cache304 Updater" );
+            setSystem( true );
+        }
+
+        
+        protected IStatus run( IProgressMonitor monitor ) {
+            log.debug( "Updater: flushing queue ..." );
+            updateQueue.flush();
+
+            log.debug( "Updater: pruning cache ..." );
+            try {
+                log.debug( "    cache size: " + store.storeSizeInBytes() );
+            }
+            catch (Exception e) {
+                log.error( "Error while pruning cache:", e );
+            }
+            return Status.OK_STATUS;
+        }
+        
+        
+        public boolean shouldRun() {
+            if (lastAccess <= (System.currentTimeMillis() - scheduleDelay)) {
+                return true;
+            }
+            else {
+                reSchedule();
+                return false;
+            }
+        }
+
+
+        public void reSchedule() {
+            lastAccess = System.currentTimeMillis();
+            schedule( scheduleDelay );
+        }
+        
     }
     
 }

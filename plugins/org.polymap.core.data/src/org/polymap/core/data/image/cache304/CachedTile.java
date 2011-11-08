@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.RecordModel;
 
-
 /**
  * 
  *
@@ -38,6 +37,8 @@ public class CachedTile
         super( record );
     }
 
+    public Property<Long>       created = new Property<Long>( "created" );
+    
     public Property<Long>       lastModified = new Property<Long>( "lastModified" );
     
     public Property<Long>       lastAccessed = new Property<Long>( "lastAccessed" );
