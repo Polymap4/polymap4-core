@@ -14,12 +14,21 @@
  */
 package org.polymap.core.data.image.cache304;
 
+import java.util.EventObject;
 import java.util.Properties;
+
 import java.io.ByteArrayOutputStream;
+import java.lang.ref.WeakReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeListener;
+import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureEventManager;
+import org.polymap.core.data.FeatureStoreEvent;
+import org.polymap.core.data.FeatureStoreListener;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
@@ -30,6 +39,7 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
@@ -40,7 +50,7 @@ import org.polymap.core.runtime.Timer;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
  */
-class ImageCacheProcessor
+public class ImageCacheProcessor
         implements PipelineProcessor {
 
     private static final Log log = LogFactory.getLog( ImageCacheProcessor.class );
@@ -59,18 +69,47 @@ class ImageCacheProcessor
 
     
     // instance *******************************************
+
+    private ILayer                  layer;
     
-    private String               layerId;
+    private LayerListener           layerListener;
+    
+    private boolean                 active = true;
     
     
     public void init( Properties props ) {
-        ILayer layer = (ILayer)props.get( "layer" );
-        layerId = layer.id();
+        layer = (ILayer)props.get( "layer" );
+        assert layer != null;
+        
+        layerListener = new LayerListener( layer, this );
     }
 
 
+    protected void deactivate() {
+        if (active) {
+            log.debug( "Cache deactivated for layer: " + layer.getLabel() );
+        }
+        active = false;
+    }
+
+    
+    protected void updateAndActivate( boolean updateCache ) {
+        log.debug( "Cache: activating for layer: " + layer.getLabel() );
+        if (updateCache) {
+            Cache304.instance().updateLayer( layer, null );
+        }
+        active = true;
+    }
+
+    
     public void processRequest( ProcessorRequest r, ProcessorContext context )
     throws Exception {
+        // active?
+        if (!active) {
+            context.sendRequest( r );
+            return;            
+        }
+        
         // GetMapRequest
         if (r instanceof GetMapRequest) {
             getMapRequest( (GetMapRequest)r, context );
@@ -130,6 +169,12 @@ class ImageCacheProcessor
 
     public void processResponse( ProcessorResponse r, ProcessorContext context )
     throws Exception {
+        // active?
+        if (!active) {
+            context.sendResponse( r );
+            return;            
+        }
+
         ByteArrayOutputStream cacheBuf = (ByteArrayOutputStream)context.get( "cacheBuf" ); 
         
         // EncodedImageResponse
@@ -145,7 +190,7 @@ class ImageCacheProcessor
             Cache304.instance().put( request, context.getLayers(), cacheBuf.toByteArray() );
             
             context.sendResponse( ProcessorResponse.EOP );
-            log.debug( "...all data sent." );
+            //log.debug( "...all data sent." );
         }
         // GetLayerTypesResponse
         else if (r instanceof GetLayerTypesResponse) {
@@ -154,6 +199,78 @@ class ImageCacheProcessor
         else {
             throw new IllegalStateException( "Unhandled response type: " + r );
         }
+    }
+
+
+    /**
+     * Static listener class with weak reference the processor to allow GC to reclaim
+     * the processor.
+     * 
+     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+     */
+    static class LayerListener {
+    
+        private ILayer                              layer;
+        
+        private WeakReference<ImageCacheProcessor>  procRef;
+        
+        
+        public LayerListener( ILayer layer, ImageCacheProcessor processor ) {
+            this.layer = layer;
+            this.procRef = new WeakReference( processor );
+            
+            // feature modifications
+            FeatureEventManager.instance().addFeatureChangeListener( 
+                    new FeatureChangeListener() {
+                        public void featureChange( FeatureChangeEvent ev ) {
+                            ImageCacheProcessor proc = procRef.get();
+                            if (proc != null) {
+                                // just activate cache if modifications have been dropped
+                                if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
+                                    proc.updateAndActivate( false );
+                                }
+                                // deactivate cache when features have been modified
+                                else {
+                                    if (ev.getSource().equals( LayerListener.this.layer )) {
+                                        proc.deactivate();
+                                    }
+                                }
+                            }
+                            else {
+                                FeatureEventManager.instance().removeFeatureChangeListener( this );
+                                LayerListener.this.layer = null;
+                            }
+                        }                        
+                    }, 
+                    new IEventFilter() {
+                        public boolean accept( EventObject ev ) {
+                            return true;
+                        }
+                    }
+            );
+            
+            // feature stored
+            FeatureChangeTracker.instance().addFeatureListener( 
+                    new FeatureStoreListener() {
+                        public void featureChange( FeatureStoreEvent ev ) {
+                            if (!ev.isMySession()) {
+                                return;
+                            }
+                            ImageCacheProcessor proc = procRef.get();
+                            if (proc != null) {
+                                if (ev.getSource() == LayerListener.this.layer) {
+                                    proc.updateAndActivate( true );
+                                }
+                            }
+                            else {
+                                FeatureChangeTracker.instance().removeFeatureListener( this ); 
+                                LayerListener.this.layer = null;                                
+                            }
+                        }
+                    }
+            );
+        }
+        
     }
         
 }

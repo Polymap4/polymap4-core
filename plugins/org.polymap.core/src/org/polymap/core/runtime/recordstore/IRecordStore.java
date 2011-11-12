@@ -27,6 +27,13 @@ public interface IRecordStore {
      * Closes this store. Dispose any resources.
      */
     public void close();
+    
+    /**
+     * 
+     * @throws UnsupportedOperationException If this store does not support this operation.
+     * @return The size of the entire store in byte.
+     */
+    public long storeSizeInByte();
 
     public void setIndexFieldSelector( IRecordFieldSelector selector );
     

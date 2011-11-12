@@ -25,6 +25,8 @@ import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 
 import org.polymap.core.runtime.recordstore.IRecordState;
@@ -61,9 +63,16 @@ final class SimpleQueryResultSet
         }
         log.debug( "Lucene Query: " + luceneQuery );          
 
-        // execute Lucene query
-        TopDocs topDocs = store.searcher.search( luceneQuery, query.getMaxResults() );
-        scoreDocs = topDocs.scoreDocs;
+        // execute Lucene query        
+        if (query.getSortKey() != null) {
+            Sort sort = new Sort( new SortField( query.getSortKey(), SortField.STRING ) );
+            TopDocs topDocs = store.searcher.search( luceneQuery, query.getMaxResults(), sort );
+            scoreDocs = topDocs.scoreDocs;
+        }
+        else {
+            TopDocs topDocs = store.searcher.search( luceneQuery, query.getMaxResults() );
+            scoreDocs = topDocs.scoreDocs;
+        }
 //        log.debug( "    Result: totalHits=" + topDocs.totalHits );          
     }
 

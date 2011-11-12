@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.model.ConcurrentModificationException;
+import org.polymap.core.model.Messages;
 import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.ConcurrentReferenceHashMap;
@@ -35,7 +36,7 @@ import org.polymap.core.runtime.UIJob;
 
 /**
  * Provides information about modifications of a given entity or feature that might
- * have triggered by another session within this JVM.
+ * have triggered by the session of the caller or another session within this JVM.
  * <p/>
  * This class provides a general API and implementation to track the
  * version/timestamp of all kind of model entities, features, objects. It helps to
@@ -239,12 +240,13 @@ public class ModelChangeTracker
         /**
          * 
          */
-        public void apply( Object eventSource, boolean omitMySession ) {
+        public void apply( Object eventSource ) {
             stored.putAll( checked );
 
-            ModelChangeTracker src = omitMySession ? null : ModelChangeTracker.this;
-            ModelStoreEvent ev = new ModelStoreEvent( eventSource, checked.keySet(), EventType.COMMIT );
-            new EventJob( src, ev ).schedule();
+            ModelStoreEvent ev = new ModelStoreEvent( 
+                    ModelChangeTracker.this, eventSource, 
+                    checked.keySet(), EventType.COMMIT );
+            new EventJob( ev ).schedule();
         }
 
 
@@ -273,14 +275,11 @@ public class ModelChangeTracker
             }
         };
         
-        private ModelChangeTracker      src;
-        
         private ModelStoreEvent         ev;
         
         
-        EventJob( ModelChangeTracker src, ModelStoreEvent ev ) {
-            super( "Model store event" );
-            this.src = src;
+        EventJob( ModelStoreEvent ev ) {
+            super( Messages.get( "ModelChangeTracker_EventJob_title" ) );
             this.ev = ev;
             setPriority( Job.LONG );
             setRule( exclusiv );
@@ -289,21 +288,19 @@ public class ModelChangeTracker
         
         protected void runWithException( IProgressMonitor monitor )
         throws Exception {
-            monitor.beginTask( "Model store event", IProgressMonitor.UNKNOWN );
+            monitor.beginTask( Messages.get( "ModelChangeTracker_EventJob_title"), IProgressMonitor.UNKNOWN );
             log.info( "EventJob: started..." );
             for (ModelChangeTracker instance : instances.keySet()) {
-                if (!instance.equals( src )) {
-                    for (IModelStoreListener listener : instance.listeners) {
-                        try {
-                            if (monitor.isCanceled()) {
-                                return;
-                            }
-                            listener.modelChanged( ev );
-                            monitor.worked( 1 );
+                for (IModelStoreListener listener : instance.listeners) {
+                    try {
+                        if (monitor.isCanceled()) {
+                            return;
                         }
-                        catch (Throwable e) {
-                            log.warn( "Error while processing ModelStoreEvent: " + ev, e );
-                        }
+                        listener.modelChanged( ev );
+                        monitor.worked( 1 );
+                    }
+                    catch (Throwable e) {
+                        log.warn( "Error while processing ModelStoreEvent: " + ev, e );
                     }
                 }
             }

@@ -145,16 +145,16 @@ public final class NumericValueCoder
                 Number value = (Number)lessExp.value;
                 
                 if (lessExp.value instanceof Integer) {
-                    return NumericRangeQuery.newIntRange( key, value.intValue(), null, false, false );
+                    return NumericRangeQuery.newIntRange( key, null, value.intValue(), false, false );
                 }
                 else if (lessExp.value instanceof Long) {
-                    return NumericRangeQuery.newLongRange( key, value.longValue(), null, false, false );
+                    return NumericRangeQuery.newLongRange( key, null, value.longValue(), false, false );
                 }
                 else if (lessExp.value instanceof Float) {
-                    return NumericRangeQuery.newFloatRange( key, value.floatValue(), null, false, false );
+                    return NumericRangeQuery.newFloatRange( key, null, value.floatValue(), false, false );
                 }
                 else if (lessExp.value instanceof Double) {
-                    return NumericRangeQuery.newDoubleRange( key, value.doubleValue(), null, false, false );
+                    return NumericRangeQuery.newDoubleRange( key, null, value.doubleValue(), false, false );
                 }
                 else {
                     throw new RuntimeException( "Unknown Number type: " + value.getClass() );

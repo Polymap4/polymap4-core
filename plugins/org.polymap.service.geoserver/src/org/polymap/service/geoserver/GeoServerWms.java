@@ -24,9 +24,7 @@ package org.polymap.service.geoserver;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import java.io.File;
@@ -43,7 +41,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.ContextLoaderListener;
@@ -241,31 +238,31 @@ public class GeoServerWms
 //            
 //        };
 
-            // FIXME huaahh... what a hack! :( remove this as soon as EPSG:3857 is
-            // supported
-            HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper( req ) {
-
-                public Map getParameterMap() {
-                    Map result = new HashMap( 16 );
-                    for (Object entry : req.getParameterMap().entrySet()) {
-                        String[] values = (String[])((Map.Entry)entry).getValue();
-                        for (int i=0; i<values.length; i++) {
-                            values[i] = values[i].replace( "EPSG:3857", "EPSG:900913" ); 
-                        }
-                        result.put( ((Map.Entry)entry).getKey(), values );
-                    }
-                    log.debug( "getParameterMap(): " + result );
-                    return result;
-                }
-
-                public String getParameter( String name ) {
-                    String result = req.getParameter( name );
-                    log.debug( "getParameter(): " + name + " : " + result  );
-                    return result;
-                }
-            };
+//            // FIXME huaahh... what a hack! :( remove this as soon as EPSG:3857 is
+//            // supported
+//            HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper( req ) {
+//
+//                public Map getParameterMap() {
+//                    Map result = new HashMap( 16 );
+//                    for (Object entry : req.getParameterMap().entrySet()) {
+//                        String[] values = (String[])((Map.Entry)entry).getValue();
+//                        for (int i=0; i<values.length; i++) {
+//                            values[i] = values[i].replace( "EPSG:3857", "EPSG:900913" ); 
+//                        }
+//                        result.put( ((Map.Entry)entry).getKey(), values );
+//                    }
+//                    log.debug( "getParameterMap(): " + result );
+//                    return result;
+//                }
+//
+//                public String getParameter( String name ) {
+//                    String result = req.getParameter( name );
+//                    log.debug( "getParameter(): " + name + " : " + result  );
+//                    return result;
+//                }
+//            };
             
-            dispatcher.service( wrapper, resp );
+            dispatcher.service( req, resp );
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );

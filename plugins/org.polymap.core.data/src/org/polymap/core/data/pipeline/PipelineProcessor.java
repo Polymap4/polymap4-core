@@ -44,12 +44,14 @@ public interface PipelineProcessor {
      *
      * @param props The persistent configuration properties. The following
      * properties are always set:
-     * <ul><li>"layer" - the {@link ILayer} of this pipeline</li>
+     * <ul>
+     * <li>"layer" - the {@link ILayer} of this pipeline</li>
      * <li>"map" - the {@link IMap} of this pipeline</li>
-     * <li>"service" - the {@link IService} of this pipeline</li></ul>
+     * <li>"service" - the {@link IService} of this pipeline</li>
+     * </ul>
      */
     public void init( Properties props );
-
+    
     public void processRequest( ProcessorRequest request, ProcessorContext context )
             throws Exception;
 

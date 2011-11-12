@@ -129,9 +129,11 @@ class ShapefileContainer
 
     public void featureChange( FeatureStoreEvent ev ) {
         log.info( "ev= " + ev );
-        if (layer.id().equals( ev.getSource().id() )) {
-            log.info( "flushing..." );
-            flush();
+        if (!ev.isMySession()) {
+            if (layer.id().equals( ev.getSource().id() )) {
+                log.info( "flushing..." );
+                flush();
+            }
         }
     }
 
@@ -421,7 +423,7 @@ class ShapefileContainer
                     tx.commit();
                     
                     // apply timestamp updates
-                    updater.apply( layer, true );
+                    updater.apply( layer );
                     
                     log.debug( "    Transaction committed." );
                 }

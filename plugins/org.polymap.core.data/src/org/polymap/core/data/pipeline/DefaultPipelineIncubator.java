@@ -34,8 +34,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.rwt.SessionSingletonBase;
-
 import org.eclipse.core.runtime.CoreException;
 
 import org.polymap.core.data.DataPlugin;
@@ -66,6 +64,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -131,12 +130,12 @@ public class DefaultPipelineIncubator
      * Session bound incubation listeners. 
      */
     static class Session
-            extends SessionSingletonBase {
+            extends SessionSingleton {
 
         private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
 
         public static Session instance() {
-            return (Session)getInstance( Session.class );
+            return instance( Session.class );
         }
 
         protected Session() {

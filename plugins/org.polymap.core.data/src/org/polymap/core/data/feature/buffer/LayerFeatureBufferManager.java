@@ -212,7 +212,7 @@ public class LayerFeatureBufferManager
                 tx.commit();
                 buffer.clear();
                 
-                updater.apply( layer, false );
+                updater.apply( layer );
                 layerTimestamp = updater.getStartTime();
             }
             finally {

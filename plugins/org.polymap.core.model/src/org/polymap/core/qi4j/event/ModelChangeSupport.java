@@ -169,7 +169,7 @@ public interface ModelChangeSupport
 
                 // completed
                 if (status == UnitOfWorkStatus.COMPLETED) {
-                    updater.apply( updater, false );
+                    updater.apply( updater );
                 }
                 // discarded
                 else {

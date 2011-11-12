@@ -19,8 +19,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelStoreEvent;
+import org.polymap.core.project.ILayer;
 
 /**
+ * Receives {@link ModelStoreEvent}s with source instanceof {@link ILayer}
+ * only.
  * 
  * @see FeatureChangeTracker
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -38,7 +41,9 @@ public abstract class FeatureStoreListener
     }
 
     public void modelChanged( ModelStoreEvent ev ) {
-        featureChange( new FeatureStoreEvent( ev ) );
+        if (ev.getSource() instanceof ILayer) {
+            featureChange( new FeatureStoreEvent( ev ) );
+        }
     }
     
 }

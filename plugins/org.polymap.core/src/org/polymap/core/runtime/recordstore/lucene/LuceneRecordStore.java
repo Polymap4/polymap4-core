@@ -143,6 +143,22 @@ public final class LuceneRecordStore
     }
     
     
+    public long storeSizeInByte() {
+        try {
+            long result = 0;
+            for (String name : directory.listAll()) {
+                if (directory.fileExists( name )) {
+                    result += directory.fileLength( name );
+                }
+            }
+            return result;
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
+    }
+
+    
     public ValueCoders getValueCoders() {
         return valueCoders;
     }
@@ -232,6 +248,7 @@ public final class LuceneRecordStore
                 IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
                         .setOpenMode( OpenMode.APPEND );
                 writer = new IndexWriter( directory, config );
+                //writer.d
             }
             catch (Exception e) {
                 throw new RuntimeException( e );
@@ -240,7 +257,7 @@ public final class LuceneRecordStore
 
         
         public void store( IRecordState record ) throws Exception {
-            if (log.isDebugEnabled()) {
+            if (log.isTraceEnabled()) {
                 for (Map.Entry<String,Object> entry : record) {
                     log.debug( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
                 }
@@ -271,13 +288,16 @@ public final class LuceneRecordStore
             Timer timer = new Timer();
             try {
                 writer.commit();
+                
+                writer.expungeDeletes( true );
+                
                 writer.close();
                 writer = null;
                 
                 searcher.close();
                 reader = reader.reopen();
                 searcher = new IndexSearcher( reader, executor );
-                log.info( "COMMIT: " + timer.elapsedTime() + "ms" );
+                log.debug( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

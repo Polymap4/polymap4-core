@@ -75,7 +75,7 @@ class FeatureModificationProcessor
             throws Exception {
         // FeatureType
         if (r instanceof ModifyFeaturesResponse) {
-            throw new RuntimeException( "Not yet implementd." );
+            log.debug( "processResponse(): Not yet implementd." );
             
             // TODO
             //   - assemble a list of 'invalid' bboxs

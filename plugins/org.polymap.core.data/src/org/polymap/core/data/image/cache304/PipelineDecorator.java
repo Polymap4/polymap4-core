@@ -16,10 +16,6 @@ package org.polymap.core.data.image.cache304;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.polymap.core.data.feature.DataSourceProcessor;
-import org.polymap.core.data.feature.buffer.FeatureBufferProcessor;
-import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor;
-import org.polymap.core.data.image.ImageEncodeProcessor;
 import org.polymap.core.data.pipeline.IPipelineIncubationListener;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineProcessor;
@@ -29,10 +25,10 @@ import org.polymap.core.data.pipeline.PipelineProcessor;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class Cache304PipelineDecorator
+public class PipelineDecorator
         implements IPipelineIncubationListener {
 
-    private static Log log = LogFactory.getLog( Cache304PipelineDecorator.class );
+    private static Log log = LogFactory.getLog( PipelineDecorator.class );
 
 
     public void pipelineCreated( Pipeline pipeline ) {
@@ -42,18 +38,20 @@ public class Cache304PipelineDecorator
         PipelineProcessor firstProc = pipeline.get( 0 );
         
         // XXX check compatibility instead of direct class
-        
-        if (firstProc instanceof ImageEncodeProcessor) {
-            log.debug( "Inserting before: " + firstProc );
-            pipeline.addFirst( new ImageCacheProcessor() );
-        }
 
-        if (firstProc instanceof DataSourceProcessor
-                || firstProc instanceof FeatureTypeEditorProcessor
-                || firstProc instanceof FeatureBufferProcessor) {
-            log.debug( "Inserting before: " + firstProc );
-            pipeline.addFirst( new FeatureModificationProcessor() );
-        }
+// explicitly done
+//        if (firstProc instanceof ImageEncodeProcessor) {
+//            log.debug( "Inserting before: " + firstProc );
+//            pipeline.addFirst( new ImageCacheProcessor() );
+//        }
+
+// modifications are checked in ImageCacheProcessor
+//        if (firstProc instanceof DataSourceProcessor
+//                || firstProc instanceof FeatureTypeEditorProcessor
+//                || firstProc instanceof FeatureBufferProcessor) {
+//            log.debug( "Inserting before: " + firstProc );
+//            pipeline.addFirst( new FeatureModificationProcessor() );
+//        }
     }
     
 }

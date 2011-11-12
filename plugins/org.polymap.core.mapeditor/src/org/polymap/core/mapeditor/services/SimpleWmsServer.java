@@ -134,9 +134,10 @@ public class SimpleWmsServer
                     ReferencedEnvelope bbox = parseBBox( kvp.get( "BBOX" ) );
                     String srsCode = kvp.get( "SRS" );
                     // XXX hack support for EPSG:3857 : send different srs and crs
-                    CoordinateReferenceSystem crs = srsCode.equals( "EPSG:3857" )
-                            ? CRS.decode( "EPSG:900913" )
-                            : CRS.decode( srsCode );
+//                    CoordinateReferenceSystem crs = srsCode.equals( "EPSG:3857" )
+//                            ? CRS.decode( "EPSG:900913" )
+//                            : CRS.decode( srsCode );
+                    CoordinateReferenceSystem crs = CRS.decode( srsCode );
                     bbox = new ReferencedEnvelope( bbox, crs );
 
                     // FORMAT
@@ -153,7 +154,6 @@ public class SimpleWmsServer
                     final Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
 
                     long modifiedSince = request.getDateHeader( "If-Modified-Since" );
-
                     final ProcessorRequest pr = new GetMapRequest( 
                             Arrays.asList( layers ), srsCode, bbox, format, width, height, modifiedSince );  
 
@@ -172,7 +172,11 @@ public class SimpleWmsServer
                                 long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
                                 if (lastModified > 0) {
                                     response.setDateHeader( "Last-Modified", lastModified );
-                                    response.setHeader( "Cache-Control", "must-revalidate" );
+                                    response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
+                                }
+                                else {
+                                    response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
+                                    response.setDateHeader( "Expires", 0 );
                                 }
 
                                 byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();

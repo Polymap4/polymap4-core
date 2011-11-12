@@ -245,6 +245,13 @@
             isTerminal="false"
             name="Feature-Filter">
       </processor>
+      <processor
+            class="org.polymap.core.data.image.cache304.ImageCacheProcessor"
+            description="%processor_imageCache304Desc"
+            id="org.polymap.core.data.image.cache304.ImageCacheProcessor"
+            isTerminal="false"
+            name="%processor_imageCache304">
+      </processor>
    </extension>
    <extension
          point="org.polymap.core.data.pipeline.listeners">
@@ -255,7 +262,7 @@
             name="InstallBufferListener">
       </listener>
       <listener
-            class="org.polymap.core.data.image.cache304.Cache304PipelineDecorator"
+            class="org.polymap.core.data.image.cache304.PipelineDecorator"
             description="Gets the HTTP 304 magic working for us :)"
             id="org.polymap.core.data.Cache304ImageCache"
             name="ImageCache304">

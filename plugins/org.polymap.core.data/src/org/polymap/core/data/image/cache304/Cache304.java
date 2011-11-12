@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.File;
 
@@ -25,6 +26,8 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -35,6 +38,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
@@ -78,19 +82,28 @@ public class Cache304 {
     IRecordStore                store;
     
     private CacheUpdateQueue    updateQueue = new CacheUpdateQueue( this );
+    
+    /**
+     * Synchronizes store and updateQueue. After a real lock is aquired the store and
+     * the queue are stable. Updating both is done with write locked.
+     */
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private TimeUnit            liveTimeUnit = TimeUnit.HOURS;
 
     /**
      * The default livetime of all tiles in cache. Tiles are considered invalid if
-     * their creation time is before current time - {@link #maxTileLiveTime}. 
+     * their creation time is before current time - {@link #maxTileLiveTime}.
      */
     private int                 maxTileLiveTime = 24;
     
     private Updater             updater = new Updater();
     
     /** Defaults to 100MB. */
-    private int                 maxStoreSizeInBytes = 100 * 1024 * 1024; 
+    private int                 maxStoreSizeInByte = 100 * 1024 * 1024;
+    
+    /** Update lastAccessed() time, only if it is older then this time. */
+    private long                accessTimeRasterMillis = 3 * 60 * 1000;
     
     
     protected Cache304() {
@@ -111,28 +124,23 @@ public class Cache304 {
     
     public CachedTile get( GetMapRequest request, Set<ILayer> layers ) {
         try {
+            // keep store and queue stable during method run
+            lock.readLock().lock();
+            
+            // search the store
             RecordQuery query = buildQuery( request, layers );
             ResultSet resultSet = store.find( query );
             if (resultSet.count() > 1) {
                 log.warn( "More than one tile for query: " + request ); 
             }
 
-            long now = System.currentTimeMillis();
-            
             List<CachedTile> result = new ArrayList();
             for (IRecordState state : resultSet) {
                 CachedTile cachedTile = new CachedTile( state );
-                
-                // check max livetime
-                long deadline = liveTimeUnit.toMillis( maxTileLiveTime );
-                if (deadline < cachedTile.created.get()) {
-                    result.add( cachedTile );
-                }
-                else {
-                    log.debug( "Tile has reached max livetime: " + cachedTile );
-                }
+                result.add( cachedTile );
             }
             
+            // search the queue
             updateQueue.adaptCacheResult( result, query );
             
             if (result.size() > 1) {
@@ -141,10 +149,15 @@ public class Cache304 {
             
             if (!result.isEmpty()) {
                 CachedTile cachedTile = result.get( 0 );
-                cachedTile.lastAccessed.put( now );
+                long now = System.currentTimeMillis();
                 
-                updateQueue.push( new CacheUpdateQueue.TouchCommand( cachedTile ) );
-                updater.reSchedule();
+                // update lastAccessed() time, only if it was not already
+                // done in the last accessTimeRasterMillis
+                if (cachedTile.lastAccessed.get() + accessTimeRasterMillis < now) {
+                    cachedTile.lastAccessed.put( now );
+                    updateQueue.push( new CacheUpdateQueue.TouchCommand( cachedTile ) );
+                    updater.reSchedule();
+                }
                 return cachedTile;
             }
             else {
@@ -155,13 +168,14 @@ public class Cache304 {
             log.error( "", e );
             return null;
         }
+        finally {
+            lock.readLock().unlock();
+        }
     }
     
     
     public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data ) {
         try {
-            // FIXME do updates async with queue
-            
             CachedTile cachedTile = get( request, layers );
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord() );
@@ -200,6 +214,42 @@ public class Cache304 {
     }
     
     
+    public void updateLayer( ILayer layer, Geometry changed ) {
+        // flush queue
+        if (!updateQueue.isEmpty()) {
+            log.warn( "Queue is not empty before updateLayer()!" );
+        }
+
+        // remove all tiles for layer
+        IRecordStore.Updater storeUpdater = null;
+        try {
+            lock.writeLock().lock();
+            
+            SimpleQuery query = new SimpleQuery();
+            query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
+            query.setMaxResults( 100000 );
+            ResultSet resultSet = store.find( query );
+            log.debug( "Removing tiles: " + resultSet.count() );
+            
+            Timer timer = new Timer();
+            storeUpdater = store.prepareUpdate();
+            for (IRecordState record : resultSet) {
+                storeUpdater.remove( record );
+            }
+            storeUpdater.apply();
+            log.debug( "done. (" + timer.elapsedTime() + "ms)" );
+        }
+        catch (Exception e) {
+            if (storeUpdater != null) {
+                storeUpdater.discard();
+            }
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+
     protected RecordQuery buildQuery( GetMapRequest request, Set<ILayer> layers ) {
         SimpleQuery query = new SimpleQuery();
 
@@ -249,7 +299,10 @@ public class Cache304 {
     class Updater
             extends Job {
 
-        private long            scheduleDelay = 5000;
+        private long            normDelay = 3000;
+        
+        /** normDelay / queueCountDelayFactor * queue.count */
+        private double          queueCountDelayFactor = 0.02;
         
         private long            lastAccess = System.currentTimeMillis(); 
         
@@ -261,22 +314,103 @@ public class Cache304 {
 
         
         protected IStatus run( IProgressMonitor monitor ) {
-            log.debug( "Updater: flushing queue ..." );
-            updateQueue.flush();
-
-            log.debug( "Updater: pruning cache ..." );
+            // flushing updateQueue
+            IRecordStore.Updater tx = store.prepareUpdate();
             try {
-                log.debug( "    cache size: " + store.storeSizeInBytes() );
+                Timer timer = new Timer();
+                List<CacheUpdateQueue.Command> queueState = updateQueue.state(); 
+                log.debug( "Updater: flushing elements in queue: " + queueState.size() );
+                for (CacheUpdateQueue.Command command: queueState) {
+                    try {
+                        command.apply( tx );
+                    }
+                    catch (Exception ee) {
+                        log.error( "Error while flushing command queue: ", ee );
+                    }
+                }
+                log.debug( "writing commands done. (" + timer.elapsedTime() + "ms)" );
+                
+                lock.writeLock().lock();
+                timer.start();
+                tx.apply();
+                updateQueue.remove( queueState );
+                log.debug( "commit done. (" + timer.elapsedTime() + "ms)" );
             }
             catch (Exception e) {
+                tx.discard();
+                log.error( "Error while flushing queue:", e );
+            }
+            finally {
+                if (lock.writeLock().isHeldByCurrentThread()) {
+                    lock.writeLock().unlock();
+                }
+            }
+
+            // check max livetime *************************
+            log.debug( "Updater: pruning expired tiles..." );
+            tx = store.prepareUpdate();
+            try {
+                long deadline = System.currentTimeMillis() - liveTimeUnit.toMillis( maxTileLiveTime );
+                SimpleQuery query = new SimpleQuery();
+                query.setMaxResults( 100 );
+                query.less( CachedTile.TYPE.created.name(), deadline );
+                
+                ResultSet expiredTiles = store.find( query );
+                
+                for (IRecordState state : expiredTiles) {
+                    log.debug( "    expired tile: " + new CachedTile( state ).created.get() );
+                    tx.remove( state );
+                }
+                lock.writeLock().lock();
+                tx.apply();
+            }
+            catch (Exception e) {
+                tx.discard();
                 log.error( "Error while pruning cache:", e );
+            }
+            finally {
+                if (lock.writeLock().isHeldByCurrentThread()) {
+                    lock.writeLock().unlock();
+                }
+            }
+
+            // check store size ***************************
+            long storeSize = store.storeSizeInByte();
+            if (storeSize > maxStoreSizeInByte) {
+                log.debug( "Updater: checking maxStoreSize... (" + storeSize + "/" + maxStoreSizeInByte + ")" );
+                tx = store.prepareUpdate();
+                try {
+                    // check max livetime
+                    SimpleQuery query = new SimpleQuery();
+                    query.setMaxResults( 30 );
+                    query.less( CachedTile.TYPE.lastAccessed.name(), System.currentTimeMillis() );
+                    query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC );
+                    
+                    ResultSet expiredTiles = store.find( query );
+
+                    for (IRecordState state : expiredTiles) {
+                        log.debug( "    oldest tile: " + new CachedTile( state ).lastAccessed.get() );
+                        tx.remove( state );
+                    }
+                    lock.writeLock().lock();
+                    tx.apply();
+                }
+                catch (Exception e) {
+                    tx.discard();
+                    log.error( "Error while pruning cache:", e );
+                }
+                finally {
+                    if (lock.writeLock().isHeldByCurrentThread()) {
+                        lock.writeLock().unlock();
+                    }
+                }
             }
             return Status.OK_STATUS;
         }
         
         
         public boolean shouldRun() {
-            if (lastAccess <= (System.currentTimeMillis() - scheduleDelay)) {
+            if (lastAccess <= (System.currentTimeMillis() - normDelay)) {
                 return true;
             }
             else {
@@ -288,7 +422,7 @@ public class Cache304 {
 
         public void reSchedule() {
             lastAccess = System.currentTimeMillis();
-            schedule( scheduleDelay );
+            schedule( normDelay );
         }
         
     }

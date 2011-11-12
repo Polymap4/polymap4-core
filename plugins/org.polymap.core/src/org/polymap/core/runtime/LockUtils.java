@@ -84,6 +84,10 @@ public class LockUtils {
     
     /**
      * Simply *release* read lock and aquire write lock afterwards.
+     * <p>
+     * This is not a real upgrade as the real locl is <b>released</b>
+     * before the write lock is aquired!
+     * 
      * @param rwLock
      */
     public static void upgrade( ReentrantReadWriteLock rwLock ) {

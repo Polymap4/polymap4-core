@@ -14,14 +14,15 @@
  */
 package org.polymap.core.data.image.cache304;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.RecordQuery;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
@@ -40,41 +41,87 @@ public class CacheUpdateQueue {
 
     private Queue<Command>      queue = new LinkedList();
     
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    
     
     public CacheUpdateQueue( Cache304 cache ) {
         this.cache = cache;
     }
 
     
-    public synchronized void push( Command command ) {
-        queue.add( command );    
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+    
+    
+    public void push( final Command command ) {
+        try {
+            lock.writeLock().lock();
+            queue.add( command );    
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
     }
 
     
-    public synchronized void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
-        log.debug( "adaptCacheResult(): elements in queue: " + queue.size() );
-        for (Command command : queue) {
-            command.adaptCacheResult( tiles, query );
+    public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
+        try {
+            lock.readLock().lock();
+            log.debug( "adaptCacheResult(): elements in queue: " + queue.size() );
+            for (Command command : queue) {
+                command.adaptCacheResult( tiles, query );
+            }
+        }
+        finally {
+            lock.readLock().unlock();
         }
     }
     
             
-    public synchronized void flush() {
-        Timer timer = new Timer();
+    public List<Command> state() {
+        try {
+            lock.readLock().lock();
+            return new ArrayList( queue );        
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+    
         
-        Updater updater = cache.store.prepareUpdate();
-        log.debug( "flush(): elements in queue: " + queue.size() );
-        while (!queue.isEmpty()) {
-            try {
-                queue.poll().apply( updater );
-            }
-            catch (Exception e) {
-                log.error( "Error while flushing command queue: ", e );
+    public void remove( List<Command> commands ) {
+        try {
+            lock.writeLock().lock();
+            // should be O(n) as both list are in same order
+            for (Command command : commands) {
+                if (!queue.remove( command )) {
+                    throw new RuntimeException( "No such command in queue: " + command );
+                }
             }
         }
-        updater.apply();
-        log.debug( "flush(): done. (" + timer.elapsedTime() + "ms)" );
+        finally {
+            lock.writeLock().unlock();
+        }
     }
+    
+        
+//    public synchronized void flush() {
+//        Timer timer = new Timer();
+//        
+//        Updater updater = cache.store.prepareUpdate();
+//        log.debug( "flush(): elements in queue: " + queue.size() );
+//        while (!queue.isEmpty()) {
+//            try {
+//                queue.poll().apply( updater );
+//            }
+//            catch (Exception e) {
+//                log.error( "Error while flushing command queue: ", e );
+//            }
+//        }
+//        updater.apply();
+//        log.debug( "flush(): done. (" + timer.elapsedTime() + "ms)" );
+//    }
     
     
     /**

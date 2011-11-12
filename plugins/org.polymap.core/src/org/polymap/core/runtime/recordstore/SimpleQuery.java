@@ -43,7 +43,16 @@ public final class SimpleQuery
     
     public static final char            DEFAULT_ONE_WILDCARD = '?';
     
+    /** Sort order: ascending */
+    public static final int             ASC = 0;
+    
+    public static final int             DESC = 1;
+    
     private List<QueryExpression>       expressions = new ArrayList();
+    
+    private String                      sortKey;
+    
+    private int                         sortOrder;
     
     public char                         anyWildcard = DEFAULT_ANY_WILDCARD; 
     
@@ -93,8 +102,25 @@ public final class SimpleQuery
     }
 
     
+    public SimpleQuery sort( String key, int order ) {
+        sortKey = key;
+        sortOrder = order;
+        return this;
+    }
+    
+    
     public Collection<QueryExpression> expressions() {
         return expressions;
+    }
+
+
+    public String getSortKey() {
+        return sortKey;
+    }
+
+    
+    public int getSortOrder() {
+        return sortOrder;
     }
 
 
