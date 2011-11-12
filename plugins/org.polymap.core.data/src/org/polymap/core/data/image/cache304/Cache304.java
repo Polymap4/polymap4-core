@@ -382,7 +382,7 @@ public class Cache304 {
                 try {
                     // check max livetime
                     SimpleQuery query = new SimpleQuery();
-                    query.setMaxResults( 30 );
+                    query.setMaxResults( 50 );
                     query.less( CachedTile.TYPE.lastAccessed.name(), System.currentTimeMillis() );
                     query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC );
                     

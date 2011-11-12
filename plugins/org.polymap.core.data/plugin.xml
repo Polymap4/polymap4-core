@@ -261,12 +261,6 @@
             id="org.polymap.core.data.InstallBufferListener"
             name="InstallBufferListener">
       </listener>
-      <listener
-            class="org.polymap.core.data.image.cache304.PipelineDecorator"
-            description="Gets the HTTP 304 magic working for us :)"
-            id="org.polymap.core.data.Cache304ImageCache"
-            name="ImageCache304">
-      </listener>
    </extension>
    <extension
          point="org.eclipse.ui.decorators">
@@ -367,6 +361,10 @@
       <concern
             class="org.polymap.core.data.ui.featureselection.LayerSelectableOperationConcern"
             id="org.polymap.core.data.layerSelectableConcern">
+      </concern>
+      <concern
+            class="org.polymap.core.data.image.cache304.CacheNewLayerOperationConcern"
+            id="org.polymap.core.data.addLayerCacheConcern">
       </concern>
    </extension>
    <extension

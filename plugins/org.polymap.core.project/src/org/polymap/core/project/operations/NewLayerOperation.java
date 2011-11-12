@@ -75,6 +75,8 @@ public interface NewLayerOperation
 
     public void init( IMap map, IGeoResource geores );
     
+    public ILayer getNewLayer();
+    
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
     
@@ -93,6 +95,10 @@ public interface NewLayerOperation
         private IMap                map;
 
         private IGeoResource        geores;
+        
+        /** Newly created layer */
+        private ILayer              layer;
+        
 
         public Mixin() {
             super( "[undefined]" );
@@ -111,12 +117,17 @@ public interface NewLayerOperation
         }
 
         
+        public ILayer getNewLayer() {
+            return layer;
+        }
+        
+        
         public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
         throws ExecutionException {
             try {
                 monitor.beginTask( getLabel(), 5 );
                 ProjectRepository repo = ProjectRepository.instance();
-                final ILayer layer = repo.newEntity( ILayer.class, null );
+                layer = repo.newEntity( ILayer.class, null );
                 
                 // default ACL
                 for (Principal principal : Polymap.instance().getPrincipals()) {
