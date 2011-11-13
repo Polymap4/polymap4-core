@@ -174,15 +174,14 @@ public class Cache304 {
     }
     
     
-    public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data ) {
+    public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data, long created ) {
         try {
             CachedTile cachedTile = get( request, layers );
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord() );
-                long now = System.currentTimeMillis();
-                cachedTile.created.put( now );
-                cachedTile.lastModified.put( now );
-                cachedTile.lastAccessed.put( now );
+                cachedTile.created.put( created );
+                cachedTile.lastModified.put( created );
+                cachedTile.lastAccessed.put( created );
 
                 cachedTile.width.put( request.getWidth() );
                 cachedTile.height.put( request.getHeight() );

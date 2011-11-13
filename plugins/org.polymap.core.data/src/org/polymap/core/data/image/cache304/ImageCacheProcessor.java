@@ -162,6 +162,7 @@ public class ImageCacheProcessor
             ByteArrayOutputStream cacheBuf = new ByteArrayOutputStream( 128*1024 );
             context.put( "cacheBuf", cacheBuf );
             context.put( "request", request );
+            context.put( "created", System.currentTimeMillis() );
             context.sendRequest( request );
         }
     }
@@ -180,15 +181,18 @@ public class ImageCacheProcessor
         // EncodedImageResponse
         if (r instanceof EncodedImageResponse) {
             EncodedImageResponse response = (EncodedImageResponse)r;
+            response.setLastModified( (Long)context.get( "created" ) );
             context.sendResponse( response );
+            
             cacheBuf.write( response.getChunk(), 0, response.getChunkSize() );
-            //log.debug( "    --->data sent: " + response.getChunkSize() );
         }
         // EOP
         else if (r == ProcessorResponse.EOP) {
             GetMapRequest request = (GetMapRequest)context.get( "request" );
-            Cache304.instance().put( request, context.getLayers(), cacheBuf.toByteArray() );
-            
+            CachedTile cachedTile = Cache304.instance().put( 
+                    request, context.getLayers(), cacheBuf.toByteArray(),
+                    (Long)context.get( "created" ) );
+
             context.sendResponse( ProcessorResponse.EOP );
             //log.debug( "...all data sent." );
         }
