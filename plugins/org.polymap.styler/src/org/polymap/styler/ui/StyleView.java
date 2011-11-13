@@ -52,8 +52,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.NullProgressMonitor;
-
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
@@ -162,8 +160,8 @@ public class StyleView extends ViewPart implements ISelectionProvider
 	    OperationSupport.instance().execute( op, false, false );
 		
 	    // store to catalog (after connecting to layer and catalog)
-	    act_layer.getStyle().store( new NullProgressMonitor() );
-	    //act_layer.setStyle(act_layer.getStyle());
+// moved to LayerState#setStyle()	    
+//	    act_layer.getStyle().store( new NullProgressMonitor() );
 		
 	    // IGeoResource ig = act_layer.getGeoResource().parent(null).get
 		// .getGeoResource().members(null).get(0). ;

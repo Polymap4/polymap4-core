@@ -223,7 +223,7 @@ public class Cache304 {
         // remove all tiles for layer
         IRecordStore.Updater storeUpdater = null;
         try {
-            lock.writeLock().lock();
+            lock.writeLock().tryLock( 3, TimeUnit.SECONDS );
             
             SimpleQuery query = new SimpleQuery();
             query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
@@ -330,7 +330,13 @@ public class Cache304 {
                 }
                 log.debug( "writing commands done. (" + timer.elapsedTime() + "ms)" );
                 
-                lock.writeLock().lock();
+                // external synchronization of Lucene is not a good idea in general;
+                // I don't see another way to make apply() and remove() one atomar
+                // operation; but use tryLock() instead of block-forever lock()
+                lock.writeLock().tryLock( 5, TimeUnit.SECONDS );
+                if (!lock.isWriteLockedByCurrentThread()) {
+                    log.warn( "Unable to aquire write lock! (3 seconds)" );
+                }
                 timer.start();
                 tx.apply();
                 updateQueue.remove( queueState );

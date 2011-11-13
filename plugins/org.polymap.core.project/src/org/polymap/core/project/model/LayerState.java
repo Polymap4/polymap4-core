@@ -49,6 +49,7 @@ import org.qi4j.api.property.Property;
 import org.eclipse.ui.views.properties.IPropertySource;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.project.IGeoResourceResolver;
 import org.polymap.core.project.ILayer;
@@ -266,7 +267,8 @@ public interface LayerState
             return style;
         }
         
-        public void setStyle( IStyle style ) {
+        public void setStyle( IStyle style )
+        throws UnsupportedOperationException, IOException {
             IStyle old = this.style;
             this.style = style;
             
@@ -283,6 +285,9 @@ public interface LayerState
             else {
                 throw new IllegalStateException( "Wrong style set: " + style );
             }
+            
+            // store style in catalog
+            style.store( new NullProgressMonitor() );
         }
         
         public Object getSymbolizerChanger() {

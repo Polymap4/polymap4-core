@@ -62,14 +62,21 @@ public class GtStyle
 
     private static final Log log = LogFactory.getLog( GtStyle.class );
 
-    public static StyleFactory  factory = CommonFactoryFinder.getStyleFactory( GeoTools.getDefaultHints() );
+    public static StyleFactory      factory = CommonFactoryFinder.getStyleFactory( GeoTools.getDefaultHints() );
     
-    protected GtLocalCatalog      catalog;
+    protected GtLocalCatalog        catalog;
     
-    protected ID                  id;
+    protected ID                    id;
     
     /** Loaded on demand by {@link #resolveStyle()}. */
-    protected Style               style=null;
+    protected Style                 style;
+    
+    /** 
+     * Created on demand by {@link #createSLD(IProgressMonitor)}. 
+     * The SLD is used by the image cache to identify a tile. As creating
+     * the SLD an expensive operation it has to be cached.
+     */
+    protected String                sld;
     
     
     private Style getStyle() {
@@ -96,7 +103,7 @@ public class GtStyle
     public synchronized Style resolveStyle( IProgressMonitor monitor ) 
     throws IOException {
         if (style == null) {
-            String sld = catalog.loadSLD( id );
+            sld = catalog.loadSLD( id );
 
             log.debug( "Loading SLD..." );
             monitor = monitor != null ? monitor : new NullProgressMonitor();
@@ -112,7 +119,8 @@ public class GtStyle
     }
     
     public void store( IProgressMonitor monitor )
-            throws IOException, UnsupportedOperationException {
+    throws IOException, UnsupportedOperationException {
+        this.sld = null;
         catalog.storeSLD( id, createSLD( monitor ) );
     }
 
@@ -145,18 +153,20 @@ public class GtStyle
 
 
     public String createSLD( IProgressMonitor monitor ) {
-        try {
-            monitor.subTask( "Creating SLD" );
-            SLDTransformer styleTransform = new SLDTransformer();
-            styleTransform.setIndentation( 2 );
+        if (sld == null) {
+            try {
+                monitor.subTask( "Creating SLD" );
+                SLDTransformer styleTransform = new SLDTransformer();
+                styleTransform.setIndentation( 2 );
 
-            String xml = styleTransform.transform( getStyle() );
-            monitor.worked( 1 );
-            return xml;
-        } 
-        catch (TransformerException e) {
-            throw new RuntimeException( e.getLocalizedMessage(), e );
+                sld = styleTransform.transform( getStyle() );
+                monitor.worked( 1 );
+            } 
+            catch (TransformerException e) {
+                throw new RuntimeException( e.getLocalizedMessage(), e );
+            }
         }
+        return sld;
     }
 
 
@@ -170,8 +180,9 @@ public class GtStyle
     }
     
     
-    public void setStyle(Style new_style) {
-    	this.style=new_style;
+    public void setStyle( Style new_style ) {
+    	this.style = new_style;
+    	this.sld = null;
     }
 
 }

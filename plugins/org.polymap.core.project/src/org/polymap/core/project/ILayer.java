@@ -23,6 +23,8 @@
 
 package org.polymap.core.project;
 
+import java.io.IOException;
+
 import net.refractions.udig.catalog.IGeoResource;
 
 import org.geotools.styling.Style;
@@ -122,7 +124,8 @@ public interface ILayer
      * @param style
      */
     @TransientProperty(PROP_STYLE)
-    public void setStyle( IStyle style );
+    public void setStyle( IStyle style )
+    throws UnsupportedOperationException, IOException;
 
     /**
      * The interface to change the symbolizers of the style of this layer.
