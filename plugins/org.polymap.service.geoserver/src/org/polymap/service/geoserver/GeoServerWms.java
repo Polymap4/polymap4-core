@@ -54,8 +54,9 @@ import org.apache.log4j.lf5.util.StreamUtils;
 import org.geoserver.logging.LoggingStartupContextListener;
 
 import org.polymap.core.project.IMap;
+import org.polymap.core.runtime.SessionContext;
 
-import org.polymap.service.ServicesPlugin;
+import org.polymap.service.ServiceContext;
 import org.polymap.service.http.WmsService;
 
 /**
@@ -81,6 +82,8 @@ public class GeoServerWms
     
     private File                            dataDir;
     
+    private String                          sessionKey;
+    
     
     public GeoServerWms() {
         super();
@@ -92,6 +95,7 @@ public class GeoServerWms
             throws MalformedURLException {
         super.init( _pathSpec, _map );
         try {
+            sessionKey = SessionContext.current().getSessionKey();
             initGeoServer();
         }
         catch (Exception e) {
@@ -103,23 +107,33 @@ public class GeoServerWms
     public void destroy() {
         log.debug( "destroy(): ..." );
         if (dispatcher != null) {
-            // listeners
-            ServletContextEvent ev = new ServletContextEvent( context );
-            for (ServletContextListener loader : loaders) {
-                loader.contextDestroyed( ev );
+            ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader( context.cl );
+
+            try {
+                // listeners
+                ServletContextEvent ev = new ServletContextEvent( context );
+                for (ServletContextListener loader : loaders) {
+                    loader.contextDestroyed( ev );
+                }
+                loaders = null;
+
+                // dispatcher
+                dispatcher.destroy();
+                dispatcher = null;
+
+                context.destroy();
+                context = null;
             }
-            // dispatcher
-            dispatcher.destroy();
-            dispatcher = null;
-            
-            context.destroy();
-            context = null;
+            finally {
+                Thread.currentThread().setContextClassLoader( threadLoader );
+            }
         }
     }
 
 
     protected void initGeoServer()
-            throws Exception {
+    throws Exception {
 
         context = new PluginServletContext( getServletContext() );
         log.debug( "initGeoServer(): contextPath=" + context.getContextPath() );
@@ -146,8 +160,8 @@ public class GeoServerWms
                 loaders.add( new ContextLoaderListener() );
 
                 ServletContextEvent ev = new ServletContextEvent( context );
-                for (ServletContextListener loader : loaders) {
-                    loader.contextInitialized( ev );
+                for (Object loader : loaders) {
+                    ((ServletContextListener)loader).contextInitialized( ev );
                 }
             }
             finally {
@@ -156,7 +170,7 @@ public class GeoServerWms
 
             dispatcher = new DispatcherServlet();
             log.debug( "Dispatcher: " + dispatcher.getClass().getClassLoader() );
-            dispatcher.init( new ServletConfig() {
+            (dispatcher).init( new ServletConfig() {
 
                 public String getInitParameter( String name ) {
                     return GeoServerWms.this.getInitParameter( name );
@@ -213,7 +227,7 @@ public class GeoServerWms
                 
         try {
             // session context
-            ServicesPlugin.getDefault().mapContext( req.getSession().getId() );
+            ServiceContext.mapContext( sessionKey /*req.getSession().getId()*/ );
 
 //        HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper( req ) {
 //
@@ -262,12 +276,12 @@ public class GeoServerWms
 //                }
 //            };
             
-            dispatcher.service( req, resp );
+            (dispatcher).service( req, resp );
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );
 
-            ServicesPlugin.getDefault().unmapContext();
+            ServiceContext.unmapContext();
         }
     }
 

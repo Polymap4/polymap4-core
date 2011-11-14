@@ -54,6 +54,8 @@ public interface IProvidedService
     
     public boolean isEnabled();
     
+    public boolean isStarted();
+    
     @ModelProperty(PROP_ENABLED)
     public void setEnabled( Boolean enabled );
     

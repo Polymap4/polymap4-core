@@ -280,7 +280,8 @@ public interface LayerState
                 styleId().set( style.getID().toURL().toExternalForm() );
             }
             else if (style == old) {
-                //
+                // make the layer "dirty" in the UI and for service to reload on save
+                styleId().set( styleId().get() );
             }
             else {
                 throw new IllegalStateException( "Wrong style set: " + style );

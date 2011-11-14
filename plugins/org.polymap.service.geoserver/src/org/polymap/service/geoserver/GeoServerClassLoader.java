@@ -30,8 +30,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import org.osgi.framework.Bundle;
+import javax.imageio.ImageIO;
 
+import org.osgi.framework.Bundle;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -51,7 +52,7 @@ public class GeoServerClassLoader
 
     private ClassLoader         parent;
     
-    private String              loaderName = "GeoServer";
+    private String              loaderName = "GeoServerClassLoader";
     
     private boolean             isParentLoaderPriority = false;
     
@@ -66,9 +67,13 @@ public class GeoServerClassLoader
             log.debug( "JAR found: " + entry );
             addURL( entry );
         }
-
+        
         //  allow GeoServer/Spring to access my classes (have to be included in the bundle)
         addURL( bundle.getResource( "build/eclipse/" ) );
+        
+        // Trigger a call to sun.awt.AppContext.getAppContext(). This will pin
+        // the common class loader in memory but that shouldn't be an issue. 
+        ImageIO.getCacheDirectory(); 
     }
 
     
@@ -142,15 +147,18 @@ public class GeoServerClassLoader
     }
 
 
-    public boolean isSystemPath(String name)    {        
-        //log.debug( "isSystemPath(): name= " + name );
+    public boolean isSystemPath(String name) {
+        //log.info( "isSystemPath(): name= " + name );
         name = name.replace( '/', '.' );
         while (name.startsWith( "." )) {
             name = name.substring( 1 );
         }
         return !name.startsWith( "org.geoserver." ) && 
                 !name.startsWith( "org.vfny." ) &&
+//                !name.startsWith( "org.springframework." ) &&
+//                !name.startsWith( "org.geotools." ) &&
                 !name.startsWith( "org.polymap.service.geoserver.spring" );
+                //!name.startsWith( "sun." );
         
 //        String[] system_classes = _context.getSystemClasses();
 //        if (system_classes != null) {

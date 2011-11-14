@@ -24,9 +24,6 @@
 package org.polymap.core.http;
 
 import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
@@ -62,7 +59,7 @@ public class HttpServiceRegistry {
     private static HttpService                  httpService;
     
     /** The registered servlets. Maps pathSpec into servlet. */
-    private static Map<String,HttpServlet>      servlets = new HashMap();
+    //private static Map<String,HttpServlet>      servlets = new HashMap();
 
 
     /**
@@ -106,7 +103,7 @@ public class HttpServiceRegistry {
         
         // servlet extensions ******
         IConfigurationElement[] exts = Platform.getExtensionRegistry().getConfigurationElementsFor( 
-                SERVLETS_EXTENSION_POINT_ID ); //$NON-NLS-1$
+                SERVLETS_EXTENSION_POINT_ID ); 
         log.info( "servlet extensions found: " + exts.length ); //$NON-NLS-1$
         
         for (IConfigurationElement ext : exts) {
@@ -131,10 +128,10 @@ public class HttpServiceRegistry {
      * 
      */
     public static synchronized void dispose() {
-        for (String pathSpec : servlets.keySet()) {
-            unregisterServlet( pathSpec );
-        }
-        servlets.clear();
+//        for (String pathSpec : servlets.keySet()) {
+//            unregisterServlet( pathSpec );
+//        }
+//        servlets.clear();
         httpService = null;
     }
 
@@ -186,29 +183,31 @@ public class HttpServiceRegistry {
     public static synchronized void registerServlet( String pathSpec, HttpServlet servlet,
             Dictionary initparams, HttpContext http_context ) 
             throws ServletException, NamespaceException {
-        assert !servlets.containsKey( pathSpec );
+        //assert !servlets.containsKey( pathSpec );
         
         httpService.registerServlet( pathSpec, servlet, initparams, http_context );
-        servlets.put( pathSpec, servlet );
+        //servlets.put( pathSpec, servlet );
     }
 
     
     public static synchronized void unregisterServlet( String pathSpec ) {
-        assert servlets.containsKey( pathSpec );
-        
-        httpService.unregister( pathSpec );
-        servlets.remove( pathSpec );
+//        assert servlets.containsKey( pathSpec );
+        httpService.unregister( pathSpec.startsWith( "/" ) ? pathSpec : "/"+pathSpec );
+//        servlets.remove( pathSpec );
     }
 
     
-    public static synchronized void unregisterServlet( HttpServlet servlet ) {
-        for (Map.Entry entry : servlets.entrySet()) {
-            if (entry.getValue() == servlet) {
-                unregisterServlet( (String)entry.getKey() );
-                return;
-            }
-        }
-        throw new IllegalStateException( "No such servlet: " + servlet );
-    }
+//    public static synchronized void unregisterServlet( HttpServlet servlet ) {
+//        String path = servlet.getUgetServletContext().getContextPath();
+//        unregisterServlet( path );
+//        
+////        for (Map.Entry entry : servlets.entrySet()) {
+////            if (entry.getValue() == servlet) {
+////                unregisterServlet( (String)entry.getKey() );
+////                return;
+////            }
+////        }
+////        throw new IllegalStateException( "No such servlet: " + servlet );
+//    }
 
 }

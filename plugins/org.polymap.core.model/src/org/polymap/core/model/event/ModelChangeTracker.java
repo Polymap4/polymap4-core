@@ -81,6 +81,11 @@ public class ModelChangeTracker
     }
 
 
+    protected void finalize() throws Throwable {
+        log.info( "FINALIZED." );
+    }
+
+
     public boolean addListener( IModelStoreListener l ) {
         return listeners.add( l );
     }

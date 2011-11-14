@@ -177,6 +177,11 @@ public interface ProvidedServiceComposite
             HttpServiceFactory.unregisterServer( wms, false );
             wms = null;            
         }
+        
+        public boolean isStarted() {
+            return wms != null;
+        }
+
     }
     
 }

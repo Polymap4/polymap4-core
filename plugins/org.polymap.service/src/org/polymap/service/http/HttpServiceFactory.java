@@ -22,11 +22,6 @@
  */
 package org.polymap.service.http;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServlet;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,7 +48,7 @@ public class HttpServiceFactory {
 
     private static IConfigurationElement    wmsExt, wfsExt;
     
-    private static Map<String,HttpService>  servers = new HashMap();
+//    private static Map<String,HttpService>  servers = new HashMap();
 
     
     static {
@@ -128,16 +123,16 @@ public class HttpServiceFactory {
         // give relative URL to the server (without leading slash)
         String url = pathSpec.substring( 1 );
 
-        HttpService old = servers.put( url, server );
-        if (old != null) {
-            if (!forceException) {
-                unregisterServer( old, false );
-            }
-            else {
-                servers.put( url, old );
-                throw new IllegalStateException( "Service already registered for patSpec: " + pathSpec );
-            }
-        }
+//        HttpService old = servers.put( url, server );
+//        if (old != null) {
+//            if (!forceException) {
+//                unregisterServer( old, false );
+//            }
+//            else {
+//                servers.put( url, old );
+//                throw new IllegalStateException( "Service already registered for patSpec: " + pathSpec );
+//            }
+//        }
 
         HttpServiceRegistry.registerServlet( pathSpec, server, null, null );
         return url;
@@ -146,13 +141,13 @@ public class HttpServiceFactory {
     
     public static void unregisterServer( HttpService server, boolean forceException ) {
         try {
-            HttpService old = servers.remove( server.getPathSpec() );
-            if (old != null) {
-                HttpServiceRegistry.unregisterServlet( server );
-            }
-            else {
-                throw new IllegalStateException( "No service for pathSpec: " + server.getPathSpec() );
-            }
+//            HttpService old = servers.remove( server.getPathSpec() );
+//            if (old != null) {
+                HttpServiceRegistry.unregisterServlet( server.getPathSpec() );
+//            }
+//            else {
+//                throw new IllegalStateException( "No service for pathSpec: " + server.getPathSpec() );
+//            }
         }
         catch (RuntimeException e) {
             if (forceException) {

@@ -1,5 +1,10 @@
 package org.polymap.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -13,25 +18,19 @@ import org.osgi.service.http.HttpService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
-import org.polymap.core.CorePlugin;
-import org.polymap.core.model.event.ModelStoreEvent;
 import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.ModelStoreEvent;
 import org.polymap.core.model.event.ModelStoreEvent.EventType;
-import org.polymap.core.runtime.DefaultSessionContext;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.security.SecurityUtils;
 import org.polymap.core.security.UserPrincipal;
-import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.ui.GeneralPreferencePage;
 
@@ -43,7 +42,8 @@ import org.polymap.service.ui.GeneralPreferencePage;
  * @since 3.0
  */
 public class ServicesPlugin 
-        extends AbstractUIPlugin {
+        extends AbstractUIPlugin
+        implements IModelStoreListener {
 
     private static Log log = LogFactory.getLog( ServicesPlugin.class );
 
@@ -87,9 +87,7 @@ public class ServicesPlugin
 
     // instance *******************************************
     
-    private ServiceRepository       repo;
-    
-    private IModelStoreListener modelChangeListener;
+    private Map<String,ServiceContext> serviceContexts = new HashMap();
     
     /** The base URL on the local machine (without proxy). */
     private String                  localBaseUrl;
@@ -97,11 +95,10 @@ public class ServicesPlugin
     /** The base URL explicitly set by the user via {@link GeneralPreferencePage}. */
     private String                  proxyBaseUrl;
     
-    /** The session context shared by all services. */
-    private DefaultSessionContext   sessionContext;
-    
-    public DefaultSessionContextProvider contextProvider;
+    private DefaultSessionContextProvider contextProvider;
 
+    private HttpService             httpService;
+    
     
     public ServicesPlugin() {
     }
@@ -118,17 +115,12 @@ public class ServicesPlugin
     
     
     public void start( final BundleContext context )
-            throws Exception {
+    throws Exception {
         super.start( context );
         plugin = this;
         
         // sessionContext
-        sessionContext = new DefaultSessionContext( "services" );
-        contextProvider = new DefaultSessionContextProvider() {
-            protected DefaultSessionContext newContext( String sessionKey ) {
-                return sessionContext;
-            }
-        };
+        contextProvider = new DefaultSessionContextProvider();
         SessionContext.addProvider( contextProvider );
         
         // start HttpServiceRegistry
@@ -136,7 +128,6 @@ public class ServicesPlugin
             public void bundleChanged( BundleEvent ev ) {
                 
                 if (!started && (HttpService.class != null)) {
-                    HttpService httpService = null;
                     ServiceReference[] httpReferences = null;
                     try {
                         httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
@@ -165,8 +156,8 @@ public class ServicesPlugin
                         proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
                         log.info( "Proxy URL set to: " + proxyBaseUrl );
 
-                        httpService = (HttpService) context.getService( httpReferences[0] );
-                        startServices( httpService );                            
+                        httpService = (HttpService)context.getService( httpReferences[0] );
+                        reStartServices();                            
                         started = true;
                     } 
                     else {
@@ -183,7 +174,7 @@ public class ServicesPlugin
 
 
     public void stop( BundleContext context )
-            throws Exception {
+    throws Exception {
         plugin = null;
         super.stop( context );
         
@@ -192,129 +183,70 @@ public class ServicesPlugin
     }
 
     
-    public void mapContext( String sessionKey ) {
-        contextProvider.mapContext( sessionContext.getSessionKey(), false );    
-    }
-
-    
-    public void unmapContext() {
-        contextProvider.unmapContext();
-    }
-    
-    
     /**
      * Start all global services and register model change listener
      * and preference listener.
      */
-    protected void startServices( HttpService httpService ) {
+    protected void reStartServices() {
         try {
-            contextProvider.mapContext( sessionContext.getSessionKey(), true );
+            contextProvider.mapContext( "services", true );
             Polymap.instance().addPrincipal( new AdminPrincipal() );
             
-            //
-            repo = ServiceRepository.instance();
-            for (IProvidedService service : repo.allServices()) {
-                if (service.isEnabled()) {
-                    try {
-                        service.start();
-                    }
-                    catch (Exception e) {
-                        CorePlugin.logError( "Error while starting services: " + service.getPathSpec(), log, e );
-                    }
+            // create/start ServiceContexts
+            ServiceRepository repo = ServiceRepository.instance();
+            List<IProvidedService> services = new ArrayList( repo.allServices() );
+            repo.addModelStoreListener( this );
+            
+            // ServiceContext maps its own context and DefaultSessionContextProvider
+            // uses a static ThreadLocal to store contexts
+            contextProvider.unmapContext();
+
+            for (IProvidedService service : services) {
+                if (!serviceContexts.containsKey( service.id() )) {
+                    ServiceContext serviceContext = new ServiceContext( service.id(), httpService );
+                    serviceContexts.put( service.id(), serviceContext );
                 }
             }
-            
-            // listen to global change events of the maps
-            modelChangeListener = new IModelStoreListener() {
-                public void modelChanged( ModelStoreEvent ev ) {
-                    // XXX avoid restart on *every* global entity event
-                    log.info( "Global entity event: source= " + ev.getSource() );
-                    if (ev.getEventType() == EventType.COMMIT
-                            /*&& ServiceRepository.class.isAssignableFrom( ev.getSource().getClass() )*/) {
-                        restartServices();
-                    }
-                }
-                public boolean isValid() {
-                    return true;
-                }
-            };
-            repo.addModelStoreListener( modelChangeListener );
-
-            // listen to preference changes
-            final ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), getBundle().getSymbolicName() );
-            prefStore.addPropertyChangeListener( new IPropertyChangeListener() {
-                
-                public void propertyChange( PropertyChangeEvent ev ) {
-                    log.debug( "Preferences changed: " + ev.getProperty() );
-                    
-                    if (ev.getProperty().equals( PREF_PROXY_URL )) {
-                        proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
-                        log.info( "Proxy URL set to: " + proxyBaseUrl );
-                        restartServices();
-                    }
-                }
-            });
-
         }
         catch (Exception e) {
             log.warn( "Error while starting services.", e );
         }
         finally {
-            contextProvider.unmapContext();
+            // a ServiceContext may have set another context, so we have to check first
+            SessionContext context = contextProvider.currentContext();
+            if (context != null && context.getSessionKey().equals( "services" )) {
+                contextProvider.unmapContext();
+            }
         }
     }
 
-
-    protected void restartServices() {
-        // stop running services from current repository
-        for (IProvidedService service : repo.allServices()) {
-            if (service.isEnabled()) {
-                try {
-                    contextProvider.mapContext( sessionContext.getSessionKey(), false );
-                    service.stop();
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim Anhalten des Dienstes.", e );
-                }
-                finally {
-                    contextProvider.unmapContext();
-                }
-            }
-        }
-        
-        // destroy current session
-        contextProvider.destroyContext( sessionContext.getSessionKey() );
-        sessionContext = new DefaultSessionContext( "services" );
-
-        // get new repository and (re)start new services
-        try {
-            contextProvider.mapContext( sessionContext.getSessionKey(), true );
-            Polymap.instance().addPrincipal( new AdminPrincipal() );
-
-            repo = ServiceRepository.instance();
-            repo.addModelStoreListener( modelChangeListener );
-
-            for (IProvidedService service : repo.allServices()) {
-                if (service.isEnabled()) {
-                    try {
-                        service.start();
-                    }
-                    catch (Exception e) {
-                        PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim (Re)Start des Dienstes.", e );
-                    }
-                }
-            }
-        }
-        finally {
-            contextProvider.unmapContext();
-        }
-    }
     
+    public void modelChanged( ModelStoreEvent ev ) {
+        if (ev.getEventType() == EventType.COMMIT) {
+            try {
+                contextProvider.mapContext( "services", false );
+                ServiceRepository repo = ServiceRepository.instance();
+                repo.removeModelStoreListener( this );
+            }
+            finally {
+                contextProvider.unmapContext();
+            }
+            contextProvider.destroyContext( "services" );
+            
+            reStartServices();
+        }
+    }
+
+    
+    public boolean isValid() {
+        return true;
+    }
+
     
     /*
      * 
      */
-    class AdminPrincipal
+    static class AdminPrincipal
             extends UserPrincipal {
 
         public AdminPrincipal() {

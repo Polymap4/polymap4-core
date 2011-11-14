@@ -113,6 +113,7 @@ public interface ModelChangeSupport
             // threads
             
             switch (entityState.status()) {
+                case NEW:
                 case UPDATED:
                 case REMOVED: {
                     log.info( "UOW -- beforeCompletion(): updated/removed id=" + id() );

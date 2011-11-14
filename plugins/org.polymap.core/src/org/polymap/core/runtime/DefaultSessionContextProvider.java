@@ -49,12 +49,14 @@ public class DefaultSessionContextProvider
      * @param sessionKey
      * @param create Indicates that a new context should be created if no context
      *        exists for the given key. Otherwise an exception is thrown.
+     * @return True if the context was actually mapped, false if the context was already mapped.
      */
-    public void mapContext( final String sessionKey, final boolean create ) {
+    public boolean mapContext( final String sessionKey, final boolean create ) {
         SessionContext current = currentContext();
         if (current != null) {
             if (current.getSessionKey().equals( sessionKey )) {
-                throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
+                return false;
+                //throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
             }
             else {
                 throw new IllegalStateException( "Another context is mapped to this thread: " + current.getSessionKey() );                
@@ -76,6 +78,7 @@ public class DefaultSessionContextProvider
             }
         }
         currentContext.set( context );
+        return true;
     }
 
 
