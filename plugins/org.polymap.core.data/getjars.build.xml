@@ -16,6 +16,7 @@
 
 	<!-- remote repositories as defined in copy.properties -->
 	<artifact:remoteRepository id="central.repository" url="${central}" />
+    <artifact:remoteRepository id="intalio.repository" url="${intaliomaven}" />
 	<!-- local repository i.e. folder to be used as storage for downloaded library files -->
 	<artifact:localRepository id="local.repository" path="${repo}" />
 
@@ -33,10 +34,11 @@
 			<remoteRepository refid="central.repository" />
 
             <dependency groupId="com.healthmarketscience.jackcess" artifactId="jackcess" version="1.1.18" />
-            <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.1.0" />
             <dependency groupId="net.sf.ehcache" artifactId="ehcache" version="1.4.1" />
+            <dependency groupId="org.supercsv" artifactId="SuperCSV" version="1.52" />
 
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
+            <dependency groupId="commons-lang" artifactId="commons-collections" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />
 
 		</artifact:dependencies>
