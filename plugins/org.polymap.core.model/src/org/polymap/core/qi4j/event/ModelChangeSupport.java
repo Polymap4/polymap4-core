@@ -116,7 +116,7 @@ public interface ModelChangeSupport
                 case NEW:
                 case UPDATED:
                 case REMOVED: {
-                    log.info( "UOW -- beforeCompletion(): updated/removed id=" + id() );
+                    log.debug( "UOW -- beforeCompletion(): updated/removed id=" + id() );
 
                     Updater updater = threadUpdater.get();
                     if (updater == null) {
@@ -166,7 +166,7 @@ public interface ModelChangeSupport
 
             if (updater != null) {
                 threadUpdater.set( null );
-                log.info( "UOW -- afterCompletion(): updater.size(): " + updater.size() );
+                log.debug( "UOW -- afterCompletion(): updater.size(): " + updater.size() );
 
                 // completed
                 if (status == UnitOfWorkStatus.COMPLETED) {
