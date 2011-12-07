@@ -19,9 +19,11 @@ import org.apache.lucene.search.Query;
 
 import org.polymap.core.runtime.recordstore.QueryExpression;
 
-
 /**
- * 
+ * A value coder is responsible for encode/decode a particular field value type.
+ * The idea is to decouple type specific encode/decode code from the load/store
+ * in order to make it easier to maintain code and in order to be able to plug in
+ * coders for different types. 
  * <p/>
  * Implementations have to be thread-safe.
  * 

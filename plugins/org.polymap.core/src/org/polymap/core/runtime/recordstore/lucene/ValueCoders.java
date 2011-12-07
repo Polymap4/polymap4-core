@@ -29,6 +29,7 @@ public final class ValueCoders {
     
     public static final LuceneValueCoder[] DEFAULT_CODERS = new LuceneValueCoder[] {
             new NumericValueCoder(),
+            new BooleanValueCoder(),
             new BinaryValueCoder(),
             new StringValueCoder()
     };

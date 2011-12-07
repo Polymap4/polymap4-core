@@ -79,7 +79,7 @@ final class StringValueCoder
             Match matchExp = (Match)exp;
             
             if (matchExp.value instanceof String) {
-                String value =(String)matchExp.value;
+                String value = (String)matchExp.value;
                 
                 // FIXME properly substitute wildcard chars
                 if (value.endsWith( "*" )

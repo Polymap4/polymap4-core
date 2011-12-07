@@ -41,6 +41,10 @@ import java.util.List;
  *          }
  *      })
  *     .asList();
+ * </pre>
+ * <b>Execution:</b><p>
+ * The number of concurrent threads used and the size of the chunks are defined
+ * by the {@link AsyncExecutor}, which is used by default.
  *
  * @param <S> The type of the source elements.
  * @param <T> The type of the target elements.
@@ -50,9 +54,12 @@ public class ForEach<T, S>
         implements Iterable<T> {
 
     public static ForEachExecutor.Factory      executorFactory = new AsyncExecutor.AsyncFactory();
-    
+
     /**
      * Creates a new instance for the given source elements.
+     * <p/>
+     * The number of concurrent threads used and the size of the chunks are defined
+     * by the {@link AsyncExecutor}, which is used by default.
      * 
      * @param <S> The type of the source elements.
      * @param <T> The type of the target elements.

@@ -96,7 +96,7 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.mp", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.mp", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.service.geoserver", "debug" );
@@ -111,7 +111,7 @@ public class CorePlugin
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright 2011, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,10 +19,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,12 +35,28 @@ import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.mp.ForEachExecutor.ProcessorContext;
 
 /**
- * 
+ * Executes a {@link ForEach} loop using a queue of concurrently working threads.
  * <p/>
+ * The {@link #queueCapacity} defines the maximum number tasks/chunks that are
+ * processed concurrently. It is set to: <code>2*number_of_processors</code> by
+ * default.
+ * <p/>
+ * The {@link #chunkSize} defines the number of elements that are passed to a thread
+ * for one processing step. The default is set to:
+ * <code>source.size()/(queueCapacity*4)</code>. That is, for a 2 core system the
+ * executor tries to start up to 4 concurrent threads. Every thread executes a total
+ * of 4 chunks. The entire source collection is split into 16 processing chunks.
+ * <p/>
+ * <b>Implementation Note:</b>
+ * <p/>
+ * It seems that different JDKs have very different characteristics when executing
+ * concurrent threads.
+ * 
  * <pre>
  *   -XX:+UseConcMarkSweepGC 
  *   -XX:+UseParNewGC
- * </pre> 
+ * </pre>
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class AsyncExecutor<T,S>
@@ -71,7 +87,7 @@ public class AsyncExecutor<T,S>
     
     /** 
      * The number of elements in every chunk. The default is set to:
-     * <code>source.size()/(queueCapacity*2)</code>.
+     * <code>source.size()/(queueCapacity*4)</code>.
      */
     private int                     chunkSize = -1;
 
@@ -88,7 +104,7 @@ public class AsyncExecutor<T,S>
      */
     private volatile int            queueSize = 0;
     
-    private BlockingQueue<Chunk>    results = new LinkedBlockingDeque();
+    private LinkedBlockingDeque<Chunk> results = new LinkedBlockingDeque();
     
     private Iterator                currentResultChunk;
     
@@ -159,26 +175,22 @@ public class AsyncExecutor<T,S>
             next = (T)currentResultChunk.next();
         }
         else {
-            try {
-                fillPipeline();
-                
-                if (queueSize == 0) {
-                    log.debug( "End of processing." );
-                    return false;
-                }
-                else {
-                    Chunk chunk = results.take();
-                    log.debug( "Took chunk from queue. chunkSize=" + chunk.elements.size() );
+            while (!isEndOfProcessing()) {                
+                try {
+                    Chunk chunk = results.pollFirst( 100, TimeUnit.MILLISECONDS );
+                    if (chunk != null) {
+                        log.debug( "Took chunk from queue. chunkSize=" + chunk.elements.size() );
                     
-                    //
-                    currentResultChunk = chunk.elements.iterator();
-                    if (currentResultChunk.hasNext()) {
-                        next = (T)currentResultChunk.next();
+                        currentResultChunk = chunk.elements.iterator();
+                        if (currentResultChunk.hasNext()) {
+                            next = (T)currentResultChunk.next();
+                            return true;
+                        }
                     }
                 }
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException( e );
+                catch (InterruptedException e) {
+                    throw new RuntimeException( e );
+                }
             }
         }
         return next != null;
@@ -204,7 +216,7 @@ public class AsyncExecutor<T,S>
     protected boolean isEndOfProcessing() {
         fillPipeline();
         
-        return queueSize == 0 && results.isEmpty();
+        return queueSize == 0 && results.size() == 0;
     }
     
     protected int remainingCapacity() {
@@ -212,7 +224,7 @@ public class AsyncExecutor<T,S>
     }
     
     protected void enqueue( Callable task ) {
-        executorService.submit( task );
+        Future future = executorService.submit( task );
     }
 
     

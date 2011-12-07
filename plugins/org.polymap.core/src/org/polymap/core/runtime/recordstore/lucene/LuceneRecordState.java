@@ -29,7 +29,6 @@ import org.apache.lucene.document.Field.Store;
 
 import org.polymap.core.runtime.recordstore.IRecordState;
 
-
 /**
  * 
  *
@@ -40,7 +39,7 @@ public final class LuceneRecordState
 
     private static Log log = LogFactory.getLog( LuceneRecordState.class );
 
-    public static final String  ID_FIELD = "identifier";
+    public static final String  ID_FIELD = "identity";
     
     private static long         idCount = System.currentTimeMillis();
     
@@ -62,7 +61,18 @@ public final class LuceneRecordState
         return doc;
     }
 
+    
+    public String toString() {
+        StringBuilder result = new StringBuilder( "LuceneRecordState{" );
+        for (Entry<String,Object> entry : this) {
+            result.append( entry.getKey() ).append( '=' ).append( entry.getValue() );
+            result.append( ", " );
+        }
+        result.append( "}" );
+        return result.toString();
+    }
 
+    
     public Object id() {
         return doc.get( ID_FIELD );
     }

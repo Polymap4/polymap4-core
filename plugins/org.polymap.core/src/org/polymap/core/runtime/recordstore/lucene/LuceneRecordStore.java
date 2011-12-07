@@ -143,6 +143,11 @@ public final class LuceneRecordStore
     }
     
     
+    public IndexSearcher getIndexSearcher() {
+        return searcher;    
+    }
+    
+    
     public long storeSizeInByte() {
         try {
             long result = 0;
@@ -190,6 +195,7 @@ public final class LuceneRecordStore
             if (termDocs.next()) {
                 Document doc = reader.document( termDocs.doc() );
                 return new LuceneRecordState( LuceneRecordStore.this, doc );
+                // XXX fill cache?
             }
             return null;
         }
@@ -199,9 +205,16 @@ public final class LuceneRecordStore
     }
 
 
-    LuceneRecordState cacheOrLoad( int doc ) 
+    public IRecordState get( int docnum ) 
     throws Exception {
-        return (LuceneRecordState)recordCache.get( doc, recordLoader );
+        assert reader != null : "Store is closed.";
+        return cacheOrLoad( docnum );        
+    }
+
+
+    LuceneRecordState cacheOrLoad( int docnum ) 
+    throws Exception {
+        return (LuceneRecordState)recordCache.get( docnum, recordLoader );
     }
 
     
@@ -245,10 +258,12 @@ public final class LuceneRecordStore
 
         LuceneUpdater() {
             try {
+                // IndexWriterConfig#DEFAULT_RAM_BUFFER_SIZE_MB == 16MB
+                // autCommit == false
+                // 8 concurrent thread
                 IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
                         .setOpenMode( OpenMode.APPEND );
                 writer = new IndexWriter( directory, config );
-                //writer.d
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

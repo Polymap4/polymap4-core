@@ -100,6 +100,26 @@ public abstract class QueryExpression {
     /**
      * 
      */
+    public static class GreaterOrEqual<T>
+            extends Comparison<T> {
+
+        public GreaterOrEqual( String key, T value ) {
+            super( key, value );
+        }
+
+        public boolean evaluate( IRecordState record ) {
+            Object recordValue = record.get( key );
+            if (recordValue != null) {
+                return ((Comparable)recordValue).compareTo( value ) >= 0;
+            }
+            return false;
+        }
+    }
+
+
+    /**
+     * 
+     */
     public static class Less<T>
             extends Comparison<T> {
 
@@ -111,6 +131,26 @@ public abstract class QueryExpression {
             Object recordValue = record.get( key );
             if (recordValue != null) {
                 return ((Comparable)recordValue).compareTo( value ) < 0;
+            }
+            return false;
+        }
+    }
+
+
+    /**
+     * 
+     */
+    public static class LessOrEqual<T>
+            extends Comparison<T> {
+
+        public LessOrEqual( String key, T value ) {
+            super( key, value );
+        }
+
+        public boolean evaluate( IRecordState record ) {
+            Object recordValue = record.get( key );
+            if (recordValue != null) {
+                return ((Comparable)recordValue).compareTo( value ) <= 0;
             }
             return false;
         }
