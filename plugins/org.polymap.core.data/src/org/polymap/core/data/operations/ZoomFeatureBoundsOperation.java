@@ -28,10 +28,6 @@ import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
-
-import org.eclipse.ui.PlatformUI;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -41,7 +37,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.Polymap;
 
 /**
  * Calculates the bounds of the given features and sets the extent of the given map.
@@ -134,18 +129,19 @@ public class ZoomFeatureBoundsOperation
         // set map extent
         monitor.subTask( "Setting map extent" );
         
-        final AtomicInteger dialogResult = new AtomicInteger();
-        Polymap.getSessionDisplay().syncExec( new Runnable() {
-            public void run() {
-                MessageBox mbox = new MessageBox( 
-                        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-                        SWT.YES | SWT.NO | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL );
-                mbox.setMessage( "X : " + result.getMinX() + " - " + result.getMaxX() +
-                        "\nY : " + result.getMinY() + " - " + result.getMaxY() );
-                mbox.setText( getLabel() );
-                dialogResult.set( mbox.open() );
-            }
-        });
+        final AtomicInteger dialogResult = new AtomicInteger( SWT.YES );
+        // FIXME Check result and ask the user if suspicious
+//        Polymap.getSessionDisplay().syncExec( new Runnable() {
+//            public void run() {
+//                MessageBox mbox = new MessageBox( 
+//                        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+//                        SWT.YES | SWT.NO | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL );
+//                mbox.setMessage( "X : " + result.getMinX() + " - " + result.getMaxX() +
+//                        "\nY : " + result.getMinY() + " - " + result.getMaxY() );
+//                mbox.setText( getLabel() );
+//                dialogResult.set( mbox.open() );
+//            }
+//        });
         
         if (dialogResult.get() == SWT.YES) {
             oldExtent = map.getExtent();
