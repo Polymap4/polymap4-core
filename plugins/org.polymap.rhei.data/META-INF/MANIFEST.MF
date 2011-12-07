@@ -18,4 +18,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.rhei.data,
  org.polymap.rhei.data.entityfeature,
- org.polymap.rhei.data.entityfeature.catalog
+ org.polymap.rhei.data.entityfeature.catalog,
+ org.polymap.rhei.data.entitystore.lucene
