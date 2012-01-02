@@ -77,6 +77,13 @@ public class LayerMenuContribution
                         return fs;
                     }
 
+                    public Object getAdapter( Class adapter ) {
+                        if (ILayer.class.isAssignableFrom( adapter )) {
+                            return layer;
+                        }
+                        return super.getAdapter( adapter );
+                    }
+                    
                 };
             }
             catch (Exception e) {
