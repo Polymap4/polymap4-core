@@ -123,7 +123,7 @@ public interface ILayer
      * 
      * @param style
      */
-    @TransientProperty(PROP_STYLE)
+    @ModelProperty(PROP_STYLE)
     public void setStyle( IStyle style )
     throws UnsupportedOperationException, IOException;
 
