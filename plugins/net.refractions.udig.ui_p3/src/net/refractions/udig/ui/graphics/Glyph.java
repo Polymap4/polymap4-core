@@ -36,9 +36,9 @@ import sun.misc.GC;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.internal.graphics.ImageData;
-import org.eclipse.swt.internal.graphics.PaletteData;
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -135,7 +135,7 @@ public class Glyph {
         return new org.eclipse.swt.graphics.Color(display, color.getRed(), color.getGreen(), color.getBlue() );        
     }
     static ImageData extractImageDataAndDispose( Image image ) {
-        ImageData data = (ImageData) image.getImageData();        
+        ImageData data = image.getImageData();        
         image.dispose();        
         return data;
     }
