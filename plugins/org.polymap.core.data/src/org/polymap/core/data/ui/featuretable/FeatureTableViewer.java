@@ -15,8 +15,11 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
@@ -40,6 +43,7 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
@@ -111,8 +115,18 @@ public class FeatureTableViewer
         }
         return result;
     }
-    
 
+    
+    public IFeatureTableElement[] getSelectedElements() {
+        List<IFeatureTableElement> result = new ArrayList();
+        IStructuredSelection sel = (IStructuredSelection)getSelection();
+        for (Iterator it=sel.iterator(); it.hasNext(); ) {
+            result.add( (IFeatureTableElement)it.next() );
+        }
+        return result.toArray( new IFeatureTableElement[ result.size() ] );
+    }
+
+    
     /**
      * Selects the element with the given feature id.
      * 
@@ -147,13 +161,13 @@ public class FeatureTableViewer
             index = ((IDeferredFeatureContentProvider)getContentProvider()).findElement( search );
             // select table
             getTable().setSelection( index );
-            log.info( "getTable().getSelectionIndex(): " + getTable().getSelectionIndex() );
+            log.debug( "getTable().getSelectionIndex(): " + getTable().getSelectionIndex() );
             if (reveal) {
                 getTable().showSelection();
             }
             // fire event
             ISelection sel = getSelection();
-            log.info( "getSelection(): " + sel );
+            log.debug( "getSelection(): " + sel );
             updateSelection( sel );
         }
         else {

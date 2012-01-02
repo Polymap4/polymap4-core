@@ -31,8 +31,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TableColumn;
 
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableLayout;
@@ -53,7 +53,7 @@ public class DefaultFeatureTableColumn
 
     private PropertyDescriptor      prop;
 
-    private CellEditor              cellEditor;
+    private EditingSupport          editingSupport;
 
     private String                  header;
 
@@ -76,18 +76,18 @@ public class DefaultFeatureTableColumn
         return this;
     }
 
-    public DefaultFeatureTableColumn setCellEditor( CellEditor cellEditor ) {
-        this.cellEditor = cellEditor;
+    public DefaultFeatureTableColumn setEditing( boolean editing ) {
+        this.editingSupport = editing ? new DefaultEditingSupport( viewer ) : null;
         return this;
     }
 
-    public CellEditor getCellEditor( Composite parent ) {
-        if (cellEditor == null) {
-            Class binding = prop.getType().getBinding();
-            cellEditor = new BasicTypeCellEditor( parent, binding );
-        }
-        return cellEditor;
-    }
+//    public CellEditor getCellEditor( Composite parent ) {
+//        if (cellEditor == null) {
+//            Class binding = prop.getType().getBinding();
+//            cellEditor = new BasicTypeCellEditor( parent, binding );
+//        }
+//        return cellEditor;
+//    }
 
 
     public EditingSupport getEditingSupport() {
@@ -103,9 +103,13 @@ public class DefaultFeatureTableColumn
         viewerColumn.getColumn().setMoveable( true );
         viewerColumn.getColumn().setResizable( true );
         
-        viewerColumn.setLabelProvider( newLabelProvider() );
+        viewerColumn.setLabelProvider( new DefaultCellLabelProvider() );
         String normalizedName = StringUtils.capitalize( getName() );
         viewerColumn.getColumn().setText( header != null ? header : normalizedName );
+        
+        if (editingSupport != null) {
+            viewerColumn.setEditingSupport( editingSupport );
+        }
         
         // sort listener for supported prop bindings
         Class propBinding = prop.getType().getBinding();
@@ -177,32 +181,70 @@ public class DefaultFeatureTableColumn
     }
 
     
-    protected CellLabelProvider newLabelProvider() {
-        return new ColumnLabelProvider() {
+    /*
+     * 
+     */
+    class DefaultCellLabelProvider
+            extends ColumnLabelProvider {
             
-            public String getText( Object elm ) {
-                try {
-                    IFeatureTableElement featureElm = (IFeatureTableElement)elm;
-                    //log.info( "getText(): fid=" + featureElm.fid() + ", prop=" + prop.getName().getLocalPart() );
+        public String getText( Object elm ) {
+            try {
+                IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                //log.info( "getText(): fid=" + featureElm.fid() + ", prop=" + prop.getName().getLocalPart() );
 
-                    Object value = featureElm.getValue( getName() );
-                    return value != null ? value.toString() : "";
-                }
-                catch (Exception e) {
-                    return "Fehler: " + e.getLocalizedMessage();
-                }
+                Object value = featureElm.getValue( getName() );
+                return value != null ? value.toString() : "";
             }
+            catch (Exception e) {
+                return "Fehler: " + e.getLocalizedMessage();
+            }
+        }
 
-            public String getToolTipText( Object elm ) {
-                if (elm != null) {
-                    IFeatureTableElement featureElm = (IFeatureTableElement)elm;
-                    Object value = featureElm.getValue( getName() );
-                    return value != null ? value.toString() : null;
-                }
-                return null;
+        public String getToolTipText( Object elm ) {
+            if (elm != null) {
+                IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                Object value = featureElm.getValue( getName() );
+                return value != null ? value.toString() : null;
             }
-            
-        };
+            return null;
+        }
+
     }
+    
+    
+    /*
+     * 
+     */
+    class DefaultEditingSupport
+            extends EditingSupport {
 
+        public DefaultEditingSupport( ColumnViewer viewer ) {
+            super( viewer );
+        }
+
+        protected boolean canEdit( Object elm ) {
+            return true;
+        }
+
+        protected CellEditor getCellEditor( Object elm ) {
+            return new BasicTypeCellEditor( (Composite)viewer.getControl(), prop.getType().getBinding() );
+        }
+
+        protected Object getValue( Object elm ) {
+            try {
+                IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                Object value = featureElm.getValue( getName() );
+                return value;
+            }
+            catch (Exception e) {
+                return "Fehler: " + e.getLocalizedMessage();
+            }
+        }
+
+        protected void setValue( Object elm, Object value ) {
+            IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+        }
+        
+    }
+    
 }

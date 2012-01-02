@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +44,6 @@ import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldSelector;
-import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
@@ -58,8 +56,6 @@ import org.apache.lucene.store.FSDirectory;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
@@ -126,11 +122,12 @@ public class LuceneCache {
     private Analyzer            analyzer = new WhitespaceAnalyzer();
 
     private IndexSearcher       searcher;
-    
+
+    /** Synchronizing access is left to Lucene. */
     private IndexReader         indexReader;
     
-    private ReadWriteLock       rwLock = new ReentrantReadWriteLock();
-
+    private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+    
     private FeatureType         schema;
     
     private GeometryJSON        jsonCoder = new GeometryJSON( 6 );
@@ -143,6 +140,9 @@ public class LuceneCache {
      * For normal Browser settings with 6-8 concurrent requests 4 concurrent threads
      * in the cache is insufficient, but in most cases actual concurrent cache
      * request are between 1-4. The smaller the number the faster the cache reads.
+     * <p/>
+     * FIXME Map doc id into Feature, so that no Lucene document needs to be loaded
+     * after query if the feature is in cache
      */
     private ConcurrentReferenceHashMap<Object,Feature> cache = 
             new ConcurrentReferenceHashMap( 16*1024, 0.75f, 4, 
@@ -226,7 +226,7 @@ public class LuceneCache {
 
 //        rwLock.readLock().lock();
         
-        // check shema
+        // check schema
         if (schema == null) {
             throw new RuntimeException( "schema is null, call getFeatureType() first." );
         }
@@ -238,23 +238,7 @@ public class LuceneCache {
         log.info( "    results: " + count + " (" + timer.elapsedTime() + "ms)" );
 
         // skip unwanted properties
-        final FieldSelector fieldSelector = new FieldSelector() {
-            
-            private String[]        propNames = query.getPropertyNames();
-            
-            public FieldSelectorResult accept( String fieldName ) {
-                FieldSelectorResult result = FieldSelectorResult.NO_LOAD; 
-                if (propNames == null) {
-                    result = FieldSelectorResult.LOAD;
-                }
-                else if (StringUtils.indexOfAny( fieldName, propNames ) == 0) {
-                    result = FieldSelectorResult.LOAD;
-                }
-                return result;
-            }
-        };
-        final String[] queryPropNames = query.getPropertyNames();
-        log.info( "FieldSelector: " + (queryPropNames != null ? Arrays.asList( queryPropNames ) : "ALL") );      
+        final FieldSelector fieldSelector = new QueryFieldSelector( query );
         
         return new Iterable<Feature>() {
             public Iterator<Feature> iterator() {
