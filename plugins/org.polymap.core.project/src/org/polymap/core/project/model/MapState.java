@@ -25,13 +25,15 @@ package org.polymap.core.project.model;
 
 import java.util.StringTokenizer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.entity.association.ManyAssociation;
@@ -43,6 +45,7 @@ import org.eclipse.ui.views.properties.IPropertySource;
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.ITempLayer;
 import org.polymap.core.project.MapStatus;
 import org.polymap.core.project.RenderStatus;
 import org.polymap.core.project.ui.properties.MapPropertySource;
@@ -100,7 +103,9 @@ public interface MapState
         
         private RenderStatus                renderStatus = RenderStatus.STATUS_OK;
 
+        private ListManyAssociation<ITempLayer> tempLayers = new ListManyAssociation();
 
+        
         public Object getAdapter( Class adapter ) {
             if (IPropertySource.class.isAssignableFrom( adapter )) {
                 return new MapPropertySource( composite );
@@ -133,17 +138,24 @@ public interface MapState
          * The layers association.
          */
         public AssocCollection<ILayer> getLayers() {
-            return new AssocCollectionImpl( layers() );
+            return new AssocCollectionImpl( new ManyAssociation[] {
+                    layers(), tempLayers } );
         }
 
         public boolean addLayer( ILayer layer ) {
-            boolean result = layers().add( layer );
+            boolean result = layer instanceof ITempLayer
+                    ? tempLayers.add( (ITempLayer)layer )
+                    : layers().add( layer );
+                    
             layer.setParentMap( composite );
             return result;            
         }
         
         public boolean removeLayer( ILayer layer ) {
-            boolean result = layers().remove( layer );
+            boolean result = layer instanceof ITempLayer
+                    ? tempLayers.remove( (ITempLayer)layer )
+                    : layers().remove( layer );
+                    
             layer.setParentMap( null );
             return result;
         }        

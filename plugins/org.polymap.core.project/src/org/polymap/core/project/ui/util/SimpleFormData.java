@@ -57,6 +57,11 @@ public class SimpleFormData {
         return formData;
     }
 
+    public SimpleFormData height( int height ) {
+        formData.height = height;
+        return this;
+    }
+    
     // left
 
     public SimpleFormData left( int num ) {

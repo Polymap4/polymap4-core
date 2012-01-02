@@ -260,7 +260,7 @@ public class ProjectView
                             OperationSupport.instance().execute( op, false, false );
                         }
                         catch (ExecutionException e) {
-                            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "", e );
+                            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "Projekt konnte nicht umbenannt werden.", e );
                         }
                     }                    
                     viewer.refresh();
@@ -283,7 +283,7 @@ public class ProjectView
                     //OpenMapHandler.openMap( new MapEditorInput( selectedMap ), page );
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+                    PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "Projekt konnte nicht geöffnet werden.", e );
                 }
             }
         };
