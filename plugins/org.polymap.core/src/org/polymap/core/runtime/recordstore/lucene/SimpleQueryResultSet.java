@@ -14,6 +14,7 @@
  */
 package org.polymap.core.runtime.recordstore.lucene;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import java.io.IOException;
@@ -24,6 +25,8 @@ import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -57,9 +60,17 @@ final class SimpleQueryResultSet
         this.store = store;
         
         // build query
-        BooleanQuery luceneQuery = new BooleanQuery();
-        for (QueryExpression exp : query.expressions()) {
-            luceneQuery.add( store.valueCoders.searchQuery( exp ), BooleanClause.Occur.MUST );
+        Query luceneQuery = null;
+        Collection<QueryExpression> expressions = query.expressions();
+        if (expressions.isEmpty()) {
+            luceneQuery = new MatchAllDocsQuery();
+        }
+        else {
+            luceneQuery = new BooleanQuery();
+            for (QueryExpression exp : expressions) {
+                ((BooleanQuery)luceneQuery).add( 
+                        store.valueCoders.searchQuery( exp ), BooleanClause.Occur.MUST );
+            }
         }
         log.debug( "Lucene Query: " + luceneQuery );          
 
