@@ -436,4 +436,12 @@
             id="org.polymap.core.data.DownloadServiceHandler">
       </serviceHandler>
    </extension>
+   <!--extension
+         point="net.refractions.udig.catalog.ServiceExtension">
+      <service
+            class="org.polymap.core.data.feature.lucenestore.LuceneServiceImpl"
+            id="org.polymap.core.data.LuceneService"
+            name="Lucene">
+      </service>
+   </extension-->
 </plugin>
