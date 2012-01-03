@@ -19,10 +19,10 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-pool-1.5.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ecore-2.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/geoapi-2.3-M1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar" sourcepath="lib/sources/geoapi-pending-2.3-M1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/geodb-0.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/google-collections-0.8.jar" sourcepath="/home/falko/.m2/repository/com/google/collections/google-collections/0.8/google-collections-0.8-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/jts-1.10-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-metadata-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-2.6.4.jar"/>
@@ -47,7 +47,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-svg-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-validation-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar" sourcepath="lib/sources/gt-wfs-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wms-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wps-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-2.6.4.jar"/>
@@ -87,7 +87,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jai_imageio-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jdom-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/joda-time-1.6.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.jar" sourcepath="/home/falko/.m2/repository/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr-275-1.0-beta-2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr305-1.3.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jts-1.10.jar" sourcepath="lib/sources/jts-1.10-sources.zip"/>
