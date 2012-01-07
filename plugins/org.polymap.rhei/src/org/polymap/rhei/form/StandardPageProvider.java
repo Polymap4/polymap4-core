@@ -12,8 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.form;
 
@@ -27,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.geotools.feature.FeatureTypes;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.FeatureType;
@@ -47,13 +46,12 @@ import org.polymap.rhei.field.IFormField;
 import org.polymap.rhei.field.IFormFieldValidator;
 import org.polymap.rhei.field.NumberValidator;
 import org.polymap.rhei.field.StringFormField;
-
+import org.polymap.rhei.field.TextFormField;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public class StandardPageProvider
         implements IFormPageProvider {
@@ -103,13 +101,28 @@ public class StandardPageProvider
                         IFormField formField = null;
                         IFormFieldValidator validator = null;
                         
+                        FormData layoutData = new FormData();
+                        layoutData.left = new FormAttachment( 20, 0 );
+                        layoutData.right = new FormAttachment( 80, 0 );
+                        layoutData.top = last != null
+                                ? new FormAttachment( last, 2 )
+                                : new FormAttachment( 0 );
+
                         // Geometry
                         if (Geometry.class.isAssignableFrom( binding )) {
                             // skip
                         }
                         // String
                         else if (String.class.isAssignableFrom( binding )) {
-                            formField = new StringFormField();
+                            if (FeatureTypes.getFieldLength( prop ) > 255
+                                    || (value.getValue() instanceof String
+                                    && ((String)value.getValue()).length() > 100)) {
+                                formField = new TextFormField();
+                                layoutData.height = 100;
+                            }
+                            else {
+                                formField = new StringFormField();
+                            }
                         }
                         // Number
                         else if (Number.class.isAssignableFrom( binding )) {
@@ -129,17 +142,8 @@ public class StandardPageProvider
                         }
 
                         if (formField != null) {
-                            Composite field = site.newFormField( 
-                                    null, value, formField, validator );
-
-                            FormData layoutData = new FormData();
-                            layoutData.left = new FormAttachment( 20, 0 );
-                            layoutData.right = new FormAttachment( 80, 0 );
-                            layoutData.top = last != null
-                            ? new FormAttachment( last, 2 )
-                            : new FormAttachment( 0 );
+                            Composite field = site.newFormField( null, value, formField, validator );
                             field.setLayoutData( layoutData );
-
                             last = field;
                         }
                     }
