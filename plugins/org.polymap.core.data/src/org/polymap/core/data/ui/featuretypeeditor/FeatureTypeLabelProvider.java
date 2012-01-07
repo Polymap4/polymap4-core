@@ -24,6 +24,8 @@ import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 
+import org.polymap.core.data.feature.LegalAttributeType;
+
 /**
  * Label provider for labeling AttributeTypes.
  * <p>
@@ -65,7 +67,14 @@ class FeatureTypeLabelProvider
                 return attribute.getLocalName();
             }
             case 1: { // Attribute Type element
-                return attribute.getType().getBinding().getSimpleName();
+                Integer choice = (Integer)attribute.getUserData().get( "choice" );
+                if (choice != null) {
+                    LegalAttributeType legal = fte.legalTypes.get( choice );
+                    return legal.getName();
+                }
+                else {
+                    return attribute.getType().getBinding().getSimpleName();
+                }
             }
             case 2: { // CRS element
                 if (attribute instanceof GeometryDescriptor) {

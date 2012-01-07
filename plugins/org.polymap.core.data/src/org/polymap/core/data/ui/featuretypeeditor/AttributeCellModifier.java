@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import org.eclipse.jface.viewers.ICellModifier;
 
+import org.polymap.core.data.feature.LegalAttributeType;
+
 /**
  * ...
  * <p>
@@ -149,8 +151,13 @@ class AttributeCellModifier
                     return null;
                 }
                 else {
-                    Class type = this.fte.legalTypes.get( choice ).getType();
-                    builder.setBinding( type );
+                    LegalAttributeType legal = fte.legalTypes.get( choice );
+                    builder.addUserData( "choice", choice );
+                    Class type = fte.legalTypes.get( choice ).getType();
+                    builder.setBinding( legal.getType() );
+                    if (legal.getLength() != null) {
+                        builder.setLength( legal.getLength() );
+                    }
                     return builder.buildDescriptor( attr.getLocalName() );
                 }
             }

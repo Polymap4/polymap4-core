@@ -44,6 +44,8 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import com.vividsolutions.jts.geom.Geometry;
 
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -264,7 +266,13 @@ public class LayerFeatureBufferManager
             return;
         }
         
-        monitor.beginTask( layer.getLabel(), buffer.size() );
+        try {
+            monitor.beginTask( layer.getLabel(), buffer.size() );
+        }
+        catch (NoSuchEntityException e) {
+            // the layer was deleted meanwhile
+            return;
+        }
         tx = new DefaultTransaction( "Submit buffer: layer-" + layer.id() + "-" + System.currentTimeMillis() );
 
         // store directly to the underlying store; so the buffer processor MUST be

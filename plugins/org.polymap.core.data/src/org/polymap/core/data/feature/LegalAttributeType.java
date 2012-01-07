@@ -1,6 +1,5 @@
 package org.polymap.core.data.feature;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +11,8 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
+
 import org.polymap.core.data.Messages;
 
 /**
@@ -20,54 +21,56 @@ import org.polymap.core.data.Messages;
  * 
  * @author jones
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class LegalAttributeType {
 
     /**
      * Get the map of legal attribute types.
-     * <p>
+     * <p/>
      * This is not cached since every call may produce different translations
      * depending on the locale of the session.
      */
     public static List<LegalAttributeType> types() {
-        List<LegalAttributeType> types = new ArrayList<LegalAttributeType>();
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_stringType" ), String.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_booleanType" ), Boolean.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_dateType" ), Date.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_integerType" ), Integer.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_longType" ), Long.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_floatType" ), Float.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_doubleType" ), Double.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_pointType" ), Point.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_lineStringType" ), LineString.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_polygonType" ), Polygon.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_geometryType" ), Geometry.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_multiPointType" ), MultiPoint.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_multiLineStringType" ), MultiLineString.class ) );
-        types.add( new LegalAttributeType( Messages.get( "LegalAttributeType_multiPolygonType" ), MultiPolygon.class ) );
-
-        return types;
-        
-//        Map<Class, LegalAttributeType> result = new HashMap();
-//        for (LegalAttributeType type : types) {
-//            result.put( type.type, type );
-//        }
-//        return result;
+        return Arrays.asList( new LegalAttributeType[] {             
+                new LegalAttributeType( Messages.get( "LegalAttributeType_stringType" ), String.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_bigStringType" ), String.class, 4096 ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_booleanType" ), Boolean.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_dateType" ), Date.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_integerType" ), Integer.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_longType" ), Long.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_floatType" ), Float.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_doubleType" ), Double.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_pointType" ), Point.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_lineStringType" ), LineString.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_polygonType" ), Polygon.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_geometryType" ), Geometry.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_multiPointType" ), MultiPoint.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_multiLineStringType" ), MultiLineString.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_multiPolygonType" ), MultiPolygon.class )        
+        });
     }
 
     
     // instance *******************************************
 
-    private final String name;
+    private final String    name;
 
-    private final Class  type;
+    private final Class     type;
+    
+    private final Integer   length;
 
     
     public LegalAttributeType( String name, Class type ) {
         this.name = name;
         this.type = type;
+        this.length = null;
+    }
+    
+    public LegalAttributeType( String name, Class type, Integer length ) {
+        this.name = name;
+        this.type = type;
+        this.length = length;
     }
     
     public String getName(){
@@ -76,6 +79,10 @@ public class LegalAttributeType {
     
     public Class getType(){
         return type;
+    }
+
+    public Integer getLength() {
+        return length;
     }
     
 }
