@@ -16,7 +16,6 @@ package org.polymap.service.fs.providers;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import java.io.File;
@@ -25,28 +24,20 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
-import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureIterator;
-import org.geotools.feature.collection.DecoratingFeatureCollection;
-import org.geotools.feature.collection.DelegateFeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.opengis.feature.Feature;
-import org.opengis.feature.IllegalAttributeException;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.FeatureType;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.util.RetypingFeatureCollection;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.fs.FsPlugin;
@@ -158,100 +149,28 @@ class ShapefileGenerator {
         //shapeDs.setStringCharset( )
         
         // write shapefile
-        Transaction tx = new DefaultTransaction( "create" );
+//        Transaction tx = new DefaultTransaction( "create" );
 
         String typeName = shapeDs.getTypeNames()[0];
         FeatureStore<SimpleFeatureType,SimpleFeature> shapeFs 
                 = (FeatureStore<SimpleFeatureType, SimpleFeature>)shapeDs.getFeatureSource( typeName );
 
-        shapeFs.setTransaction( tx );
-        try {
+        // doing this without tx saves A LOT of memory; and tx is not
+        // strictly necessary here
+//        shapeFs.setTransaction( tx );
+//        try {
             shapeFs.addFeatures( retyped );
-            tx.commit();
-        } 
-        catch (IOException e) {
-            tx.rollback();
-            throw e;
-        } 
-        finally {
-            tx.close();
-        }
+//            tx.commit();
+//        } 
+//        catch (IOException e) {
+//            tx.rollback();
+//            throw e;
+//        } 
+//        finally {
+//            tx.close();
+//        }
         
         return newFile;
-    }
-    
-    
-    /**
-     * 
-     *
-     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
-     */
-    static abstract class RetypingFeatureCollection<T extends FeatureType, F extends Feature>
-            extends DecoratingFeatureCollection<T,F> {
-
-        private T                   targetSchema;
-        
-        
-        public RetypingFeatureCollection( FeatureCollection delegate, T targetSchema ) {
-            super( delegate );
-        }
-        
-        public T getSchema() {
-            return targetSchema;
-        }
-
-        public Iterator<F> iterator() {
-            return new RetypingIterator( delegate.iterator() );
-        }
-
-        public void close( Iterator<F> iterator ) {
-            RetypingIterator retyping = (RetypingIterator) iterator;
-            delegate.close( retyping.delegateIt );
-        }
-
-        public FeatureIterator<F> features() {
-            return new DelegateFeatureIterator<F>(this, iterator());
-        }
-
-        public void close( FeatureIterator<F> iterator ) {
-            ((DelegateFeatureIterator)iterator).close();
-        }
-        
-        
-        protected abstract F retype( F feature );
-        
-        
-        /**
-         *
-         * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
-         */
-        public class RetypingIterator 
-                implements Iterator<F> {
-            
-            private Iterator<F>         delegateIt;
-            
-            public RetypingIterator( Iterator<F> delegateIt ) {
-                this.delegateIt = delegateIt;
-            }
-
-            public boolean hasNext() {
-                return delegateIt.hasNext();
-            }
-
-            public F next() {
-                try {
-                    return retype( delegateIt.next() );
-                } 
-                catch (IllegalAttributeException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            public void remove() {
-                delegateIt.remove();
-            }
-        }
-
     }
     
 }

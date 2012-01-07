@@ -426,7 +426,14 @@
       <featureOperation
             class="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"
             id="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"
-            label="Export to CSV">
+            label="%CsvExportFeatureOperation_label"
+            tooltip="%CsvExportFeatureOperation_tip">
+      </featureOperation>
+      <featureOperation
+            class="org.polymap.core.data.operations.feature.ShapeExportFeaturesOperation"
+            id="org.polymap.core.data.operations.feature.ShapeExportFeatureOperation"
+            label="%ShapeExportFeaturesOperation_label"
+            tooltip="%ShapeExportFeaturesOperation_tip">
       </featureOperation>
    </extension>
    <extension
