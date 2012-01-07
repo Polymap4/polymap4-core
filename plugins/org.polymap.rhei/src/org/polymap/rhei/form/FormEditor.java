@@ -38,8 +38,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Composite;
-
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import org.eclipse.ui.IEditorInput;
@@ -56,9 +56,11 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
 import org.polymap.core.data.operations.ZoomFeatureBoundsOperation;
+import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
 import org.polymap.rhei.RheiPlugin;
@@ -138,6 +140,8 @@ public class FormEditor
     private Action                      submitAction;
 
     private Action                      revertAction;
+
+    private OperationSaveListener operationSaveListener;
     
 
     public FormEditor() {
@@ -210,6 +214,47 @@ public class FormEditor
         revertAction.setToolTipText( Messages.get( "FormEditor_revertTip" ) );
         revertAction.setEnabled( false );
         standardPageActions.add( revertAction );
+        
+        // save listener 
+        operationSaveListener = new OperationSaveListener();
+        OperationSupport.instance().addOperationSaveListener( operationSaveListener );
+    }
+
+
+    /*
+     * 
+     */
+    class OperationSaveListener
+            implements IOperationSaveListener {
+        
+        public void prepareSave( OperationSupport os, final IProgressMonitor monitor )
+        throws Exception {
+            if (isDirty()) {
+                Polymap.getSessionDisplay().syncExec( new Runnable() {
+                    public void run() {
+                        if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                                getPartName(), Messages.get( "FormEditor_prepareSave", getPartName() ) )) {
+                            doSave( monitor );
+                        }
+                    }
+                });
+            }
+        }
+    
+        public void save( OperationSupport os, IProgressMonitor monitor ) {
+        }
+        
+        public void rollback( OperationSupport os, IProgressMonitor monitor ) {
+        }
+    
+        public void revert( OperationSupport os, IProgressMonitor monitor ) {
+            if (isDirty()) {
+                if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                        getPartName(), Messages.get( "FormEditor_prepareRevert", getPartName() ) )) {
+                    doLoad( monitor );
+                }
+            }
+        }
     }
 
 
@@ -240,11 +285,12 @@ public class FormEditor
         }
     }
 
-
+    
     public void dispose() {
         // this also disposses my pages
         super.dispose();
         pages.clear();
+        OperationSupport.instance().removeOperationSaveListener( operationSaveListener );
     }
 
 
