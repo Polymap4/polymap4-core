@@ -301,9 +301,10 @@
                class="org.polymap.core.data.feature.filter.AddFilterProcessorAction"
                icon="icons/etool16/filter.gif"
                id="org.polymap.core.data.AddFilterProcessorAction"
-               label="Filter"
+               label="%AddFilterProcessorAction_label"
                style="push"
-               toolbarPath="data">
+               toolbarPath="data"
+               tooltip="%AddFilterProcessorAction_tip">
          </action>
          <action
                class="org.polymap.core.data.ui.featureselection.ZoomFeatureSelectionAction"
