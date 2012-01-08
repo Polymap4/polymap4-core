@@ -89,7 +89,12 @@ public class FeatureFilterProcessor
             if (filterProp instanceof Filter) {
                 filter = (Filter)filterProp;
             }
-            log.info( "Serialized: " + filterProp );
+            else if (filterProp instanceof String) {
+                filter = FeatureFilterProcessorConfig.decodeFilter( (String)filterProp );
+            }
+            else {
+                throw new Exception( "Unknown filterProp type: " + filterProp );
+            }
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
@@ -98,7 +103,7 @@ public class FeatureFilterProcessor
 
 
     public void processRequest( ProcessorRequest r, ProcessorContext context )
-            throws Exception {
+    throws Exception {
         // GetFeatures
         if (r instanceof GetFeaturesRequest) {
             Query query = ((GetFeaturesRequest)r).getQuery();

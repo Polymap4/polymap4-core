@@ -243,7 +243,8 @@
             class="org.polymap.core.data.feature.filter.FeatureFilterProcessor"
             id="org.polymap.core.data.FilterProcessor"
             isTerminal="false"
-            name="Feature-Filter">
+            name="Feature-Filter"
+            propertyPage="org.polymap.core.data.feature.filter.FeatureFilterProcessorConfig">
       </processor>
       <processor
             class="org.polymap.core.data.image.cache304.ImageCacheProcessor"

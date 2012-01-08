@@ -30,8 +30,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import org.eclipse.core.commands.ExecutionException;
-
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.operation.OperationSupport;
@@ -41,10 +39,11 @@ import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetProcessorConfigurationsOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
-
 /**
- * 
- *
+ * Adds a {@link FeatureFilterProcessor} to the pipeline of the layer
+ * of the {@link FeatureSelectionView} we are working for.
+ *  
+ * @see FeatureFilterProcessor
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class AddFilterProcessorAction
@@ -71,7 +70,7 @@ public class AddFilterProcessorAction
 
             // new config
             PipelineProcessorConfiguration newConfig = new PipelineProcessorConfiguration( "org.polymap.core.data.FilterProcessor", "Feature-Filter" );
-            newConfig.getConfig().put( "filter", filter );
+            newConfig.getConfig().put( "filter", FeatureFilterProcessorConfig.encodeFilter( filter ) );
             configs.add( newConfig );
 
             // operation
@@ -80,7 +79,7 @@ public class AddFilterProcessorAction
             op.init( layer, configs.toArray(new PipelineProcessorConfiguration[configs.size()]) );
             OperationSupport.instance().execute( op, false, false );
         }
-        catch (ExecutionException e) {
+        catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
     }
