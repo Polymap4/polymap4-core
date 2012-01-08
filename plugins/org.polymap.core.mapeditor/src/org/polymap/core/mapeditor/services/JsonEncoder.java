@@ -43,8 +43,10 @@ public abstract class JsonEncoder {
     private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
 
     public static JsonEncoder newInstance() {
-        // slower than GtJsonEncoder but handles almost all cases
-        return new GtJsonEncoder();
+        // GsJsonEncoder might be slower than GtJsonEncoder but it handles
+        // transformation in all cases and strips properties
+        // see GtJsonEncoder for a list of issues
+        return new GsJsonEncoder();
     }
     
     

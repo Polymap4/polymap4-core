@@ -63,8 +63,10 @@ import org.polymap.core.workbench.PolymapWorkbench;
 /**
  * GeoJSON server based on {@link FeatureJSON} package of GeoTools. The encoder
  * seems to work faster for big geometries compared to to {@link GsJsonEncoder}.
- * The encoder does nt encode all decimals of coordinates and it does not (yet?)
+ * The encoder does not encode all decimals of coordinates and it does not (yet?)
  * strip properties of the features.
+ * <p/>
+ * FIXME Does not convert WGS84 geometries correctly.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0

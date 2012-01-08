@@ -34,10 +34,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
- * GeoJSON server based on {@link GeoJSONBuilder} from GeoServer. The encoder
- * strips properties from the features. It just encodes geoetries. Coordinates
- * are encoded with all decimals. This makes output big and slow for big geometries
- * compared to {@link GtJsonEncoder}.
+ * GeoJSON server based on {@link GeoJSONBuilder} from GeoServer. The encoder strips
+ * all non-geometry properties from the features. It just encodes geoetries.
+ * Coordinates are encoded with all decimals. This makes output big and slow for big
+ * geometries compared to {@link GtJsonEncoder}.
  */
 class GsJsonEncoder 
         extends JsonEncoder {
@@ -210,9 +210,7 @@ class GsJsonEncoder
             outWriter.flush();
         }
         catch (Exception e) {
-            ServiceException serviceException = new ServiceException( "Error: "
-                    + e.getMessage() );
-            serviceException.initCause( e );
+            ServiceException serviceException = new ServiceException( e.getMessage(), e );
             throw serviceException;
         }
 
