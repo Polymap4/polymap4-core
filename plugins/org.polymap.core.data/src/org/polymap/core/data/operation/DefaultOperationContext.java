@@ -42,7 +42,7 @@ abstract class DefaultOperationContext
                 return result;
             }
         }
-        return false;
+        return null;
     }
     
     

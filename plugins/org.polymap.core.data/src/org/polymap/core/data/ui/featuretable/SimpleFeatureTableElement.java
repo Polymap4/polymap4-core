@@ -134,14 +134,13 @@ public class SimpleFeatureTableElement
 
         Feature             result;
         
-        
         public FetchJob() {
             super( "Fetching " + fid + "..." );
         }
 
         protected IStatus run( IProgressMonitor monitor ) {
             try {
-                log.info( "fetching " + fid + "..." );
+                log.debug( "fetching " + fid + "..." );
                 Id filter = ff.id( Collections.singleton( ff.featureId( fid ) ) );
                 fs.getFeatures( filter ).accepts( new FeatureVisitor() {
                     public void visit( Feature feature ) {

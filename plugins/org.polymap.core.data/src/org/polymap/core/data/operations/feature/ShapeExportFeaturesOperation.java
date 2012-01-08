@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
+
 import org.geotools.data.FeatureStore;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -53,6 +54,7 @@ import org.polymap.core.data.operation.FeatureOperationExtension;
 import org.polymap.core.data.operation.IFeatureOperation;
 import org.polymap.core.data.operation.DownloadServiceHandler.ContentProvider;
 import org.polymap.core.data.util.RetypingFeatureCollection;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 
 /**
@@ -67,7 +69,7 @@ public class ShapeExportFeaturesOperation
     private static Log log = LogFactory.getLog( ShapeExportFeaturesOperation.class );
 
     /** The file extensions generated with standard settings. */
-    public static final String[]            FILE_SUFFIXES = {"shp", "shx", "qix", "fix", "dbf", "prj"};
+    public static final String[]            FILE_SUFFIXES = {"shp", "shx", /*"qix", "fix",*/ "dbf", "prj"};
     
 
     public Status execute( final IProgressMonitor monitor )
@@ -84,8 +86,13 @@ public class ShapeExportFeaturesOperation
         SimpleFeatureType srcSchema = (SimpleFeatureType)features.getSchema();
         
         // shapeSchema
+        ILayer layer = context.adapt( ILayer.class );
+        final String basename = layer != null
+                ? FilenameUtils.normalize( layer.getLabel() )
+                : FilenameUtils.normalize( srcSchema.getTypeName() );
+
         SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
-        ftb.setName( FilenameUtils.normalize( srcSchema.getTypeName() ) );
+        ftb.setName( basename );
         ftb.setCRS( srcSchema.getCoordinateReferenceSystem() );
         
         // attributes
@@ -131,11 +138,10 @@ public class ShapeExportFeaturesOperation
         ShapefileDataStoreFactory shapeFactory = new ShapefileDataStoreFactory();
 
         Map<String,Serializable> params = new HashMap<String,Serializable>();
-        final String basename = shapeSchema.getTypeName();
         final File shapefile = File.createTempFile( basename+"-", ".shp" );
         shapefile.deleteOnExit();
-        params.put( "url", shapefile.toURI().toURL() );
-        params.put( "create spatial index", Boolean.TRUE );
+        params.put( ShapefileDataStoreFactory.URLP.key, shapefile.toURI().toURL() );
+        params.put( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, Boolean.FALSE );
 
         ShapefileDataStore shapeDs = (ShapefileDataStore)shapeFactory.createNewDataStore( params );
         shapeDs.createSchema( shapeSchema );
