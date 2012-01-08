@@ -396,27 +396,6 @@
          unpack="false"/>
 
    <plugin
-         id="eu.hydrologis.jgrass.csv2shape"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="eu.hydrologis.jgrass.libs"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="eu.hydrologis.udig.catalog.jgrass"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.polymap.openlayers.rap.widget"
          download-size="0"
          install-size="0"
@@ -522,21 +501,7 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.biotop"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.polymap.service.geoserver"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.qi4j.entitystore.lucene"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -551,6 +516,20 @@
 
    <plugin
          id="org.polymap.core.model"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.lka"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.polymap.alkis"
          download-size="0"
          install-size="0"
          version="0.0.0"

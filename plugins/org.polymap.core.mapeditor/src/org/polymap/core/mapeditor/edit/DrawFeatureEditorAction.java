@@ -12,24 +12,17 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.mapeditor.edit;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.opengis.feature.type.GeometryDescriptor;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.type.GeometryDescriptor;
 
 import org.eclipse.swt.widgets.Event;
 
@@ -37,14 +30,20 @@ import org.eclipse.jface.action.IAction;
 
 import org.eclipse.ui.IEditorActionDelegate;
 
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
+
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.DrawFeatureControl;
+import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
  * Editor action for the {@link EditFeatureSupport}. This actions controls
@@ -126,8 +125,18 @@ public class DrawFeatureEditorAction
         
         try {
             NewFeatureOperation op = new NewFeatureOperation( support.layer, null, payload.get( "features" ) );
-            OperationSupport.instance().execute( op, true, false );
             
+            OperationSupport.instance().execute( op, true, false, new JobChangeAdapter() {
+                public void done( IJobChangeEvent event ) {
+                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                        public void run() {
+                            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
+                            olayer.redraw( true );
+                        }
+                    });
+                }
+            });
+
 //            // redraw map layer
 //            WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
 //            olayer.redraw( true );

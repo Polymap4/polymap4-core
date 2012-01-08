@@ -23,7 +23,6 @@ import java.util.WeakHashMap;
 import java.io.IOException;
 
 import net.refractions.udig.catalog.IGeoResource;
-
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
@@ -280,7 +279,13 @@ public class LayerFeatureBufferManager
         IGeoResource geores = layer.getGeoResource();
         FeatureStore fs = geores.resolve( FeatureStore.class, null );
   
-        fs.setTransaction( tx );
+        // FIXME Hack for IOException: Current fid index is null, next must be called before write()
+//        if (geores instanceof ShpGeoResourceImpl) {
+//            log.warn( "Resource is Shapefile: running without transaction!" );
+//        }
+//        else {
+            fs.setTransaction( tx );
+//        }
 
         updater = ModelChangeTracker.instance().newUpdater();
         

@@ -12,13 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.mapeditor.edit;
 
@@ -83,7 +76,7 @@ public class ModifyFeatureEditorAction
                 control = new ModifyFeatureControl( support.vectorLayer );
                 control.addMode( ModifyFeatureControl.RESHAPE );
                 control.addMode( ModifyFeatureControl.DRAG );
-                control.addMode( ModifyFeatureControl.ROTATE );
+                //control.addMode( ModifyFeatureControl.ROTATE );
                 support.addControl( control );
 
                 // modification event
@@ -133,7 +126,6 @@ public class ModifyFeatureEditorAction
                     });
                 }
             });
-            
         }
         catch (Throwable e) {
             log.warn( "", e );

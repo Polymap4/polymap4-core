@@ -343,8 +343,11 @@ public class OperationSupport
         if (e == null) {
             return;
         }
-        if (e instanceof RuntimeException) {
+        else if (e instanceof RuntimeException) {
             throw (RuntimeException)e;
+        }
+        else if (e instanceof Error) {
+            throw (Error)e;
         }
         else {
             throw (Exception)e;

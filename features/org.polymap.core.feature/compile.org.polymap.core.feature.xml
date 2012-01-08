@@ -7,7 +7,6 @@
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.rwt.widgets.upload" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.openlayers.rap.widget" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.libs" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../qi4j-extensions/entitystore-lucene" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.core_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.rwt.widgets.codemirror" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.ui_p3" target="build.jars"/>
@@ -26,9 +25,6 @@
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.catalog.postgis" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.project" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.catalog" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/eu.hydrologis.jgrass.libs_p3" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/eu.hydrologis.udig.catalog.jgrass_p3" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/eu.hydrologis.jgrass.csv2shape_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.catalog.rasterings_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.data" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service" target="build.jars"/>
@@ -39,6 +35,8 @@
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.mapeditor" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service.fs" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.styler" target="build.jars"/>
+		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/org.polymap.lka" target="build.jars"/>
+		<ant antfile="build.xml" dir="../../../polymap3-alkis/plugins/org.polymap.alkis" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.catalog.geotiff_p3" target="build.jars"/>
 	</target>
 </project>
