@@ -107,32 +107,34 @@ public class EditFeatureSupport
         try {
             ReferencedEnvelope bbox = mapEditor.getMap().getExtent();
             
-            CoordinateReferenceSystem dataCRS = layer.getCRS();
-            ReferencedEnvelope dataBBox = bbox.transform( dataCRS, true );
-            log.info( "dataBBox: " + dataBBox );
+            if (bbox != null) {
+                CoordinateReferenceSystem dataCRS = layer.getCRS();
+                ReferencedEnvelope dataBBox = bbox.transform( dataCRS, true );
+                log.info( "dataBBox: " + dataBBox );
 
-            FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
-            //JD: should this be applied to all geometries?
-            //String name = featureType.getDefaultGeometry().getLocalName();
-            //JD: changing to "" so it is
-            String propname = "";
-            String epsgCode = GML2EncodingUtils.crs( dataBBox.getCoordinateReferenceSystem() );
-            
-            final BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
-                    dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
+                FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
+                //JD: should this be applied to all geometries?
+                //String name = featureType.getDefaultGeometry().getLocalName();
+                //JD: changing to "" so it is
+                String propname = "";
+                String epsgCode = GML2EncodingUtils.crs( dataBBox.getCoordinateReferenceSystem() );
 
-            PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-            FeatureCollection features = fs.getFeatures( filter );
-            jsonEncoder.setFeatures( features );
+                final BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
+                        dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
 
-            // select all features that are editable now;
-            // allow GeoSelectionView to startup from are sibling operation concern;
-            // do not use an operation because this is not undoable (as a single op)
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    fsm.changeSelection( filter, null, EditFeatureSupport.this );
-                }
-            });
+                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
+                FeatureCollection features = fs.getFeatures( filter );
+                jsonEncoder.setFeatures( features );
+
+                // select all features that are editable now;
+                // allow GeoSelectionView to startup from are sibling operation concern;
+                // do not use an operation because this is not undoable (as a single op)
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        fsm.changeSelection( filter, null, EditFeatureSupport.this );
+                    }
+                });
+            }
         }
         catch (Exception e) {
             log.warn( e.getLocalizedMessage(), e );

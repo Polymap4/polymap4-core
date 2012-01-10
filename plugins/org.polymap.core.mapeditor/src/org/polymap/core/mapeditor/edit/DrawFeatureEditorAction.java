@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opengis.feature.type.GeometryDescriptor;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,25 +75,26 @@ public class DrawFeatureEditorAction
                     // find geometry type
                     PipelineFeatureSource fs = PipelineFeatureSource.forLayer( support.layer, true );
                     GeometryDescriptor geom = fs.getSchema().getGeometryDescriptor();
-                    String geomName = geom.getType().getName().toString();
-                    log.debug( "Geometry: " + geomName );
+                    String geomType = geom.getType().getBinding().getSimpleName();
+                    log.debug( "Geometry: " + geomType );
 
                     String handler = null;
-                    if ("MultiLineString".equals( geomName )
-                            || "LineString".equals( geomName )) {
+                    if ("MultiLineString".equals( geomType )
+                            || "LineString".equals( geomType )) {
                         handler = DrawFeatureControl.HANDLER_LINE;
                     }
-                    else if ("MultiPolygon".equals( geomName )
-                            || "Polygon".equals( geomName )) {
+                    else if ("MultiPolygon".equals( geomType )
+                            || "Polygon".equals( geomType )) {
                         handler = DrawFeatureControl.HANDLER_POLYGON;
                     }
-                    else if ("Point".equals( geomName )) {
+                    else if ("MultiPoint".equals( geomType )
+                            || "Point".equals( geomType )) {
                         handler = DrawFeatureControl.HANDLER_POINT;
                     }
                     else {
-                        log.warn( "Unhandled geometry type: " + geomName + ". Using polygone handler..." );
+                        log.warn( "Unhandled geometry type: " + geomType + ". Using polygone handler..." );
                         handler = DrawFeatureControl.HANDLER_POLYGON;
-//                        throw new Exception( "Dieser Geometrietyp kann nicht bearbeitet werden: " + geom.getType().getName() );
+                        throw new Exception( "Dieser Geometrietyp kann nicht bearbeitet werden: " + geom.getType().getName() );
                     }
                     control = new DrawFeatureControl( support.vectorLayer, handler );
                     support.addControl( control );
@@ -131,7 +131,9 @@ public class DrawFeatureEditorAction
                     Polymap.getSessionDisplay().asyncExec( new Runnable() {
                         public void run() {
                             WMSLayer olayer = (WMSLayer)mapEditor.findLayer( support.layer );
-                            olayer.redraw( true );
+                            if (olayer != null) {
+                                olayer.redraw( true );
+                            }
                         }
                     });
                 }

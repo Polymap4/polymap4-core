@@ -260,7 +260,7 @@ public class NewFeatureOperation
         CoordinateReferenceSystem layerCRS = schema.getCoordinateReferenceSystem();
         CoordinateReferenceSystem mapCRS = layer.getMap().getCRS();
         if (!mapCRS.equals( layerCRS )) {
-            log.debug( "    transforming geom: " + mapCRS.getName() + " -> " + layerCRS.getName() );
+            //log.debug( "    transforming geom: " + mapCRS.getName() + " -> " + layerCRS.getName() );
             MathTransform transform = CRS.findMathTransform( mapCRS, layerCRS );
             geom = JTS.transform( geom, transform );
         }

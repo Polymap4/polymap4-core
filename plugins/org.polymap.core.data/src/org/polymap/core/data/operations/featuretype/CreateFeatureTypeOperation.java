@@ -221,8 +221,8 @@ public class CreateFeatureTypeOperation
         File file = null;
         if (!oldID.getProtocol().equals( "file" )) { //$NON-NLS-1$
             try {
-                String workingDir = FileLocator.toFileURL( Platform.getInstanceLocation().getURL() )
-                        .getFile();
+                String workingDir = FileLocator.toFileURL( 
+                        Platform.getInstanceLocation().getURL() ).getFile();
                 file = new File( workingDir, type.getName().getLocalPart() + ".shp" ); //$NON-NLS-1$
             }
             catch (IOException e) {
@@ -258,6 +258,7 @@ public class CreateFeatureTypeOperation
         ds.createSchema( type );
         List<IService> services = CatalogPlugin.getDefault().getServiceFactory().createService(
                 file.toURI().toURL() );
+
         for (IService service2 : services) {
             try {
                 DataStore ds2 = service2.resolve( DataStore.class, monitor );
