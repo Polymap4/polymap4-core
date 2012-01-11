@@ -102,14 +102,14 @@
                style="push"
                tooltip="%actions_showFeatureTable_tip">
          </action>
-         <action
+         <!--action
                class="org.polymap.core.data.operations.feature.CopyLayerFeaturesAction"
                enablesFor="1"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyLayerFeaturesAction"
                label="%actions_copyFeatures"
                style="push">
-         </action>
+         </action-->
          <action
                class="org.polymap.core.data.feature.buffer.RevertBufferAction"
                enablesFor="+"
@@ -142,14 +142,14 @@
             adaptable="false"
             id="org.polymap.core.data.georesContribution"
             objectClass="net.refractions.udig.catalog.IGeoResource">
-         <action
+         <!--action
                class="org.polymap.core.data.operations.feature.CopyFeaturesAction"
                enablesFor="1"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyFeaturesAction"
                label="%actions_copyFeatures"
                style="push">
-         </action>
+         </action-->
          <action
                class="org.polymap.core.data.operations.featuretype.DeleteFeatureTypeAction"
                icon="icons/etool16/delete.gif"
@@ -289,14 +289,14 @@
       <viewContribution
             id="org.polymap.core.data.featureSelectionContribution"
             targetID="org.polymap.core.data.FeatureSelectionView">
-         <action
+         <!--action
                class="org.polymap.core.data.operations.feature.CopyGeoSelectionFeaturesAction"
                icon="icons/etool16/copy_features.gif"
                id="org.polymap.core.data.CopyGeoSelectionFeaturesAction"
                label="%actions_copyFeatures"
                style="push"
                toolbarPath="data">
-         </action>
+         </action-->
          <action
                class="org.polymap.core.data.feature.filter.AddFilterProcessorAction"
                icon="icons/etool16/filter.gif"
@@ -424,6 +424,13 @@
             id="org.polymap.core.data.CopyFeaturesOperation"
             label="%CopyFeaturesOperation_label"
             tooltip="%CopyFeaturesOperation_tip">
+      </featureOperation>
+      <featureOperation
+            class="org.polymap.core.data.operations.feature.RemoveFeaturesOperation"
+            icon="icons/etool16/delete_edit.gif"
+            id="org.polymap.core.data.RemoveFeaturesOperation"
+            label="%RemoveFeaturesOperation_label"
+            tooltip="%RemoveFeaturesOperation_tip">
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
+ * Copyright 2009, 2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.ui.featureselection;
 
+import org.geotools.data.DefaultQuery;
 import org.opengis.filter.Filter;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -30,6 +31,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionDelegate;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
+import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -60,11 +63,12 @@ public class FeatureAllSelectionAction
                     // ensure that the view is shown
                     FeatureSelectionView view = FeatureSelectionView.open( selectedLayer );
 
-                    if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
-                            "Achtung", "Mit dieser Operation werden alle Objekte geladen.\n" + 
-                            "Das kann unter Umständen einige Zeit dauern. Um eine Auswahl von\n" + 
-                            "Objekten zu selektieren, nutzen Sie bitte die Funktion Abfragen/Suche.\n\n" + 
-                            "Achtung: mit dieser Operation wird eine eventuell gemachte Auswahl überschrieben.")) {
+                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( selectedLayer, false );
+                    int featureCount = fs.getCount( new DefaultQuery( null, Filter.INCLUDE ) );
+                    if (featureCount < 1000
+                            || MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                                    Messages.get( "FeatureAllSelectionAction_confirm_title" ),
+                                    Messages.get( "FeatureAllSelectionAction_confirm_msg", featureCount ) )) {
                         
                         view.loadTable( Filter.INCLUDE );
                     }

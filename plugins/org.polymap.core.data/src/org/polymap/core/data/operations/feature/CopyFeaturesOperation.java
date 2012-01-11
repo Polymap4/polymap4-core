@@ -73,7 +73,7 @@ import org.polymap.core.runtime.WeakListener;
  * {@link ModifyFeatureEditorAction} but might be used by other classes as well.
  * <p>
  * ...
- *
+ * @deprecated As of {@link CopyFeaturesOperation2}
  * @see NewFeatureOperation
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1

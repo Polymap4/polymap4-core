@@ -18,9 +18,13 @@ import java.util.Properties;
 
 import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.referencing.CRS;
+import org.opengis.feature.Feature;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.apache.commons.lang.StringUtils;
@@ -51,10 +55,10 @@ import org.polymap.core.data.operation.FeatureOperationExtension;
 import org.polymap.core.data.operation.IFeatureOperation;
 import org.polymap.core.data.operations.ChooseLayerPage;
 import org.polymap.core.data.operations.NewFeatureOperation;
-import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.data.ui.featuretypeeditor.ValueViewerColumn;
 import org.polymap.core.data.util.ProgressListenerAdaptor;
+import org.polymap.core.data.util.RetypingFeatureCollection;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
@@ -85,6 +89,10 @@ public class CopyFeaturesOperation2
         monitor.beginTask( context.adapt( FeatureOperationExtension.class ).getLabel(), 10 );
 
         source = (PipelineFeatureSource)context.featureSource();
+        
+        if (!(source.getSchema() instanceof SimpleFeatureType)) {
+            throw new Exception( Messages.get( "CopyFeaturesOperation_notSimpleType" ) );
+        }
 
         // open wizard dialog
         monitor.subTask( "Eingaben vom Nutzer..." );
@@ -122,38 +130,19 @@ public class CopyFeaturesOperation2
 
             final PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
             FeatureCollection features = context.features();
+            int featuresSize = features.size();
 
-            copyMonitor.beginTask( "Objekte kopieren", features.size() );
+            copyMonitor.beginTask( Messages.get( "CopyFeaturesOperation_taskTitle", featuresSize ), featuresSize );
 
+            // transform CRS
             CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
-            //                final MathTransform transform = CRS.findMathTransform( 
-            //                        source.getSchema().getCoordinateReferenceSystem(), destCrs );
-
-            //                // all features
-            //                int c = 0;
-            ////                List<Feature> chunk = new ArrayList( DataSourceProcessor.DEFAULT_CHUNK_SIZE );
-            //                features.accepts( new FeatureVisitor() {
-            //                    public void visit( Feature feature ) {
-            //                        try {
-            //                            GeometryAttribute geomAttr = feature.getDefaultGeometryProperty();
-            //                            Geometry geom = (Geometry)geomAttr.getValue();
-            //                            Geometry transformed = JTS.transform( geom, transform );
-            //                            geomAttr.setValue( transformed );
-            //                            
-            //                            FeatureCollection coll = FeatureCollections.newCollection();
-            //                            coll.add( feature );
-            //                            
-            //                            destFs.addFeatures( coll );
-            //                            copyMonitor.worked( 1 );
-            //                        }
-            //                        catch (Exception e) {
-            //                            throw new RuntimeException( e );
-            //                        }
-            //                    }
-            //                }, null );
-
-            ReprojectingFeatureCollection reprojected = new ReprojectingFeatureCollection( features, destCrs );
-            destFs.addFeatures( reprojected, new ProgressListenerAdaptor( copyMonitor ) );
+            if (destCrs != null) {
+                features = new ReprojectingFeatureCollection( features, destCrs );
+            }
+            // tranform schema
+            features = featureEditorPage.retyped( features );            
+            
+            destFs.addFeatures( features, new ProgressListenerAdaptor( copyMonitor ) );
 
             monitor.done();
             return Status.OK;
@@ -171,13 +160,12 @@ public class CopyFeaturesOperation2
 
         public static final String          ID = "FeatureEditorPage2";
 
-        private FeatureTypeEditor           editor;
-
         private Composite                   content;
 
         private Properties                  configPageProps = new Properties();
 
         private FeatureTypeEditorProcessorConfig configPage;
+        
 
         protected FeatureEditorPage2() {
             super( ID );
@@ -289,21 +277,43 @@ public class CopyFeaturesOperation2
             getContainer().updateButtons();
         }
 
+        public RetypingFeatureCollection retyped( FeatureCollection src ) {
+            final FeatureTypeEditorProcessor processor = new FeatureTypeEditorProcessor();
+            processor.init( configPageProps );
+            final SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)processor.getFeatureType() );
+            
+            return new RetypingFeatureCollection( src, null ) {
+
+                public FeatureType getSchema() {
+                    return processor.getFeatureType();
+                }
+
+                protected Feature retype( Feature feature ) {
+                    try {
+                        return processor.transformFeature( (SimpleFeature)feature, builder );
+                    }
+                    catch (Exception e) {
+                        throw new RuntimeException( e );
+                    }
+                }
+            };
+        }
+        
         public void performFinish() {
             log.info( "performFinish(): ..." );
 
             configPage.performOk();
-
-            PipelineProcessor proc = source.getPipeline().get( 0 );
-            if (!(proc instanceof FeatureTypeEditorProcessor)) {
-                proc = new FeatureTypeEditorProcessor();
-                source.getPipeline().addFirst( proc );
-            }
-            ((FeatureTypeEditorProcessor)proc).init( configPageProps );
-
-            // give FeatureTypeEditorProcessor the upstream FeatureType
-            SimpleFeatureType schema = source.getSchema();
-            log.debug( "Schema: " + schema );
+//
+//            PipelineProcessor proc = source.getPipeline().get( 0 );
+//            if (!(proc instanceof FeatureTypeEditorProcessor)) {
+//                proc = new FeatureTypeEditorProcessor();
+//                source.getPipeline().addFirst( proc );
+//            }
+//            ((FeatureTypeEditorProcessor)proc).init( configPageProps );
+//
+//            // give FeatureTypeEditorProcessor the upstream FeatureType
+//            SimpleFeatureType schema = source.getSchema();
+//            log.debug( "Schema: " + schema );
         }
 
         public boolean isPageComplete() {
@@ -316,8 +326,53 @@ public class CopyFeaturesOperation2
     }
 
 
+//    /**
+//     * Adapt geometry types:
+//     * <ul>
+//     * <li>Any -> Point: </li>
+//     * </ul> 
+//     */
+//    class GeometryAdaptingFeatureCollection
+//            extends RetypingFeatureCollection<SimpleFeatureType,SimpleFeature> {
+//
+//        Class<? extends Geometry>       targetType;
+//        
+//
+//        public GeometryAdaptingFeatureCollection( FeatureCollection delegate, SimpleFeatureType targetSchema ) {
+//            super( delegate, targetSchema );
+//            GeometryDescriptor geomDescr = targetSchema.getGeometryDescriptor();
+//            targetType = (Class<? extends Geometry>)(geomDescr != null ? geomDescr.getType().getBinding() : null);
+//            
+//            SimpleFeatureTypeBuilder ftp = new SimpleFeatureTypeBuilder();
+//            ftp.init( targetSchema );
+//            
+//            JTS.
+//        }
+//
+//
+//
+//        protected SimpleFeature retype( SimpleFeature input ) {
+//            GeometryAttribute prop = input.getDefaultGeometryProperty();
+//            if (targetType != null && prop != null) {
+//                // same type?
+//                if (prop.getType().getBinding() == targetType) {
+//                    return input;
+//                }
+//                // different types
+//                else {
+//                    new
+//                }
+//            }
+//            else {
+//                return input;
+//            }
+//        }
+//        
+//    }
+    
+    
     /**
-     *
+     * @deprecated
      */
     class FeatureEditorPage
             extends OperationWizardPage

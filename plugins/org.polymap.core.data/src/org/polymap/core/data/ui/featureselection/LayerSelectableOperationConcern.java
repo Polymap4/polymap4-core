@@ -39,7 +39,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Hooks on the {@link LayerSelectableOperation} and opens/closes
- * {@link GeoSelectionView} when the operation is executed.
+ * {@link FeatureSelectionView} when the operation is executed.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -69,11 +69,9 @@ public class LayerSelectableOperationConcern
                                 for (ILayer layer : layers) {                                
                                     if (op instanceof LayerSelectableOperation && layer.isSelectable()
                                             || op instanceof LayerEditableOperation && layer.isEditable()) {
-//                                        GeoSelectionView.open( layer, true );
                                         FeatureSelectionView.open( layer );                                        
                                     }
                                     else {
-//                                        GeoSelectionView.close( layer );
                                         FeatureSelectionView.close( layer );                                        
                                     }
                                 }

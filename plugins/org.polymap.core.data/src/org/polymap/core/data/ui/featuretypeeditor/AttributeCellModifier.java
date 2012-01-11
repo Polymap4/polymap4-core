@@ -77,16 +77,26 @@ class AttributeCellModifier
 
 
     public Object getValue( Object element, String property ) {
-        AttributeDescriptor attr = (AttributeDescriptor)element;
+        final AttributeDescriptor attr = (AttributeDescriptor)element;
+        
         switch (Integer.parseInt( property )) {
             case FeatureTypeEditor.NAME_COLUMN : {
                 return attr.getName().toString();
             }
             case FeatureTypeEditor.TYPE_COLUMN : {
-                for (int i = 0; i < this.fte.legalTypes.size(); i++) {
-                    if (this.fte.legalTypes.get( i ).getType() == attr
-                            .getType().getBinding())
-                        return i;
+                int index = 0;
+//                LegalAttributeType result = Iterables.find( fte.legalTypes, new Predicate<LegalAttributeType>() {
+//                    public boolean apply( LegalAttributeType input ) {
+//                        return input.getType() == attr.getType().getBinding();
+//                    }
+//                });
+//                return result != null ? result
+                
+                for (LegalAttributeType legal : fte.legalTypes) {
+                    if (legal.getType() == attr.getType().getBinding()) {
+                        return index;
+                    }
+                    index++;
                 }
                 return -1;
             }

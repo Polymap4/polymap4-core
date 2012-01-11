@@ -157,8 +157,7 @@ public class ModelChangeTracker
         log.debug( "key= " + key + ", timestamp= " + check );
 
         log.debug( "CHECK: " + check + " -- " + storedTs );
-        return storedTs != null  
-        && storedTs.compareTo( check ) > 0;
+        return storedTs != null && storedTs.compareTo( check ) > 0;
     }
 
 

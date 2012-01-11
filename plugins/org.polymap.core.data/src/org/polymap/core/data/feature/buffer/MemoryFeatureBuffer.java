@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,11 +16,9 @@ package org.polymap.core.data.feature.buffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.geotools.data.Query;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -34,8 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.data.FeatureChangeEvent.Type;
 
 /**
- * Provides a simple in-memory feature buffer backed by {@link HashMap} and
- * synchronized with a {@link ReentrantReadWriteLock}.
+ * Provides a simple in-memory feature buffer backed by a {@link ConcurrentHashMap}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -44,12 +41,10 @@ class MemoryFeatureBuffer
 
     private static Log log = LogFactory.getLog( MemoryFeatureBuffer.class );
     
-    public static final int                 INITIAL_CAPACITY = 128;
+    public static final int                 INITIAL_CAPACITY = 1024;
     
-    private Map<String,FeatureBufferState>  buffer = new HashMap( INITIAL_CAPACITY );
+    private ConcurrentMap<String,FeatureBufferState>  buffer = new ConcurrentHashMap( INITIAL_CAPACITY, 0.75f, 4 );
     
-    private ReentrantReadWriteLock          lock = new ReentrantReadWriteLock();
-
     private IFeatureBufferSite              site;
     
     
@@ -71,13 +66,7 @@ class MemoryFeatureBuffer
 
     public void clear()
     throws Exception {
-        try {
-            lock.writeLock().lock();
-            buffer.clear();
-        }
-        finally {
-            lock.writeLock().unlock();
-        }
+        buffer.clear();
         site.fireFeatureChangeEvent( Type.FLUSHED, null );
     }
 
@@ -94,39 +83,19 @@ class MemoryFeatureBuffer
 
 
     public Collection<FeatureBufferState> content() {
-        try {
-            lock.readLock().lock();
-            return new ArrayList( buffer.values() );
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return new ArrayList( buffer.values() );
     }
 
 
     public FeatureBufferState contains( FeatureId identifier ) {
-        try {
-            lock.readLock().lock();
-            return buffer.get( identifier.getID() );
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return buffer.get( identifier.getID() );
     }
 
 
     public void registerFeatures( Collection<Feature> features ) {
-        try {
-            lock.writeLock().lock();
-            for (Feature original : features) {
-                String fid = original.getIdentifier().getID();
-                if (!buffer.containsKey( fid )) {
-                    buffer.put( fid, new FeatureBufferState( original) );
-                }
-            }
-        }
-        finally {
-            lock.writeLock().unlock();
+        for (Feature original : features) {
+            String fid = original.getIdentifier().getID();
+            buffer.putIfAbsent( fid, new FeatureBufferState( original) );
         }
     }
 
@@ -138,165 +107,118 @@ class MemoryFeatureBuffer
 
     public List<FeatureId> markAdded( Collection<Feature> features )
     throws Exception {
-        try {
-            lock.writeLock().lock();
-            List<FeatureId> result = new ArrayList();
-            
-            for (Feature feature : features) {
-                FeatureId identifier = feature.getIdentifier();
-                FeatureBufferState buffered = buffer.get( identifier.getID() );
-                if (buffered == null) {
-                    throw new IllegalStateException( "Feature is not registered with this buffer: " + identifier.getID() );
-                }
+        List<FeatureId> result = new ArrayList();
 
-                buffered.evolveState( FeatureBufferState.State.ADDED );
-                result.add( identifier );
+        for (Feature feature : features) {
+            FeatureId identifier = feature.getIdentifier();
+            FeatureBufferState buffered = buffer.get( identifier.getID() );
+            if (buffered == null) {
+                throw new IllegalStateException( "Feature is not registered with this buffer: " + identifier.getID() );
             }
-            lock.writeLock().unlock();
 
-            site.fireFeatureChangeEvent( Type.ADDED, features );
-            return result;
+            buffered.evolveState( FeatureBufferState.State.ADDED );
+            result.add( identifier );
         }
-        finally {
-            if (lock.writeLock().isHeldByCurrentThread()) {
-                lock.writeLock().unlock();
-            }
-        }
+
+        site.fireFeatureChangeEvent( Type.ADDED, features );
+        return result;
     }
 
 
     public List<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
     throws Exception {
-        try {
-            lock.writeLock().lock();
-            
-            List<Feature> features = new ArrayList( buffer.size() );
-            List<FeatureId> fids = new ArrayList( buffer.size() );
-            
-            for (FeatureBufferState buffered : buffer.values()) {
+        List<Feature> features = new ArrayList( buffer.size() );
+        List<FeatureId> fids = new ArrayList( buffer.size() );
 
-                if (filter.evaluate( buffered.feature() )) {
-                    buffered.evolveState( FeatureBufferState.State.MODIFIED );
-                    modifyFeature( buffered.feature(), type, value );
-                    
-                    features.add( buffered.feature() );
-                    fids.add( buffered.feature().getIdentifier() );
-                }
-            }
-            lock.writeLock().unlock();
+        for (FeatureBufferState buffered : buffer.values()) {
 
-            site.fireFeatureChangeEvent( Type.MODIFIED, features );
-            return fids;
-        }
-        finally {
-            if (lock.writeLock().isHeldByCurrentThread()) {
-                lock.writeLock().unlock();
+            if (filter.evaluate( buffered.feature() )) {
+                buffered.evolveState( FeatureBufferState.State.MODIFIED );
+                modifyFeature( buffered.feature(), type, value );
+
+                features.add( buffered.feature() );
+                fids.add( buffered.feature().getIdentifier() );
             }
         }
+
+        site.fireFeatureChangeEvent( Type.MODIFIED, features );
+        return fids;
     }
 
 
     public List<FeatureId> markRemoved( Filter filter )
     throws Exception {
-        try {
-            lock.writeLock().lock();
-            
-            List<Feature> features = new ArrayList( buffer.size() );
-            List<FeatureId> fids = new ArrayList( buffer.size() );
-            
-            for (FeatureBufferState buffered : buffer.values()) {
+        List<Feature> features = new ArrayList( buffer.size() );
+        List<FeatureId> fids = new ArrayList( buffer.size() );
 
-                if (filter.evaluate( buffered.feature() )) {
-                    buffered.evolveState( FeatureBufferState.State.REMOVED );
-                    
-                    features.add( buffered.feature() );
-                    fids.add( buffered.feature().getIdentifier() );
-                }
-            }
-            lock.writeLock().unlock();
+        for (FeatureBufferState buffered : buffer.values()) {
 
-            site.fireFeatureChangeEvent( Type.REMOVED, features );
-            return fids;
-        }
-        finally {
-            if (lock.writeLock().isHeldByCurrentThread()) {
-                lock.writeLock().unlock();
+            if (filter.evaluate( buffered.feature() )) {
+                buffered.evolveState( FeatureBufferState.State.REMOVED );
+
+                features.add( buffered.feature() );
+                fids.add( buffered.feature().getIdentifier() );
             }
         }
+
+        site.fireFeatureChangeEvent( Type.REMOVED, features );
+        return fids;
     }
 
 
     public List<Feature> blendFeatures( Query query, Iterable<Feature> features )
     throws Exception {
-        try {
-            lock.readLock().lock();
-            List<Feature> result = new ArrayList( buffer.size() );
+        List<Feature> result = new ArrayList( buffer.size() );
 
-            // tweak upstream features
-            for (Feature feature : features) {
-                String fid = feature.getIdentifier().getID();
-                FeatureBufferState buffered = buffer.get( fid );
+        // tweak upstream features
+        for (Feature feature : features) {
+            String fid = feature.getIdentifier().getID();
+            FeatureBufferState buffered = buffer.get( fid );
 
-                if (buffered == null) {
-                    result.add( feature );
-                }
-                else if (buffered.isRemoved()) {
-                    // skip removed feature
-                }
-                else if (buffered.isModified()) {
-                    result.add( buffered.feature() );
-                }
-                else {
-                    throw new IllegalStateException( "Wrong buffered feature state: " + buffered );
-                }
+            if (buffered == null) {
+                result.add( feature );
             }
-            return result;
+            else if (buffered.isRemoved()) {
+                // skip removed feature
+            }
+            else if (buffered.isModified()) {
+                result.add( buffered.feature() );
+            }
+            else {
+                throw new IllegalStateException( "Wrong buffered feature state: " + buffered );
+            }
         }
-        finally {
-            lock.readLock().unlock();
-        }
+        return result;
     }
     
     
     public List<Feature> addedFeatures( Filter filter )
     throws Exception {
-        try {
-            lock.readLock().lock();
-            List<Feature> result = new ArrayList( buffer.size() );
+        List<Feature> result = new ArrayList( buffer.size() );
 
-            for (FeatureBufferState buffered : buffer.values()) {
-                if (buffered.isAdded() && filter.evaluate( buffered.feature() )) {
-                    result.add( buffered.feature() );
-                }
+        for (FeatureBufferState buffered : buffer.values()) {
+            if (buffered.isAdded() && filter.evaluate( buffered.feature() )) {
+                result.add( buffered.feature() );
             }
-            return result;
         }
-        finally {
-            lock.readLock().unlock();
-        }
+        return result;
     }
     
     
     public int featureSizeDifference( Query query )
     throws Exception {
-        try {
-            lock.readLock().lock();
-            int result = 0;
-            for (FeatureBufferState buffered : buffer.values()) {
-                if (query.getFilter().evaluate( buffered.feature() )) {
-                    if (buffered.isAdded()) {
-                        result ++;
-                    }
-                    else if (buffered.isRemoved()) {
-                        result --;
-                    }
+        int result = 0;
+        for (FeatureBufferState buffered : buffer.values()) {
+            if (query.getFilter().evaluate( buffered.feature() )) {
+                if (buffered.isAdded()) {
+                    result ++;
+                }
+                else if (buffered.isRemoved()) {
+                    result --;
                 }
             }
-            return result;
         }
-        finally {
-            lock.readLock().unlock();
-        }
+        return result;
     }
 
 

@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryType;
@@ -133,6 +134,18 @@ public class FeatureTypeEditorProcessor
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
+    }
+
+    public FeatureTypeMapping getMappings() {
+        return mappings;
+    }
+    
+    public FeatureType getFeatureType() {
+        return featureType;
+    }
+    
+    public FeatureType getSourceFeatureType() {
+        return sourceFeatureType;
     }
 
 
@@ -237,37 +250,43 @@ public class FeatureTypeEditorProcessor
 
             List<Feature> result = new ArrayList( chunk.count() );
             for (Feature feature : chunk) {
-                for (PropertyDescriptor prop : featureType.getDescriptors()) {
-
-                    AttributeMapping mapping = mappings.get( prop.getName().getLocalPart() );
-                    // geometry
-                    if (prop.getType() instanceof GeometryType ) {
-                        builder.set( prop.getName(), feature.getDefaultGeometryProperty().getValue() );
-                    }
-                    // mapping
-                    else if (mapping.sourceName != null) {
-                        Property featureProp = feature.getProperty( mapping.sourceName );
-                        // the feature may not contain the property if it was not requested
-                        if (featureProp != null) {
-                            builder.set( prop.getName(), featureProp.getValue() );
-                        }
-                    }
-                    // constant value
-                    else if (mapping.constantValue != null) {
-                        builder.set( prop.getName(), mapping.constantValue );
-                    }
-                    //
-                    else {
-                        log.warn( "No value found in mapping for: " + prop.getName() );
-                    }
-                }
-                result.add( builder.buildFeature( feature.getIdentifier().getID() ) );
+                result.add( transformFeature( (SimpleFeature)feature, builder ) );
             }
             log.debug( "       sending features: " + result.size() );
             context.sendResponse( new GetFeaturesResponse( result ) );
         }
         finally {
         }
+    }
+
+    
+    public SimpleFeature transformFeature( SimpleFeature feature, SimpleFeatureBuilder builder )
+    throws Exception {
+        for (PropertyDescriptor prop : featureType.getDescriptors()) {
+
+            AttributeMapping mapping = mappings.get( prop.getName().getLocalPart() );
+            // geometry
+            if (prop.getType() instanceof GeometryType ) {
+                builder.set( prop.getName(), feature.getDefaultGeometryProperty().getValue() );
+            }
+            // mapping
+            else if (mapping.sourceName != null) {
+                Property featureProp = feature.getProperty( mapping.sourceName );
+                // the feature may not contain the property if it was not requested
+                if (featureProp != null) {
+                    builder.set( prop.getName(), featureProp.getValue() );
+                }
+            }
+            // constant value
+            else if (mapping.constantValue != null) {
+                builder.set( prop.getName(), mapping.constantValue );
+            }
+            //
+            else {
+                log.warn( "No value found in mapping for: " + prop.getName() );
+            }
+        }
+        return builder.buildFeature( feature.getIdentifier().getID() );
     }
 
 

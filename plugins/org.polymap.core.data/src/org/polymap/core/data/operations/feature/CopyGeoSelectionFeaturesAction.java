@@ -33,7 +33,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  *
- *
+ * @deprecated As of {@link CopyFeaturesOperation2}
+ * @see CopyFeaturesOperation
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class CopyGeoSelectionFeaturesAction

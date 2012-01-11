@@ -16,8 +16,10 @@ package org.polymap.core.data.feature.buffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import java.io.IOException;
@@ -38,6 +40,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.filter.identity.Identifier;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
@@ -279,16 +282,12 @@ public class LayerFeatureBufferManager
         IGeoResource geores = layer.getGeoResource();
         FeatureStore fs = geores.resolve( FeatureStore.class, null );
   
-        // FIXME Hack for IOException: Current fid index is null, next must be called before write()
-//        if (geores instanceof ShpGeoResourceImpl) {
-//            log.warn( "Resource is Shapefile: running without transaction!" );
-//        }
-//        else {
-            fs.setTransaction( tx );
-//        }
+        fs.setTransaction( tx );
 
         updater = ModelChangeTracker.instance().newUpdater();
-        
+        FeatureCollection added = FeatureCollections.newCollection();
+        Set<Identifier> removed = new HashSet();
+
         int count = 0;
         for (FeatureBufferState buffered : buffer.content()) {
             if (monitor.isCanceled()) {
@@ -302,19 +301,22 @@ public class LayerFeatureBufferManager
             updater.checkSet( buffered.handle(), buffered.timestamp(), null );
 
             if (buffered.isAdded()) {
-                checkSubmitAdded( fs, buffered );
+                // no check if fid was created already since it is propably the 'primary key'
+                added.add( buffered.feature() );
             }
             else if (buffered.isModified()) {
                 checkSubmitModified( fs, buffered );
             }
             else if (buffered.isRemoved()) {
-                checkSubmitRemoved( fs, buffered );
+                removed.add( buffered.feature().getIdentifier() );
             }
             else {
                 log.warn( "Buffered feature is not added/removed/modified!" );
             }
             monitor.worked( 1 );
         }
+        fs.addFeatures( added );
+        fs.removeFeatures( ff.id( removed ) );
         
         // none of the features had concurrent modifications, so just upgrade
         // timestamp for the layer (no checking is needed and done)
@@ -341,25 +343,6 @@ public class LayerFeatureBufferManager
     }
     
     
-    protected void checkSubmitAdded( FeatureStore fs, FeatureBufferState buffered ) 
-    throws Exception {
-        // as the fid is probably the primary key we can ommit this
-        // explicit check
-//        // check concurrent add
-//        FeatureId fid = buffered.feature().getIdentifier();
-//        Id fidFilter = ff.id( Collections.singleton( fid ) );
-//        
-//        if (!fs.getFeatures( fidFilter ).isEmpty()) {
-//            throw new ConcurrentModificationException( "Feature has been added concurrently: " + fid );
-//        }
-        
-        // write down
-        FeatureCollection coll = FeatureCollections.newCollection();
-        coll.add( buffered.feature() );
-        fs.addFeatures( coll );
-    }
-
-
     protected void checkSubmitModified( FeatureStore fs, FeatureBufferState buffered ) 
     throws Exception {
         // check concurrent modifications with the store
@@ -393,14 +376,6 @@ public class LayerFeatureBufferManager
             }
         }
         fs.modifyFeatures( type, value, fidFilter );
-    }
-
-    
-    protected void checkSubmitRemoved( FeatureStore fs, FeatureBufferState buffered ) 
-    throws Exception {
-        FeatureId fid = buffered.feature().getIdentifier();
-        Id fidFilter = ff.id( Collections.singleton( fid ) );
-        fs.removeFeatures( fidFilter );
     }
 
     
