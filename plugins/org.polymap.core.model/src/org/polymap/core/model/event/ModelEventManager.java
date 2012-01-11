@@ -97,7 +97,7 @@ public class ModelEventManager
     static class FilteredModelChangeListener
             implements IModelChangeListener {
         
-        private IModelChangeListener     delegate;
+        private IModelChangeListener    delegate;
         private IEventFilter            filter;
         
         protected FilteredModelChangeListener( IModelChangeListener delegate, IEventFilter filter ) {

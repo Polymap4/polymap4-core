@@ -34,7 +34,7 @@ public abstract class FeatureChangeListener
     public abstract void featureChange( FeatureChangeEvent ev );
 
     
-    public void modelChanged( ModelChangeEvent ev ) {
+    public final void modelChanged( ModelChangeEvent ev ) {
         if (ev instanceof FeatureChangeEvent) {
             featureChange( (FeatureChangeEvent)ev );
         }

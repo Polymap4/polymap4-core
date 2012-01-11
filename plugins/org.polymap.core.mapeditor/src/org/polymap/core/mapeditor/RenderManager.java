@@ -53,8 +53,6 @@ import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeListener;
 import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
-import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
@@ -280,7 +278,7 @@ public class RenderManager {
      */
     class MapDomainListener
             extends FeatureChangeListener
-            implements PropertyChangeListener, IModelChangeListener {
+            implements PropertyChangeListener {
 
         public void featureChange( FeatureChangeEvent ev ) {
             RenderLayerDescriptor descriptor = findDescriptorForLayer( ev.getSource() );
@@ -355,10 +353,6 @@ public class RenderManager {
             }
         }
 
-        public void modelChanged( ModelChangeEvent ev ) {
-            log.debug( "ev= " + ev );
-        }
-        
         private final RenderLayerDescriptor findDescriptorForLayer( ILayer layer ) {
             for (RenderLayerDescriptor descriptor : descriptors.values()) {
                 if (descriptor.layers.contains( layer )) {
