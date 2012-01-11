@@ -77,7 +77,7 @@ public class SetLayerBoundsOperation
      * @param crs the desired CRS for the returned envelope.
      */
     public SetLayerBoundsOperation( ILayer layer, CoordinateReferenceSystem crs ) {
-        super( Messages.get( SetLayerBoundsOperation.class, "titlePrefix" ) + layer.getLabel() );
+        super( Messages.get( "SetLayerBoundsOperation_titlePrefix" ) + layer.getLabel() );
         this.layer = layer;
         this.crs = crs;
     }

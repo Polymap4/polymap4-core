@@ -31,6 +31,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 
+import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -84,12 +85,13 @@ class GsJsonEncoder
                 // check byte limit
                 if (out.getCount() > maxBytes) {
                     log.warn( "    Byte limit reached. Features encoded: " + featureCount );
+                    final int encoded = featureCount;
                     display.asyncExec( new Runnable() {
                         public void run() {
                             MessageDialog.openInformation(
                                     PolymapWorkbench.getShellToParentOn(),
-                                    "Information",
-                                    "Es können nicht alle Objekte angezeigt werden.\nWenn möglich, dann schränken Sie die Auswahl weiter ein." );
+                                    Messages.get( "GsJsonEncoder_toManyFeatures_title" ),
+                                    Messages.get( "GsJsonEncoder_toManyFeatures_msg", features.size(), encoded ) );
                         }
                     } );
                     break;

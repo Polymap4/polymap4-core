@@ -107,7 +107,7 @@ public class EditFeatureSupport
         try {
             ReferencedEnvelope bbox = mapEditor.getMap().getExtent();
             
-            if (bbox != null) {
+//            if (bbox != null) {
                 CoordinateReferenceSystem dataCRS = layer.getCRS();
                 ReferencedEnvelope dataBBox = bbox.transform( dataCRS, true );
                 log.info( "dataBBox: " + dataBBox );
@@ -134,7 +134,7 @@ public class EditFeatureSupport
                         fsm.changeSelection( filter, null, EditFeatureSupport.this );
                     }
                 });
-            }
+//            }
         }
         catch (Exception e) {
             log.warn( e.getLocalizedMessage(), e );

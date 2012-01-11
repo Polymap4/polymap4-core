@@ -31,6 +31,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
+import org.polymap.core.runtime.Polymap;
+
 /**
  * API: holds information about a 'layer' provided by a {@link SimpleJsonServer}.
  * <p/>
@@ -72,6 +74,7 @@ public abstract class JsonEncoder {
         this.name = name;
         this.features = features;
         this.mapCRS = mapCRS;
+        this.display = Polymap.getSessionDisplay();
     }
 
 
