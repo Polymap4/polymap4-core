@@ -233,7 +233,7 @@
 	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
 		<description>Download the jars - used by a manual "clean"</description>
 
-		<!-- setproxy proxyhost="10.0.16.2" proxyport="3128"/-->
+		<!-- setproxy proxyhost="46.4.28.8" proxyport="3128"/-->
 
 		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
 		<copy todir="${lib}" verbose="true" flatten="true">

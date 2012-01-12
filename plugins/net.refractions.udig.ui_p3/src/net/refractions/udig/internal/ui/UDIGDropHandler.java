@@ -26,7 +26,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -270,7 +270,7 @@ public class UDIGDropHandler extends DropTargetAdapter {
 
         private final Queue<Collection<DropActionRunnable>> queue;
 
-        private Display display = RWTLifeCycle.getSessionDisplay();
+        private Display display = LifeCycleUtil.getSessionDisplay();
         
 
         public CompositeDropActionJob() {

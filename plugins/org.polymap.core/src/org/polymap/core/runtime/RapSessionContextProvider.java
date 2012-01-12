@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.SessionSingletonBase;
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rwt.internal.service.ContextProvider;
 import org.eclipse.rwt.internal.service.ServiceContext;
 import org.eclipse.rwt.lifecycle.UICallBack;
@@ -66,7 +66,7 @@ public class RapSessionContextProvider
 
         RapSessionContext( ServiceContext serviceContext ) {
             this.serviceContext = serviceContext;
-            this.display = RWTLifeCycle.getSessionDisplay();
+            this.display = LifeCycleUtil.getSessionDisplay();
         }
 
 

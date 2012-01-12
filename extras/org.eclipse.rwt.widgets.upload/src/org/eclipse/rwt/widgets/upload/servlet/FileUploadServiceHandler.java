@@ -237,7 +237,7 @@ public class FileUploadServiceHandler implements IServiceHandler {
    */
   public static String getUrl(final String widgetId) {
     StringBuffer url = new StringBuffer();
-    url.append(URLHelper.getURLString(false));
+    url.append(URLHelper.getURLString());
 
     URLHelper.appendFirstParam(url, REQUEST_PARAM, getServiceHandlerId());
     URLHelper.appendParam(url, REQUEST_WIDGET_ID, widgetId);

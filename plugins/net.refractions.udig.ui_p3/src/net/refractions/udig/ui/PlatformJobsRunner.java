@@ -5,15 +5,13 @@ import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.mysql.jdbc.Messages;
-
 import net.refractions.udig.core.internal.CorePlugin;
 import net.refractions.udig.internal.ui.UiPlugin;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -43,11 +41,11 @@ class PlatformJobsRunner
     
     private IProgressMonitor    monitor;
     
-    private Display             display = RWTLifeCycle.getSessionDisplay();
+    private Display             display = LifeCycleUtil.getSessionDisplay();
     
 
     public PlatformJobsRunner( String title ) {
-        super( title ); //$NON-NLS-1$
+        super( title ); 
         assert display != null : "No display. Job started outside UI thread.";
     }
 

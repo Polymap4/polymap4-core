@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rwt.lifecycle.UICallBack;
 
 import java.util.ArrayList;
@@ -127,7 +127,7 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
         	}
         };
         //_p3: using explizit
-        RWTLifeCycle.getSessionDisplay().asyncExec( refresh );
+        LifeCycleUtil.getSessionDisplay().asyncExec( refresh );
         
 //        PlatformGIS.asyncInDisplayThread(object, true);
     }
@@ -151,7 +151,7 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
         }
         
         // _p3:
-        Display display = RWTLifeCycle.getSessionDisplay();
+        Display display = LifeCycleUtil.getSessionDisplay();
         if (display == null) {
             throw new IllegalStateException( "Called outside the UI thread.");
         }

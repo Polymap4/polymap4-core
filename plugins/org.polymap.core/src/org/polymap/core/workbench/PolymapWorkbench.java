@@ -226,7 +226,7 @@ public class PolymapWorkbench
     
     
     protected void restart() {
-        String url = URLHelper.getURLString( false );
+        String url = URLHelper.getURLString();
         Shell shell = new Shell( Display.getCurrent(), SWT.NONE );
         Browser browser = new Browser( shell, SWT.NONE );
         String page = "<html><head><title></title><meta http-equiv=\"refresh\" content=\"0;url="

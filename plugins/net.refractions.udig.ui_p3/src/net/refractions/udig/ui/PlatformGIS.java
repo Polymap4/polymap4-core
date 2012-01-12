@@ -43,7 +43,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.rwt.SessionSingletonBase;
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rwt.internal.service.ContextProvider;
 import org.eclipse.rwt.internal.service.ServiceContext;
 import org.eclipse.rwt.lifecycle.UICallBack;
@@ -271,7 +271,7 @@ public class PlatformGIS
         }
 
         Object          runnable;
-        Display         display = RWTLifeCycle.getSessionDisplay();
+        Display         display = LifeCycleUtil.getSessionDisplay();
 
         /**
          * Add a runnable object to be run.
@@ -381,7 +381,7 @@ public class PlatformGIS
      * @param runnable runnable to execute
      */
     public static void syncInDisplayThread( final Runnable runnable ) {
-        Display display = RWTLifeCycle.getSessionDisplay(); //Display.getCurrent();
+        Display display = LifeCycleUtil.getSessionDisplay(); //Display.getCurrent();
         if (display == null) {
             display = Display.getDefault();
         }
@@ -553,7 +553,7 @@ public class PlatformGIS
     public static void asyncInDisplayThread( Runnable runnable, boolean executeIfInDisplay ) {
         Display display = Display.getCurrent();
         if (display == null) {
-            display = RWTLifeCycle.getSessionDisplay();  //_p3: Display.getDefault();
+            display = LifeCycleUtil.getSessionDisplay();  //_p3: Display.getDefault();
         }
         asyncInDisplayThread(display, runnable, executeIfInDisplay);
     }

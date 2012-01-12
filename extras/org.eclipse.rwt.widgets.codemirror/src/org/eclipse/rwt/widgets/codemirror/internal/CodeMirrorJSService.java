@@ -65,7 +65,7 @@ public class CodeMirrorJSService
      */
     public static String getBaseUrl() {
         StringBuffer url = new StringBuffer();
-        url.append( URLHelper.getURLString( false ) );
+        url.append( URLHelper.getURLString() );
 
         URLHelper.appendFirstParam( url, REQUEST_PARAM, SERVICE_HANDLER_ID );
 

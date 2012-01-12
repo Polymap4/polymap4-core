@@ -51,8 +51,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
-
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.IColorDecorator;
@@ -375,7 +374,7 @@ public class ResolveTitlesDecorator implements ILabelDecorator, IColorDecorator,
             this.toDecorate=toDecorate;
             this.decorated=decorated;
             this.text=text;
-            this.display = RWTLifeCycle.getSessionDisplay();
+            this.display = LifeCycleUtil.getSessionDisplay();
         }
 
         public IStatus run( final IProgressMonitor monitor ) {

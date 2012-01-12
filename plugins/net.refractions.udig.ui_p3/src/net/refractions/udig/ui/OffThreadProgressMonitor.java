@@ -20,7 +20,7 @@ import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Widget;
 
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 
 /**
  * An IProgressMonitor that guarantees that the 
@@ -41,7 +41,7 @@ public class OffThreadProgressMonitor implements IProgressMonitor {
     public OffThreadProgressMonitor( IProgressMonitor monitor2 ) {
         // _p3: getCurrent() returns null cause we are not the UI thread;
         // we are using asyncExec(), so this is ok
-        display = RWTLifeCycle.getSessionDisplay();
+        display = LifeCycleUtil.getSessionDisplay();
 //        if( display==null ){
 //            display = Display.getDefault();
 //        }

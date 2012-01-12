@@ -51,7 +51,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -123,7 +123,7 @@ public final class Polymap {
      * be the UI thread of the session.
      */
     public static Display getSessionDisplay() {
-        return RWTLifeCycle.getSessionDisplay();
+        return LifeCycleUtil.getSessionDisplay();
     }
     
     
