@@ -15,8 +15,6 @@
 package org.polymap.rhei.data.entitystore.lucene;
 
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import java.io.File;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,8 +37,6 @@ import org.qi4j.spi.service.ServiceDescriptor;
 import org.qi4j.spi.structure.ModuleSPI;
 
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.runtime.mp.ForEach;
-import org.polymap.core.runtime.mp.Parallel;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
 import org.polymap.core.runtime.recordstore.lucene.GeometryValueCoder;
@@ -73,9 +69,9 @@ public class LuceneEntityStoreMixin
      * Synchronize access to the indexReader: allow write only without a reader;
      * multiple readers, one writer.
      */
-    private ReentrantReadWriteLock  rwLock = new ReentrantReadWriteLock( false );
+//    private ReentrantReadWriteLock  rwLock = new ReentrantReadWriteLock( false );
 
-    
+
     public LuceneRecordStore getStore() {
         return store;
     }
@@ -146,7 +142,7 @@ public class LuceneEntityStoreMixin
 
     public EntityState getEntityState( EntityStoreUnitOfWork unitOfWork, EntityReference identity ) {
         try {
-            rwLock.readLock().lock();
+//            rwLock.readLock().lock();
             
             LuceneEntityStoreUnitOfWork uow = (LuceneEntityStoreUnitOfWork)unitOfWork;
             ModuleSPI module = (ModuleSPI)uow.module();
@@ -179,7 +175,7 @@ public class LuceneEntityStoreMixin
             throw new EntityStoreException( e );
         }
         finally {
-            rwLock.readLock().unlock();
+//            rwLock.readLock().unlock();
         }
     }
 
@@ -194,66 +190,66 @@ public class LuceneEntityStoreMixin
 
                 final Updater updater = store.prepareUpdate();
                 try {
-                    rwLock.writeLock().lock();
+//                    rwLock.writeLock().lock();
                     
-                    ForEach.in( states )
-                        .doFirst( new Parallel<EntityState,EntityState>() {
-                            public EntityState process( EntityState entityState )
-                            throws Exception {
-                                LuceneEntityState state = (LuceneEntityState)entityState;
-
-                                switch (state.status()) {
-                                    case NEW : {
-                                        state.writeBack( version );
-                                        updater.store( state.state() );
-                                        //log.debug( "    added: " + doc );
-                                        break;
-                                    }
-                                    case UPDATED : {
-                                        state.writeBack( version );
-                                        updater.store( state.state() );
-                                        log.debug( "    updated: " + state );
-                                        break;
-                                    }
-                                    case REMOVED : {
-                                        updater.remove( state.state() );
-                                        log.debug( "    deleted: " + state );
-                                        break;
-                                    }
-                                    default : {
-                                        //log.debug( "    ommitting: " + state.identity().identity() + ", Status= " + state.status() + ", Doc= " + state.writeBack( version ) );
-                                    }
-                                }
-                                return state;
+//                    ForEach.in( states )
+//                        .doFirst( new Parallel<EntityState,EntityState>() {
+//                            public EntityState process( EntityState entityState )
+//                            throws Exception {
+//                                LuceneEntityState state = (LuceneEntityState)entityState;
+//
+//                                switch (state.status()) {
+//                                    case NEW : {
+//                                        state.writeBack( version );
+//                                        updater.store( state.state() );
+//                                        //log.debug( "    added: " + doc );
+//                                        break;
+//                                    }
+//                                    case UPDATED : {
+//                                        state.writeBack( version );
+//                                        updater.store( state.state() );
+//                                        log.debug( "    updated: " + state );
+//                                        break;
+//                                    }
+//                                    case REMOVED : {
+//                                        updater.remove( state.state() );
+//                                        log.debug( "    deleted: " + state );
+//                                        break;
+//                                    }
+//                                    default : {
+//                                        //log.debug( "    ommitting: " + state.identity().identity() + ", Status= " + state.status() + ", Doc= " + state.writeBack( version ) );
+//                                    }
+//                                }
+//                                return state;
+//                            }
+//                    }).start();
+                    
+                    for (EntityState entityState : states) {
+                        LuceneEntityState state = (LuceneEntityState)entityState;
+                        
+                        switch (state.status()) {
+                            case NEW : {
+                                state.writeBack( version );
+                                updater.store( state.state() );
+                                //log.debug( "    added: " + doc );
+                                break;
                             }
-                    }).start();
-                    
-//                    for (EntityState entityState : states) {
-//                        LuceneEntityState state = (LuceneEntityState)entityState;
-//                        
-//                        switch (state.status()) {
-//                            case NEW : {
-//                                state.writeBack( version );
-//                                updater.store( state.state() );
-//                                //log.debug( "    added: " + doc );
-//                                break;
-//                            }
-//                            case UPDATED : {
-//                                state.writeBack( version );
-//                                updater.store( state.state() );
-//                                log.debug( "    updated: " + state );
-//                                break;
-//                            }
-//                            case REMOVED : {
-//                                updater.remove( state.state() );
-//                                log.debug( "    deleted: " + state );
-//                                break;
-//                            }
-//                            default : {
-//                                //log.debug( "    ommitting: " + state.identity().identity() + ", Status= " + state.status() + ", Doc= " + state.writeBack( version ) );
-//                            }
-//                        }
-//                    }
+                            case UPDATED : {
+                                state.writeBack( version );
+                                updater.store( state.state() );
+                                log.debug( "    updated: " + state );
+                                break;
+                            }
+                            case REMOVED : {
+                                updater.remove( state.state() );
+                                log.debug( "    deleted: " + state );
+                                break;
+                            }
+                            default : {
+                                //log.debug( "    ommitting: " + state.identity().identity() + ", Status= " + state.status() + ", Doc= " + state.writeBack( version ) );
+                            }
+                        }
+                    }
                     
                     updater.apply();
                     log.info( "...done. (" + timer.elapsedTime() + "ms)" );
@@ -263,13 +259,13 @@ public class LuceneEntityStoreMixin
                     throw new RuntimeException( e );
                 }
                 finally {
-                    try {
-                        rwLock.writeLock().unlock();
-                    }
-                    catch (Exception e) {
-                        // the writeLock was not aquired, should never happen
-                        log.warn( e.getLocalizedMessage(), e );
-                    }
+//                    try {
+//                        rwLock.writeLock().unlock();
+//                    }
+//                    catch (Exception e) {
+//                        // the writeLock was not aquired, should never happen
+//                        log.warn( e.getLocalizedMessage(), e );
+//                    }
                 }
             }
 

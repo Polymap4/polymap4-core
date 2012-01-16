@@ -63,9 +63,9 @@ import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 import org.polymap.core.runtime.recordstore.lucene.ValueCoders;
 
 /**
+ * Converts Qi4j queries into Lucene queries.
  *
- *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class LuceneQueryParserImpl {
 

@@ -94,7 +94,9 @@ public final class SimpleQuery
         return this;
     }
     
-    
+    /**
+     * 'IsLike' query. Wildcard characters: *, ?
+     */
     public SimpleQuery match( String key, Object value ) {
         assert value instanceof String : "Only String expressions are allowed for MATCHES predicate.";
         expressions.add( new QueryExpression.Match( key, value ) );

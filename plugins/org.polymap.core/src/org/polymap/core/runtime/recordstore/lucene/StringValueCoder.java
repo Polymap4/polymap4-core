@@ -39,8 +39,6 @@ import org.polymap.core.runtime.recordstore.QueryExpression.Match;
 final class StringValueCoder
         implements LuceneValueCoder {
 
-    public static final char            MAGIC = 'S';
-    
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         if (value instanceof String) {
@@ -81,7 +79,7 @@ final class StringValueCoder
             if (matchExp.value instanceof String) {
                 String value = (String)matchExp.value;
                 
-                // FIXME properly substitute wildcard chars
+                // XXX properly substitute wildcard chars
                 if (value.endsWith( "*" )
                         && StringUtils.countMatches( value, "*" ) == 1
                         && StringUtils.countMatches( value, "?" ) == 0) {

@@ -97,7 +97,7 @@ class Feature2EntityFilterConverter {
         for (Identifier id : filter.getIdentifiers()) {
             fids.add( id.toString() );
         }
-        return new EntityProvider.FidsQueryExpression( fids );
+        return new EntityProvider.FidsQueryExpression( fids, null );
         
 //        Entity template = QueryExpressions.templateFor( entityType.getType() );
 //        
@@ -128,7 +128,7 @@ class Feature2EntityFilterConverter {
 
 
     /**
-     * Handles the spezial Qi4j query API with left + right + optional
+     * Handles the special Qi4j query API with left + right + optional
      * arguments.
      */
     abstract class ListConverter {

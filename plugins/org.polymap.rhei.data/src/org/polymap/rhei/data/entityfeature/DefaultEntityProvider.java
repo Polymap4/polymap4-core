@@ -17,8 +17,7 @@
  */
 package org.polymap.rhei.data.entityfeature;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 import org.opengis.feature.type.Name;
 
@@ -27,6 +26,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.query.Query;
 import org.qi4j.api.query.grammar.BooleanExpression;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
@@ -37,8 +39,6 @@ import org.polymap.core.qi4j.QiModule.EntityCreator;
  *
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
  */
 public abstract class DefaultEntityProvider<T extends Entity>
         implements EntityProvider<T> {
@@ -51,11 +51,20 @@ public abstract class DefaultEntityProvider<T extends Entity>
 
     protected Name                  name;
 
+    private FidsQueryProvider       queryProvider;
 
-    public DefaultEntityProvider( QiModule repo, Class<T> entityClass, Name entityName ) {
+
+    public DefaultEntityProvider( QiModule repo, Class<T> entityClass, Name entityName,
+            FidsQueryProvider queryProvider ) {
         this.repo = repo;
         this.type = repo.entityType( entityClass );
         this.name = entityName;
+        this.queryProvider = queryProvider;
+    }
+
+
+    public FidsQueryProvider getQueryProvider() {
+        return queryProvider;
     }
 
 
@@ -72,16 +81,20 @@ public abstract class DefaultEntityProvider<T extends Entity>
     public Iterable<T> entities( BooleanExpression query, int firstResult, int maxResults ) {
         // special FidsQueryExpression
         if (query instanceof FidsQueryExpression) {
-            // XXX do not fetch all, return wrapper instead
-            List<T> result = new ArrayList();
-            int count = 0;
-            for (String fid : ((FidsQueryExpression)query).fids()) {
-                if (count++ >= firstResult) {
-                    result.add( repo.findEntity( type.getType(), fid ) );
-                    if (result.size() >= maxResults) {
-                        return result;
-                    }
+            Set<String> fids = ((FidsQueryExpression)query).fids();
+            // fids -> entities
+            Iterable<T> result = Iterables.transform( fids, new Function<String,T>() {
+                public T apply( String fid ) {
+                    return repo.findEntity( type.getType(), fid );                
                 }
+            });
+            // firstResult
+            if (firstResult > 0) {
+                result = Iterables.skip( result, firstResult );
+            }
+            // maxResults
+            if (maxResults < Integer.MAX_VALUE) {
+                result = Iterables.limit( result, maxResults );
             }
             return result;
         }
@@ -93,7 +106,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
 
 
     public int entitiesSize( BooleanExpression query, int firstResult, int maxResults ) {
-        // special FidsQueryExpression
+        // FidsQueryExpression
         if (query instanceof FidsQueryExpression) {
             // assuming that the fids exist
             return Math.min( maxResults - firstResult,
