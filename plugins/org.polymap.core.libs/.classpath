@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/guava-10.0.1.jar" sourcepath="lib/sources/guava-10.0.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/lucene-core-3.4.0.jar" sourcepath="/home/falko/.m2/repository/org/apache/lucene/lucene-core/3.4.0/lucene-core-3.4.0-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xercesImpl-2.7.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar"/>
@@ -21,8 +22,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/geoapi-2.3-M1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar" sourcepath="lib/sources/geoapi-pending-2.3-M1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/geodb-0.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-collections-0.8.jar" sourcepath="/home/falko/.m2/repository/com/google/collections/google-collections/0.8/google-collections-0.8-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-metadata-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-api-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-2.6.4.jar"/>

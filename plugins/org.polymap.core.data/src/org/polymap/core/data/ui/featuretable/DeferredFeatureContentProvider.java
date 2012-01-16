@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
@@ -28,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Color;
+
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.deferred.AbstractConcurrentModel;
 import org.eclipse.jface.viewers.deferred.DeferredContentProvider;
@@ -41,6 +43,8 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheManager;
 
 /**
  * Feature content provider that performs sorting and filtering in a background
@@ -67,6 +71,8 @@ class DeferredFeatureContentProvider
      * elements we have different order though
      */
     private LazySortedCollection    sortedElements;
+
+    private Cache<String,SimpleFeature> elementCache = CacheManager.instance().newCache( getClass().getSimpleName() );
 
     
     DeferredFeatureContentProvider( FeatureTableViewer viewer,
@@ -151,7 +157,7 @@ class DeferredFeatureContentProvider
                         int chunkSize = 8;
                         
                         for (c=0; it.hasNext(); c++) {
-                            SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs );
+                            SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs, elementCache );
                             chunk.add( elm );
                             sortedElements.add( elm );
                             monitor.worked( 1 );

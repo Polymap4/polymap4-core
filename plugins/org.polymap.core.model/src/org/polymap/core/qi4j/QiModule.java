@@ -101,6 +101,7 @@ public abstract class QiModule
 
     protected void done() {
         if (uow != null) {
+            uow.discard();
             uow = null;
         }
     }

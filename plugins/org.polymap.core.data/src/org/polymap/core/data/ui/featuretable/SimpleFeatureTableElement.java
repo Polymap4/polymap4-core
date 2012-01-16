@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.runtime.cache.Cache;
 
 /**
  * Default implementation for {@link SimpleFeature} features.
@@ -53,18 +54,22 @@ public class SimpleFeatureTableElement
 
     private static final FilterFactory  ff = CommonFactoryFinder.getFilterFactory( null );
     
-    private Reference<SimpleFeature>    ref;
+//    private Reference<SimpleFeature>    ref;
     
     private String                      fid;
     
     private FeatureSource               fs;
     
+    private Cache<String,SimpleFeature> cache;
     
-    public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs ) {
+    
+    public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs, Cache<String,SimpleFeature> cache ) {
         super();
-        this.ref = newReference( feature );
+//        this.ref = newReference( feature );
         this.fs = fs;
         this.fid = feature.getID();
+        this.cache = cache;
+        this.cache.putIfAbsent( fid, feature );
     }
 
 
@@ -96,7 +101,7 @@ public class SimpleFeatureTableElement
     
     
     public SimpleFeature feature() {
-        SimpleFeature result = ref.get();
+        SimpleFeature result = cache.get( fid );
         
         if (result == null) {
         
@@ -109,7 +114,8 @@ public class SimpleFeatureTableElement
                         // XXX this may block forever; use PlatformJobs!?
                         fetcher.join();
                         result = (SimpleFeature)fetcher.result;
-                        ref = newReference( result );
+                        cache.putIfAbsent( fid, result );
+//                        ref = newReference( result );
                     }
                     catch (InterruptedException e) {
                         log.warn( "", e );

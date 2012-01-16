@@ -38,6 +38,8 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheManager;
 
 /**
  * Feature content provider that performs sorting and filtering in a background Job.
@@ -60,9 +62,11 @@ class DeferredFeatureContentProvider2
      * elements we have different order though
      */
     private Object[]                sortedElements;
-
+    
     private Comparator              sortOrder;
     
+    private Cache<String,SimpleFeature> elementCache = CacheManager.instance().newCache( getClass().getSimpleName() );
+
     
     DeferredFeatureContentProvider2( FeatureTableViewer viewer,
             FeatureSource fs, Filter filter, Comparator sortOrder ) {
@@ -77,6 +81,8 @@ class DeferredFeatureContentProvider2
         sortedElements = null;
         viewer = null;
         fs = null;
+        elementCache.dispose();
+        elementCache = null;
     }
 
 
@@ -140,7 +146,7 @@ class DeferredFeatureContentProvider2
         }
 
 
-        protected void addChunk( List chunk ) {
+        protected void addChunk( List chunk, IProgressMonitor monitor ) {
             log.debug( "adding chunk to table. size=" + chunk.size() );
             
             // sort chunk
@@ -159,6 +165,9 @@ class DeferredFeatureContentProvider2
                     }
                     else {
                         break;
+                    }
+                    if (monitor.isCanceled()) {
+                        return;
                     }
                 }
                 newArray[ writeIndex++ ] = elm;
@@ -194,7 +203,7 @@ class DeferredFeatureContentProvider2
                 List chunk = new ArrayList( chunkSize ); 
 
                 for (c=0; it.hasNext(); c++) {
-                    SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs );
+                    SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs, elementCache );
                     chunk.add( elm );
                     monitor.worked( 1 );
 
@@ -203,7 +212,7 @@ class DeferredFeatureContentProvider2
                     }
 
                     if (chunk.size() >= chunkSize) {
-                        addChunk( chunk );
+                        addChunk( chunk, monitor );
 
                         chunkSize = Math.min( 2*chunkSize, 4096 );
                         chunk = new ArrayList( chunkSize );
@@ -213,7 +222,7 @@ class DeferredFeatureContentProvider2
                         Thread.sleep( 100 );
                     }
                 }
-                addChunk( chunk );
+                addChunk( chunk, monitor );
 
                 return Status.OK_STATUS;
             }
