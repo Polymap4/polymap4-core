@@ -23,7 +23,10 @@ import java.util.Map;
 import org.opengis.feature.Property;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ScrollBar;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -37,7 +40,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
+
 import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormField;
@@ -209,7 +214,7 @@ public class FormEditorPageContainer
     protected void createFormContent( IManagedForm managedForm ) {
         form = managedForm;
         toolkit = new FormEditorToolkit( form.getToolkit() );
-
+        
         // ask the delegate to create content
         page.createFormContent( this );
         try {
@@ -219,6 +224,21 @@ public class FormEditorPageContainer
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
 
+        // XXX hack: help the ScrolledCompositeLayout to correctly display
+        // the vertical scrollbar on init
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                Rectangle clientSize = form.getForm().getClientArea();
+                ScrollBar vbar = form.getForm().getVerticalBar();
+                vbar.setVisible( true );
+                
+                Point formSize = form.getForm().computeSize( clientSize.width-vbar.getSize().x, SWT.DEFAULT );
+                
+                form.getForm().setMinHeight( clientSize.height );
+                form.getForm().getContent().setBounds( 0, 0, formSize.x, formSize.y );
+            }
+        });
+        
         // form.getToolkit().decorateFormHeading( form.getForm().getForm() );
 
         // add page editor actions
