@@ -98,7 +98,7 @@ final class SimpleQueryResultSet
         assert index < scoreDocs.length;
         
         int doc = scoreDocs[index].doc;
-        return store.cacheOrLoad( doc );
+        return store.get( doc );
     }
 
 

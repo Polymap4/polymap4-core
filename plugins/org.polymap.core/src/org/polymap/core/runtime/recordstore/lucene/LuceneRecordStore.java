@@ -16,6 +16,7 @@ package org.polymap.core.runtime.recordstore.lucene;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 
 import java.io.File;
@@ -37,6 +38,8 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+
+import com.google.common.collect.MapMaker;
 
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.Cache;
@@ -70,10 +73,15 @@ public final class LuceneRecordStore
     
     private ExecutorService         executor = null; //Polymap.executorService();
     
-    /** Maps document number (instead of record ID!) into record */
     private Cache<Object,Document>  cache = null;
     
     private CacheLoader<Object,Document> loader = new DocumentLoader();
+    
+    /** 
+     * Maps docnum into record id; this helps to find a cached record
+     * for a given docnum. This contains a map only if a cache is set.
+     */
+    private ConcurrentMap<Integer,Object> doc2id = null;
 
     IndexSearcher                   searcher;
 
@@ -138,6 +146,11 @@ public final class LuceneRecordStore
             reader = null;
             directory.close();
             directory = null;
+            
+            if (cache != null) {
+                cache.dispose();
+                doc2id.clear();
+            }
         }
         catch (IOException e) {
             throw new RuntimeException( e );
@@ -173,6 +186,7 @@ public final class LuceneRecordStore
 
     public void setDocumentCache( Cache<Object,Document> cache ) {
         this.cache = cache;
+        this.doc2id = new MapMaker().initialCapacity( 1024 ).concurrencyLevel( 8 ).makeMap();
     }
 
 
@@ -195,14 +209,28 @@ public final class LuceneRecordStore
     }
 
 
-    public IRecordState get( int docnum ) 
+    public LuceneRecordState get( int docnum ) 
     throws Exception {
         assert reader != null : "Store is closed.";
 
+        // if doc2id contains the docnum *and* the cache contains the id, then
+        // we can create a record without accessing the underlying store
+        if (doc2id != null) {
+            Object id = doc2id.get( docnum );
+            if (id != null) {
+                Document doc = cache.get( id );
+                if (doc != null) {
+                    //System.out.print( "." );
+                    return new LuceneRecordState( LuceneRecordStore.this, doc, true );
+                }
+            }
+        }
+         
         Document doc = reader.document( docnum );
         LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
         
         if (cache != null) {
+            doc2id.put( docnum, result.id() );
             if (cache.putIfAbsent( result.id(), doc ) == null) {
                 result.setShared( true );
             }
@@ -330,6 +358,11 @@ public final class LuceneRecordStore
                 searcher.close();
                 reader = reader.reopen();
                 searcher = new IndexSearcher( reader, executor );
+                
+                if (doc2id != null) {
+                    doc2id.clear();
+                }
+                
                 log.debug( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
@@ -339,9 +372,12 @@ public final class LuceneRecordStore
 
         
         public void discard() {
+            log.warn( "Updater is closed." );
             assert writer != null : "Updater is closed.";
+            
             try {
                 writer.rollback();
+                writer.close();
                 writer = null;
             }
             catch (Exception e) {
