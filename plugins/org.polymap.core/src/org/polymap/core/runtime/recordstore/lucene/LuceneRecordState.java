@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011, 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -26,6 +26,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.TermDocs;
 
 import org.polymap.core.runtime.recordstore.IRecordState;
 
@@ -50,10 +52,13 @@ public final class LuceneRecordState
     
     private Document            doc;
     
+    private boolean             sharedDoc = false;
     
-    protected LuceneRecordState( LuceneRecordStore store, Document doc ) {
+    
+    protected LuceneRecordState( LuceneRecordStore store, Document doc, boolean sharedDoc ) {
         this.store = store;
         this.doc = doc;
+        this.sharedDoc = sharedDoc;
     }
 
     
@@ -61,6 +66,10 @@ public final class LuceneRecordState
         return doc;
     }
 
+    void setShared( boolean shared ) {
+        this.sharedDoc = shared;
+    }
+    
     
     public String toString() {
         StringBuilder result = new StringBuilder( "LuceneRecordState{" );
@@ -86,9 +95,41 @@ public final class LuceneRecordState
     }
     
     
+    protected void checkCopyOnWrite() {
+        if (sharedDoc) {
+            synchronized (this) {
+                if (sharedDoc) {
+                    
+                    sharedDoc = false;
+                    
+                    try {
+                        TermDocs termDocs = store.reader.termDocs( new Term( LuceneRecordState.ID_FIELD, (String)id() ) );
+                        try {
+                            if (termDocs.next()) {
+                                doc = store.reader.document( termDocs.doc() );
+                            }
+                            else {
+                                throw new RuntimeException( "Unable to copy Lucene document on write." );
+                            }
+                        }
+                        finally {
+                            termDocs.close();
+                        }
+                    }
+                    catch (Exception e) {
+                        throw new RuntimeException( "Unable to copy Lucene document on write." );
+                    }
+                }
+            }
+        }
+    }
+
+
     public <T> LuceneRecordState put( String key, T value ) {
         assert key != null;
         assert value != null : "Value must not be null.";
+        
+        checkCopyOnWrite();
         
         Fieldable old = doc.getFieldable( key );
         if (old != null) {
@@ -105,6 +146,8 @@ public final class LuceneRecordState
         assert key != null;
         assert value != null : "Value must not be null.";
 
+        checkCopyOnWrite();
+        
         Field lengthField = (Field)doc.getFieldable( key + "_length" );
         int length = -1;
         
@@ -147,11 +190,12 @@ public final class LuceneRecordState
 
 
     public LuceneRecordState remove( String key ) {
+        checkCopyOnWrite();
+
         doc.removeField( key );
         return this;
     }
 
-    
     public Iterator<Entry<String, Object>> iterator() {
         return new Iterator<Entry<String, Object>>() {
 

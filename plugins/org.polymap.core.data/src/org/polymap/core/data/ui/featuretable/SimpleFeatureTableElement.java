@@ -37,14 +37,15 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheLoader;
 
 /**
  * Default implementation for {@link SimpleFeature} features.
  * <p/>
- * The {@link #feature} is referenced by a weak/soft reference, so the GC
- * may reclaim the memory. The feature is then re-fetched from the underlying
- * FeatureSource in an {@link Job}.
- *
+ * The {@link #feature} is managed by the given cache, so the GC may reclaim the
+ * memory. The feature is then re-fetched from the underlying FeatureSource in an
+ * {@link Job}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class SimpleFeatureTableElement
@@ -53,8 +54,6 @@ public class SimpleFeatureTableElement
     private static Log log = LogFactory.getLog( SimpleFeatureTableElement.class );
 
     private static final FilterFactory  ff = CommonFactoryFinder.getFilterFactory( null );
-    
-//    private Reference<SimpleFeature>    ref;
     
     private String                      fid;
     
@@ -65,7 +64,6 @@ public class SimpleFeatureTableElement
     
     public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs, Cache<String,SimpleFeature> cache ) {
         super();
-//        this.ref = newReference( feature );
         this.fs = fs;
         this.fid = feature.getID();
         this.cache = cache;
@@ -101,29 +99,52 @@ public class SimpleFeatureTableElement
     
     
     public SimpleFeature feature() {
-        SimpleFeature result = cache.get( fid );
-        
-        if (result == null) {
-        
-            synchronized (this) {
-                while (result == null) {
+        try {
+            if (cache.isDisposed()) {
+                return null;
+            }
+            return cache.get( fid, new CacheLoader<String,SimpleFeature>() {
+                public SimpleFeature load( String _fid ) throws Exception {
                     FetchJob fetcher = new FetchJob();
                     fetcher.schedule();
 
-                    try {
-                        // XXX this may block forever; use PlatformJobs!?
-                        fetcher.join();
-                        result = (SimpleFeature)fetcher.result;
-                        cache.putIfAbsent( fid, result );
-//                        ref = newReference( result );
-                    }
-                    catch (InterruptedException e) {
-                        log.warn( "", e );
-                    }
+                    // XXX this may block forever; use PlatformJobs!?
+                    fetcher.join();
+                    return (SimpleFeature)fetcher.result;
                 }
-            }
+                public int size() throws Exception {
+                    return Cache.ELEMENT_SIZE_UNKNOW;
+                }
+            });
         }
-        return result;
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+        
+//        if (result == null) {
+//        
+//            synchronized (this) {
+//                while (result == null) {
+//                    FetchJob fetcher = new FetchJob();
+//                    fetcher.schedule();
+//
+//                    try {
+//                        // XXX this may block forever; use PlatformJobs!?
+//                        fetcher.join();
+//                        result = (SimpleFeature)fetcher.result;
+//                        cache.putIfAbsent( fid, result );
+////                        ref = newReference( result );
+//                    }
+//                    catch (InterruptedException e) {
+//                        log.warn( "", e );
+//                    }
+//                }
+//            }
+//        }
+//        return result;
     }
 
     

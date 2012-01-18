@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,33 +12,29 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.runtime.recordstore;
+package org.polymap.core.data.util;
+
+import org.opengis.filter.identity.Identifier;
+
+import com.google.common.base.Function;
 
 /**
- * 
+ * Static helpers to be used with {@link Identifier}. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IRecordCache {
-
-    public IRecordState get( Object id, RecordLoader loader )
-    throws Exception;
-    
-    public IRecordState put( IRecordState record )
-    throws Exception;
-    
-    public void remove( IRecordState record )
-    throws Exception;
-
+public class Identifiers {
 
     /**
-     * Give cache implementations the change to run get/set in
-     * {@link IRecordCache#get(Object, RecordLoader)} as atomar operation.
+     * Transforms {@link Identifier} into String by calling
+     * {@link Identifier#getID()}.toString().
      */
-    public interface RecordLoader {
-        
-        public IRecordState load( Object id ) throws Exception;
-        
+    public static Function<Identifier,String> asString() {
+        return new Function<Identifier,String>() {
+            public String apply( Identifier input ) {
+                return input.getID().toString();
+            }
+        };
     }
-
+    
 }

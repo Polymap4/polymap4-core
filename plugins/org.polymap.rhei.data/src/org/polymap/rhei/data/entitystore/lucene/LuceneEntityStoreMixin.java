@@ -15,9 +15,13 @@
 package org.polymap.rhei.data.entitystore.lucene;
 
 import java.util.UUID;
+
 import java.io.File;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.document.Document;
+
 import org.qi4j.api.entity.EntityReference;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.injection.scope.Uses;
@@ -37,6 +41,9 @@ import org.qi4j.spi.service.ServiceDescriptor;
 import org.qi4j.spi.structure.ModuleSPI;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheManager;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
 import org.polymap.core.runtime.recordstore.lucene.GeometryValueCoder;
@@ -65,12 +72,6 @@ public class LuceneEntityStoreMixin
     
     private LuceneRecordStore       store;
 
-    /**
-     * Synchronize access to the indexReader: allow write only without a reader;
-     * multiple readers, one writer.
-     */
-//    private ReentrantReadWriteLock  rwLock = new ReentrantReadWriteLock( false );
-
 
     public LuceneRecordStore getStore() {
         return store;
@@ -84,6 +85,11 @@ public class LuceneEntityStoreMixin
         uuid = UUID.randomUUID().toString() + "-";
 
         store = new LuceneRecordStore( indexDir, false );
+        
+        Cache<Object,Document> documentCache = CacheManager.instance().newCache( 
+                getClass().getSimpleName(), CacheConfig.DEFAULT );
+        store.setDocumentCache( documentCache );
+        
         store.getValueCoders().addValueCoder( new GeometryValueCoder() );
     }
 
@@ -101,7 +107,6 @@ public class LuceneEntityStoreMixin
 
     public void passivate()
     throws Exception {
-        // XXX rwLock !?
         store.close();
     }
 
@@ -142,26 +147,24 @@ public class LuceneEntityStoreMixin
 
     public EntityState getEntityState( EntityStoreUnitOfWork unitOfWork, EntityReference identity ) {
         try {
-//            rwLock.readLock().lock();
-            
             LuceneEntityStoreUnitOfWork uow = (LuceneEntityStoreUnitOfWork)unitOfWork;
             ModuleSPI module = (ModuleSPI)uow.module();
 
             IRecordState record = null;
             
-            // use docnum in EntityReference
-            if (identity instanceof LuceneEntityReference
-                    && ((LuceneEntityReference)identity).docnum() != -1) {
-                int docnum = ((LuceneEntityReference)identity).docnum();
-                record = store.get( docnum );
-            }
-            // use identity (no docnum in EntityReference)
-            else {
+//            // use docnum in EntityReference
+//            if (identity instanceof LuceneEntityReference
+//                    && ((LuceneEntityReference)identity).docnum() != -1) {
+//                int docnum = ((LuceneEntityReference)identity).docnum();
+//                record = store.get( docnum );
+//            }
+//            // use identity (no docnum in EntityReference)
+//            else {
                 record = store.get( identity.identity() );
                 if (record == null) {
                     throw new NoSuchEntityException( identity );
                 }
-            }
+//            }
             String typeName = record.get( "type" );
             if (typeName != null) {
                 EntityDescriptor entityDescriptor = module.entityDescriptor( typeName );
@@ -173,9 +176,6 @@ public class LuceneEntityStoreMixin
         }
         catch (Exception e) {
             throw new EntityStoreException( e );
-        }
-        finally {
-//            rwLock.readLock().unlock();
         }
     }
 
@@ -190,7 +190,6 @@ public class LuceneEntityStoreMixin
 
                 final Updater updater = store.prepareUpdate();
                 try {
-//                    rwLock.writeLock().lock();
                     
 //                    ForEach.in( states )
 //                        .doFirst( new Parallel<EntityState,EntityState>() {
@@ -257,15 +256,6 @@ public class LuceneEntityStoreMixin
                 catch (Exception e) {
                     updater.discard();
                     throw new RuntimeException( e );
-                }
-                finally {
-//                    try {
-//                        rwLock.writeLock().unlock();
-//                    }
-//                    catch (Exception e) {
-//                        // the writeLock was not aquired, should never happen
-//                        log.warn( e.getLocalizedMessage(), e );
-//                    }
                 }
             }
 

@@ -17,8 +17,6 @@
  */
 package org.polymap.rhei.data.entityfeature;
 
-import java.util.Set;
-
 import org.opengis.feature.type.Name;
 
 import org.apache.commons.logging.Log;
@@ -26,9 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.query.Query;
 import org.qi4j.api.query.grammar.BooleanExpression;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
@@ -81,22 +76,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
     public Iterable<T> entities( BooleanExpression query, int firstResult, int maxResults ) {
         // special FidsQueryExpression
         if (query instanceof FidsQueryExpression) {
-            Set<String> fids = ((FidsQueryExpression)query).fids();
-            // fids -> entities
-            Iterable<T> result = Iterables.transform( fids, new Function<String,T>() {
-                public T apply( String fid ) {
-                    return repo.findEntity( type.getType(), fid );                
-                }
-            });
-            // firstResult
-            if (firstResult > 0) {
-                result = Iterables.skip( result, firstResult );
-            }
-            // maxResults
-            if (maxResults < Integer.MAX_VALUE) {
-                result = Iterables.limit( result, maxResults );
-            }
-            return result;
+            return ((FidsQueryExpression)query).entities( repo, type.getType(), firstResult, maxResults );
         }
         // regular query
         else {
@@ -110,7 +90,7 @@ public abstract class DefaultEntityProvider<T extends Entity>
         if (query instanceof FidsQueryExpression) {
             // assuming that the fids exist
             return Math.min( maxResults - firstResult,
-                    ((FidsQueryExpression)query).fids().size() );
+                    ((FidsQueryExpression)query).entitiesSize() );
         }
         // regular query
         else {

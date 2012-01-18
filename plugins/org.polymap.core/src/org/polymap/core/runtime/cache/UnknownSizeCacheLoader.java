@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,28 +12,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.runtime.recordstore;
+package org.polymap.core.runtime.cache;
 
 /**
- * Provides a no-op cache implementation. 
+ * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public final class NullRecordCache
-        implements IRecordCache {
+public abstract class UnknownSizeCacheLoader<K,V>
+        implements CacheLoader<K,V> {
 
-    public IRecordState get( Object id, RecordLoader loader ) 
-    throws Exception {
-        return loader.load( id );
-    }
-
-    public IRecordState put( IRecordState record )
-    throws Exception {
-        return null;
-    }
-
-    public void remove( IRecordState record )
-    throws Exception {
+    public int size() throws Exception {
+        return Cache.ELEMENT_SIZE_UNKNOW;
     }
 
 }

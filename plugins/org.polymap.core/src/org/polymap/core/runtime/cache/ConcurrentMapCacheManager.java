@@ -73,8 +73,8 @@ final class ConcurrentMapCacheManager
     }
     
 
-    public <K, V> Cache<K, V> newCache( String name ) {
-        ConcurrentMapCache result = new ConcurrentMapCache( this, name );
+    public <K, V> Cache<K, V> newCache( String name, CacheConfig config ) {
+        ConcurrentMapCache result = new ConcurrentMapCache( this, name, config );
         caches.add( result );
         return result;
     }

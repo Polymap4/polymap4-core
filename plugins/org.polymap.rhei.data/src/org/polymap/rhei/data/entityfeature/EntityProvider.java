@@ -31,6 +31,9 @@ import org.apache.commons.collections.ListUtils;
 import org.qi4j.api.query.grammar.BooleanExpression;
 import org.qi4j.api.query.grammar.NamedQueryExpression;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.qi4j.QiModule;
@@ -77,6 +80,31 @@ public interface EntityProvider<T extends Entity> {
             this.notQueryable = notQueryable != null ? notQueryable : ListUtils.EMPTY_LIST;
         }
 
+        
+        public <E> Iterable<E> entities( final QiModule repo, final Class<E> type, int firstResult, int maxResults ) {
+            // fids -> entities
+            Iterable<E> result = Iterables.transform( fids, new Function<String,E>() {
+                public E apply( String fid ) {
+                    return repo.findEntity( type, fid );                
+                }
+            });
+            // firstResult
+            if (firstResult > 0) {
+                result = Iterables.skip( result, firstResult );
+            }
+            // maxResults
+            if (maxResults < Integer.MAX_VALUE) {
+                result = Iterables.limit( result, maxResults );
+            }
+            return result;    
+        }
+        
+
+        public int entitiesSize() {
+            return fids.size();
+        }
+
+        
         /**
          * Called by {@link EntitySourceProcessor} after the features were build from this
          * query. This allows to filter {@link #notQueryable} filters 'by hand'.
@@ -94,10 +122,6 @@ public interface EntityProvider<T extends Entity> {
             return "FidsQueryExpression";
         }
 
-        public Set<String> fids() {
-            return fids;
-        }
-
         /** Filters that cannot be translated by the {@link FidsQueryProvider}. */
         public List<Filter> notQueryable() {
             return notQueryable;
@@ -109,6 +133,7 @@ public interface EntityProvider<T extends Entity> {
 
     }
 
+    
     /**
      * The query provider, or null if no such provider was registered.
      */

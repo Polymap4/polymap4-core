@@ -21,24 +21,78 @@ package org.polymap.core.runtime.cache;
  */
 public interface Cache<K,V> {
 
+    /** 
+     * Indicates an unknown cache element size. 
+     */
+    public static final int             ELEMENT_SIZE_UNKNOW = -1;
+    
+    
     public String getName();
+
     
+    /**
+     * Get the element for the given key. If the given key is not yet in the cache then
+     * call the given loader to get the element value.
+     * <p/>
+     * This is the default way to add new elements to the cache. This method does
+     * both: check for a given key <b>and</b> add if not yet registered. It prevents
+     * race conditions that would occur between {@link #get(Object)} and put() if the
+     * check would be done in the client code. The given loader should 'create' the
+     * cache element right in the {@link CacheLoader#load(Object)} method and not
+     * beforehand.
+     * 
+     * @param key
+     * @param loader
+     * @return The already added element for the given key, or the newly created
+     *         element if the key was not yet in the cache.
+     * @throws Exception
+     */
+    public V get( K key, CacheLoader<K,V> loader ) throws Exception;
+
+
+    /**
+     * The cache element for the given key, or null if there is no such element in
+     * the cache.
+     * 
+     * @param key
+     * @return The element for the given key, or null.
+     * @throws CacheException
+     */
     public V get( K key ) throws CacheException;
-    
-    public V put( K key, CacheLoader<K,V> loader ) throws Exception;
-    
+
+
+    /**
+     * Add the given element to cache, if it is <b>not</b> yet in the cache. This is
+     * equivalent of calling <code>putIfAbsent(key, value, ELEMENT_SIZE_UNKNOWN)</code>.
+     * <p/>
+     * Consider using {@link #get(Object, CacheLoader)} instead.
+     * 
+     * @see #putIfAbsent(Object, Object, int)
+     * @return The element for the given key, or null if the key was <b>not</b> yet
+     *         in the cache.
+     */
     public V putIfAbsent( K key, V value ) throws CacheException;
     
     /**
-     * @deprecated Use {@link #putIfAbsent(Object, Object)} instead.
+     * Add the given element to cache, if it is <b>not</b> yet in the cache.
+     * <p/>
+     * Consider using {@link #get(Object, CacheLoader)} instead.
+     * 
+     * @see #get(Object, CacheLoader)
+     * @param elementSize The size of the given element
+     * @return The element for the given key, or null if the key was <b>not</b> yet
+     *         in the cache.
      */
-    public V put( K key, V value ) throws CacheException;
+    public V putIfAbsent( K key, V value, int elementSize ) throws CacheException;
+    
     
     public V remove( K key ) throws CacheException;
     
     public int size();
     
     public void dispose();
+
+    public boolean isDisposed();
 
     public void clear();
 

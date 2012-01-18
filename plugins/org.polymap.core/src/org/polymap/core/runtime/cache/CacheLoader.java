@@ -22,5 +22,14 @@ package org.polymap.core.runtime.cache;
 public interface CacheLoader<K,V> {
 
     public V load( K key ) throws Exception;
+
+
+    /**
+     * Returns the size of the last element returned by {@link #load(Object)}.
+     * 
+     * @return The size in Bytes of the element previously created by this loader.
+     * @throws Exception
+     */
+    public int size() throws Exception;
     
 }

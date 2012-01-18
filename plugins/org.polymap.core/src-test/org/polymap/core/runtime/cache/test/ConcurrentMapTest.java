@@ -15,6 +15,8 @@
 package org.polymap.core.runtime.cache.test;
 
 import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
 
 import junit.framework.TestCase;
@@ -27,17 +29,46 @@ import junit.framework.TestCase;
 public class ConcurrentMapTest
         extends TestCase {
 
-    public void testEviction() throws InterruptedException {
-        Cache<Object,byte[]> cache = CacheManager.instance().newCache( "Test" );
-        
+    Cache<Object,byte[]>        cache;
+    
+
+    protected void setUp() throws Exception {
+        cache = CacheManager.instance().newCache( "Test", CacheConfig.DEFAULT );    
+    }
+
+    
+    protected void tearDown() throws Exception {
+        cache.dispose();
+    }
+
+    
+    public void tstEviction() throws InterruptedException {
         while (true) {
             System.out.println( "adding 1000 to " + cache.size() );
             for (int i=0; i<1000; i++) {
                 cache.putIfAbsent( new Object(), new byte[1024] );
             }
             Thread.sleep( 100 );
+        }            
+    }
+    
+    
+    public void testLoader() throws Exception {
+        while (true) {
+            System.out.println( "adding 1000 to " + cache.size() );
+            for (int i=0; i<1000; i++) {
+                cache.get( new Object(), new CacheLoader<Object,byte[]>() {
+                    public byte[] load( Object key ) throws Exception {
+                        return new byte[1024];
+                    }
+                    public int size() throws Exception {
+                        return 1024;
+                    }
+                });
+            }
+            Thread.sleep( 200 );
         }        
     
     }
-    
+
 }

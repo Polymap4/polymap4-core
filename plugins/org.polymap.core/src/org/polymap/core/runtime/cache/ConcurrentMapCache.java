@@ -15,7 +15,6 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
@@ -23,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.MapMaker;
 
 import org.polymap.core.runtime.ListenerList;
 
@@ -36,21 +36,31 @@ final class ConcurrentMapCache<K,V>
 
     private static Log log = LogFactory.getLog( ConcurrentMapCache.class );
     
-    private volatile static int             accessCounter = 0;
+    private volatile static int         accessCounter = 0;
     
-    private String                          name;
+    private String                      name;
     
-    private ConcurrentMapCacheManager       manager;
+    private ConcurrentMapCacheManager   manager;
 
-    private ConcurrentMap<K,CacheEntry>     entries;
+    private ConcurrentMap<K,CacheEntry> entries;
 
     private ListenerList<CacheEvictionListener> listeners;
     
+    private CacheConfig                 config;
+    
 
-    ConcurrentMapCache( ConcurrentMapCacheManager manager, String name ) {
+    ConcurrentMapCache( ConcurrentMapCacheManager manager, String name, CacheConfig config ) {
         this.manager = manager;
         this.name = name;
-        this.entries = new ConcurrentHashMap( 1024, 0.75f, 16 );
+        this.config = config;
+        
+        //this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );
+        
+        this.entries = new MapMaker()
+                .initialCapacity( config.initSize )
+                .concurrencyLevel( config.concurrencyLevel )
+                .makeMap();
+
     }
 
     
@@ -68,51 +78,92 @@ final class ConcurrentMapCache<K,V>
     }
 
     
+    public boolean isDisposed() {
+        return entries == null;
+    }
+    
+    
     public V get( K key ) throws CacheException {
+        assert key != null : "Null keys are not allowed.";
+        assert entries != null : "Cache is closed.";
+
         CacheEntry entry = entries.get( key );
         return entry != null ? entry.value() : null;
     }
 
     
-    public V put( K key, CacheLoader<K, V> loader ) throws Exception {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public V get( K key, CacheLoader<K, V> loader ) throws Exception {
+        assert key != null : "Null keys are not allowed.";
+        assert entries != null : "Cache is closed.";
+        
+        CacheEntry entry = entries.get( key );
+        if (entry != null) {
+            return entry.value();
+        }
+        else {
+            entry = new CacheEntry( null, ELEMENT_SIZE_UNKNOW );
+            CacheEntry previous = entries.putIfAbsent( key, entry );
+            if (previous == null) {
+                try {
+                    entry.setValue( loader.load( key ), loader.size() );
+                    return entry.value();
+                }
+                catch (Exception e) {
+                    entries.remove( key );
+                    throw e;
+                }
+            }
+            else {
+                return previous.value();
+            }
+        }
     }
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
-        CacheEntry entry = entries.putIfAbsent( key, new CacheEntry( value ) );
+        return putIfAbsent( key, value, ELEMENT_SIZE_UNKNOW );
+    }
+    
+    
+    public V putIfAbsent( K key, V value, int elementSize ) throws CacheException {
+        assert key != null : "Null keys are not allowed.";
+        assert entries != null : "Cache is closed.";
+
+        CacheEntry entry = entries.putIfAbsent( key, new CacheEntry( value, elementSize ) );
         return entry != null ? entry.value() : null;
     }
     
     
-    public V put( K key, V value ) throws CacheException {
-        return putIfAbsent( key, value );
-    }
-
-    
     public V remove( K key ) throws CacheException {
+        assert key != null : "Null keys are not allowed.";
+        assert entries != null : "Cache is closed.";
+
         CacheEntry entry = entries.remove( key );
         return entry != null ? entry.value() : null;
     }
 
     
     public int size() {
+        assert entries != null : "Cache is closed.";
         return entries.size();
     }
 
     
     public Iterable<Map.Entry<K,CacheEntry>> entries() {
+        assert entries != null : "Cache is closed.";
         return entries.entrySet();
     }
 
     
     public void clear() {
+        assert entries != null : "Cache is closed.";
         entries.clear();
     }
 
     
     public Iterable<V> values() {
+        assert entries != null : "Cache is closed.";
+        
         return Iterables.transform( entries.values(), new Function<CacheEntry,V>() {
             public V apply( CacheEntry input ) {
                 return input.value();
@@ -148,16 +199,36 @@ final class ConcurrentMapCache<K,V>
      */
     class CacheEntry {
 
-        private V                  value;
+        private V               value;
         
-        private int                accessed = accessCounter++;
+        private byte            sizeInKB;
+        
+        private int             accessed = accessCounter++;
         
         
-        CacheEntry( V data ) {
+        CacheEntry( V data, int elementSize ) {
             this.value = data;
         }
 
+        void setValue( V value, int elementSize ) {
+            this.value = value;
+            synchronized (this) {
+                notifyAll();
+            }
+        }
+        
         public V value() {
+            // wait for the loader to be ready and value is set
+            while (value == null) {
+                synchronized (this) {
+                    try {
+                        wait( 1000 );
+                    }
+                    catch (InterruptedException e) {
+                    }
+                }
+            }
+            
             accessed = accessCounter++;
             if (accessed <= 0) {
                 throw new CacheException( "Access counter exceeded!" );

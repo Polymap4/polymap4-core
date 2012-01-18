@@ -209,7 +209,7 @@ public class LuceneEntityState
     
     public void remove() {
         status = EntityStatus.REMOVED;
-//        uow.statusChanged( this );
+        uow.statusChanged( this );
     }
 
 
@@ -241,7 +241,7 @@ public class LuceneEntityState
     public void hasBeenApplied() {
         status = EntityStatus.LOADED;
         //version = uow.identity();
-//        uow.statusChanged( this );
+        uow.statusChanged( this );
     }
 
 
@@ -249,7 +249,7 @@ public class LuceneEntityState
         if (status == EntityStatus.LOADED) {
             status = EntityStatus.UPDATED;
         }
-//        uow.statusChanged( this );
+        uow.statusChanged( this );
     }
 
 

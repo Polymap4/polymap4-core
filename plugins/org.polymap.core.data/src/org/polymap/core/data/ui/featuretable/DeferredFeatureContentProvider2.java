@@ -39,6 +39,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheManager;
 
 /**
@@ -65,7 +66,8 @@ class DeferredFeatureContentProvider2
     
     private Comparator              sortOrder;
     
-    private Cache<String,SimpleFeature> elementCache = CacheManager.instance().newCache( getClass().getSimpleName() );
+    private Cache<String,SimpleFeature> elementCache = 
+            CacheManager.instance().newCache( getClass().getSimpleName(), CacheConfig.DEFAULT );
 
     
     DeferredFeatureContentProvider2( FeatureTableViewer viewer,

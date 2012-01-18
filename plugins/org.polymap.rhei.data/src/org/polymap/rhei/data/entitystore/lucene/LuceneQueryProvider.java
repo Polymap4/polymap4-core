@@ -15,7 +15,6 @@
 package org.polymap.rhei.data.entitystore.lucene;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +23,7 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.And;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
+import org.opengis.filter.Id;
 import org.opengis.filter.IncludeFilter;
 import org.opengis.filter.Not;
 import org.opengis.filter.Or;
@@ -37,11 +37,12 @@ import org.opengis.filter.PropertyIsLike;
 import org.opengis.filter.PropertyIsNull;
 import org.opengis.filter.expression.Divide;
 import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Function;
+//import org.opengis.filter.expression.Function;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.Multiply;
 import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.expression.Subtract;
+import org.opengis.filter.identity.Identifier;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.filter.spatial.Beyond;
 import org.opengis.filter.spatial.Contains;
@@ -66,7 +67,16 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 
+import com.google.common.base.Function;
+import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Iterables.skip;
+import com.google.common.collect.Sets;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
+
+import org.polymap.core.data.util.Identifiers;
 import org.polymap.core.model.EntityType;
+import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.QueryExpression;
@@ -98,6 +108,13 @@ public class LuceneQueryProvider
 
     public FidsQueryExpression convert( org.geotools.data.Query input, FeatureType schema, EntityType entityType )
     throws Exception {
+        // FID query?
+        if (input.getFilter() instanceof Id) {
+            Set<Identifier> identifiers = ((Id)input.getFilter()).getIdentifiers();
+            Set<String> fids = Sets.newHashSet( transform( identifiers, Identifiers.asString() ) );
+            return new FidsQueryExpression( fids, null );
+        }
+        
         Query typeQuery = new TermQuery( new Term( "type", entityType.getName() ) );
 
         // convert input query
@@ -110,8 +127,8 @@ public class LuceneQueryProvider
 
         log.info( "LUCENE query: [" + query.toString() + "]" );
 
-        int firstResult = input.getStartIndex() != null ? input.getStartIndex() : 0;
-        int maxResults = input.getMaxFeatures() > 0 ? input.getMaxFeatures() : 1000000;
+        final int firstResult = input.getStartIndex() != null ? input.getStartIndex() : 0;
+        final int maxResults = input.getMaxFeatures() > 0 ? input.getMaxFeatures()-firstResult : 1000000;
 
         // execute Lucene query
         Timer timer = new Timer();
@@ -120,17 +137,41 @@ public class LuceneQueryProvider
         final ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         log.info( "    results: " + scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
 
-        // get FIDs
-        Set<String> fids = new HashSet( scoreDocs.length );
-        for (ScoreDoc scoreDoc : scoreDocs) {
-            IRecordState record = store.get( scoreDoc.doc );
-            boolean added = fids.add( (String)record.id() );
-            if (!added) {
-                throw new RuntimeException( "Doubled FID: " + record.id() );
-            }
-        }
+//        // get FIDs
+//        Set<String> fids = new HashSet( scoreDocs.length );
+//        for (ScoreDoc scoreDoc : scoreDocs) {
+//            IRecordState record = store.get( scoreDoc.doc );
+//            boolean added = fids.add( (String)record.id() );
+//            if (!added) {
+//                throw new RuntimeException( "Doubled FID: " + record.id() );
+//            }
+//        }
         
-        return new FidsQueryExpression( fids, converter.notQueryable );
+        return new FidsQueryExpression( null, converter.notQueryable ) {
+
+            public <E> Iterable<E> entities( final QiModule repo, final Class<E> type, int _firstResult, int _maxResults ) {
+                
+                Iterable<E> result = transform( Arrays.asList( scoreDocs ), new Function<ScoreDoc,E>() {
+                    public E apply( ScoreDoc scoreDoc ) {
+                        try {
+                            IRecordState record = store.get( scoreDoc.doc );
+                            return repo.findEntity( type, (String)record.id() );
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                });
+                if (firstResult > 0) {
+                    result = skip( result, firstResult );
+                }
+                return result;
+            }
+
+            public int entitiesSize() {
+                return scoreDocs.length;
+            }
+        };
     }
     
     
@@ -441,7 +482,7 @@ public class LuceneQueryProvider
                 notSupported.add( filter );
                 return super.visit( filter, data );
             }
-            public Object visit( Function expression, Object data ) {
+            public Object visit( org.opengis.filter.expression.Function expression, Object data ) {
                 notSupported.add( expression );
                 return super.visit( expression, data );
             }

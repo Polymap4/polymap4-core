@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011, 2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -39,19 +39,21 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.recordstore.BaseRecordStore;
-import org.polymap.core.runtime.recordstore.IRecordCache;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
-import org.polymap.core.runtime.recordstore.NullRecordCache;
 import org.polymap.core.runtime.recordstore.RecordModel;
 import org.polymap.core.runtime.recordstore.RecordQuery;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
 
-
 /**
+ * A record store backed by a Lucene index.
+ * <p/>
+ * This store supports copy-on-write caching of the underlying Lucene documents. To
+ * activate caching call {@link #setDocumentCache(Cache)}.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public final class LuceneRecordStore
@@ -69,9 +71,9 @@ public final class LuceneRecordStore
     private ExecutorService         executor = null; //Polymap.executorService();
     
     /** Maps document number (instead of record ID!) into record */
-    private IRecordCache            recordCache = new NullRecordCache();
+    private Cache<Object,Document>  cache = null;
     
-    private IRecordCache.RecordLoader recordLoader = new DocumentLoader();
+    private CacheLoader<Object,Document> loader = new DocumentLoader();
 
     IndexSearcher                   searcher;
 
@@ -169,19 +171,14 @@ public final class LuceneRecordStore
     }
 
 
-    public IRecordCache getRecordCache() {
-        return recordCache;
-    }
-
-    
-    public void setRecordCache( IRecordCache recordCache ) {
-        this.recordCache = recordCache;
+    public void setDocumentCache( Cache<Object,Document> cache ) {
+        this.cache = cache;
     }
 
 
     public IRecordState newRecord() {
         assert reader != null : "Store is closed.";
-        return new LuceneRecordState( this, new Document() );
+        return new LuceneRecordState( this, new Document(), false );
     }
 
 
@@ -190,43 +187,52 @@ public final class LuceneRecordStore
         assert reader != null : "Store is closed.";
         assert id instanceof String : "Given record identifier is not a String: " + id;
         
-        TermDocs termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
-        try {
-            if (termDocs.next()) {
-                Document doc = reader.document( termDocs.doc() );
-                return new LuceneRecordState( LuceneRecordStore.this, doc );
-                // XXX fill cache?
-            }
-            return null;
-        }
-        finally {
-            termDocs.close();
-        }
+        Document doc = cache != null
+                ? cache.get( id, loader )
+                : loader.load( id );
+                
+        return new LuceneRecordState( LuceneRecordStore.this, doc, cache != null );
     }
 
 
     public IRecordState get( int docnum ) 
     throws Exception {
         assert reader != null : "Store is closed.";
-        return cacheOrLoad( docnum );        
+
+        Document doc = reader.document( docnum );
+        LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
+        
+        if (cache != null) {
+            if (cache.putIfAbsent( result.id(), doc ) == null) {
+                result.setShared( true );
+            }
+        }
+        return result;
     }
 
 
-    LuceneRecordState cacheOrLoad( int docnum ) 
-    throws Exception {
-        return (LuceneRecordState)recordCache.get( docnum, recordLoader );
-    }
-
-    
     /**
-     * Loads records triggered by the cache in in {@link LuceneRecordStore#get(Object)}.
+     * Loads records triggered by the cache in {@link LuceneRecordStore#get(Object)}.
      */
     class DocumentLoader
-            implements IRecordCache.RecordLoader {
+            implements CacheLoader<Object,Document> {
         
-        public IRecordState load( Object docNum ) throws Exception {
-            Document doc = reader.document( (Integer)docNum );
-            return new LuceneRecordState( LuceneRecordStore.this, doc );
+        public Document load( Object id ) throws Exception {
+            TermDocs termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
+            try {
+                if (termDocs.next()) {
+                    return reader.document( termDocs.doc() );
+                }
+                return null;
+            }
+            finally {
+                termDocs.close();
+            }
+
+        }
+
+        public int size() throws Exception {
+            return Cache.ELEMENT_SIZE_UNKNOW;
         }
     }
     
@@ -281,11 +287,19 @@ public final class LuceneRecordStore
             if (record.id() == null) {
                 ((LuceneRecordState)record).createId();
                 writer.addDocument( ((LuceneRecordState)record).getDocument() );
+                
+                if (cache != null) {
+                    cache.remove( record.id() );
+                }
             }
             // update
             else {
                 Term idTerm = new Term( LuceneRecordState.ID_FIELD, (String)record.id() );
                 writer.updateDocument( idTerm, ((LuceneRecordState)record).getDocument() );
+
+                if (cache != null) {
+                    cache.remove( record.id() );
+                }
             }
         }
 
@@ -295,6 +309,10 @@ public final class LuceneRecordStore
 
             Term idTerm = new Term( LuceneRecordState.ID_FIELD, (String)record.id() );
             writer.deleteDocuments( idTerm );
+
+            if (cache != null) {
+                cache.remove( record.id() );
+            }
         }
 
         
