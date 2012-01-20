@@ -1,24 +1,16 @@
-/* 
- * polymap.org
- * Copyright 2010, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
+/*
+ * polymap.org 
+ * Copyright 2010-2012, Polymap GmbH, and individual contributors as
+ * indicated by the @authors tag.
+ * 
+ * This is free software; you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ * 
+ * This software is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  */
 package org.polymap.core.mapeditor.services;
 
@@ -38,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.opengis.feature.Feature;
+import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -48,6 +41,7 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geojson.GeoJSONUtil;
 import org.geotools.geojson.feature.FeatureJSON;
 import org.geotools.geometry.jts.JTS;
@@ -58,13 +52,13 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 
+import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * GeoJSON server based on {@link FeatureJSON} package of GeoTools. The encoder
  * seems to work faster for big geometries compared to to {@link GsJsonEncoder}.
- * The encoder does not encode all decimals of coordinates and it does not (yet?)
- * strip properties of the features.
+ * The encoder does not encode all decimals of coordinates.
  * <p/>
  * FIXME Does not convert WGS84 geometries correctly.
  *
@@ -190,28 +184,25 @@ class GtJsonEncoder
             try {
                 int featureCount = 0;
                 Iterator<Feature> it = features.iterator();
-                if (it.hasNext()) {
-                    fjson.writeFeature( transform( (SimpleFeature)it.next() ), out );
-                    featureCount++;
-                }
-                
                 while (it.hasNext()) {
                     // check byte limit
                     if (byteCounter.getCount() > maxBytes) {
                         log.warn( "Byte limit reached. Features encoded: " + featureCount );
+                        final int encoded = featureCount;
                         display.asyncExec( new Runnable() {
                             public void run() {
                                 MessageDialog.openInformation(
                                         PolymapWorkbench.getShellToParentOn(),
-                                        "Information",
-                                        "Es können nicht alle Objekte angezeigt werden.\nWenn möglich, dann schränken Sie die Auswahl weiter ein." );
+                                        Messages.get( "GsJsonEncoder_toManyFeatures_title" ),
+                                        Messages.get( "GsJsonEncoder_toManyFeatures_msg", features.size(), encoded ) );
                             }
                         } );
                         break;
                     }
                     // encode feature
-                    out.write(",");
                     fjson.writeFeature( transform( (SimpleFeature)it.next() ), out );
+                    featureCount++;
+                    if (it.hasNext()) { out.write(","); }
                 }
             }
             catch (IOException e) {
@@ -223,9 +214,28 @@ class GtJsonEncoder
 
             out.write("]");
         }
+
+        private SimpleFeatureType transformedSchema( SimpleFeatureType schema )
+        throws FactoryException {
+            if (transformedSchema == null) {
+                // CRS transform
+                CoordinateReferenceSystem featureCRS = schema.getGeometryDescriptor().getCoordinateReferenceSystem();
+                if (featureCRS != null && !mapCRS.equals( featureCRS )) {
+                    transform = CRS.findMathTransform( featureCRS, mapCRS, true );
+                }
+                // feature type
+                SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
+                ftb.setName( schema.getName() );
+                ftb.setCRS( mapCRS );
+                ftb.add( schema.getGeometryDescriptor() );
+                
+                transformedSchema = ftb.buildFeatureType();
+            }
+            return transformedSchema;
+        }
         
         /**
-         * Transform the given feature: reproject CRS; (XXX strip properties?)
+         * Transform the given feature: reproject CRS;
          * 
          * @throws FactoryException 
          * @throws TransformException 
@@ -234,35 +244,13 @@ class GtJsonEncoder
         private SimpleFeature transform( SimpleFeature feature ) 
         throws FactoryException, MismatchedDimensionException, TransformException {
             SimpleFeatureType schema = feature.getFeatureType();
-            CoordinateReferenceSystem featureCRS = schema.getGeometryDescriptor().getCoordinateReferenceSystem();
             
-            if (transform == null && 
-                    featureCRS != null && mapCRS != null &&
-                    !mapCRS.equals( featureCRS )) {
-                
-                transform = CRS.findMathTransform( featureCRS, mapCRS, true );
-            }
-            
-//            if (transformedSchema == null) {
-//                SimpleFeatureTypeBuilder typeBuilder = new SimpleFeatureTypeBuilder();
-//                typeBuilder.setCRS( mapCRS );
-//                
-//                for (AttributeDescriptor ad : schema.getAttributeDescriptors()) {
-//                    typeBuilder.
-//                }
-//            }
-//            SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder();
-            
-            Object[] attributes = feature.getAttributes().toArray();
-            for (int i=0; i < attributes.length; i++) {
-                if (attributes[i] instanceof Geometry) {
-                    attributes[i] = transform != null
-                            ? JTS.transform( (Geometry) attributes[i], transform )
-                            : attributes[i];
-                }
-            }
+            SimpleFeatureBuilder builder = new SimpleFeatureBuilder( transformedSchema( schema ) );
+            GeometryAttribute geomAttr = feature.getDefaultGeometryProperty();
+            Geometry geom = (Geometry)geomAttr.getValue();
+            builder.set( geomAttr.getName(), transform != null ? JTS.transform( geom, transform ) : geom );
 
-            return SimpleFeatureBuilder.build( schema, attributes, feature.getID() );
+            return builder.buildFeature( feature.getID() );
         }
     }
 

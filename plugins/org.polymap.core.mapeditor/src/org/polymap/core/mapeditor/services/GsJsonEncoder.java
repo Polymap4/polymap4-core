@@ -7,10 +7,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import org.apache.commons.io.output.CountingOutputStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
+import org.geoserver.wfs.response.GeoJSONBuilder;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.NamedIdentifier;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -20,15 +21,11 @@ import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
-import org.geotools.referencing.NamedIdentifier;
-
-import org.geoserver.platform.ServiceException;
-import org.geoserver.wfs.response.GeoJSONBuilder;
+import org.apache.commons.io.output.CountingOutputStream;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import org.polymap.core.mapeditor.Messages;
@@ -211,11 +208,13 @@ class GsJsonEncoder
             jsonWriter.endObject(); // end featurecollection
             outWriter.flush();
         }
+        catch (IOException e) {
+            throw e;
+        }
         catch (Exception e) {
-            ServiceException serviceException = new ServiceException( e.getMessage(), e );
-            throw serviceException;
+            throw new IOException( e );
         }
 
     }
-
+    
 }
