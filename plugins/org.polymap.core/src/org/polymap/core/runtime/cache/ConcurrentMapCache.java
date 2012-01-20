@@ -42,7 +42,7 @@ final class ConcurrentMapCache<K,V>
     
     private ConcurrentMapCacheManager   manager;
 
-    private ConcurrentMap<K,CacheEntry> entries;
+    private ConcurrentMap<K,CacheEntry<V>> entries;
 
     private ListenerList<CacheEvictionListener> listeners;
     
@@ -87,7 +87,7 @@ final class ConcurrentMapCache<K,V>
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
 
-        CacheEntry entry = entries.get( key );
+        CacheEntry<V> entry = entries.get( key );
         return entry != null ? entry.value() : null;
     }
 
@@ -96,13 +96,13 @@ final class ConcurrentMapCache<K,V>
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
         
-        CacheEntry entry = entries.get( key );
+        CacheEntry<V> entry = entries.get( key );
         if (entry != null) {
             return entry.value();
         }
         else {
             entry = new CacheEntry( null, ELEMENT_SIZE_UNKNOW );
-            CacheEntry previous = entries.putIfAbsent( key, entry );
+            CacheEntry<V> previous = entries.putIfAbsent( key, entry );
             if (previous == null) {
                 try {
                     entry.setValue( loader.load( key ), loader.size() );
@@ -129,7 +129,7 @@ final class ConcurrentMapCache<K,V>
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
 
-        CacheEntry entry = entries.putIfAbsent( key, new CacheEntry( value, elementSize ) );
+        CacheEntry<V> entry = entries.putIfAbsent( key, new CacheEntry( value, elementSize ) );
         return entry != null ? entry.value() : null;
     }
     
@@ -138,7 +138,7 @@ final class ConcurrentMapCache<K,V>
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
 
-        CacheEntry entry = entries.remove( key );
+        CacheEntry<V> entry = entries.remove( key );
         return entry != null ? entry.value() : null;
     }
 
@@ -149,7 +149,7 @@ final class ConcurrentMapCache<K,V>
     }
 
     
-    public Iterable<Map.Entry<K,CacheEntry>> entries() {
+    public Iterable<Map.Entry<K,CacheEntry<V>>> entries() {
         assert entries != null : "Cache is closed.";
         return entries.entrySet();
     }
@@ -164,8 +164,8 @@ final class ConcurrentMapCache<K,V>
     public Iterable<V> values() {
         assert entries != null : "Cache is closed.";
         
-        return Iterables.transform( entries.values(), new Function<CacheEntry,V>() {
-            public V apply( CacheEntry input ) {
+        return Iterables.transform( entries.values(), new Function<CacheEntry<V>,V>() {
+            public V apply( CacheEntry<V> input ) {
                 return input.value();
             }
         });
@@ -197,7 +197,7 @@ final class ConcurrentMapCache<K,V>
     /**
      * 
      */
-    class CacheEntry {
+    static class CacheEntry<V> {
 
         private V               value;
         

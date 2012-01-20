@@ -142,10 +142,13 @@ final class ConcurrentMapCacheManager
             }
             
             if (heap.getUsed() > memUsedGoal) {
-                log.info( "Starting eviction..." );
-                log.info( String.format( "    Heap: used: %d, max: %d", heap.getUsed(), heap.getMax() ) );
+                log.debug( "Starting eviction..." );
+                log.debug( String.format( "    Heap: used: %d, max: %d", heap.getUsed(), heap.getMax() ) );
                 
                 timer.start();
+                
+                // simple eviction algorithm that sorts *all* entries in a fixed size TreeSet;
+                // for a fast, incremental O(1)? algorithm, see the develop-cache-evict branch
                 
                 // XXX memory allocation!?
                 SortedSet<EvictionCandidate> evictionSet = new TreeSet();
@@ -187,7 +190,7 @@ final class ConcurrentMapCacheManager
                 
                 //System.gc();
                 
-                log.info( "    Evicted: " + evictionSet.size() + ", accessThreshold: " + accessThreshold + " (" + timer.elapsedTime() + "ms)" );
+                log.debug( "    Evicted: " + evictionSet.size() + ", accessThreshold: " + accessThreshold + " (" + timer.elapsedTime() + "ms)" );
             }
             
             return sleep;
