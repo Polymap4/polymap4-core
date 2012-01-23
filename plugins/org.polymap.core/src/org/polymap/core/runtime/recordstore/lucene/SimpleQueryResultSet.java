@@ -37,7 +37,6 @@ import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
 import org.polymap.core.runtime.recordstore.IRecordStore.ResultSet;
 
-
 /**
  * 
  *
@@ -76,7 +75,24 @@ final class SimpleQueryResultSet
 
         // execute Lucene query        
         if (query.getSortKey() != null) {
-            Sort sort = new Sort( new SortField( query.getSortKey(), SortField.STRING ) );
+            int sortType = SortField.STRING;
+            if (query.getSortType() == String.class) {
+                sortType = SortField.STRING;
+            }
+            else if (query.getSortType() == Integer.class) {
+                sortType = SortField.INT;
+            }
+            else if (query.getSortType() == Long.class) {
+                sortType = SortField.LONG;
+            }
+            else if (query.getSortType() == Float.class) {
+                sortType = SortField.FLOAT;
+            }
+            else if (query.getSortType() == Double.class) {
+                sortType = SortField.DOUBLE;
+            }
+            Sort sort = new Sort( new SortField( query.getSortKey(), 
+                    sortType, query.getSortOrder() == SimpleQuery.DESC ) );
             TopDocs topDocs = store.searcher.search( luceneQuery, query.getMaxResults(), sort );
             scoreDocs = topDocs.scoreDocs;
         }

@@ -19,8 +19,12 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+
 import org.polymap.core.runtime.recordstore.QueryExpression;
+import org.polymap.core.runtime.recordstore.QueryExpression.Equal;
 
 /**
  * Encode/decode boolean values. 
@@ -59,13 +63,12 @@ final class BooleanValueCoder
 
     public Query searchQuery( QueryExpression exp ) {
         // EQUALS
-//        if (exp instanceof QueryExpression.Equal) {
-//            Equal equalExp = (QueryExpression.Equal)exp;
-//            
-//            if (equalExp.value instanceof String) {
-//                return new TermQuery( new Term( equalExp.key, (String)equalExp.value) );
-//            }
-//        }
+        if (exp instanceof QueryExpression.Equal) {
+            Equal equalExp = (QueryExpression.Equal)exp;
+            if (equalExp.value instanceof Boolean) {
+                return new TermQuery( new Term( equalExp.key+FIELD_SUFFIX, equalExp.value.toString()) );
+            }
+        }
         return null;
     }
     

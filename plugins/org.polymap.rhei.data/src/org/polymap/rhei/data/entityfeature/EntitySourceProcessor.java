@@ -253,6 +253,9 @@ public class EntitySourceProcessor
         catch (IOException e) {
             throw e;
         }
+        catch (RuntimeException e) {
+            throw e;
+        }
         catch (Exception e) {
             throw new IOException( e );
         }

@@ -389,7 +389,7 @@ public class Cache304 {
                     SimpleQuery query = new SimpleQuery();
                     query.setMaxResults( 50 );
                     query.less( CachedTile.TYPE.lastAccessed.name(), System.currentTimeMillis() );
-                    query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC );
+                    query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC, String.class );
                     
                     ResultSet expiredTiles = store.find( query );
 

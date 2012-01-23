@@ -51,6 +51,8 @@ import org.qi4j.spi.property.PropertyType;
 import org.qi4j.spi.property.PropertyTypeDescriptor;
 import org.qi4j.spi.property.ValueType;
 
+import com.google.common.base.Joiner;
+
 import org.polymap.core.runtime.recordstore.IRecordState;
 
 /**
@@ -262,8 +264,8 @@ public class LuceneEntityState
 
             final Map<QualifiedName, Object> values = new HashMap<QualifiedName, Object>();
             for (PropertyType actualType : actualTypes) {
-                Object value = loadProperty(
-                        fieldName + SEPARATOR_PROP + actualType.qualifiedName().name(),
+                Object value = loadProperty( Joiner.on( SEPARATOR_PROP ).join(
+                        fieldName, actualType.qualifiedName().name() ),
                         actualType.type() );
                 if (value != null) {
                     values.put( actualType.qualifiedName(), value );
@@ -348,8 +350,8 @@ public class LuceneEntityState
             }
     
             for (PropertyType actualType : actualTypes) {
-                storeProperty(
-                        fieldName + SEPARATOR_PROP + actualType.qualifiedName().name(),
+                storeProperty( Joiner.on( SEPARATOR_PROP ).join(
+                        fieldName, actualType.qualifiedName().name() ),
                         actualType.type(),
                         values.get( actualType.qualifiedName() ) );
             }
@@ -425,7 +427,8 @@ public class LuceneEntityState
                 ValueType collectedType = ((CollectionType)propertyType).collectedType();
 
                 for (int i=0; i<size; i++) {
-                    Object elm = loadProperty( fieldName + "[" + i + "]", collectedType );
+                    Object elm = loadProperty( Joiner.on( "" ).join( 
+                            fieldName, "[", i, "]" ), collectedType );
                     add( elm );
                 }
             }
@@ -444,7 +447,8 @@ public class LuceneEntityState
             ValueType collectedType = ((CollectionType)propertyType).collectedType();
             int count = 0;
             for (Object collectedValue : this) {
-                storeProperty( fieldName + "[" + count++ + "]", collectedType, collectedValue );
+                storeProperty( Joiner.on( "" ).join( 
+                        fieldName, "[", count++, "]" ), collectedType, collectedValue );
             }
             // ignore removed entries, just update the length field
             record.put( fieldName + "__length", count );

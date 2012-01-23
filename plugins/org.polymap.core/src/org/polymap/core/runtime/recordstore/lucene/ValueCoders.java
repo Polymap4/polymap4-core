@@ -14,6 +14,9 @@
  */
 package org.polymap.core.runtime.recordstore.lucene;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
@@ -31,6 +34,7 @@ public final class ValueCoders {
             new NumericValueCoder(),
             new BooleanValueCoder(),
             new BinaryValueCoder(),
+            new DateValueCoder(),
             new StringValueCoder()
     };
 
@@ -39,6 +43,8 @@ public final class ValueCoders {
     private LuceneRecordStore           store;
     
     private LuceneValueCoder[]          valueCoders = DEFAULT_CODERS;
+    
+    private Map<String,LuceneValueCoder> keyCoderMap = new HashMap( 64 );
     
 
     protected ValueCoders( LuceneRecordStore store ) {
@@ -53,8 +59,13 @@ public final class ValueCoders {
 
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
-        for (LuceneValueCoder valueCoder : valueCoders) {
-            if (valueCoder.encode( doc, key, value, indexed )) {
+        LuceneValueCoder valueCoder = keyCoderMap.get( key );
+        if (valueCoder != null) {
+            valueCoder.encode( doc, key, value, indexed );
+        }
+        for (LuceneValueCoder candidate : valueCoders) {
+            if (candidate.encode( doc, key, value, indexed )) {
+                keyCoderMap.put( key, candidate );
                 return true;
             }
         }
@@ -66,9 +77,14 @@ public final class ValueCoders {
         if (key == null) {
             return null;
         }
-        for (LuceneValueCoder valueCoder : valueCoders) {
-            T result = (T)valueCoder.decode( doc, key );
+        LuceneValueCoder valueCoder = keyCoderMap.get( key );
+        if (valueCoder != null) {
+            valueCoder.decode( doc, key );
+        }
+        for (LuceneValueCoder candidate : valueCoders) {
+            T result = (T)candidate.decode( doc, key );
             if (result != null) {
+                keyCoderMap.put( key, candidate );
                 return result;
             }
         }

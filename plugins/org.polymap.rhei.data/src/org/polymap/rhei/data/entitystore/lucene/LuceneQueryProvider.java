@@ -80,6 +80,7 @@ import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.QueryExpression;
+import org.polymap.core.runtime.recordstore.lucene.LuceneRecordState;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 import org.polymap.rhei.data.entityfeature.EntityProvider.FidsQueryExpression;
@@ -125,7 +126,7 @@ public class LuceneQueryProvider
         query.add( typeQuery, BooleanClause.Occur.MUST );
         query.add( filterQuery, BooleanClause.Occur.MUST );
 
-        log.info( "LUCENE query: [" + query.toString() + "]" );
+        log.info( StringUtils.abbreviate( "LUCENE query: [" + query.toString() + "]", 256 ) );
 
         final int firstResult = input.getStartIndex() != null ? input.getStartIndex() : 0;
         final int maxResults = input.getMaxFeatures() > 0 ? input.getMaxFeatures()-firstResult : 1000000;
@@ -211,7 +212,12 @@ public class LuceneQueryProvider
             else if (filter instanceof And) {
                 BooleanQuery result = new BooleanQuery();
                 for (Filter child : ((And)filter).getChildren()) {
-                    result.add( processFilter( child ), BooleanClause.Occur.MUST );
+                    if (child instanceof Not) {
+                        result.add( processFilter( ((Not)child).getFilter() ), BooleanClause.Occur.MUST_NOT );                        
+                    }
+                    else {
+                        result.add( processFilter( child ), BooleanClause.Occur.MUST );
+                    }
                 }
                 return result;
             }
@@ -219,6 +225,7 @@ public class LuceneQueryProvider
             else if (filter instanceof Or) {
                 BooleanQuery result = new BooleanQuery();
                 for (Filter child : ((Or)filter).getChildren()) {
+                    // XXX child == Not?
                     result.add( processFilter( child ), BooleanClause.Occur.SHOULD );
                 }
                 return result;
@@ -237,6 +244,20 @@ public class LuceneQueryProvider
             // BBOX
             else if (filter instanceof BBOX) {
                 return processBBOX( (BBOX)filter );
+            }
+            // FID
+            else if (filter instanceof Id) {
+                Id fidFilter = (Id)filter;
+                if (fidFilter.getIdentifiers().size() > BooleanQuery.getMaxClauseCount()) {
+                    BooleanQuery.setMaxClauseCount( fidFilter.getIdentifiers().size() );
+                }
+                BooleanQuery result = new BooleanQuery();
+                for (Identifier fid : fidFilter.getIdentifiers()) {
+                    Query fidQuery = store.getValueCoders().searchQuery( 
+                            new QueryExpression.Equal( LuceneRecordState.ID_FIELD, fid.getID() ) );
+                    result.add( fidQuery, BooleanClause.Occur.SHOULD );
+                }
+                return result;
             }
             // comparison
             else if (filter instanceof BinaryComparisonOperator) {
@@ -267,7 +288,7 @@ public class LuceneQueryProvider
             //            return processContainsPredicate( (ContainsPredicate)filter );
             //        }
             else {
-                throw new UnsupportedOperationException( "Expression " + filter + " is not supported" );
+                throw new UnsupportedOperationException( "Unsupported filter type: " + filter.getClass() );
             }
         }
 
