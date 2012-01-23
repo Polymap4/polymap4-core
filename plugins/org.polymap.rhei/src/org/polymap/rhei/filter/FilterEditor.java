@@ -202,8 +202,8 @@ public abstract class FilterEditor
     }
 
     
-    public Object getFieldValue( String propertyName ) {
-        return fieldValues.get( propertyName );
+    public <T> T getFieldValue( String propertyName ) {
+        return (T)fieldValues.get( propertyName );
     }
 
     

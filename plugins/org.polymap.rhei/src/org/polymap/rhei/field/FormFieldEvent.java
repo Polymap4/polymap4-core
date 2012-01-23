@@ -61,16 +61,14 @@ public class FormFieldEvent
         return eventCode;
     }
 
-    public Object getOldValue() {
-        return oldValue;
+    public <T> T getOldValue() {
+        return (T)oldValue;
     }
 
-    public Object getNewValue() {
-        return newValue;
+    public <T> T getNewValue() {
+        return (T)newValue;
     }
 
-
-    @Override
     public String toString() {
         return "FormFieldEvent [source=" + source + ", eventCode=" + eventCode + ", formField=" + formField
                 + ", newValue=" + newValue + ", oldValue=" + oldValue + "]";

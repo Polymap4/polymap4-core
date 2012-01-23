@@ -308,7 +308,7 @@ public final class LuceneRecordStore
         public void store( IRecordState record ) throws Exception {
             if (log.isTraceEnabled()) {
                 for (Map.Entry<String,Object> entry : record) {
-                    log.debug( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
+                    log.trace( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
                 }
             }
             // add

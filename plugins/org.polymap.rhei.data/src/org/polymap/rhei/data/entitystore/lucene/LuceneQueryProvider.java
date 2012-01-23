@@ -126,7 +126,7 @@ public class LuceneQueryProvider
         query.add( typeQuery, BooleanClause.Occur.MUST );
         query.add( filterQuery, BooleanClause.Occur.MUST );
 
-        log.info( StringUtils.abbreviate( "LUCENE query: [" + query.toString() + "]", 256 ) );
+        log.debug( StringUtils.abbreviate( "LUCENE query: [" + query.toString() + "]", 256 ) );
 
         final int firstResult = input.getStartIndex() != null ? input.getStartIndex() : 0;
         final int maxResults = input.getMaxFeatures() > 0 ? input.getMaxFeatures()-firstResult : 1000000;
