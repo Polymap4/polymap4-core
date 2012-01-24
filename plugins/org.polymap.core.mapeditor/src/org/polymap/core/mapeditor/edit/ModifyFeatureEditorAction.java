@@ -86,11 +86,11 @@ public class ModifyFeatureEditorAction
                 support.vectorLayer.events.register( this, 
                         ModifyFeatureControl.EVENT_AFTER_MODIFIED, payload );
 
-                // selection event
-                Map<String, String> payload2 = new HashMap<String, String>();
-                payload.put( "feature", "new OpenLayers.Format.GeoJSON().write(event.feature, false)" );
-                support.vectorLayer.events.register( this, 
-                        ModifyFeatureControl.EVENT_BEFORE_MODIFIED, payload );
+//                // selection event
+//                Map<String, String> payload2 = new HashMap<String, String>();
+//                payload2.put( "feature", "new OpenLayers.Format.GeoJSON().write(event.feature, false)" );
+//                support.vectorLayer.events.register( this, 
+//                        ModifyFeatureControl.EVENT_BEFORE_MODIFIED, payload2 );
             }
             support.setControlActive( ModifyFeatureControl.class, true );
         }

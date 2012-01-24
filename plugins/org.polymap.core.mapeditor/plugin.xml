@@ -107,7 +107,7 @@
                toolbarPath="mouseMode"
                tooltip="%actions_snap">
          </action>
-         <action
+         <!--action
                class="org.polymap.core.mapeditor.edit.DeleteFeatureEditorAction"
                icon="icons/etool16/remove_vertext_mode.gif"
                id="org.polymap.core.mapeditor.action.deleteFeatures_editor"
@@ -115,7 +115,7 @@
                style="toggle"
                toolbarPath="mouseMode"
                tooltip="%actions_deleteFeatures">
-         </action>
+         </action-->
          <action
                class="org.polymap.core.mapeditor.edit.DrawFeatureEditorAction"
                icon="icons/etool16/new_line_mode.gif"
