@@ -28,6 +28,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import org.geotools.geojson.feature.FeatureJSON;
 
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
 import org.eclipse.jface.action.IAction;
@@ -39,8 +40,12 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.ModifyFeaturesOperation;
+import org.polymap.core.geohub.LayerFeatureSelectionManager;
+import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.workbench.PolymapWorkbench;
+
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.ModifyFeatureControl;
@@ -86,11 +91,31 @@ public class ModifyFeatureEditorAction
                 support.vectorLayer.events.register( this, 
                         ModifyFeatureControl.EVENT_AFTER_MODIFIED, payload );
 
-//                // selection event
-//                Map<String, String> payload2 = new HashMap<String, String>();
-//                payload2.put( "feature", "new OpenLayers.Format.GeoJSON().write(event.feature, false)" );
-//                support.vectorLayer.events.register( this, 
-//                        ModifyFeatureControl.EVENT_BEFORE_MODIFIED, payload2 );
+                // selection event -> hover feature
+                final Display display = Polymap.getSessionDisplay();
+                Map<String, String> payload2 = new HashMap<String, String>();
+                payload2.put( "feature", "new OpenLayers.Format.GeoJSON().write(event.feature, false)" );
+                support.vectorLayer.events.register( new OpenLayersEventListener() {
+                    public void process_event( OpenLayersObject srcObj, String eventName,
+                            final HashMap<String,String> _payload ) {
+                        
+                        display.asyncExec( new Runnable() {
+                            public void run() {
+                                try {
+                                    // parse json feature
+                                    FeatureJSON io = new FeatureJSON();
+                                    final SimpleFeature feature = io.readFeature( new StringReader( _payload.get( "feature" ) ) );
+
+                                    LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( support.layer );
+                                    fsm.setHovered( feature.getID() );
+                                }
+                                catch (Exception e) {
+                                    PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, e.getMessage(), e );
+                                }
+                            }
+                        });
+                    }
+                }, ModifyFeatureControl.EVENT_BEFORE_MODIFIED, payload2 );
             }
             support.setControlActive( ModifyFeatureControl.class, true );
         }
