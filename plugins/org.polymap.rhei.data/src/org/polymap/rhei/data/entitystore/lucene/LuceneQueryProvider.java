@@ -34,6 +34,7 @@ import org.opengis.filter.PropertyIsGreaterThanOrEqualTo;
 import org.opengis.filter.PropertyIsLessThan;
 import org.opengis.filter.PropertyIsLessThanOrEqualTo;
 import org.opengis.filter.PropertyIsLike;
+import org.opengis.filter.PropertyIsNotEqualTo;
 import org.opengis.filter.PropertyIsNull;
 import org.opengis.filter.expression.Divide;
 import org.opengis.filter.expression.Expression;
@@ -344,6 +345,14 @@ public class LuceneQueryProvider
                 return store.getValueCoders().searchQuery( 
                         new QueryExpression.Equal( fieldname, literal.getValue() ) );
             }
+            // not equals
+            if (predicate instanceof PropertyIsNotEqualTo) {
+                Query arg = store.getValueCoders().searchQuery( 
+                        new QueryExpression.Equal( fieldname, literal.getValue() ) );
+                BooleanQuery result = new BooleanQuery();
+                result.add( arg, BooleanClause.Occur.MUST_NOT );
+                return result;
+            }
             // ge
             else if (predicate instanceof PropertyIsGreaterThanOrEqualTo) {
                 return store.getValueCoders().searchQuery( 
@@ -365,7 +374,7 @@ public class LuceneQueryProvider
                         new QueryExpression.Less( fieldname, literal.getValue() ) );
             }
             else {
-                throw new UnsupportedOperationException( "Predicate type not supported in comparison: " + predicate );
+                throw new UnsupportedOperationException( "Predicate type not supported in comparison: " + predicate.getClass() );
             }
         }
 

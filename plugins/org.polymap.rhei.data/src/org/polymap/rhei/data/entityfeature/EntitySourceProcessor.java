@@ -332,6 +332,9 @@ public class EntitySourceProcessor
     
     private BooleanExpression entityQuery( Query query ) 
     throws Exception {
+        if (entityProvider instanceof EntityProvider2) {
+            query = ((EntityProvider2)entityProvider).transformQuery( query );
+        }
         // try OGC -> native query (Lucene)
         if (entityProvider.getQueryProvider() != null) {
             return entityProvider.getQueryProvider().convert( query, schema, entityProvider.getEntityType() );

@@ -3,7 +3,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/SuperCSV-1.52.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib-static/com.objectplanet.image.PngEncoder.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackcess-1.1.18.jar" sourcepath="lib/sources/jackcess-1.1.18-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar" sourcepath="/home/falko/.m2/repository/backport-util-concurrent/backport-util-concurrent/3.1/backport-util-concurrent-3.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ehcache-1.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr107cache-1.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>

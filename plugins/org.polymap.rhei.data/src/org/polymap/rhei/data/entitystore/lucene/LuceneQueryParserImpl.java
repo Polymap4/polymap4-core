@@ -102,7 +102,7 @@ class LuceneQueryParserImpl {
             throw new UnsupportedOperationException( "Not implemented yet: orderBySegments" );
         }
 
-        log.info( "    LUCENE query: [" + result.toString() + "]" );
+        log.debug( "    LUCENE query: [" + result.toString() + "]" );
         return result;
     }
 

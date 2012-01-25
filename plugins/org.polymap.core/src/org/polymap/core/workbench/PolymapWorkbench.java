@@ -225,7 +225,7 @@ public class PolymapWorkbench
     }
     
     
-    protected void restart() {
+    public static void restart() {
         String url = URLHelper.getURLString( false );
         Shell shell = new Shell( Display.getCurrent(), SWT.NONE );
         Browser browser = new Browser( shell, SWT.NONE );
