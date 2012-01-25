@@ -301,7 +301,7 @@ public class LuceneEntityState
 
         // Collection
         else if (propertyType instanceof CollectionType) {
-            return new ValueCollection( fieldName, propertyType );
+            return new ValueCollection( this, fieldName, propertyType );
         }
 
         // primitive type
@@ -329,10 +329,9 @@ public class LuceneEntityState
                 return newValue;
             }
             ValueComposite valueComposite = (ValueComposite)newValue;
-            StateHolder state = valueComposite.state();
             final Map<QualifiedName, Object> values = new HashMap<QualifiedName, Object>();
     
-            state.visitProperties( new StateHolder.StateVisitor() {
+            valueComposite.state().visitProperties( new StateHolder.StateVisitor() {
                 public void visitProperty( QualifiedName name, Object value ) {
                     values.put( name, value );
                 }
@@ -363,16 +362,15 @@ public class LuceneEntityState
             assert newValue != null : "Setting collection to null is not supported.";
             
             if (newValue instanceof ValueCollection) {
-                // XXX is this store actually needed? 
-                // changes are checked by ValueCollection already!?
-                ((ValueCollection)newValue).store();
-                return newValue;
+                ValueCollection coll = (ValueCollection)newValue;
+                if (coll.state == this && coll.fieldName.equals( fieldName )) {        
+                    return newValue;
+                }
             }
-            else {
-                ValueCollection coll = new ValueCollection( fieldName, propertyType, (Collection)newValue );
-                coll.store();
-                return coll;
-            }
+
+            ValueCollection coll = new ValueCollection( this, fieldName, propertyType, (Collection)newValue );
+            coll.store();
+            return coll;
         }
     
         // values
@@ -410,24 +408,27 @@ public class LuceneEntityState
      * <p/>
      * XXX don't store the entire collection on every add()/remove()
      */
-    class ValueCollection
+    static class ValueCollection
             extends ArrayList {
         
-        private String          fieldName;
+        private LuceneEntityState   state;
         
-        private ValueType       propertyType;
+        private String              fieldName;
+        
+        private ValueType           propertyType;
         
         
-        ValueCollection( String fieldName, ValueType propertyType ) {
+        ValueCollection( LuceneEntityState state, String fieldName, ValueType propertyType ) {
+            this.state = state;
             this.fieldName = fieldName;    
             this.propertyType = propertyType;
 
-            Integer size = record.get( fieldName + "__length");
+            Integer size = state.record.get( fieldName + "__length");
             if (size != null) {
                 ValueType collectedType = ((CollectionType)propertyType).collectedType();
 
                 for (int i=0; i<size; i++) {
-                    Object elm = loadProperty( Joiner.on( "" ).join( 
+                    Object elm = state.loadProperty( Joiner.on( "" ).join( 
                             fieldName, "[", i, "]" ), collectedType );
                     add( elm );
                 }
@@ -435,7 +436,8 @@ public class LuceneEntityState
         }
         
         
-        ValueCollection( String fieldName, ValueType propertyType, Collection value ) {
+        ValueCollection( LuceneEntityState state, String fieldName, ValueType propertyType, Collection value ) {
+            this.state = state;
             this.fieldName = fieldName;    
             this.propertyType = propertyType;
             
@@ -447,13 +449,13 @@ public class LuceneEntityState
             ValueType collectedType = ((CollectionType)propertyType).collectedType();
             int count = 0;
             for (Object collectedValue : this) {
-                storeProperty( Joiner.on( "" ).join( 
+                state.storeProperty( Joiner.on( "" ).join( 
                         fieldName, "[", count++, "]" ), collectedType, collectedValue );
             }
             // ignore removed entries, just update the length field
-            record.put( fieldName + "__length", count );
+            state.record.put( fieldName + "__length", count );
             
-            markUpdated();
+            state.markUpdated();
         }
         
         

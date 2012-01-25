@@ -69,7 +69,7 @@ public final class ValueCoders {
                 return true;
             }
         }
-        throw new RuntimeException( "No LuceneValueCoder found for value: " + value );
+        throw new RuntimeException( "No LuceneValueCoder found for value type: " + value.getClass() );
     }
     
     

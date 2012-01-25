@@ -288,7 +288,7 @@ public final class LuceneRecordStore
             implements Updater {
 
         private IndexWriter         writer;
-
+        
 
         LuceneUpdater() {
             try {

@@ -40,7 +40,11 @@ import org.qi4j.spi.entitystore.StateCommitter;
 import org.qi4j.spi.service.ServiceDescriptor;
 import org.qi4j.spi.structure.ModuleSPI;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
+
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheManager;
@@ -188,6 +192,11 @@ public class LuceneEntityStoreMixin
                 log.info( "Committing..." );
                 Timer timer = new Timer();
 
+//                EntityState[] array = Iterables.toArray( states, EntityState.class );
+                IProgressMonitor monitor = UIJob.monitorForThread();
+                SubProgressMonitor sub = new SubProgressMonitor( monitor, 9 );
+                sub.beginTask( "Lucene prepare", IProgressMonitor.UNKNOWN );
+                
                 final Updater updater = store.prepareUpdate();
                 try {
                     
@@ -248,9 +257,16 @@ public class LuceneEntityStoreMixin
                                 //log.debug( "    ommitting: " + state.identity().identity() + ", Status= " + state.status() + ", Doc= " + state.writeBack( version ) );
                             }
                         }
+                        sub.worked( 1 );
                     }
-                    
+                    sub.done();
+
+                    sub = new SubProgressMonitor( monitor, 1 );
+                    sub.beginTask( "Lucene apply", 1 );
+
                     updater.apply();
+                    
+                    sub.done();
                     log.info( "...done. (" + timer.elapsedTime() + "ms)" );
                 }
                 catch (Exception e) {

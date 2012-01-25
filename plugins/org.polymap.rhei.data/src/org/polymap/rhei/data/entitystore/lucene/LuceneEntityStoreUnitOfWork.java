@@ -98,7 +98,10 @@ public final class LuceneEntityStoreUnitOfWork
 
     public EntityState newEntityState( EntityReference ref, EntityDescriptor descriptor )
     throws EntityStoreException {
-        return entityStoreSPI.newEntityState( this, ref, descriptor );
+        EntityState result = entityStoreSPI.newEntityState( this, ref, descriptor );
+        EntityState previous = modified.put( result.identity().identity(), result );
+        assert previous == null;
+        return result;
     }
 
 
