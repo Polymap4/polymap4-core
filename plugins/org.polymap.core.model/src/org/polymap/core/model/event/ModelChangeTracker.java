@@ -16,9 +16,12 @@ package org.polymap.core.model.event;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.MapMaker;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -29,7 +32,6 @@ import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Messages;
 import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.runtime.ConcurrentReferenceHashMap;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
@@ -55,12 +57,13 @@ public class ModelChangeTracker
      * XXX access should be read/write locked; however, I don't seem to be able to release
      * locks in all cases; so I'm ignoring race cond between prepare and apply in Updater 
      */
-    private static Map<ModelHandle,Long>    stored = new ConcurrentHashMap( 1024, 0.75f, 4 );
+    private static Map<ModelHandle,Long>    stored = new MapMaker()
+            .concurrencyLevel( 8 ).initialCapacity( 1024 ).makeMap();
 
     private static EventJob                 lastJob;
     
-    private static Map<ModelChangeTracker,Object> instances = 
-            new ConcurrentReferenceHashMap( 32, 0.75f, 4 );
+    private static Map<ModelChangeTracker,Object> instances = new MapMaker()
+            .concurrencyLevel( 4 ).initialCapacity( 32 ).weakKeys().makeMap();
 
 
     public static ModelChangeTracker instance() {
@@ -73,7 +76,8 @@ public class ModelChangeTracker
     private ListenerList<IModelStoreListener>   listeners = new ListenerList();
 
     /** The tracked timestamps of this session. */
-    private ConcurrentHashMap<ModelHandle,Long> tracked = new ConcurrentHashMap( 1024, 0.75f, 4 );
+    private ConcurrentMap<ModelHandle,Long>     tracked = new MapMaker()
+            .concurrencyLevel( 8 ).initialCapacity( 1024 ).makeMap();
 
     
     public ModelChangeTracker() {
@@ -83,6 +87,8 @@ public class ModelChangeTracker
 
     protected void finalize() throws Throwable {
         log.info( "FINALIZED." );
+        listeners.clear();
+        tracked.clear();
     }
 
 
@@ -162,7 +168,6 @@ public class ModelChangeTracker
 
 
     /**
-     * Only one Updater at a given time. Otherwise this method blocks.
      * 
      * @return Newly created Updater.
      */

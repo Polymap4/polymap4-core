@@ -16,7 +16,9 @@ package org.polymap.rhei.data.entityfeature;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import java.io.IOException;
@@ -45,8 +47,14 @@ import org.apache.commons.logging.LogFactory;
 import org.qi4j.api.query.grammar.BooleanExpression;
 import org.qi4j.api.value.ValueComposite;
 
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
+import org.polymap.core.data.FeatureChangeEvent;
+import static org.polymap.core.data.FeatureChangeTracker.featureHandle;
+import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
@@ -57,6 +65,7 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
@@ -64,6 +73,10 @@ import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
+import org.polymap.core.model.event.ModelChangeTracker;
+import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.operation.IOperationSaveListener;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.qi4j.QiModule.EntityCreator;
@@ -84,7 +97,7 @@ import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
 public class EntitySourceProcessor
-        implements ITerminalPipelineProcessor {
+        implements ITerminalPipelineProcessor, IOperationSaveListener {
 
     private static final Log log = LogFactory.getLog( EntitySourceProcessor.class );
 
@@ -131,11 +144,13 @@ public class EntitySourceProcessor
 
     private Feature2EntityFilterConverter filterConverter;
 
+    private ILayer                  layer;
+    
 
     public void init( Properties props ) {
         try {
             // init schema
-            ILayer layer = (ILayer)props.get( "layer" );
+            layer = (ILayer)props.get( "layer" );
             EntityGeoResourceImpl geores = (EntityGeoResourceImpl)layer.getGeoResource();
             entityProvider = geores.resolve( EntityProvider.class, null );
             filterConverter = new Feature2EntityFilterConverter( entityProvider.getEntityType() );
@@ -175,6 +190,8 @@ public class EntitySourceProcessor
                 }
                 schema = builder.buildFeatureType();
             }
+            
+            OperationSupport.instance().addOperationSaveListener( this );
         }
         catch (IOException e) {
             throw new RuntimeException( e.getMessage(), e );
@@ -198,20 +215,23 @@ public class EntitySourceProcessor
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
-            List<FeatureId> result = addFeatures( request.getFeatures() );
-            context.sendResponse( new ModifyFeaturesResponse( result ) );
+            List<FeatureId> fids = addFeatures( request.getFeatures() );
+            fireFeatureChangeEvent( fids, FeatureChangeEvent.Type.ADDED );
+            context.sendResponse( new ModifyFeaturesResponse( fids ) );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // RemoveFeatures
         else if (r instanceof RemoveFeaturesRequest) {
             RemoveFeaturesRequest request = (RemoveFeaturesRequest)r;
-            removeFeatures( request.getFilter() );
+            List<FeatureId> fids = removeFeatures( request.getFilter() );
+            fireFeatureChangeEvent( fids, FeatureChangeEvent.Type.REMOVED );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // ModifyFeatures
         else if (r instanceof ModifyFeaturesRequest) {
             ModifyFeaturesRequest request = (ModifyFeaturesRequest)r;
-            modifyFeatures( request.getType(), request.getValue(), request.getFilter() );
+            List<FeatureId> fids = modifyFeatures( request.getType(), request.getValue(), request.getFilter() );
+            fireFeatureChangeEvent( fids, FeatureChangeEvent.Type.MODIFIED );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // GetFeatures
@@ -420,22 +440,25 @@ public class EntitySourceProcessor
     }
 
 
-    protected void removeFeatures( Filter filter )
+    protected List<FeatureId> removeFeatures( Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
         throw new RuntimeException( "not yet implemented." );
     }
 
 
-    protected void modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
+    protected List<FeatureId> modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
 
-        // filter entities
+        List<FeatureId> ids = Lists.newArrayList(); 
+            
+        // filter -> entities
         List<Entity> entities = new ArrayList();
         if (filter instanceof Id) {
             for (Identifier id : ((Id)filter).getIdentifiers()) {
                 entities.add( entityProvider.findEntity( (String)id.getID() ) );
+                ids.add( (FeatureId)id );
             }
         }
         else {
@@ -461,9 +484,84 @@ public class EntitySourceProcessor
                 }
             }
         }
+        return ids;
     }
 
+    
+    // feature events *************************************
+    
+    private Map<FeatureId,ModelHandle>      changed = new HashMap();
+   
+    private ModelChangeTracker.Updater      updater;
+    
+    
+    /**
+     * Fires a {@link FeatureChangeEvent} for the layer of the given context.
+     * <p/>
+     * For other layers this is done by the {@link LayerFeatureBufferManager}. As
+     * the LFBM does not handle entity feature sources the event has to be fired
+     * here explicitly. 
+     *
+     * @param context
+     * @param features
+     * @param eventType
+     */
+    private void fireFeatureChangeEvent( List<FeatureId> fids, FeatureChangeEvent.Type eventType ) {
+        List<Feature> features = new ArrayList( fids.size() );
+        for (FeatureId fid : fids) {
+            Entity entity = entityProvider.findEntity( fid.getID() );
+            Feature feature = buildFeature( entity );
+            features.add( feature );
+            
+            ModelHandle featureHandle = featureHandle( feature );
+            try {
+                ModelChangeTracker.instance().track( this, featureHandle, System.currentTimeMillis(), false );
+                changed.put( feature.getIdentifier(), featureHandle );
+            }
+            catch (Exception e) {
+                // feature/handle already registered -> ignore
+            }
+        }
+        FeatureChangeEvent ev = new FeatureChangeEvent( layer, eventType, features );
+        FeatureEventManager.instance().fireEvent( ev );
+    }
 
+    
+    public void prepareSave( OperationSupport os, IProgressMonitor monitor )
+    throws Exception {
+        assert updater == null;
+        updater = ModelChangeTracker.instance().newUpdater();
+        for (ModelHandle featureHandle : changed.values()) {
+            updater.checkSet( featureHandle, null, null );
+        }
+    }
+
+    
+    public void rollback( OperationSupport os, IProgressMonitor monitor ) {
+        assert updater != null;
+        updater = null;
+        
+        FeatureChangeEvent ev = new FeatureChangeEvent( layer, FeatureChangeEvent.Type.FLUSHED, null );
+        FeatureEventManager.instance().fireEvent( ev );
+        changed.clear();
+    }
+
+    
+    public void save( OperationSupport os, IProgressMonitor monitor ) {
+        assert updater != null;
+        updater.apply( layer );
+        updater = null;
+        changed.clear();
+    }
+
+    
+    public void revert( OperationSupport os, IProgressMonitor monitor ) {
+        FeatureChangeEvent ev = new FeatureChangeEvent( layer, FeatureChangeEvent.Type.FLUSHED, null );
+        FeatureEventManager.instance().fireEvent( ev );
+        changed.clear();
+    }
+
+    
     public void processResponse( ProcessorResponse reponse, ProcessorContext context )
     throws Exception {
         throw new RuntimeException( "This is a terminal processor." );

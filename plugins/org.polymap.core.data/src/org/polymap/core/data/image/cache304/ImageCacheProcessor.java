@@ -224,55 +224,49 @@ public class ImageCacheProcessor
             this.procRef = new WeakReference( processor );
             
             // feature modifications
-            FeatureEventManager.instance().addFeatureChangeListener( 
-                    new FeatureChangeListener() {
-                        public void featureChange( FeatureChangeEvent ev ) {
-                            ImageCacheProcessor proc = procRef.get();
-                            if (proc != null) {
-                                // just activate cache if modifications have been dropped
-                                if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
-                                    proc.updateAndActivate( false );
-                                }
-                                // deactivate cache when features have been modified
-                                else {
-                                    if (ev.getSource().equals( LayerListener.this.layer )) {
-                                        proc.deactivate();
-                                    }
-                                }
-                            }
-                            else {
-                                FeatureEventManager.instance().removeFeatureChangeListener( this );
-                                LayerListener.this.layer = null;
-                            }
-                        }                        
-                    }, 
-                    new IEventFilter() {
-                        public boolean accept( EventObject ev ) {
-                            return true;
+            FeatureEventManager.instance().addFeatureChangeListener( new FeatureChangeListener() {
+                public void featureChange( FeatureChangeEvent ev ) {
+                    ImageCacheProcessor proc = procRef.get();
+                    if (proc == null) {
+                        FeatureEventManager.instance().removeFeatureChangeListener( this );
+                        LayerListener.this.layer = null;
+                    }
+                    else if (ev.getSource() == LayerListener.this.layer) {
+                        // just activate update if changes have been dropped
+                        if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
+                            proc.updateAndActivate( false );
+                        }
+                        // deactivate cache when features have been modified
+                        else {
+                            proc.deactivate();
                         }
                     }
-            );
+                }                        
+            }, 
+            new IEventFilter() {
+                public boolean accept( EventObject ev ) {
+                    return true;
+                }
+            });
             
             // feature stored
-            FeatureChangeTracker.instance().addFeatureListener( 
-                    new FeatureStoreListener() {
-                        public void featureChange( FeatureStoreEvent ev ) {
-                            if (!ev.isMySession()) {
-                                return;
-                            }
-                            ImageCacheProcessor proc = procRef.get();
-                            if (proc != null) {
-                                if (ev.getSource() == LayerListener.this.layer) {
-                                    proc.updateAndActivate( true );
-                                }
-                            }
-                            else {
-                                FeatureChangeTracker.instance().removeFeatureListener( this ); 
-                                LayerListener.this.layer = null;                                
-                            }
+            FeatureChangeTracker.instance().addFeatureListener( new FeatureStoreListener() {
+                public void featureChange( FeatureStoreEvent ev ) {
+                    if (!ev.isMySession()) {
+                        return;
+                    }
+                    ImageCacheProcessor proc = procRef.get();
+                    if (proc != null) {
+                        if (ev.getSource() == LayerListener.this.layer) {
+                            proc.updateAndActivate( true );
                         }
                     }
-            );
+                    else {
+                        FeatureChangeTracker.instance().removeFeatureListener( this ); 
+                        LayerListener.this.layer = null;                                
+                    }
+                }
+            });
         }
         
     }
