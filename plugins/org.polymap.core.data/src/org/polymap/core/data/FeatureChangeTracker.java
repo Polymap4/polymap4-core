@@ -16,6 +16,7 @@ package org.polymap.core.data;
 
 import org.geotools.data.FeatureListener;
 import org.opengis.feature.Feature;
+import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -90,6 +91,17 @@ public class FeatureChangeTracker {
     public static ModelHandle featureHandle( Feature feature ) {
         String id = feature.getIdentifier().getID();
         String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + feature.getType().getName().getLocalPart();
+        return ModelHandle.instance( id, type );
+    }
+
+    /**
+     * Creates a handle for the given feature.
+     * 
+     * @param feature
+     */
+    public static ModelHandle featureHandle( FeatureId fid, String typeName ) {
+        String id = fid.getID();
+        String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + typeName;
         return ModelHandle.instance( id, type );
     }
 

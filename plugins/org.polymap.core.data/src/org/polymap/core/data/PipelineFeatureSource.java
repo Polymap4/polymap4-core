@@ -66,6 +66,7 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.SessionContext;
 
 /**
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}
@@ -127,6 +128,8 @@ public class PipelineFeatureSource
     private PipelineDataStore   store;
 
     private Transaction         tx = Transaction.AUTO_COMMIT;
+
+    private SessionContext      sessionContext = SessionContext.current();
 
 
     public PipelineFeatureSource( Pipeline pipeline ) {
@@ -200,7 +203,7 @@ public class PipelineFeatureSource
     public FeatureCollection<SimpleFeatureType, SimpleFeature> getFeatures( Query query )
     throws IOException {
         log.debug( "query= " + query );
-        return new AsyncPipelineFeatureCollection( this, query );
+        return new AsyncPipelineFeatureCollection( this, query, sessionContext );
     }
 
 

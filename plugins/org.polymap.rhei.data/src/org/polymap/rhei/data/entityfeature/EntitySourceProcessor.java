@@ -16,9 +16,7 @@ package org.polymap.rhei.data.entityfeature;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import java.io.IOException;
@@ -50,11 +48,7 @@ import org.qi4j.api.value.ValueComposite;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import org.polymap.core.data.FeatureChangeEvent;
-import static org.polymap.core.data.FeatureChangeTracker.featureHandle;
-import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
@@ -73,10 +67,6 @@ import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelHandle;
-import org.polymap.core.operation.IOperationSaveListener;
-import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.qi4j.QiModule.EntityCreator;
@@ -97,7 +87,7 @@ import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
 public class EntitySourceProcessor
-        implements ITerminalPipelineProcessor, IOperationSaveListener {
+        implements ITerminalPipelineProcessor {
 
     private static final Log log = LogFactory.getLog( EntitySourceProcessor.class );
 
@@ -190,8 +180,6 @@ public class EntitySourceProcessor
                 }
                 schema = builder.buildFeatureType();
             }
-            
-            OperationSupport.instance().addOperationSaveListener( this );
         }
         catch (IOException e) {
             throw new RuntimeException( e.getMessage(), e );
@@ -346,6 +334,23 @@ public class EntitySourceProcessor
             //log.debug( "                sending chunk: " + chunk.size() );
             context.sendResponse( new GetFeaturesResponse( chunk ) );
         }
+        
+        // changed/added entities
+        chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
+        LayerEntityBufferManager buffer = LayerEntityBufferManager.forLayer( layer, entityProvider );
+        for (FeatureId fid : buffer.added()) {
+            Entity entity = entityProvider.findEntity( fid.getID() );
+            Feature feature = buildFeature( entity );
+            if (query.getFilter().evaluate( feature )) {
+                chunk.add( feature );
+            }
+        }
+        if (!chunk.isEmpty()) {
+            chunk.trimToSize();
+            //log.debug( "                sending chunk: " + chunk.size() );
+            context.sendResponse( new GetFeaturesResponse( chunk ) );
+        }
+
         log.debug( "    getFeatures(): " + (System.currentTimeMillis()-start) + "ms" );
     }
 
@@ -490,11 +495,6 @@ public class EntitySourceProcessor
     
     // feature events *************************************
     
-    private Map<FeatureId,ModelHandle>      changed = new HashMap();
-   
-    private ModelChangeTracker.Updater      updater;
-    
-    
     /**
      * Fires a {@link FeatureChangeEvent} for the layer of the given context.
      * <p/>
@@ -512,53 +512,9 @@ public class EntitySourceProcessor
             Entity entity = entityProvider.findEntity( fid.getID() );
             Feature feature = buildFeature( entity );
             features.add( feature );
-            
-            ModelHandle featureHandle = featureHandle( feature );
-            try {
-                ModelChangeTracker.instance().track( this, featureHandle, System.currentTimeMillis(), false );
-                changed.put( feature.getIdentifier(), featureHandle );
-            }
-            catch (Exception e) {
-                // feature/handle already registered -> ignore
-            }
         }
-        FeatureChangeEvent ev = new FeatureChangeEvent( layer, eventType, features );
-        FeatureEventManager.instance().fireEvent( ev );
-    }
-
-    
-    public void prepareSave( OperationSupport os, IProgressMonitor monitor )
-    throws Exception {
-        assert updater == null;
-        updater = ModelChangeTracker.instance().newUpdater();
-        for (ModelHandle featureHandle : changed.values()) {
-            updater.checkSet( featureHandle, null, null );
-        }
-    }
-
-    
-    public void rollback( OperationSupport os, IProgressMonitor monitor ) {
-        assert updater != null;
-        updater = null;
-        
-        FeatureChangeEvent ev = new FeatureChangeEvent( layer, FeatureChangeEvent.Type.FLUSHED, null );
-        FeatureEventManager.instance().fireEvent( ev );
-        changed.clear();
-    }
-
-    
-    public void save( OperationSupport os, IProgressMonitor monitor ) {
-        assert updater != null;
-        updater.apply( layer );
-        updater = null;
-        changed.clear();
-    }
-
-    
-    public void revert( OperationSupport os, IProgressMonitor monitor ) {
-        FeatureChangeEvent ev = new FeatureChangeEvent( layer, FeatureChangeEvent.Type.FLUSHED, null );
-        FeatureEventManager.instance().fireEvent( ev );
-        changed.clear();
+        LayerEntityBufferManager buffer = LayerEntityBufferManager.forLayer( layer, entityProvider );
+        buffer.fireFeatureChangeEvent( features, eventType );
     }
 
     
