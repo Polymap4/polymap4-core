@@ -316,10 +316,13 @@ public class CsvImporter {
 
             featureErrors.clear();
             int featureId = 0;
-            monitor.beginTask( "Importing raw data", lines.size() );
+            monitor.beginTask( "Reading CSV Data", lines.size() );
             int count = 0;
             for (String[] line : lines) {
                 monitor.worked( 1 );
+                if (monitor.isCanceled()) {
+                    return newCollection;
+                }
                 try {
                     SimpleFeatureBuilder builder = new SimpleFeatureBuilder( featureType );
                     Object[] values = new Object[fieldNames.size() - 1];

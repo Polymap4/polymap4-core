@@ -19,8 +19,6 @@ package org.polymap.core.data.ui.csvimport;
 
 import java.util.Map;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,8 +27,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import net.refractions.udig.ui.FeatureTableControl;
-import net.refractions.udig.ui.PlatformJobs;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -44,10 +40,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.WizardPage;
-
-import org.eclipse.core.runtime.IProgressMonitor;
+import static org.polymap.core.data.ui.csvimport.Messages.i18n;
 
 /**
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
@@ -77,7 +71,7 @@ public class CsvImportWizardPage2 extends WizardPage {
     public CsvImportWizardPage2( String pageName, Map<String, String> params ) {
         super( ID );
         setTitle( pageName );
-        setDescription( Messages.getString( "CsvImportWizardPage.importasshape" ) ); //$NON-NLS-1$
+        setDescription( i18n( "CsvImportWizardPage.importasshape" ) );
     }
 
     
@@ -86,7 +80,7 @@ public class CsvImportWizardPage2 extends WizardPage {
         fileSelectionArea.setLayout( new GridLayout() );
 
         Group inputGroup = new Group( fileSelectionArea, SWT.None );
-        inputGroup.setText( "Import into" );
+        inputGroup.setText( i18n( "CsvImportWizardPage.importinto" ) );
         inputGroup.setLayout( new GridLayout( 3, false ) );
         inputGroup.setLayoutData( new GridData( GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL ) );
 
@@ -124,17 +118,6 @@ public class CsvImportWizardPage2 extends WizardPage {
                 log.info( "shpName= " + shpName );
             }
         });
-//        shpNameText.addKeyListener( new KeyListener() {
-//            public void keyReleased( KeyEvent e ) {
-//                shpName = shpNameText.getText();
-//                log.info( "shpName= " + shpName );
-//            }
-//            public void keyPressed( KeyEvent e ) {
-//                shpName = shpNameText.getText();
-//                log.info( "shpName= " + shpName );
-//            }
-//        });
-        
         
         checkFinish();
         setControl(fileSelectionArea);
@@ -158,12 +141,7 @@ public class CsvImportWizardPage2 extends WizardPage {
             if (isPageComplete()) {
                 final CsvImportWizard csvWizard = (CsvImportWizard)getWizard();
 
-                PlatformJobs.runInProgressDialog( "Reading data", false, new IRunnableWithProgress() {
-                    public void run( IProgressMonitor monitor )
-                    throws InvocationTargetException, InterruptedException {
-                        csvWizard.createCsvFeatureCollection();
-                    }
-                }, false );
+                csvWizard.createCsvFeatureCollection();
 
                 setFeatureCollection( csvWizard.csvFeatureCollection );
             }

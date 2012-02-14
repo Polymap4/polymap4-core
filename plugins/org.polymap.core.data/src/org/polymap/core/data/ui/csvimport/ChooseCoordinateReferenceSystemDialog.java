@@ -40,14 +40,14 @@ public class ChooseCoordinateReferenceSystemDialog {
 
     private boolean goGo = false;
 
+
     public void open( Shell parentShell ) {
         goGo = false;
-        Dialog dialog = new Dialog(parentShell){
+        Dialog dialog = new Dialog( parentShell ) {
 
-            @Override
             protected void configureShell( Shell shell ) {
-                super.configureShell(shell);
-                shell.setText("Choose CRS");
+                super.configureShell( shell );
+                shell.setText( "Choose CRS" );
             }
 
             // @Override
@@ -55,38 +55,32 @@ public class ChooseCoordinateReferenceSystemDialog {
             // return new Point(250, 250);
             // }
 
-            @Override
             protected Control createDialogArea( Composite parent ) {
-                Composite comp = (Composite) super.createDialogArea(parent);
+                Composite comp = (Composite) super.createDialogArea( parent );
                 GridLayout gLayout = (GridLayout) comp.getLayout();
-
                 gLayout.numColumns = 1;
 
-                chooser = new CRSChooser(new Controller(){
-
+                chooser = new CRSChooser( new Controller() {
                     public void handleClose() {
-                        buttonPressed(OK);
+                        buttonPressed( OK );
                     }
-
                     public void handleOk() {
-                        buttonPressed(OK);
+                        buttonPressed( OK );
                     }
-
                     public void handleSelect() {
-                        buttonPressed(OK);
+                        buttonPressed( OK );
                     }
-
                 });
 
-                return chooser.createControl(parent);
+                return chooser.createControl( comp );
             }
 
-            @Override
             protected void buttonPressed( int buttonId ) {
                 if (buttonId == OK) {
                     try {
                         crs = chooser.getCRS();
-                    } catch (Exception e) {
+                    } 
+                    catch (Exception e) {
                     }
                 }
                 close();
