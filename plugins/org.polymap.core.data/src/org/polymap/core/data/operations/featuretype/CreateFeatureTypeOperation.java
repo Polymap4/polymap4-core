@@ -140,6 +140,7 @@ public class CreateFeatureTypeOperation
                     Messages.get( "CreateFeatureTypeOperation_ChooseLayerPage_description" ),
                     false );
             wizard.addPage( chooseLayerPage );
+            
             final FeatureEditorPage featureEditorPage = new FeatureEditorPage();
             wizard.addPage( featureEditorPage );
 

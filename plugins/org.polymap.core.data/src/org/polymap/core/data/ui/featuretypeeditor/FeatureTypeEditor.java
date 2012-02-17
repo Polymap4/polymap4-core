@@ -19,22 +19,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import net.refractions.udig.internal.ui.UiPlugin;
+import net.refractions.udig.ui.CRSDialogCellEditor;
+import net.refractions.udig.ui.internal.Messages;
+import net.refractions.udig.ui.preferences.PreferenceConstants;
+
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.filter.Filter;
+import org.opengis.filter.PropertyIsLessThanOrEqualTo;
+import org.opengis.filter.expression.Function;
+import org.opengis.filter.expression.Literal;
 import org.opengis.metadata.Identifier;
 import org.opengis.referencing.ReferenceIdentifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
-
-import net.refractions.udig.internal.ui.UiPlugin;
-import net.refractions.udig.ui.CRSDialogCellEditor;
-import net.refractions.udig.ui.internal.Messages;
-import net.refractions.udig.ui.preferences.PreferenceConstants;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -242,12 +247,21 @@ public class FeatureTypeEditor {
     }
 
 
-    public SimpleFeatureTypeBuilder builderFromFeatureType( SimpleFeatureType ft ) {
-        SimpleFeatureTypeBuilder ftB;
-        ftB = new SimpleFeatureTypeBuilder();
-        ftB.init(ft);
-        ftB.setName(ft.getName());
-        return ftB;
+    public SimpleFeatureTypeBuilder builderFromFeatureType( SimpleFeatureType type ) {
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.init( type );
+        return builder;
+        
+//        builder.setName( type.getName() );
+//        builder.setCRS( type.getCoordinateReferenceSystem() );
+//        
+//        for (AttributeDescriptor attr : type.getAttributeDescriptors()) {
+//            int length = findVarcharColumnLength( attr );
+//            length = length > 0 ? length : LegalAttributeType.DEFAULT_STRING_LENGTH;
+//            builder.length( length );
+//            builder.add( attr.getLocalName(), attr.getType().getBinding() );
+//        }
+//        return builder;
     }
 
 
@@ -294,12 +308,22 @@ public class FeatureTypeEditor {
      * @param type then new SimpleFeatureType to be edited, or null to create a new type.
      */
     public void setFeatureType( SimpleFeatureType type ) {
-        SimpleFeatureTypeBuilder builder = null;
         if (type != null) {
-            builder = new SimpleFeatureTypeBuilder();
+            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
             builder.init( type );
-            builder.setName( type.getName() );
             featureType = builder.buildFeatureType();
+            
+//            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+//            builder.setName( type.getName() );
+//            builder.setCRS( type.getCoordinateReferenceSystem() );
+//            
+//            for (AttributeDescriptor attr : type.getAttributeDescriptors()) {
+//                int length = findVarcharColumnLength( attr );
+//                length = length > 0 ? length : LegalAttributeType.DEFAULT_STRING_LENGTH;
+//                builder.length( length );
+//                builder.add( attr.getLocalName(), attr.getType().getBinding() );
+//            }
+//            featureType = builder.buildFeatureType();
         }
         else {
             featureType = createDefaultFeatureType();
@@ -309,6 +333,23 @@ public class FeatureTypeEditor {
         }
     }
 
+    private int findVarcharColumnLength( AttributeDescriptor att ) {
+        for (Filter r : att.getType().getRestrictions()) {
+            if (r instanceof PropertyIsLessThanOrEqualTo) {
+                PropertyIsLessThanOrEqualTo c = (PropertyIsLessThanOrEqualTo)r;
+                if (c.getExpression1() instanceof Function
+                        && ((Function)c.getExpression1()).getName().toLowerCase().endsWith( "length" )) {
+                    if (c.getExpression2() instanceof Literal) {
+                        Integer length = c.getExpression2().evaluate( null, Integer.class );
+                        if (length != null) {
+                            return length;
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    }
 
     /**
      * Creates a default {@link FeatureType}.
@@ -325,7 +366,7 @@ public class FeatureTypeEditor {
         builder = new SimpleFeatureTypeBuilder();
         builder.setName( Messages.FeatureTypeEditor_newFeatureTypeName );
         builder.setCRS( getDefaultCRS() );
-        //builder.length( MAX_ATTRIBUTE_LENGTH );
+        builder.length( LegalAttributeType.DEFAULT_STRING_LENGTH );
         builder.add( Messages.FeatureTypeEditor_defaultNameAttributeName, String.class );
         builder.add( Messages.FeatureTypeEditor_defaultGeometryName, LineString.class );
         return builder.buildFeatureType();

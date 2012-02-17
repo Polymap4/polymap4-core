@@ -142,8 +142,10 @@ class AttributeCellModifier
     private AttributeDescriptor createNewAttributeType( AttributeDescriptor attr,
             String property, Object value ) {
         AttributeTypeBuilder builder = new AttributeTypeBuilder();
-        builder.init( attr );
-        // builder.setName((String)property);
+        // do NOT transfer restriction! as this would avoid setting new length
+        // see http://polymap.org/atlas/ticket/35
+        //builder.init( attr );
+        builder.setName( attr.getLocalName() );
 
         switch (Integer.parseInt( property )) {
             case FeatureTypeEditor.NAME_COLUMN: {
