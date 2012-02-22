@@ -9,11 +9,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
+import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,6 +21,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
+import org.polymap.core.http.HttpServiceRegistry;
 import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelStoreEvent;
 import org.polymap.core.model.event.ModelStoreEvent.EventType;
@@ -98,6 +97,8 @@ public class ServicesPlugin
     private DefaultSessionContextProvider contextProvider;
 
     private HttpService             httpService;
+
+    private ServiceTracker          httpServiceTracker;
     
     
     public ServicesPlugin() {
@@ -123,58 +124,44 @@ public class ServicesPlugin
         contextProvider = new DefaultSessionContextProvider();
         SessionContext.addProvider( contextProvider );
         
-        // start HttpServiceRegistry
-        context.addBundleListener( new BundleListener() {
-            public void bundleChanged( BundleEvent ev ) {
-                
-                if (!started && (HttpService.class != null)) {
-                    ServiceReference[] httpReferences = null;
+        // register resource
+        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+            public Object addingService( ServiceReference reference ) {
+                httpService = (HttpService)super.addingService( reference );                
+                if (httpService != null) {
+                    String protocol = "http";
+                    String port = context.getProperty( "org.osgi.service.http.port" );
+                    String hostname = "localhost";
                     try {
-                        httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
+                        InetAddress.getLocalHost().getHostAddress();
                     }
-                    catch (InvalidSyntaxException e) {
-                        // FIXME Auto-generated catch block
-                        e.printStackTrace();
+                    catch (UnknownHostException e) {
+                        // ignore; use "localhost" then
                     }
-                    
-                    if (httpReferences != null) {
-                        String protocol = "http";
-                        String port = context.getProperty( "org.osgi.service.http.port" );
-                        String hostname = "localhost";
-                        try {
-                            InetAddress.getLocalHost().getHostAddress();
-                        }
-                        catch (UnknownHostException e) {
-                            // ignore; use "localhost" then
-                        }
 
-                        // get baseUrl
-                        localBaseUrl = protocol + "://" + hostname + ":" + port;
-                        log.info( "HTTP service found on: " + localBaseUrl );
+                    // get baseUrl
+                    localBaseUrl = protocol + "://" + hostname + ":" + port;
+                    log.info( "HTTP service found on: " + localBaseUrl );
 
-                        ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), getBundle().getSymbolicName() );
-                        proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
-                        log.info( "Proxy URL set to: " + proxyBaseUrl );
+                    ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), getBundle().getSymbolicName() );
+                    proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
+                    log.info( "Proxy URL set to: " + proxyBaseUrl );
 
-                        httpService = (HttpService)context.getService( httpReferences[0] );
-                        reStartServices();                            
-                        started = true;
-                    } 
-                    else {
-                        // No http service yet available - waiting for next BundleEvent
-                    }
+                    HttpServiceRegistry.init( httpService );
+                    reStartServices();                            
                 }
-                // stop
-                else if (ev.getType() == BundleEvent.STOPPED && ev.getBundle().equals( getBundle() )) {
-
-                }
+                return httpService;
             }
-        });
+        };
+        httpServiceTracker.open();
     }
 
 
     public void stop( BundleContext context )
     throws Exception {
+        httpServiceTracker.close();
+        httpServiceTracker = null;
+        
         plugin = null;
         super.stop( context );
         

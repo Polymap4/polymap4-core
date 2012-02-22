@@ -29,9 +29,6 @@ import javax.servlet.http.HttpServlet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
@@ -54,9 +51,10 @@ public class HttpServiceRegistry {
     
     private static final Log log = LogFactory.getLog( HttpServiceRegistry.class );
 
-    private static final String                 SERVLETS_EXTENSION_POINT_ID = CorePlugin.PLUGIN_ID + ".http.servlets";
+    private static final String             SERVLETS_EXTENSION_POINT_ID = CorePlugin.PLUGIN_ID + ".http.servlets";
 
-    private static HttpService                  httpService;
+    private static HttpService              httpService;
+    
     
     /** The registered servlets. Maps pathSpec into servlet. */
     //private static Map<String,HttpServlet>      servlets = new HashMap();
@@ -76,46 +74,30 @@ public class HttpServiceRegistry {
     /**
      * Initialization.
      */
-    public static void init() {
-        // HttpService ******
-        BundleContext context = CorePlugin.getDefault().getBundle().getBundleContext();
-        ServiceReference[] httpReferences = null;
-        try {
-//            ServiceReference[] services = context.getServiceReferences( null, null );
-//            for (ServiceReference service : services) {
-//                log.info( "Service: " + service );
-//            }            
-            httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
+    public static void init( HttpService _httpService ) {
+        assert _httpService != null;
+        
+        if (httpService != null) {
+            log.warn( "HttpService already registered." );
+            return;
         }
-        catch (InvalidSyntaxException e) {
-            throw new RuntimeException( e.getMessage(), e );
-        }
-        if (httpReferences != null) {
-            String port = context.getProperty( "org.osgi.service.http.port" );
-            String hostname = context.getProperty( "org.osgi.service.http.hostname" );
-            log.info( "HTTP service found on hostname:" + hostname + "/ port:" + port );
-
-            httpService = (HttpService)context.getService( httpReferences[0] );
-        }
-        else {
-            throw new RuntimeException( "No HTTP service available" );
-        }
+        httpService = _httpService;
         
         // servlet extensions ******
         IConfigurationElement[] exts = Platform.getExtensionRegistry().getConfigurationElementsFor( 
                 SERVLETS_EXTENSION_POINT_ID ); 
-        log.info( "servlet extensions found: " + exts.length ); //$NON-NLS-1$
+        log.info( "servlet extensions found: " + exts.length );
         
         for (IConfigurationElement ext : exts) {
             try {
-                String path = ext.getAttribute( "path" ); //$NON-NLS-1$
-                String contextPath = ext.getAttribute( "contextPath" ); //$NON-NLS-1$
-                if (contextPath != null && !contextPath.startsWith( "/" )) { //$NON-NLS-1$
-                    contextPath = "/" + contextPath; //$NON-NLS-1$
+                String path = ext.getAttribute( "path" );
+                String contextPath = ext.getAttribute( "contextPath" );
+                if (contextPath != null && !contextPath.startsWith( "/" )) {
+                    contextPath = "/" + contextPath;
                 }
-                HttpServlet servlet = (HttpServlet)ext.createExecutableExtension( "class" ); //$NON-NLS-1$
+                HttpServlet servlet = (HttpServlet)ext.createExecutableExtension( "class" );
                 registerServlet( path, servlet, null, null );
-                log.info( "    context: " + contextPath + " :" + servlet.getClass().getName() ); //$NON-NLS-1$
+                log.info( "    context: " + contextPath + " :" + servlet.getClass().getName() );
             }
             catch (Exception e) {
                 CorePlugin.logError( "Error while starting servlet extension: " + ext.getName(), log, e );
@@ -151,7 +133,7 @@ public class HttpServiceRegistry {
      * returning.
      * 
      * <pre>
-     * httpService.registerServlet( &quot;/myservlet&quot;, servlet, initparams, context );
+     * httpServiceRef.registerServlet( &quot;/myservlet&quot;, servlet, initparams, context );
      * </pre>
      * 
      * <p>
@@ -186,6 +168,7 @@ public class HttpServiceRegistry {
         //assert !servlets.containsKey( pathSpec );
         
         httpService.registerServlet( pathSpec, servlet, initparams, http_context );
+        
         //servlets.put( pathSpec, servlet );
     }
 

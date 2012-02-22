@@ -15,11 +15,9 @@
 package org.polymap.core;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
+import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,10 +78,10 @@ public class CorePlugin
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
@@ -119,7 +117,9 @@ public class CorePlugin
 	
 	// instance *******************************************
 	
-    private RapSessionContextProvider rapSessionContextProvider;
+    private RapSessionContextProvider   rapSessionContextProvider;
+
+    private ServiceTracker              httpServiceTracker;
 
 
 	public CorePlugin() {
@@ -138,38 +138,31 @@ public class CorePlugin
         log.debug( "start..." );
         plugin = this;
         
-        //
+        // RAP session context
         this.rapSessionContextProvider = new RapSessionContextProvider();
         SessionContext.addProvider( rapSessionContextProvider );
 
-        // start HttpServiceRegistry
-        context.addBundleListener( new BundleListener() {
-            public void bundleChanged( BundleEvent ev ) {
-                // check all bundles if HttpService appears
-                if (ev.getType() == BundleEvent.STARTED && !httpServiceRegistryStarted) {
-                    try {
-                        ServiceReference[] httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
-                        if (httpReferences != null) {
-                            HttpServiceRegistry.init();
-                            httpServiceRegistryStarted = true;
-                        }
-                    }
-                    catch (InvalidSyntaxException e) {
-                        throw new RuntimeException( e.getMessage(), e );
-                    }
+        // init HttpServiceRegistry
+        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+            public Object addingService( ServiceReference reference ) {
+                HttpService httpService = (HttpService)super.addingService( reference );                
+                if (httpService != null) {
+                    HttpServiceRegistry.init( httpService );
                 }
-                // stop
-                else if (ev.getType() == BundleEvent.STOPPED && ev.getBundle().equals( getBundle() )) {
-                    HttpServiceRegistry.dispose();
-                }
+                return httpService;
             }
-        });
+        };
+        httpServiceTracker.open();
     }
 
 
     public void stop( BundleContext context )
     throws Exception {
         log.debug( "stop..." );
+        
+        httpServiceTracker.close();
+        httpServiceTracker = null;
+        
         plugin = null;
         super.stop( context );
         

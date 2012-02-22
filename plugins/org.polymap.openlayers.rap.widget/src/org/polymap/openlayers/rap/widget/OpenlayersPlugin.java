@@ -2,12 +2,10 @@ package org.polymap.openlayers.rap.widget;
 
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -20,7 +18,7 @@ public class OpenlayersPlugin
 
 	private static OpenlayersPlugin    plugin;
 
-	public boolean                     started = false;
+    private ServiceTracker             httpServiceTracker;
 
 	
 	public OpenlayersPlugin() {
@@ -31,24 +29,22 @@ public class OpenlayersPlugin
     throws Exception {
         super.start( context );
 
-        // start
-        if (HttpService.class != null) {
-            startService( context );
-        }
-
-        // listen to bundle events
-        context.addBundleListener( new BundleListener() {
-            public void bundleChanged( BundleEvent ev ) {
-                if (ev.getType() == BundleEvent.STARTED
-                        && !started && HttpService.class != null) {
-                    startService( context );
+        // register HTTP resource
+        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+            public Object addingService( ServiceReference reference ) {
+                HttpService httpService = (HttpService)super.addingService( reference );                
+                if (httpService != null) {
+                    try {
+                        httpService.registerResources( "/openlayers", "/openlayers", null );
+                    }
+                    catch (NamespaceException e) {
+                        throw new RuntimeException( e );
+                    }
                 }
-//                if (ev.getType() == BundleEvent.STOPPED
-//                        && started && HttpService.class == null) {
-//                    stopService( context );
-//                }
+                return httpService;
             }
-        });
+        };
+        httpServiceTracker.open();
 
 		plugin = this;
 	}
@@ -56,35 +52,11 @@ public class OpenlayersPlugin
 
     public void stop( BundleContext context )
     throws Exception {
+        httpServiceTracker.close();
+        httpServiceTracker = null;
+        
         plugin = null;
         super.stop( context );
-    }
-
-    
-    protected void startService( BundleContext context ) {
-        HttpService httpService;
-        ServiceReference[] httpReferences = null;
-        try {
-            httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
-        }
-        catch (InvalidSyntaxException e) {
-            e.printStackTrace();
-        }
-
-        if (httpReferences != null) {
-            String port = context.getProperty( "org.osgi.service.http.port" );
-            String hostname = context.getProperty( "org.osgi.service.http.hostname" );
-
-            httpService = (HttpService)context.getService( httpReferences[0] );
-
-            try {
-                httpService.registerResources( "/openlayers", "/openlayers", null );
-                started = true;
-            }
-            catch (NamespaceException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     
