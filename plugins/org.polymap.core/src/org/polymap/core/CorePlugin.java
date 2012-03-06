@@ -83,7 +83,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.service.geoserver", "debug" );

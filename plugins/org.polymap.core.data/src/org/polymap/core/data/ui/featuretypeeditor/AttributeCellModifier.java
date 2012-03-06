@@ -146,6 +146,7 @@ class AttributeCellModifier
         // see http://polymap.org/atlas/ticket/35
         //builder.init( attr );
         builder.setName( attr.getLocalName() );
+        builder.setBinding( attr.getType().getBinding() );
 
         switch (Integer.parseInt( property )) {
             case FeatureTypeEditor.NAME_COLUMN: {

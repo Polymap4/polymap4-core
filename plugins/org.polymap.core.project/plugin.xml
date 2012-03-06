@@ -95,6 +95,9 @@
          <viewShortcut
                id="org.polymap.core.project.LayerNavigator">
          </viewShortcut>
+         <newWizardShortcut
+               id="org.polymap.core.project.ui.NewMapWizard">
+         </newWizardShortcut>
       </perspectiveExtension>
    </extension>
    <extension

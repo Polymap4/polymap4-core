@@ -27,7 +27,7 @@ public class Timer {
 
     private static Log log = LogFactory.getLog( Timer.class );
     
-    private long        start;
+    private long        start = -1;
     
     public Timer() {
         start();
@@ -38,8 +38,17 @@ public class Timer {
         return this;
     }
     
+    public Timer stop() {
+        start = -1;
+        return this;
+    }
+    
+    public boolean isStarted() {
+        return start > 0;
+    }
+    
     public long elapsedTime() {
-        return System.currentTimeMillis() - start;
+        return isStarted() ? System.currentTimeMillis() - start : 0;
     }
     
     public void print() {
