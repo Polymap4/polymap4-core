@@ -192,6 +192,7 @@ public class NewFeatureOperation
             FeatureCollection<SimpleFeatureType, SimpleFeature> features = 
                     FeatureCollections.newCollection();
             features.add( newFeature );
+            
             fids = fs.addFeatures( features );
             log.info( "### Feature created: " + fids.get( 0 ) );
 

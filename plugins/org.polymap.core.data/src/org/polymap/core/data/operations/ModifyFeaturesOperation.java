@@ -31,10 +31,14 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 
 import net.refractions.udig.ui.OffThreadProgressMonitor;
@@ -52,7 +56,6 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
-import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -98,8 +101,23 @@ public class ModifyFeaturesOperation
         this.fs = fs;
         this.types = new AttributeDescriptor[] {
                 (AttributeDescriptor)fs.getSchema().getDescriptor( property ) };
-        this.values = new Object[] { value };
         this.filter = ff.id( Collections.singleton( ff.featureId( fid ) ) );
+        
+        // transform CRS
+        if (value instanceof Geometry) {
+            CoordinateReferenceSystem layerCRS = fs.getSchema().getCoordinateReferenceSystem();
+            CoordinateReferenceSystem mapCRS = layer.getMap().getCRS();
+            if (!mapCRS.equals( layerCRS )) {
+                try {
+                    MathTransform transform = CRS.findMathTransform( mapCRS, layerCRS );
+                    value = JTS.transform( (Geometry)value, transform );
+                }
+                catch (Exception e) {
+                    throw new RuntimeException( e );
+                }
+            }
+        }
+        this.values = new Object[] { value };
     }
 
     public ModifyFeaturesOperation( FeatureStore fs, Filter filter,
@@ -122,7 +140,7 @@ public class ModifyFeaturesOperation
             Display display = Polymap.getSessionDisplay();
             log.debug( "### Display: " + display );
             OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor );
-            JobMonitors.set( monitor );
+//            JobMonitors.set( monitor );
             monitor.subTask( getLabel() );
             
             // process values
@@ -170,7 +188,7 @@ public class ModifyFeaturesOperation
             throw new ExecutionException( "Failure...", e );
         }
         finally {
-            JobMonitors.remove();
+//            JobMonitors.remove();
         }
         return Status.OK_STATUS;
     }

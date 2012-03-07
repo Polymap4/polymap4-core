@@ -110,8 +110,15 @@ final class ConcurrentMapCacheManager
 
         public void run() {
             while (true) {
-                long nextSleep = checkMemory();
-
+                long nextSleep = 1000;
+                try {
+                    nextSleep = checkMemory();
+                    checkMaxHeapFreeRatio();
+                }
+                catch (Exception e) {
+                    log.warn( "", e );
+                }
+                
                 try {
                     //log.info( "sleeping: " + nextSleep + " ..." );
                     if (nextSleep > 0) {
@@ -196,6 +203,52 @@ final class ConcurrentMapCacheManager
             return sleep;
         }
 
+        
+        Timer heapFreeTimer = new Timer().stop();
+
+
+        /**
+         * Force full GC if more thean 30% heap are free for more than 180s. When
+         * using G1GC this helps shrinking heap, which is done on full GC only.
+         * Otherwise even with <code>-XX:MaxHeapFreeRatio=30</code> the heap never
+         * shrinks as no full GC is triggered.
+         */
+        public void checkMaxHeapFreeRatio() {
+            long maxHeapFreeRatio = 30;
+//            EnvironmentInfo env;
+//            for (String arg : args) {
+//                if (arg.startsWith( "-XX:MaxHeapFreeRatio" )) {
+//                    maxHeapFreeRatio = Long.parseLong( StringUtils.substringAfterLast( arg, "=" ) );
+//                }
+//            }
+            
+            MemoryUsage heap = memBean.getHeapMemoryUsage();
+            // check if JDK supports memBean
+            long free = heap.getCommitted() != 0
+                    ? heap.getCommitted() - heap.getUsed()
+                    : Runtime.getRuntime().freeMemory();
+            long committed = heap.getCommitted() != 0
+                    ? heap.getCommitted()
+                    : Runtime.getRuntime().totalMemory();
+
+            long heapFreeRatio = (free * 100) / committed;
+        
+            log.trace( "Heap free: " + heapFreeRatio + "%" );
+            if (heapFreeRatio > maxHeapFreeRatio) {
+                if (!heapFreeTimer.isStarted()) {
+                    heapFreeTimer.start();
+                }
+            }
+            else {
+                heapFreeTimer.stop();
+            }
+            
+            if (heapFreeTimer.elapsedTime() >= 180000) {
+                log.debug( "checkMaxHeapFreeRatio(): forcing full GC ..." );
+                System.gc();
+                heapFreeTimer.stop();
+            }
+        }
     }
     
     

@@ -158,7 +158,7 @@ public class CoreLibsPlugin
         }
         ReferencingFactoryFinder.scanForPlugins();
 //        if (false) { // how to do debug check with OSGi bundles?
-//            CRS.main( new String[] { "-dependencies" } ); //$NON-NLS-1$
+//            CRS.main( new String[] { "-dependencies" } ); 
 //        }
 
         verifyReferencingEpsg();
