@@ -41,7 +41,6 @@ import org.qi4j.bootstrap.ModuleAssembly;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.project.model.MapComposite;
-import org.polymap.core.project.model.MapState;
 import org.polymap.core.project.operations.NewLayerOperation;
 import org.polymap.core.project.operations.NewMapOperation;
 import org.polymap.core.project.operations.RemoveLayerOperation;
@@ -73,6 +72,8 @@ public class ProjectRepositoryAssembler
     private UnitOfWorkFactory           uowf;
     
     private Module                      module;
+
+    private File                        moduleRoot;
     
     
     public QiModule newModule() {
@@ -94,7 +95,7 @@ public class ProjectRepositoryAssembler
 
     public void assemble( ApplicationAssembly _app )
     throws Exception {
-        log.info( "Assembling: org.polymap.core.project..." );
+        log.info( "assembling..." );
         
         // project layer / module
         LayerAssembly domainLayer = _app.layerAssembly( "adhoc-layer" );
@@ -110,26 +111,14 @@ public class ProjectRepositoryAssembler
                 SetPropertyOperation.class,
                 SetProcessorConfigurationsOperation.class,
                 RemoveLayerOperation.class
+//                TempLayerComposite.class
         );
-        //                domainModule.addServices( FactoryService.class )
-        //                        .visibleIn( Visibility.application );
-
-        //              domainModule.addServices( MemoryEntityStoreService.class )
-        //              .instantiateOnStartup();
-
-//        // persistence: prefs
-//        Preferences prefRoot = Preferences.userRoot().node( "org/polymap/core/project" );
-//        prefRoot.put( "test", "hello" );
-//        domainModule.addServices( PreferencesEntityStoreService.class )
-//                .setMetaInfo( new PreferencesEntityStoreInfo( prefRoot ) )
-//                .instantiateOnStartup()
-//                ;  //.identifiedBy( "rdf-repository" );
 
         // persistence: workspace/JSON
         File root = new File( Polymap.getWorkspacePath().toFile(), "data" );
         root.mkdir();
         
-        File moduleRoot = new File( root, "org.polymap.core.project" );
+        moduleRoot = new File( root, "org.polymap.core.project" );
         moduleRoot.mkdir();
 
         domainModule.addServices( JsonEntityStoreService.class )
@@ -138,53 +127,39 @@ public class ProjectRepositoryAssembler
                 ;  //.identifiedBy( "rdf-repository" );
 
         domainModule.addServices( HRIdentityGeneratorService.class );
-
-        // indexer
-//        RdfNativeSesameStoreAssembler rdf = new RdfNativeSesameStoreAssembler();
-//        rdf.assemble( domainModule );
     }                
 
     
     public void createInitData() 
     throws Exception {
+        if (moduleRoot.list().length == 0) {
+            UnitOfWork start_uow = uowf.newUnitOfWork();
+
+            log.info( "creating initial data..." );
+            EntityBuilder<IMap> builder = start_uow.newEntityBuilder( IMap.class, "root" );
+            //builder.instance().setLabel( "root" );
+            IMap rootMap = builder.newInstance();
+            rootMap.addPermission( Authentication.ALL.getName(), AclPermission.READ, AclPermission.WRITE );
+            rootMap.setLabel( "root" );
+
+            IMap map = start_uow.newEntity( IMap.class, "First Map" );
+            map.addPermission( Authentication.ALL.getName(), AclPermission.ALL );
+            map.setLabel( "First Map" );
+            rootMap.addMap( map );
+
+            start_uow.complete();
+        }
         
-        // check/init rootMap
+        // check rootMap
         UnitOfWork start_uow = uowf.newUnitOfWork();
         try {
             IMap rootMap = start_uow.get( IMap.class, "root" );
-            System.out.println( "rootMap: " + rootMap.getLabel() );
-            System.out.println( "rootMap: " + ((MapState)rootMap).maps().iterator().next() );
-            for (IMap child : rootMap.getMaps()) {
-                System.out.println( "   child: " + child.toString() );
-            }
             if (rootMap == null) {
                 throw new NoSuchEntityException( null );
             }
         }
-        catch (Throwable e) {
-            try {
-                log.info( "No config or error, creating global config. (" + e + ")" );
-                EntityBuilder<IMap> builder = start_uow.newEntityBuilder( IMap.class, "root" );
-                //builder.instance().setLabel( "root" );
-                IMap rootMap = builder.newInstance();
-                rootMap.addPermission( Authentication.ALL.getName(), AclPermission.READ, AclPermission.WRITE );
-                rootMap.setLabel( "root" );
-
-                IMap map = start_uow.newEntity( IMap.class, "First Map" );
-                map.addPermission( Authentication.ALL.getName(), AclPermission.ALL );
-                map.setLabel( "First Map" );
-                rootMap.addMap( map );
-
-                System.out.println( "rootMap: " + ((MapState)rootMap).maps().iterator().next() );
-            }
-            catch (Exception e1) {
-                log.error( e1.getMessage(), e1 );
-                throw e1;
-            }
-        }
         finally {
             start_uow.complete();
-            start_uow = null;
         }
     }
     

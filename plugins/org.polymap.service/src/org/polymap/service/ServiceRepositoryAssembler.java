@@ -66,6 +66,8 @@ public class ServiceRepositoryAssembler
     private UnitOfWorkFactory           uowf;
     
     private Module                      module;
+
+    private File                        moduleRoot;
     
     
     public QiModule newModule() {
@@ -87,7 +89,7 @@ public class ServiceRepositoryAssembler
 
     public void assemble( ApplicationAssembly _app )
     throws Exception {
-        log.info( "Assembling: org.polymap.service ..." );
+        log.info( "assembling..." );
         
         LayerAssembly domainLayer = _app.layerAssembly( "adhoc-layer" );
         ModuleAssembly domainModule = domainLayer.moduleAssembly( "services-module" );
@@ -102,18 +104,11 @@ public class ServiceRepositoryAssembler
                 SetPropertyOperation.class
         );
 
-//        // persistence
-//        Preferences prefRoot = Preferences.userRoot().node( "org/polymap/core/services" );
-//        domainModule.addServices( PreferencesEntityStoreService.class )
-//                .setMetaInfo( new PreferencesEntityStoreInfo( prefRoot ) )
-//                .instantiateOnStartup()
-//                ;  //.identifiedBy( "rdf-repository" );
-
         // persistence: workspace/JSON
         File root = new File( Polymap.getWorkspacePath().toFile(), "data" );
         root.mkdir();
         
-        File moduleRoot = new File( root, "org.polymap.service" );
+        moduleRoot = new File( root, "org.polymap.service" );
         moduleRoot.mkdir();
 
         domainModule.addServices( JsonEntityStoreService.class )
@@ -122,42 +117,23 @@ public class ServiceRepositoryAssembler
                 ;  //.identifiedBy( "rdf-repository" );
         
         domainModule.addServices( UuidIdentityGeneratorService.class );
-
-        // indexer
-//        RdfNativeSesameStoreAssembler rdf = new RdfNativeSesameStoreAssembler();
-//        rdf.assemble( domainModule );
     }                
 
     
     public void createInitData() 
     throws Exception {
+        // check folder -> create init data
+        if (moduleRoot.list().length == 0) {
+            UnitOfWork start_uow = uowf.newUnitOfWork();
+            start_uow.newEntity( ServiceListComposite.class, "serviceList" );
+            start_uow.complete();
+        }
         
-        // check/init rootMap
         UnitOfWork start_uow = uowf.newUnitOfWork();
         try {
             ServiceListComposite serviceList = start_uow.get( ServiceListComposite.class, "serviceList" );
-            System.out.println( "ServiceList: " + serviceList );
-            for (IProvidedService child : serviceList.services()) {
-                System.out.println( "   child: " + child.toString() );
-            }
             if (serviceList == null) {
                 throw new NoSuchEntityException( null );
-            }
-        }
-        catch (Throwable e) {
-            try {
-                log.info( "No config or error, creating global config. (" + e + ")" );
-//                EntityBuilder<IMap> builder = start_uow.newEntityBuilder( IMap.class, "root" );
-//                //builder.instance().setLabel( "root" );
-//                IMap rootMap = builder.newInstance();
-//                rootMap.setLabel( "root" );
-
-                ServiceListComposite serviceList = start_uow.newEntity( ServiceListComposite.class, "serviceList" );
-                System.out.println( "serviceList: " + serviceList );
-            }
-            catch (Exception e1) {
-                log.error( e1.getMessage(), e1 );
-                throw e1;
             }
         }
         finally {

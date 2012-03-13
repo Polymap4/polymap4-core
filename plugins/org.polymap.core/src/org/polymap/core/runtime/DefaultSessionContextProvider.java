@@ -93,19 +93,8 @@ public class DefaultSessionContextProvider
         if (context == null) {
             throw new IllegalStateException( "No context bound to this thread." );
         }
-        currentContext.set( null );
+        currentContext.remove();
     }
-
-    
-//    public void inContext( String sessionKey, Runnable task ) {
-//        try {
-//            mapContext( sessionKey, false );
-//            task.run();
-//        }
-//        finally {
-//            unmapContext();
-//        }
-//    }
 
     
     protected DefaultSessionContext newContext( String sessionKey ) {

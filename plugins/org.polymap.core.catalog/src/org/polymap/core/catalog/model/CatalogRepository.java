@@ -72,7 +72,6 @@ public class CatalogRepository
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
         catalog = uow.get( CatalogComposite.class, "catalog" );
-        System.out.println( "Catalog: " + catalog );
     }
     
     

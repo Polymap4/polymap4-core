@@ -50,7 +50,6 @@ public class TestServlet
     
     public TestServlet() {
         super();
-        log.info( "..." );
     }
 
 

@@ -202,12 +202,6 @@ public class GeoServerWms
         String pathInfo = req.getPathInfo();
         log.debug( "Request: servletPath=" + servletPath + ", pathInfo=" + pathInfo );
         
-//        if (req.getMethod().equals( "POST" )) {
-//            ServletInputStream in = req.getInputStream();
-//            System.out.println( "POST: " );
-//            StreamUtils.copy( in, System.out );
-//        }
-
         // schemas
         if (pathInfo != null && pathInfo.startsWith( "/schemas" )) {
             String resName = req.getPathInfo().substring( 1 );
@@ -252,31 +246,7 @@ public class GeoServerWms
 //            
 //        };
 
-//            // FIXME huaahh... what a hack! :( remove this as soon as EPSG:3857 is
-//            // supported
-//            HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper( req ) {
-//
-//                public Map getParameterMap() {
-//                    Map result = new HashMap( 16 );
-//                    for (Object entry : req.getParameterMap().entrySet()) {
-//                        String[] values = (String[])((Map.Entry)entry).getValue();
-//                        for (int i=0; i<values.length; i++) {
-//                            values[i] = values[i].replace( "EPSG:3857", "EPSG:900913" ); 
-//                        }
-//                        result.put( ((Map.Entry)entry).getKey(), values );
-//                    }
-//                    log.debug( "getParameterMap(): " + result );
-//                    return result;
-//                }
-//
-//                public String getParameter( String name ) {
-//                    String result = req.getParameter( name );
-//                    log.debug( "getParameter(): " + name + " : " + result  );
-//                    return result;
-//                }
-//            };
-            
-            (dispatcher).service( req, resp );
+            dispatcher.service( req, resp );
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );

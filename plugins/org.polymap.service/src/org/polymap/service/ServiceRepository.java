@@ -75,7 +75,6 @@ public class ServiceRepository
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
         serviceList = uow.get( ServiceListComposite.class, "serviceList" );
-        log.info( "ServiceList: " + serviceList.getServices() );
     }
     
     
@@ -106,7 +105,6 @@ public class ServiceRepository
             List<IProvidedService> result = new ArrayList();
             for (IProvidedService service : serviceList.getServices()) {
                 try {
-                    System.out.println( "   service: " + service );
                     if (service.getMapId().equals( map.id() )
                             && service.getServiceType().equals( cl )) {
                         result.add( service );
