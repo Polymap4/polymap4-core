@@ -85,6 +85,7 @@ public class CorePlugin
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "trace" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.service.geoserver", "debug" );
 

@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
 
 import org.polymap.rhei.form.IFormEditorToolkit;
+import org.polymap.rhei.internal.form.FormEditorToolkit;
 
 /**
  * A date/time form field based on the {@link DateTime} widget.
@@ -79,6 +80,7 @@ public class DateTimeFormField
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
         dateTime = toolkit.createDateTime( parent, new Date(), SWT.MEDIUM | SWT.DROP_DOWN );
         dateTime.setEnabled( enabled );
+        dateTime.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
         
         // selection(modify) listener
         dateTime.addSelectionListener( new SelectionAdapter() {
@@ -107,18 +109,25 @@ public class DateTimeFormField
     }
 
     
-    public void setEnabled( boolean enabled ) {
+    public IFormField setEnabled( boolean enabled ) {
         this.enabled = enabled;
         if (dateTime != null) {
             dateTime.setEnabled( enabled );
+            dateTime.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
         }
+        return this;
     }
 
     
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         Date date = (Date)value;
         Calendar cal = Calendar.getInstance( Locale.GERMANY );
         cal.setTime( date );
+        
+        // modify the orig value; otherwise millis may differ as DateTime field
+        // does not support millis
+        cal.set( Calendar.MILLISECOND, 0 );
+        date.setTime( cal.getTimeInMillis() );
 
         dateTime.setDate( cal.get( Calendar.YEAR ), cal.get( Calendar.MONTH ), cal.get( Calendar.DATE ) );
         dateTime.setTime( cal.get( Calendar.HOUR_OF_DAY ), cal.get( Calendar.MINUTE ), cal.get( Calendar.SECOND ) );
@@ -126,6 +135,7 @@ public class DateTimeFormField
         // the above calls does not seem to fire events
         site.fireEvent( DateTimeFormField.this, IFormFieldListener.VALUE_CHANGE,
                 loadedValue == null && date.equals( nullValue ) ? null : date );
+        return this;
     }
 
     

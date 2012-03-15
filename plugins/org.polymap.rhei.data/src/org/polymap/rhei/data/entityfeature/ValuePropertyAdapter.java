@@ -23,50 +23,28 @@ import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.feature.type.PropertyType;
 
-import com.google.common.base.Joiner;
-
 /**
- * Adapter between a Qi4j {@link org.qi4j.api.property.Property} and a OGC
- * property. Used by {@link IFormPageProvider} instances to handle complex
- * attributes.
- *
+ * Provides a plain value as OGC property. Used by {@link IFormPageProvider}
+ * instances to handle complex attributes.
+ * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
  */
-public class PropertyAdapter
+public class ValuePropertyAdapter<T>
         implements Property {
 
-    private org.qi4j.api.property.Property  delegate;
+    private String          name;
     
-    private String                          prefix;
+    private T               value;
     
-    private boolean                         readOnly;
 
-
-    public PropertyAdapter( org.qi4j.api.property.Property delegate ) {
-        this.delegate = delegate;
-    }
-
-    public PropertyAdapter( String prefix, org.qi4j.api.property.Property delegate ) {
-        this.delegate = delegate;
-        this.prefix = prefix;
-    }
-
-    protected org.qi4j.api.property.Property delegate() {
-        return delegate;
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public PropertyAdapter setReadOnly( boolean readOnly ) {
-        this.readOnly = readOnly;
-        return this;
+    public ValuePropertyAdapter( String name, T value ) {
+        this.name = name;
+        this.value = value;
     }
 
     public Name getName() {
-        return new NameImpl( Joiner.on( "_" ).skipNulls().join( prefix, delegate.qualifiedName().name() ) );
+        return new NameImpl( name );
     }
 
     public PropertyType getType() {
@@ -80,13 +58,11 @@ public class PropertyAdapter
     }
 
     public Object getValue() {
-        return delegate.get();
+        return value;
     }
 
     public void setValue( Object value ) {
-        if (!readOnly) {
-            delegate.set( value );
-        }
+        this.value = (T)value;
     }
 
     public Map<Object, Object> getUserData() {

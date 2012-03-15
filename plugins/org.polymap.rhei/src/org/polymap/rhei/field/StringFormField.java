@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 
 import org.polymap.rhei.form.IFormEditorToolkit;
+import org.polymap.rhei.internal.form.FormEditorToolkit;
 
 /**
  *
@@ -48,6 +49,8 @@ public class StringFormField
 
     // XXX use (proper) validator to make the translation to String
     private Object                  loadedValue;
+    
+    private boolean                 deferredEnabled = true;
 
 
     public void init( IFormFieldSite _site ) {
@@ -81,19 +84,29 @@ public class StringFormField
                 site.fireEvent( StringFormField.this, IFormFieldListener.FOCUS_GAINED, text.getText() );
             }
         });
+        text.setEnabled( deferredEnabled );
+        text.setBackground( deferredEnabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
         return text;
     }
 
-    public void setEnabled( boolean enabled ) {
-        text.setEnabled( enabled );
+    public IFormField setEnabled( boolean enabled ) {
+        if (text != null) {
+            text.setEnabled( enabled );
+            text.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
+        }
+        else {
+            deferredEnabled = enabled;
+        }
+        return this;
     }
 
     /**
      * Explicitly set the value of the text field. This causes events to be
      * fired just like the value was typed in.
      */
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         text.setText( value != null ? (String)value : "" );
+        return this;
     }
 
     public void load() throws Exception {
@@ -104,7 +117,10 @@ public class StringFormField
     }
 
     public void store() throws Exception {
-        site.setFieldValue( text.getText() );
+        // XXX what is the semantics?
+//        if (text.getEnabled() && (text.getStyle() | SWT.READ_ONLY) == 0) {
+            site.setFieldValue( text.getText() );
+//        }
     }
 
 }

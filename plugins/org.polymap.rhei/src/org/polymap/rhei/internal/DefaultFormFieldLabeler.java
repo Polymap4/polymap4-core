@@ -34,8 +34,6 @@ import org.polymap.rhei.form.IFormEditorToolkit;
 public class DefaultFormFieldLabeler
         implements IFormFieldLabel {
 
-    public static final String  NO_LABEL = "_nolabel_";
-    
     private IFormFieldSite      site;
     
     private String              label;

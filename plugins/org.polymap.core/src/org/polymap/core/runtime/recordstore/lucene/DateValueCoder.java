@@ -45,7 +45,7 @@ public final class DateValueCoder
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         if (value instanceof Date) {
-            NumericField field = (NumericField)doc.getFieldable( key );
+            NumericField field = (NumericField)doc.getFieldable( key+SUFFIX );
             if (field == null) {
                 field = new NumericField( key+SUFFIX, Store.YES, indexed );
                 doc.add( field );

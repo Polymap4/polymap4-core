@@ -22,6 +22,9 @@ import java.util.Map;
 
 import org.opengis.feature.Property;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -68,6 +71,8 @@ import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 public class FormEditorPageContainer
         extends FormPage
         implements IFormEditorPageSite, IFormFieldListener {
+
+    static Log log = LogFactory.getLog( FormEditorPageContainer.class );
 
     private IFormEditorPage             page;
 
@@ -129,7 +134,12 @@ public class FormEditorPageContainer
 //        }
 
         for (Object l : listeners.getListeners()) {
-            ((IFormFieldListener)l).fieldChange( ev );
+            try {
+                ((IFormFieldListener)l).fieldChange( ev );
+            }
+            catch (Exception e) {
+                log.warn( "", e );
+            }
         }
     }
 

@@ -82,12 +82,14 @@ public class CheckboxFormField
         return checkbox;
     }
 
-    public void setEnabled( boolean enabled ) {
+    public IFormField setEnabled( boolean enabled ) {
         checkbox.setEnabled( enabled );
+        return this;
     }
 
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         checkbox.setSelection( (Boolean)value );
+        return this;
     }
 
     public void load() throws Exception {

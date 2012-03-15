@@ -150,13 +150,14 @@ public class BetweenFormField
     }
 
     
-    public void setEnabled( boolean enabled ) {
+    public IFormField setEnabled( boolean enabled ) {
         field1.setEnabled( enabled );
         field2.setEnabled( enabled );
+        return this;
     }
 
     
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         throw new RuntimeException( "Not yet implemented." );
     }
 

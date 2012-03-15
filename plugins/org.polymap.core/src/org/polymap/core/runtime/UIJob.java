@@ -173,12 +173,17 @@ public abstract class UIJob
      * @param showRunInBackground Signals that the dialog should have a
      *        "showInBackground" button.
      */
-    public UIJob setShowProgressDialog( String dialogTitle, boolean showRunInBackground ) {
+    public UIJob setShowProgressDialog( final String dialogTitle, final boolean showRunInBackground ) {
         // enable UI only if we have a display
         if (display != null) {
-//        if (progressDialog == null) {
-//            progressDialog = new ProgressDialog( dialogTitle, showRunInBackground );
-//        }
+            if (progressDialog == null) {
+                display.syncExec( new Runnable() {
+                    public void run() {
+                        progressDialog = new ProgressDialog( dialogTitle != null ? dialogTitle : getName(), 
+                                showRunInBackground );
+                    }
+                });
+            }
             setUser( true );
         }
         return this;

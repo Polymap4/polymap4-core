@@ -62,6 +62,7 @@ public final class ValueCoders {
         LuceneValueCoder valueCoder = keyCoderMap.get( key );
         if (valueCoder != null) {
             valueCoder.encode( doc, key, value, indexed );
+            return true;
         }
         for (LuceneValueCoder candidate : valueCoders) {
             if (candidate.encode( doc, key, value, indexed )) {
@@ -79,7 +80,7 @@ public final class ValueCoders {
         }
         LuceneValueCoder valueCoder = keyCoderMap.get( key );
         if (valueCoder != null) {
-            valueCoder.decode( doc, key );
+            return (T)valueCoder.decode( doc, key );
         }
         for (LuceneValueCoder candidate : valueCoders) {
             T result = (T)candidate.decode( doc, key );

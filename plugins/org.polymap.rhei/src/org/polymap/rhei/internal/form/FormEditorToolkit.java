@@ -59,7 +59,8 @@ public class FormEditorToolkit
 
     private FormToolkit         delegate;
 
-    public Color                textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
+    public static final Color   textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
+    public static final Color   textBackgroundDisabled = Graphics.getColor( 0xF6, 0xF4, 0xF4 );
     
     private Color               labelForeground = Graphics.getColor( 0x70, 0x70, 0x70 );
     

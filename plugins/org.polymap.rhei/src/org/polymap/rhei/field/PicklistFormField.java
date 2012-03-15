@@ -264,12 +264,13 @@ public class PicklistFormField
     }
 
     
-    public void setEnabled( boolean enabled ) {
+    public IFormField setEnabled( boolean enabled ) {
         combo.setEnabled( enabled );
+        return this;
     }
 
 
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         combo.setText( "" );
         combo.deselectAll();
 
@@ -285,6 +286,7 @@ public class PicklistFormField
         else {
             combo.setText( value != null ? (String)value : "" );
         }
+        return this;
     }
 
     

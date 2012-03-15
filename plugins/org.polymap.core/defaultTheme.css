@@ -19,19 +19,27 @@ Menu {
 }
 
 /* Form widgets *******************************************/
+
+/* !! background-color does not work here; see FormEditorToolkit !! */
+
 Text.formeditor {
     border: 1px solid #CCCCCC;
-    background-color: #FFFDD4;
+}
+
+Text.formeditor:disabled {
+    color: #202020;
 }
 
 Combo.formeditor {
     border: 1px solid #CCCCCC;
-    background-color: #FFFDD4;
 }
 
 DateTime.formeditor {
     border: 1px solid #CCCCCC;
-    background-color: #FFFDD4;
+}
+
+DateTime.formeditor:disabled {
+    color: #202020;
 }
 
 /* Toolbar ************************************************/

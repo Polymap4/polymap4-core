@@ -61,11 +61,15 @@ public interface IFormField {
 
 
     /**
+     * The value of a disabled field cannot be modified by the user. It changes its
+     * visual representation to signal this to the user. However, the value can be
+     * changed via {@link #setValue(Object)}. If the field is disabled when the form
+     * is stored, then the fields value is not stored back.
      * 
-     * @param enabled Flag that indicates the new enable state of this form
-     *        field.
+     * @param enabled Flag that indicates the new enable state of this form field.
+     * @return this
      */
-    public void setEnabled( boolean enabled );
+    public IFormField setEnabled( boolean enabled );
     
     public void store() 
     throws Exception;
@@ -76,7 +80,9 @@ public interface IFormField {
     /**
      * Explicitly set the value of this field. This causes events to be fired
      * just like the value was typed in.
+     * 
+     * @return this
      */
-    public void setValue( Object value );
+    public IFormField setValue( Object value );
     
 }

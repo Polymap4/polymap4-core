@@ -349,8 +349,7 @@ public class LuceneEntityState
             }
     
             for (PropertyType actualType : actualTypes) {
-                storeProperty( Joiner.on( SEPARATOR_PROP ).join(
-                        fieldName, actualType.qualifiedName().name() ),
+                storeProperty( Joiner.on( SEPARATOR_PROP ).join( fieldName, actualType.qualifiedName().name() ),
                         actualType.type(),
                         values.get( actualType.qualifiedName() ) );
             }
