@@ -47,8 +47,10 @@
 			<remoteRepository refid="jaitoolsmaven.repository" />
 			<!-- remoteRepository refid="geosolutionsmaven.repository" /-->
 
-            <!--  used for runtime.recordstore and others -->
+            <!-- used for runtime.recordstore, lka/Atlas and others -->
+            <!-- http://mvnrepository.com/artifact/org.apache.lucene -->
             <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.4.0" />
+            <dependency groupId="org.apache.lucene" artifactId="lucene-queryparser" version="3.4.0" />
 
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />

@@ -88,14 +88,6 @@ Export-Package: net.refractions.udig;uses:="org.eclipse.jface.action,org.eclipse
    org.eclipse.swt.widgets,
    org.opengis.feature.type,
    org.eclipse.jface.dialogs",
- net.refractions.udig.ui.graphics;
-  uses:="org.opengis.feature.simple,
-   org.geotools.styling,
-   org.eclipse.jface.resource,
-   javax.swing,
-   org.eclipse.swt.graphics,
-   org.eclipse.swt.widgets,
-   net.refractions.udig.ui",
  net.refractions.udig.ui.internal;uses:="org.eclipse.jface.action,org.eclipse.osgi.util,org.eclipse.ui",
  net.refractions.udig.ui.operations;
   uses:="org.eclipse.core.runtime,

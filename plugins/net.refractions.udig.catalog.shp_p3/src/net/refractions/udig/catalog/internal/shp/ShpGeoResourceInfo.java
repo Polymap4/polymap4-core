@@ -7,18 +7,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.swing.Icon;
-
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.IGeoResourceInfo;
 import net.refractions.udig.catalog.shp.internal.Messages;
-import net.refractions.udig.catalog.util.GeotoolsResourceInfoAdapter;
-import net.refractions.udig.ui.graphics.AWTSWTImageUtils;
-import net.refractions.udig.ui.graphics.Glyph;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.ResourceInfo;
 import org.geotools.feature.FeatureIterator;
@@ -28,6 +20,8 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Envelope;
+
+import org.eclipse.core.runtime.IStatus;
 
 class ShpGeoResourceInfo extends IGeoResourceInfo {
 	private final ShpGeoResourceImpl shpResource;

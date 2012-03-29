@@ -19,6 +19,10 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.http.HttpServiceRegistry;
@@ -148,7 +152,15 @@ public class ServicesPlugin
                     log.info( "Proxy URL set to: " + proxyBaseUrl );
 
                     HttpServiceRegistry.init( httpService );
-                    reStartServices();                            
+                    
+                    // delayed starting services in separate thread
+                    new Job( "ServiceStarter" ) {
+                        protected IStatus run( IProgressMonitor monitor ) {
+                            log.info( "starting services..." );
+                            reStartServices();
+                            return Status.OK_STATUS;
+                        }
+                    }.schedule( 5000 );
                 }
                 return httpService;
             }

@@ -21,10 +21,7 @@ import java.net.URISyntaxException;
 import net.refractions.udig.catalog.IResolve.Status;
 import net.refractions.udig.catalog.internal.postgis.PostgisPlugin;
 import net.refractions.udig.catalog.postgis.internal.Messages;
-import net.refractions.udig.ui.graphics.Glyph;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.geotools.data.DataSourceException;
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureIterator;
@@ -36,6 +33,9 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Envelope;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 class PostgisResourceInfo extends IGeoResourceInfo {
 

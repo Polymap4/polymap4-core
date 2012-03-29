@@ -655,11 +655,10 @@ public final class ImageCache {
 
 		}
 		if (typeOfImage == DISABLE) {
-			images[typeOfImage] = new Image(null, images[REGULAR],
-					SWT.IMAGE_DISABLE);
+		    // XXX _p3: image constants does not exist
+			images[typeOfImage] = new Image(null, images[REGULAR], SWT.IMAGE_UNDEFINED /* DISABLE*/);
 		} else if (typeOfImage == GRAY) {
-			images[typeOfImage] = new Image(null, images[REGULAR],
-					SWT.IMAGE_GRAY);
+			images[typeOfImage] = new Image(null, images[REGULAR], SWT.IMAGE_UNDEFINED /*GRAY*/);
 		}
 		// Add the entry to the map
 		final ImageMapEntry mapEntry = new ImageMapEntry(equivalenceKey, images);
@@ -837,11 +836,10 @@ public final class ImageCache {
 		}
 
 		if (typeOfImage == GRAY) {
-			images[typeOfImage] = new Image(null, images[REGULAR],
-					SWT.IMAGE_GRAY);
+		    // XXX _p3: image constant does not exist
+			images[typeOfImage] = new Image(null, images[REGULAR], SWT.IMAGE_UNDEFINED /*GRAY*/);
 		} else if (typeOfImage == DISABLE) {
-			images[typeOfImage] = new Image(null, images[REGULAR],
-					SWT.IMAGE_DISABLE);
+			images[typeOfImage] = new Image(null, images[REGULAR], SWT.IMAGE_UNDEFINED /*DISABLE*/);
 		}
 		return images[typeOfImage];
 	}

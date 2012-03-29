@@ -25,8 +25,6 @@ import java.util.Set;
 
 import javax.swing.Icon;
 
-import net.refractions.udig.ui.graphics.AWTSWTImageUtils;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -186,7 +184,7 @@ public class IGeoResourceInfo {
             return null;
         }
         
-        Icon awtIcon = AWTSWTImageUtils.imageDescriptor2awtIcon(icon);
+        Icon awtIcon = null; // XXX _p3: AWTSWTImageUtils.imageDescriptor2awtIcon(icon);
         return awtIcon;
         
     }
@@ -206,7 +204,7 @@ public class IGeoResourceInfo {
             return null;
         }
         
-        return AWTSWTImageUtils.awtIcon2ImageDescriptor(icon2);
+        return null;  // XXX _p3: AWTSWTImageUtils.awtIcon2ImageDescriptor(icon2);
     }
 
     /**
