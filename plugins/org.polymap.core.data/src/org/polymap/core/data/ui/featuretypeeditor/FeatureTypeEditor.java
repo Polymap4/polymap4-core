@@ -65,6 +65,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.ui.IActionBars;
 
 import org.polymap.core.data.feature.LegalAttributeType;
+import org.polymap.core.data.util.FastApplyComboBoxCellEditor;
 
 /**
  * A composite editor based on a JFace TreeViewer for creating and editing feature types.
@@ -225,7 +226,7 @@ public class FeatureTypeEditor {
             }
 
             TextCellEditor attributeNameEditor = new TextCellEditor( tree );
-            ComboBoxCellEditor attributeTypeEditor = new ComboBoxCellEditor( tree, comboItems,
+            ComboBoxCellEditor attributeTypeEditor = new FastApplyComboBoxCellEditor( tree, comboItems,
                     SWT.READ_ONLY | SWT.FULL_SELECTION );
 
             List<CellEditor> cellEditors = new ArrayList();
