@@ -38,7 +38,7 @@ import org.polymap.core.runtime.UIJob;
 
 /**
  * Provides information about modifications of a given entity or feature that might
- * have triggered by the session of the caller or another session within this JVM.
+ * have triggered by the session of the caller or another(!) session within this JVM.
  * <p/>
  * This class provides a general API and implementation to track the
  * version/timestamp of all kind of model entities, features, objects. It helps to

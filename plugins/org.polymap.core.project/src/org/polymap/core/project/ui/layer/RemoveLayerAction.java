@@ -1,7 +1,7 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-20122, Polymap GmbH, and individual contributors
+ * as indicated by the @authors tag.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,10 +18,12 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  *
- * $Id$
  */
 
 package org.polymap.core.project.ui.layer;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,7 +57,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class RemoveLayerAction
@@ -64,7 +65,7 @@ public class RemoveLayerAction
 
     private static Log log = LogFactory.getLog( RemoveLayerAction.class );
 
-    private ILayer                  selectedLayer;
+    private List<ILayer>        selectedLayers = new ArrayList();
     
     
     public RemoveLayerAction() {
@@ -79,7 +80,7 @@ public class RemoveLayerAction
     public void runWithEvent( IAction action, Event event ) {
         try {
             RemoveLayerOperation op = ProjectRepository.instance().newOperation( RemoveLayerOperation.class );
-            op.init( selectedLayer );
+            op.init( selectedLayers );
             OperationSupport.instance().execute( op, true, true );
         }
         catch (ExecutionException e) {
@@ -90,24 +91,31 @@ public class RemoveLayerAction
 
     public void selectionChanged( IAction action, ISelection sel ) {
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        
         if (sel instanceof IStructuredSelection) {
-            Object elm = ((IStructuredSelection)sel).getFirstElement();
-            selectedLayer = (elm != null && elm instanceof ILayer)
-                    ? (ILayer)elm : null;
+                
+            selectedLayers.clear();
+            action.setEnabled( false );
 
-            if (selectedLayer != null) {
-                // check ACL permission
-                boolean hasPermission = selectedLayer instanceof ACL
-                        ? ACLUtils.checkPermission( (ACL)selectedLayer, AclPermission.DELETE, false )
-                        : true;
-                action.setEnabled( hasPermission );
-            }
-            else {
+            for (Object elm : ((IStructuredSelection)sel).toArray()) {
+                if (elm != null && elm instanceof ILayer) {
+                    ILayer layer = (ILayer)elm;
+                    // check ACL permission
+                    boolean hasPermission = layer instanceof ACL
+                            ? ACLUtils.checkPermission( layer, AclPermission.DELETE, false )
+                            : true;
+                    if (hasPermission) {
+                        selectedLayers.add( layer );
+                        action.setEnabled( true );
+                        continue;
+                    }
+                }
+                
+                // if not ILayer or no permission -> disable
                 action.setEnabled( false );
+                selectedLayers.clear();
+                break;
             }
-        }
-        else {
-            selectedLayer = null;
         }
     }
 

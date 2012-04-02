@@ -23,6 +23,9 @@
 
 package org.polymap.core.project.operations;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
 
@@ -49,7 +52,9 @@ import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 public interface RemoveLayerOperation
         extends IUndoableOperation, TransientComposite {
 
-    public void init( ILayer map );
+    public void init( ILayer layer );
+    
+    public void init( List<ILayer> layers );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
@@ -64,16 +69,25 @@ public interface RemoveLayerOperation
             extends AbstractModelChangeOperation
             implements RemoveLayerOperation {
 
-        private ILayer              layer;
+        private List<ILayer>          layers = new ArrayList();
         
         public Mixin() {
             super( "[undefined]" );
         }
 
 
-        public void init( ILayer _layer ) {
-            this.layer = _layer;
+        public void init( ILayer layer ) {
+            this.layers.add( layer );
             setLabel( '"' + layer.getLabel() + "\" löschen" );
+        }
+
+        public void init( List<ILayer> _layers ) {
+            this.layers.addAll( _layers );
+            if (layers.size() > 1) {
+                setLabel( layers.size() + " Ebenen löschen" );
+            } else {
+                setLabel( '"' + layers.get( 0 ).getLabel() + "\" löschen" );
+            }
         }
 
 
@@ -81,8 +95,10 @@ public interface RemoveLayerOperation
         throws ExecutionException {
             try {
                 ProjectRepository rep = ProjectRepository.instance();
-                layer.getMap().removeLayer( layer );
-                rep.removeEntity( layer );
+                for (ILayer layer : layers) {
+                    layer.getMap().removeLayer( layer );
+                    rep.removeEntity( layer );
+                }
             }
             catch (Throwable e) {
                 throw new ExecutionException( e.getMessage(), e );

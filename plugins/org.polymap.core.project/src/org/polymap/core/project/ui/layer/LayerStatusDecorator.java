@@ -24,6 +24,8 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -98,7 +100,11 @@ public class LayerStatusDecorator
     public void dispose() {
         log.info( "dispose(): ..." );
         for (ILayer layer : decorated.values()) {
-            layer.removePropertyChangeListener( this );
+            try {
+                layer.removePropertyChangeListener( this );
+            }
+            catch (NoSuchEntityException e) {
+            }
         }
         decorated.clear();
     }
@@ -108,6 +114,14 @@ public class LayerStatusDecorator
         if (elm instanceof ILayer) {
             ILayer layer = (ILayer)elm;
 
+            try {
+                layer.id();
+            }
+            catch (NoSuchEntityException e) {
+                // handled by EntityModificationDecorator
+                return;
+            }
+            
             // editable
             if (layer.isEditable()) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, editable );

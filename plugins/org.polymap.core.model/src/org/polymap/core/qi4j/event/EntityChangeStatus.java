@@ -15,6 +15,8 @@
  */
 package org.polymap.core.qi4j.event;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.polymap.core.model.event.ModelChangeTracker;
 import org.polymap.core.model.event.ModelHandle;
 
@@ -44,7 +46,12 @@ public class EntityChangeStatus {
      * True if this entity has uncommited changes in the local session.
      */
     public boolean isDirty() {
-        return entity.isDirty();
+        try {
+            return entity.isDirty();
+        }
+        catch (NoSuchEntityException e) {
+            return true;
+        }
     }
     
     

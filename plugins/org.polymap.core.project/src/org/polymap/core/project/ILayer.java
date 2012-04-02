@@ -44,12 +44,11 @@ import org.polymap.core.style.IStyle;
 
 /**
  * A Layer represents an {@link IGeoResource} inside an {@link IMap}.
- * <p>
+ * <p/>
  * Setting attributes is done via Commands.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
  *         <li>30.10.2009: created</li>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public interface ILayer

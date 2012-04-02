@@ -49,8 +49,13 @@ public class LayerContentProvider
 
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
-            AssocCollection<ILayer> layers = ((IMap)elm).getLayers();
-            return layers.toArray(new ILayer[layers.size()]);
+            try {
+                AssocCollection<ILayer> layers = ((IMap)elm).getLayers();
+                return layers.toArray(new ILayer[layers.size()]);
+            }
+            catch (NoSuchEntityException e) {
+                log.debug( "getChildren(): " + e.toString() );
+            }
         }
         return null;
     }
