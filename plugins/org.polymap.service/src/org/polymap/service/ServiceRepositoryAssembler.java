@@ -34,14 +34,13 @@ import org.qi4j.api.unitofwork.UnitOfWorkFactory;
 import org.qi4j.bootstrap.ApplicationAssembly;
 import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
-import org.qi4j.spi.uuid.UuidIdentityGeneratorService;
-
 import org.polymap.core.project.model.MapComposite;
 import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreService;
+import org.polymap.core.qi4j.idgen.HRIdentityGeneratorService;
 import org.polymap.core.runtime.Polymap;
 
 import org.polymap.service.model.ProvidedServiceComposite;
@@ -116,7 +115,7 @@ public class ServiceRepositoryAssembler
                 .instantiateOnStartup()
                 ;  //.identifiedBy( "rdf-repository" );
         
-        domainModule.addServices( UuidIdentityGeneratorService.class );
+        domainModule.addServices( HRIdentityGeneratorService.class );
     }                
 
     

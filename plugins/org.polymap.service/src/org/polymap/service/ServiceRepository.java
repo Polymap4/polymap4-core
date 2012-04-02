@@ -24,13 +24,14 @@ package org.polymap.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-
-import org.qi4j.api.unitofwork.NoSuchEntityException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
@@ -61,20 +62,45 @@ public class ServiceRepository
     }
 
 
+    class WaitingAtomicReference<T>
+            extends AtomicReference<T> {
+        
+        public T waitAndGet() {
+            T ref = get();
+            if (ref == null) {
+                synchronized (this) {
+                    while ((ref = get()) == null) {
+                        try { wait( 1000 ); } catch (InterruptedException e) { }
+                    }
+                    return get();
+                }
+            }
+            return ref;
+        }
+        
+        public void setAndNotify( T value ) {
+            set( value );
+            synchronized (this) {
+                notifyAll();
+            }
+        }
+    }
+    
+    
     // instance *******************************************
 
-    private ServiceListComposite    serviceList;
+    private WaitingAtomicReference<ServiceListComposite>   serviceList = new WaitingAtomicReference();
     
-    private OperationSaveListener   operationListener;
+    private OperationSaveListener               operationListener;
     
 
-    protected ServiceRepository( QiModuleAssembler assembler ) {
+    protected ServiceRepository( final QiModuleAssembler assembler ) {
         super( assembler );
         
         operationListener = new OperationSaveListener();
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
-        serviceList = uow.get( ServiceListComposite.class, "serviceList" );
+        serviceList.setAndNotify( uow.get( ServiceListComposite.class, "serviceList" ) );
     }
     
     
@@ -85,6 +111,30 @@ public class ServiceRepository
         }
     }
 
+    
+    protected void legacyRemoveServices() {
+        ServiceListComposite tempServiceList = serviceList.get();        
+        Iterator<IProvidedService> it = tempServiceList.services().iterator();
+        IProvidedService service = null;
+        while (it.hasNext()) {
+            try {
+                service = it.next();
+                service.getMap();
+            }
+            catch (NoSuchEntityException e) {
+                log.info( "Map is no longer found for service: " + e.identity() );
+                if (service == null) {
+                    it.remove();
+                }
+                else {
+                    //tempServiceList.removeService( service );
+                    it.remove();
+                    removeService( service );
+                }
+            }
+        }
+    }
+    
     
     public IProvidedService findService( IMap map, Class cl ) {
         List<IProvidedService> services = findServices( map, cl );
@@ -101,41 +151,36 @@ public class ServiceRepository
 
     
     public List<IProvidedService> findServices( IMap map, Class cl ) {
-//        try {
-            List<IProvidedService> result = new ArrayList();
-            for (IProvidedService service : serviceList.getServices()) {
-                try {
-                    if (service.getMapId().equals( map.id() )
-                            && service.getServiceType().equals( cl )) {
-                        result.add( service );
-                    }
-                }
-                catch (NoSuchEntityException e) {
-                    // the IMap of the service is no longer found
-                    log.info( "Map is no longer found for service: " + service.getPathSpec() );
-                    // FIXME delete this entity on IMap delete
+        List<IProvidedService> result = new ArrayList();
+        for (IProvidedService service : serviceList.waitAndGet().getServices()) {
+            try {
+                if (service.getMapId().equals( map.id() )
+                        && service.getServiceType().equals( cl )) {
+                    result.add( service );
                 }
             }
-            return result;
-//        }
-//        catch (Exception e) {
-//            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, e.getMessage(), e );
-//        }
+            catch (NoSuchEntityException e) {
+                // the IMap of the service is no longer found
+                log.info( "Map is no longer found for service: " + service.getPathSpec() );
+            }
+        }
+        return result;
     }
     
     
     public void addService( IProvidedService service ) { 
-        serviceList.addService( service );
+        serviceList.waitAndGet().addService( service );
     }
     
     
     public void removeService( IProvidedService service ) { 
-        serviceList.removeService( service );
+        serviceList.waitAndGet().removeService( service );
+        removeEntity( service );
     }
     
     
     public Collection<IProvidedService> allServices() {
-        AssocCollection<IProvidedService> services = serviceList.getServices();
+        AssocCollection<IProvidedService> services = serviceList.waitAndGet().getServices();
         List<IProvidedService> result = new ArrayList();
         for (IProvidedService service : services) {
             // check if the IMap is still there

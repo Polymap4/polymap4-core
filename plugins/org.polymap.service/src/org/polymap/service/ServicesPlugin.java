@@ -26,9 +26,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.http.HttpServiceRegistry;
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
@@ -45,8 +42,8 @@ import org.polymap.service.ui.GeneralPreferencePage;
  * @since 3.0
  */
 public class ServicesPlugin 
-        extends AbstractUIPlugin
-        implements IModelStoreListener {
+        extends AbstractUIPlugin {
+        //implements IModelStoreListener {
 
     private static Log log = LogFactory.getLog( ServicesPlugin.class );
 
@@ -128,6 +125,18 @@ public class ServicesPlugin
         contextProvider = new DefaultSessionContextProvider();
         SessionContext.addProvider( contextProvider );
         
+        // legacy: delete services without a map
+        contextProvider.mapContext( "legacyDeleteServices", true );
+        Polymap.instance().addPrincipal( new AdminPrincipal() );
+        ServiceRepository repo = ServiceRepository.instance();
+        try {
+            repo.legacyRemoveServices();
+        }
+        finally {
+            repo.commitChanges();
+            contextProvider.unmapContext();
+        }
+
         // register resource
         httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
             public Object addingService( ServiceReference reference ) {
@@ -157,10 +166,10 @@ public class ServicesPlugin
                     new Job( "ServiceStarter" ) {
                         protected IStatus run( IProgressMonitor monitor ) {
                             log.info( "starting services..." );
-                            reStartServices();
+                            initServices();
                             return Status.OK_STATUS;
                         }
-                    }.schedule( 5000 );
+                    }.schedule( 10000 );
                 }
                 return httpService;
             }
@@ -186,7 +195,7 @@ public class ServicesPlugin
      * Start all global services and register model change listener
      * and preference listener.
      */
-    protected void reStartServices() {
+    protected void initServices() {
         try {
             contextProvider.mapContext( "services", true );
             Polymap.instance().addPrincipal( new AdminPrincipal() );
@@ -194,17 +203,13 @@ public class ServicesPlugin
             // create/start ServiceContexts
             ServiceRepository repo = ServiceRepository.instance();
             List<IProvidedService> services = new ArrayList( repo.allServices() );
-            repo.addModelStoreListener( this );
             
             // ServiceContext maps its own context and DefaultSessionContextProvider
-            // uses a static ThreadLocal to store contexts
+            // uses a static ThreadLocal to store contexts -> unmap now
             contextProvider.unmapContext();
 
             for (IProvidedService service : services) {
-                if (!serviceContexts.containsKey( service.id() )) {
-                    ServiceContext serviceContext = new ServiceContext( service.id(), httpService );
-                    serviceContexts.put( service.id(), serviceContext );
-                }
+                initServiceContext( service );
             }
         }
         catch (Exception e) {
@@ -220,22 +225,15 @@ public class ServicesPlugin
     }
 
     
-    public void modelChanged( ModelStoreEvent ev ) {
-        if (ev.getEventType() == EventType.COMMIT) {
-            try {
-                contextProvider.mapContext( "services", false );
-                ServiceRepository repo = ServiceRepository.instance();
-                repo.removeModelStoreListener( this );
-            }
-            finally {
-                contextProvider.unmapContext();
-            }
-            contextProvider.destroyContext( "services" );
-            
-            reStartServices();
+    public ServiceContext initServiceContext( IProvidedService service ) {
+        ServiceContext context = serviceContexts.get( service.id() );
+        if (context == null) {
+            context = new ServiceContext( service.id(), httpService );
+            serviceContexts.put( service.id(), context );
         }
+        return context;
     }
-
+    
     
     public boolean isValid() {
         return true;

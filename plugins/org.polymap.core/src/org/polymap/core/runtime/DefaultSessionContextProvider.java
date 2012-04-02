@@ -93,7 +93,7 @@ public class DefaultSessionContextProvider
         if (context == null) {
             throw new IllegalStateException( "No context bound to this thread." );
         }
-        currentContext.remove();
+        currentContext.set( null );
     }
 
     

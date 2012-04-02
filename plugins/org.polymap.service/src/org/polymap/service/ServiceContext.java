@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
+import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IModelHandleable;
 import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeTracker;
@@ -42,8 +43,10 @@ import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 
 /**
+ * Wraps a session context of a service ({@link IProvidedService}). Besides providing
+ * the session context, this also handles service start/stop/restart via
+ * {@link IModelChangeListener}.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ServiceContext
@@ -81,14 +84,16 @@ public class ServiceContext
         this.serviceId = serviceId;
         this.sessionKey = "service-" + serviceId;
         this.httpService = httpService;
-        try {
-            contextProvider.mapContext( sessionKey, true );
-            Polymap.instance().addPrincipal( new ServicesPlugin.AdminPrincipal() );
-        }
-        finally {
-            contextProvider.unmapContext();
-        }
-        startService();   
+//        try {
+////            log.info( "mapping sessionKey: " + sessionKey );
+//            boolean mapped = contextProvider.mapContext( sessionKey, true );
+//            assert mapped : "sessionKey already mapped: " + sessionKey;
+//            Polymap.instance().addPrincipal( new ServicesPlugin.AdminPrincipal() );
+//        }
+//        finally {
+//            contextProvider.unmapContext();
+//        }
+        startService();
     }
     
 
@@ -102,14 +107,25 @@ public class ServiceContext
     }
     
     
+    /**
+     * Starts this service context. Starts listening to model changes. If the
+     * service is currently enabled, then start the service.
+     */
     public void startService() {
-        boolean needsUnmap = false;
         try {
-            needsUnmap = contextProvider.mapContext( sessionKey, true );
+            boolean newContext = contextProvider.mapContext( sessionKey, true );
             Polymap.instance().addPrincipal( new ServicesPlugin.AdminPrincipal() );
             
+            if (contextProvider.currentContext().isDestroyed()) {
+                log.warn( "Context already destroyed: " + sessionKey );
+                return;
+            }
+
             // start service
             IProvidedService service = findService();
+            if (service == null) {
+                return;
+            }
             if (service.isEnabled()) {
                 try {
                     service.start();
@@ -119,7 +135,7 @@ public class ServiceContext
                 }
             }
             
-            // listen to global change events of the map and layers
+            // listen to global change events of the map and layers (in the new context)
             ModelChangeTracker.instance().addListener( this );
 
             // listen to preference changes
@@ -128,33 +144,46 @@ public class ServiceContext
             prefStore.addPropertyChangeListener( this );
         }
         finally {
-            if (needsUnmap) {
-                contextProvider.unmapContext();
-            }
+            contextProvider.unmapContext();
         }
     }
 
 
+    /**
+     * Stops this service context. Remove model change listener. Stops the service if
+     * it is running currently.
+     */
     public void stopService() {
-        boolean needsUnmap = false;
         try {
-            needsUnmap = contextProvider.mapContext( sessionKey, false );
+            contextProvider.mapContext( sessionKey, false );
+            
+            if (contextProvider.currentContext().isDestroyed()) {
+                log.warn( "Context already destroyed: " + sessionKey );
+                return;
+            }
             
             // stop service
             IProvidedService service = findService();
-            try {
-                service.stop();
-            }
-            catch (Exception e) {
-                log.error( "Error while starting services: " + service.getPathSpec(), e );
+            if (service != null) {
+                try {
+                    service.stop();
+                }
+                catch (Exception e) {
+                    log.error( "Error while stopping services: " + service.getPathSpec(), e );
+                }
             }
             // unregister listener
-            ModelChangeTracker.instance().removeListener( this );
+            try {
+                boolean removed = ModelChangeTracker.instance().removeListener( this );
+//            assert removed;
+            }
+            catch (Throwable e) {
+                // FIXME hack to 
+                service = null;
+            }
         }
         finally {
-            if (needsUnmap) {
-                contextProvider.unmapContext();
-            }
+            contextProvider.unmapContext();
         }
         // destroy session
         contextProvider.destroyContext( sessionKey );
@@ -167,28 +196,40 @@ public class ServiceContext
         if (ev.getEventType() == EventType.COMMIT) {
             
             // the event comes within a Job but with RAP session context (in most cases)
-            // so we nee a "clean" Job to be able to map a new session context
-            new Job( "Restart Service" ) {
+            // so we need a "clean" Job to be able to map a new session context
+            new Job( "Restarting service: " + serviceId ) {
                 protected IStatus run( IProgressMonitor monitor ) {
                     boolean needsRestart = false;
-                    try {
-                        boolean needsUnmap = contextProvider.mapContext( sessionKey, true );
-                        assert needsUnmap;
+                    
+                    boolean needsUnmap = contextProvider.mapContext( sessionKey, false );
+                    assert needsUnmap;
+                    if (contextProvider.currentContext().isDestroyed()) {
+                        log.warn( "Context is already destroyed -> stopping." );
+                        stopService();
+                        return Status.OK_STATUS;
+                    }
 
+                    try {
                         IProvidedService service = findService();
                         IMap map = service.getMap();
                         
                         if (ev.hasChanged( (IModelHandleable)service )) {
                             needsRestart = true;
                         }
-                        if (ev.hasChanged( (IModelHandleable)map )) {
+                        else if (ev.hasChanged( (IModelHandleable)map )) {
                             needsRestart = true;
                         }
-                        for (ILayer layer : map.getLayers()) {
-                            if (ev.hasChanged( (IModelHandleable)layer )) {
-                                needsRestart = true;
+                        else {
+                            for (ILayer layer : map.getLayers()) {
+                                if (ev.hasChanged( (IModelHandleable)layer )) {
+                                    needsRestart = true;
+                                }
                             }
                         }
+                    }
+                    // primary NoSuchEntityException
+                    catch (Exception e) {
+                        needsRestart = true;
                     }
                     finally {
                         contextProvider.unmapContext();

@@ -54,6 +54,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.IProvidedService;
 import org.polymap.service.Messages;
+import org.polymap.service.ServiceContext;
 import org.polymap.service.ServiceRepository;
 import org.polymap.service.ServicesPlugin;
 import org.polymap.service.http.WmsService;
@@ -102,6 +103,10 @@ public class OwsPropertiesPage
                 OperationSupport.instance().execute( op, false, false );
 
                 providedService = ServiceRepository.instance().findService( map, WmsService.class );
+                
+                ServiceContext context = ServicesPlugin.getDefault().initServiceContext( providedService );
+                context.stopService();
+                context.startService();
             }
             catch (Exception e) {
                 PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim Anlegen des Service.", e );
