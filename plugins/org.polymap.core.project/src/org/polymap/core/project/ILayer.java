@@ -25,8 +25,6 @@ import net.refractions.udig.catalog.IGeoResource;
 import org.geotools.styling.Style;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import org.eclipse.ui.views.properties.IPropertySource;
-
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Status;
@@ -36,17 +34,11 @@ import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.project.ui.properties.PropertyProviderAdapterFactory;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.style.IStyle;
 
 /**
  * A Layer represents an {@link IGeoResource} inside an {@link IMap}.
- * <p/>
- * <b>IAdaptable:</b> ILayer does not implement IAdaptable interace as this helps to
- * avoid NoSuchEntityException when the entity is deleted. IAdaptable would be used
- * to provide {@link IPropertySource} - this is done via
- * {@link PropertyProviderAdapterFactory}
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0

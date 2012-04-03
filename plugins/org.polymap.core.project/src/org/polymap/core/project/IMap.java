@@ -33,11 +33,6 @@ import org.polymap.core.qi4j.event.PropertyChangeSupport;
 /**
  * A Map contains Maps and Layers. It holds information about the rendering of the
  * Services of the Layers.
- * <p/>
- * <b>IAdaptable:</b> IMap does not implement IAdaptable interace as this helps to
- * avoid <code>NoSuchEntityException</code> when the entity is deleted. IAdaptable
- * would be used to provide {@link IPropertySource} - this is done via
- * {@link PropertyProviderAdapterFactory}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
