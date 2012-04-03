@@ -12,13 +12,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
+ * 
+ * Created: 30.10.2009
  */
 
 package org.polymap.core.project;
@@ -30,6 +25,8 @@ import net.refractions.udig.catalog.IGeoResource;
 import org.geotools.styling.Style;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import org.eclipse.ui.views.properties.IPropertySource;
+
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Status;
@@ -39,16 +36,19 @@ import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ui.properties.PropertyProviderAdapterFactory;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.style.IStyle;
 
 /**
  * A Layer represents an {@link IGeoResource} inside an {@link IMap}.
  * <p/>
- * Setting attributes is done via Commands.
+ * <b>IAdaptable:</b> ILayer does not implement IAdaptable interace as this helps to
+ * avoid NoSuchEntityException when the entity is deleted. IAdaptable would be used
+ * to provide {@link IPropertySource} - this is done via
+ * {@link PropertyProviderAdapterFactory}
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- *         <li>30.10.2009: created</li>
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
 public interface ILayer

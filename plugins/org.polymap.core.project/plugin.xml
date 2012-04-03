@@ -331,7 +331,7 @@
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
-            class="org.polymap.core.project.ui.properties.LayerBasePropertiesPage"
+            class="org.polymap.core.project.ui.properties.LayerBasePropertyPage"
             id="org.polymap.core.project.ui.properties.layerBasePropertyPage"
             name="%propertyPage_general">
          <enabledWhen>
@@ -341,7 +341,7 @@
          </enabledWhen>
       </page>
       <page
-            class="org.polymap.core.project.ui.properties.MapBasePropertiesPage"
+            class="org.polymap.core.project.ui.properties.MapBasePropertyPage"
             id="org.polymap.core.project.ui.properties.mapBasePropertyPage"
             name="%propertyPage_general">
          <enabledWhen>
@@ -441,9 +441,16 @@
          point="org.eclipse.core.runtime.adapters">
       <factory
             adaptableType="org.polymap.core.project.ILayer"
-            class="org.polymap.core.project.ui.EntityAdapterFactory">
+            class="org.polymap.core.project.ui.properties.PropertyProviderAdapterFactory">
          <adapter
-               type="org.eclipse.rwt.resources.IResource">
+               type="org.eclipse.ui.views.properties.IPropertySourceProvider">
+         </adapter>
+      </factory>
+      <factory
+            adaptableType="org.polymap.core.project.IMap"
+            class="org.polymap.core.project.ui.properties.PropertyProviderAdapterFactory">
+         <adapter
+               type="org.eclipse.ui.views.properties.IPropertySourceProvider">
          </adapter>
       </factory>
    </extension>

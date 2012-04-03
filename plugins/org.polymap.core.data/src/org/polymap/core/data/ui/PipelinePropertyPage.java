@@ -58,6 +58,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.DataPlugin;
@@ -154,6 +155,14 @@ public class PipelinePropertyPage
     }
 
 
+    public PipelineHolder getPipelineHolder() {
+        IAdaptable obj = getElement();
+        return obj instanceof PipelineHolder 
+                ? (PipelineHolder)obj 
+                : (PipelineHolder)obj.getAdapter( PipelineHolder.class );
+    }
+
+
     public Control createContents( Composite parent ) {
         SashForm composite = new SashForm( parent, SWT.VERTICAL );
         GridLayout layout = new GridLayout();
@@ -180,7 +189,7 @@ public class PipelinePropertyPage
 
         try {
             List<PipelineProcessorConfiguration> content = result.getContent();
-            PipelineProcessorConfiguration[] array = (PipelineProcessorConfiguration[]) content.toArray(new PipelineProcessorConfiguration[content.size()]);
+            PipelineProcessorConfiguration[] array = content.toArray(new PipelineProcessorConfiguration[content.size()]);
             
             SetProcessorConfigurationsOperation op = ProjectRepository.instance().newOperation( 
                     SetProcessorConfigurationsOperation.class );

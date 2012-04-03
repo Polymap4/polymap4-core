@@ -30,6 +30,7 @@ import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,7 +41,7 @@ import org.qi4j.api.entity.association.ManyAssociation;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.property.Property;
 
-import org.eclipse.ui.views.properties.IPropertySource;
+import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.project.ILayer;
@@ -48,7 +49,6 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.ITempLayer;
 import org.polymap.core.project.MapStatus;
 import org.polymap.core.project.RenderStatus;
-import org.polymap.core.project.ui.properties.MapPropertySource;
 import org.polymap.core.qi4j.AssocCollectionImpl;
 
 /**
@@ -105,14 +105,11 @@ public interface MapState
 
         private ListManyAssociation<ITempLayer> tempLayers = new ListManyAssociation();
 
-        
+        /**
+         * Not used, see {@link IMap}. 
+         */
         public Object getAdapter( Class adapter ) {
-            if (IPropertySource.class.isAssignableFrom( adapter )) {
-                return new MapPropertySource( composite );
-            }
-            else {
-                return null;
-            }
+            return Platform.getAdapterManager().getAdapter( this, adapter );
         }    
 
         /**
@@ -182,9 +179,15 @@ public interface MapState
         }
 
         public void setCRSCode( String code )
-                throws NoSuchAuthorityCodeException, FactoryException {
+                throws NoSuchAuthorityCodeException, FactoryException, TransformException {
             crsCode().set( code );    
             this.crs = CRS.decode( getCRSCode() );
+            if (currentExtent != null) {
+                currentExtent = currentExtent.transform( crs, true );
+            }
+            if (maxExtent != null) {
+                maxExtent = maxExtent.transform( crs, true );
+            }
         }
 
         /**
