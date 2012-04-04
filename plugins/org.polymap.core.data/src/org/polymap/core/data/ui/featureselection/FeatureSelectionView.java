@@ -26,6 +26,8 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.swt.SWT;
@@ -46,6 +48,7 @@ import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -57,7 +60,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  */
 public class FeatureSelectionView
         extends ViewPart 
-        implements PropertyChangeListener, ISelectionChangedListener {
+        implements ISelectionChangedListener {
 
     private static Log log = LogFactory.getLog( FeatureSelectionView.class );
     
@@ -133,6 +136,10 @@ public class FeatureSelectionView
     private String                  basePartName;
 
     private Composite               parent;
+    
+    private FeatureSelectionListener selectionListener = new FeatureSelectionListener();
+    
+    private PropertyChangeListener  modelListener = new ModelListener();
 
 
     protected void init( ILayer _layer ) {
@@ -140,8 +147,10 @@ public class FeatureSelectionView
             this.layer = _layer;
             this.basePartName = layer.getLabel(); 
             setPartName( basePartName );
+            
+            layer.addPropertyChangeListener( modelListener );
 
-            LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( this );
+            LayerFeatureSelectionManager.forLayer( layer ).addSelectionChangeListener( selectionListener );
             
             this.fs = PipelineFeatureSource.forLayer( layer, false );
         }
@@ -154,10 +163,18 @@ public class FeatureSelectionView
     public void dispose() {
         super.dispose();
         
-        LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( this );        
-        
+        if (layer != null) {
+            try {
+                layer.removePropertyChangeListener( modelListener );
+                LayerFeatureSelectionManager.forLayer( layer ).removeSelectionChangeListener( selectionListener );
+            }
+            catch (NoSuchEntityException e) {
+                // layer is deleted -> ignore
+            }        
+        }
         if (viewer != null) {
             viewer.dispose();
+            viewer = null;
         }
         layer = null;
         fs = null;
@@ -227,28 +244,59 @@ public class FeatureSelectionView
     }
 
     
-    /*
-     * Other party has changed feature selection.
+    /**
+     * 
      */
-    public void propertyChange( final PropertyChangeEvent ev ) {
+    class FeatureSelectionListener
+            implements PropertyChangeListener {
         
-        Polymap.getSessionDisplay().asyncExec( new Runnable() {
-            public void run() {
-                // select
-                if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
-                    loadTable( (Filter)ev.getNewValue() );
-                }
-                // hover
-                if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
-                    LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
-                    viewer.removeSelectionChangedListener( FeatureSelectionView.this );
-                    viewer.selectElement( fsm.getHovered(), true );
-                    viewer.addSelectionChangedListener( FeatureSelectionView.this );
-                }
-            }
-        });
-    }
+        /**
+         * Other party has changed feature selection.
+         */
+        public void propertyChange( final PropertyChangeEvent ev ) {
 
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    // select
+                    if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
+                        loadTable( (Filter)ev.getNewValue() );
+                    }
+                    // hover
+                    if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+                        LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
+                        viewer.removeSelectionChangedListener( FeatureSelectionView.this );
+                        viewer.selectElement( fsm.getHovered(), true );
+                        viewer.addSelectionChangedListener( FeatureSelectionView.this );
+                    }
+                }
+            });
+        }
+    }
+    
+
+    /**
+     * 
+     */
+    class ModelListener
+            implements PropertyChangeListener {
+        
+        public void propertyChange( final PropertyChangeEvent ev ) {
+            if (PropertyChangeSupport.PROP_ENTITY_REMOVED.equals( ev.getPropertyName() )) {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                            page.hideView( FeatureSelectionView.this );
+                            FeatureSelectionView.this.dispose();
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getMessage(), e );
+                        }
+                    }
+                });
+            }
+        }
+    }
     
     /*
      * Element was selected in the table.

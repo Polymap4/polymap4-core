@@ -332,7 +332,7 @@ public class GeoSelectionView
         page.addPartListener( partListener );
 
         // geo event listener
-        LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( geoSelectionListener );
+        LayerFeatureSelectionManager.forLayer( layer ).addSelectionChangeListener( geoSelectionListener );
         
         try {
             // FIXME do blocking operation inside a job
@@ -369,7 +369,7 @@ public class GeoSelectionView
             page = null;
 
             // geo event listener
-            LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( geoSelectionListener );
+            LayerFeatureSelectionManager.forLayer( layer ).removeSelectionChangeListener( geoSelectionListener );
         }
 
         layer = null;
