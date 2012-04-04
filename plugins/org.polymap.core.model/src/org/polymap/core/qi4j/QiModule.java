@@ -107,6 +107,9 @@ public abstract class QiModule
         }
     }
 
+    /**
+     * @see {@link ModelEventManager#addPropertyChangeListener(PropertyChangeListener, IEventFilter)}
+     */
     public void addPropertyChangeListener( final PropertyChangeListener l, final IEventFilter f ) {
         ModelEventManager.instance().addPropertyChangeListener( l,
             new IEventFilter() {

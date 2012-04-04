@@ -15,7 +15,6 @@
  */
 package org.polymap.core.model;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
@@ -23,9 +22,9 @@ import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.ModelEventManager;
 
 /**
  * Provides the API of one module of the domain model. A {@link Module} instance
@@ -59,16 +58,14 @@ public interface Module {
 
 
     /**
-     * Adds the given event listener. Has no effect if the same listener is
-     * already registerd. The given listener might be stored in a
-     * {@link WeakReference}, the caller has to make sure that a strong
-     * reference exists as long as the listener should receive events.
-     * <p/>
-     * A {@link PropertyChangeEvent} is fire right after a property of an entity
-     * of the model has changed. Regardless if the operation is later completed
-     * or just dropped.
-     * <p/>
-     * The listener receives events from entities of the module only.
+     * See
+     * {@link ModelEventManager#addPropertyChangeListener(PropertyChangeListener, IEventFilter)}
+     * for details.
+     * 
+     * @param l The listener to add.
+     * @param f The filter to apply.
+     * @see ModelEventManager#addPropertyChangeListener(PropertyChangeListener,
+     *      IEventFilter)
      */
     public void addPropertyChangeListener( PropertyChangeListener l, IEventFilter f );
 
@@ -76,14 +73,14 @@ public interface Module {
 
 
     /**
-     * Adds the given event listener. Has no effect if the same listener is
-     * already registerd. The given listener might be stored in a
-     * {@link WeakReference}, the caller has to make sure that a strong
-     * reference exists as long as the listener should receive events.
-     * <p/>
-     * {@link ModelChangeEvent}s are fired when the operation completes. It
-     * delivers all the {@link PropertyChangeEvent}s that has been fired during
-     * operation.
+     * See
+     * {@link ModelEventManager#addModelChangeListener(IModelChangeListener, IEventFilter)}
+     * for details.
+     * 
+     * @param l The listener to add.
+     * @param f The filter to apply.
+     * @see ModelEventManager#addModelChangeListener(IModelChangeListener,
+     *      IEventFilter)
      */
     public void addModelChangeListener( IModelChangeListener l, IEventFilter f );
     

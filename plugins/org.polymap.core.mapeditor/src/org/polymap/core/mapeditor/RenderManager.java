@@ -37,8 +37,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -59,6 +57,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -288,9 +287,22 @@ public class RenderManager {
     class MapDomainListener
             implements IModelChangeListener, PropertyChangeListener {
 
+        /**
+         * Close the corresponding {@link MapEditor}. This call triggers {@link MapEditor#dispose()}
+         * and then {@link RenderManager#dispose()}. So after this call <code>map</code> is null.
+         * @return
+         */
+        protected IWorkbenchPage closeMapEditor() {
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            IWorkbenchPage page = window.getActivePage();
+
+            page.closeEditor( mapEditor, false );
+            return page;
+        }
+        
         public void modelChanged( ModelChangeEvent ev ) {
             Display display = mapEditor.getEditorSite().getShell().getDisplay();
-
+            
             // check CRS changes after an operation has has finished and
             // extends are transformed in new CRS
             Iterable<PropertyChangeEvent> crsEvents = ev.events( new IEventFilter<PropertyChangeEvent>() {
@@ -301,22 +313,12 @@ public class RenderManager {
             });
             if (!Iterables.isEmpty( crsEvents )) {
                 display.asyncExec( new Runnable() {
-                    @SuppressWarnings("deprecation")
                     public void run() {
                         try {
                             // map is null after MapEditor closed and dispose()
                             IMap savedMap = map;
-                            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                            IWorkbenchPage page = window.getActivePage();
-
-                            // close editor
-                            for (IEditorPart editor : page.getEditors()) {
-                                IEditorInput input = editor.getEditorInput();
-                                if (input instanceof MapEditorInput 
-                                        && ((MapEditorInput)input).getMap() == map) {
-                                    page.closeEditor( editor, false );
-                                }
-                            }
+                            IWorkbenchPage page = closeMapEditor();
+                            
                             // re-open editor
                             OpenMapOperation op = new OpenMapOperation( savedMap, page );
                             OperationSupport.instance().execute( op, true, true );
@@ -335,7 +337,8 @@ public class RenderManager {
         }
 
         public void propertyChange( PropertyChangeEvent ev ) {
-            log.debug( "property: name= " + ev.getPropertyName() );
+            Display display = mapEditor.getEditorSite().getShell().getDisplay();
+
             // ILayer
             if (ev.getSource() instanceof ILayer) {
                 ILayer layer = (ILayer)ev.getSource();
@@ -376,9 +379,19 @@ public class RenderManager {
             }
             // IMap
             else if (ev.getSource() instanceof IMap) {
-                Display display = mapEditor.getEditorSite().getShell().getDisplay();
-                
-                if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
+                // check if map was deleted
+                if (PropertyChangeSupport.PROP_ENTITY_REMOVED .equals( ev.getPropertyName() )) {
+                    display.asyncExec( new Runnable() {
+                        public void run() {
+                            closeMapEditor();
+                            return;
+                        }
+                    });
+                }
+                else if (IMap.PROP_LAYERS.equals( ev.getPropertyName() )) {
+                    updatePipelines();                    
+                }
+                else if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
                     ReferencedEnvelope extent = (ReferencedEnvelope)ev.getNewValue();
                     mapEditor.setMapExtent( extent );
                     
