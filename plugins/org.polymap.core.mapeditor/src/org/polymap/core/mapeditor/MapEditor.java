@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -135,13 +134,20 @@ public class MapEditor
 
     public void createPartControl( Composite parent ) {
         composite = new Composite( parent, SWT.NONE /*_p3:SWT.EMBEDDED | SWT.NO_BACKGROUND*/ );
-        GridLayout compositeLayout = new GridLayout();
-        compositeLayout.marginHeight = 0;
-        compositeLayout.marginWidth = 0;
-        compositeLayout.numColumns = 1;
-        composite.setLayout( compositeLayout );
+        GridLayout layout = new GridLayout();
+        layout.marginHeight = layout.marginWidth = 0;
+        composite.setLayout( layout );
         composite.setBackground( Display.getDefault().getSystemColor( SWT.COLOR_INFO_BACKGROUND ) );
 
+        createWidget();
+        
+        // renderManager
+        renderManager = new RenderManager( map, this );
+        renderManager.updatePipelines();
+    }
+
+    
+    protected void createWidget() {
         // the widget (use internally provided OpenLayers lib)
         olwidget = new OpenLayersWidget( composite, SWT.MULTI | SWT.WRAP, "openlayers/full/OpenLayers.js" );
         olwidget.setLayoutData( new GridData( GridData.FILL_BOTH ) );
@@ -164,10 +170,8 @@ public class MapEditor
         olwidget.addControlListener( new ControlListener() {
             public void controlResized( ControlEvent ev ) {
                 displaySize = olwidget.getSize();
-                //log.debug( "resized! size= " + displaySize );
             }
             public void controlMoved( ControlEvent ev ) {
-                //
             }
         });
 
@@ -203,21 +207,13 @@ public class MapEditor
         olmap.zoomToExtent( maxExtent, false );
 
         overview = new MapEditorOverview( this );
-        
-        // renderManager
-        renderManager = new RenderManager( map, this );
-        renderManager.updatePipelines();
     }
 
-
+    
     /*
      * Processes events triggered by the OpenLayers map. 
      */
     public void process_event( OpenLayersObject obj, String name, HashMap<String, String> payload ) {
-//        log.info( "event: " + name + ", from: " + obj );
-//        for (Map.Entry entry : payload.entrySet()) {
-//            log.debug( "    key: " + entry.getKey() + ", value: " + entry.getValue() );
-//        }
         if (olwidget.getMap() != obj) {
             return;
         }
@@ -252,15 +248,6 @@ public class MapEditor
                 if (!bbox.equals( old )) {
                     map.updateExtent( bbox );
                 }
-                
-//                // GeoEvent
-//                if (!bbox.equals( old )) {
-//                    GeoEvent event = new GeoEvent( GeoEvent.Type.NAVIGATION, 
-//                            map.getLabel(), null );
-//                    event.setProperty( GeoEvent.PROP_NEW_MAP_EXTENT, bbox );
-//                    event.setProperty( GeoEvent.PROP_OLD_MAP_EXTENT, old );
-//                    GeoHub.instance().send( event );
-//                }
             }
             catch (Exception e) {
                 log.error( "unhandled:", e );
@@ -419,6 +406,20 @@ public class MapEditor
 
     
     /**
+     * FIXME does not work
+     */
+    public void updateMapCRS() {
+        OpenLayersMap olmap = olwidget.getMap();
+        olmap.events.unregister( this, OpenLayersMap.EVENT_MOUSE_OVER );
+        olmap.events.unregister( this, OpenLayersMap.EVENT_MOVEEND );
+        
+        olwidget.dispose();
+        
+        createWidget();
+    }
+    
+    
+    /**
      * @deprecated 
      */
     public ILayer getEditLayer() {
@@ -435,9 +436,11 @@ public class MapEditor
     }
 
     public void setFocus() {
-        composite.setFocus();
-//        updateCRS();
-//        updateScaleLabel();
+        if (!composite.isDisposed()) {
+            composite.setFocus();
+            //        updateCRS();
+            //        updateScaleLabel();
+        }
     }
 
     public void doSave( IProgressMonitor monitor ) {

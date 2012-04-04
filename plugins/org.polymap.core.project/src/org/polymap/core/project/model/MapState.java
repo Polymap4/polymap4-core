@@ -183,10 +183,10 @@ public interface MapState
             crsCode().set( code );    
             this.crs = CRS.decode( getCRSCode() );
             if (currentExtent != null) {
-                currentExtent = currentExtent.transform( crs, true );
+                setExtent( currentExtent.transform( crs, true ) );
             }
             if (maxExtent != null) {
-                maxExtent = maxExtent.transform( crs, true );
+                setMaxExtent( maxExtent.transform( crs, true ) );
             }
         }
 

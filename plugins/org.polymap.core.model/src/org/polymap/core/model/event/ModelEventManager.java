@@ -26,6 +26,7 @@ import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.qi4j.Qi4jPlugin;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;

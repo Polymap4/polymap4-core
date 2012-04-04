@@ -172,7 +172,7 @@ public class OpenMapOperation
 
     private static void openMap( final MapEditorInput input, IWorkbenchPage page, IProgressMonitor monitor )
             throws PartInitException {
-        log.debug( "        new editor: map= " + ((MapEditorInput)input).getMap().id() ); //$NON-NLS-1$
+        log.debug( "        new editor: map= " + (input).getMap().id() ); //$NON-NLS-1$
 
         // check current editors
         IEditorReference[] editors = page.getEditorReferences();
@@ -192,20 +192,6 @@ public class OpenMapOperation
         IEditorPart part = page.openEditor( input, input.getEditorId(), true,
                 IWorkbenchPage.MATCH_NONE );
         log.debug( "editor= " + part ); //$NON-NLS-1$
-
-        // ProjectExplorer explorer = ProjectExplorer.getProjectExplorer();
-        // explorer.setSelection( Collections.singleton(
-        // input.getProjectElement() ), true );
-
-        // if (part instanceof MapEditor) {
-        // MapEditor mapEditor = (MapEditor)part;
-        // while (!mapEditor.getComposite().isVisible()
-        // || !mapEditor.getComposite().isEnabled()) {
-        // if (!Display.getCurrent().readAndDispatch()) {
-        // Thread.sleep( 300 );
-        // }
-        // }
-        // }
     }
 
 
