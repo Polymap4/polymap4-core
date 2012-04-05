@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
@@ -36,6 +39,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.action.Action;
@@ -60,6 +65,7 @@ import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
@@ -141,7 +147,9 @@ public class FormEditor
 
     private Action                      revertAction;
 
-    private OperationSaveListener operationSaveListener;
+    private OperationSaveListener       operationSaveListener;
+    
+    private LayerListener               layerListener;               
     
 
     public FormEditor() {
@@ -176,6 +184,9 @@ public class FormEditor
             zoomAction.setToolTipText( Messages.get( "FormEditor_zoomTip" ) );
             zoomAction.setEnabled( true );
             standardPageActions.add( zoomAction );
+    
+            // LayerListener
+            layer.addPropertyChangeListener( layerListener = new LayerListener() );
         }
         
         // submit action
@@ -220,7 +231,30 @@ public class FormEditor
         OperationSupport.instance().addOperationSaveListener( operationSaveListener );
     }
 
+    
+    /**
+     * Listens to property changes of the layer, especially deletion.
+     */
+    class LayerListener
+            implements PropertyChangeListener {
 
+        public void propertyChange( PropertyChangeEvent ev ) {
+            if (PropertyChangeSupport.PROP_ENTITY_REMOVED.equals( ev.getPropertyName() )) {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                            page.closeEditor( FormEditor.this, false );
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getMessage(), e );
+                        }
+                    }
+                });
+            }
+        }
+    }
+    
     /*
      * 
      */
@@ -291,6 +325,16 @@ public class FormEditor
         super.dispose();
         pages.clear();
         OperationSupport.instance().removeOperationSaveListener( operationSaveListener );
+        
+        ILayer layer = ((FormEditorInput)getEditorInput()).getLayer();
+        if (layer != null) {
+            try {
+                layer.removePropertyChangeListener( layerListener );
+            }
+            catch (NoSuchEntityException e) {
+                // layer has been deleted -> ignore
+            }
+        }
     }
 
 

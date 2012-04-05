@@ -287,7 +287,6 @@ public class FeatureSelectionView
                         try {
                             IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                             page.hideView( FeatureSelectionView.this );
-                            FeatureSelectionView.this.dispose();
                         }
                         catch (Exception e) {
                             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getMessage(), e );
