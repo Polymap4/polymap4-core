@@ -51,9 +51,10 @@ ToolItem:selected {
       to( #c8c8c8 )
     );
     padding: 0px 0px 0px 0px;
-    border-radius: 2px;
+    border-radius: 4px;
 }
 ToolItem:hover {
+    border-radius: 4px;
     background-color: #DFDFF8;
     background-image: gradient(
       linear, left top, left bottom,
