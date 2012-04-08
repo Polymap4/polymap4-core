@@ -94,7 +94,16 @@ public class WMSServiceImpl extends IService {
         	}        	
         }
     }
-    
+
+    public String toString() {
+        return new StringBuilder( 128 )
+                .append( "WMS" /*getClass().getSimpleName()*/ )
+                .append( " [" )
+                .append( getIdentifier() )
+                .append( "]" )
+                .toString();
+    }
+
     public Status getStatus() {
         return error != null? Status.BROKEN : wms == null? Status.NOTCONNECTED : Status.CONNECTED;
     }

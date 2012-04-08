@@ -54,6 +54,7 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.workbench.dnd.DesktopDndSupport;
 
 /**
  * 

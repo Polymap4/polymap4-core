@@ -68,6 +68,15 @@ public class WFSServiceImpl extends IService {
 		this.params = dsParams;
 	}
 
+	public String toString() {
+        return new StringBuilder( 128 )
+                .append( "WFS" /*getClass().getSimpleName()*/ )
+                .append( " [" )
+                .append( getIdentifier() )
+                .append( "]" )
+                .toString();
+    }
+
 	/*
 	 * Required adaptions: <ul> <li>IServiceInfo.class <li>List.class
 	 * <IGeoResource> </ul>
@@ -212,7 +221,7 @@ public class WFSServiceImpl extends IService {
                             params.put(WFSDataStoreFactory.URL.key, url);
                             // _p3: default 3s is to short
                             params.put(WFSDataStoreFactory.TIMEOUT.key, 10000);
-							ds = (WFSDataStore) dsf.createDataStore(params);
+							ds = dsf.createDataStore(params);
 							monitor.worked(1);
 						} catch (IOException e) {
 							msg = e;

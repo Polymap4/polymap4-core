@@ -38,9 +38,9 @@
    <extension
          point="org.polymap.core.http.servlets">
       <servlet
-            class="org.polymap.core.http.TestServlet"
-            name="Test"
-            path="/test">
+            class="org.polymap.core.workbench.dnd.DndUploadServlet"
+            name="DndUpload"
+            path="/dndupload">
       </servlet>
    </extension>
    <extension
@@ -201,6 +201,19 @@
             class="org.polymap.core.operation.LogOperationConcernFactory"
             id="org.polymap.core.LogOperationConcern">
       </concern>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.resources">
+      <resource
+            class="org.polymap.core.workbench.dnd.DndResource">
+      </resource>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.serviceHandler">
+      <serviceHandler
+            class="org.polymap.core.workbench.dnd.DndServiceHandler"
+            id="org.polymap.core.DndServiceHandler">
+      </serviceHandler>
    </extension>
 
 </plugin>

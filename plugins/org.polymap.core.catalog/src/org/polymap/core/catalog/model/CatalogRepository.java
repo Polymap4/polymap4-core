@@ -29,12 +29,14 @@ import net.refractions.udig.catalog.CatalogPlugin;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.catalog.CatalogImportDropListener;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.workbench.dnd.DesktopDndSupport;
 
 /**
  * Factory and repository for the domain model artifacts.
@@ -72,6 +74,8 @@ public class CatalogRepository
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
         catalog = uow.get( CatalogComposite.class, "catalog" );
+        
+        DesktopDndSupport.instance().addDropListener( new CatalogImportDropListener() );
     }
     
     

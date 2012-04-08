@@ -99,9 +99,10 @@ public class ServiceFactoryImpl implements IServiceFactory {
                             // extentionIdentifier used to report any problems;
                             // in the event of failure we want to be able to report
                             // who had the problem
-                            String extentionIdentifier = extension.getUniqueIdentifier();
-                            ServiceExtension se = (ServiceExtension) element
-                                    .createExecutableExtension("class"); //$NON-NLS-1$
+                            //String extentionIdentifier = extension.getUniqueIdentifier();
+                            String extentionIdentifier = element.getAttribute( "id" );
+                            ServiceExtension se = (ServiceExtension)element
+                                    .createExecutableExtension( "class" );
                             Map<String, Serializable> defaultParameters = se.createParams(target);
                             if (defaultParameters != null) {
                                 available.put( extentionIdentifier, defaultParameters );
