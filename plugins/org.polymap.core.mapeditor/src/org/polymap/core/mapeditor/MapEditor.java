@@ -177,7 +177,7 @@ public class MapEditor
 
         // add some controls to the map
         OpenLayersMap olmap = olwidget.getMap();
-        olmap.setMaxScale( 1000 );
+        olmap.setMaxScale( 100 );
         
         olmap.addControl( new LoadingPanelControl() );
         

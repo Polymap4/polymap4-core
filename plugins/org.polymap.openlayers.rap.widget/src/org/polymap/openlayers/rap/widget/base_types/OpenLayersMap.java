@@ -91,6 +91,8 @@ public class OpenLayersMap
 	
 	private float                      maxResolution;
 	
+	//private int[]                      scales;
+	
 	
     public OpenLayersMap(OpenLayersWidget widget,Projection projection,Projection display_projection,String units,Bounds maxExtent,float maxResolution) {
         this.widget = widget;
