@@ -454,5 +454,12 @@
          </adapter>
       </factory>
    </extension>
+   <extension
+         point="org.polymap.core.operation.concerns">
+      <concern
+            class="org.polymap.core.project.operations.CatalogOperationConcern"
+            id="org.polymap.core.project.CatalogOperationConcern">
+      </concern>
+   </extension>
 
 </plugin>

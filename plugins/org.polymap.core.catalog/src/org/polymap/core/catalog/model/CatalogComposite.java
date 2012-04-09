@@ -51,13 +51,18 @@ import org.qi4j.api.entity.association.ManyAssociation;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.mixin.Mixins;
 
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.catalog.Messages;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.security.AclPermission;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.qi4j.event.MethodOperationBoundsConcern;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
@@ -70,7 +75,7 @@ import org.polymap.core.runtime.Polymap;
  * ... 
  * <p/>
  * Previous version needed {@link MethodOperationBoundsConcern} to wrap every method
- * call in a single operation the meet the requirements of the operation system. This
+ * call in a single operation to meet the requirements of the operation system. This
  * is obsolet now. The downside is that just importing a new data source into the catalog
  * is no oparation: no undo/redo, no save. 
  * 
@@ -144,7 +149,6 @@ public interface CatalogComposite
     public static abstract class Mixin
             implements CatalogComposite {
         
-        @SuppressWarnings("hiding")
         private static Log log = LogFactory.getLog( Mixin.class );
 
         @This CatalogComposite          composite;
@@ -284,32 +288,67 @@ public interface CatalogComposite
         }
         
 
-        public void add( IService entry )
+        public void add( final IService entry )
                 throws UnsupportedOperationException {
-            checkInit();
-            if (entry == null || entry.getIdentifier() == null) {
-                throw new NullPointerException( "Cannot have a null id" ); //$NON-NLS-1$
+            // execute inside operation -> enable save and undo and concerns
+            try {
+                CatalogAddOperation op = new CatalogAddOperation( entry );
+                OperationSupport.instance().execute( op, false, false );
             }
-            if (getById( IService.class, entry.getID(), new NullProgressMonitor() ) != null) {
-                throw new IllegalArgumentException( Messages.get( "CatalogComposite_entryAlreadyExists", entry.getID() ) );
+            catch (ExecutionException e) {
+                throw new RuntimeException( e );
             }
-            
-            // ITransientResolve
-            if (entry instanceof ITransientResolve || entry.canResolve( ITransientResolve.class )) {
-                transientServices.add( entry );
-                log.info( "Transient entries: " + transientServices.size() );
-            }
-            // persistent entry
-            else {
-                ServiceComposite entity = CatalogRepository.instance().newEntity( ServiceComposite.class, null );
-                for (Principal principal : Polymap.instance().getPrincipals()) {
-                    entity.addPermission( principal.getName(), AclPermission.ALL );
-                }
-                entity.init( entry );
-                services().add( entity );
+        }
 
-                serialize();
-                log.debug( "Catalog size: " + services().count() );
+        /**
+         * see http://polymap.org/polymap3/ticket/121
+         */
+        public class CatalogAddOperation
+                extends AbstractModelChangeOperation
+                implements IAdaptable {
+
+            private IService        entry;
+
+            protected CatalogAddOperation( IService entry ) {
+                super( Messages.get( "CatalogComposite_add", entry.getID() ) );
+                this.entry = entry;
+            }
+
+            public Object getAdapter( Class adapter ) {
+                if (IService.class.isAssignableFrom( adapter )) {
+                    return entry;
+                }
+                return null;
+            }
+
+            protected IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
+            throws Exception {
+                checkInit();
+                if (entry == null || entry.getIdentifier() == null) {
+                    throw new NullPointerException( "Cannot have a null id" ); //$NON-NLS-1$
+                }
+                if (getById( IService.class, entry.getID(), new NullProgressMonitor() ) != null) {
+                    throw new IllegalArgumentException( Messages.get( "CatalogComposite_entryAlreadyExists", entry.getID() ) );
+                }
+
+                // ITransientResolve
+                if (entry instanceof ITransientResolve || entry.canResolve( ITransientResolve.class )) {
+                    transientServices.add( entry );
+                    log.info( "Transient entries: " + transientServices.size() );
+                }
+                // persistent entry
+                else {
+                    ServiceComposite entity = CatalogRepository.instance().newEntity( ServiceComposite.class, null );
+                    for (Principal principal : Polymap.instance().getPrincipals()) {
+                        entity.addPermission( principal.getName(), AclPermission.ALL );
+                    }
+                    entity.init( entry );
+                    services().add( entity );
+
+                    serialize();
+                    log.debug( "Catalog size: " + services().count() );
+                }
+                return org.eclipse.core.runtime.Status.OK_STATUS;
             }
         }
 
