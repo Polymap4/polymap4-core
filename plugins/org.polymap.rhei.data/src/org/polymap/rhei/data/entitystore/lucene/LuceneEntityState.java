@@ -492,12 +492,41 @@ public class LuceneEntityState
         }
         
         
+        public boolean remove( Object o ) {
+            log.debug( "remove(): o=" + o );
+            boolean result = super.remove( o );
+            store();
+            return result;
+        }
+
+
         public Object set( int index, Object object ) {
             log.debug( "set(): index=" + index + ", object=" + object );
             Object result = super.set( index, object );
             store();
             return result;
         }
+
+
+        public boolean addAll( Collection c ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public void clear() {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public boolean removeAll( Collection c ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public boolean retainAll( Collection c ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+        
     }
     
 }

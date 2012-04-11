@@ -196,6 +196,7 @@ public class DefaultFeatureTableColumn
                 return value != null ? value.toString() : "";
             }
             catch (Exception e) {
+                log.warn( "", e );
                 return "Fehler: " + e.getLocalizedMessage();
             }
         }

@@ -34,7 +34,7 @@ import org.polymap.core.model.EntityType;
 
 /**
  * Used to display {@link Entity} collections as result of a {@link Query}, or the
- * contents of a collection properties that contains {@link Composite} instances (
+ * contents of a collection property that contains {@link Composite} instances (
  * {@link ValueComposite}).
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -82,7 +82,7 @@ public class CompositesFeatureContentProvider
     /**
      *
      */
-    protected class FeatureTableElement
+    public class FeatureTableElement
             implements IFeatureTableElement {
 
         private Composite       composite;
@@ -90,6 +90,10 @@ public class CompositesFeatureContentProvider
 
         protected FeatureTableElement( Composite composite ) {
             this.composite = composite;
+        }
+        
+        public Composite getComposite() {
+            return composite;
         }
 
         public Object getValue( String name ) {
