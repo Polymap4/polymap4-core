@@ -98,8 +98,16 @@ public class CompositesFeatureContentProvider
 
         public Object getValue( String name ) {
             try {
-                log.debug( "getValue(): name=" + name );
                 return compositeType.getProperty( name ).getValue( composite );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }
+
+        public void setValue( String name, Object value ) {
+            try {
+                compositeType.getProperty( name ).setValue( composite, value );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

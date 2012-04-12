@@ -33,4 +33,12 @@ public interface IFeatureTableElement {
     
     public Object getValue( String name );
 
+    /**
+     * Implement to support table in-place editing
+     *
+     * @param name
+     * @param value
+     */
+    public void setValue( String name, Object value );
+
 }

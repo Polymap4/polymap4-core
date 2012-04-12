@@ -98,6 +98,11 @@ public class SimpleFeatureTableElement
     }
     
     
+    public void setValue( String name, Object value ) {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
     public SimpleFeature feature() {
         try {
             if (cache.isDisposed()) {

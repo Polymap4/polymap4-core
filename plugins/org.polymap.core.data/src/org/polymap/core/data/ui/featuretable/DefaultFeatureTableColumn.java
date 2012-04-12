@@ -53,6 +53,7 @@ public class DefaultFeatureTableColumn
 
     private PropertyDescriptor      prop;
 
+    private boolean                 editing;
     private EditingSupport          editingSupport;
 
     private String                  header;
@@ -65,6 +66,7 @@ public class DefaultFeatureTableColumn
 
     public void setViewer( FeatureTableViewer viewer ) {
         this.viewer = viewer;
+        this.editingSupport = editing ? new DefaultEditingSupport( viewer ) : null;
     }
 
     public String getName() {
@@ -77,7 +79,9 @@ public class DefaultFeatureTableColumn
     }
 
     public DefaultFeatureTableColumn setEditing( boolean editing ) {
-        this.editingSupport = editing ? new DefaultEditingSupport( viewer ) : null;
+        assert viewer == null : "Call before table is created.";
+        // defer creation of editingSupport to setViewer()
+        this.editing = editing;
         return this;
     }
 
@@ -244,6 +248,7 @@ public class DefaultFeatureTableColumn
 
         protected void setValue( Object elm, Object value ) {
             IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+            featureElm.setValue( getName(), value );
         }
         
     }

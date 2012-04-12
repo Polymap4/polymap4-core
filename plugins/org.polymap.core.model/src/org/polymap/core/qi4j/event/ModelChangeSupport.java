@@ -39,7 +39,6 @@ import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.model.event.IModelHandleable;
 import org.polymap.core.model.event.ModelChangeTracker.Updater;
 import org.polymap.core.qi4j.QiEntity;
-import org.polymap.core.runtime.Polymap;
 
 /**
  * ...
@@ -155,7 +154,7 @@ public interface ModelChangeSupport
 
                     // update lastModified
                     _lastModified().set( set );
-                    _lastModifiedBy().set( Polymap.instance().getUser().getName() );
+                    //_lastModifiedBy().set( Polymap.instance().getUser().getName() );
                 }
             }
         }

@@ -107,7 +107,7 @@ public class StandardFilterProvider
         
         public StandardFilter( ILayer layer, FeatureSource fs ) 
         throws IOException {
-            super( layer.id(), layer, "Standard", null, null, maxResults );
+            super( layer.id(), layer, "Standard...", null, null, maxResults );
             this.fs = fs;
             this.schema = fs.getSchema();
         }

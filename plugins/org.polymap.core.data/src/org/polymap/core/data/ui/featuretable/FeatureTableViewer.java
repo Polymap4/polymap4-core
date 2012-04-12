@@ -139,6 +139,10 @@ public class FeatureTableViewer
                 throw new RuntimeException( "not yet implemented." );
             }
     
+            public void setValue( String name, Object value ) {
+                throw new RuntimeException( "not yet implemented." );
+            }
+
             public String fid() {
                 return fid;
             }
