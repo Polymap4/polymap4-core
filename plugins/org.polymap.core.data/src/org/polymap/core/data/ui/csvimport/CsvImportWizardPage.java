@@ -17,18 +17,24 @@
  */
 package org.polymap.core.data.ui.csvimport;
 
+import static com.google.common.collect.Iterables.toArray;
+import static org.polymap.core.data.ui.csvimport.Messages.i18n;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+
+import net.refractions.udig.ui.CRSChooserDialog;
 
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -39,7 +45,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Spinner;
@@ -73,9 +78,6 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.data.DataPlugin;
-import static org.polymap.core.data.ui.csvimport.Messages.i18n;
-
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -145,11 +147,36 @@ public class CsvImportWizardPage extends WizardPage {
             }
         });
 
-        final Combo charsetCombo = new Combo( inputGroup, SWT.READ_ONLY );
-        charsetCombo.setLayoutData( new GridData( SWT.BEGINNING, SWT.CENTER, false, false ) );
-        charsetCombo.setItems( new String[] { "ISO-8859-1", "UTF8" } );
-        charsetCombo.setSize( 200, 200 );
-        charsetCombo.select( 0 );
+        final CCombo charsetCombo = new CCombo( inputGroup, SWT.BORDER | SWT.READ_ONLY );
+        ld = new GridData( SWT.FILL, SWT.CENTER, true, false );
+        ld.heightHint = 22;
+        charsetCombo.setLayoutData( ld );
+        //charsetCombo.setItems( new String[] { "ISO-8859-1", "UTF8" } );
+        ArrayList items = new ArrayList( 256 );
+        int first = 0;
+        for (String input : Charset.availableCharsets().keySet()) {
+            if (input.toLowerCase().startsWith( charsetCombo.getText().toLowerCase() )) {
+                items.add( input );
+                first = input.equals( "ISO-8859-1" ) ? items.size()-1 : first;
+            }
+        }
+        charsetCombo.setItems( toArray( items, String.class ) );
+        charsetCombo.setVisibleItemCount( 17 );
+        charsetCombo.select( first );
+//        charsetCombo.addModifyListener( new ModifyListener() {
+//            public void modifyText( ModifyEvent event ) {
+//                ArrayList items = new ArrayList( 256 );
+//                for (String input : Charset.availableCharsets().keySet()) {
+//                    if (input.toLowerCase().startsWith( charsetCombo.getText().toLowerCase() )) {
+//                        items.add( input );
+//                    }
+//                }
+//                charsetCombo.setItems( toArray( items, String.class ) );
+//                if (charsetCombo.getItemCount() > 0) {
+//                    charsetCombo.setListVisible( true );
+//                }
+//            }
+//        });
         charsetCombo.addSelectionListener( new org.eclipse.swt.events.SelectionAdapter() {
             public void widgetSelected( org.eclipse.swt.events.SelectionEvent e ) {
                 csvImporter.prefs().setFileEncoding( charsetCombo.getText() );
@@ -214,8 +241,7 @@ public class CsvImportWizardPage extends WizardPage {
         // the crs choice group
         Group crsGroup = new Group( fileSelectionArea, SWT.None );
         crsGroup.setLayout( new GridLayout( 2, false ) );
-        crsGroup
-                .setLayoutData( new GridData( GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL ) );
+        crsGroup.setLayoutData( new GridData( GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL ) );
         crsGroup.setText( i18n( "CsvImportWizardPage.crs" ) );
 
         final Text crsText = new Text( crsGroup, SWT.BORDER );
@@ -242,22 +268,33 @@ public class CsvImportWizardPage extends WizardPage {
             }
         } );
 
-        final Button crsButton = new Button(crsGroup, SWT.BORDER);
+        final Button crsButton = new Button( crsGroup, SWT.NONE );
+        crsButton.setLayoutData( new GridData( SWT.DEFAULT, 21 ) );
         crsButton.setText( i18n( "CsvImportWizardPage.choosecrs" ) );
         crsButton.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent e ) {
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {                    
-                    public void run() {
-                        ChooseCoordinateReferenceSystemDialog crsChooser = new ChooseCoordinateReferenceSystemDialog();
-                        crsChooser.open( PolymapWorkbench.getShellToParentOn() );
-                        CoordinateReferenceSystem crs = crsChooser.getCrs();
-                        if (crs != null) {
-                            crsText.setText(crs.getName().toString());
-                            readCrs = crs;
-                            checkFinish();
-                        }
-                    }
-                });
+                // FIXME _p3: the value seems to crash the chooserDialog if its not null
+                CRSChooserDialog dialog = new CRSChooserDialog( PolymapWorkbench.getShellToParentOn(), null );
+                dialog.setBlockOnOpen( true );
+                dialog.open();
+                if (dialog.getResult() != null) {
+                    readCrs = dialog.getResult();
+                    crsText.setText( CRS.toSRS( readCrs ) );
+                    checkFinish();
+                }
+
+//                Polymap.getSessionDisplay().asyncExec( new Runnable() {                    
+//                    public void run() {
+//                        ChooseCoordinateReferenceSystemDialog crsChooser = new ChooseCoordinateReferenceSystemDialog();
+//                        crsChooser.open( PolymapWorkbench.getShellToParentOn() );
+//                        CoordinateReferenceSystem crs = crsChooser.getCrs();
+//                        if (crs != null) {
+//                            crsText.setText(crs.getName().toString());
+//                            readCrs = crs;
+//                            checkFinish();
+//                        }
+//                    }
+//                });
             }
         });
 
@@ -498,7 +535,7 @@ public class CsvImportWizardPage extends WizardPage {
         for (int i=0; i < exts.length; i++) {
             try {
                 final CsvOperation op = (CsvOperation)exts[i].createExecutableExtension( "class" );
-                Button btn = new Button( parent, SWT.BORDER );
+                Button btn = new Button( parent, SWT.NONE );
                 btn.setSize( 0, 22 );
                 btn.setText( exts[i].getAttribute( "label" ));
                 btn.setToolTipText( exts[i].getAttribute( "tooltip" ));

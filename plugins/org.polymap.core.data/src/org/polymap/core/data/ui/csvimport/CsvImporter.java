@@ -437,10 +437,12 @@ public class CsvImporter {
 
         public void setFileEncoding( Charset fileEncoding ) {
             this.fileEncoding = fileEncoding;
+            this.hasChanged = true;
         }
 
         public void setFileEncoding( String fileEncoding ) {
             this.fileEncoding = Charset.forName( fileEncoding );
+            this.hasChanged = true;
         }
 
         public boolean isUseHeader() {
