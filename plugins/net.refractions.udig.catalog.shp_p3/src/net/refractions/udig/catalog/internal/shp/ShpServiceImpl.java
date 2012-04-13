@@ -105,8 +105,7 @@ public class ShpServiceImpl extends IService {
     				ShpPlugin.getDefault().isUseSpatialIndex());
         }
         if( !params.containsKey(ShapefileDataStoreFactory.DBFCHARSET.key)){
-            params.put(ShapefileDataStoreFactory.DBFCHARSET.key,
-                    "ISO-8859-1");
+            params.put(ShapefileDataStoreFactory.DBFCHARSET.key, "ISO-8859-1");
                     // _p3: we rely on fix ISO setting, since the preference setting is not yet available in p3
                     //ShpPlugin.getDefault().defaultCharset());
         }

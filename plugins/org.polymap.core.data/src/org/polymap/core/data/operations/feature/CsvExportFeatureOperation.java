@@ -63,6 +63,8 @@ public class CsvExportFeatureOperation
 
     public static final FastDateFormat  df = DateFormatUtils.ISO_DATE_FORMAT;
     
+    public static final String          CHARSET = "UTF-8";
+    
 
     public Status execute( IProgressMonitor monitor )
     throws Exception {
@@ -71,7 +73,7 @@ public class CsvExportFeatureOperation
     
         final File f = File.createTempFile( "polymap-csv-export-", ".csv" );
         f.deleteOnExit();
-        Writer writer = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( f ) ), "ISO-8859-1" );
+        Writer writer = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( f ) ), CHARSET );
 
         CsvPreference prefs = new CsvPreference('"', ';', "\r\n");  //CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
         CsvListWriter csvWriter = new CsvListWriter( writer, prefs );
@@ -154,7 +156,7 @@ public class CsvExportFeatureOperation
                 String url = DownloadServiceHandler.registerContent( new ContentProvider() {
 
                     public String getContentType() {
-                        return "text/csv; charset=ISO-8859-1";
+                        return "text/csv; charset=" + CHARSET;
                     }
 
                     public String getFilename() {

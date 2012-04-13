@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.charset.Charset;
+
 import org.geotools.data.DataStoreFactorySpi;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -143,6 +145,7 @@ public class CsvImportWizard extends Wizard implements INewWizard {
                     
                     SimpleFeatureType featureType = csvFeatureCollection.getSchema();
                     CoordinateReferenceSystem crs = page1.getCrs();
+                    Charset charset = page1.getCsvImporter().prefs().getFileEncoding();
 
                     // memory store
                     if (page2.getImportTarget() == 1) {
@@ -167,14 +170,17 @@ public class CsvImportWizard extends Wizard implements INewWizard {
                         File newFile = new File( path.toFile(), page2.getShpName() /*+ suffix*/ + ".shp" );
                         DataStoreFactorySpi dataStoreFactory = new ShapefileDataStoreFactory();
 
-                        Map<String, Serializable> shapeParams = new HashMap<String, Serializable>();
-                        shapeParams.put("url", newFile.toURI().toURL());
-                        shapeParams.put("create spatial index", Boolean.TRUE);
+                        Map<String,Serializable> shapeParams = new HashMap<String,Serializable>();
+                        shapeParams.put( ShapefileDataStoreFactory.URLP.key, newFile.toURI().toURL() );
+                        shapeParams.put( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, Boolean.TRUE );
+                        // does not work as Charset is NOT!!! serializable :((
+                        //shapeParams.put( ShapefileDataStoreFactory.DBFCHARSET.key, encoding );
 
                         ShapefileDataStore newDataStore = (ShapefileDataStore)dataStoreFactory.createNewDataStore(shapeParams);
                         newDataStore.createSchema( featureType );
                         newDataStore.forceSchemaCRS( crs );
-                        //newDataStore.setStringCharset( Charset.forName( "ISO-8859-1" ) );
+                        System.out.println( "CHARSET: " + charset.name() );
+                        newDataStore.setStringCharset( charset );
 
                         // write the features to shape
                         String typeName = newDataStore.getTypeNames()[0];
@@ -186,7 +192,8 @@ public class CsvImportWizard extends Wizard implements INewWizard {
 
                         // adding service to catalog
                         ShpServiceExtension creator = new ShpServiceExtension();
-                        shapeParams = creator.createParams( newFile.toURI().toURL() );
+                        shapeParams.put( ShapefileDataStoreFactory.DBFCHARSET.key, charset.name() );
+                        //shapeParams = creator.createParams( newFile.toURI().toURL() );
                         IService service = creator.createService( null, shapeParams );
                         IServiceInfo info = service.getInfo( new NullProgressMonitor() ); // load
 
