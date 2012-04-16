@@ -87,7 +87,7 @@ public abstract class EntityServiceImpl
         for (int i=0; i<providers.length; i++) {
             this.params.put( 
                     EntityServiceExtensionImpl.PROVIDER_BASE_KEY + i,
-                    providers[i].getClass().getName() );
+                    providers[i].getEntityType().getName() );
             
         }
     }

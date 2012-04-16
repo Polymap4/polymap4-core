@@ -35,10 +35,27 @@ public interface IFormEditorPage2
     boolean isDirty();
     
     boolean isValid();
-    
+
+
+    /**
+     * Reload all fields from the backend. This reverts any changes made so far in
+     * this page. If sucessfull, {@link #isDirty()} and {@link #isValid()} should
+     * return <code>true</code> afterwards.
+     * 
+     * @param monitor
+     * @throws Exception
+     */
     void doLoad( IProgressMonitor monitor ) 
     throws Exception;
-    
+
+
+    /**
+     * Store any changes in the backend. If sucessfull, {@link #isDirty()} and
+     * {@link #isValid()} should return <code>true</code> afterwards.
+     * 
+     * @param monitor
+     * @throws Exception
+     */
     void doSubmit( IProgressMonitor monitor )
     throws Exception;
     

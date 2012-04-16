@@ -119,20 +119,17 @@ public class FormEditorPageContainer
         fieldChange( new FormFieldEvent( source, fieldName, null, eventCode, null, newValue ) );
     }
 
-    /*
-     * Called from form fields.
+    /**
+     * Called from form fields via {@link IFormFieldListener}.
      */
     public void fieldChange( FormFieldEvent ev ) {
-// XXX a event scope is needed when registering for listener for field to distinguish
-// between local event within that field or changes from other fields in the page or whole form
+        // propagate to my listeners
+        fireEventLocally( ev );
+        // propagate to other pages
+        ((FormEditor)getEditor()).propagateFieldChange( ev, this );
+    }
 
-//        // propagate event to all fields
-//        for (FormFieldComposite field : fields) {
-//            if (field.getFormField() != ev.getFormField()) {
-//                field.fireEvent( ev.getEventCode(), ev.getNewValue() );
-//            }
-//        }
-
+    public void fireEventLocally( FormFieldEvent ev ) {
         for (Object l : listeners.getListeners()) {
             try {
                 ((IFormFieldListener)l).fieldChange( ev );
@@ -140,9 +137,8 @@ public class FormEditorPageContainer
             catch (Exception e) {
                 log.warn( "", e );
             }
-        }
+        }        
     }
-
 
     public boolean isDirty() {
         if (page instanceof IFormEditorPage2) {

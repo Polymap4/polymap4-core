@@ -71,7 +71,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
 import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.field.FormFieldEvent;
-import org.polymap.rhei.field.IFormFieldListener;
 import org.polymap.rhei.internal.form.FormEditorPageContainer;
 import org.polymap.rhei.internal.form.FormPageProviderExtension;
 
@@ -82,8 +81,7 @@ import org.polymap.rhei.internal.form.FormPageProviderExtension;
  */
 @SuppressWarnings("deprecation")
 public class FormEditor
-        extends org.eclipse.ui.forms.editor.FormEditor
-        implements IFormFieldListener {
+        extends org.eclipse.ui.forms.editor.FormEditor {
 
     private static Log log = LogFactory.getLog( FormEditor.class );
 
@@ -292,9 +290,24 @@ public class FormEditor
     }
 
 
-    public void fieldChange( FormFieldEvent ev ) {
+    /**
+     * Propagates the given event to all pages of the form, except the <code>srcPage</code>.
+     * 
+     * @param ev
+     * @param srcPage
+     */
+    public void propagateFieldChange( FormFieldEvent ev, FormEditorPageContainer srcPage ) {
+        // propagate event to other pages
+        if (ev != null) {
+            for (FormEditorPageContainer page : pages) {
+                if (page != srcPage) {
+                    page.fireEventLocally( ev );
+                }
+            }
+        }
+        
+        // update isDirty / isValid
         boolean oldIsDirty = isDirty;
-
         isDirty = false;
         for (FormEditorPageContainer page : pages) {
             if (page.isDirty()) {
@@ -364,8 +377,6 @@ public class FormEditor
                             setActivePage( page.getId() );
                             //setPartName( page.getTitle() );
                         }
-
-                        wrapper.addFieldListener( this );
                     }
                 }
             }
@@ -434,7 +445,7 @@ public class FormEditor
             OperationSupport.instance().execute( op, false, false );
 
             // update isDirt/isValid
-            fieldChange( null );
+            propagateFieldChange( null, null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Objekt konnte nicht gespeichert werden.", e );
@@ -449,7 +460,7 @@ public class FormEditor
                 page.doLoad( monitor );
             }
             // update isDirt/isValid
-            fieldChange( null );
+            propagateFieldChange( null, null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Objekt konnte nicht gespeichert werden.", e );

@@ -62,6 +62,7 @@ public class CompositesFeatureContentProvider
 
 
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
+        this.composites = (Iterable<? extends Composite>)newInput;
     }
 
 
@@ -74,7 +75,7 @@ public class CompositesFeatureContentProvider
         return result.toArray();
     }
 
-
+    
     public void dispose() {
     }
 

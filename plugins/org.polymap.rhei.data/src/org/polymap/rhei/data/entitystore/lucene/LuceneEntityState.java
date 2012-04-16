@@ -262,6 +262,7 @@ public class LuceneEntityState
             ValueCompositeType actualValueType = (ValueCompositeType)propertyType;
             List<PropertyType> actualTypes = actualValueType.types();
 
+            //log.debug( "    loadProperty(): ValueComposite: " + actualValueType );
             final Map<QualifiedName, Object> values = new HashMap<QualifiedName, Object>();
             for (PropertyType actualType : actualTypes) {
                 Object value = loadProperty( Joiner.on( SEPARATOR_PROP ).join(
@@ -269,6 +270,7 @@ public class LuceneEntityState
                         actualType.type() );
                 if (value != null) {
                     values.put( actualType.qualifiedName(), value );
+                    //log.debug( "        property: " + actualType.qualifiedName() + ", value: " + value );
                 }
             }
 
