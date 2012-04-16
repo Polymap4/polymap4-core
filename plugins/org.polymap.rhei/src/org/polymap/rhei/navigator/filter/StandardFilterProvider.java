@@ -43,7 +43,6 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 
 import org.polymap.rhei.field.BetweenFormField;
-import org.polymap.rhei.field.BetweenValidator;
 import org.polymap.rhei.field.CheckboxFormField;
 import org.polymap.rhei.field.DateTimeFormField;
 import org.polymap.rhei.field.IFormField;
@@ -131,10 +130,12 @@ public class StandardFilterProvider
                 }
                 // Number
                 else if (Number.class.isAssignableFrom( binding )) {
-//                    formField = new StringFormField();
-                    formField = new BetweenFormField( new StringFormField(), new StringFormField() );
-                    validator = new BetweenValidator( 
-                            new NumberValidator( binding, Polymap.getSessionLocale() ) );
+                    formField = new StringFormField();
+                    validator = new NumberValidator( binding, Polymap.getSessionLocale() );
+// FIXME: BeetweenFormField changes Number to String -> does never match                    
+//                    formField = new BetweenFormField( new StringFormField(), new StringFormField() );
+//                    validator = new BetweenValidator( 
+//                            new NumberValidator( binding, Polymap.getSessionLocale() ) );
                 }
                 // Boolean
                 else if (Boolean.class.isAssignableFrom( binding )) {
@@ -176,24 +177,23 @@ public class StandardFilterProvider
                         propFilters.add( ff.like( 
                                 ff.property( propName ), value.toString(), "*", "?", "\\" ) );
                     }
-                    // Number[]
-                    else if (Number.class.isAssignableFrom( binding )) {
-                        
-                        Object[] values = (Object[])value;
-                        if (value != null && values[0] != null) { 
-                            propFilters.add( ff.greaterOrEqual( 
-                                    ff.property( propName ), ff.literal( values[0] ) ) );
-                        }
-                        if (value != null && values[1] != null) { 
-                            propFilters.add( ff.lessOrEqual( 
-                                    ff.property( propName ), ff.literal( values[1] ) ) );
-                        }
-                    }
-//                    // Number
+//                    // Number[]
 //                    else if (Number.class.isAssignableFrom( binding )) {
-//                        propFilters.add( ff.equals(
-//                                ff.property( propName ), ff.literal( value ) ) );
+//                        Object[] values = (Object[])value;
+//                        if (value != null && values[0] != null) { 
+//                            propFilters.add( ff.greaterOrEqual( 
+//                                    ff.property( propName ), ff.literal( values[0] ) ) );
+//                        }
+//                        if (value != null && values[1] != null) { 
+//                            propFilters.add( ff.lessOrEqual( 
+//                                    ff.property( propName ), ff.literal( values[1] ) ) );
+//                        }
 //                    }
+                    // Number
+                    else if (Number.class.isAssignableFrom( binding )) {
+                        propFilters.add( ff.equals(
+                                ff.property( propName ), ff.literal( value ) ) );
+                    }
                     // Boolean
                     else if (Boolean.class.isAssignableFrom( binding )) {
                         propFilters.add( ff.equals(
