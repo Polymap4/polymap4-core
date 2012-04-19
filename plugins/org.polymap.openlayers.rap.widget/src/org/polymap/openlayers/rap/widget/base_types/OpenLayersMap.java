@@ -112,7 +112,11 @@ public class OpenLayersMap
     }
     
 	
-	public void addLayer(Layer layer2add) {
+    public OpenLayersWidget getWidget() {
+        return widget;
+    }
+
+    public void addLayer(Layer layer2add) {
 		super.addObjModCode("addLayer",layer2add);
 	}
 

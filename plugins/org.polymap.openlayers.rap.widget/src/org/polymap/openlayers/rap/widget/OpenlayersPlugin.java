@@ -36,6 +36,7 @@ public class OpenlayersPlugin
                 if (httpService != null) {
                     try {
                         httpService.registerResources( "/openlayers", "/openlayers", null );
+                        httpService.registerResources( "/ol_js_addins", "/ol_js_addins", null );
                     }
                     catch (NamespaceException e) {
                         throw new RuntimeException( e );
