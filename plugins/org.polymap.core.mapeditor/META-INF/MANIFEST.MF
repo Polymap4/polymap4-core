@@ -23,5 +23,6 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.mapeditor,
- org.polymap.core.mapeditor.actions
+ org.polymap.core.mapeditor.actions,
+ org.polymap.core.mapeditor.contextmenu
 Bundle-ClassPath: .

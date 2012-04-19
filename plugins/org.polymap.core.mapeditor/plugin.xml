@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension-point id="org.polymap.core.mapeditor.mapContextMenu" name="MapContextMenu" schema="schema/org.polymap.core.mapEditor.mapContextMenu.exsd"/>
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -217,6 +218,17 @@
             class="org.polymap.core.mapeditor.edit.LayerEditableOperationConcern"
             id="org.polymap.core.mapeditor.LayerEditableOperationConcern">
       </concern>
+   </extension>
+   <extension
+         point="org.polymap.core.mapeditor.mapContextMenu">
+      <contribution
+            class="org.polymap.core.mapeditor.contextmenu.FirstContribution"
+            id="org.polymap.core.mapeditor.contextmenu.FirstContribution">
+      </contribution>
+      <contribution
+            class="org.polymap.core.mapeditor.contextmenu.LayerSelectableContribution"
+            id="org.polymap.core.mapeditor.contextmenu.LayerSelectableContribution">
+      </contribution>
    </extension>
    <!--extension
          point="org.eclipse.ui.decorators">

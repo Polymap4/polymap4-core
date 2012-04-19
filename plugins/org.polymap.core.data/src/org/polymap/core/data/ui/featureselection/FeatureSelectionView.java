@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.ui.featureselection;
 
+import java.util.EventObject;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.geotools.factory.CommonFactoryFinder;
@@ -33,19 +35,34 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+
+import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeListener;
+import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.ui.featuretable.DefaultFeatureTableColumn;
 import org.polymap.core.data.ui.featuretable.FeatureTableViewer;
 import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
@@ -139,7 +156,11 @@ public class FeatureSelectionView
     
     private FeatureSelectionListener selectionListener = new FeatureSelectionListener();
     
+    private FeatureChangeListener   changeListener;
+    
     private PropertyChangeListener  modelListener = new ModelListener();
+    
+    public IActionDelegate          openAction;
 
 
     protected void init( ILayer _layer ) {
@@ -148,10 +169,30 @@ public class FeatureSelectionView
             this.basePartName = layer.getLabel(); 
             setPartName( basePartName );
             
+            // PropertyChangeListener: layer
             layer.addPropertyChangeListener( modelListener );
 
+            // FeatureSelectionListener
             LayerFeatureSelectionManager.forLayer( layer ).addSelectionChangeListener( selectionListener );
-            
+
+            // FeatureChangeListener
+            FeatureEventManager.instance().addFeatureChangeListener( changeListener = 
+                new FeatureChangeListener() {
+                    public void featureChange( FeatureChangeEvent ev ) {
+                        viewer.getControl().getDisplay().asyncExec( new Runnable() {
+                            public void run() {
+                                loadTable( filter );
+                            }
+                        });
+                    }
+                }, 
+                new IEventFilter() {
+                    public boolean accept( EventObject ev ) {
+                        return true;
+                    }
+                }
+            );
+                
             this.fs = PipelineFeatureSource.forLayer( layer, false );
         }
         catch (Exception e) {
@@ -167,6 +208,7 @@ public class FeatureSelectionView
             try {
                 layer.removePropertyChangeListener( modelListener );
                 LayerFeatureSelectionManager.forLayer( layer ).removeSelectionChangeListener( selectionListener );
+                FeatureEventManager.instance().removeFeatureChangeListener( changeListener ); 
             }
             catch (NoSuchEntityException e) {
                 // layer is deleted -> ignore
@@ -220,6 +262,17 @@ public class FeatureSelectionView
         });
         viewer.addSelectionChangedListener( this );
         
+        // double-click
+        viewer.addDoubleClickListener( new IDoubleClickListener() {
+            public void doubleClick( DoubleClickEvent ev ) {
+                log.info( "doubleClick(): " + ev );
+                //IAction openHandler = getViewSite().getActionBars().getGlobalActionHandler( "org.polymap.rhei.OpenFormAction" );
+                if (openAction != null) {
+                    openAction.run( null );
+                }
+            }
+        });
+        
         // columns
         assert fs != null : "fs not set. Call init() first.";
         SimpleFeatureType schema = fs.getSchema();
@@ -235,6 +288,30 @@ public class FeatureSelectionView
         viewer.getTable().pack( true );
 
         getSite().setSelectionProvider( viewer );
+        hookContextMenu();
+    }
+
+
+    protected void hookContextMenu() {
+        final MenuManager contextMenu = new MenuManager( "#PopupMenu" );
+        contextMenu.setRemoveAllWhenShown( true );
+        
+        contextMenu.addMenuListener( new IMenuListener() {
+            public void menuAboutToShow( IMenuManager manager ) {
+                // Other plug-ins can contribute there actions here
+                manager.add( new Separator( IWorkbenchActionConstants.MB_ADDITIONS ) );
+                manager.add( new GroupMarker( IWorkbenchActionConstants.MB_ADDITIONS ) );
+                //manager.add( new Separator() );
+
+//                TreeSelection sel = (TreeSelection)viewer.getSelection();
+//                if (!sel.isEmpty() && sel.getFirstElement() instanceof IMap) {
+//                    ProjectView.this.fillContextMenu( manager );
+//                }
+            }
+        } );
+        Menu menu = contextMenu.createContextMenu( viewer.getControl() );        
+        viewer.getControl().setMenu( menu );
+        getSite().registerContextMenu( contextMenu, viewer );
     }
 
 

@@ -145,6 +145,19 @@
                tooltip="%actions_newFormTip">
          </action>
       </objectContribution>
+      <objectContribution
+            adaptable="false"
+            id="org.polymap.rhei.featureContribution"
+            objectClass="org.polymap.core.data.ui.featuretable.IFeatureTableElement">
+         <action
+               class="org.polymap.rhei.internal.form.OpenFormAction"
+               icon="icons/etool16/open_form_editor.gif"
+               id="org.polymap.rhei.OpenFormAction_feature"
+               label="%actions_openForm"
+               style="push"
+               tooltip="%actions_openFormTip">
+         </action>
+      </objectContribution>
    </extension>
    <extension
          point="org.polymap.rhei.form.pageProviders">
@@ -210,6 +223,13 @@
             class="org.polymap.rhei.internal.form.NewFeatureOperationConcern"
             id="org.polymap.rhei.NewFeatureOperationConcern">
       </concern>
+   </extension>
+   <extension
+         point="org.polymap.core.mapeditor.mapContextMenu">
+      <contribution
+            class="org.polymap.rhei.internal.form.OpenFormMapContextMenu"
+            id="org.polymap.rhei.OpenFormContextMenu">
+      </contribution>
    </extension>
 
 </plugin>

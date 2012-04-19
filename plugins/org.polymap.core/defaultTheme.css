@@ -5,7 +5,11 @@
 Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label {
     background-color: #f4f4fb;
 }
-
+Shell[BORDER] {
+    border-radius: 4px;
+    /*border: 2px solid #808080;*/
+}
+ 
 Shell-DisplayOverlay {
     background-image: none;
     background-color: #000000;
@@ -14,7 +18,11 @@ Shell-DisplayOverlay {
 }
 
 Menu {
-    background-color: #fefefe;
+    background-color: #ffffff;
+    border: 1px solid #b0b0b0;
+    padding: 3px;
+    border-radius: 2px;
+    /*box-shadow: 1px 1px 1px #808080;*/
     /*animation: slideIn 10ms linear, slideOut 10ms ease-out;*/
 }
 
@@ -23,6 +31,7 @@ Menu {
 /* !! background-color does not work here; see FormEditorToolkit !! */
 
 Text.formeditor {
+    margin: 2px;
     border: 1px solid #CCCCCC;
 }
 
@@ -43,6 +52,9 @@ DateTime.formeditor:disabled {
 }
 
 /* Toolbar ************************************************/
+ToolItem[BORDER] {
+    border-radius: 2px;
+}
 ToolItem:selected {
     background-color: #DFDFF8;
     background-image: gradient(
@@ -51,10 +63,9 @@ ToolItem:selected {
       to( #c8c8c8 )
     );
     padding: 0px 0px 0px 0px;
-    border-radius: 4px;
 }
 ToolItem:hover {
-    border-radius: 4px;
+    border-radius: 2px;
     background-color: #DFDFF8;
     background-image: gradient(
       linear, left top, left bottom,
@@ -65,15 +76,14 @@ ToolItem:hover {
 
 /* Button *************************************************/
 Button[PUSH] {
-    border-radius: 6px;
+    border-radius: 2px;
     background-image: gradient(
       linear, left top, left bottom,
       from( #f8f8fb ),
       to( #ebebf3 )
-    );
-    
+    );    
 }
-  
+
 Button[PUSH]:hover {
     background-color: #ffffff;
     background-image: gradient(

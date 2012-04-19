@@ -45,6 +45,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 
 import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
+import org.polymap.core.mapeditor.contextmenu.ContextMenuControl;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.openlayers.rap.widget.OpenLayersWidget;
@@ -147,6 +148,11 @@ public class MapEditor
     }
 
     
+    public OpenLayersWidget getWidget() {
+        return olwidget;
+    }
+
+
     protected void createWidget() {
         // the widget (use internally provided OpenLayers lib)
         olwidget = new OpenLayersWidget( composite, SWT.MULTI | SWT.WRAP, "openlayers/full/OpenLayers.js" );
@@ -190,6 +196,11 @@ public class MapEditor
         olmap.addControl( new ScaleLineControl() );
         olmap.addControl( new ScaleControl() );
 
+        ContextMenuControl contextMenu = new ContextMenuControl( this );
+        getSite().setSelectionProvider( contextMenu );
+//        olmap.addControl( contextMenu );
+//        contextMenu.activate();
+        
         // map events
         HashMap<String, String> payload = new HashMap<String, String>();
         payload.put( "left", "event.object.getExtent().toArray()[0]" );

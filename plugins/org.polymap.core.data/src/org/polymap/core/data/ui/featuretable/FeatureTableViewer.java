@@ -87,7 +87,7 @@ public class FeatureTableViewer
         getTable().setLayout( new TableLayout() );
 
         this.foreground = getTable().getForeground();
-        
+
         //setUseHashlookup( true );
     }
 
