@@ -222,12 +222,16 @@
    <extension
          point="org.polymap.core.mapeditor.mapContextMenu">
       <contribution
-            class="org.polymap.core.mapeditor.contextmenu.FirstContribution"
-            id="org.polymap.core.mapeditor.contextmenu.FirstContribution">
+            class="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution"
+            id="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution">
       </contribution>
       <contribution
             class="org.polymap.core.mapeditor.contextmenu.LayerSelectableContribution"
             id="org.polymap.core.mapeditor.contextmenu.LayerSelectableContribution">
+      </contribution>
+      <contribution
+            class="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfoContribution"
+            id="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfo">
       </contribution>
    </extension>
    <!--extension

@@ -30,7 +30,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.io.output.CountingOutputStream;
-import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -95,8 +94,8 @@ public class SimpleJsonServer
     /** Default value if layer has no settings. */
     private int                     maxBytes = DEFAULT_MAX_BYTES;
     
-    /** Default value if layer has no settings. */
-    private int                     decimals = 5;
+    /** Default value 6 is good for EPSG:31468, 3857 and WGS84 */
+    private int                     decimals = 6;
     
     private Map<String,JsonEncoder> layers = new HashMap();    
     
@@ -135,6 +134,8 @@ public class SimpleJsonServer
     public JsonEncoder newLayer( Collection<Feature> features, 
             CoordinateReferenceSystem mapCRS, boolean oneShot ) {
         JsonEncoder layer = JsonEncoder.newInstance();
+        layer.setDecimals( decimals );
+        
         layer.init( "layer"+totalLayers++, features, mapCRS );
         layer.setOneShot( oneShot );
         synchronized (layers) {
@@ -156,7 +157,7 @@ public class SimpleJsonServer
             throws ServletException, IOException {
         log.info( "Accept-Encoding: " + request.getHeader( "Accept-Encoding" ) );
         log.info( "### JSON: about to encode JSON...." );
-        boolean gzip = false;  //request.getHeader( "Accept-Encoding" ).toLowerCase().indexOf( "gzip" ) > -1;
+        boolean gzip = request.getHeader( "Accept-Encoding" ).toLowerCase().contains( "gzip" );
     
         // prevent caching
         response.setHeader( "Cache-Control", "no-cache" ); // HTTP 1.1
@@ -165,16 +166,17 @@ public class SimpleJsonServer
         response.setCharacterEncoding( "UTF-8" );
         
         Timer timer = new Timer();
-        OutputStream debugOut = log.isDebugEnabled() 
+        log.debug( "SimpleJsonServer Output: " );
+        OutputStream debugOut = /*log.isDebugEnabled() 
                 ? new TeeOutputStream( response.getOutputStream(), System.out )
-                : response.getOutputStream();
+                : */response.getOutputStream();
         
         CountingOutputStream out = null, cout2 = null;
         if (gzip) {
             response.setHeader( "Content-Encoding", "gzip" );
             //response.setHeader( "Content-Type", "text/javascript" );
             cout2 = new CountingOutputStream( debugOut );
-            out = new CountingOutputStream( new GZIPOutputStream( cout2 ) );
+            out = new CountingOutputStream( new GZIPOutputStream( cout2, true ) );
         }
         else {
             out = new CountingOutputStream( debugOut );
@@ -190,7 +192,7 @@ public class SimpleJsonServer
         
         log.info( "    JSON bytes: " + out.getCount() + " (" + timer.elapsedTime() + "ms)" );
         if (cout2 != null) {
-            log.info( "    bytes written: " + cout2.getCount() );
+            log.info( "    GZIPed bytes written: " + cout2.getCount() );
         }
         
         if (layer.isOneShot()) {

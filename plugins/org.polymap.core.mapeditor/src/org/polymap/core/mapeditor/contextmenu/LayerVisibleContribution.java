@@ -14,6 +14,11 @@
  */
 package org.polymap.core.mapeditor.contextmenu;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import org.eclipse.swt.widgets.Menu;
 
 import org.eclipse.jface.action.Action;
@@ -28,14 +33,14 @@ import org.polymap.core.project.ILayer;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FirstContribution
+public class LayerVisibleContribution
         extends ContributionItem
         implements IContextMenuContribution {
 
     private ContextMenuSite            site;
 
 
-    public FirstContribution() {
+    public LayerVisibleContribution() {
         //setVisible( true );
     }
 
@@ -52,7 +57,15 @@ public class FirstContribution
 
 
     public void fill( Menu parent, int index ) {
-        for (final ILayer layer : site.getMap().getLayers()) {
+        // sort
+        List<ILayer> layers = new ArrayList( site.getMap().getLayers() );
+        Collections.sort( layers, new Comparator<ILayer>() {
+            public int compare( ILayer layer1, ILayer layer2 ) {
+                return layer1.getOrderKey() - layer2.getOrderKey();
+            }
+        });
+        // create ActionContributionItems
+        for (final ILayer layer : layers) {
             Action action = new Action( layer.getLabel(), Action.AS_CHECK_BOX ) {
                 public void run() {
                     layer.setVisible( !layer.isVisible() );

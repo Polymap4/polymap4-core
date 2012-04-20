@@ -35,6 +35,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
@@ -144,10 +145,12 @@ public class FeatureSelectionView
 
     private ILayer                  layer;
     
+    /** Might be null if fs could not be instantiated for the layer */
     private PipelineFeatureSource   fs;
 
     private Filter                  filter;
 
+    /** Might be null if fs could not be instantiated for the layer */
     private FeatureTableViewer      viewer;
 
     private String                  basePartName;
@@ -179,11 +182,13 @@ public class FeatureSelectionView
             FeatureEventManager.instance().addFeatureChangeListener( changeListener = 
                 new FeatureChangeListener() {
                     public void featureChange( FeatureChangeEvent ev ) {
-                        viewer.getControl().getDisplay().asyncExec( new Runnable() {
-                            public void run() {
-                                loadTable( filter );
-                            }
-                        });
+                        if (viewer != null) {
+                            viewer.getControl().getDisplay().asyncExec( new Runnable() {
+                                public void run() {
+                                    loadTable( filter );
+                                }
+                            });
+                        }
                     }
                 }, 
                 new IEventFilter() {
@@ -239,7 +244,7 @@ public class FeatureSelectionView
 
     
     public IFeatureTableElement[] getTableElements() {
-        return viewer.getElements();
+        return fs != null ? viewer.getElements() : new IFeatureTableElement[0];
     }
     
     
@@ -248,6 +253,13 @@ public class FeatureSelectionView
         
         this.parent = parent;
         this.parent.setLayout( new FormLayout() );
+        
+        // check fs -> error message
+        if (fs == null) {
+            Label msg = new Label( parent, SWT.NONE );
+            msg.setText( "No feature pipeline for layer: " + layer.getLabel() );
+            return;
+        }
 
         viewer = new FeatureTableViewer( parent, SWT.NONE );
         viewer.getTable().setLayoutData( new SimpleFormData().fill().create() );

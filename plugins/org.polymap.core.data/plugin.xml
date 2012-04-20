@@ -136,6 +136,9 @@
             <separator
                   name="org.polymap.core.data.separator1">
             </separator>
+            <groupMarker
+                  name="org.polymap.core.data.groupMarker1">
+            </groupMarker>
          </menu>
       </objectContribution>
       <objectContribution

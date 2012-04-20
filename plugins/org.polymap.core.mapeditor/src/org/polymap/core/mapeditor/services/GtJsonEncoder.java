@@ -44,6 +44,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geojson.GeoJSONUtil;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.NamedIdentifier;
@@ -80,8 +81,8 @@ class GtJsonEncoder
         boolean encodeFeatureCollectionCRS = false;
 
         // XXX this creates a GeometryJSON which has decimals set by default
-        FeatureJSON fjson = new FeatureJSON();
-        log.warn( "XXX: fjson.setGjson( new GeometryJSON( decimals ) );" );
+        FeatureJSON fjson = new FeatureJSON( new GeometryJSON( decimals ) );
+        //log.warn( "XXX: fjson.setGjson( new GeometryJSON( decimals ) );" );
         fjson.setEncodeFeatureBounds( false );
         fjson.setEncodeFeatureCRS( false );
 

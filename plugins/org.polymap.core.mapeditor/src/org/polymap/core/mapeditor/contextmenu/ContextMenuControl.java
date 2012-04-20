@@ -17,7 +17,7 @@ package org.polymap.core.mapeditor.contextmenu;
 import org.eclipse.swt.widgets.Menu;
 
 import org.eclipse.jface.action.GroupMarker;
-import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuListener2;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
@@ -62,7 +62,13 @@ public class ContextMenuControl
         final MenuManager contextMenu = new MenuManager();
         contextMenu.setRemoveAllWhenShown( true );
         
-        contextMenu.addMenuListener( new IMenuListener() {
+        contextMenu.addMenuListener( new IMenuListener2() {
+            
+            public void menuAboutToHide( IMenuManager manager ) {
+                // avois displaying the old menu when opening
+                contextMenu.removeAll();
+            }
+
             public void menuAboutToShow( IMenuManager manager ) {
                 // create site
                 ContextMenuSite site = new ContextMenuSite() {
@@ -70,15 +76,6 @@ public class ContextMenuControl
                         return mapEditor;
                     }
                 };
-                
-//                // extensions -> sort priority
-//                Multimap<Integer,IContextMenuContribution> sorted = Multimaps.newListMultimap( 
-//                        new TreeMap<Integer,Collection<IContextMenuContribution>>(), 
-//                        new Supplier<List<IContextMenuContribution>>() {
-//                            public List<IContextMenuContribution> get() {
-//                                return new ArrayList();
-//                            }
-//                        } );
                 
                 // groups
                 manager.add( new Separator( IContextMenuContribution.GROUP_TOP ) );
@@ -90,7 +87,7 @@ public class ContextMenuControl
                 manager.add( new Separator( IContextMenuContribution.GROUP_LOW ) );
                 manager.add( new GroupMarker( IContextMenuContribution.GROUP_LOW ) );
 
-                // add to menu
+                // find extensions and add to menu
                 for (ContextMenuExtension ext : ContextMenuExtension.all()) {
                     IContextMenuContribution item = ext.newProvider().init( site );
                     contextMenu.appendToGroup( item.getMenuGroup(), item );
