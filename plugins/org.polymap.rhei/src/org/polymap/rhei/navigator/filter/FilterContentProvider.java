@@ -64,7 +64,7 @@ public class FilterContentProvider
                     // FIXME IFilter is stateful but currently the same IFilter might be subject
                     // to subsequent openDialog/View... request! Creating IFilter instances with
                     // every getChildren() here might help but does not cure the problem
-                    List<IFilter> filters = ext.newFilterProvider().addFilters( folder.getLayer() );
+                    List<? extends IFilter> filters = ext.newFilterProvider().addFilters( folder.getLayer() );
                     if (filters != null) {
                         result.addAll( filters );
                     }

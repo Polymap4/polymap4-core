@@ -16,11 +16,13 @@ package org.polymap.core.data.image.cache304;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
@@ -29,12 +31,17 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
+import org.eclipse.ui.preferences.ScopedPreferenceStore;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
@@ -65,6 +72,16 @@ public class Cache304 {
 
     private static Log log = LogFactory.getLog( Cache304.class );
     
+    /** The unit of livetime values: hours */
+    public static final TimeUnit        liveTimeUnit = TimeUnit.HOURS;
+
+    public static final String          PROP_MAX_TILE_LIVETIME = "maxTileLivetime";
+    
+    public static final String          PREF_TOTAL_STORE_SIZE = "totalStoreSize";
+    
+    public static final int             DEFAULT_MAX_TILE_LIVETIME = 24;
+    public static final int             DEFAULT_MAX_STORE_SIZE = 100 * 1024 * 1024;
+    
     private static final Cache304       instance;
     
     
@@ -75,7 +92,6 @@ public class Cache304 {
     public static final Cache304 instance() {
         return instance;
     }
-    
     
     // instance *******************************************
     
@@ -89,21 +105,18 @@ public class Cache304 {
      */
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private TimeUnit            liveTimeUnit = TimeUnit.HOURS;
-
-    /**
-     * The default livetime of all tiles in cache. Tiles are considered invalid if
-     * their creation time is before current time - {@link #maxTileLiveTime}.
-     */
-    private int                 maxTileLiveTime = 24;
-    
     private Updater             updater = new Updater();
     
-    /** Defaults to 100MB. */
-    private int                 maxStoreSizeInByte = 100 * 1024 * 1024;
+    /** Defaults to {@link #DEFAULT_MAX_STORE_SIZE}. */
+    private long                maxStoreSizeInByte = DEFAULT_MAX_STORE_SIZE;
     
-    /** Update lastAccessed() time, only if it is older then this time. */
+    /** Update lastAccessed() time, only if it is older then this time (3min.) */
     private long                accessTimeRasterMillis = 3 * 60 * 1000;
+
+    private CacheStatistics     statistics = new CacheStatistics( this );
+    
+    private IPersistentPreferenceStore    prefs = new ScopedPreferenceStore( 
+            new InstanceScope(), DataPlugin.getDefault().getBundle().getSymbolicName() );
     
     
     protected Cache304() {
@@ -115,6 +128,9 @@ public class Cache304 {
                     return !key.equals( CachedTile.TYPE.data );
                 }
             });
+            
+            prefs.setDefault( PREF_TOTAL_STORE_SIZE, DEFAULT_MAX_STORE_SIZE );
+            maxStoreSizeInByte = prefs.getInt( PREF_TOTAL_STORE_SIZE );
         }
         catch (Exception e) {
             log.error( "Error starting Cache304.", e );
@@ -122,7 +138,30 @@ public class Cache304 {
     }
     
     
-    public CachedTile get( GetMapRequest request, Set<ILayer> layers ) {
+    public long getMaxTotalSize() {
+        return maxStoreSizeInByte;    
+    }
+    
+    public void setMaxTotalSize( long size ) {
+        this.maxStoreSizeInByte = size;
+        try {
+            prefs.setValue( PREF_TOTAL_STORE_SIZE, size );
+            prefs.save();
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
+    }
+
+
+    /**
+     *
+     * @param request
+     * @param layers
+     * @param props The processor properties for this layer.
+     * @return The cached tile or null.
+     */
+    public CachedTile get( GetMapRequest request, Set<ILayer> layers, Properties props ) {
         try {
             // keep store and queue stable during method run
             lock.readLock().lock();
@@ -153,14 +192,17 @@ public class Cache304 {
                 
                 // update lastAccessed() time, only if it was not already
                 // done in the last accessTimeRasterMillis
-                if (cachedTile.lastAccessed.get() + accessTimeRasterMillis < now) {
+                if ((cachedTile.lastAccessed.get() + accessTimeRasterMillis) < now) {
                     cachedTile.lastAccessed.put( now );
                     updateQueue.push( new CacheUpdateQueue.TouchCommand( cachedTile ) );
                     updater.reSchedule();
                 }
+                
+                statistics.incLayerHitCounter( layers, false );
                 return cachedTile;
             }
             else {
+                statistics.incLayerHitCounter( layers, true );
                 return null;
             }
         }
@@ -174,20 +216,35 @@ public class Cache304 {
     }
     
     
-    public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data, long created ) {
+    /**
+     *
+     * @param request
+     * @param layers
+     * @param data
+     * @param created
+     * @param props The processor properties for this layer.
+     * @return
+     */
+    public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data, long created, Properties props ) {
         try {
-            CachedTile cachedTile = get( request, layers );
+            CachedTile cachedTile = get( request, layers, props );
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord() );
                 cachedTile.created.put( created );
                 cachedTile.lastModified.put( created );
                 cachedTile.lastAccessed.put( created );
 
+                assert layers.size() == 1 : "put(): more than one layer in request.";
+                ILayer layer = layers.iterator().next();
+
+                int maxLivetime = Integer.parseInt( props.getProperty( 
+                        PROP_MAX_TILE_LIVETIME, 
+                        String.valueOf (DEFAULT_MAX_TILE_LIVETIME ) ) );
+                cachedTile.expires.put( created + liveTimeUnit.toMillis( maxLivetime ) );
+                
                 cachedTile.width.put( request.getWidth() );
                 cachedTile.height.put( request.getHeight() );
 
-                assert layers.size() == 1 : "put(): more than one layer in request.";
-                ILayer layer = layers.iterator().next();
                 String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
                 cachedTile.style.put( styleHash );
 
@@ -286,6 +343,9 @@ public class Cache304 {
             // style
             String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
             query.eq( CachedTile.TYPE.style.name(), styleHash );
+            
+            // not expired
+            query.greater( CachedTile.TYPE.expires.name(), System.currentTimeMillis() );
         }
         return query;
     }
@@ -355,10 +415,11 @@ public class Cache304 {
             log.debug( "Updater: pruning expired tiles..." );
             tx = store.prepareUpdate();
             try {
-                long deadline = System.currentTimeMillis() - liveTimeUnit.toMillis( maxTileLiveTime );
+                long deadline = System.currentTimeMillis();
                 SimpleQuery query = new SimpleQuery();
                 query.setMaxResults( 100 );
-                query.less( CachedTile.TYPE.created.name(), deadline );
+                query.less( CachedTile.TYPE.expires.name(), deadline );
+                query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC, String.class );
                 
                 ResultSet expiredTiles = store.find( query );
                 
@@ -387,7 +448,7 @@ public class Cache304 {
                 try {
                     // check max livetime
                     SimpleQuery query = new SimpleQuery();
-                    query.setMaxResults( 50 );
+                    query.setMaxResults( 100 );
                     query.less( CachedTile.TYPE.lastAccessed.name(), System.currentTimeMillis() );
                     query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC, String.class );
                     
@@ -430,6 +491,11 @@ public class Cache304 {
             schedule( normDelay );
         }
         
+    }
+
+
+    public CacheStatistics statistics() {
+        return statistics;
     }
     
 }

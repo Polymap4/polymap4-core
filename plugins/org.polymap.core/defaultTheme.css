@@ -19,11 +19,11 @@ Shell-DisplayOverlay {
 
 Menu {
     background-color: #ffffff;
-    border: 1px solid #b0b0b0;
+    border: 1px solid #a0a0b0;
     padding: 3px;
     border-radius: 2px;
     /*box-shadow: 1px 1px 1px #808080;*/
-    /*animation: slideIn 10ms linear, slideOut 10ms ease-out;*/
+    /*animation: slideIn 25ms linear*/;
 }
 
 /* Form widgets *******************************************/

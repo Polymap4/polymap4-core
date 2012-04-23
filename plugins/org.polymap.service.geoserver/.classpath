@@ -4,7 +4,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/ows-2.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/platform-2.0.2.jar" sourcepath="lib/sources/platform-2.0.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/wfs-2.0.2.jar" sourcepath="lib/sources/wfs-2.0.2-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/wms-2.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wms-2.0.2.jar" sourcepath="lib/sources/wms-2.0.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/ezmorph-1.0.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-lib-2.2.3-jdk15.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-aop-2.5.5.jar"/>
@@ -18,7 +18,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/xstream-1.3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-web-2.5.5.jar" sourcepath="/home/falko/.m2/repository/org/springframework/spring-web/2.5.5/spring-web-2.5.5-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-webmvc-2.5.5.jar" sourcepath="packages/spring-webmvc-2.5.5-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-beans-2.5.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-beans-2.5.5.jar" sourcepath="/home/falko/.m2/repository/org/springframework/spring-beans/2.5.5/spring-beans-2.5.5-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-context-2.5.5.jar" sourcepath="/home/falko/.m2/repository/org/springframework/spring-context/2.5.5/spring-context-2.5.5-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-core-2.5.5.jar" sourcepath="/home/falko/.m2/repository/org/springframework/spring-core/2.5.5/spring-core-2.5.5-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>

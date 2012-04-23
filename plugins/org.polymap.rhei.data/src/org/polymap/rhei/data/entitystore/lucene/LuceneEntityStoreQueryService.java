@@ -14,6 +14,8 @@
  */
 package org.polymap.rhei.data.entitystore.lucene;
 
+import java.util.Arrays;
+
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
@@ -36,7 +38,6 @@ import org.qi4j.spi.query.EntityFinder;
 import org.qi4j.spi.query.EntityFinderException;
 
 import com.google.common.base.Function;
-import edu.emory.mathcs.backport.java.util.Arrays;
 import static com.google.common.collect.Iterables.transform;
 
 import org.polymap.core.runtime.Timer;

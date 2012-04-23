@@ -1,5 +1,6 @@
 package org.polymap.core.data.feature;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -10,8 +11,6 @@ import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 import org.polymap.core.data.Messages;
 

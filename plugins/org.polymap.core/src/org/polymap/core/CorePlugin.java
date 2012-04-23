@@ -99,20 +99,22 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
+
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
 	}
 
 	
@@ -139,6 +141,9 @@ public class CorePlugin
         log.debug( "start..." );
         plugin = this;
         
+        System.setProperty( "http.agent", "Polymap3 (http://polymap.org/polymap3/)" );
+        System.setProperty( "https.agent", "Polymap3 (http://polymap.org/polymap3/)" );
+
         // RAP session context
         this.rapSessionContextProvider = new RapSessionContextProvider();
         SessionContext.addProvider( rapSessionContextProvider );

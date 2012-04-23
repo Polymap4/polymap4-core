@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
+import java.util.Collections;
+
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -27,8 +29,6 @@ import org.opengis.filter.Id;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;

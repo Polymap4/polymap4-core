@@ -15,6 +15,7 @@
 package org.polymap.rhei.navigator.filter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.io.IOException;
@@ -33,8 +34,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import org.eclipse.swt.widgets.Composite;
 
@@ -75,7 +74,7 @@ public class StandardFilterProvider
     }
 
 
-    public List<IFilter> addFilters( ILayer _layer )
+    public List<? extends IFilter> addFilters( ILayer _layer )
     throws Exception {
         this.layer = _layer;
         IGeoResource geores = layer.getGeoResource();

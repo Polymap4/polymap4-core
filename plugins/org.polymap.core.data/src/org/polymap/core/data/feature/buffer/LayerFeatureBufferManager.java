@@ -16,6 +16,7 @@ package org.polymap.core.data.feature.buffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -49,8 +50,6 @@ import org.apache.commons.logging.LogFactory;
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import com.vividsolutions.jts.geom.Geometry;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 

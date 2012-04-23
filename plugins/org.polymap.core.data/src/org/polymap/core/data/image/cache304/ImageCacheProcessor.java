@@ -72,12 +72,15 @@ public class ImageCacheProcessor
 
     private ILayer                  layer;
     
+    private Properties              props;
+    
     private LayerListener           layerListener;
     
     private boolean                 active = true;
     
     
-    public void init( Properties props ) {
+    public void init( Properties _props ) {
+        props = _props;
         layer = (ILayer)props.get( "layer" );
         assert layer != null;
         
@@ -132,7 +135,7 @@ public class ImageCacheProcessor
     throws Exception {
         
         Timer timer = new Timer();
-        CachedTile cachedTile = Cache304.instance().get( request, context.getLayers() );
+        CachedTile cachedTile = Cache304.instance().get( request, context.getLayers(), props );
         log.debug( "query time: " + timer.elapsedTime() + "ms" );
         
         if (cachedTile != null) {
@@ -191,7 +194,7 @@ public class ImageCacheProcessor
             GetMapRequest request = (GetMapRequest)context.get( "request" );
             CachedTile cachedTile = Cache304.instance().put( 
                     request, context.getLayers(), cacheBuf.toByteArray(),
-                    (Long)context.get( "created" ) );
+                    (Long)context.get( "created" ), props );
 
             context.sendResponse( ProcessorResponse.EOP );
             //log.debug( "...all data sent." );

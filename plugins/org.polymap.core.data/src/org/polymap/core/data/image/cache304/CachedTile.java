@@ -43,6 +43,8 @@ public class CachedTile
     
     public Property<Long>       lastAccessed = new Property<Long>( "lastAccessed" );
     
+    public Property<Long>       expires = new Property<Long>( "expires" );
+    
     public Property<Integer>    width = new Property<Integer>( "width" );
     
     public Property<Integer>    height = new Property<Integer>( "height" );

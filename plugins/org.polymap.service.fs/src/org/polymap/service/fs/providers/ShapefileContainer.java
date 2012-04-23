@@ -15,6 +15,7 @@
 package org.polymap.service.fs.providers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,21 +61,20 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import edu.emory.mathcs.backport.java.util.Collections;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
 
-import org.polymap.core.data.FeatureStoreListener;
 import org.polymap.core.data.FeatureChangeTracker;
 import org.polymap.core.data.FeatureStoreEvent;
+import org.polymap.core.data.FeatureStoreListener;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.model.event.ModelChangeTracker;
 import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.model.event.ModelChangeTracker.Updater;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
+
 import org.polymap.service.fs.spi.IContentSite;
 
 /**

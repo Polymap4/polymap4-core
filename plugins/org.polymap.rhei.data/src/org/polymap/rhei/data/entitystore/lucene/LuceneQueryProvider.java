@@ -14,7 +14,11 @@
  */
 package org.polymap.rhei.data.entitystore.lucene;
 
+import static com.google.common.collect.Iterables.skip;
+import static com.google.common.collect.Iterables.transform;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +42,6 @@ import org.opengis.filter.PropertyIsNotEqualTo;
 import org.opengis.filter.PropertyIsNull;
 import org.opengis.filter.expression.Divide;
 import org.opengis.filter.expression.Expression;
-//import org.opengis.filter.expression.Function;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.Multiply;
 import org.opengis.filter.expression.PropertyName;
@@ -69,11 +72,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 
 import com.google.common.base.Function;
-import static com.google.common.collect.Iterables.transform;
-import static com.google.common.collect.Iterables.skip;
 import com.google.common.collect.Sets;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 import org.polymap.core.data.util.Identifiers;
 import org.polymap.core.model.EntityType;

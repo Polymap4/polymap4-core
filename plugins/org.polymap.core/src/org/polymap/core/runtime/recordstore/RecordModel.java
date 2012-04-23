@@ -120,11 +120,17 @@ public abstract class RecordModel {
             return state.getList( name );
         }
 
+        /**
+         * @see IRecordState#put(String, Object)
+         */
         public RecordModel put( T value ) {
             state.put( name, value );
             return RecordModel.this;
         }
 
+        /**
+         * @see IRecordState#put(String, Object)
+         */
         public RecordModel add( T value ) {
             state.add( name, value );
             return RecordModel.this;
