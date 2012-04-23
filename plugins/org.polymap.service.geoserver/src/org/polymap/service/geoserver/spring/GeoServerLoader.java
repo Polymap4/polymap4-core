@@ -216,13 +216,11 @@ public class GeoServerLoader
             // try feature/vector resource
             try {
                 PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-                if (fs.getPipeline().length() == 0) {
+                if (fs == null || fs.getPipeline().length() == 0) {
                     throw new PipelineIncubationException( "WMS layer? : " + layer.getLabel() );
                 }
 
                 // set name/namespace for target schema
-//                IGeoResource geores = layer.getGeoResource();
-//                FeatureSource srcfs = geores.resolve( FeatureSource.class, null );
                 Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
                 fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
                 
@@ -238,95 +236,96 @@ public class GeoServerLoader
             }
             // no geores found or something
             catch (Exception e) {
-                log.warn( "Error while creating catalog: " + e.getLocalizedMessage() );
+                log.error( "Error while creating catalog: " + e.getLocalizedMessage() );
                 log.debug( "", e );
                 break;
             }
                 
-                // DataStore
-                MyDataStoreInfoImpl dsInfo = new MyDataStoreInfoImpl( catalog, ds );
-                dsInfo.setId( layer.id() );
-                dsInfo.setName( layer.getLabel() );
-                dsInfo.setDescription( "DataStore of ILayer: " + layer.getLabel() );
-                dsInfo.setWorkspace( wsInfo );
-                dsInfo.setType( "PipelineDataStore" );
-                Map params = new HashMap();
-                params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
-                dsInfo.setConnectionParameters( params );
-                dsInfo.setEnabled( true );
-                catalog.add( dsInfo );
-                log.debug( "    loaded DataStore: '" + dsInfo.getName() +"'");
+            // DataStore
+            MyDataStoreInfoImpl dsInfo = new MyDataStoreInfoImpl( catalog, ds );
+            dsInfo.setId( layer.id() );
+            dsInfo.setName( layer.getLabel() );
+            dsInfo.setDescription( "DataStore of ILayer: " + layer.getLabel() );
+            dsInfo.setWorkspace( wsInfo );
+            dsInfo.setType( "PipelineDataStore" );
+            Map params = new HashMap();
+            params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
+            dsInfo.setConnectionParameters( params );
+            dsInfo.setEnabled( true );
+            catalog.add( dsInfo );
+            log.debug( "    loaded DataStore: '" + dsInfo.getName() +"'");
 
-                // FeatureType
-                MyFeatureTypeInfoImpl ftInfo = new MyFeatureTypeInfoImpl( catalog, layer.id(), ds );
-                ftInfo.setName( schema.getTypeName() );
-                ftInfo.setTitle( layer.getLabel() );
-                ftInfo.setKeywords( new ArrayList( layer.getKeywords() ) );
-                ftInfo.setDescription( "FeatureType of ILayer: " + layer.getLabel() );
-                ftInfo.setStore( dsInfo );
-                ftInfo.setNamespace( defaultNsInfo );
-                ftInfo.setNativeCRS( layer.getCRS() );
-                //ftInfo.setNativeBoundingBox( map.getMaxExtent() );
-                ftInfo.setNativeName( schema.getTypeName() );
-                ftInfo.setProjectionPolicy( ProjectionPolicy.NONE );
-                // XXX this the "default" SRS; WFS needs this to work; shouldn't this be the the "native"
-                // SRS of the data?
-                ftInfo.setSRS( layer.getCRSCode() );
-                ReferencedEnvelope bbox = map.getMaxExtent();
-                try {
-                    Envelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
-                    double[] lu = latlon.getLowerCorner().getCoordinate();
-                    double[] ro = latlon.getUpperCorner().getCoordinate();
-                    ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( 
-                            lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
-                }
-                catch (Exception e) {
-                    log.warn( e );
-                    ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
-                }
-                ftInfo.setEnabled( true );
-                
-                List<AttributeTypeInfo> attributeInfos = new ArrayList();
-                for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
-                    AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
-                    attributeInfo.setFeatureType( ftInfo );
-                    attributeInfo.setAttribute( attribute );
-                    attributeInfo.setId( attribute.toString() );
-                }
-                ftInfo.setAttributes( attributeInfos );
-                catalog.add( ftInfo );
-                log.debug( "    loaded FeatureType: '" + ftInfo.getName() +"'");
-                
-                // Layer
-                LayerInfoImpl layerInfo = new LayerInfoImpl();
-                layerInfo.setResource( ftInfo );
-                layerInfo.setId( layer.id() );
-                layerInfo.setName( schema.getTypeName() );
-                layers.put( layerInfo.getName(), layer );
-                layerInfo.setEnabled( true );
-                layerInfo.setType( Type.VECTOR );
-                Set styles = new HashSet();
-                
-                StyleInfoImpl style = new StyleInfoImpl( catalog );
-                IStyle layerStyle = layer.getStyle();
-                String styleName = layerStyle.getTitle() != null ?
-                        layerStyle.getTitle() : layer.getLabel() + "-style";
-                style.setId( simpleName( styleName ) );
-                style.setName( simpleName( styleName ) );
+            // FeatureType
+            MyFeatureTypeInfoImpl ftInfo = new MyFeatureTypeInfoImpl( catalog, layer.id(), ds );
+            ftInfo.setName( schema.getTypeName() );
+            ftInfo.setTitle( layer.getLabel() );
+            ftInfo.setKeywords( new ArrayList( layer.getKeywords() ) );
+            ftInfo.setDescription( "FeatureType of ILayer: " + layer.getLabel() );
+            ftInfo.setStore( dsInfo );
+            ftInfo.setNamespace( defaultNsInfo );
+            ftInfo.setNativeCRS( layer.getCRS() );
+            //ftInfo.setNativeBoundingBox( map.getMaxExtent() );
+            ftInfo.setNativeName( schema.getTypeName() );
+            ftInfo.setProjectionPolicy( ProjectionPolicy.NONE );
+            // XXX this the "default" SRS; WFS needs this to work; shouldn't this be the the "native"
+            // SRS of the data?
+            ftInfo.setSRS( layer.getCRSCode() );
+            ReferencedEnvelope bbox = map.getMaxExtent();
+            try {
+                Envelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
+                double[] lu = latlon.getLowerCorner().getCoordinate();
+                double[] ro = latlon.getUpperCorner().getCoordinate();
+                ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( 
+                        lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
+            }
+            catch (Exception e) {
+                log.warn( e );
+                ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
+            }
+            ftInfo.setEnabled( true );
 
-                File sldFile = GeoserverDataDirectory.findStyleFile( styleName + ".sld", true );
-                if (!sldFile.getParentFile().exists()) {
-                    sldFile.getParentFile().mkdirs();
-                }
-                FileUtils.writeStringToFile( sldFile, layerStyle.createSLD( new NullProgressMonitor() ), "UTF-8" );
+            List<AttributeTypeInfo> attributeInfos = new ArrayList();
+            for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
+                AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
+                attributeInfo.setFeatureType( ftInfo );
+                attributeInfo.setAttribute( attribute );
+                attributeInfo.setId( attribute.toString() );
+            }
+            ftInfo.setAttributes( attributeInfos );
+            catalog.add( ftInfo );
+            log.debug( "    loaded FeatureType: '" + ftInfo.getName() +"'");
+
+            // Layer
+            LayerInfoImpl layerInfo = new LayerInfoImpl();
+            layerInfo.setResource( ftInfo );
+            layerInfo.setId( layer.id() );
+            layerInfo.setName( schema.getTypeName() );
+            layers.put( layerInfo.getName(), layer );
+            layerInfo.setEnabled( true );
+            layerInfo.setType( Type.VECTOR );
+            Set styles = new HashSet();
+
+            StyleInfoImpl style = new StyleInfoImpl( catalog );
+            IStyle layerStyle = layer.getStyle();
+            String styleName = layerStyle.getTitle() != null 
+                    ? layerStyle.getTitle() : layer.getLabel() + "-style";
+            style.setId( simpleName( styleName ) );
+            style.setName( simpleName( styleName ) );
+
+            File sldFile = GeoserverDataDirectory.findStyleFile( styleName + ".sld", true );
+            if (!sldFile.getParentFile().exists()) {
+                sldFile.getParentFile().mkdirs();
+            }
+            FileUtils.writeStringToFile( sldFile, layerStyle.createSLD( new NullProgressMonitor() ), "UTF-8" );
+
+            style.setFilename( sldFile.getName() );
+            catalog.add( style );
+            styles.add( style );
+            layerInfo.setStyles( styles );
+            layerInfo.setDefaultStyle( style );
+            catalog.add( layerInfo );
+            log.debug( "    loaded Layer: '" + layerInfo.getName() +"'");
                 
-                style.setFilename( sldFile.getName() );
-                catalog.add( style );
-                styles.add( style );
-                layerInfo.setStyles( styles );
-                layerInfo.setDefaultStyle( style );
-                catalog.add( layerInfo );
-                log.debug( "    loaded Layer: '" + layerInfo.getName() +"'");
 //            }
 //            catch (Exception e) {
 //                log.info( "No feature pipeline, creating CoverageStore..." );
