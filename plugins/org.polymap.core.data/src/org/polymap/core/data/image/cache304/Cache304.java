@@ -214,16 +214,17 @@ public class Cache304 {
             lock.readLock().unlock();
         }
     }
-    
-    
+
+
     /**
-     *
+     * 
      * @param request
      * @param layers
      * @param data
      * @param created
      * @param props The processor properties for this layer.
-     * @return
+     * @return The cached tile if the given request maps to a cached tile, or a newly
+     *         created tile for the given request.
      */
     public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data, long created, Properties props ) {
         try {
