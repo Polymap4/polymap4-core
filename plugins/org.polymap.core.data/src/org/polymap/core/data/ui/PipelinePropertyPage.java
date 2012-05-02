@@ -242,7 +242,7 @@ public class PipelinePropertyPage
 
         procsTable = new TableViewer( section, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
         procsTable.getControl().setLayoutData( 
-                new SimpleFormData().left( 0 ).top( l ).right( 41 ).bottom( sep ).create() );
+                new SimpleFormData().left( 0 ).top( l ).right( 41 ).bottom( sep ).width( 50 ).create() );
 
         procsTable.addSelectionChangedListener( new ISelectionChangedListener() {
             public void selectionChanged( SelectionChangedEvent ev ) {
@@ -276,12 +276,12 @@ public class PipelinePropertyPage
         // extensions section *********
         Label l2 = new Label( section, SWT.None );
         l2.setText( Messages.get( "PipelinePropertyPage_availableProcessors" ) );
-        l2.setLayoutData( new SimpleFormData().top( 0 ).right( 100 ).left( 62 ).create() );
+        l2.setLayoutData( new SimpleFormData().top( 0 ).right( 100 ).left( 59 ).create() );
         
         // extsTable
         extsTable = new TableViewer( section, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
         extsTable.getControl().setLayoutData( 
-                new SimpleFormData().top( l2 ).right( 100 ).left( 59 ).bottom( sep ).create() );
+                new SimpleFormData().top( l2 ).right( 100 ).left( 59 ).bottom( sep ).width( 50 ).create() );
 
         extsTable.addSelectionChangedListener( new ISelectionChangedListener() {
             public void selectionChanged( SelectionChangedEvent event ) {

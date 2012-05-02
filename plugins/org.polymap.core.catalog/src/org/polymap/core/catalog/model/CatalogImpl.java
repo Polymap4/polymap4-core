@@ -90,6 +90,10 @@ public class CatalogImpl
         delegate = CatalogRepository.instance().getCatalog();    
         delegate.setFacade( this );
         
+//        for (CatalogStartupListener l : CatalogRepository.startupListeners) {
+//            l.catalogStarted( this );
+//        }
+        
         catalogListeners = new ListenerList( ListenerList.IDENTITY );
         //catalogListeners = Collections.synchronizedSet( new WeakHashSet<IResolveChangeListener>() );
     }

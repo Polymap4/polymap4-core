@@ -45,7 +45,7 @@ public class PolymapWorkbenchAdvisor
     private static final Log log = LogFactory.getLog( PolymapWorkbenchAdvisor.class );
 
     public void initialize( IWorkbenchConfigurer configurer ) {
-        getWorkbenchConfigurer().setSaveAndRestore( false );
+        getWorkbenchConfigurer().setSaveAndRestore( true );
         super.initialize( configurer );
     }
 

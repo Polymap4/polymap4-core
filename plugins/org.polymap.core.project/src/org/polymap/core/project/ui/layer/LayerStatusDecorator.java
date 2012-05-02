@@ -75,15 +75,13 @@ public class LayerStatusDecorator
     private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
     private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
     
+    public static final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
+    public static final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
+
     private Map<String,ILayer>      decorated = new HashMap();
 
-    private Font                    bold, italic;
 
-    
     public LayerStatusDecorator() {
-        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT ); 
-        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ); 
-        
 //        final Display display = Polymap.getSessionDisplay();
 //        display.syncExec( new Runnable() {
 //            public void run() {

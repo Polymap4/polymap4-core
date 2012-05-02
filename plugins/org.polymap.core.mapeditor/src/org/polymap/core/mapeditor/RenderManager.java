@@ -27,6 +27,7 @@ import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +37,9 @@ import com.google.common.collect.Iterables;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
+
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.service.ISettingStore;
 
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -77,9 +81,6 @@ public class RenderManager {
 
     private static Log log = LogFactory.getLog( RenderManager.class );
 
-    /** Suffix counter helps to distinguish between pipelines generated in this VM. */
-    private static int              pipeCount = 0;
-    
     private IMap                    map;
     
     private MapEditor               mapEditor;
@@ -165,8 +166,8 @@ public class RenderManager {
 
 
     protected synchronized void clearPipelines() {
-        for (RenderLayerDescriptor descriptor : descriptors.values()) {
-            if (mapEditor != null) {
+        if (mapEditor != null) {
+            for (RenderLayerDescriptor descriptor : descriptors.values()) {
                 mapEditor.removeLayer( descriptor );
             }
         }
@@ -239,15 +240,33 @@ public class RenderManager {
     }
 
     protected WmsService createWms() {
-        String pathSpec = "/services/" + map.getLabel() + "--" + pipeCount++;
         try {
+            ISettingStore settingStore = RWT.getSettingStore();
+            String wmsNamesAttr = settingStore.getAttribute( "RenderManager.wmsnames" );
+            JSONObject wmsNames = wmsNamesAttr != null
+                    ? new JSONObject( wmsNamesAttr ) : new JSONObject();
+
+            String pathSpec = wmsNames.optString( map.id(), null );
+            if (pathSpec == null) {
+                pathSpec = "/services/" + map.getLabel() + "--" + System.currentTimeMillis();
+                wmsNames.put( map.id(), pathSpec );
+                settingStore.setAttribute( "RenderManager.wmsnames", wmsNames.toString() );
+            }
+        
             log.info( "Service pathSpec: " + pathSpec );
 
             // use our own WMS impl
             SimpleWmsServer wmsServer = new SimpleWmsServer();
             log.debug( "    service: " + wmsServer.getClass().getName() );
 
-            String url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );
+            String url = null;
+            try {
+                url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );
+            }
+            catch (/*Namespace*/Exception e) {
+                HttpServiceFactory.unregisterServer( pathSpec, false );
+                url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );                
+            }
             wmsServer.init( url, map );
 
             log.debug( "    URL: " + wmsServer.getURL() );
@@ -469,7 +488,7 @@ public class RenderManager {
          * -> edit -> zPriority -> opacity.
          */
         String renderLayerKey() {
-            StringBuffer result = new StringBuffer( 256 );
+            StringBuilder result = new StringBuilder( 256 );
             result.append( hashCode() /*service.getIdentifier()*/ )
                     .append( isEdit ? "1" : "0" ).append( zPriority ).append( opacity );
             return result.toString();

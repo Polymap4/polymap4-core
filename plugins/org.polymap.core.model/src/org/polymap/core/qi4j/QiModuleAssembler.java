@@ -69,6 +69,7 @@ public abstract class QiModuleAssembler {
 
     /**
      * Create a new module for a new user session.
+     * @param session 
      * 
      * @return Newly created module.
      */

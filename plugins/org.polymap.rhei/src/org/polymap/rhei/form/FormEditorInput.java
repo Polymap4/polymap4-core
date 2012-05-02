@@ -22,55 +22,127 @@
  */
 package org.polymap.rhei.form;
 
+import java.util.Collections;
+
+import org.geotools.data.FeatureStore;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.FeatureIterator;
+import org.opengis.feature.Feature;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
+import org.opengis.filter.identity.FeatureId;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.opengis.feature.Feature;
-
-import org.geotools.data.FeatureStore;
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IElementFactory;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
 
+import org.eclipse.core.runtime.IAdaptable;
+
+import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @since 1.0
  */
 public class FormEditorInput
-        implements IEditorInput {
+        implements IEditorInput, IPersistableElement, IElementFactory {
 
     private static Log log = LogFactory.getLog( FormEditorInput.class );
+
+    public static final String  FACTORY_ID = "org.polymap.rhei.FormEditorInputFactory";
 
     private FeatureStore        fs;
     
     private Feature             feature;
     
-    /** The layer of the feature, or null if none was provided. */
-    private ILayer              layer;
 
-
-    public FormEditorInput( FeatureStore fs, Feature feature, ILayer layer ) {
+    public FormEditorInput( FeatureStore fs, Feature feature ) {
         super();
         assert fs != null : "fs is null!";
         assert feature != null : "feature is null!";
         this.feature = feature;
         this.fs = fs;
-        this.layer = layer;
+    }
+
+    /**
+     * Creates the factory instance that is used to {@link #createElement(IMemento)}.
+     */
+    public FormEditorInput() {
+    }
+
+    /**
+     * Implements {@link IElementFactory}: initialize a new instance from settings in
+     * the memento. This is called after no-args ctor.
+     */
+    public IAdaptable createElement( IMemento memento ) {
+        final String fid = memento.getString( "fid" );
+        final String layerId = memento.getString( "layerId" );
+        
+        if (fid != null && layerId != null) {
+            FeatureIterator it = null;
+            try {
+                ILayer layer = ProjectRepository.instance().findEntity( ILayer.class, layerId );
+                if (layer != null) {
+                    PipelineFeatureSource _fs = PipelineFeatureSource.forLayer( layer, true );
+                    FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
+                    Id filter = ff.id( Collections.singleton( ff.featureId( fid ) ) );
+
+                    it = _fs.getFeatures( filter ).features();
+                    if (it.hasNext()) {
+                        Feature _feature = it.next();
+                        return new FormEditorInput( _fs, _feature );
+                    }
+                }
+            }
+            catch (NoSuchEntityException e) {
+                log.warn( "Layer does no longer exists: " + layerId );
+            }
+            catch (Exception e) {
+                log.warn( "Unable to restore FormEditorInput.", e );
+            }
+            finally {
+                if (it != null) { it.close(); }
+            }
+        }
+        return null;
+    }
+    
+    public IPersistableElement getPersistable() {
+        return this;
+    }
+
+    public void saveState( IMemento memento ) {
+        if (feature != null && (fs instanceof PipelineFeatureSource)) {
+            memento.putString( "fid", feature.getIdentifier().getID() );
+            memento.putString( "layerId", ((PipelineFeatureSource)fs).getLayer().id() );
+        }
+    }
+
+    public String getFactoryId() {
+        return FACTORY_ID;
     }
 
     public boolean equals( Object obj ) {
         if (obj == this) {
             return true;
         }
-        else if (obj instanceof FormEditorInput) {
-            return ((FormEditorInput)obj).feature.equals( feature );
+        else if (obj != null && obj instanceof FormEditorInput) {
+            FormEditorInput rhs = (FormEditorInput)obj;
+            FeatureId fid1 = rhs.getFeature().getIdentifier();
+            FeatureId fid2 = getFeature().getIdentifier();
+            return fid1.equals( fid2 );
         }
         else {
             return false;
@@ -89,9 +161,12 @@ public class FormEditorInput
         return feature;
     }
 
-    /** The layer of the feature, or null if none was provided. */
+    /**
+     * The layer of the feature, or null if the FeatureStore is not an instance of
+     * {@link PipelineFeatureSource}.
+     */
     public ILayer getLayer() {
-        return layer;
+        return fs instanceof PipelineFeatureSource ? ((PipelineFeatureSource)fs).getLayer() : null;
     }
 
     public String getEditorId() {
@@ -110,12 +185,8 @@ public class FormEditorInput
         return "FormEditorInput";
     }
 
-    public IPersistableElement getPersistable() {
-        return null;
-    }
-
     public String getToolTipText() {
-        return "tooltip";
+        return feature != null ? feature.getIdentifier().getID() : "Feature";
     }
 
     public Object getAdapter( Class adapter ) {

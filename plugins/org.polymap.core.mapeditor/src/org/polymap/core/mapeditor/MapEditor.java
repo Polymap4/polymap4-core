@@ -19,10 +19,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -48,6 +49,7 @@ import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
 import org.polymap.core.mapeditor.contextmenu.ContextMenuControl;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+
 import org.polymap.openlayers.rap.widget.OpenLayersWidget;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
@@ -57,7 +59,6 @@ import org.polymap.openlayers.rap.widget.base_types.Projection;
 import org.polymap.openlayers.rap.widget.base_types.Size;
 import org.polymap.openlayers.rap.widget.controls.Control;
 import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
-import org.polymap.openlayers.rap.widget.controls.LayerSwitcherControl;
 import org.polymap.openlayers.rap.widget.controls.LoadingPanelControl;
 import org.polymap.openlayers.rap.widget.controls.MousePositionControl;
 import org.polymap.openlayers.rap.widget.controls.NavigationHistoryControl;
@@ -80,8 +81,6 @@ public class MapEditor
 
     static Log log = LogFactory.getLog( MapEditor.class );
 
-    private MapEditorInput          input;
-    
     private IMap                    map;
     
     private Composite               composite;
@@ -111,7 +110,6 @@ public class MapEditor
         setInput( _input );
         this.map = ((MapEditorInput)_input).getMap();
         setPartName( map.getLabel() );
-        log.debug( "input= " + input );
     }
 
 
@@ -145,6 +143,9 @@ public class MapEditor
         // renderManager
         renderManager = new RenderManager( map, this );
         renderManager.updatePipelines();
+
+        // restore additional input state
+        ((MapEditorInput)getEditorInput()).restoreMapEditor();
     }
 
     
@@ -187,7 +188,7 @@ public class MapEditor
         
         olmap.addControl( new LoadingPanelControl() );
         
-        olmap.addControl( new LayerSwitcherControl() );
+//        olmap.addControl( new LayerSwitcherControl() );
         olmap.addControl( new PanZoomBarControl() );
         olmap.addControl( new MousePositionControl() );
         olmap.addControl( new NavigationHistoryControl() );

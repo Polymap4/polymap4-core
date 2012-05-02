@@ -51,7 +51,7 @@ public class DateTimeFormField
 
     private IFormFieldSite      site;
     
-    private DateTime            dateTime;
+    private DateTime            datetime;
     
     private boolean             enabled = true;
 
@@ -78,16 +78,16 @@ public class DateTimeFormField
 
     
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
-        dateTime = toolkit.createDateTime( parent, new Date(), SWT.MEDIUM | SWT.DROP_DOWN );
-        dateTime.setEnabled( enabled );
-        dateTime.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
+        datetime = toolkit.createDateTime( parent, new Date(), SWT.MEDIUM | SWT.DROP_DOWN );
+        datetime.setEnabled( enabled );
+        datetime.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
         
         // selection(modify) listener
-        dateTime.addSelectionListener( new SelectionAdapter() {
+        datetime.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent e ) {
                 Calendar cal = Calendar.getInstance( Locale.GERMANY );
-                cal.set( dateTime.getYear(), dateTime.getMonth(), dateTime.getDay(),
-                        dateTime.getHours(), dateTime.getMinutes(), dateTime.getSeconds() );
+                cal.set( datetime.getYear(), datetime.getMonth(), datetime.getDay(),
+                        datetime.getHours(), datetime.getMinutes(), datetime.getSeconds() );
                 Date date = cal.getTime();
                 log.info( "widgetSelected(): test= " + date );
                 
@@ -97,23 +97,25 @@ public class DateTimeFormField
             
         });
         // focus listener
-        dateTime.addFocusListener( new FocusListener() {
+        datetime.addFocusListener( new FocusListener() {
             public void focusLost( FocusEvent event ) {
+                datetime.setBackground( FormEditorToolkit.textBackground );
                 site.fireEvent( DateTimeFormField.this, IFormFieldListener.FOCUS_LOST, null );
             }
             public void focusGained( FocusEvent event ) {
+                datetime.setBackground( FormEditorToolkit.textBackgroundFocused );
                 site.fireEvent( DateTimeFormField.this, IFormFieldListener.FOCUS_GAINED, null );
             }
         });
-        return dateTime;
+        return datetime;
     }
 
     
     public IFormField setEnabled( boolean enabled ) {
         this.enabled = enabled;
-        if (dateTime != null) {
-            dateTime.setEnabled( enabled );
-            dateTime.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
+        if (datetime != null) {
+            datetime.setEnabled( enabled );
+            datetime.setBackground( enabled ? FormEditorToolkit.textBackground : FormEditorToolkit.textBackgroundDisabled );
         }
         return this;
     }
@@ -129,8 +131,8 @@ public class DateTimeFormField
         cal.set( Calendar.MILLISECOND, 0 );
         date.setTime( cal.getTimeInMillis() );
 
-        dateTime.setDate( cal.get( Calendar.YEAR ), cal.get( Calendar.MONTH ), cal.get( Calendar.DATE ) );
-        dateTime.setTime( cal.get( Calendar.HOUR_OF_DAY ), cal.get( Calendar.MINUTE ), cal.get( Calendar.SECOND ) );
+        datetime.setDate( cal.get( Calendar.YEAR ), cal.get( Calendar.MONTH ), cal.get( Calendar.DATE ) );
+        datetime.setTime( cal.get( Calendar.HOUR_OF_DAY ), cal.get( Calendar.MINUTE ), cal.get( Calendar.SECOND ) );
 
         // the above calls does not seem to fire events
         site.fireEvent( DateTimeFormField.this, IFormFieldListener.VALUE_CHANGE,
@@ -140,15 +142,15 @@ public class DateTimeFormField
 
     
     public void load() throws Exception {
-        assert dateTime != null : "Control is null, call createControl() first.";
+        assert datetime != null : "Control is null, call createControl() first.";
 
         if (site.getFieldValue() == null) {
             loadedValue = null;
             setValue( nullValue );
 
 //            // from the source of DateTime.setDate()
-//            dateTime.setDate( 9996, 0, 1 );
-//            dateTime.setTime( 0, 0, 0 );
+//            datetime.setDate( 9996, 0, 1 );
+//            datetime.setTime( 0, 0, 0 );
         }
         else if (site.getFieldValue() instanceof Date) {
             loadedValue = (Date)site.getFieldValue();
@@ -161,10 +163,10 @@ public class DateTimeFormField
 
     
     public void store() throws Exception {
-        if (dateTime.getYear() != 9996) {
+        if (datetime.getYear() != 9996) {
             Calendar cal = Calendar.getInstance( Locale.GERMANY );
-            cal.set( dateTime.getYear(), dateTime.getMonth(), dateTime.getDay(),
-                    dateTime.getHours(), dateTime.getMinutes(), dateTime.getSeconds() );
+            cal.set( datetime.getYear(), datetime.getMonth(), datetime.getDay(),
+                    datetime.getHours(), datetime.getMinutes(), datetime.getSeconds() );
             site.setFieldValue( cal.getTime() );
         }
     }

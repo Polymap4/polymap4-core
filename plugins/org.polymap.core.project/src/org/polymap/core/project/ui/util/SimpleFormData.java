@@ -72,6 +72,11 @@ public class SimpleFormData {
         return this;
     }
     
+    public SimpleFormData width( int width ) {
+        formData.width = width;
+        return this;
+    }
+    
     // left
 
     public SimpleFormData left( int num ) {

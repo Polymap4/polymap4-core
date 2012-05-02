@@ -234,6 +234,13 @@
             id="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfo">
       </contribution>
    </extension>
+   <extension
+         point="org.eclipse.ui.elementFactories">
+      <factory
+            class="org.polymap.core.mapeditor.MapEditorInput"
+            id="org.polymap.core.mapeditor.MapEditorInputFactory">
+      </factory>
+   </extension>
    <!--extension
          point="org.eclipse.ui.decorators">
       <decorator

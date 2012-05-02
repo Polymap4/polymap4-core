@@ -15,14 +15,13 @@
  *
  * $Id: $
  */
-package org.polymap.rhei.navigator.filter;
+package org.polymap.rhei.filter;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.rhei.RheiPlugin;
-import org.polymap.rhei.filter.IFilterProvider;
 
 /**
  * Provides access to the extensions of extension point

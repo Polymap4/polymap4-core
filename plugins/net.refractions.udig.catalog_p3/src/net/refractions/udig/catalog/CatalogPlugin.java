@@ -14,8 +14,6 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.rwt.internal.service.ContextProvider;
-
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -151,10 +149,10 @@ public class CatalogPlugin extends Plugin {
     public void storeToPreferences( IProgressMonitor monitor ) throws BackingStoreException,
             IOException {
         CatalogPluginSession.instance().storeToPreferences( monitor );
-        synchronized (this) {
-            // force reloading
-            globalSession = null;
-        }
+//        synchronized (this) {
+//            // force reloading
+//            globalSession = null;
+//        }
     }
 
     /**
@@ -216,23 +214,23 @@ public class CatalogPlugin extends Plugin {
         return CatalogPluginSession.instance().getCatalogs();
     }
 
-    /** @deprecated FIXME hack to support georss server */
-    CatalogPluginSession globalSession = null;
+//    /** @deprecated FIXME hack to support georss server */
+//    CatalogPluginSession globalSession = null;
     
     @SuppressWarnings("restriction")
     private CatalogPluginSession sessionOrGlobalInstance() {
-        if (ContextProvider.hasContext()) {
+//        if (ContextProvider.hasContext()) {
             return CatalogPluginSession.instance();
-        }
-        else {
-            synchronized (this) {
-                log.debug( "no session, using global catalog..." );
-                if (globalSession == null) {
-                    globalSession = new CatalogPluginSession();
-                }
-                return globalSession;
-            }            
-        }
+//        }
+//        else {
+//            synchronized (this) {
+//                log.debug( "no session, using global catalog..." );
+//                if (globalSession == null) {
+//                    globalSession = new CatalogPluginSession();
+//                }
+//                return globalSession;
+//            }            
+//        }
     }
     
     /**

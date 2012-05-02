@@ -78,9 +78,11 @@ public class StringFormField
         // focus listener
         text.addFocusListener( new FocusListener() {
             public void focusLost( FocusEvent event ) {
+                text.setBackground( FormEditorToolkit.textBackground );
                 site.fireEvent( StringFormField.this, IFormFieldListener.FOCUS_LOST, text.getText() );
             }
             public void focusGained( FocusEvent event ) {
+                text.setBackground( FormEditorToolkit.textBackgroundFocused );
                 site.fireEvent( StringFormField.this, IFormFieldListener.FOCUS_GAINED, text.getText() );
             }
         });

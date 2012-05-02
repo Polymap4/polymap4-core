@@ -1,7 +1,7 @@
 /* 
  * polymap.org
- * Copyright 2010, Falko Bräutigam, and other contributors as indicated
- * by the @authors tag.
+ * Copyright 2010, 2012 Falko Bräutigam, and other contributors as
+ * indicated by the @authors tag.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,8 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.internal.form;
 
@@ -41,13 +39,11 @@ import org.polymap.rhei.field.IFormFieldValidator;
 import org.polymap.rhei.form.IFormEditorToolkit;
 
 /**
- * The form specific parent Composite of a form field, consisting of an
- * {@link IFormField}, an {@link IFormFieldLabel} and an
- * {@link IFormFieldDecorator}. The FormFieldComposite provides them a context
- * via the {@link IFormFieldSite}.
+ * This is the parent Composite of a form field. It consists of an {@link IFormField}
+ * , an {@link IFormFieldLabel} and an {@link IFormFieldDecorator}. The
+ * FormFieldComposite provides a context via the {@link IFormFieldSite}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @version ($Revision$)
  */
 public class FormFieldComposite
         implements IFormFieldSite {
@@ -90,7 +86,7 @@ public class FormFieldComposite
     
     
     public Composite createComposite( Composite parent, int style ) {
-        Composite result = toolkit.createComposite( parent, style );
+        final Composite result = toolkit.createComposite( parent, style );
         result.setLayout( new FormLayout() );
         
         // label
@@ -115,10 +111,23 @@ public class FormFieldComposite
         Control fieldControl = field.createControl( result, toolkit );
         layoutData = fieldControl.getLayoutData() != null
                 ? (FormData)fieldControl.getLayoutData()
-                : new FormData( 100, SWT.DEFAULT );
+                : new FormData( 50, SWT.DEFAULT );
         layoutData.left = new FormAttachment( labelControl, 5 );
-        layoutData.right = new FormAttachment( decoControl, -3 );
+        layoutData.right = new FormAttachment( decoControl, -1 );
         fieldControl.setLayoutData( layoutData );
+
+//        // focus listener
+//        addChangeListener( new IFormFieldListener() {
+//            Color defaultBg = result.getBackground();
+//            public void fieldChange( FormFieldEvent ev ) {
+//                if (ev.getEventCode() == FOCUS_GAINED) {
+//                    result.setBackground( FormEditorToolkit.backgroundFocused );
+//                }
+//                else if (ev.getEventCode() == FOCUS_LOST) {
+//                    result.setBackground( defaultBg );                    
+//                }
+//            }
+//        });
         
         result.pack( true );
         return result;

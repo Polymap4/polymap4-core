@@ -47,11 +47,11 @@ public class DefaultFormFieldDecorator
 
     private static Log log = LogFactory.getLog( DefaultFormFieldDecorator.class );
 
-    private static Image        focusImage, dirtyImage, invalidImage;
+    private static final Image  focusImage, dirtyImage, invalidImage;
     
     private IFormFieldSite      site;
     
-    private Label               focusLabel, dirtyLabel; //, invalidLabel;
+    private Label               label;
     
     private boolean             dirty, focus, invalid;
 
@@ -62,7 +62,7 @@ public class DefaultFormFieldDecorator
         dirtyImage = ImageDescriptor.createFromURL( 
                 RheiPlugin.getDefault().getBundle().getResource( "icons/elcl16/field_dirty3.gif" ) ).createImage();
         focusImage = ImageDescriptor.createFromURL( 
-                RheiPlugin.getDefault().getBundle().getResource( "icons/elcl16/field_focus.gif" ) ).createImage();
+                RheiPlugin.getDefault().getBundle().getResource( "icons/elcl16/field_dirty2.gif" ) ).createImage();
         invalidImage = ImageDescriptor.createFromURL( 
                 RheiPlugin.getDefault().getBundle().getResource( "icons/elcl16/field_invalid.gif" ) ).createImage();
     }
@@ -87,12 +87,8 @@ public class DefaultFormFieldDecorator
         layout.wrap = false;
         contents.setLayout( layout );
 
-//        focusLabel = toolkit.createLabel( contents, "", SWT.NO_FOCUS );
+        label = toolkit.createLabel( contents, "", SWT.NO_FOCUS );
         
-        dirtyLabel = toolkit.createLabel( contents, "", SWT.NO_FOCUS );
-        
-//        invalidLabel = toolkit.createLabel( contents, "", SWT.NO_FOCUS );
-
         this.invalid = site.getErrorMessage() != null;
         updateUI();
         
@@ -102,26 +98,24 @@ public class DefaultFormFieldDecorator
     }
 
     protected void updateUI() {
-//        focusLabel.setImage( focus ? focusImage : null );
-
-        dirtyLabel.setImage( null );
+        label.setImage( null );
+        if (focus) {
+            label.setImage( focusImage );            
+        }
         if (dirty) {
-            dirtyLabel.setImage( dirty ? dirtyImage : null );
+            label.setImage( dirtyImage );
             try {
-                dirtyLabel.setToolTipText( dirty ? "Dieser Wert wurde geändert. Originalwert: " + site.getFieldValue() : "" );
+                label.setToolTipText( dirty ? "Dieser Wert wurde geändert. Originalwert: " + site.getFieldValue() : "" );
             }
             catch (Exception e) {
                 log.warn( e );
-                dirtyLabel.setToolTipText( dirty ? "Dieser Wert wurde geändert. Originalwert kann nicht ermittelt werden." : "" );
+                label.setToolTipText( dirty ? "Dieser Wert wurde geändert. Originalwert kann nicht ermittelt werden." : "" );
             }
         }
         if (invalid) {
-            dirtyLabel.setImage( invalid ? invalidImage : null );
-            dirtyLabel.setToolTipText( invalid ? site.getErrorMessage() : "" );
+            label.setImage( invalid ? invalidImage : null );
+            label.setToolTipText( invalid ? site.getErrorMessage() : "" );
         }
-        
-//        invalidLabel.setImage( invalid ? invalidImage : null );
-//        invalidLabel.setToolTipText( invalid ? site.getErrorMessage() : "" );
         contents.pack( true );
     }
     

@@ -53,6 +53,7 @@ import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.qi4j.Qi4jPlugin.Session;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
@@ -99,6 +100,17 @@ public abstract class QiModule
             });
         }
     }
+
+    
+    /**
+     * During init a module can access other modules of the {@link Session} via
+     * {@link Session#module(Class)}.
+     *
+     * @param session 
+     */
+    public void init( Session session ) {
+    }
+    
 
     protected void done() {
         if (uow != null) {

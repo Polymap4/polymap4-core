@@ -99,7 +99,7 @@ public class FormEditor
     public static FormEditor open( FeatureStore fs, Feature feature, ILayer layer ) {
         try {
             log.debug( "open(): feature= " + feature );
-            FormEditorInput input = new FormEditorInput( fs, feature, layer );
+            FormEditorInput input = new FormEditorInput( fs, feature );
 
             // check current editors
             IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -157,7 +157,9 @@ public class FormEditor
     public void init( IEditorSite site, IEditorInput input )
             throws PartInitException {
         super.init( site, input );
+    }
 
+    protected Composite createPageContainer( Composite parent ) {
         // zoom feature action
         final ILayer layer = ((FormEditorInput)getEditorInput()).getLayer();
         if (layer != null) {
@@ -227,9 +229,11 @@ public class FormEditor
         // save listener 
         operationSaveListener = new OperationSaveListener();
         OperationSupport.instance().addOperationSaveListener( operationSaveListener );
+
+        return super.createPageContainer( parent );
     }
 
-    
+
     /**
      * Listens to property changes of the layer, especially deletion.
      */

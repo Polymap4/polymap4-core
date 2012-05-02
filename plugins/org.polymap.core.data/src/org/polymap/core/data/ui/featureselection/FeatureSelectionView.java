@@ -18,12 +18,20 @@ import java.util.EventObject;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
+import org.geotools.filter.v1_1.OGCConfiguration;
+import org.geotools.xml.Configuration;
+import org.geotools.xml.Encoder;
+import org.geotools.xml.Parser;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +45,7 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -49,8 +58,11 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
@@ -65,6 +77,7 @@ import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
@@ -166,6 +179,69 @@ public class FeatureSelectionView
     public IActionDelegate          openAction;
 
 
+    public void init( IViewSite site, IMemento memento )
+    throws PartInitException {
+        super.init( site, memento );
+        if (memento != null) {
+            final String layerId = memento.getString( "layerId" );
+            final String filterText = memento.getTextData();
+            if (layerId != null && filterText != null) {
+                try {
+                    layer = ProjectRepository.instance().findEntity( ILayer.class, layerId );
+                    if (layer != null) {
+                        Configuration config = new org.geotools.filter.v1_1.OGCConfiguration();
+                        Parser parser = new Parser( config );
+                        filter = (Filter)parser.parse( new ByteArrayInputStream( filterText.getBytes( "UTF8" ) ) );
+                        
+                        // *after* createPartControl()
+                        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                            public void run() {
+                                LayerFeatureSelectionManager.forLayer( layer ).changeSelection( filter );
+                                //loadTable( filter );
+                            }
+                        });
+                    }
+                }
+                catch (NoSuchEntityException e) {
+                    log.warn( "Layer does no longer exists: " + layerId );
+                }
+                catch (Exception e) {
+                    log.warn( "Unable to restore state.", e );
+                }
+            }
+        }
+    }
+
+    
+    public void saveState( IMemento memento ) {
+        if (layer != null && filter != null) {
+            try {
+                if (filter instanceof Id) {
+                    // save max. 500 Fids
+                    if (((Id)filter).getIdentifiers().size() > 500) {
+                        return;
+                    }
+                }
+                OGCConfiguration config = new org.geotools.filter.v1_1.OGCConfiguration();
+                Encoder encoder = new Encoder( config );
+                encoder.setIndenting( true );
+                encoder.setIndentSize( 4 );
+                ByteArrayOutputStream bout = new ByteArrayOutputStream( 4096 );
+                encoder.encode( filter, org.geotools.filter.v1_0.OGC.Filter, bout );
+    
+                if (bout.size() < 10*1024) {
+                    memento.putTextData( bout.toString( "UTF8" ) );
+                    memento.putString( "layerId", layer.id() );
+                    log.info( bout.toString( "UTF8" ) );
+                }
+            }
+            catch (Exception e) {
+                log.warn( "Unable to save state:", e );
+            }
+        }
+    }
+
+
     protected void init( ILayer _layer ) {
         try {
             this.layer = _layer;
@@ -205,7 +281,7 @@ public class FeatureSelectionView
         }
     }
     
-    
+
     public void dispose() {
         super.dispose();
         
@@ -249,7 +325,13 @@ public class FeatureSelectionView
     
     
     public void createPartControl( @SuppressWarnings("hiding") Composite parent ) {
-        init( initLayer.get() );
+        if (initLayer.get() != null) {
+            init( initLayer.get() );
+        }
+        else {
+            assert layer != null;
+            init( layer );
+        }
         
         this.parent = parent;
         this.parent.setLayout( new FormLayout() );

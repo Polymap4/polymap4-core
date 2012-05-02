@@ -17,6 +17,7 @@ package org.polymap.core.data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import java.io.IOException;
 
@@ -151,6 +152,12 @@ public class PipelineFeatureSource
 
     public Pipeline getPipeline() {
         return pipeline;
+    }
+
+    public ILayer getLayer() {
+        Set<ILayer> layers = getPipeline().getLayers();
+        assert layers.size() == 1;
+        return layers.iterator().next();
     }
 
 

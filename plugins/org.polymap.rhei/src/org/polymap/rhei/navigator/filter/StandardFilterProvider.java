@@ -74,7 +74,7 @@ public class StandardFilterProvider
     }
 
 
-    public List<? extends IFilter> addFilters( ILayer _layer )
+    public List<IFilter> addFilters( ILayer _layer )
     throws Exception {
         this.layer = _layer;
         IGeoResource geores = layer.getGeoResource();
@@ -85,7 +85,7 @@ public class StandardFilterProvider
             
             PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
             if (fs != null && fs.getPipeline().length() > 0) {
-                return Collections.singletonList( new StandardFilter( layer, fs ) );
+                return Collections.singletonList( (IFilter)new StandardFilter( layer, fs ) );
             }
         }
         return null;

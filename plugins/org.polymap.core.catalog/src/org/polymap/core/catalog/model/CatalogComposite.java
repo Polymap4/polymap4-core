@@ -60,7 +60,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.polymap.core.catalog.Messages;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.security.AclPermission;
-import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.qi4j.event.MethodOperationBoundsConcern;
@@ -118,6 +117,10 @@ public interface CatalogComposite
     @ModelProperty(PROP_SERVICES)
     public void add( IService service )
             throws UnsupportedOperationException;
+
+    @ModelProperty(PROP_SERVICES)
+    public void addTransient( ITransientResolve service )
+        throws UnsupportedOperationException;
 
     @ModelProperty(PROP_SERVICES)
     public void remove( IService service )
@@ -288,12 +291,20 @@ public interface CatalogComposite
         }
         
 
+        public void addTransient( ITransientResolve service )
+                throws UnsupportedOperationException {
+            transientServices.add( (IService)service );    
+            log.info( "Transient entries: " + transientServices.size() );
+        }
+        
+        
         public void add( final IService entry )
                 throws UnsupportedOperationException {
             // execute inside operation -> enable save and undo and concerns
             try {
                 CatalogAddOperation op = new CatalogAddOperation( entry );
-                OperationSupport.instance().execute( op, false, false );
+                op.execute( null, null );
+                //OperationSupport.instance().execute( op, false, false );
             }
             catch (ExecutionException e) {
                 throw new RuntimeException( e );

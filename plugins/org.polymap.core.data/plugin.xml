@@ -73,7 +73,7 @@
             icon="icons/eview16/table_view.gif"
             id="org.polymap.core.data.SourceFeatureTableView"
             name="%views_sourceFeatureTable"
-            restorable="true">
+            restorable="false">
       </view>
    </extension>
    <extension

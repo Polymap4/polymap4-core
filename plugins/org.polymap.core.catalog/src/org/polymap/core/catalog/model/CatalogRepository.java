@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import net.refractions.udig.catalog.CatalogPlugin;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.CatalogImportDropListener;
@@ -56,10 +55,20 @@ public class CatalogRepository
      * Get or create the repository for the current user session.
      */
     public static final CatalogRepository instance() {
-        return (CatalogRepository)Qi4jPlugin.Session.instance().module( CatalogRepository.class );
+        return Qi4jPlugin.Session.instance().module( CatalogRepository.class );
     }
 
-
+//    static ListenerList<CatalogStartupListener> startupListeners = new ListenerList();
+//    
+//    public static void addCatalogStartupListener( CatalogStartupListener l ) {
+//        startupListeners.add( l );    
+//    }
+//
+//    public interface CatalogStartupListener {
+//        void catalogStarted( ICatalog catalog );
+//    }
+    
+    
     // instance *******************************************
 
     private CatalogComposite        catalog;

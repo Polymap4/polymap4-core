@@ -27,7 +27,7 @@ public interface IFilterProvider {
      * @return The result list if the given layer is supported by this provider,
      *         or null otherwise.
      */
-    public List<? extends IFilter> addFilters( ILayer layer )
+    public List<IFilter> addFilters( ILayer layer )
     throws Exception;
     
 }

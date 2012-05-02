@@ -157,6 +157,24 @@ public class HttpServiceFactory {
     }
     
     
+    public static void unregisterServer( String pathSpec, boolean forceException ) {
+        try {
+//            HttpService old = servers.remove( server.getPathSpec() );
+//            if (old != null) {
+                HttpServiceRegistry.unregisterServlet( pathSpec );
+//            }
+//            else {
+//                throw new IllegalStateException( "No service for pathSpec: " + server.getPathSpec() );
+//            }
+        }
+        catch (RuntimeException e) {
+            if (forceException) {
+                throw e;
+            }
+        }
+    }
+    
+    
     /**
      * The OwsServer for the given path.
      * 
