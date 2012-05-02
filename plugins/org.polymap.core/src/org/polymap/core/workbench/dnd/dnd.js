@@ -2,10 +2,12 @@
 var body = document.body; //getElementById("dropbox")
  
 // init event handlers
-body.addEventListener( "dragenter", noopHandler, false );
-body.addEventListener( "dragexit", noopHandler, false );
-body.addEventListener( "dragover", noopHandler, false );
-body.addEventListener( "drop", dropHandler, false );
+if (body.addEventListener) {
+    body.addEventListener( "dragenter", noopHandler, false );
+    body.addEventListener( "dragexit", noopHandler, false );
+    body.addEventListener( "dragover", noopHandler, false );
+    body.addEventListener( "drop", dropHandler, false );
+}
    
 function dropHandler( ev ) {
     
