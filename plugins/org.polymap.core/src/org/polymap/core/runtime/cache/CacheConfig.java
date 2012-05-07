@@ -32,7 +32,7 @@ public class CacheConfig {
     
     public static final int         DEFAULT_INIT_SIZE = 1024;
     
-    protected int                   elementSize = DEFAULT_ELEMENT_SIZE;
+    protected int                   elementMemSize = DEFAULT_ELEMENT_SIZE;
     
     protected int                   concurrencyLevel = DEFAULT_CONCURRENCY_LEVEL;
     
@@ -40,7 +40,7 @@ public class CacheConfig {
     
     
     public CacheConfig setDefaultElementSize( int elementSize ) {
-        this.elementSize = elementSize;
+        this.elementMemSize = elementSize;
         return this;
     }
 

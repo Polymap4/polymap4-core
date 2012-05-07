@@ -59,8 +59,8 @@ final class ConcurrentMapCache<K,V>
         this.entries = new MapMaker()
                 .initialCapacity( config.initSize )
                 .concurrencyLevel( config.concurrencyLevel )
+                //.softValues()
                 .makeMap();
-
     }
 
     
@@ -121,15 +121,15 @@ final class ConcurrentMapCache<K,V>
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
-        return putIfAbsent( key, value, ELEMENT_SIZE_UNKNOW );
+        return putIfAbsent( key, value, config.elementMemSize );
     }
     
     
-    public V putIfAbsent( K key, V value, int elementSize ) throws CacheException {
+    public V putIfAbsent( K key, V value, int elementMemSize ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
 
-        CacheEntry<V> entry = entries.putIfAbsent( key, new CacheEntry( value, elementSize ) );
+        CacheEntry<V> entry = entries.putIfAbsent( key, new CacheEntry( value, elementMemSize ) );
         return entry != null ? entry.value() : null;
     }
     
@@ -201,16 +201,21 @@ final class ConcurrentMapCache<K,V>
 
         private V               value;
         
+        /** Use byte instead of int, saving 3 bytes of mem. */
         private byte            sizeInKB;
         
-        private int             accessed = accessCounter++;
+        private volatile int    accessed = accessCounter++;
         
         
         CacheEntry( V data, int elementSize ) {
+            assert (elementSize / 1024) <= 256;
+            this.sizeInKB = (byte)(elementSize / 1024);
             this.value = data;
         }
 
         void setValue( V value, int elementSize ) {
+            assert (elementSize / 1024) <= 256;
+            this.sizeInKB = (byte)(elementSize / 1024);
             this.value = value;
             synchronized (this) {
                 notifyAll();
@@ -240,6 +245,9 @@ final class ConcurrentMapCache<K,V>
             return accessed;
         }
         
+        public byte sizeInKB() {
+            return sizeInKB;
+        }
     }
 
 }

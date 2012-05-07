@@ -79,11 +79,11 @@ public interface Cache<K,V> {
      * Consider using {@link #get(Object, CacheLoader)} instead.
      * 
      * @see #get(Object, CacheLoader)
-     * @param elementSize The size of the given element
+     * @param elementMemSize The size of the given element in memory.
      * @return The element for the given key, or null if the key was <b>not</b> yet
      *         in the cache.
      */
-    public V putIfAbsent( K key, V value, int elementSize ) throws CacheException;
+    public V putIfAbsent( K key, V value, int elementMemSize ) throws CacheException;
     
     
     public V remove( K key ) throws CacheException;

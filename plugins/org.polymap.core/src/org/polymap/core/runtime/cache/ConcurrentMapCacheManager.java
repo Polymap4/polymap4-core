@@ -15,11 +15,9 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.lang.management.ManagementFactory;
@@ -47,6 +45,7 @@ final class ConcurrentMapCacheManager
     private static Log log = LogFactory.getLog( ConcurrentMapCacheManager.class );
     
     private static final int                        DEFAULT_EVICTION_SIZE = 1000;
+    private static final int                        DEFAULT_EVICTION_MEM_PERCENT = 10;
     
     private static final ConcurrentMapCacheManager  instance = new ConcurrentMapCacheManager();
     
@@ -69,19 +68,23 @@ final class ConcurrentMapCacheManager
         memoryCheckerThread.setPriority( Thread.MAX_PRIORITY );
         memoryCheckerThread.start();
     
-        caches = Collections.synchronizedList( new ArrayList( 64 ) );
+        caches = new ArrayList( 64 );
     }
     
 
     public <K, V> Cache<K, V> newCache( String name, CacheConfig config ) {
         ConcurrentMapCache result = new ConcurrentMapCache( this, name, config );
-        caches.add( result );
+        synchronized (caches) {
+            caches.add( result );
+        }
         return result;
     }
 
     
     void disposeCache( ConcurrentMapCache cache ) {
-        caches.remove( cache );
+        synchronized (caches) {
+            caches.remove( cache );
+        }
     }
 
     
@@ -91,22 +94,10 @@ final class ConcurrentMapCacheManager
     class MemoryChecker
             implements Runnable {
 
-        private MemoryMXBean                    memBean;
+        private MemoryMXBean            memBean = ManagementFactory.getMemoryMXBean();
         
-        /** Holds unsorted eviction elements between evictions runs so that
-         * the elements are not allocated/GCed when memory is low. */
-//        private List<EvictionCandidate>         evictionElements;
-
+        private int                     lastEvictionCount = 1000;
         
-        public MemoryChecker() {
-            memBean = ManagementFactory.getMemoryMXBean() ;
-            
-//            // alocate eviction candidates and fill the set
-//            evictionElements = new ArrayList( DEFAULT_EVICTION_SIZE );
-//            for (int i=0; i<DEFAULT_EVICTION_SIZE; i++) {
-//                evictionElements.add( new EvictionCandidate() );
-//            }
-        }
 
         public void run() {
             while (true) {
@@ -149,8 +140,8 @@ final class ConcurrentMapCacheManager
             }
             
             if (heap.getUsed() > memUsedGoal) {
-                log.debug( "Starting eviction..." );
-                log.debug( String.format( "    Heap: used: %d, max: %d", heap.getUsed(), heap.getMax() ) );
+                log.debug( "Eviction..." );
+                log.debug( String.format( "    Heap: used: %dMB, max: %dMB", heap.getUsed()/1024/1024, heap.getMax()/1024/1024 ) );
                 
                 timer.start();
                 
@@ -158,46 +149,66 @@ final class ConcurrentMapCacheManager
                 // for a fast, incremental O(1)? algorithm, see the develop-cache-evict branch
                 
                 // XXX memory allocation!?
-                SortedSet<EvictionCandidate> evictionSet = new TreeSet();
-                int accessThreshold = 0;  //Integer.MAX_VALUE;
-                
-                for (ConcurrentMapCache cache : caches) {
+                PriorityQueue<EvictionCandidate> evictionQueue = new PriorityQueue( (int)(lastEvictionCount * 1.1) );
+                int count = 0;
+                int accessThreshold = 0;
+                int evictionMemSize = 0;
+                int memSizeTarget = (int)(heap.getUsed() / 100 * DEFAULT_EVICTION_MEM_PERCENT );
+                log.debug( String.format( "    Eviction target size: %dMB", memSizeTarget/1024/1024 ) );
+
+                // make stable copy of the caches list
+                List<ConcurrentMapCache> stableCopy = null;
+                synchronized (caches) {
+                    stableCopy = new ArrayList( caches );
+                }
+                // all caches
+                for (ConcurrentMapCache cache : stableCopy) {
                     
                     Iterable<Map.Entry<Object,CacheEntry>> entries = cache.entries();
                     for (Map.Entry<Object,CacheEntry> entry : entries) {
+                        count++;
 
-                        if (evictionSet.size() < DEFAULT_EVICTION_SIZE
+                        if (evictionMemSize < memSizeTarget
                                 || entry.getValue().accessed() < accessThreshold) {
                             
                             // find last entry and remove
                             EvictionCandidate last = null;
-                            if (evictionSet.size() >= DEFAULT_EVICTION_SIZE) {
-                                last = evictionSet.last();
-                                evictionSet.remove( last );
-                                
-                                accessThreshold = last.entry.accessed();
+                            if (evictionMemSize > memSizeTarget) {
+                                while (evictionMemSize > memSizeTarget) {
+                                    last = evictionQueue.remove();
+
+                                    accessThreshold = last.entry.accessed();
+                                    evictionMemSize -= last.entry.sizeInKB() * 1024;
+                                }
                             }
                             else {
                                 accessThreshold = Math.max( accessThreshold, entry.getValue().accessed() );
                             }
-                            
-                            evictionSet.add( last != null
+
+                            evictionQueue.add( last != null
                                     ? last.set( cache, entry.getValue(), entry.getKey() )
                                     : new EvictionCandidate( cache, entry.getValue(), entry.getKey() ) );
+                            evictionMemSize += entry.getValue().sizeInKB() * 1024;
                         }
                     }
                 }
                 
-                for (EvictionCandidate candidate : evictionSet) {
+                for (EvictionCandidate candidate : evictionQueue) {
                     // remove from cache
                     candidate.cache.remove( candidate.key );
                     // fire eviction event
                     candidate.cache.fireEvictionEvent( candidate.key, candidate.entry.value() );
                 }
+            
+                if (evictionQueue.isEmpty()) {
+                    System.gc();
+                }
                 
-                //System.gc();
-                
-                log.debug( "    Evicted: " + evictionSet.size() + ", accessThreshold: " + accessThreshold + " (" + timer.elapsedTime() + "ms)" );
+                lastEvictionCount = Math.max( 1000, evictionQueue.size() );
+                log.info( "    Checked: " + count
+                        + " - Evicted: " + lastEvictionCount
+                        + " / " + evictionMemSize + " bytes"
+                        + ", accessThreshold: " + accessThreshold + " (" + timer.elapsedTime() + "ms)" );
             }
             
             return sleep;
@@ -205,7 +216,6 @@ final class ConcurrentMapCacheManager
 
         
         Timer heapFreeTimer = new Timer().stop();
-
 
         /**
          * Force full GC if more thean 30% heap are free for more than 180s. When
@@ -263,12 +273,19 @@ final class ConcurrentMapCacheManager
         CacheEntry                  entry;
         
         Object                      key;
+        
+        /**
+         * Copy of the {@link CacheEntry#accessed} field, keeping the value stable
+         * during one eviction run.
+         */
+        int                         lastAccessed;            
 
         
         EvictionCandidate( ConcurrentMapCache cache, CacheEntry entry, Object key ) {
             this.cache = cache;
             this.entry = entry;
             this.key = key;
+            this.lastAccessed = entry.accessed();
         }
 
         public EvictionCandidate set( ConcurrentMapCache cache, CacheEntry entry, Object key ) {
@@ -287,7 +304,8 @@ final class ConcurrentMapCacheManager
         public int compareTo( Object obj ) {
             EvictionCandidate other = (EvictionCandidate)obj;
             return other.entry != null
-                    ? entry.accessed() - other.entry.accessed()
+                    // early/small accessTime -> high prio in eviction queue
+                    ? -(lastAccessed - other.lastAccessed)
                     : 0;
         }
 
