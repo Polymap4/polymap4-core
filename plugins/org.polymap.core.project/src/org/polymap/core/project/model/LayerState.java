@@ -79,6 +79,15 @@ public interface LayerState
     @Optional
     Property<String>                styleId();
     
+    /**
+     * The complete SLD of this layer. The primary source of the style for the
+     * layer is the catalog. This property just changes the entity when the style
+     * is changed and helps the "dirty" the entity. It might be used for other
+     * things in the future.
+     */
+    @Optional
+    Property<String>                style();
+    
     @Optional
     @UseDefaults
     Property<Integer>               orderKey();
@@ -277,7 +286,9 @@ public interface LayerState
             }
             else if (style == old) {
                 // make the layer "dirty" in the UI and for service to reload on save
-                styleId().set( styleId().get() );
+                String sld = style.createSLD( new NullProgressMonitor() );
+                style().set( sld );
+                log.info( "Style of layer: " + id() + "\n" + sld );
             }
             else {
                 throw new IllegalStateException( "Wrong style set: " + style );
