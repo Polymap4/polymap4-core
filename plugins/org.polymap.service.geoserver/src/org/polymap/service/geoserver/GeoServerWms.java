@@ -1,7 +1,7 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009,2012 Polymap GmbH, and individual contributors as
+ * indicated by the @authors tag.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service.geoserver;
 
@@ -47,23 +40,22 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.lf5.util.StreamUtils;
-
 import org.geoserver.logging.LoggingStartupContextListener;
 
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.SessionContext;
 
 import org.polymap.service.ServiceContext;
+import org.polymap.service.geoserver.spring.PipelineMapProducer;
 import org.polymap.service.http.WmsService;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class GeoServerWms
@@ -73,6 +65,12 @@ public class GeoServerWms
 
     /** First attemp to pass info to GeoServerLoader inside Spring. */
     public static ThreadLocal<GeoServerWms> servers = new ThreadLocal();
+    
+    /**
+     * XXX Bad hack. I just don't find the right way through GeoServer code
+     * to get HTTP response in a {@link PipelineMapProducer}.
+     */
+    public static ThreadLocal<HttpServletResponse> response = new ThreadLocal();
     
     private List<ServletContextListener>    loaders = new ArrayList();
     
@@ -170,7 +168,7 @@ public class GeoServerWms
 
             dispatcher = new DispatcherServlet();
             log.debug( "Dispatcher: " + dispatcher.getClass().getClassLoader() );
-            (dispatcher).init( new ServletConfig() {
+            dispatcher.init( new ServletConfig() {
 
                 public String getInitParameter( String name ) {
                     return GeoServerWms.this.getInitParameter( name );
@@ -207,7 +205,10 @@ public class GeoServerWms
             String resName = req.getPathInfo().substring( 1 );
             URL res = GeoServerPlugin.getDefault().getBundle().getResource( resName );
             if (res != null) {
-                StreamUtils.copyThenClose( res.openStream(), resp.getOutputStream() );
+                IOUtils.copy( res.openStream(), resp.getOutputStream() );
+                IOUtils.closeQuietly( res.openStream() );
+                resp.getOutputStream().flush();
+                resp.flushBuffer();
             }
             else {
                 log.warn( "No such resource found: " + resName );
@@ -221,37 +222,14 @@ public class GeoServerWms
                 
         try {
             // session context
-            ServiceContext.mapContext( sessionKey /*req.getSession().getId()*/ );
-
-//        HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper( req ) {
-//
-//            public String getServletPath() {
-//                log.info( "getServletPath(): ..." );
-//                return "";
-//            }
-//
-//            public String getRequestURI() {
-//                HttpServletRequestWrapper delegate = (HttpServletRequestWrapper)getRequest();
-//                String result = StringUtils.substringAfter(
-//                        delegate.getRequestURI(), servletPath );
-//                log.info( "getRequestURI(): " + result );
-//                return result;
-//            }
-//
-//            public StringBuffer getRequestURL() {
-//                HttpServletRequestWrapper delegate = (HttpServletRequestWrapper)getRequest();
-//                log.info( "getRequestURL(): " + delegate.getRequestURI() );
-//                return delegate.getRequestURL();
-//            }
-//            
-//        };
-
+            ServiceContext.mapContext( sessionKey );
+            response.set( resp );
             dispatcher.service( req, resp );
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );
-
             ServiceContext.unmapContext();
+            response.set( null );
         }
     }
 
@@ -413,4 +391,5 @@ public class GeoServerWms
         }
         
     }
+
 }
