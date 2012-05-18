@@ -55,6 +55,7 @@ import org.geotools.referencing.CRS;
 import com.vividsolutions.jts.geom.MultiPolygon;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
@@ -169,7 +170,7 @@ public class FeatureTypeEditorProcessor
             context.sendRequest( new GetFeaturesSizeRequest( transformed ) );
         }
         else {
-            throw new IllegalArgumentException( "Unhandled request type: " + r );
+            throw new UnsupportedOperationException( Messages.get( "FeatureTypeEditorProcessor_unsupported", r.getClass().getSimpleName() ) );
         }
     }
 

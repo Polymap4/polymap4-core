@@ -185,7 +185,7 @@ public class ModifyFeaturesOperation
             });
         }
         catch (Exception e) {
-            throw new ExecutionException( "Failure...", e );
+            throw new ExecutionException( e.getLocalizedMessage(), e );
         }
         finally {
 //            JobMonitors.remove();
