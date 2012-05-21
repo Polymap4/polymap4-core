@@ -33,11 +33,22 @@ public abstract class CacheManager {
      * 
      * @param <K> The type of the keys in the cache.
      * @param <V> The type of the elements/values in the cache.
+     * @param config The configuration of the new cache. {@link CacheConfig#DEFAULT}
+     *        indicates that default values should be used.
+     * @return The newly created cache.
+     */
+    public abstract <K,V> Cache<K,V> newCache( CacheConfig config );    
+    
+    /**
+     * Creates a new cache instance.
+     * 
+     * @param <K> The type of the keys in the cache.
+     * @param <V> The type of the elements/values in the cache.
      * @param name The name of the new cache instance.
      * @param config The configuration of the new cache. {@link CacheConfig#DEFAULT}
      *        indicates that default values should be used.
      * @return The newly created cache.
      */
-    public abstract <K,V> Cache<K,V> newCache( String name, CacheConfig config );    
+    public abstract <K,V> Cache<K,V> getOrCreateCache( String name, CacheConfig config );    
     
 }

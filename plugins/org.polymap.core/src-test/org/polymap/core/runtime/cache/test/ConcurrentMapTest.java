@@ -33,7 +33,7 @@ public class ConcurrentMapTest
     
 
     protected void setUp() throws Exception {
-        cache = CacheManager.instance().newCache( "Test", CacheConfig.DEFAULT );    
+        cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );    
     }
 
     
@@ -57,7 +57,7 @@ public class ConcurrentMapTest
         while (true) {
             System.out.println( "adding 1000 to " + cache.size() );
             for (int i=0; i<1000; i++) {
-                cache.get( new Object(), new CacheLoader<Object,byte[]>() {
+                cache.get( new Object(), new CacheLoader<Object,byte[],Exception>() {
                     public byte[] load( Object key ) throws Exception {
                         return new byte[1024];
                     }

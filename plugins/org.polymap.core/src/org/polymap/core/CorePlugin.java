@@ -114,7 +114,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
 	}
 
 	

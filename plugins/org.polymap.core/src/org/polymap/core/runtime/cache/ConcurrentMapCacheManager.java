@@ -14,8 +14,6 @@
  */
 package org.polymap.core.runtime.cache;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +24,8 @@ import java.lang.management.MemoryUsage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.MapMaker;
 
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.ConcurrentMapCache.CacheEntry;
@@ -59,7 +59,7 @@ final class ConcurrentMapCacheManager
     
     private Thread                          memoryCheckerThread;
     
-    private List<ConcurrentMapCache>        caches;
+    private Map<String,ConcurrentMapCache>  caches;
     
 
     protected ConcurrentMapCacheManager() {
@@ -68,22 +68,34 @@ final class ConcurrentMapCacheManager
         memoryCheckerThread.setPriority( Thread.MAX_PRIORITY );
         memoryCheckerThread.start();
     
-        caches = new ArrayList( 64 );
+        caches = new MapMaker().initialCapacity( 256 ).weakValues().makeMap();
     }
     
 
-    public <K, V> Cache<K, V> newCache( String name, CacheConfig config ) {
-        ConcurrentMapCache result = new ConcurrentMapCache( this, name, config );
-        synchronized (caches) {
-            caches.add( result );
+    public <K, V> Cache<K, V> newCache( CacheConfig config ) {
+        return add( new ConcurrentMapCache( this, null, config ) );
+    }
+
+    
+    public <K, V> Cache<K, V> getOrCreateCache( String name, CacheConfig config ) {
+        return add( new ConcurrentMapCache( this, name, config ) );
+    }
+
+
+    private <K, V> Cache<K, V> add( ConcurrentMapCache cache ) {
+        ConcurrentMapCache elm = caches.put( cache.getName(), cache );
+        if (elm != null) {
+            caches.put( cache.getName(), elm );
+            throw new IllegalArgumentException( "Cache name already exists: " + cache.getName() );
         }
-        return result;
+        return cache;
     }
 
     
     void disposeCache( ConcurrentMapCache cache ) {
-        synchronized (caches) {
-            caches.remove( cache );
+        ConcurrentMapCache elm = caches.remove( cache.getName() );
+        if (elm == null) {
+            throw new IllegalArgumentException( "Cache name does not exists: " + cache.getName() );
         }
     }
 
@@ -156,13 +168,8 @@ final class ConcurrentMapCacheManager
                 int memSizeTarget = (int)(heap.getUsed() / 100 * DEFAULT_EVICTION_MEM_PERCENT );
                 log.debug( String.format( "    Eviction target size: %dMB", memSizeTarget/1024/1024 ) );
 
-                // make stable copy of the caches list
-                List<ConcurrentMapCache> stableCopy = null;
-                synchronized (caches) {
-                    stableCopy = new ArrayList( caches );
-                }
                 // all caches
-                for (ConcurrentMapCache cache : stableCopy) {
+                for (ConcurrentMapCache cache : caches.values()) {
                     
                     Iterable<Map.Entry<Object,CacheEntry>> entries = cache.entries();
                     for (Map.Entry<Object,CacheEntry> entry : entries) {
@@ -178,7 +185,7 @@ final class ConcurrentMapCacheManager
                                     last = evictionQueue.remove();
 
                                     accessThreshold = last.entry.accessed();
-                                    evictionMemSize -= last.entry.sizeInKB() * 1024;
+                                    evictionMemSize -= last.entry.size();
                                 }
                             }
                             else {
@@ -188,16 +195,18 @@ final class ConcurrentMapCacheManager
                             evictionQueue.add( last != null
                                     ? last.set( cache, entry.getValue(), entry.getKey() )
                                     : new EvictionCandidate( cache, entry.getValue(), entry.getKey() ) );
-                            evictionMemSize += entry.getValue().sizeInKB() * 1024;
+                            evictionMemSize += entry.getValue().size();
                         }
                     }
                 }
                 
                 for (EvictionCandidate candidate : evictionQueue) {
                     // remove from cache
-                    candidate.cache.remove( candidate.key );
+                    Object elm = candidate.cache.remove( candidate.key );
+                    assert elm != null : "Unable to remove element from cache: " + candidate.key;
                     // fire eviction event
                     candidate.cache.fireEvictionEvent( candidate.key, candidate.entry.value() );
+                    candidate.entry.dispose();
                 }
             
                 if (evictionQueue.isEmpty()) {

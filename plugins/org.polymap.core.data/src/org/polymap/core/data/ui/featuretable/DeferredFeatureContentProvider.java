@@ -74,7 +74,7 @@ class DeferredFeatureContentProvider
     private LazySortedCollection    sortedElements;
 
     private Cache<String,SimpleFeature> elementCache = 
-            CacheManager.instance().newCache( getClass().getSimpleName(), CacheConfig.DEFAULT );
+            CacheManager.instance().newCache( CacheConfig.DEFAULT );
 
     
     DeferredFeatureContentProvider( FeatureTableViewer viewer,

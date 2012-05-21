@@ -19,10 +19,10 @@ package org.polymap.core.runtime.cache;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public abstract class UnknownSizeCacheLoader<K,V>
-        implements CacheLoader<K,V> {
+public abstract class UnknownSizeCacheLoader<K,V,E extends Throwable>
+        implements CacheLoader<K,V,E> {
 
-    public int size() throws Exception {
+    public int size() throws E {
         return Cache.ELEMENT_SIZE_UNKNOW;
     }
 

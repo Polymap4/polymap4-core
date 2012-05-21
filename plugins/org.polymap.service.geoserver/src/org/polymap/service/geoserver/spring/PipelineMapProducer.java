@@ -49,19 +49,13 @@ import org.geotools.referencing.CRS;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.WMS;
 
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.catalog.IService;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
-import org.polymap.core.data.pipeline.IPipelineIncubator;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
@@ -69,7 +63,6 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.UIJob;
-
 import org.polymap.service.geoserver.GeoServerWms;
 
 /**
@@ -97,12 +90,10 @@ public class PipelineMapProducer
     
     private GeoServerLoader     loader;
 
-    private IPipelineIncubator  pipelineIncubator = new DefaultPipelineIncubator();
-    
     
     public PipelineMapProducer( WMS wms, GeoServerLoader loader ) {
         super( MIME_TYPE, OUTPUT_FORMATS );
-        log.debug( "INIT ***" );
+        log.info( "INIT: " + wms.getServiceInfo().getId() );
         this.wms = wms;
         this.loader = loader;
     }
@@ -121,9 +112,9 @@ public class PipelineMapProducer
         // single layer? -> request ENCODED_IMAGE
         if (mapContext.getLayerCount() == 1) {
             MapLayer mapLayer = mapContext.getLayers()[0];
-            ILayer layer = findLayer( mapLayer );
+            ILayer layer = loader.findLayer( mapLayer );
             try {
-                Pipeline pipeline = getOrCreatePipeline( layer, LayerUseCase.ENCODED_IMAGE );
+                Pipeline pipeline = loader.getOrCreatePipeline( layer, LayerUseCase.ENCODED_IMAGE );
 
                 ProcessorRequest request = prepareProcessorRequest(); 
                 pipeline.process( request, new ResponseHandler() {
@@ -169,13 +160,13 @@ public class PipelineMapProducer
             
             // run jobs for all layers
             for (final MapLayer mapLayer : mapContext.getLayers()) {
-                final ILayer layer = findLayer( mapLayer );
+                final ILayer layer = loader.findLayer( mapLayer );
                 // job
                 UIJob job = new UIJob( getClass().getSimpleName() + ": " + layer.getLabel() ) {
                     protected void runWithException( IProgressMonitor monitor )
                     throws Exception {
                         try {
-                            Pipeline pipeline = getOrCreatePipeline( layer, LayerUseCase.IMAGE );
+                            Pipeline pipeline = loader.getOrCreatePipeline( layer, LayerUseCase.IMAGE );
 
                             GetMapRequest targetRequest = prepareProcessorRequest();
                             pipeline.process( targetRequest, new ResponseHandler() {
@@ -233,7 +224,7 @@ public class PipelineMapProducer
                     // load image data
 //                  new javax.swing.ImageIcon( image ).getImage();
 
-                    ILayer layer = findLayer( mapLayer );
+                    ILayer layer = loader.findLayer( mapLayer );
                     int rule = AlphaComposite.SRC_OVER;
                     float alpha = ((float)layer.getOpacity()) / 100;
 
@@ -256,54 +247,6 @@ public class PipelineMapProducer
     }
 
 
-    /**
-     * Creates a new processing {@link Pipeline} for the given {@link ILayer}
-     * and usecase.
-     * <p>
-     * XXX The result needs to be cached
-     * 
-     * @throws IOException 
-     * @throws PipelineIncubationException 
-     */
-    protected Pipeline getOrCreatePipeline( ILayer layer, LayerUseCase usecase ) 
-    throws IOException, PipelineIncubationException {
-        IService service = findService( layer );
-        Pipeline pipeline = pipelineIncubator.newPipeline( 
-                usecase, layer.getMap(), layer, service );
-        return pipeline;
-    }
-
-
-    /**
-     * Find the corresponding {@link ILayer} for the given {@link MapLayer} of
-     * the MapContext.
-     */
-    protected ILayer findLayer( MapLayer mapLayer ) {
-        log.debug( "findLayer(): mapContext=" + mapContext + ", mapLayer= " + mapLayer );
-        
-        ILayer layer = loader.getLayer( mapLayer.getTitle() );
-        
-//        FeatureSource<? extends FeatureType, ? extends Feature> fs = mapLayer.getFeatureSource();
-//        PipelineDataStore pds = (PipelineDataStore)fs.getDataStore();
-//        ILayer layer = pds.getFeatureSource().getPipeline().getLayers().iterator().next();
-        
-        return layer;
-    }
-
-    
-    protected IService findService( ILayer layer ) 
-    throws IOException {
-        IGeoResource res = layer.getGeoResource();
-        if (res == null) {
-            throw new ServiceException( "Unable to find geo resource of layer: " + layer );
-        }
-        // XXX give a reasonable monitor; check state 
-        IService service = res.service( null );
-        log.debug( "service: " + service );
-        return service;
-    }
-    
-    
     /**
      * Create a {@link GetMapRequest} for the MapContext.
      * @throws FactoryException 

@@ -67,7 +67,7 @@ class DeferredFeatureContentProvider2
     private Comparator              sortOrder;
     
     private Cache<String,SimpleFeature> elementCache = 
-            CacheManager.instance().newCache( getClass().getSimpleName(), CacheConfig.DEFAULT );
+            CacheManager.instance().newCache( CacheConfig.DEFAULT );
 
     
     DeferredFeatureContentProvider2( FeatureTableViewer viewer,

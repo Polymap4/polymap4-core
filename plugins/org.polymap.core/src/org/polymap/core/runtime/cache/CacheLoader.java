@@ -19,9 +19,9 @@ package org.polymap.core.runtime.cache;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface CacheLoader<K,V> {
+public interface CacheLoader<K,V,E extends Throwable> {
 
-    public V load( K key ) throws Exception;
+    public V load( K key ) throws E;
 
 
     /**
@@ -30,6 +30,6 @@ public interface CacheLoader<K,V> {
      * @return The size in Bytes of the element previously created by this loader.
      * @throws Exception
      */
-    public int size() throws Exception;
+    public int size() throws E;
     
 }

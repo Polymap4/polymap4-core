@@ -15,6 +15,7 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
@@ -22,8 +23,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.MapMaker;
-
 import org.polymap.core.runtime.ListenerList;
 
 /**
@@ -38,6 +37,8 @@ final class ConcurrentMapCache<K,V>
     
     private volatile static int         accessCounter = 0;
     
+    private volatile static int         cacheCounter = 0;
+    
     private String                      name;
     
     private ConcurrentMapCacheManager   manager;
@@ -51,16 +52,16 @@ final class ConcurrentMapCache<K,V>
 
     ConcurrentMapCache( ConcurrentMapCacheManager manager, String name, CacheConfig config ) {
         this.manager = manager;
-        this.name = name;
+        this.name = name != null ? name : String.valueOf( cacheCounter++ );
         this.config = config;
         
-        //this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );
-        
-        this.entries = new MapMaker()
-                .initialCapacity( config.initSize )
-                .concurrencyLevel( config.concurrencyLevel )
-                //.softValues()
-                .makeMap();
+        this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );
+
+//        this.entries = new MapMaker()
+//                .initialCapacity( config.initSize )
+//                .concurrencyLevel( config.concurrencyLevel )
+//                //.softValues()
+//                .makeMap();
     }
 
     
@@ -92,7 +93,7 @@ final class ConcurrentMapCache<K,V>
     }
 
     
-    public V get( K key, CacheLoader<K, V> loader ) throws Exception {
+    public <E extends Throwable> V get( K key, CacheLoader<K,V,E> loader ) throws E {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
         
@@ -101,21 +102,13 @@ final class ConcurrentMapCache<K,V>
             return entry.value();
         }
         else {
-            entry = new CacheEntry( null, ELEMENT_SIZE_UNKNOW );
+            V value = loader.load( key );
+            int memSize = loader.size();
+            entry = new CacheEntry( value, memSize != ELEMENT_SIZE_UNKNOW ? memSize : config.elementMemSize );
             CacheEntry<V> previous = entries.putIfAbsent( key, entry );
-            if (previous == null) {
-                try {
-                    entry.setValue( loader.load( key ), loader.size() );
-                    return entry.value();
-                }
-                catch (Exception e) {
-                    entries.remove( key );
-                    throw e;
-                }
-            }
-            else {
-                return previous.value();
-            }
+            return previous == null
+                    ? entry.value()
+                    : previous.value();
         }
     }
 
@@ -128,6 +121,7 @@ final class ConcurrentMapCache<K,V>
     public V putIfAbsent( K key, V value, int elementMemSize ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
+        assert elementMemSize > 0;
 
         CacheEntry<V> entry = entries.putIfAbsent( key, new CacheEntry( value, elementMemSize ) );
         return entry != null ? entry.value() : null;
@@ -201,39 +195,28 @@ final class ConcurrentMapCache<K,V>
 
         private V               value;
         
-        /** Use byte instead of int, saving 3 bytes of mem. */
-        private byte            sizeInKB;
+        /** Use byte instead of int, saving 3 bytes of memory. */
+        private byte            sizeInKB = -1;
         
         private volatile int    accessed = accessCounter++;
         
         
-        CacheEntry( V data, int elementSize ) {
-            assert (elementSize / 1024) <= 256;
+        CacheEntry( V value, int elementSize ) {
+            assert value != null : "Null values are not allowed.";
+            assert elementSize <= 0 || (elementSize / 1024) <= 256;
+            
+            this.value = value;
             this.sizeInKB = (byte)(elementSize / 1024);
-            this.value = data;
+            assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
         }
 
-        void setValue( V value, int elementSize ) {
-            assert (elementSize / 1024) <= 256;
-            this.sizeInKB = (byte)(elementSize / 1024);
-            this.value = value;
-            synchronized (this) {
-                notifyAll();
-            }
+        void dispose() {
+            value = null;
+            accessed = -1;
         }
         
         public V value() {
-            // wait for the loader to be ready and value is set
-            while (value == null) {
-                synchronized (this) {
-                    try {
-                        wait( 1000 );
-                    }
-                    catch (InterruptedException e) {
-                    }
-                }
-            }
-            
+            assert value != null;
             accessed = accessCounter++;
             if (accessed <= 0) {
                 throw new CacheException( "Access counter exceeded!" );
@@ -245,8 +228,9 @@ final class ConcurrentMapCache<K,V>
             return accessed;
         }
         
-        public byte sizeInKB() {
-            return sizeInKB;
+        public int size() {
+            assert sizeInKB != -1;
+            return 1024*sizeInKB;
         }
     }
 

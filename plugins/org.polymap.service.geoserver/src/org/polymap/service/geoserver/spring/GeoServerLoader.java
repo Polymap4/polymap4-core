@@ -32,36 +32,8 @@ import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.web.context.WebApplicationContext;
-import org.vfny.geoserver.global.GeoserverDataDirectory;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.Name;
-import org.opengis.geometry.Envelope;
-import org.opengis.parameter.GeneralParameterValue;
-
-import org.geotools.data.DataStore;
-import org.geotools.data.collection.CollectionDataStore;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureCollections;
-import org.geotools.feature.NameImpl;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.util.Version;
+import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IService;
 
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
@@ -76,6 +48,7 @@ import org.geoserver.catalog.impl.WorkspaceInfoImpl;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.impl.GeoServerInfoImpl;
 import org.geoserver.platform.GeoServerResourceLoader;
+import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.GMLInfo;
 import org.geoserver.wfs.GMLInfoImpl;
 import org.geoserver.wfs.WFSInfo;
@@ -83,15 +56,52 @@ import org.geoserver.wfs.WFSInfoImpl;
 import org.geoserver.wfs.GMLInfo.SrsNameStyle;
 import org.geoserver.wfs.WFSInfo.ServiceLevel;
 import org.geoserver.wms.WMSInfoImpl;
+import org.geotools.data.DataStore;
+import org.geotools.data.collection.CollectionDataStore;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.NameImpl;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.map.MapLayer;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.util.Version;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
+import org.opengis.geometry.Envelope;
+import org.opengis.parameter.GeneralParameterValue;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.web.context.WebApplicationContext;
+import org.vfny.geoserver.global.GeoserverDataDirectory;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Polygon;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
+import org.polymap.core.data.pipeline.IPipelineIncubator;
+import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheLoader;
+import org.polymap.core.runtime.cache.CacheManager;
 import org.polymap.core.style.IStyle;
 
 import org.polymap.service.ServicesPlugin;
@@ -123,9 +133,15 @@ public class GeoServerLoader
     
     private Map<String,ILayer>      layers = new HashMap();
     
+    private IPipelineIncubator      pipelineIncubator;
+    
+    private Cache<String,Pipeline>  pipelines;
+
     
     public GeoServerLoader( GeoServerResourceLoader resourceLoader ) {
         this.resourceLoader = resourceLoader;
+        this.pipelineIncubator = new DefaultPipelineIncubator();
+        this.pipelines = CacheManager.instance().newCache( new CacheConfig().setInitSize( 32 ) );
     }
     
 
@@ -135,6 +151,10 @@ public class GeoServerLoader
             geoserver.dispose();
             geoserver = null;
         }
+        if (pipelines != null) {
+            pipelines.dispose();
+            pipelines = null;
+        }
     }
 
     
@@ -142,6 +162,68 @@ public class GeoServerLoader
         return layers.get( name );
     }
 
+    /**
+     * Creates a new processing {@link Pipeline} for the given {@link ILayer}
+     * and usecase.
+     * <p>
+     * XXX The result needs to be cached
+     * 
+     * @throws IOException 
+     * @throws PipelineIncubationException 
+     */
+    public Pipeline getOrCreatePipeline( final ILayer layer, final LayerUseCase usecase ) 
+    throws IOException, PipelineIncubationException {
+        
+        return pipelines.get( layer.id(), new CacheLoader<String,Pipeline,IOException>() {
+        
+            public Pipeline load( String key ) throws IOException {
+                try {
+                    IService service = findService( layer );
+                    return pipelineIncubator.newPipeline( 
+                            usecase, layer.getMap(), layer, service );
+                }
+                catch (PipelineIncubationException e) {
+                    // should never happen
+                    throw new RuntimeException( e );
+                }
+            }
+            
+            public int size() throws IOException {
+                return Cache.ELEMENT_SIZE_UNKNOW;
+            }
+        });
+    }
+
+
+    /**
+     * Find the corresponding {@link ILayer} for the given {@link MapLayer} of
+     * the MapContext.
+     */
+    protected ILayer findLayer( MapLayer mapLayer ) {
+        log.debug( "findLayer(): mapLayer= " + mapLayer );
+        
+        ILayer layer = getLayer( mapLayer.getTitle() );
+        
+//        FeatureSource<? extends FeatureType, ? extends Feature> fs = mapLayer.getFeatureSource();
+//        PipelineDataStore pds = (PipelineDataStore)fs.getDataStore();
+//        ILayer layer = pds.getFeatureSource().getPipeline().getLayers().iterator().next();
+        
+        return layer;
+    }
+
+    
+    protected IService findService( ILayer layer ) 
+    throws IOException {
+        IGeoResource res = layer.getGeoResource();
+        if (res == null) {
+            throw new ServiceException( "Unable to find geo resource of layer: " + layer );
+        }
+        // XXX give a reasonable monitor; check state 
+        IService service = res.service( null );
+        log.debug( "service: " + service );
+        return service;
+    }
+    
     
     public void setApplicationContext( ApplicationContext applicationContext )
     throws BeansException {

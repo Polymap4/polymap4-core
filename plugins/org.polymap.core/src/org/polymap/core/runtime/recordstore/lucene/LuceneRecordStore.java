@@ -75,7 +75,7 @@ public final class LuceneRecordStore
     
     private Cache<Object,Document>  cache = null;
     
-    private CacheLoader<Object,Document> loader = new DocumentLoader();
+    private CacheLoader<Object,Document,Exception> loader = new DocumentLoader();
     
     /** 
      * Maps docnum into record id; this helps to find a cached record
@@ -243,7 +243,7 @@ public final class LuceneRecordStore
      * Loads records triggered by the cache in {@link LuceneRecordStore#get(Object)}.
      */
     class DocumentLoader
-            implements CacheLoader<Object,Document> {
+            implements CacheLoader<Object,Document,Exception> {
         
         public Document load( Object id ) throws Exception {
             TermDocs termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );

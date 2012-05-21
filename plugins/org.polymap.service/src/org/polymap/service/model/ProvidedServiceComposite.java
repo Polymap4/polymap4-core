@@ -167,7 +167,12 @@ public interface ProvidedServiceComposite
             IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
             log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
             
-            HttpServiceFactory.unregisterServer( wms, false );
+            try {
+                HttpServiceFactory.unregisterServer( wms, true );
+            }
+            catch (Exception e) {
+                log.warn( "", e );
+            }
             wms = null;            
         }
         

@@ -47,7 +47,7 @@ public interface Cache<K,V> {
      *         element if the key was not yet in the cache.
      * @throws Exception
      */
-    public V get( K key, CacheLoader<K,V> loader ) throws Exception;
+    public <E extends Throwable> V get( K key, CacheLoader<K,V,E> loader ) throws E;
 
 
     /**

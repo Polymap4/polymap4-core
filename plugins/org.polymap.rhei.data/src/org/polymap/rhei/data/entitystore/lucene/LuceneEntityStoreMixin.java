@@ -90,8 +90,7 @@ public class LuceneEntityStoreMixin
 
         store = new LuceneRecordStore( indexDir, false );
         
-        Cache<Object,Document> documentCache = CacheManager.instance().newCache( 
-                getClass().getSimpleName(), CacheConfig.DEFAULT );
+        Cache<Object,Document> documentCache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
         store.setDocumentCache( documentCache );
         
         store.getValueCoders().addValueCoder( new GeometryValueCoder() );

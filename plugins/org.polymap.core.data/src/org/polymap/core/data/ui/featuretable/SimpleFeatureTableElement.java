@@ -104,30 +104,31 @@ public class SimpleFeatureTableElement
 
 
     public SimpleFeature feature() {
-        try {
+//        try {
             if (cache.isDisposed()) {
                 return null;
             }
-            return cache.get( fid, new CacheLoader<String,SimpleFeature>() {
-                public SimpleFeature load( String _fid ) throws Exception {
+            return cache.get( fid, new CacheLoader<String,SimpleFeature,RuntimeException>() {
+                public SimpleFeature load( String _fid ) throws RuntimeException {
                     FetchJob fetcher = new FetchJob();
-                    fetcher.schedule();
+                    //fetcher.schedule();
 
                     // XXX this may block forever; use PlatformJobs!?
-                    fetcher.join();
+                    //fetcher.join();
+                    fetcher.run( null );
                     return (SimpleFeature)fetcher.result;
                 }
-                public int size() throws Exception {
+                public int size() throws RuntimeException {
                     return Cache.ELEMENT_SIZE_UNKNOW;
                 }
             });
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+//        }
+//        catch (RuntimeException e) {
+//            throw e;
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException( e );
+//        }
         
 //        if (result == null) {
 //        
