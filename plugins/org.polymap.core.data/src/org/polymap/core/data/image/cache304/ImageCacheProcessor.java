@@ -154,6 +154,7 @@ public class ImageCacheProcessor
                 log.debug( "### Cache: Hit. (" + data.length + " bytes)" );
                 EncodedImageResponse response = new EncodedImageResponse( data, data.length );
                 response.setLastModified( cachedTile.lastModified.get() );
+                response.setExpires( cachedTile.expires.get() );
                 context.sendResponse( response );
                 context.sendResponse( ProcessorResponse.EOP );
             }

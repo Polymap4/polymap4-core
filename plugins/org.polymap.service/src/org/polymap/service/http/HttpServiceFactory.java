@@ -140,6 +140,7 @@ public class HttpServiceFactory {
     
     
     public static void unregisterServer( HttpService server, boolean forceException ) {
+        assert server != null;
         try {
 //            HttpService old = servers.remove( server.getPathSpec() );
 //            if (old != null) {

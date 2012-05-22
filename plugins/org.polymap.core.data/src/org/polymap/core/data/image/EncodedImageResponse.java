@@ -45,6 +45,8 @@ public class EncodedImageResponse
     
     private long            lastModified = -1;
     
+    private long            expires = -1;
+    
     
     public EncodedImageResponse( byte[] chunk, int chunkSize ) {
         super();
@@ -66,6 +68,14 @@ public class EncodedImageResponse
 
     public long getLastModified() {
         return lastModified;
+    }
+
+    public void setExpires( Long expires ) {
+        this.expires = expires;
+    }
+    
+    public long getExpires() {
+        return expires;
     }
     
 }

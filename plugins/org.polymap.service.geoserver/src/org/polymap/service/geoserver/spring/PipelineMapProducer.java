@@ -93,7 +93,7 @@ public class PipelineMapProducer
     
     public PipelineMapProducer( WMS wms, GeoServerLoader loader ) {
         super( MIME_TYPE, OUTPUT_FORMATS );
-        log.info( "INIT: " + wms.getServiceInfo().getId() );
+        log.debug( "INIT: " + wms.getServiceInfo().getId() );
         this.wms = wms;
         this.loader = loader;
     }
@@ -128,7 +128,8 @@ public class PipelineMapProducer
                         }
                         else {
                             long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
-                            response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
+                            // allow caches and browser clients to cache for 1h
+                            response.setHeader( "Cache-Control", "public,max-age=3600" );
                             if (lastModified > 0) {
                                 response.setDateHeader( "Last-Modified", lastModified );
                             }
