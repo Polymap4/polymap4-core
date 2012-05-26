@@ -22,8 +22,6 @@ import java.util.Map;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.ref.SoftReference;
-
 import org.geotools.geojson.feature.FeatureJSON;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,11 +34,11 @@ import org.polymap.core.project.ILayer;
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentNode;
+import org.polymap.service.fs.spi.DefaultContentProvider;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentProvider;
-import org.polymap.service.fs.spi.IContentSite;
 import org.polymap.service.fs.spi.Range;
 
 /**
@@ -50,13 +48,14 @@ import org.polymap.service.fs.spi.Range;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class GeoJsonContentProvider
+        extends DefaultContentProvider
         implements IContentProvider {
 
     private static Log log = LogFactory.getLog( GeoJsonContentProvider.class );
+    
 
-
-    public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
-        IContentFolder parent = site.getFolder( path );
+    public List<? extends IContentNode> getChildren( IPath path ) {
+        IContentFolder parent = getSite().getFolder( path );
         
         // file
         if (parent instanceof GeoJsonFolder) {
@@ -100,26 +99,49 @@ public class GeoJsonContentProvider
             extends DefaultContentNode
             implements IContentFile {
 
-        private SoftReference<byte[]>   contentRef;
+        private byte[]              content;
         
-        private Exception               lastException;
+        private Exception           lastException;
         
-        private Date                    modified = new Date();
+        private Date                modified;
         
         
         public GeoJsonFile( IPath parentPath, IContentProvider provider, ILayer layer ) {
             super( layer.getLabel() + ".json", parentPath, provider, layer );
+            try {
+                lastException = null;
+                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( getLayer(), false );
+
+                FeatureJSON encoder = new FeatureJSON();
+                encoder.setEncodeFeatureBounds( false );
+                encoder.setEncodeFeatureCollectionBounds( false );
+                encoder.setEncodeFeatureCollectionCRS( false );
+                encoder.setEncodeFeatureCRS( false );
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream( 128*1024 );
+                encoder.writeFeatureCollection( fs.getFeatures(), out );
+                
+                content = out.toByteArray();
+                modified = new Date();
+            }
+            catch (Exception e) {
+                log.warn( "", e );
+                lastException = e;
+            }
         }
 
-        
+
+        public int getSizeInMemory() {
+            return (content != null ? content.length : 0) + super.getSizeInMemory();
+        }
+
+
         public ILayer getLayer() {
             return (ILayer)getSource();
         }
 
 
         public Long getContentLength() {
-            byte[] content = checkInitContent();
-            
             if (lastException != null) {
                 log.warn( "", lastException );
                 return null;
@@ -147,8 +169,7 @@ public class GeoJsonContentProvider
 
         public void sendContent( final OutputStream out, Range range, Map<String, String> params, String contentType )
         throws IOException, BadRequestException {
-            log.info( "range: " + range + ", params: " + params + ", contentType: " + contentType );
-            byte[] content = checkInitContent();
+            log.debug( "range: " + range + ", params: " + params + ", contentType: " + contentType );
             
             if (lastException != null) {
                 log.warn( "", lastException );
@@ -158,34 +179,6 @@ public class GeoJsonContentProvider
             }
         }
 
-
-        protected synchronized byte[] checkInitContent() {
-            byte[] result = contentRef != null ? contentRef.get() : null;
-            if (result == null) { 
-                try {
-                    lastException = null;
-                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( getLayer(), false );
-
-                    FeatureJSON encoder = new FeatureJSON();
-                    encoder.setEncodeFeatureBounds( false );
-                    encoder.setEncodeFeatureCollectionBounds( false );
-                    encoder.setEncodeFeatureCollectionCRS( false );
-                    encoder.setEncodeFeatureCRS( false );
-
-                    ByteArrayOutputStream out = new ByteArrayOutputStream( 128*1024 );
-                    encoder.writeFeatureCollection( fs.getFeatures(), out );
-                    
-                    result = out.toByteArray();
-                    contentRef = new SoftReference( result );
-                    modified = new Date();
-                }
-                catch (Exception e) {
-                    log.warn( "", e );
-                    lastException = e;
-                }
-            }
-            return result;
-        }
     }
 
 }

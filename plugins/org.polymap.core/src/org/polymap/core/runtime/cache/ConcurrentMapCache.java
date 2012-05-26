@@ -195,18 +195,18 @@ final class ConcurrentMapCache<K,V>
 
         private V               value;
         
-        /** Use byte instead of int, saving 3 bytes of memory. */
-        private byte            sizeInKB = -1;
+        /** Use short instead of int, saving 2 bytes of memory. */
+        private short           sizeInKB = -1;
         
         private volatile int    accessed = accessCounter++;
         
         
         CacheEntry( V value, int elementSize ) {
             assert value != null : "Null values are not allowed.";
-            assert elementSize <= 0 || (elementSize / 1024) <= 256;
+            assert elementSize <= 0 || (elementSize / 1024) <= 256*256;
             
             this.value = value;
-            this.sizeInKB = (byte)(elementSize / 1024);
+            this.sizeInKB = (short)(elementSize / 1024);
             assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
         }
 

@@ -45,28 +45,24 @@ public class SecurityManagerAdapter
         this.realm = realm;
     }
    
-    
     public String getRealm( String host ) {
         return realm;
     }
-
     
     public boolean isDigestAllowed() {
         return false;
     }
-
     
     public Object authenticate( DigestResponse digestRequest ) {
         throw new RuntimeException( "not yet implemented." );
     }
 
-    
     public Object authenticate( String user, String passwd ) {
         UserPrincipal sessionUser = (UserPrincipal)Polymap.instance().getUser();
 
         if (sessionUser == null) {
             try {
-                log.info( "Login: " + user /*+ "/" + passwd*/ );
+                log.info( "WebDAV login: " + user /*+ "/" + passwd*/ );
                 Polymap.instance().login( user, passwd );
                 
                 return WebDavServer.createNewSession( Polymap.instance().getUser() );
@@ -79,7 +75,6 @@ public class SecurityManagerAdapter
         return sessionUser != null && sessionUser.getName().equals( user ) 
                 ? sessionUser : null;
     }
-
     
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
         return auth != null && auth.getTag() != null;

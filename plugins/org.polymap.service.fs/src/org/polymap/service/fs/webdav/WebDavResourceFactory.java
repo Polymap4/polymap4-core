@@ -30,6 +30,8 @@ import org.apache.commons.logging.LogFactory;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.MakeCollectionableResource;
+import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
@@ -44,9 +46,11 @@ import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentDeletable;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
+import org.polymap.service.fs.spi.IContentMoveable;
 import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentPutable;
 import org.polymap.service.fs.spi.IContentWriteable;
+import org.polymap.service.fs.spi.IMakeFolder;
 
 /**
  * A {@link ResourceFactory} that provides the content of several
@@ -90,8 +94,8 @@ class WebDavResourceFactory
         Request request = WebDavServer.request();
         assert request != null;
         
-        ContentManager contentManager = (ContentManager)SessionContext.current()
-                .getAttribute( "contentManager" );
+        ContentManager contentManager = (ContentManager)
+                SessionContext.current().getAttribute( "contentManager" );
         
         // get content
         path = StringUtils.substringAfter( path, contextPath );
@@ -140,6 +144,7 @@ class WebDavResourceFactory
             this.node = node;
             
             WebDavFileResource getable = new WebDavFileResource( contentManager, node, securityManager );       
+            handlers.put( ContentNodeResource.class, getable );
             handlers.put( Resource.class, getable );
             handlers.put( GetableResource.class, getable );
             handlers.put( PropFindableResource.class, getable );
@@ -152,6 +157,10 @@ class WebDavResourceFactory
             if (node instanceof IContentDeletable) {
                 WebDavFileDeletable deletable = new WebDavFileDeletable( contentManager, (IContentDeletable)node, securityManager );
                 handlers.put( DeletableResource.class, deletable );
+            }
+            if (node instanceof IContentMoveable) {
+                WebDavMoveableResource res = new WebDavMoveableResource( contentManager, node, securityManager );
+                handlers.put( MoveableResource.class, res );
             }
         }
 
@@ -199,6 +208,7 @@ class WebDavResourceFactory
             this.node = node;
             
             WebDavFolderResource getable = new WebDavFolderResource( contentManager, node, securityManager );       
+            handlers.put( ContentNodeResource.class, getable );
             handlers.put( Resource.class, getable );
             handlers.put( GetableResource.class, getable );
             handlers.put( CollectionResource.class, getable );
@@ -212,6 +222,14 @@ class WebDavResourceFactory
                 WebDavFilePostable postable = new WebDavFilePostable( contentManager, (IContentWriteable)node, securityManager );
                 handlers.put( PostableResource.class, postable );
                 handlers.put( ReplaceableResource.class, postable );
+            }
+            if (node instanceof IMakeFolder) {
+                WebDavMakeCollectionResource res = new WebDavMakeCollectionResource( contentManager, node, securityManager );
+                handlers.put( MakeCollectionableResource.class, res );
+            }
+            if (node instanceof IContentMoveable) {
+                WebDavMoveableResource res = new WebDavMoveableResource( contentManager, node, securityManager );
+                handlers.put( MoveableResource.class, res );
             }
         }
 

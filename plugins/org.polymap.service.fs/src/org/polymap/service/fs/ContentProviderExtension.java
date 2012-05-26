@@ -73,17 +73,9 @@ class ContentProviderExtension {
     
     private IConfigurationElement       ext;
     
-    private IContentProvider            instance;
-
     
     public ContentProviderExtension( IConfigurationElement ext ) {
         this.ext = ext;
-        try {
-            instance = (IContentProvider)ext.createExecutableExtension( "class" );
-        }
-        catch (CoreException e) {
-            throw new RuntimeException( e );
-        }
     }
     
     public String getId() {
@@ -94,8 +86,14 @@ class ContentProviderExtension {
         return ext.getAttribute( "name" );
     }
 
-    public IContentProvider getProvider() {
-        return instance;
+    public IContentProvider newProvider() {
+        try {
+            return (IContentProvider)ext.createExecutableExtension( "class" );
+        }
+        catch (CoreException e) {
+            log.warn( e.getLocalizedMessage(), e );
+            throw new RuntimeException(  e );
+        }
     }
 
 }

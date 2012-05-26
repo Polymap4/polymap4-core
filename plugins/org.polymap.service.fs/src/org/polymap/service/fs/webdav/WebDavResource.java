@@ -33,7 +33,7 @@ import org.polymap.service.fs.spi.IContentNode;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 abstract class WebDavResource
-        implements Resource {
+        implements Resource, ContentNodeResource {
 
     private static Log log = LogFactory.getLog( WebDavResource.class );
 
@@ -50,6 +50,11 @@ abstract class WebDavResource
         this.securityManager = securityManager;
     }
 
+    
+    public IContentNode getNode() {
+        return node;
+    }
+    
     
     public String getName() {
         return node.getName();

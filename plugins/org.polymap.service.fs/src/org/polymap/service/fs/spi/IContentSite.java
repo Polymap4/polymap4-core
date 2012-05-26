@@ -27,6 +27,8 @@ public interface IContentSite {
 
     public IContentFolder getFolder( IPath path );
     
+    public Iterable<IContentNode> getChildren( IPath path );
+    
     public Object put( String key, Object value );
     
     public Object get( String key );
@@ -42,5 +44,5 @@ public interface IContentSite {
     public void invalidateFolder( IContentFolder node );
     
     public void invalidateSession();
-        
+
 }

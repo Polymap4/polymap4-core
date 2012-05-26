@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -24,18 +24,19 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IPath;
 
 import org.polymap.core.model.event.IModelHandleable;
-import org.polymap.core.model.event.ModelStoreEvent;
 import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.ModelStoreEvent;
 import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
+
 import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.DefaultContentFolder;
+import org.polymap.service.fs.spi.DefaultContentProvider;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentProvider;
-import org.polymap.service.fs.spi.IContentSite;
 
 /**
  * Provides content nodes for {@link IMap} and {@link ILayer} and a 'projects' node
@@ -44,32 +45,30 @@ import org.polymap.service.fs.spi.IContentSite;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProjectContentProvider
+        extends DefaultContentProvider
         implements IContentProvider {
 
     private static Log log = LogFactory.getLog( ProjectContentProvider.class );
 
     public static final String      PROJECT_REPOSITORY_KEY = "projectRepository";
     
-    IContentSite                    contentSite;
-    
 
-    public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
-        this.contentSite = site;
+    public List<? extends IContentNode> getChildren( IPath path ) {
         
         // projects root
         if (path.segmentCount() == 0) {
             ProjectRepository repo = ProjectRepository.instance();
-            site.put( PROJECT_REPOSITORY_KEY, repo );
+            getSite().put( PROJECT_REPOSITORY_KEY, repo );
             
-            String name = Messages.get( site.getLocale(), "ProjectContentProvider_projectNode" );
+            String name = Messages.get( getSite().getLocale(), "ProjectContentProvider_projectNode" );
             return Collections.singletonList( new ProjectsFolder( name, path, this ) );
         }
 
         // maps
-        IContentFolder parent = site.getFolder( path );
+        IContentFolder parent = getSite().getFolder( path );
         if (parent instanceof ProjectsFolder) {
             List<IContentNode> result = new ArrayList();
-            ProjectRepository repo = (ProjectRepository)site.get( PROJECT_REPOSITORY_KEY );
+            ProjectRepository repo = (ProjectRepository)getSite().get( PROJECT_REPOSITORY_KEY );
             for (IMap map : repo.getRootMap().getMaps()) {
                 result.add( new MapFolder( path, this, map ) );
             }
@@ -135,7 +134,7 @@ public class ProjectContentProvider
                 if (ev.hasChanged( (IModelHandleable)getMap() )) {
 
                     log.info( "modelChanged(): " + ev );
-                    ((ProjectContentProvider)getProvider()).contentSite.invalidateSession();
+                    ((ProjectContentProvider)getProvider()).getSite().invalidateSession();
                 }
             }
         }

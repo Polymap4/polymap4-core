@@ -41,6 +41,7 @@ import com.bradmcevoy.http.SecurityManager;
 
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.Timer;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;
@@ -127,6 +128,7 @@ public class WebDavServer
 
     public void service( ServletRequest servletRequest, ServletResponse servletResponse ) 
     throws ServletException, IOException {
+        Timer timer = new Timer();
         HttpServletRequest req = (HttpServletRequest)servletRequest;
         HttpServletResponse resp = (HttpServletResponse)servletResponse;
 
@@ -155,6 +157,7 @@ public class WebDavServer
             servletResponse.getOutputStream().flush();
             servletResponse.flushBuffer();
         }
+        log.info( "WebDAV request: " + timer.elapsedTime() + "ms" );
     }
 
     

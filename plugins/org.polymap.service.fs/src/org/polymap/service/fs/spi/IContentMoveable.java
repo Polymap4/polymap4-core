@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011-2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,33 +14,32 @@
  */
 package org.polymap.service.fs.spi;
 
-import java.util.List;
+import java.io.IOException;
 
 import org.eclipse.core.runtime.IPath;
 
 /**
- * The interface of all content providers.
- *
+ * Files or folders that are moveable to other folders should implement this
+ * interface.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IContentProvider {
-
-    public void init( IContentSite site );
-    
-    public void dispose();
-    
-    public IContentSite getSite();
+public interface IContentMoveable
+        extends IContentNode {
     
     /**
-     * Creates the child nodes for the given <code>parentPath</code>.
+     * Move this resource th the given destination path and name.
      * <p/>
-     * This method is part of the SPI. It is called by the engine. Client code that
-     * needs to access content nodes should call {@link IContentSite} instead.
-     * 
-     * @param parentPath
-     * @param site
-     * @return List of newly created content nodes.
+     * The method is responsible of calling
+     * {@link IContentSite#invalidateFolder(IContentFolder)} on folders that content
+     * has changed during this method.
+     *
+     * @param dest
+     * @param newName
+     * @throws IOException
+     * @throws BadRequestException
      */
-    public List<? extends IContentNode> getChildren( IPath parentPath );
-    
+    void moveTo( IPath dest, String newName )
+    throws IOException, BadRequestException;
+
 }
