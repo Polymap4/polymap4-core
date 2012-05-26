@@ -345,13 +345,18 @@ public final class LuceneRecordStore
 
         
         public void apply() {
+            apply( true );
+        }
+        
+        
+        public void apply( boolean optimizeIndex ) {
             assert writer != null : "Updater is closed.";
             Timer timer = new Timer();
             try {
                 writer.commit();
-                
-                writer.expungeDeletes( true );
-                
+                if (optimizeIndex) {
+                    writer.expungeDeletes( true );
+                }
                 writer.close();
                 writer = null;
                 

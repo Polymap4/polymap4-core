@@ -163,7 +163,8 @@ public class Cache304 {
      */
     public CachedTile get( GetMapRequest request, Set<ILayer> layers, Properties props ) {
         try {
-            // keep store and queue stable during method run
+            // keep store and queue stable; prevent race cond between removing
+            // Command from queue and writing to store
             lock.readLock().lock();
             
             // search the store
@@ -259,6 +260,9 @@ public class Cache304 {
                 
                 cachedTile.data.put( data );
                 
+                // XXX there is a race cond between threads of different user sessions
+                // that request/update the same tile; so this push should have semantics
+                // of "pufIfAbsent"
                 updateQueue.push( new CacheUpdateQueue.StoreCommand( cachedTile ) );
                 updater.reSchedule();
             }
@@ -293,7 +297,7 @@ public class Cache304 {
             for (IRecordState record : resultSet) {
                 storeUpdater.remove( record );
             }
-            storeUpdater.apply();
+            storeUpdater.apply( true );
             log.debug( "done. (" + timer.elapsedTime() + "ms)" );
         }
         catch (Exception e) {
@@ -398,7 +402,7 @@ public class Cache304 {
                     log.warn( "Unable to aquire write lock! (3 seconds)" );
                 }
                 timer.start();
-                tx.apply();
+                tx.apply( false );
                 updateQueue.remove( queueState );
                 log.debug( "commit done. (" + timer.elapsedTime() + "ms)" );
             }
@@ -429,7 +433,7 @@ public class Cache304 {
                     tx.remove( state );
                 }
                 lock.writeLock().lock();
-                tx.apply();
+                tx.apply( false );
             }
             catch (Exception e) {
                 tx.discard();
@@ -460,7 +464,7 @@ public class Cache304 {
                         tx.remove( state );
                     }
                     lock.writeLock().lock();
-                    tx.apply();
+                    tx.apply( true );
                 }
                 catch (Exception e) {
                     tx.discard();
