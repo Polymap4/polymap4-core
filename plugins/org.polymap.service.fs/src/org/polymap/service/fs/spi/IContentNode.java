@@ -84,4 +84,6 @@ public interface IContentNode {
      */
     public int getSizeInMemory();
     
+    public void dispose();
+    
 }

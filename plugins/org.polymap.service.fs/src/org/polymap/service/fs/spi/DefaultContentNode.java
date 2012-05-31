@@ -56,6 +56,14 @@ public abstract class DefaultContentNode
 
     
     /**
+     * This default implementation does nothing. Override this to
+     * perform any folder/file specific cleanup.
+     */
+    public void dispose() {
+    }
+
+
+    /**
      * Default implementation: 1kB
      */
     public int getSizeInMemory() {

@@ -4,6 +4,8 @@ import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.polymap.core.runtime.SessionContext;
+
 /**
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -17,20 +19,21 @@ public class ModelStoreEvent
     
     private Set<ModelHandle>    keys = new HashSet();
     
-    /** The Tracker that has issed this event. */
-    private ModelChangeTracker  tracker;
+    /** The Tracker that has issued this event. */
+    private SessionContext      srcContext;
     
     
     public ModelStoreEvent( ModelStoreEvent other ) {
         super( other.getSource() );
         this.keys = other.keys;
         this.eventType = other.eventType;
-        this.tracker = other.tracker;
+        this.srcContext = other.srcContext;
     }
     
-    public ModelStoreEvent( ModelChangeTracker tracker, Object src, Set<ModelHandle> keys, EventType eventType ) {
+    public ModelStoreEvent( SessionContext srcContext, Object src, Set<ModelHandle> keys, EventType eventType ) {
         super( src );
-        this.tracker = tracker;
+        assert srcContext != null : "No SessionContext for this thread.";
+        this.srcContext = srcContext;
         this.keys = new HashSet<ModelHandle>( keys );
         this.eventType = eventType;
     }
@@ -40,7 +43,7 @@ public class ModelStoreEvent
      * Otherwise the event was triggered by a foreign session.
      */
     public boolean isMySession() {
-        return ModelChangeTracker.instance() == tracker;
+        return srcContext == SessionContext.current();
     }
     
     public EventType getEventType() {

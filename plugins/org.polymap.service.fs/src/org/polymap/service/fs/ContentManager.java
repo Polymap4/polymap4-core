@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.Path;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheEvictionListener;
 import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
 
@@ -42,11 +43,14 @@ import org.polymap.service.fs.spi.IContentProvider;
 import org.polymap.service.fs.spi.IContentSite;
 
 /**
- * The ContentManager represents a content session corresponding to one user. It
- * provides the {@link IContentSite context} for the content nodes created by the
- * different {@link IContentProvider content providers}. On the other hand it
- * provides a facade to the several content providers. This facade is used by the
- * front end systems like the WebDAV service.
+ * The ContentManager represents a content session corresponding to one user. Several
+ * (HTTP) sessions of the same user may share one manager and the generated/cached
+ * content.
+ * <p/>
+ * A ContentManager provides the {@link IContentSite context} for the content nodes
+ * created by the different {@link IContentProvider content providers}. On the other
+ * hand it provides a facade to the several content providers. This facade is used by
+ * the front end systems like the WebDAV service.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -67,11 +71,14 @@ public class ContentManager {
      * @return The ContentManager for the given user.
      */
     public static ContentManager forUser( String username, Locale locale, SessionContext sessionContext ) {
-        ContentManager newManager = new ContentManager( username, locale, sessionContext );
-        ContentManager result = managers.putIfAbsent( username, newManager ); 
-        result = result != null ? result : newManager; 
-        int count = result.sessionCount.incrementAndGet();
-        log.info( "ContentManager: user=" + username + ", sessions=" + count );
+        ContentManager result = managers.get( username );
+        if (result == null) {
+            ContentManager newManager = new ContentManager( username, locale, sessionContext );
+            result = managers.putIfAbsent( username, newManager ); 
+            result = result != null ? result : newManager; 
+            int count = result.sessionCount.incrementAndGet();
+            log.info( "ContentManager: user=" + username + ", sessions=" + count );
+        }
         return result;
     }
     
@@ -83,7 +90,11 @@ public class ContentManager {
     public static boolean releaseSession( String username ) {
         ContentManager manager = managers.get( username );
         if (manager != null && manager.sessionCount.decrementAndGet() <= 0) {
-            return managers.remove( username, manager );
+            boolean success = managers.remove( username, manager );
+            if (success) {
+                manager.dispose();
+            }
+            return success;
         }
         return false;
     }
@@ -107,8 +118,6 @@ public class ContentManager {
      */
     private Cache<IPath,Map<String,IContentNode>> nodes;
     
-    //private ReentrantReadWriteLock      nodesLock = new ReentrantReadWriteLock();
-    
     private DefaultContentFolder        rootNode;
 
     private List<IContentProvider>      providers;
@@ -121,6 +130,26 @@ public class ContentManager {
 
         this.nodes = CacheManager.instance().newCache( 
                 new CacheConfig().setInitSize( 256 ).setConcurrencyLevel( 4 ) );
+
+        // eviction listener -> node.dispose()
+        nodes.addEvictionListener( new CacheEvictionListener<IPath,Map<String,IContentNode>>() {
+            public void onEviction( IPath path, final Map<String,IContentNode> children ) {
+                ContentManager.this.sessionContext.execute( new Runnable() {
+                    public void run() {
+                        if (children != null) {
+                            for (IContentNode child : children.values()) {
+                                try {
+                                    child.dispose();
+                                }
+                                catch (Exception e) {
+                                    log.warn( "Error during dispose for eviction.", e );
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
         
         // init providers
         this.providers = new ArrayList();
@@ -157,6 +186,17 @@ public class ContentManager {
                 };
             }
         };
+    }
+    
+    
+    public void dispose() {
+        for (Map<String,IContentNode> children : nodes.values()) {
+            for (IContentNode child : children.values()) {
+                child.dispose();
+            }
+        }
+        nodes.clear();
+        nodes.dispose();
     }
     
     
@@ -246,7 +286,13 @@ public class ContentManager {
         //              parentChildren.remove( nodeName );
         //          }
         //      }
-        nodes.remove( node.getPath() );
+        Map<String, IContentNode> children = nodes.remove( node.getPath() );
+        if (children != null) {
+            // XXX do it recursively
+            for (IContentNode child : children.values()) {
+                child.dispose();
+            }
+        }
     }
 
 
@@ -293,6 +339,10 @@ public class ContentManager {
                 FsPlugin.getDefault().invalidateSession( sessionContext );
                 sessionContext = null;
             }
+        }
+
+        public SessionContext getSessionContext() {
+            return sessionContext;
         }
 
         public Object put( String key, Object value ) {

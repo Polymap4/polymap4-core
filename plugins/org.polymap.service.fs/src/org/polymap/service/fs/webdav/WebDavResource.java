@@ -67,10 +67,17 @@ abstract class WebDavResource
 
     
     public Long getMaxAgeSeconds( Auth auth ) {
+        // XXX workaround for bug(?) in Milton's HTTP1.1 GetHandler
+        // see BalkonCacheControl for details
+        return Long.MAX_VALUE;
+        //return node.getMaxAgeSeconds();
+    }
+
+    public Long getRealMaxAgeSeconds( Auth auth ) {
         return node.getMaxAgeSeconds();
     }
 
-    
+
     public String getUniqueId() {
         return String.valueOf( node.hashCode() );
     }

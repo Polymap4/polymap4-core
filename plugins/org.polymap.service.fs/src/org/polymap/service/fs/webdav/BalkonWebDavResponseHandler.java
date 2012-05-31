@@ -14,25 +14,26 @@
  */
 package org.polymap.service.fs.webdav;
 
-import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.AuthenticationService;
+import com.bradmcevoy.http.http11.CacheControlHelper;
+import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
+import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 
-import org.polymap.service.fs.spi.IContentNode;
 
 /**
- * This interface allows access to the underlying node of a {@link WebDavResource}.
  * 
+ * @see BalkonCacheControl
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface ContentNodeResource {
+public class BalkonWebDavResponseHandler
+        extends DefaultWebDavResponseHandler {
 
-    public IContentNode getNode();
+    public BalkonWebDavResponseHandler( AuthenticationService authService ) {
+        super( authService );
+    }
 
-    /**
-     * Returns the real maxAgeSeconds value. This is a workaround for bug(?) in
-     * Milton's HTTP 1.1 GetHandler#checkIfModifiedSince().
-     * 
-     * @see BalkonCacheControl
-     */
-    public Long getRealMaxAgeSeconds( Auth auth );
-
+    public void setCacheControl( CacheControlHelper cacheControl ) {
+        ((DefaultHttp11ResponseHandler)wrapped).setCacheControlHelper( cacheControl );
+    }
+    
 }

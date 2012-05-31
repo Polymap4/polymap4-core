@@ -39,8 +39,6 @@ public class DefaultSessionContextProvider
 
     private ConcurrentHashMap<String,DefaultSessionContext> contexts = new ConcurrentHashMap( 32, 0.75f, 4 );
     
-    //private ReentrantReadWriteLock              contextsLock = new ReentrantReadWriteLock();
-    
 
     /**
      * Map the current thread to the context with the given sessionKey. If no context

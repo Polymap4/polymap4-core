@@ -59,6 +59,24 @@ public class FsContentProvider
     
     
     public FsContentProvider() {
+//        // read config from workspace/config/FsContentProvider_config.json
+//        File configFile = new File( Polymap.getConfigDir(), "org.polymap.service.fs.FsContentProvider.json" );
+//        if (!configFile.exists()) {
+//            // copy default file
+//            InputStream resin = null;
+//            OutputStream fileout = null;
+//            try {
+//                resin = FsPlugin.getDefault().getBundle().getResource( "resources/FsContentProvider.json" ).openStream();
+//                fileout = new FileOutputStream( configFile );
+//                IOUtils.copy( resin, fileout );
+//                IOUtils.closeQuietly( resin );
+//                IOUtils.closeQuietly( fileout );
+//            }
+//            catch (Exception e) {
+//                throw new RuntimeException( e );
+//            }
+//        }
+        
         String configs = System.getProperty( "FsContentProvider", "" );
         Path parentPath = new Path( "/" );
         roots = new ArrayList();

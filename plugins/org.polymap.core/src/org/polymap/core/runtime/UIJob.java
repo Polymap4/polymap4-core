@@ -130,7 +130,7 @@ public abstract class UIJob
     
 
     protected final IStatus run( final IProgressMonitor monitor ) {
-        Runnable runnable = new Runnable() {
+        sessionContext.execute( new Runnable() {
             public void run() {
                 if (display == null || !PlatformUI.getWorkbench().isClosing()) {
                     try {
@@ -170,9 +170,7 @@ public abstract class UIJob
                     }
                 }
             }
-        };
-        sessionContext.execute( runnable );
-        
+        });
         return resultStatus;
     }
 

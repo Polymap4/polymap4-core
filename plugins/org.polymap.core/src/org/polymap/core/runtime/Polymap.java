@@ -107,13 +107,31 @@ public final class Polymap {
 
 
     /**
-     *
-     */
-    public static File getCacheDir() {
-        File cacheDir = new File( getWorkspacePath().toFile(), "cache" );
-        cacheDir.mkdirs();
-        return cacheDir;
-    }
+    *
+    */
+   public static File getCacheDir() {
+       File cacheDir = new File( getWorkspacePath().toFile(), "cache" );
+       cacheDir.mkdirs();
+       return cacheDir;
+   }
+
+   /**
+    *
+    */
+   public static File getConfigDir() {
+       File configDir = new File( getWorkspacePath().toFile(), "config" );
+       configDir.mkdirs();
+       return configDir;
+   }
+
+   /**
+    *
+    */
+   public static File getDataDir() {
+       File dataDir = new File( getWorkspacePath().toFile(), "data" );
+       dataDir.mkdirs();
+       return dataDir;
+   }
 
 
     /**

@@ -33,6 +33,11 @@
             name="SLD">
       </contentProvider>
       <contentProvider
+            class="org.polymap.service.fs.providers.CsvContentProvider"
+            id="org.polymap.service.fs.CsvContentProvider"
+            name="CSV">
+      </contentProvider>
+      <contentProvider
             class="org.polymap.service.fs.providers.FsContentProvider"
             id="org.polymap.service.fs.FsContentProvider"
             name="org.polymap.service.fs.FsContentProvider">

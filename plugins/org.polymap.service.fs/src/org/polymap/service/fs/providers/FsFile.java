@@ -21,7 +21,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.MappedByteBuffer;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +48,10 @@ class FsFile
 
     private static Log log = LogFactory.getLog( FsFile.class );
 
+    private String              contentType;
+
+    private MappedByteBuffer    mappedBuffer;
+    
     
     public FsFile( IPath parentPath, IContentProvider provider, File source ) {
         super( source.getName(), parentPath, provider, source );
@@ -64,22 +70,64 @@ class FsFile
     }
 
     public String getContentType( String accepts ) {
-        return "text/plain";
+        if (contentType == null) {
+            try {
+                String ext = FilenameUtils.getExtension( getFile().getName() );
+                if ("css".equals( ext )) {
+                    contentType = "text/css";
+                }
+                else {
+                    contentType = getFile().toURI().toURL().openConnection().getContentType();
+                }
+            }
+            catch (Exception e) {
+            }
+            contentType = contentType != null && !contentType.equals( "content/unknown" )
+                    ? contentType : "text/plain";
+        }
+        return contentType;
     }
 
-    public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
+    public void sendContent( OutputStream out, Range range, Map<String,String> params, String acceptedContentType )
     throws IOException, BadRequestException {
         FileInputStream in = null;
         try {
             in = new FileInputStream( getFile() );
-            if (range != null) {
-                in.skip( range.getStart() );
-            }
             IOUtils.copy( in, out );
         }
         finally {
             IOUtils.closeQuietly( in );
         }
+
+//        long length = getContentLength();
+//        
+//        if (mappedBuffer == null) {
+//            mappedBuffer = new RandomAccessFile( getFile(), "r" ).getChannel()
+//                    .map( FileChannel.MapMode.READ_ONLY, 0, length );
+//        }
+//        
+//        BufferedOutputStream bout = new BufferedOutputStream( out );
+//        for (int c=0; c<length; c++) {
+//            out.write( mappedBuffer.get() );
+//        }
+//        bout.flush();
+//        mappedBuffer.rewind();
+        
+//        if (content != null) {
+//            IOUtils.copy( new ByteArrayInputStream( content ), out );
+//        }
+//        else {
+//            FileInputStream in = null;
+//            try {
+//                in = new FileInputStream( getFile() );
+//                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+//                IOUtils.copy( in, new TeeOutputStream( out, bout ) );
+//                content = bout.toByteArray();
+//            }
+//            finally {
+//                IOUtils.closeQuietly( in );
+//            }
+//        }
     }
 
     public void moveTo( IPath dest, String newName )
