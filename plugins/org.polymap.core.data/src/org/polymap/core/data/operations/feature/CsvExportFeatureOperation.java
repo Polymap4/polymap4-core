@@ -14,34 +14,22 @@
  */
 package org.polymap.core.data.operations.feature;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.OutputStream;
 
-import org.geotools.feature.FeatureIterator;
-import org.opengis.feature.Feature;
-import org.opengis.feature.Property;
-import org.supercsv.io.CsvListWriter;
-import org.supercsv.prefs.CsvPreference;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.rwt.widgets.ExternalBrowser;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 
 import org.polymap.core.data.operation.DefaultFeatureOperation;
 import org.polymap.core.data.operation.DownloadServiceHandler;
@@ -61,93 +49,28 @@ public class CsvExportFeatureOperation
 
     private static Log log = LogFactory.getLog( CsvExportFeatureOperation.class );
 
-    public static final FastDateFormat  df = DateFormatUtils.ISO_DATE_FORMAT;
     
-    public static final String          CHARSET = "UTF-8";
-    
-
     public Status execute( IProgressMonitor monitor )
     throws Exception {
-        monitor.beginTask( context.adapt( FeatureOperationExtension.class ).getLabel(),
+        monitor.beginTask( 
+                context.adapt( FeatureOperationExtension.class ).getLabel(),
                 context.features().size() );
     
         final File f = File.createTempFile( "polymap-csv-export-", ".csv" );
         f.deleteOnExit();
-        Writer writer = new OutputStreamWriter( new BufferedOutputStream( new FileOutputStream( f ) ), CHARSET );
 
-        CsvPreference prefs = new CsvPreference('"', ';', "\r\n");  //CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
-        CsvListWriter csvWriter = new CsvListWriter( writer, prefs );
+        OutputStream out = new BufferedOutputStream( new FileOutputStream( f ) );
+        final CsvExporter exporter = new CsvExporter();
 
-        // all features
-        FeatureIterator it = context.features().features();
-        int count = 0;
         try {
-            boolean noHeaderYet = true;
-            while (it.hasNext()) {
-                if (monitor.isCanceled()) {
-                    return Status.Cancel;
-                }
-                if ((++count % 100) == 0) {
-                    monitor.subTask( "Objekte: " + count++ );
-                }
-                Feature feature = it.next();
-
-                // header
-                if (noHeaderYet) {
-                    List<String> header = new ArrayList( 32 );
-                    for (Property prop : feature.getProperties()) {
-                        Class<?> binding = prop.getType().getBinding();
-                        if (Number.class.isAssignableFrom( binding )
-                                || Boolean.class.isAssignableFrom( binding )
-                                || Date.class.isAssignableFrom( binding )
-                                || String.class.isAssignableFrom( binding )) {
-                            header.add( prop.getName().getLocalPart() );
-                        }
-                    }
-                    csvWriter.writeHeader( header.toArray(new String[header.size()]) );
-                    noHeaderYet = false;
-                }
-
-                // all properties
-                List line = new ArrayList( 32 );
-                for (Property prop : feature.getProperties()) {
-                    Class binding = prop.getType().getBinding();
-                    Object value = prop.getValue();
-
-                    // Number
-                    if (Number.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? value.toString() : "" );
-                    }
-                    // Boolean
-                    else if (Boolean.class.isAssignableFrom( binding )) {
-                        line.add( value == null ? "" :
-                            ((Boolean)value).booleanValue() ? "ja" : "nein");
-                    }
-                    // Date
-                    else if (Date.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? df.format( (Date)value ) : "" );
-                    }
-                    // String
-                    else if (String.class.isAssignableFrom( binding )) {
-                        String s = value != null ? (String)value : "";
-                        // Excel happens to interprete decimal value otherwise! :(
-                        s = StringUtils.replace( s, "/", "-" );
-                        line.add( s );
-                    }
-                    // other
-                    else {
-                        log.debug( "skipping: " + prop.getName().getLocalPart() + " type:" + binding );
-                    }
-                }
-                log.debug( "LINE: " + line );
-                csvWriter.write( line );
-                monitor.worked( 1 );
-            }
+            exporter.setLocale( Polymap.getSessionLocale() );
+            exporter.write( context.features(), out, monitor );
+        }
+        catch (OperationCanceledException e) {
+            return Status.Cancel;
         }
         finally {
-            it.close();
-            csvWriter.close();
-            writer.close();
+            IOUtils.closeQuietly( out );
         }
 
         // open download        
@@ -156,7 +79,7 @@ public class CsvExportFeatureOperation
                 String url = DownloadServiceHandler.registerContent( new ContentProvider() {
 
                     public String getContentType() {
-                        return "text/csv; charset=" + CHARSET;
+                        return "text/csv; charset=" + exporter.getCharset();
                     }
 
                     public String getFilename() {

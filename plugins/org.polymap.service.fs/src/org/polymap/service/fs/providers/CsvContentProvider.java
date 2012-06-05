@@ -14,7 +14,6 @@
  */
 package org.polymap.service.fs.providers;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -26,31 +25,19 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-
-import org.geotools.feature.FeatureIterator;
-import org.opengis.feature.Feature;
-import org.opengis.feature.Property;
-import org.supercsv.io.CsvListWriter;
-import org.supercsv.prefs.CsvPreference;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.CountingOutputStream;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.WKTWriter;
-
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.FeatureChangeTracker;
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.operations.feature.CsvExporter;
 import org.polymap.core.model.event.IModelHandleable;
 import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeTracker;
@@ -142,14 +129,39 @@ public class CsvContentProvider
         
         public CsvFile( IPath parentPath, IContentProvider provider, ILayer layer ) {
             super( layer.getLabel() + ".csv", parentPath, provider, layer );
-            initContent();
 
+            // init content
+            lastException = null;
+            try {
+                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                CountingOutputStream cout = new CountingOutputStream( new GZIPOutputStream( bout ) );
+
+                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( getLayer(), false );
+                
+                CsvExporter exporter = new CsvExporter();
+                exporter.setLocale( getSite().getLocale() );
+                exporter.write( fs.getFeatures(), cout, new NullProgressMonitor() );
+                
+                content = bout.toByteArray();
+                contentLength = cout.getByteCount();
+                modified = new Date();
+            }
+            catch (IOException e) {
+                log.warn( "", e);
+                lastException = e;
+            }
+            catch (Exception e) {
+                log.warn( "", e);
+                lastException = new IOException( e );
+            }
+
+            // add model listener
             ModelChangeTracker.instance().addListener( this );
         }
 
 
         public void dispose() {
-            log.info( "DISPOSE");
+            log.debug( "DISPOSE");
             ModelChangeTracker.instance().removeListener( this );
         }
 
@@ -159,8 +171,8 @@ public class CsvContentProvider
         }
 
         public void modelChanged( final ModelStoreEvent ev ) {
-            log.info( "ev= " + ev );
-            log.info( "session=" + getSite().getSessionContext() );
+            log.debug( "ev= " + ev );
+            log.debug( "session=" + getSite().getSessionContext() );
             if (ev.getEventType() == EventType.COMMIT 
                     // flush also if shapefile has changed for example
                     //&& !ev.isMySession() 
@@ -223,120 +235,7 @@ public class CsvContentProvider
                 IOUtils.copy( new GZIPInputStream( new ByteArrayInputStream( content ) ), out );
             }
         }
-
         
-        protected void initContent() {
-            lastException = null;
-            // all features
-            FeatureIterator it = null;
-            try {
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                CountingOutputStream cout = new CountingOutputStream( new GZIPOutputStream( bout ) );
-                Writer writer = new OutputStreamWriter( cout, CHARSET );
-
-                CsvPreference prefs = new CsvPreference('"', ';', "\r\n");  //CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE;
-                CsvListWriter csvWriter = new CsvListWriter( writer, prefs );
-
-                PipelineFeatureSource fs = PipelineFeatureSource.forLayer( getLayer(), false );
-                it = fs.getFeatures().features();
-                int count = 0;
-                boolean noHeaderYet = true;
-                
-                while (it.hasNext()) {
-                    Feature feature = it.next();
-
-                    // header
-                    if (noHeaderYet) {
-                        List<String> header = new ArrayList( 32 );
-                        for (Property prop : feature.getProperties()) {
-                            Class<?> binding = prop.getType().getBinding();
-                            if (Number.class.isAssignableFrom( binding )
-                                    || Boolean.class.isAssignableFrom( binding )
-                                    || Date.class.isAssignableFrom( binding )
-                                    || String.class.isAssignableFrom( binding )) {
-                                header.add( prop.getName().getLocalPart() );
-                            }
-                            else if (Point.class.isAssignableFrom( binding )) {
-                                header.add( "X" );
-                                header.add( "Y" );
-                            }
-                            else if (Geometry.class.isAssignableFrom( binding )) {
-                                header.add( "Geometry" );
-                            }
-                        }
-                        csvWriter.writeHeader( header.toArray(new String[header.size()]) );
-                        noHeaderYet = false;
-                    }
-
-                    // all properties
-                    List line = new ArrayList( 32 );
-                    for (Property prop : feature.getProperties()) {
-                        Class binding = prop.getType().getBinding();
-                        Object value = prop.getValue();
-
-                        // Point
-                        if (Point.class.isAssignableFrom( binding )) {
-                            Point point = (Point)value;
-                            line.add( value != null ? point.getX() : "" );
-                            line.add( value != null ? point.getY() : "" );
-                        }
-                        // other Geometry
-                        else if (Geometry.class.isAssignableFrom( binding )) {
-                            if (value != null) {
-                                WKTWriter wkt = new WKTWriter();
-                                wkt.setFormatted( false );
-                                line.add( wkt.write( (Geometry)value ) );
-                            }
-                            else {
-                                line.add( "" );
-                            }
-                        }
-                        // Number
-                        else if (Number.class.isAssignableFrom( binding )) {
-                            line.add( value != null ? value.toString() : "" );
-                        }
-                        // Boolean
-                        else if (Boolean.class.isAssignableFrom( binding )) {
-                            line.add( value == null ? "" :
-                                ((Boolean)value).booleanValue() ? "ja" : "nein");
-                        }
-                        // Date
-                        else if (Date.class.isAssignableFrom( binding )) {
-                            line.add( value != null ? df.format( (Date)value ) : "" );
-                        }
-                        // String
-                        else if (String.class.isAssignableFrom( binding )) {
-                            String s = value != null ? (String)value : "";
-                            // Excel happens to interprete decimal value otherwise! :(
-                            s = StringUtils.replace( s, "/", "-" );
-                            line.add( s );
-                        }
-                        // other
-                        else {
-                            log.debug( "skipping: " + prop.getName().getLocalPart() + " type:" + binding );
-                        }
-                    }
-                    log.debug( "LINE: " + line );
-                    csvWriter.write( line );
-                }
-                csvWriter.close();
-                writer.close();
-                content = bout.toByteArray();
-                contentLength = cout.getByteCount();
-                modified = new Date();
-            }
-            catch (IOException e) {
-                log.warn( "", e);
-                lastException = e;
-            }
-            catch (Exception e) {
-                log.warn( "", e);
-                lastException = new IOException( e );
-            }
-            finally {
-                if (it != null) { it.close(); }
-            }
-        }
     }
 
 }
