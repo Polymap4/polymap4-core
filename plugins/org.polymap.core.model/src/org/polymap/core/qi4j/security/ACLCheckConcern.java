@@ -32,6 +32,7 @@ import org.qi4j.api.concern.GenericConcern;
 import org.qi4j.api.injection.scope.Structure;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.structure.Module;
+import org.qi4j.api.unitofwork.UnitOfWorkCallback;
 
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
@@ -76,7 +77,8 @@ public class ACLCheckConcern
                 || method.getName().equals( "setLayerStatus" )
                 || method.getName().equals( "setExtent" )
                 || method.getName().equals( "updateExtent" )
-                || method.getName().equals( "identity" )) {
+                || method.getName().equals( "identity" )
+                || method.getDeclaringClass().equals( UnitOfWorkCallback.class )) {
             return next.invoke( proxy, method, args );
         }
         

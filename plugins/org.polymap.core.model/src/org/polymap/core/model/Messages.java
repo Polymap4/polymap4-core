@@ -29,6 +29,8 @@ import org.apache.commons.lang.StringUtils;
 
 import org.eclipse.rwt.RWT;
 
+import org.polymap.core.runtime.MessagesImpl;
+
 /**
  * 
  * 
@@ -40,22 +42,21 @@ public class Messages {
 
     private static final String BUNDLE_NAME = "org.polymap.core.model" + ".messages"; //$NON-NLS-1$
 
+    private static final MessagesImpl   instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
+    
     private Messages() {
         // prevent instantiation
     }
 
 
-    public static String get( String key ) {
-        ClassLoader cl = Messages.class.getClassLoader();
-        try {
-            // getBundle() caches the bundles
-            ResourceBundle bundle = ResourceBundle.getBundle( BUNDLE_NAME, RWT.getLocale(), cl );
-            return bundle.getString( key );
-        }
-        catch (Exception e) {
-            return StringUtils.substringAfterLast( key, "_" );
-        }
+    public static String i18n( String key, Object... args ) {
+        return instance.get( key, args );
+    }
+    
+    
+    public static String get( String key, Object... args ) {
+        return instance.get( key, args );
     }
     
 
