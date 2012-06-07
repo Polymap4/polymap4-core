@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 
 package org.polymap.core.qi4j.security;
@@ -46,6 +38,9 @@ import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.property.Property;
 
+import com.google.common.base.Function;
+import static com.google.common.collect.Iterables.transform;
+
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.IModelChangeListener;
@@ -61,7 +56,6 @@ import sun.security.acl.PrincipalImpl;
  * Provides an ACL implementation based on the {@link sun.security.acl} package.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public interface ACL
@@ -69,7 +63,6 @@ public interface ACL
 
     static Log log = LogFactory.getLog( ACL.class );
     
-
     /** Internally used as the owner of all ACLs. */
     static final Principal                  DEFAULT_OWNER = new PrincipalImpl( "admin" );
     
@@ -124,6 +117,23 @@ public interface ACL
                     }
                 }
                 
+                // avoid empty acl, otherwise checkPermission is alway true
+                if (!acl.entries().hasMoreElements()) {
+                    CompatiblePrincipal admins = new CompatiblePrincipal( "admins" );
+                    AclEntryImpl entry = new AclEntryImpl( admins );
+                    entry.addPermission( AclPermission.READ );
+                    entry.addPermission( AclPermission.WRITE );
+                    entry.addPermission( AclPermission.DELETE );
+                    entry.addPermission( AclPermission.ACL );
+                    try {                    
+                        acl.addEntry( DEFAULT_OWNER, entry );
+                        entries.put( admins, entry );
+                    }
+                    catch (NotOwnerException e) {
+                        throw new RuntimeException( "Sould never happen.", e );
+                    }
+                }
+                
 //                // listen to entity (model) changes
 //                // don't care outside Session
 //                if (Polymap.getSessionDisplay() != null) {
@@ -157,7 +167,7 @@ public interface ACL
             Set<String> aclEntries = new HashSet();
             
             for (AclEntry entry : entries.values()) {
-                StringBuffer buf = new StringBuffer( entry.getPrincipal().getName() )
+                StringBuilder buf = new StringBuilder( entry.getPrincipal().getName() )
                         .append( ":" );
                 
                 for (Enumeration e = entry.permissions(); e.hasMoreElements(); ) {
@@ -233,8 +243,7 @@ public interface ACL
 
         public boolean checkPermission( Principal principal, AclPermission permission ) {
             checkInit();
-            // while creating the entity there is no ACL initialized, allow
-            // access
+            // while creating the entity there is no ACL initialized -> allow access
             if (entries.isEmpty()) {
                 return true;
             }
@@ -246,31 +255,11 @@ public interface ACL
         
         public Iterable<ACL.Entry> entries() {
             checkInit();
-            
-            return new AbstractCollection<ACL.Entry>() {
-                Iterator<AclEntry> it = entries.values().iterator();
-                
-                public Iterator<ACL.Entry> iterator() {
-                    return new Iterator<ACL.Entry>() {
-
-                        public boolean hasNext() {
-                            return it.hasNext();
-                        }
-
-                        public Entry next() {
-                            return new EntryFacade( it.next() );
-                        }
-
-                        public void remove() {
-                            throw new UnsupportedOperationException( "Use ACL.add/removePermission() instead." );
-                        }
-                    };
+            return transform( entries.values(), new Function<AclEntry,ACL.Entry>() {
+                public Entry apply( AclEntry input ) {
+                    return new EntryFacade( input );
                 }
-
-                public int size() {
-                    return entries.size();
-                }
-            };
+            });
         }
 
     }

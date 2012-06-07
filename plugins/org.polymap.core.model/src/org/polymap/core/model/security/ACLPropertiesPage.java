@@ -282,7 +282,8 @@ public class ACLPropertiesPage
             }
         }
         else {
-            throw new RuntimeException( "Not yet implemented." );
+            // no op to cancel -> just return;
+            return true;
         }
     }
 
@@ -382,7 +383,7 @@ public class ACLPropertiesPage
             ACL.Entry entry = (ACL.Entry)element;
             switch (columnIndex) {
                 case 0: {
-                    return (String)entry.getPrincipal().getName();
+                    return entry.getPrincipal().getName();
                 }
                 case 1: {
                     StringBuffer result = new StringBuffer();
