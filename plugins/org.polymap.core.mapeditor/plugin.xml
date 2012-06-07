@@ -14,13 +14,6 @@
       </editor>
    </extension>
    <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            class="org.polymap.core.mapeditor.actions.OpenMapHandler"
-            commandId="org.polymap.core.project.command.openMap">
-      </handler>
-   </extension>
-   <extension
          point="org.eclipse.ui.viewActions">
       <viewContribution
             id="org.polymap.core.mapeditor.layersViewContribution"
@@ -217,6 +210,10 @@
       <concern
             class="org.polymap.core.mapeditor.edit.LayerEditableOperationConcern"
             id="org.polymap.core.mapeditor.LayerEditableOperationConcern">
+      </concern>
+      <concern
+            class="org.polymap.core.mapeditor.operations.OpenMapConcernFactory"
+            id="org.polymap.core.mapeditor.OpenMapConcern">
       </concern>
    </extension>
    <extension

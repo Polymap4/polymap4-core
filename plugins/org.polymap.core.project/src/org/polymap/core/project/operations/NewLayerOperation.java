@@ -190,7 +190,7 @@ public interface NewLayerOperation
                 monitor.worked( 1 );
 
                 // transformed layerBBox
-                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.Helper.obtainBoundsFromResources( layer, map.getCRS(), monitor );
+                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );
                 if (layerBBox != null && !layerBBox.isNull()) {
                     monitor.subTask( Messages.get( "NewLayerOperation_transforming" ) );
                     if (!layerBBox.getCoordinateReferenceSystem().equals( map.getCRS() )) {

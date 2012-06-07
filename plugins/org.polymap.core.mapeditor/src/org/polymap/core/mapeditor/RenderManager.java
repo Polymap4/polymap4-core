@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -50,7 +49,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeListener;
 import org.polymap.core.data.FeatureEventManager;
-import org.polymap.core.mapeditor.operations.OpenMapOperation;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
 import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.model.event.IModelChangeListener;
@@ -61,6 +59,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
+import org.polymap.core.project.operations.OpenMapOperation;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.workbench.PolymapWorkbench;

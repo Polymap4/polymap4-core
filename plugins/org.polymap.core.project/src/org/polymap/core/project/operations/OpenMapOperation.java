@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,35 +11,23 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
-package org.polymap.core.mapeditor.operations;
+package org.polymap.core.project.operations;
 
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import net.refractions.udig.catalog.IGeoResource;
+
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.ui.OffThreadProgressMonitor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
@@ -50,21 +37,19 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.mapeditor.MapEditor;
-import org.polymap.core.mapeditor.MapEditorInput;
-import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.Messages;
-import org.polymap.core.operation.JobMonitors;
+import org.polymap.core.operation.IOperationConcernFactory;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerStatus;
+import org.polymap.core.project.Messages;
 
 /**
- * Put the given layer in edit mode.
+ * Opens the given {@link IMap} in the Workbench. Other plugins may hook up via
+ * {@link IOperationConcernFactory} in order to perform their specific tasks to
+ * "open" the map.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @since 3.1
  */
 public class OpenMapOperation
         extends AbstractOperation
@@ -76,29 +61,25 @@ public class OpenMapOperation
     
     private IWorkbenchPage      page;
     
-    private MapEditor           openedEditor;
-    
-    private Exception           resultException;
 
-    /**
-     * 
-     */
     public OpenMapOperation( IMap map, IWorkbenchPage page ) {
-        super( Messages.get( "OpenMapOperation_titlePrefix" ) + map.getLabel() ); //$NON-NLS-1$
+        super( Messages.get( "OpenMapOperation_titlePrefix" ) + map.getLabel() );
         this.map = map;
         this.page = page;
     }
+    
+    public IMap getMap() {
+        return map;
+    }
+    
+    public IWorkbenchPage getPage() {
+        return page;
+    }
 
 
-    public IStatus execute( final IProgressMonitor _monitor, IAdaptable _info )
+    public IStatus execute( final IProgressMonitor monitor, IAdaptable info )
             throws ExecutionException {
-        log.debug( "..." ); //$NON-NLS-1$
-        Display display = page.getWorkbenchWindow().getShell().getDisplay();
-        final OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor, display );
-        JobMonitors.set( monitor );
-        monitor.subTask( getLabel() );
-        
-        resultException = null;
+        Display display = (Display)info.getAdapter( Display.class );
         
         // set map extent
         try {
@@ -121,31 +102,11 @@ public class OpenMapOperation
                     }
                 }
             });
+            return Status.OK_STATUS;
         }
         catch (Exception e) {
-            resultException = e;
+            throw new ExecutionException( e.getLocalizedMessage(), e );
         }
-
-        // open editor
-        display.syncExec( new Runnable() {
-            public void run() {
-                try {
-                    monitor.subTask( getLabel() );
-                    MapEditorInput input = new MapEditorInput( map );
-                    openMap( input, page, monitor );
-                    monitor.worked( 1 );
-                }
-                catch (PartInitException e) {
-                    resultException = e;
-                    //throw new ExecutionException( e.getMessage(), e );
-                }
-            }
-        });
-        JobMonitors.remove();
-        // result
-        return resultException == null
-                ? Status.OK_STATUS
-                : new Status( Status.ERROR, MapEditorPlugin.PLUGIN_ID, resultException.getMessage(), resultException );
     }
 
 
@@ -167,31 +128,6 @@ public class OpenMapOperation
     public IStatus redo( IProgressMonitor monitor, IAdaptable info )
             throws ExecutionException {
         throw new RuntimeException( "not yet implemented." ); //$NON-NLS-1$
-    }
-
-
-    private static void openMap( final MapEditorInput input, IWorkbenchPage page, IProgressMonitor monitor )
-            throws PartInitException {
-        log.debug( "        new editor: map= " + (input).getMap().id() ); //$NON-NLS-1$
-
-        // check current editors
-        IEditorReference[] editors = page.getEditorReferences();
-        for (IEditorReference reference : editors) {
-            IEditorInput cursor = reference.getEditorInput();
-            if (cursor instanceof MapEditorInput) {
-                log.debug( "        editor: map= " + ((MapEditorInput)cursor).getMap().id() ); //$NON-NLS-1$
-            }
-            if (cursor.equals( input )) {
-                Object previous = page.getActiveEditor();
-                page.activate( reference.getPart( true ) );
-                return;
-            }
-        }
-
-        // not found -> open new editor
-        IEditorPart part = page.openEditor( input, input.getEditorId(), true,
-                IWorkbenchPage.MATCH_NONE );
-        log.debug( "editor= " + part ); //$NON-NLS-1$
     }
 
 

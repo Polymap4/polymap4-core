@@ -112,11 +112,6 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            description="%actions_openMap"
-            id="org.polymap.core.project.command.openMap"
-            name="%actions_openMap">
-      </command>
-      <command
             description="%actions_addLayerToMap"
             id="org.polymap.core.project.command.addLayerToMap"
             name="%actions_addLayerToMap">
@@ -131,22 +126,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.menus">
-      <menuContribution
-            locationURI="toolbar:org.polymap.core.project.ProjectView">
-         <command
-               commandId="org.polymap.core.project.command.openMap"
-               icon="icons/obj16/map_obj.gif"
-               style="push">
-         </command>
-      </menuContribution>
-      <menuContribution
-            locationURI="popup:org.polymap.core.project.ProjectView">
-         <command
-               commandId="org.polymap.core.project.command.openMap"
-               icon="icons/obj16/map_obj.gif"
-               style="push">
-         </command>
-      </menuContribution>
       <menuContribution
             locationURI="popup:net.refractions.udig.catalog.ui.CatalogView">
          <command
@@ -266,6 +245,15 @@
                style="push"
                tooltip="%actions_deleteMap">
          </action>
+         <action
+               class="org.polymap.core.project.ui.project.OpenMapAction"
+               enablesFor="+"
+               icon="icons/obj16/mapfolder_obj.gif"
+               id="org.polymap.core.project.openMapAction"
+               label="%actions_openMap"
+               style="push"
+               tooltip="%actions_openMapTip">
+         </action>
       </objectContribution>
    </extension>
    <extension
@@ -296,11 +284,19 @@
       <decorator
             adaptable="true"
             class="org.polymap.core.project.ui.layer.LayerStatusDecorator"
-            icon="icons/ovr16/eye_ovr_dark.png"
             id="org.polymap.rhei.LayerStatusDecorator"
             label="Layer Status"
             lightweight="true"
             objectClass="org.polymap.core.project.ILayer"
+            state="true">
+      </decorator>
+      <decorator
+            adaptable="true"
+            class="org.polymap.core.project.ui.project.MapStatusDecorator"
+            id="org.polymap.core.project.MapStatusDecorator"
+            label="Map Status"
+            lightweight="true"
+            objectClass="org.polymap.core.project.IMap"
             state="true">
       </decorator>
    </extension>
@@ -393,7 +389,7 @@
       <navigatorContent
             activeByDefault="true"
             contentProvider="org.polymap.core.project.ui.layer.LayerContentProvider"
-            id="org.polymap.rhei.navigator.layerContent"
+            id="org.polymap.core.project.layerContent"
             labelProvider="org.polymap.core.project.ui.layer.LayerLabelProvider"
             name="%LayerNavigator_layerContent"
             priority="highest">

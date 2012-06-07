@@ -87,26 +87,32 @@ public class WmsFeatureInfoContribution
                 UIJob job = new UIJob( "WMS: GetFeatureInfo" ) {
                     protected void runWithException( IProgressMonitor monitor )
                     throws Exception {
-                        geores = layer.getGeoResource();
-                        wms = geores.resolve( WebMapServer.class, null );
+                        try {
+                            geores = layer.getGeoResource();
+                            wms = geores.resolve( WebMapServer.class, null );
 
-                        WMSCapabilities caps = wms.getCapabilities();
-                        
-                        // GetFeatureInfo supported?
-                        if (caps.getRequest().getGetFeatureInfo() != null) {
+                            WMSCapabilities caps = wms.getCapabilities();
                             
-                            log.info( "Possible formats: " + layer.getLabel() );
-                            for (String format : caps.getRequest().getGetFeatureInfo().getFormats()) {
-                                log.info( "    " + format );
+                            // GetFeatureInfo supported?
+                            if (caps.getRequest().getGetFeatureInfo() != null) {
+                                
+                                log.info( "Possible formats: " + layer.getLabel() );
+                                for (String format : caps.getRequest().getGetFeatureInfo().getFormats()) {
+                                    log.info( "    " + format );
+                                }
+                              
+                                // rough check if any feature is covered
+                                String plain = issueRequest( "text/plain", false );
+                                log.info( "Plain: " + plain );
+                                if (plain.length() > 50 ) {
+                                    checkedLayers.add( layer );
+                                    setVisible( true );
+                                }
                             }
-                          
-                            // rough check if any feature is covered
-                            String plain = issueRequest( "text/plain" );
-                            log.info( "Plain: " + plain );
-                            if (plain.length() > 50 ) {
-                                checkedLayers.add( layer );
-                                setVisible( true );
-                            }
+                        }
+                        catch (Throwable e) {
+                            log.warn( "Unable to GetFeatureInfo of: " + layer.getLabel() );
+                            log.debug( "", e );
                         }
                     }
                 };
@@ -129,7 +135,7 @@ public class WmsFeatureInfoContribution
             final String label = Messages.get( "WmsFeatureInfoContribution_label", layer.getLabel() );
             Action action = new Action( label ) {
                 public void run() {
-                    String content = issueRequest( "text/html" );
+                    String content = issueRequest( "text/html", true );
                     openHelpWindow( label, content );
                 }            
             };
@@ -140,7 +146,7 @@ public class WmsFeatureInfoContribution
     }
 
     
-    protected String issueRequest( String format ) {
+    protected String issueRequest( String format, boolean handleError ) {
         try {
             GetMapRequest mapRequest = wms.createGetMapRequest();
             Layer wmsLayer = geores.resolve( Layer.class, null );
@@ -176,7 +182,11 @@ public class WmsFeatureInfoContribution
             }
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
+            log.warn( "Unable to GetFeatureInfo: " + e.getLocalizedMessage() );
+            log.debug( "", e );
+            if (handleError) {
+                PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
+            }
             return "";
         }
     }

@@ -96,7 +96,7 @@ public class LayerStatusDecorator
 
     
     public void dispose() {
-        log.info( "dispose(): ..." );
+        super.dispose();
         for (ILayer layer : decorated.values()) {
             try {
                 layer.removePropertyChangeListener( this );

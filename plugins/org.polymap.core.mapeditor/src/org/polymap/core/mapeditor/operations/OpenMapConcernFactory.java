@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, Falko Bräutigam, and other contributors as indicated
- * by the @authors tag.
+ * Copyright 2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,27 +11,28 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
-package org.polymap.core.operation;
+package org.polymap.core.mapeditor.operations;
 
 import org.eclipse.core.commands.operations.IUndoableOperation;
-import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.operation.IOperationConcernFactory;
+import org.polymap.core.operation.OperationInfo;
+import org.polymap.core.project.operations.OpenMapOperation;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.1
  */
-public interface IOperationConcern {
+public class OpenMapConcernFactory
+        extends IOperationConcernFactory {
 
-    boolean execute( IProgressMonitor monitor, OperationInfo info );
-    
-    void undo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
+    public IUndoableOperation newInstance( IUndoableOperation op, OperationInfo info ) {
+        if (op instanceof OpenMapOperation) {
+            return new OpenMapConcern( (OpenMapOperation)op, info );
+        }
+        return null;
+    }
 
-    void redo( IUndoableOperation op, IProgressMonitor monitor, OperationInfo info );
-    
 }
