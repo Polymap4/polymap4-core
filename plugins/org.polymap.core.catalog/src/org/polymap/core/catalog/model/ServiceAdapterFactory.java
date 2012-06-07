@@ -57,12 +57,11 @@ public class ServiceAdapterFactory
 
 
     public Object getAdapter( Object adaptable, Class adapterType ) {
-        log.info( "getAdapter(): type= " + adapterType + ", adaptable= " + adaptable );
+        log.debug( "getAdapter(): type= " + adapterType + ", adaptable= " + adaptable );
         IService service = (IService)adaptable;
         
         CatalogRepository module = CatalogRepository.instance();
         Object result = module.getCatalog().findServiceEntity( service );
-        log.info( "    result: " + result.getClass().getSimpleName() );
         return adapterType.cast( result );
     }
 
