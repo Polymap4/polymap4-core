@@ -41,16 +41,14 @@ public class NumberPropertyDescriptor
     
     private static Log log = LogFactory.getLog( NumberPropertyDescriptor.class );
     
-    public static final NumberFormat    DEFAULT_FORMAT = NumberFormat.getInstance( Polymap.getSessionLocale() );
-    
-    private NumberFormat                format = DEFAULT_FORMAT;
+    private NumberFormat                format = NumberFormat.getInstance( Polymap.getSessionLocale() );
     
     private boolean                     editable;
     
     
     public NumberPropertyDescriptor( Object id, String displayName ) {
         super( id, displayName );
-        
+
         setLabelProvider( new LabelProvider() {
             public String getText( Object elm ) {
                 return format.format( elm );     

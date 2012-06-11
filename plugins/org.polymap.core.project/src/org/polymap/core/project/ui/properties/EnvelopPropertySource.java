@@ -25,7 +25,6 @@ import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySource;
 import org.polymap.core.runtime.Polymap;
 
-
 /**
  * 
  *
@@ -36,13 +35,7 @@ public class EnvelopPropertySource
 
     private static Log log = LogFactory.getLog( EnvelopPropertySource.class );
 
-    public static NumberFormat      nf;
     
-    static {
-        nf = NumberFormat.getInstance( Polymap.getSessionLocale() );
-        nf.setMaximumFractionDigits( 6 );
-    }
-
     // instance *******************************************
     
     private ReferencedEnvelope      envelop;
@@ -51,10 +44,14 @@ public class EnvelopPropertySource
 
     private double                  minx, miny, maxx, maxy;
 
+    protected final NumberFormat    nf;
     
+
     public EnvelopPropertySource( ReferencedEnvelope envelop ) {
         this.envelop = envelop;
         
+        nf = NumberFormat.getInstance( Polymap.getSessionLocale() );
+        nf.setMaximumFractionDigits( 6 );
     }
 
     public boolean isEditable() {
@@ -77,8 +74,13 @@ public class EnvelopPropertySource
 
 
     public Object getEditableValue() {
-        return nf.format( envelop.getMinX() ) + " : " + nf.format( envelop.getMaxX() ) + " - "
-                + nf.format( envelop.getMinY() ) + " : " + nf.format( envelop.getMaxY() );
+        if (envelop != null) {
+            return nf.format( envelop.getMinX() ) + " : " + nf.format( envelop.getMaxX() ) + " - "
+                    + nf.format( envelop.getMinY() ) + " : " + nf.format( envelop.getMaxY() );
+        }
+        else {
+            return "-";
+        }
     }
 
 

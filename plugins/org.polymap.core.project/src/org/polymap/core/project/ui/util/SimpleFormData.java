@@ -36,6 +36,9 @@ public class SimpleFormData {
     private int             defaultOffset;
 
 
+    /**
+     * Constructs a new instance with defaultOffset 0.
+     */
     public SimpleFormData() {
         this( 0 );
     }

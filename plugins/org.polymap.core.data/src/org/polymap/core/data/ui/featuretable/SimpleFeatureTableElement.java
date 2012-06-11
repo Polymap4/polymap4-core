@@ -94,7 +94,8 @@ public class SimpleFeatureTableElement
 
 
     public Object getValue( String name ) {
-        return feature().getAttribute( name );
+        SimpleFeature feature = feature();
+        return feature != null ? feature.getAttribute( name ) : null;
     }
     
     

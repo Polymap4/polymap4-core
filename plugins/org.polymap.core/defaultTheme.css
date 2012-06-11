@@ -60,7 +60,7 @@ DateTime.formeditor:disabled {
 
 /* Toolbar ************************************************/
 ToolItem:selected {
-    border: 1px solid #b0b0b0;
+    border: 1px solid #b8b8b8;
     border-radius: 2px;
     background-color: #d0d0d0;
     background-image: gradient(
@@ -71,13 +71,13 @@ ToolItem:selected {
     padding: 0px 0px 0px 0px;
 }
 ToolItem:hover {
-    border: 1px solid #b0b0b0;
+    border: 1px solid #b8b8b8;
     border-radius: 2px;
     background-color: #DFDFF8;
     background-image: gradient(
       linear, left top, left bottom,
       from( #ffffff ),
-      to( #d0d0d0 )
+      to( #e0e0e0 )
     );
 /*    background-image: gradient(
       linear, left top, left bottom,

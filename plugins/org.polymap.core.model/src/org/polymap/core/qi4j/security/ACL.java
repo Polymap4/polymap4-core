@@ -74,6 +74,8 @@ public interface ACL
     @UseDefaults
     @Optional
     abstract Property<Set<String>>          aclEntries();
+    
+    
 
     
     /**
@@ -117,22 +119,22 @@ public interface ACL
                     }
                 }
                 
-                // avoid empty acl, otherwise checkPermission is alway true
-                if (!acl.entries().hasMoreElements()) {
-                    CompatiblePrincipal admins = new CompatiblePrincipal( "admins" );
-                    AclEntryImpl entry = new AclEntryImpl( admins );
-                    entry.addPermission( AclPermission.READ );
-                    entry.addPermission( AclPermission.WRITE );
-                    entry.addPermission( AclPermission.DELETE );
-                    entry.addPermission( AclPermission.ACL );
-                    try {                    
-                        acl.addEntry( DEFAULT_OWNER, entry );
-                        entries.put( admins, entry );
-                    }
-                    catch (NotOwnerException e) {
-                        throw new RuntimeException( "Sould never happen.", e );
-                    }
-                }
+//                // avoid empty acl, otherwise checkPermission is alway true
+//                if (!acl.entries().hasMoreElements()) {
+//                    CompatiblePrincipal admins = new CompatiblePrincipal( "admins" );
+//                    AclEntryImpl entry = new AclEntryImpl( admins );
+//                    entry.addPermission( AclPermission.READ );
+//                    entry.addPermission( AclPermission.WRITE );
+//                    entry.addPermission( AclPermission.DELETE );
+//                    entry.addPermission( AclPermission.ACL );
+//                    try {                    
+//                        acl.addEntry( DEFAULT_OWNER, entry );
+//                        entries.put( admins, entry );
+//                    }
+//                    catch (NotOwnerException e) {
+//                        throw new RuntimeException( "Sould never happen.", e );
+//                    }
+//                }
                 
 //                // listen to entity (model) changes
 //                // don't care outside Session
