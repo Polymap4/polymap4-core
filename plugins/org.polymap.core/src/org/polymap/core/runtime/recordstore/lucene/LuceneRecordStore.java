@@ -30,6 +30,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -297,6 +298,10 @@ public final class LuceneRecordStore
                 // 8 concurrent thread
                 IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
                         .setOpenMode( OpenMode.APPEND );
+                // limit segment size for lower pauses on interactive indexing
+                LogByteSizeMergePolicy mergePolicy = new LogByteSizeMergePolicy();
+                mergePolicy.setMaxMergeMB( 10 );
+                config.setMergePolicy( mergePolicy );
                 writer = new IndexWriter( directory, config );
             }
             catch (Exception e) {
