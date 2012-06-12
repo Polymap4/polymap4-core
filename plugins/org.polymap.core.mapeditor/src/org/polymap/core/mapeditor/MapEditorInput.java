@@ -121,23 +121,29 @@ public class MapEditorInput
                     MapEditorInput result = new MapEditorInput( _map );
 
                     // extent
-                    JSONObject json = new JSONObject( memento.getString( "mapExtent" ) );
-                    final CoordinateReferenceSystem crs = CRS.decode( json.getString( "srs" ) );
-                    result.extent = new ReferencedEnvelope( 
-                            json.getDouble( "minx" ), json.getDouble( "maxx" ),
-                            json.getDouble( "miny" ), json.getDouble( "maxy" ), crs )
-                            .transform( _map.getCRS(), true );
+                    String mapExtentJson = memento.getString( "mapExtent" );
+                    if (mapExtentJson != null) {
+                        JSONObject json = new JSONObject( mapExtentJson );
+                        final CoordinateReferenceSystem crs = CRS.decode( json.getString( "srs" ) );
+                        result.extent = new ReferencedEnvelope( 
+                                json.getDouble( "minx" ), json.getDouble( "maxx" ),
+                                json.getDouble( "miny" ), json.getDouble( "maxy" ), crs )
+                                .transform( _map.getCRS(), true );
+                    }
 
                     // layer visibility
-                    result.visibleLayers = new ArrayList(); 
-                    JSONArray json2 = new JSONArray( memento.getString( "visibleLayers" ) );
-                    for (int i=0; i<json2.length(); i++) {
-                        try {
-                            result.visibleLayers.add( ProjectRepository.instance().findEntity( 
-                                    ILayer.class, json2.getString( i ) ) );
-                        }
-                        catch (NoSuchEntityException e) {
-                            log.warn( "Layer does no longer exists: " + e.getLocalizedMessage() );
+                    String visibleLayersJson = memento.getString( "visibleLayers" );
+                    if (visibleLayersJson != null) {
+                        result.visibleLayers = new ArrayList(); 
+                        JSONArray json2 = new JSONArray( visibleLayersJson );
+                        for (int i=0; i<json2.length(); i++) {
+                            try {
+                                result.visibleLayers.add( ProjectRepository.instance().findEntity( 
+                                        ILayer.class, json2.getString( i ) ) );
+                            }
+                            catch (NoSuchEntityException e) {
+                                log.warn( "Layer does no longer exists: " + e.getLocalizedMessage() );
+                            }
                         }
                     }
                     return result;                    

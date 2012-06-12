@@ -185,7 +185,7 @@ public class MapLayersView
                 log.debug( "part= " +part );
             }
         };
-        getSite().getWorkbenchWindow().getActivePage().addPartListener( partListener );
+        getSite().getPage().addPartListener( partListener );
         
         drillDownAdapter = new DrillDownAdapter( viewer );
         
@@ -244,7 +244,7 @@ public class MapLayersView
             decorator = null;
         }
         if (partListener != null) {
-            getSite().getWorkbenchWindow().getActivePage().removePartListener( partListener );
+            getSite().getPage().removePartListener( partListener );
             partListener = null;
         }
         if (viewer != null && statusLineAdapter != null) {

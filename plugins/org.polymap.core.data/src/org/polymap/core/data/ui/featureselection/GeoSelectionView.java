@@ -328,7 +328,7 @@ public class GeoSelectionView
         layer.addPropertyChangeListener( WeakListener.forListener( layerChangeListener ) );
 
         // part listener
-        page = getSite().getWorkbenchWindow().getActivePage();
+        page = getSite().getPage();
         page.addPartListener( partListener );
 
         // geo event listener

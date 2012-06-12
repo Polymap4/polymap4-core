@@ -164,7 +164,7 @@ public class LayerNavigator
 
         // part listener
         partListener = new PartListener();
-        page = getSite().getWorkbenchWindow().getActivePage();
+        page = getSite().getPage();
         page.addPartListener( partListener );
     }
 

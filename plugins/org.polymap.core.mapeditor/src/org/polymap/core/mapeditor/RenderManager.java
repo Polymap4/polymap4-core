@@ -418,7 +418,9 @@ public class RenderManager {
                         public void run() {
                             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                             IWorkbenchPage page = window.getActivePage();
-                            page.activate( mapEditor );
+                            if (page != null && page.findEditor( mapEditor.getEditorInput() ) != null) {
+                                page.activate( mapEditor );
+                            }
                         }
                     });
                 }
