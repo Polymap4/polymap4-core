@@ -20,6 +20,9 @@ import java.util.Map;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.swt.widgets.Display;
@@ -43,6 +46,8 @@ import org.polymap.core.runtime.Polymap;
 public class MapStatusDecorator
         extends BaseLabelProvider
         implements ILightweightLabelDecorator, PropertyChangeListener {
+
+    private static final Log log = LogFactory.getLog( MapStatusDecorator.class );
 
     private static final ImageDescriptor    empty = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, "icons/obj16/map_empty_obj.gif" );
 
@@ -86,7 +91,12 @@ public class MapStatusDecorator
 
             Runnable runnable = new Runnable() {
                 public void run() {
-                    fireLabelProviderChanged( new LabelProviderChangedEvent( MapStatusDecorator.this ) );
+                    try {
+                        fireLabelProviderChanged( new LabelProviderChangedEvent( MapStatusDecorator.this ) );
+                    }
+                    catch (Exception e) {
+                        log.warn( e.getLocalizedMessage() );
+                    }
                 }
             };
             if (Display.getCurrent() != null) {

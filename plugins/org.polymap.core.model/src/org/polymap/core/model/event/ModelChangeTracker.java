@@ -311,10 +311,19 @@ public class ModelChangeTracker
             log.info( "EventJob: started..." );
             for (ModelChangeTracker instance : instances.keySet()) {
                 for (SessionListener listener : instance.listeners) {
+                    // canceled?
                     if (monitor.isCanceled()) {
                         return Status.CANCEL_STATUS;
                     }
-                    listener.modelChanged( ev );
+                    // remove invalid listener
+                    else if (!listener.isValid()) {
+                        log.warn( "Removing invalid listener: " + listener );
+                        instance.listeners.remove( listener );
+                    }
+                    // call listener
+                    else {
+                        listener.modelChanged( ev );
+                    }
                     monitor.worked( 1 );
                 }
             }
@@ -342,22 +351,33 @@ public class ModelChangeTracker
         }
 
         public boolean isValid() {
-            return contextRef != null && contextRef.get() != null;
+            SessionContext context = null;
+            return contextRef != null 
+                    && (context = contextRef.get()) != null
+                    && !context.isDestroyed()
+                    && listener != null
+                    && listener.isValid();
         }
 
         public void modelChanged( final ModelStoreEvent ev ) {
             SessionContext context = contextRef.get();
-            if (context != null) {
-                context.execute( new Runnable() {
-                    public void run() {
-                        try {
-                            listener.modelChanged( ev );
+            if (context != null ) {
+                if (context.isDestroyed()) {
+                    log.warn( "SessionContext was destroyed without removing the listener: " + listener );
+                    listener = null;
+                }
+                else {
+                    context.execute( new Runnable() {
+                        public void run() {
+                            try {
+                                listener.modelChanged( ev );
+                            }
+                            catch (Throwable e) {
+                                log.warn( "Error while processing ModelStoreEvent: " + ev, e );
+                            }
                         }
-                        catch (Throwable e) {
-                            log.warn( "Error while processing ModelStoreEvent: " + ev, e );
-                        }
-                    }
-                });
+                    });
+                }
             }
             else {
                 log.warn( "Listener has no context: " + listener );

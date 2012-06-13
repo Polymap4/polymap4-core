@@ -28,6 +28,9 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
 /**
  * Collection of {@link PropertyChangeEvent}s collected while execution of an
  * operation.
@@ -46,6 +49,8 @@ public class ModelChangeEvent
 //    private List<String>                    created = new LinkedList();
 //    
 //    private List<String>                    removed = new LinkedList();
+    
+    private IProgressMonitor                monitor = new NullProgressMonitor();
     
     
     public ModelChangeEvent( Object source ) {
@@ -114,6 +119,15 @@ public class ModelChangeEvent
     
     public Iterable<String> removed() {
         throw new RuntimeException( "not yet implemented." );
+    }
+    
+    public IProgressMonitor getProgressMonitor() {
+        return monitor;    
+    }
+    
+    void setProgressMonitor( IProgressMonitor monitor ) {
+        assert monitor != null;
+        this.monitor = monitor;
     }
     
 }

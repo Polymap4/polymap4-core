@@ -22,7 +22,7 @@ import org.polymap.core.runtime.SessionContext;
 /**
  * Register this listener type with {@link ModelChangeTracker} to get informed
  * about changes of entities and/or features changed in this or another session.
- *  
+ *
  * @see ModelChangeTracker
  */
 public interface IModelStoreListener
@@ -50,8 +50,8 @@ public interface IModelStoreListener
      * <li>any global operation has been undone (discard of a {@link ModelChangeSet}</li>
      * <li>any global {@link Module} has been commited</li>
      * </ul>
-     * This method must never block and return quickly. Implementations have to be
-     * thread save and aware of reentrance of the method.
+     * This method must never block. Implementations have to be thread save and aware
+     * of reentrance of the method.
      */
     public void modelChanged( ModelStoreEvent ev );
 
