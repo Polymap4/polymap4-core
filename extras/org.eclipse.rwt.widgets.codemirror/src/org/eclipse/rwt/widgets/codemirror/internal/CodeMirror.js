@@ -84,6 +84,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 		this._id = id;
         this._codeMirror = null;
         this._libLoaded = false;
+        this._lineMarkers = new Array();
 	},
 
 	properties : {
@@ -104,12 +105,14 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 	        this._codeMirror = CodeMirror( elm, {
 	            value: "text text text...",
 	            mode: "text/x-java",
+	            theme: "eclipse",
 	            indentUnit: 4,
 	            lineNumbers: true,
 	            matchBrackets: true,
                 onChange: function( codeMirror ) { context._onChange(); },
                 onCursorActivity: function( codeMirror ) { context._onFocus(); }
 	        });
+	        this._codeMirror.setOption( "theme", "eclipse" );
 	        //alert( "text after _init: " + this.getText() );
 	        if (this.getText() != null) {
 	            this._codeMirror.setValue( this.getText() );
@@ -138,10 +141,8 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 	     * 
 	     */
 	    loadLib : function( lib_url ) {
-	        //alert( "lib_url= " + lib_url );
-            
 	        loadCSS( lib_url + "&res=lib/codemirror.css" );
-            loadCSS( lib_url + "&res=mode/clike/clike.css" );
+            loadCSS( lib_url + "&res=theme/eclipse.css" );
 
             loadScript( lib_url + "&res=lib/codemirror.js", function( context ) {
                 loadScript( lib_url + "&res=mode/clike/clike.js", function( context ) {
@@ -188,8 +189,31 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 		    }
 		},
 		
-        eval : function( code2eval ) {
-		    eval( code2eval );
+        setLineMarker: function( line, text ) {
+            if (this._codeMirror) {
+                var marker = this._codeMirror.setMarker( parseInt( line )-1, text ); 
+//                        '<span style="color:red;font-weight:bold;" title="'+text+'">.</span> %N%' );
+                this._lineMarkers[line] = marker;
+            }
+        },
+        
+        clearLineMarkers: function() {
+            for (var marker in this._lineMarkers) {
+                this._codeMirror.clearMarker( marker );
+            }
+            this._lineMarkers = new Array();
+        },
+        
+        setSelection: function( start, end ) {
+            var startPos = this._codeMirror.posFromIndex( parseInt( start ) );
+            var endPos = this._codeMirror.posFromIndex( parseInt( end ) );
+            this._codeMirror.setSelection( startPos, endPos );
+        },
+        		
+        executeCode : function( code2eval ) {
+		    var self = this;
+		    alert( code2eval );
+		    window.eval( code2eval );
 		}
 	}
 
