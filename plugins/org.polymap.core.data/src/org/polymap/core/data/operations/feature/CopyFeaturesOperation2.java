@@ -290,7 +290,8 @@ public class CopyFeaturesOperation2
 
                 protected Feature retype( Feature feature ) {
                     try {
-                        return processor.transformFeature( (SimpleFeature)feature, builder );
+                        // make new FID to avoid problem when copying features of the same layer
+                        return processor.transformFeature( (SimpleFeature)feature, builder, null );
                     }
                     catch (Exception e) {
                         throw new RuntimeException( e );
