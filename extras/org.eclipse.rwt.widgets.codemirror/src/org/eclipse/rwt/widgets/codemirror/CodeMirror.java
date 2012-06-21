@@ -52,7 +52,9 @@ public class CodeMirror
 
     public final static String      PROP_TEXT = "text";
     public final static String      PROP_SELECTION = "selection";
-    public final static String      PROP_CURSOR_POS = "cursor";
+    public final static String      PROP_CURSOR_POS = "cursorpos";
+    /** This is a pseudo property that indicated that 'Ctrl-S' was preset on the client. */
+    public final static String      PROP_SAVE = "save";
     
     /** External CodeMirror library location. **/
     private String                  js_location   = CodeMirrorJSService.getBaseUrl();
@@ -110,7 +112,7 @@ public class CodeMirror
 
     public void setText( String text ) {
         this.text = text != null ? text : StringUtils.EMPTY;
-        lcaAdapter.pushCommand( new SetPropertyCommand( CodeMirrorLCA.PROP_TEXT, text ) );
+        lcaAdapter.pushCommand( new SetPropertyCommand( PROP_TEXT, text ) );
         firePropertyEvent( PROP_TEXT, this.text, null );
     }
 
@@ -186,6 +188,10 @@ public class CodeMirror
             firePropertyEvent( PROP_CURSOR_POS, CodeMirror.this.cursorPos, old );
         }
 
+        public void forceSave() {
+            firePropertyEvent( PROP_SAVE, Boolean.TRUE, null );
+        }
+
         public boolean isJSLoaded() {
             return load_lib_done;
         }
@@ -239,7 +245,8 @@ public class CodeMirror
             }
             buf.append( "> </div>%N%" );
 
-            lcaAdapter.pushCommand( new CallMethodCommand( "setLineMarker", marker.getLine(), buf.toString() ) );
+            lcaAdapter.pushCommand( new CallMethodCommand( "setLineMarker", 
+                    marker.id, marker.getLine(), marker.getCharStart(), marker.getCharEnd(), buf.toString() ) );
             return result;
         }
 

@@ -41,9 +41,6 @@ public class CodeMirrorLCA
 
     private static Log log = LogFactory.getLog( CodeMirrorLCA.class );
     
-    public static final String          PROP_TEXT = "text";
-    public static final String          PROP_CURSORPOS = "cursorpos";
-    
 
     /*
      * Initial creation procedure of the widget
@@ -81,36 +78,37 @@ public class CodeMirrorLCA
      * Read the parameters transfered from the client
      */
     public void readData( final Widget widget ) {
-        CodeMirror codeMirror = (CodeMirror)widget;
+        CodeMirror cm = (CodeMirror)widget;
         
 //        HttpServletRequest request = ContextProvider.getRequest();
 //        log.info( "readData(): " + request.getParameterMap() );
 
         WidgetAdapter widgetAdapter = adapter( widget );
         if (!widgetAdapter.isJSLoaded()) {
-            String load_lib_done = WidgetLCAUtil.readPropertyValue( codeMirror, "load_lib_done" );
+            String load_lib_done = WidgetLCAUtil.readPropertyValue( cm, "load_lib_done" );
             if (load_lib_done != null) {
                 widgetAdapter.setJSLoaded( Boolean.valueOf( load_lib_done ).booleanValue() );
             }
         }
 
-        String text = WidgetLCAUtil.readPropertyValue( codeMirror, PROP_TEXT );
+        String text = WidgetLCAUtil.readPropertyValue( cm, CodeMirror.PROP_TEXT );
         if (text != null) {
-            //log.info( "TEXT: " + text );
             widgetAdapter.setText( text );
         }
-        String cursorpos = WidgetLCAUtil.readPropertyValue( codeMirror, PROP_CURSORPOS );
+        String cursorpos = WidgetLCAUtil.readPropertyValue( cm, CodeMirror.PROP_CURSOR_POS );
         if (cursorpos != null) {
-            log.info( "CURSOR: " + cursorpos );
             widgetAdapter.setCursorPos( Integer.parseInt( cursorpos ) );
+        }
+        if ("true".equals( WidgetLCAUtil.readPropertyValue( cm, CodeMirror.PROP_SAVE ) )) {
+            widgetAdapter.forceSave();
         }
     }
 
 
     public void renderChanges( final Widget widget )
             throws IOException {
-        CodeMirror codeMirror = (CodeMirror)widget;
-        ControlLCAUtil.writeChanges( codeMirror );
+        CodeMirror cm = (CodeMirror)widget;
+        ControlLCAUtil.writeChanges( cm );
          
         JSWriter writer = JSWriter.getWriterFor( widget );
         WidgetAdapter widgetAdapter = adapter( widget );
@@ -118,7 +116,7 @@ public class CodeMirrorLCA
         // issue render commands
         if (widgetAdapter.isJSLoaded()) {
             for (RenderCommand command : widgetAdapter.nextCommands()) {
-                command.renderChanges( codeMirror, writer );
+                command.renderChanges( cm, writer );
             }
         }
 
@@ -161,6 +159,8 @@ public class CodeMirrorLCA
     public static interface WidgetAdapter {
     
         public void setText( String text );
+
+        public void forceSave();
 
         public void setCursorPos( int cursorPos );
 

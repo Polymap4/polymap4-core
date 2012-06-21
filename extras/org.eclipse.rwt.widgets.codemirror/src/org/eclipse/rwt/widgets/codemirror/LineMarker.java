@@ -29,11 +29,17 @@ public class LineMarker {
 
     private static Log log = LogFactory.getLog( LineMarker.class );
     
+    protected String        id;
+    
     private int             line = 0;
     
     private String          text = "";
     
-    private Color           fgColor = null;
+    private int             charStart = 0, charEnd = 0;
+    
+    private Color           fgColor = null, bgColor = null;
+    
+    private Color           underlineColor = null;
     
     private Image           icon = null;
 
@@ -41,10 +47,42 @@ public class LineMarker {
     /**
      * Construct a new instance with default values for all fields.
      */
-    public LineMarker() {
+    public LineMarker( String id ) {
+        this.id = id;
     }
 
+    public LineMarker setCharPos( int charStart, int charEnd ) {
+        this.charStart = charStart;
+        this.charEnd = charEnd;
+        return this;
+    }
+
+    public int getCharStart() {
+        return charStart;
+    }
+
+    public int getCharEnd() {
+        return charEnd;
+    }
+
+    public Color getBgColor() {
+        return bgColor;
+    }
     
+    public LineMarker setBgColor( Color bgColor ) {
+        this.bgColor = bgColor;
+        return this;
+    }
+    
+    public Color getUnderlineColor() {
+        return underlineColor;
+    }
+    
+    public LineMarker setUnderlineColor( Color underlineColor ) {
+        this.underlineColor = underlineColor;
+        return this;
+    }
+
     public LineMarker setLine( int line ) {
         this.line = line;
         return this;
@@ -80,5 +118,5 @@ public class LineMarker {
     public Image getIcon() {
         return icon;
     }
-    
+
 }

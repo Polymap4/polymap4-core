@@ -84,7 +84,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 		this._id = id;
         this._codeMirror = null;
         this._libLoaded = false;
-        this._lineMarkers = new Array();
+        this._lineMarkers = {};
 	},
 
 	properties : {
@@ -101,7 +101,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
          * Lazy init function.
          */
 	    _init : function( elm ) {
-	        var context = this;
+	        var self = this;
 	        this._codeMirror = CodeMirror( elm, {
 	            value: "text text text...",
 	            mode: "text/x-java",
@@ -109,14 +109,16 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 	            indentUnit: 4,
 	            lineNumbers: true,
 	            matchBrackets: true,
-                onChange: function( cm, info ) { context._onChange( cm, info ); },
+                onChange: function( cm, info ) { self._syncServer( info, false ); },
                 onCursorActivity: function( cm, info ) { 
-                    context._onFocus( cm, info );
-                    context._onChange( cm, info );
+                    self._onFocus( cm, info );
+                    self._syncServer( info, false );
+                },
+                extraKeys: {
+                    "Ctrl-S": function( cm ) { self._syncServer( null, true ); }
                 }
 	        });
 	        this._codeMirror.setOption( "theme", "eclipse" );
-	        //alert( "text after _init: " + this.getText() );
 	        if (this.getText() != null) {
 	            this._codeMirror.setValue( this.getText() );
 	        }
@@ -180,17 +182,29 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 		    }
 		},
 	    
-		_onChange : function( cm, info ) {
+		/**
+		 * @param info
+		 * @param forceSave
+		 */
+		_syncServer : function( info, forceSave ) {
 		    if (!org_eclipse_rap_rwt_EventUtil_suspend && this._codeMirror != null) {
 		        var widgetId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( this );
 		        var req = org.eclipse.swt.Request.getInstance();
-		        
+		        var sendDelay = 1500;
+
+		        // text
 		        if (this._codeMirror.getValue() != this.getText()) {
 		            this.setText( this._codeMirror.getValue() );
 		            req.addParameter( widgetId + ".text", this.getText() );
 		        }
+		        // cursorPos
                 var cursorPos = this._codeMirror.getCursor( true );
                 req.addParameter( widgetId + ".cursorpos", this._codeMirror.indexFromPos( cursorPos ) );
+                // save
+                if (forceSave) {
+                    req.addParameter( widgetId + ".save", "true" );
+                    sendDelay = 0;
+                }
                 
                 if (this.sendTimeout) {
                     clearTimeout( this.sendTimeout );
@@ -198,23 +212,51 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
                 this.sendTimeout = setTimeout( function() {
                     // XXX check if server side has a listener
                     req.send();
-                }, 1750 );
+                }, sendDelay );
 		    }
 		},
 		
-        setLineMarker: function( line, text ) {
+		/**
+		 * 
+		 * @param id (String)
+		 * @param line (String/int)
+         * @param charStart (String/int)
+         * @param charEnd (String/int)
+		 */
+        setLineMarker: function( id, line, charStart, charEnd, text ) {
             if (this._codeMirror) {
-                var marker = this._codeMirror.setMarker( parseInt( line )-1, text ); 
-//                        '<span style="color:red;font-weight:bold;" title="'+text+'">.</span> %N%' );
-                this._lineMarkers[line] = marker;
+                if (this._lineMarkers[id] != null) {
+                    clearMarker( this._lineMarkers[id] );
+                }
+                var marker = this._codeMirror.setMarker( parseInt( line )-1, text );
+                marker.id = id;
+                
+                marker.startPos = this._codeMirror.posFromIndex( parseInt( charStart ) - 1 );
+                marker.endPos = this._codeMirror.posFromIndex( parseInt( charEnd ) - 1 );
+                if (marker.startPos.ch != marker.endPos.ch) {
+                    marker.markedText = this._codeMirror.markText( marker.startPos, marker.endPos, "cm-error");
+                }
+                
+                this._lineMarkers[id] = marker;
+            }
+        },
+        
+        clearLineMarker: function( id ) {
+            var marker = this._lineMarkers[id];
+            if (marker) {
+                this._codeMirror.clearMarker( marker );
+                if (marker.markedText) {
+                    marker.markedText.clear();
+                }
+                this._lineMarkers[id] = null;
             }
         },
         
         clearLineMarkers: function() {
-            for (var marker in this._lineMarkers) {
-                this._codeMirror.clearMarker( marker );
+            for (var id in this._lineMarkers) {
+                this.clearLineMarker( id );
             }
-            this._lineMarkers = new Array();
+            this._lineMarkers = {};
         },
         
         setSelection: function( start, end ) {
