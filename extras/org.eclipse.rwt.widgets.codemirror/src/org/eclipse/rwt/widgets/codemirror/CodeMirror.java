@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +37,8 @@ import org.eclipse.rwt.widgets.codemirror.internal.RenderCommand;
 import org.eclipse.rwt.widgets.codemirror.internal.SetPropertyCommand;
 import org.eclipse.rwt.widgets.codemirror.internal.CodeMirrorLCA.WidgetAdapter;
 
+import org.eclipse.core.runtime.ListenerList;
+
 /**
  * Widget that provides a <a href="http://codemirror.net">CodeMirror</a> syntax
  * highlighting code editor.
@@ -45,16 +50,24 @@ public class CodeMirror
 
     private static Log log = LogFactory.getLog( CodeMirror.class );
 
+    public final static String      PROP_TEXT = "text";
+    public final static String      PROP_SELECTION = "selection";
+    public final static String      PROP_CURSOR_POS = "cursor";
+    
     /** External CodeMirror library location. **/
     private String                  js_location   = CodeMirrorJSService.getBaseUrl();
 
     private String                  text = StringUtils.EMPTY;
-    
+
+    private int                     cursorPos;
+
     private LineMarkers             lineMarkers = new LineMarkers();
 
     private TextSelection           selection;
     
     private LCAAdapter              lcaAdapter = new LCAAdapter();
+    
+    private ListenerList            listeners = new ListenerList();
 
     
     static {
@@ -98,8 +111,14 @@ public class CodeMirror
     public void setText( String text ) {
         this.text = text != null ? text : StringUtils.EMPTY;
         lcaAdapter.pushCommand( new SetPropertyCommand( CodeMirrorLCA.PROP_TEXT, text ) );
+        firePropertyEvent( PROP_TEXT, this.text, null );
     }
+
     
+    public int getCursorPos() {
+        return cursorPos;
+    }
+
     
     public LineMarkers lineMarkers() {
         return lineMarkers;    
@@ -109,18 +128,41 @@ public class CodeMirror
     public void setSelection( int start, int end ) {
         selection = new TextSelection( start, end );
         lcaAdapter.pushCommand( new CallMethodCommand( "setSelection", start, end ) );
+        firePropertyEvent( PROP_SELECTION, getSelection(), null );        
     }
 
     public void clearSelection() {
         selection = null;
         lcaAdapter.pushCommand( new CallMethodCommand( "setSelection", 0, 0 ) );
+        firePropertyEvent( PROP_SELECTION, getSelection(), null );        
     }
     
     public TextSelection getSelection() {
         return selection;
     }
 
+    /**
+     * Add a listener to this editor. The following properties fire events:
+     * <ul>
+     * <li>{@link #PROP_TEXT}</li>
+     * <li>{@link #PROP_SELECTION}</li>
+     * <li>{@link #PROP_CURSOR_POS}</li>
+     * </ul>
+     * 
+     * @param l
+     */
+    public void addPropertyChangeListener( PropertyChangeListener l ) {
+        listeners.add( l );
+    }
 
+    protected void firePropertyEvent( String prop, Object newValue, Object oldValue ) {
+        PropertyChangeEvent ev = new PropertyChangeEvent( this, prop, oldValue, newValue );
+        for (Object l : listeners.getListeners()) {
+            ((PropertyChangeListener)l).propertyChange( ev );
+        }
+    }
+
+    
     /**
      * The internal interface for the {@link CodeMirrorLCA}.
      */
@@ -133,7 +175,15 @@ public class CodeMirror
         
 
         public void setText( String text ) {
+            String old = CodeMirror.this.text;
             CodeMirror.this.text = text;
+            firePropertyEvent( PROP_TEXT, CodeMirror.this.text, old );
+        }
+
+        public void setCursorPos( int cursorPos ) {
+            int old = CodeMirror.this.cursorPos;
+            CodeMirror.this.cursorPos = cursorPos;
+            firePropertyEvent( PROP_CURSOR_POS, CodeMirror.this.cursorPos, old );
         }
 
         public boolean isJSLoaded() {

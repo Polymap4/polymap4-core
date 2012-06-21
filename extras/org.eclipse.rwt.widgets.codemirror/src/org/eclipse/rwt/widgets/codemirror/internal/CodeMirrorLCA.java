@@ -42,6 +42,7 @@ public class CodeMirrorLCA
     private static Log log = LogFactory.getLog( CodeMirrorLCA.class );
     
     public static final String          PROP_TEXT = "text";
+    public static final String          PROP_CURSORPOS = "cursorpos";
     
 
     /*
@@ -95,35 +96,14 @@ public class CodeMirrorLCA
 
         String text = WidgetLCAUtil.readPropertyValue( codeMirror, PROP_TEXT );
         if (text != null) {
+            //log.info( "TEXT: " + text );
             widgetAdapter.setText( text );
         }
-
-//        String event = WidgetLCAUtil.readPropertyValue( map, "event_name" );
-//
-//        if (event != null) {
-//            OpenLayersSessionHandler wp = OpenLayersSessionHandler.getInstance();
-//
-//            OpenLayersObject src = wp.obj_ref2obj.get( WidgetLCAUtil.readPropertyValue( map,
-//                    "event_src_obj" ) );
-//
-//            HashMap<String, String> payload_map = new HashMap<String, String>();
-//
-//            Map<String, String> payload = src.events.getPayload( event );
-//            if (payload != null) {
-//                for (String act : payload.keySet()) {
-//                    payload_map.put( act, WidgetLCAUtil.readPropertyValue( map, "event_payload_"
-//                            + act ) );
-//                }
-//            }
-//            try {
-//                src.events.process_event( event, payload_map );
-//            }
-//            // catch everything readData() must not throw anything
-//            catch (Throwable e) {
-//                System.out.println( "Unhandled exception in OpenLayersWidgetLCA.readData(): " + e );
-//            }
-//        }
-
+        String cursorpos = WidgetLCAUtil.readPropertyValue( codeMirror, PROP_CURSORPOS );
+        if (cursorpos != null) {
+            log.info( "CURSOR: " + cursorpos );
+            widgetAdapter.setCursorPos( Integer.parseInt( cursorpos ) );
+        }
     }
 
 
@@ -181,6 +161,8 @@ public class CodeMirrorLCA
     public static interface WidgetAdapter {
     
         public void setText( String text );
+
+        public void setCursorPos( int cursorPos );
 
         public boolean isJSLoaded();
 

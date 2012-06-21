@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright 2011, Falko Bräutigam. All rights reserved.
+ * Copyright 2011-2012, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -109,8 +109,11 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 	            indentUnit: 4,
 	            lineNumbers: true,
 	            matchBrackets: true,
-                onChange: function( codeMirror ) { context._onChange(); },
-                onCursorActivity: function( codeMirror ) { context._onFocus(); }
+                onChange: function( cm, info ) { context._onChange( cm, info ); },
+                onCursorActivity: function( cm, info ) { 
+                    context._onFocus( cm, info );
+                    context._onChange( cm, info );
+                }
 	        });
 	        this._codeMirror.setOption( "theme", "eclipse" );
 	        //alert( "text after _init: " + this.getText() );
@@ -120,9 +123,9 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 	    },
 	    
 	    /**
-	     * Called by CodeMirror, tell qooxdoo widget that we have to focus.
+	     * Called onCursorActivity().
 	     */
-	    _onFocus : function() {
+	    _onFocus : function( cm, info ) {
 	        var shell = null;
 	        var parent = this.getParent();
 	        //alert( parent );
@@ -177,15 +180,25 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 		    }
 		},
 	    
-		_onChange : function() {
+		_onChange : function( cm, info ) {
 		    if (!org_eclipse_rap_rwt_EventUtil_suspend && this._codeMirror != null) {
-		        this.setText( this._codeMirror.getValue() );
-		        
 		        var widgetId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( this );
 		        var req = org.eclipse.swt.Request.getInstance();
-		        req.addParameter( widgetId + ".text", this.getText() );
-		        // XXX check if server side has a listener
-		        //req.send();
+		        
+		        if (this._codeMirror.getValue() != this.getText()) {
+		            this.setText( this._codeMirror.getValue() );
+		            req.addParameter( widgetId + ".text", this.getText() );
+		        }
+                var cursorPos = this._codeMirror.getCursor( true );
+                req.addParameter( widgetId + ".cursorpos", this._codeMirror.indexFromPos( cursorPos ) );
+                
+                if (this.sendTimeout) {
+                    clearTimeout( this.sendTimeout );
+                }
+                this.sendTimeout = setTimeout( function() {
+                    // XXX check if server side has a listener
+                    req.send();
+                }, 1750 );
 		    }
 		},
 		
