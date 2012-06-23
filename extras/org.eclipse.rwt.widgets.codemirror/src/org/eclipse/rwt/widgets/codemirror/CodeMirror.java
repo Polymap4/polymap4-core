@@ -157,6 +157,10 @@ public class CodeMirror
         listeners.add( l );
     }
 
+    public void removePropertyCHangeListener( PropertyChangeListener l ) {
+        listeners.remove( l );
+    }
+
     protected void firePropertyEvent( String prop, Object newValue, Object oldValue ) {
         PropertyChangeEvent ev = new PropertyChangeEvent( this, prop, oldValue, newValue );
         for (Object l : listeners.getListeners()) {
