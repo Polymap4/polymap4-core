@@ -16,6 +16,7 @@
 package org.eclipse.rwt.widgets.codemirror;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
@@ -168,6 +169,18 @@ public class CodeMirror
         }
     }
 
+    public void openCompletions( List<ICompletion> proposals ) {
+        StringBuilder json = new StringBuilder( 1024 );
+        json.append( '[' );
+        for (ICompletion proposal : proposals) {
+            json.append( json.length() > 1 ? "," : "" );
+            json.append( "{\"text\":\"" ).append( proposal.getCompletion() ).append( "\"," );
+            json.append( "\"replaceStart\":" ).append( proposal.getReplaceStart() ).append( "," );
+            json.append( "\"replaceEnd\":" ).append( proposal.getReplaceEnd() ).append( "}" );
+        }
+        json.append( ']' );
+        lcaAdapter.pushCommand( new CallMethodCommand( "openCompletions", json.toString() ) );
+    }
     
     /**
      * The internal interface for the {@link CodeMirrorLCA}.
@@ -220,29 +233,39 @@ public class CodeMirror
      * 
      */
     public class LineMarkers
-            extends TreeMap<Integer,LineMarker> {
+            extends TreeMap<Integer,ILineMarker> {
 
         public void clear() {
             super.clear();
             lcaAdapter.pushCommand( new CallMethodCommand( "clearLineMarkers" ) );
         }
 
-        public LineMarker put( LineMarker marker ) {
+        public ILineMarker put( ILineMarker marker ) {
             return put( marker.getLine(), marker );
         }
         
-        public LineMarker put( Integer line, LineMarker marker ) {
-            LineMarker result = super.put( marker.getLine(), marker );
+        public ILineMarker put( Integer line, ILineMarker marker ) {
+            ILineMarker result = super.put( marker.getLine(), marker );
 
             StringBuilder buf = new StringBuilder( 256 );
             buf.append( "<div style=\"font-weight:bold;display:inline;position:relative;left:0px;top:0px;vertical-align:top;float:left;width:16px;");
 //            if (marker.getFgColor() != null) {
 //                buf.append( "color:" ).append( marker.getFgColor() ).append( ";" );
 //            }
-//            if (marker.getIcon() != null) {
+            String textClassName = "cm-error";
+            if (marker.getIcon() != null) {
                 // XXX insert real image URL here
-                buf.append( "background:url(" ).append( js_location ).append( "&res=icons/error_tsk.gif);" );
-//            }
+                String imageUrl = "icons/error_tsk.gif";
+                if (marker.getIcon().resourceName.contains( "warn" )) {
+                    imageUrl = "icons/warn_tsk.gif";
+                    textClassName = "cm-warn";
+                }
+                else if (marker.getIcon().resourceName.contains( "info" )) {
+                    imageUrl = "icons/info_tsk.gif";
+                    textClassName = "cm-info";
+                }
+                buf.append( "background:url(" ).append( js_location ).append( "&res=" + imageUrl + ");" );
+            }
             buf.append( "\" " );
             if (marker.getText() != null) {
                 buf.append( "title=\"" ).append( marker.getText() ).append( "\"" );
@@ -250,11 +273,13 @@ public class CodeMirror
             buf.append( "> </div>%N%" );
 
             lcaAdapter.pushCommand( new CallMethodCommand( "setLineMarker", 
-                    marker.id, marker.getLine(), marker.getCharStart(), marker.getCharEnd(), buf.toString() ) );
+                    marker.getId(), marker.getLine(), 
+                    marker.getCharStart(), marker.getCharEnd(), 
+                    textClassName, buf.toString() ) );
             return result;
         }
 
-        public void putAll( Map<? extends Integer, ? extends LineMarker> map ) {
+        public void putAll( Map<? extends Integer, ? extends ILineMarker> map ) {
             throw new RuntimeException( "not yet implemented" );
         }
     }

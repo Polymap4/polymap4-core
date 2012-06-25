@@ -223,7 +223,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
          * @param charStart (String/int)
          * @param charEnd (String/int)
 		 */
-        setLineMarker: function( id, line, charStart, charEnd, text ) {
+        setLineMarker: function( id, line, charStart, charEnd, textClassName, text ) {
             if (this._codeMirror) {
                 if (this._lineMarkers[id] != null) {
                     clearMarker( this._lineMarkers[id] );
@@ -234,7 +234,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
                 marker.startPos = this._codeMirror.posFromIndex( parseInt( charStart ) );
                 marker.endPos = this._codeMirror.posFromIndex( parseInt( charEnd ) );
                 if (marker.startPos.ch != marker.endPos.ch) {
-                    marker.markedText = this._codeMirror.markText( marker.startPos, marker.endPos, "cm-error");
+                    marker.markedText = this._codeMirror.markText( marker.startPos, marker.endPos, textClassName );
                 }
                 
                 this._lineMarkers[id] = marker;
@@ -267,12 +267,17 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
             this._codeMirror.setSelection( startPos, endPos );
         },
         
-        openAutoComplete: function( /**/json ) {
+        openCompletions: function( /**/json ) {
             var completions = eval( json );
             var editor = this._codeMirror;
             
+            if (this.complete && this.complete.parentNode) {
+                this.complete.parentNode.removeChild( this.complete );
+            }
+            
             // build the select widget
             var complete = document.createElement("div");
+            this.complete = complete;
             complete.className = "CodeMirror-completions";
             var sel = complete.appendChild(document.createElement("select"));
             // Opera doesn't move the selection when pressing up/down in a
@@ -281,20 +286,26 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
             if (!window.opera) sel.multiple = true;
             for (var i=0; i<completions.length; ++i) {
                 var opt = sel.appendChild(document.createElement("option"));
-                opt.appendChild(document.createTextNode(completions[i]));
+                opt.appendChild(document.createTextNode(completions[i].text));
             }
             sel.firstChild.selected = true;
-            sel.size = Math.min(10, completions.length);
+            sel.size = Math.min(15, completions.length);
+            //sel.style.padding = '2px';
+            
             var pos = editor.cursorCoords();
             complete.style.left = pos.x + "px";
             complete.style.top = pos.yBot + "px";
-            document.body.appendChild(complete);
+            complete.style.zIndex = 200000;
+            complete.style.position = 'absolute';
+            //var parent = document.getElementById( this._id );
+            var parent = document.body;
+            parent.appendChild(complete);
             // If we're at the edge of the screen, then we want the menu to appear on the left of the cursor.
             var winW = window.innerWidth || Math.max(document.body.offsetWidth, document.documentElement.offsetWidth);
             if(winW - pos.x < sel.clientWidth)
                 complete.style.left = (pos.x - sel.clientWidth) + "px";
             // Hack to hide the scrollbar.
-            if (completions.length <= 10)
+            if (completions.length <= 15)
                 complete.style.width = (sel.clientWidth - 1) + "px";
 
             var done = false;
@@ -305,7 +316,12 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
                 }
             }
             function pick() {
-                insert(completions[sel.selectedIndex]);
+                var completion = completions[sel.selectedIndex];
+                var start = editor.posFromIndex( completion.replaceStart );
+                var end = editor.posFromIndex( completion.replaceEnd );
+                //alert( completion.text + " : start=" + completion.replaceStart + " -> " + start );
+                
+                editor.replaceRange( completion.text, start, end );
                 close();
                 setTimeout(function() { editor.focus(); }, 50);
             }
@@ -313,14 +329,22 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
             CodeMirror.connect(sel, "keydown", function(event) {
                 var code = event.keyCode;
                 // Enter
-                if (code == 13) {CodeMirror.e_stop(event); pick();}
+                if (code == 13) {
+                    CodeMirror.e_stop(event); 
+                    pick();
+                }
                 // Escape
-                else if (code == 27) {CodeMirror.e_stop(event); close(); editor.focus();}
+                else if (code == 27) {
+                    CodeMirror.e_stop(event); 
+                    close(); 
+                    editor.focus();
+                }
                 else if (code != 38 && code != 40) {
                     close(); editor.focus();
-                    // Pass the event to the CodeMirror instance so that it can handle things like backspace properly.
+                    // Pass the event to the CodeMirror instance so that it can handle things
+                    // like backspace properly.
                     editor.triggerOnKeyDown(event);
-                    setTimeout(function() { CodeMirror.simpleHint(editor, getHints);}, 50);
+                    //setTimeout(function() { CodeMirror.simpleHint(editor, getHints);}, 50);
                 }
             });
             CodeMirror.connect(sel, "dblclick", pick);

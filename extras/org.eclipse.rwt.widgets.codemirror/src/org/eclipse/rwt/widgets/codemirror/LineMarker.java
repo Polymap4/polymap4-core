@@ -25,7 +25,7 @@ import org.eclipse.swt.graphics.Image;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LineMarker {
+public class LineMarker implements ILineMarker {
 
     private static Log log = LogFactory.getLog( LineMarker.class );
     
@@ -56,6 +56,10 @@ public class LineMarker {
         this.charEnd = charEnd;
         return this;
     }
+    
+    public String getId() {
+        return id;
+    }
 
     public int getCharStart() {
         return charStart;
@@ -69,7 +73,7 @@ public class LineMarker {
         return bgColor;
     }
     
-    public LineMarker setBgColor( Color bgColor ) {
+    public ILineMarker setBgColor( Color bgColor ) {
         this.bgColor = bgColor;
         return this;
     }
@@ -78,7 +82,7 @@ public class LineMarker {
         return underlineColor;
     }
     
-    public LineMarker setUnderlineColor( Color underlineColor ) {
+    public ILineMarker setUnderlineColor( Color underlineColor ) {
         this.underlineColor = underlineColor;
         return this;
     }
@@ -93,12 +97,12 @@ public class LineMarker {
         return this;
     }
     
-    public LineMarker setFgColor( Color fgColor ) {
+    public ILineMarker setFgColor( Color fgColor ) {
         this.fgColor = fgColor;
         return this;
     }
     
-    public LineMarker setIcon( Image icon ) {
+    public ILineMarker setIcon( Image icon ) {
         this.icon = icon;
         return this;
     }

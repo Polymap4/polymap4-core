@@ -18,13 +18,19 @@
 .cm-s-eclipse span.cm-tag {color: #170;}
 .cm-s-eclipse span.cm-attribute {color: #00c;}
 .cm-s-eclipse span.cm-link {color: #219;}
-.cm-s-eclipse span.cm-error {/*color:red; font-weight:bold;*/ border-bottom: 1px solid red;}
-.cm-s-eclipse span.cm-warn {border-bottom: 1px dotted yellow;}
+.cm-s-eclipse span.cm-error {border-bottom: 1px solid red;}
+.cm-s-eclipse span.cm-warn {border-bottom: 1px solid #EBC609;}
+.cm-s-eclipse span.cm-info {}
 
 .cm-s-eclipse .CodeMirror-matchingbracket {
 	/*border:1px solid grey;*/
 	color:red !important;
 	font-weight:bold;
+}
+.CodeMirror-completions {
+    box-shadow: 0px 2px 4px #a0a0a0;
+    background: white;
+    margin: 1px;
 }
 .CodeMirror-gutter {
     width: 3em;
