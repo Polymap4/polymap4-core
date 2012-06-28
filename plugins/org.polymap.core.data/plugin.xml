@@ -59,7 +59,7 @@
          point="org.eclipse.ui.views">
       <view
             allowMultiple="true"
-            category="org.polymap.core.project"
+            category="org.polymap.core.project.ViewCategory"
             class="org.polymap.core.data.ui.featureselection.FeatureSelectionView"
             icon="icons/eview16/table_view.gif"
             id="org.polymap.core.data.FeatureSelectionView"
@@ -68,7 +68,7 @@
       </view>
       <view
             allowMultiple="true"
-            category="org.polymap.core.project"
+            category="org.polymap.core.project.ViewCategory"
             class="org.polymap.core.data.ui.featuretable.SourceFeatureTableView"
             icon="icons/eview16/table_view.gif"
             id="org.polymap.core.data.SourceFeatureTableView"

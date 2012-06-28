@@ -40,7 +40,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.jface.dialogs.MessageDialog;
 
-import org.eclipse.core.runtime.IPath;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -135,8 +134,9 @@ public class CatalogImportDropListener
     throws IOException {
         List<File> result = new ArrayList();
         
-        IPath workspace = Polymap.getWorkspacePath();
-        File f = new File( workspace.toFile(), filename );
+        File dir = new File( Polymap.getDataDir(), "filedata" );
+        dir.mkdirs();
+        File f = new File( dir, filename );
 
         boolean ok = true;
         if (f.exists()) {

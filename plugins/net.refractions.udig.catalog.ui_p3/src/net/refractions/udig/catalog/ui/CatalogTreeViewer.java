@@ -130,9 +130,9 @@ public class CatalogTreeViewer extends TreeViewer implements ISelectionChangedLi
                     ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
                     List<IResolve> services = catalog.members( new NullProgressMonitor() );
                     System.out.println( "CatalogTreeViewer: entries= " + services.size() );
-                    for (IResolve service : services) {
-                        System.out.println( "Catalog: service=" + service.getTitle() );
-                    }
+//                    for (IResolve service : services) {
+//                        System.out.println( "Catalog: service=" + service.getTitle() );
+//                    }
                 }
                 catch (IOException e) {
                     e.printStackTrace();

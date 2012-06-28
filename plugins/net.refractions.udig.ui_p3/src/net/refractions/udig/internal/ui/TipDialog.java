@@ -147,9 +147,9 @@ public class TipDialog extends Dialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		createButton(parent, IDialogConstants.NEXT_ID,
-				"Next" /*IDialogConstants.NEXT_LABEL*/, false);
+				"Next" /*IDialogConstants.get().NEXT_LABEL*/, false);
 		createButton(parent, IDialogConstants.CLOSE_ID,
-				"Close" /*IDialogConstants.CLOSE_LABEL*/, true);
+				"Close" /*IDialogConstants.get().CLOSE_LABEL*/, true);
 	}
 
 	@Override

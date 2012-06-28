@@ -115,7 +115,7 @@ abstract class DefaultMenuContribution
     public void setInitializationData( 
             IConfigurationElement config, String propertyName, Object data ) 
             throws CoreException {
-        log.info( "setInitializationData(): config=" + config + ", propertyName=" + propertyName );
+        log.debug( "setInitializationData(): config=" + config + ", propertyName=" + propertyName );
     }
 
 }

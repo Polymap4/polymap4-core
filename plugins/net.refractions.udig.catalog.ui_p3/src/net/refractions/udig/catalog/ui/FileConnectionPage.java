@@ -229,10 +229,10 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
                     // see Polymap.getWorkspacePath()
                     IWorkspace workspace = ResourcesPlugin.getWorkspace();
                     IWorkspaceRoot root = workspace.getRoot();
-                    IPath path = root.getLocation();
+                    IPath path = root.getLocation().append( "data/filedata" );
 
                     File uploadDir = path.toFile();
-                    uploadDir.mkdir();
+                    uploadDir.mkdirs();
                     File dest = new File( uploadDir, item.getFileName() );
                     out = new FileOutputStream( dest );
                     StreamUtils.copy( item.getFileInputStream(), out );

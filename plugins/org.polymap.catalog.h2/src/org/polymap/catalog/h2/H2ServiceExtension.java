@@ -40,7 +40,7 @@ public class H2ServiceExtension
     public static H2DataStoreFactory getFactory() {
         if (factory == null) {
             factory = new H2DataStoreFactory();
-            File baseDir = new File( Polymap.getWorkspacePath().toFile(), "data/h2" );
+            File baseDir = new File( Polymap.getDataDir(), "h2" );
             baseDir.mkdirs();
             factory.setBaseDirectory( baseDir );
         }

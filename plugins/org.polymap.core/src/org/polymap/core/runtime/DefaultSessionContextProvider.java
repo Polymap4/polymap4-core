@@ -66,7 +66,7 @@ public class DefaultSessionContextProvider
         if (context == null) {
             if (create) {
                 context = newContext( sessionKey );
-                log.info( "new session context: " + sessionKey );
+                log.debug( "new session context: " + sessionKey );
                 DefaultSessionContext old = contexts.putIfAbsent( sessionKey, context );
                 // no lock -> check after put
                 context = old != null ? old : context;

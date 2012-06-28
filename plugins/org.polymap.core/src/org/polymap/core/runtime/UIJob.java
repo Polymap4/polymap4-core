@@ -97,8 +97,13 @@ public abstract class UIJob
     private IProgressMonitor    executionMonitor;
 
     private SessionContext      sessionContext;
-    
-    
+
+
+    /**
+     * Construct a new job with the given name and default priority {@link Job#LONG}.
+     * 
+     * @param name The name of the job. Must not be null.
+     */
     public UIJob( String name ) {
         super( name );
         this.sessionContext = SessionContext.current();

@@ -104,8 +104,8 @@ public class RunOperationDialog extends Dialog implements
      */
     protected void createButtonsForButtonBar(Composite parent) {
         throw new RuntimeException( "XXX _p3: IDialogConstant(s) do not exit" );
-//        okButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-//        createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+//        okButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.get().OK_LABEL, true);
+//        createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.get().CANCEL_LABEL, false);
 //        updateButtons();
     }
 

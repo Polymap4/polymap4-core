@@ -22,7 +22,6 @@ import net.refractions.udig.ui.UDIGDragDropUtilities;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
-
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
@@ -95,7 +94,8 @@ public class CatalogView
 
     CatalogTreeViewer treeviewer;
 
-    Action removeAction; // addAction
+// _p3: remove action is refactored into org.polymap.core.catalog
+//    Action removeAction; // addAction
 
     private Action saveAction;
     private Action loadAction;
@@ -161,14 +161,15 @@ public class CatalogView
             public void menuAboutToShow( IMenuManager mgr ) {
                 contextMenu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
                 contextMenu.add(new Separator());
-                contextMenu.add(removeAction);
+                //contextMenu.add(removeAction);
                 IWorkbenchWindow window = getSite().getWorkbenchWindow();
                 IAction action = ActionFactory.IMPORT.create(window);
                 contextMenu.add(action);
                 contextMenu.add(new Separator());
                 contextMenu.add(UiPlugin.getDefault().getOperationMenuFactory().getContextMenu(treeviewer.getSelection()));
-                contextMenu.add(new Separator());
-                contextMenu.add(ActionFactory.EXPORT.create(getSite().getWorkbenchWindow()));
+                // XXX _p3: no export in catalog
+                //contextMenu.add(new Separator());
+                //contextMenu.add(ActionFactory.EXPORT.create(getSite().getWorkbenchWindow()));
             }
 
         });
@@ -196,18 +197,28 @@ public class CatalogView
         getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.PROPERTIES.getId(), propertiesAction);        
 //        getSite().getKeyBindingService().registerAction(propertiesAction);
         
-        removeAction = new Action(){
-            public void run() {
-                IStructuredSelection selected = (IStructuredSelection) treeviewer.getSelection();
-                removeSelected( selected );
-            }
-        };
+// _p3: remove action is refactored into org.polymap.core.catalog
+//        removeAction = new Action(){
+//            public void run() {
+//                try {
+//                    IStructuredSelection selected = (IStructuredSelection) treeviewer.getSelection();
+//                    removeSelected( selected );
+//                }
+//                catch (SecurityException e) {
+//                    throw e;
+//                }
+//                catch (Exception e) {
+//                    throw new RuntimeException( e );
+//                }
+//            }
+//        };
+//        
+//        Messages.initAction(removeAction, "action_remove"); //$NON-NLS-1$
+//        removeAction.setEnabled(false);
+//        removeAction.setImageDescriptor(Images.getDescriptor(ImageConstants.REMOVE_CO));
+//        removeAction.setActionDefinitionId("org.eclipse.ui.edit.delete"); //$NON-NLS-1$
+//        getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.DELETE.getId(), removeAction);
         
-        Messages.initAction(removeAction, "action_remove"); //$NON-NLS-1$
-        removeAction.setEnabled(false);
-        removeAction.setImageDescriptor(Images.getDescriptor(ImageConstants.REMOVE_CO));
-        removeAction.setActionDefinitionId("org.eclipse.ui.edit.delete"); //$NON-NLS-1$
-        getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.DELETE.getId(), removeAction);
 // _p3: no keybinding, no helpsystem        
 //        getSite().getKeyBindingService().registerAction(removeAction);
 //        
@@ -322,11 +333,11 @@ public class CatalogView
     void updateActionEnablement() {
         IStructuredSelection sel = (IStructuredSelection) treeviewer.getSelection();
         if( sel.size() == 0 ){
-            removeAction.setEnabled(false);
+            //removeAction.setEnabled(false);
             propertiesAction.setEnabled(false);
         }
         else {
-            removeAction.setEnabled(true);
+            //removeAction.setEnabled(true);
             propertiesAction.setEnabled(true);
         }
     }
@@ -359,7 +370,7 @@ public class CatalogView
                 .getDescriptor(ImageConstants.PATH_ETOOL + "import_wiz.gif")); //$NON-NLS-1$
         mgr.add(action);
 
-        mgr.add(removeAction);
+        //mgr.add(removeAction);
     }
 
     /**
