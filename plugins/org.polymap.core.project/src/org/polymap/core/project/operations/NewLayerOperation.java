@@ -223,25 +223,29 @@ public interface NewLayerOperation
                 }
                 // check if max extent contains layer
                 else {
-                    if (!map.getMaxExtent().contains( (BoundingBox)layerBBox )) {
-                        ReferencedEnvelope bbox = new ReferencedEnvelope( layerBBox );
-                        bbox.expandToInclude( map.getMaxExtent() );
-                        final ReferencedEnvelope newMaxExtent = bbox;
+                    try {
+                        if (!map.getMaxExtent().contains( (BoundingBox)layerBBox )) {
+                            ReferencedEnvelope bbox = new ReferencedEnvelope( layerBBox );
+                            bbox.expandToInclude( map.getMaxExtent() );
+                            final ReferencedEnvelope newMaxExtent = bbox;
 
-                        Display display = (Display)info.getAdapter( Display.class );
-                        display.syncExec( new Runnable() {
-                            public void run() {
-                                Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                                MessageBox box = new MessageBox( shell, SWT.YES | SWT.NO );
-                                box.setText( Messages.get( "NewLayerOperation_BBoxDialog_title" ) );
-                                box.setMessage( Messages.get( "NewLayerOperation_BBoxDialog_msg" ) );
-                                int answer = box.open();
-                                if (answer == SWT.YES) {
-                                    map.setMaxExtent( newMaxExtent );
+                            Display display = (Display)info.getAdapter( Display.class );
+                            display.syncExec( new Runnable() {
+                                public void run() {
+                                    Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                                    MessageBox box = new MessageBox( shell, SWT.YES | SWT.NO );
+                                    box.setText( Messages.get( "NewLayerOperation_BBoxDialog_title" ) );
+                                    box.setMessage( Messages.get( "NewLayerOperation_BBoxDialog_msg" ) );
+                                    int answer = box.open();
+                                    if (answer == SWT.YES) {
+                                        map.setMaxExtent( newMaxExtent );
+                                    }
                                 }
-                            }
-                        });
-                        
+                            });
+                        }
+                    }
+                    catch (Exception e) {
+                        log.warn( e.getLocalizedMessage(), e );
                     }
                 }
                 monitor.worked( 1 );

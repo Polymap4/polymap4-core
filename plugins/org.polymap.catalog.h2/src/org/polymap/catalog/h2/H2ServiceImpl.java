@@ -11,8 +11,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.Statement;
-
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.IDeletingSchemaService;
 import net.refractions.udig.catalog.IGeoResource;
@@ -206,36 +204,8 @@ public class H2ServiceImpl
         if (geores.service( monitor ) != this) {
             throw new IllegalStateException( "Geores is not H2" );
         }
-        JDBCDataStore h2 = getDS();
-        StringBuffer sql = new StringBuffer( "DROP TABLE " ); 
-        
-        String typename = geores.getInfo( monitor ).getName();
-        H2DialectBasic dialect = new H2DialectBasic( h2 );
-
-        if (h2.getDatabaseSchema() != null) {
-            dialect.encodeSchemaName( h2.getDatabaseSchema(), sql );
-            sql.append( "." );
-        }
-
-        dialect.encodeTableName( typename, sql );
-
-        // execute statement
-        Connection cx = null;
-        try {
-            cx = h2.getDataSource().getConnection();
-            dialect.initializeConnection( cx );
-            
-            log.info( "Delete schema SQL: " + sql );
-            Statement st = cx.createStatement();
-            st.execute( sql.toString() );
-        } 
-        catch (Exception e) {
-            String msg = "Error occurred creating table";
-            throw (IOException) new IOException(msg).initCause(e);
-        } 
-        finally {
-            h2.closeSafe( cx );
-        }
+        new JDBCHelper( getDS(), new H2DialectBasic( getDS() ) )
+                .deleteSchema( geores, monitor );
     }
 
 

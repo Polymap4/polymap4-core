@@ -15,8 +15,6 @@
  */
 package org.polymap.core.data.operations.featuretype;
 
-import org.geotools.data.DataStore;
-
 import net.refractions.udig.catalog.IDeletingSchemaService;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
@@ -82,9 +80,7 @@ public class DeleteFeatureTypeAction
                 try {
                     geores = (IGeoResource)elm;
                     IService service = geores.service( new NullProgressMonitor() );
-                    boolean enabled = 
-                            service.canResolve( DataStore.class ) &&
-                            service instanceof IDeletingSchemaService;
+                    boolean enabled = service instanceof IDeletingSchemaService;
 
                     // check ACL permission
                     if (service != null && service instanceof IAdaptable) {
