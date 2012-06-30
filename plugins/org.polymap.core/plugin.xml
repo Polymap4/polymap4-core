@@ -219,9 +219,9 @@
       <cheatsheet
             category="org.polymap.core.cheatsheet.category"
             composite="false"
-            contentFile="cheatsheets/de/welcome.xml"
+            contentFile="%cheatsheets_welcomeContent"
             id="org.polymap.core.cheatsheet.welcome"
-            name="Welcome">
+            name="%cheatsheets_welcome">
       </cheatsheet>
    </extension>
 

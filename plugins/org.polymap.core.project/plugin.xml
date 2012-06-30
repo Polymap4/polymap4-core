@@ -12,6 +12,10 @@
 
    <extension
          point="org.eclipse.ui.views">
+      <category
+            id="org.polymap.core.project.ViewCategory"
+            name="%views_category">
+      </category>
       <view
             category="org.polymap.core.project.ViewCategory"
             class="org.polymap.core.project.ui.project.ProjectView"
@@ -28,10 +32,6 @@
             name="%views_layers"
             restorable="true">
       </view>
-      <category
-            id="org.polymap.core.project.ViewCategory"
-            name="%views_category">
-      </category>
    </extension>
    <extension
          point="org.eclipse.ui.viewActions">
@@ -98,6 +98,9 @@
          <newWizardShortcut
                id="org.polymap.core.project.ui.NewMapWizard">
          </newWizardShortcut>
+         <viewShortcut
+               id="org.eclipse.ui.cheatsheets.views.CheatSheetView">
+         </viewShortcut>
       </perspectiveExtension>
    </extension>
    <extension

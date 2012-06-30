@@ -5,6 +5,7 @@
    <extension
          point="org.eclipse.ui.views">
       <view
+            category="org.polymap.core.project.ViewCategory"
             class="org.polymap.styler.ui.StyleView"
             icon="icons/style_tsk.gif"
             id="org.polymap.styler.ui.StyleView"

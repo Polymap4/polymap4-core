@@ -418,7 +418,8 @@ public class RenderManager {
                         public void run() {
                             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                             IWorkbenchPage page = window.getActivePage();
-                            if (page != null && page.findEditor( mapEditor.getEditorInput() ) != null) {
+                            if (page != null && mapEditor != null 
+                                    && page.findEditor( mapEditor.getEditorInput() ) != null) {
                                 page.activate( mapEditor );
                             }
                         }

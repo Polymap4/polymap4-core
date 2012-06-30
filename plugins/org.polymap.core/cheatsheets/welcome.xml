@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet
+      title="Welcome to the Workbench">
+   <item
+         title="Translations">
+      <description>
+         Although we try very hard to keep the english translation as complete as possible currently the &apos;native&apos; language of the Workbench is german.
+<br/><br/>
+If you want to see a better english translation or another language to be supported by POLYMAP3 then please volunteer to help with this or any other part of the development. Thanks.
+      </description>
+   </item>
+   <intro>
+      <description>
+         The Workbench is the control center of POLYMAP3. It allows to manage all aspects of the projects, layers, geospatial data and services.
+<br/><br/>
+You can read more about the Polymap project at: &lt;em&gt;www.polymap.org&lt;/em&gt;
+      </description>
+   </intro>
+</cheatsheet>

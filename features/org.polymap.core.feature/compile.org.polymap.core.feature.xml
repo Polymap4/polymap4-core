@@ -9,6 +9,7 @@
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.core_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.openlayers.rap.widget" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.rwt.widgets.codemirror" target="build.jars"/>
+		<ant antfile="build.xml" dir="../../../org.eclipse.rap/bundles/org.eclipse.rap.ui.cheatsheets" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.ui_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.rap.ui.navigator" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core" target="build.jars"/>
@@ -29,10 +30,7 @@
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.catalog" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.catalog.rasterings_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.data" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/org.polymap.routing" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../plugins/org.polymap.rhei" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../plugins/org.polymap.rhei.data" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service.geoserver" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.mapeditor" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.service.fs" target="build.jars"/>
