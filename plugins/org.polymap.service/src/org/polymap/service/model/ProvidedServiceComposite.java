@@ -163,17 +163,21 @@ public interface ProvidedServiceComposite
 
         public void stop() 
         throws Exception {
-//            assert wms != null : "Service is not yet started.";
-            IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
-            log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
-            
-            try {
-                HttpServiceFactory.unregisterServer( wms, true );
+            if (wms == null) {
+                log.info( "No service started: " + pathSpec().get() );
             }
-            catch (Exception e) {
-                log.warn( "", e );
+            else {
+                IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
+                log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
+
+                try {
+                    HttpServiceFactory.unregisterServer( wms, true );
+                }
+                catch (Exception e) {
+                    log.warn( "", e );
+                }
+                wms = null;
             }
-            wms = null;            
         }
         
         public boolean isStarted() {
