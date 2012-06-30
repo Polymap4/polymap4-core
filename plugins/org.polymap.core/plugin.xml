@@ -20,13 +20,18 @@
             name="Workbench Kategorie">
       </category>
    </extension>
-   <extension
+   <!--extension
          point="org.eclipse.ui.views">
-      <category
-            id="polymap3.map"
-            name="Polymap">
-      </category>
-   </extension>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.ui"
+            class="org.polymap.core.workbench.PolymapCheatSheetView"
+            icon="icons/eview16/cheatsheet_view.gif"
+            id="org.eclipse.ui.cheatsheets.views.CheatSheetView"
+            name="%views_cheatsheets"
+            restorable="true">
+      </view>
+   </extension-->
    <!--extension
          point="net.refractions.udig.project.ui.editorInputs">
       <editorInput
@@ -186,16 +191,6 @@
       </config>
    </extension>
    <extension
-         point="org.eclipse.help.toc">
-      <toc
-            file="toc.xml">
-      </toc>
-      <toc
-            file="testToc.xml"
-            primary="true">
-      </toc>
-   </extension>
-   <extension
          point="org.polymap.core.operation.concerns">
       <concern
             class="org.polymap.core.operation.LogOperationConcernFactory"
@@ -214,6 +209,20 @@
             class="org.polymap.core.workbench.dnd.DndServiceHandler"
             id="org.polymap.core.DndServiceHandler">
       </serviceHandler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.cheatsheets.cheatSheetContent">
+      <category
+            id="org.polymap.core.cheatsheet.category"
+            name="Workbench">
+      </category>
+      <cheatsheet
+            category="org.polymap.core.cheatsheet.category"
+            composite="false"
+            contentFile="cheatsheets/de/welcome.xml"
+            id="org.polymap.core.cheatsheet.welcome"
+            name="Welcome">
+      </cheatsheet>
    </extension>
 
 </plugin>
