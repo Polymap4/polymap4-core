@@ -2,28 +2,10 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eclipse.ui.views">
-      <view
-            class="org.eclipse.rwt.widgets.codemirror.ViewPart1"
-            id="org.eclipse.rwt.widgets.codemirror.Resource2"
-            name="name"
-            restorable="true">
-      </view>
-   </extension>
-   <extension
          point="org.eclipse.rap.ui.resources">
       <resource
             class="org.eclipse.rwt.widgets.codemirror.internal.CodeMirrorResource">
       </resource>
-   </extension>
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            class="org.eclipse.rwt.widgets.codemirror.CodeMirrorView"
-            id="org.eclipse.rwt.widgets.codemirror.CodeMirrorView"
-            name="CodeMirror"
-            restorable="true">
-      </view>
    </extension>
 
 </plugin>

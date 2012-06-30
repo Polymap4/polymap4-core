@@ -1,5 +1,5 @@
 .cm-s-eclipse span.cm-meta {color: #FF1717;}
-.cm-s-eclipse span.cm-keyword { line-height: 1em; font-weight: bold; color: #400060; }
+.cm-s-eclipse span.cm-keyword { line-height: 1em; font-weight: bold; color: #200080; }
 .cm-s-eclipse span.cm-atom {color: #219;}
 .cm-s-eclipse span.cm-number {color: #164;}
 .cm-s-eclipse span.cm-def {color: #00f;}
@@ -8,8 +8,8 @@
 .cm-s-eclipse span.cm-variable-3 {color: #0000C0;}
 .cm-s-eclipse span.cm-property {color: black;}
 .cm-s-eclipse span.cm-operator {color: black;}
-.cm-s-eclipse span.cm-comment {color: #DB7815; font-style:italic;}
-.cm-s-eclipse span.cm-string {color: #11AC06;}
+.cm-s-eclipse span.cm-comment {color: #d04020; font-style:normal;}
+.cm-s-eclipse span.cm-string {color: #059C06;}
 .cm-s-eclipse span.cm-string-2 {color: #f50;}
 /*.cm-s-eclipse span.cm-error {color: #f00;}*/
 .cm-s-eclipse span.cm-qualifier {color: #555;}
