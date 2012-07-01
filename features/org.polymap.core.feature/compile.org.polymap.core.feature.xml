@@ -4,7 +4,6 @@
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.core.filesystem" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.equinox.security" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../extras/org.eclipse.rwt.widgets.upload" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../pgrouting-server-osgi" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.core.libs" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.core_p3" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.openlayers.rap.widget" target="build.jars"/>
@@ -37,6 +36,5 @@
 		<ant antfile="build.xml" dir="../../plugins/org.polymap.styler" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../../polymap3-alkis/plugins/org.polymap.alkis" target="build.jars"/>
 		<ant antfile="build.xml" dir="../../plugins/net.refractions.udig.catalog.geotiff_p3" target="build.jars"/>
-		<ant antfile="build.xml" dir="../../../polymap-atlas/plugins/org.polymap.lka" target="build.jars"/>
 	</target>
 </project>
