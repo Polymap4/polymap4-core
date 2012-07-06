@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, 2011 Polymap GmbH. All rights reserved.
+ * Copyright 2010-2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -22,6 +22,7 @@ import java.util.zip.GZIPOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -34,14 +35,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.CorePlugin;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.Timer;
 
-import org.polymap.service.http.HttpService;
-import org.polymap.service.http.HttpServiceFactory;
+import org.polymap.service.ServicesPlugin;
 
 /**
  * SPI/API and factory for HTTP server providing {@link SimpleFeature}s as
@@ -51,40 +51,27 @@ import org.polymap.service.http.HttpServiceFactory;
  * @since 3.0
  */
 public class SimpleJsonServer 
-        extends HttpService 
+        extends HttpServlet
         implements ISessionListener {
 
     private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
 
     public static final int             DEFAULT_MAX_BYTES = 1*1024*1024;
     
+    
     // static factory *************************************
     
     public static synchronized SimpleJsonServer instance() {
         SimpleJsonServer instance = SessionSingleton.instance( SimpleJsonServer.class );
-        if (instance.getPathSpec() == null) {
+        if (!instance.isStarted()) {
             try {
-                instance.init( "/mapeditorjson-" + Polymap.instance().hashCode() );
+                instance.start();
                 SessionContext.current().addSessionListener( instance );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );
             }
         }
-        
-//        SimpleJsonServer instance = (SimpleJsonServer)Polymap.getSessionAttribute( "SimpleJsonServer" );
-//        if (instance == null) {
-//            if (instance == null) {
-//                try {
-//                    instance = new SimpleJsonServer( "/mapeditorjson-" + Polymap.instance().hashCode() );
-//                    SessionContext.current().addSessionListener( instance );
-//                    Polymap.setSessionAttribute( "SimpleJsonServer", instance );
-//                }
-//                catch (Exception e) {
-//                    throw new RuntimeException( e );
-//                }
-//            }
-//        }
         return instance;
     }
     
@@ -100,27 +87,42 @@ public class SimpleJsonServer
     private Map<String,JsonEncoder> layers = new HashMap();    
     
     private int                     totalLayers;
+
+    private String                  pathSpec;
+    
+    private boolean                 started;
     
     
     public SimpleJsonServer() {
+        pathSpec = ServicesPlugin.createServicePath( "/mapeditorjson--" + hashCode() );
+        log.debug( "Path: " + pathSpec );
     }
 
 
-    protected void init( String _pathSpec )
+    public boolean isStarted() {
+        return started;
+    }
+
+    public String getPathSpec() {
+        return pathSpec;
+    }
+
+
+    protected void start()
     throws Exception {
-        super.init( _pathSpec, null );
-        
-        log.debug( "URL: " + getURL() );
-        HttpServiceFactory.registerServer( this, pathSpec, false );
+        CorePlugin.registerServlet( pathSpec, this, null );
+        started = true;
     }
 
-
+    
     public void dispose() {
+        if (isStarted()) {
+            CorePlugin.unregister( this );
+            started = false;
+        }
         if (layers != null) {
             layers.clear();
             layers = null;
-            
-            HttpServiceFactory.unregisterServer( this, false );
         }
     }
 

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -30,20 +29,11 @@ import org.polymap.core.project.IMap;
 public interface IProvidedService
         extends Entity {
 
-//    public static final int     SERVICE_TYPE_WMS = 1;
-//    public static final int     SERVICE_TYPE_WFS = 2;
-    
     public static final String  PROP_PATHSPEC = "PATH_SPEC";
     public static final String  PROP_SRS = "SRS";
     public static final String  PROP_SERVICE_TYPE = "SERVICE_TYPE";
     public static final String  PROP_ENABLED = "ENABLED";
 
-
-//    @ModelProperty(PROP_SERVICE_TYPE)
-//    public void setServiceType( int serviceType );
-//    
-//    public int getServiceType();
-    
     public boolean isEnabled();
     
     public boolean isStarted();
@@ -60,8 +50,22 @@ public interface IProvidedService
 
     public IMap getMap();
 
-    public Class getServiceType();
+    /**
+     * The type of this service.
+     * 
+     * @return One of the <code>SERVICE_TYPE_xxx</code> constants in
+     *         {@link ServicesPlugin}.
+     */
+    public String getServiceType();
 
+    /**
+     * 
+     * 
+     * @param serviceType One of the <code>SERVICE_TYPE_xxx</code> constants in
+     *        {@link ServicesPlugin}.
+     */
+    public boolean isServiceType( String serviceType );
+    
     public List<String> getSRS();
     
     @ModelProperty(PROP_SRS)

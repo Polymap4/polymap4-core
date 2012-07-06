@@ -25,10 +25,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
-import org.polymap.core.http.HttpServiceRegistry;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.Stringer;
 import org.polymap.core.security.SecurityUtils;
 import org.polymap.core.security.UserPrincipal;
 
@@ -55,36 +55,63 @@ public class ServicesPlugin
 
 	public static final String      PREF_PROXY_URL = "_proxyUrl_";
     
+    public static final String      SERVICE_TYPE_WMS = "org.polymap.service.http.WmsService";
+    public static final String      SERVICE_TYPE_WFS = "org.polymap.service.http.WfsService";
 
     // The shared instance
     private static ServicesPlugin   plugin;
     
-    private static boolean          started = false;
-
 
     public static ServicesPlugin getDefault() {
         return plugin;
     }
 
+
     /**
-     * Static helper function that builds names that can be used as part
-     * of an URL out of label Strings.
-     * <p>
-     * Currently german umlauts are replaced. Afterwards all chars other than
-     * [a-zA-Z\\-_] are removed.
+     * Replace invalid chars to form a valid servlet pathSpec.
+     * <p/>
+     * Also ensures that the given pathSpec The pathSpec must begin with slash ('/')
+     * and must not end with slash ('/'), with the exception that an alias of the
+     * form &quot;/&quot; is used to denote the root alias. See the specification
+     * text for details on how HTTP requests are mapped to servlet and resource
+     * registrations.
+     * 
+     * @param s The name or pathSpec to check.
+     * @return The modified pathSpec.
      */
-    public static String simpleName( String s ) {
-        String result = s;
-        result = result.replaceAll("[Üü]", "ue").
-                replaceAll( "[Ää]", "ae").
-                replaceAll( "[Öö]", "oe").
-                replaceAll( "[ß]", "ss");
-        result = result.replaceAll( "[^a-zA-Z0-9\\-_]", "" );
-        return result;
+    public static String validPathSpec( String s ) {
+        //s = s.startsWith( "/" ) ? s.substring( 1 ) : s;
+        Stringer result = Stringer.on( s ).replaceUmlauts().toURIPath( "_" );
+        if (!result.startsWith( "/" )) {
+            result.insert( 0, '/' );
+        }
+        if (result.endsWith( "/" )) {
+            result.deleteCharAt( result.length() - 1 );
+        }
+        return result.toString();
+    }
+
+    /**
+     * 
+     * @param pathSpec The simple name or pathSpec to use in the URL.
+     * @return The complete URL including protocol, host, port, services base URL and
+     *         tteh validated pathSpec.
+     */
+    public static String createServiceUrl( String pathSpec ) {
+        return getDefault().getServicesBaseUrl() + validPathSpec( pathSpec );
     }
     
-
-
+    /**
+     * 
+     * @param pathSpec The simple name or pathSpec to use in the URL.
+     * @return The complete URL including protocol, host, port, services base URL and
+     *         tteh validated pathSpec.
+     */
+    public static String createServicePath( String pathSpec ) {
+        return SERVICES_PATHSPEC + validPathSpec( pathSpec );
+    }
+    
+    
     // instance *******************************************
     
     private Map<String,ServiceContext> serviceContexts = new HashMap();
@@ -160,16 +187,14 @@ public class ServicesPlugin
                     proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
                     log.info( "Proxy URL set to: " + proxyBaseUrl );
 
-                    HttpServiceRegistry.init( httpService );
-                    
                     // delayed starting services in separate thread
                     new Job( "ServiceStarter" ) {
                         protected IStatus run( IProgressMonitor monitor ) {
-                            log.info( "starting services..." );
+                            log.info( "Starting services..." );
                             initServices();
                             return Status.OK_STATUS;
                         }
-                    }.schedule( 10000 );
+                    }.schedule( 5000 );
                 }
                 return httpService;
             }

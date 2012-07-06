@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009,2012 Polymap GmbH, and individual contributors as
- * indicated by the @authors tag.
+ * Copyright 2009-2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -47,10 +46,11 @@ import org.geoserver.logging.LoggingStartupContextListener;
 
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.Stringer;
 
 import org.polymap.service.ServiceContext;
 import org.polymap.service.geoserver.spring.PipelineMapProducer;
-import org.polymap.service.http.WmsService;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * 
@@ -59,7 +59,7 @@ import org.polymap.service.http.WmsService;
  * @since 3.0
  */
 public class GeoServerWms
-        extends WmsService {
+        extends MapHttpServer {
 
     private static final Log log = LogFactory.getLog( GeoServerWms.class );
 
@@ -85,13 +85,11 @@ public class GeoServerWms
     
     public GeoServerWms() {
         super();
-        log.debug( "..." );
     }
 
 
-    protected void init( String _pathSpec, IMap _map )
-            throws MalformedURLException {
-        super.init( _pathSpec, _map );
+    protected void init( IMap _map ) {
+        super.init( _map );
         try {
             sessionKey = SessionContext.current().getSessionKey();
             initGeoServer();
@@ -140,7 +138,8 @@ public class GeoServerWms
         Thread.currentThread().setContextClassLoader( context.cl );
 
         try {
-            dataDir = new File( System.getProperty( "java.io.tmpdir" ), "polymap-geoserver-" + map.getLabel() );
+            File cacheDir = GeoServerPlugin.getDefault().getCacheDir();
+            dataDir = new File( cacheDir, Stringer.on( map.getLabel() ).toFilename( "_" ).toString() );
             log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
             dataDir.mkdirs();
             FileUtils.forceDeleteOnExit( dataDir );
@@ -273,8 +272,8 @@ public class GeoServerWms
         }
 
         public String getContextPath() {
-            log.debug( "getContextPath(): result=" + pathSpec );
-            return pathSpec;
+            log.debug( "getContextPath(): result=" + getPathSpec() );
+            return getPathSpec();
             //return delegate.getContextPath();
         }
 

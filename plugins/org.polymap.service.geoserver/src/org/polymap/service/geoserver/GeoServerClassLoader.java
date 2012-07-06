@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service.geoserver;
 
@@ -42,7 +34,6 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @see "http://www.devdaily.com/java/jwarehouse/jetty-6.1.9/modules/jetty/src/main/java/org/mortbay/jetty/webapp/WebAppClassLoader.java.shtml"
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class GeoServerClassLoader

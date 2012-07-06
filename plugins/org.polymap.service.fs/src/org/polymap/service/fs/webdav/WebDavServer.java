@@ -23,6 +23,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -48,7 +49,6 @@ import org.polymap.core.runtime.Timer;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;
-import org.polymap.service.http.WmsService;
 
 /**
  * WebDAV server/servlet based on Milton.
@@ -56,7 +56,7 @@ import org.polymap.service.http.WmsService;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class WebDavServer
-        extends WmsService {
+        extends HttpServlet {
 
     private static Log log = LogFactory.getLog( WebDavServer.class );
     

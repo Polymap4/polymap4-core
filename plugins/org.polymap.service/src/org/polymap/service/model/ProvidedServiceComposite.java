@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -35,8 +34,8 @@ import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.service.IProvidedService;
 import org.polymap.service.ServicesPlugin;
-import org.polymap.service.http.HttpServiceFactory;
-import org.polymap.service.http.WmsService;
+import org.polymap.service.http.MapHttpServletFactory;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * 
@@ -63,7 +62,7 @@ public interface ProvidedServiceComposite
     @Optional
     Property<String>                    pathSpec();
   
-    /** Fully qualified name of the service class. */
+    /** One of the <code>SERVICE_TYPE_xxx</code> constants in {@link ServicesPlugin}. */
     @Optional
     Property<String>                    serviceType();
     
@@ -89,7 +88,7 @@ public interface ProvidedServiceComposite
 
         @This ProvidedServiceComposite      composite;
 
-        private transient WmsService        wms;
+        private transient MapHttpServer    wms;
         
         
         public boolean isEnabled() {
@@ -117,17 +116,17 @@ public interface ProvidedServiceComposite
         }
 
         public void setPathSpec( String url ) {
+            assert ServicesPlugin.validPathSpec( url ).equals( url );
             pathSpec().set( url );
         }
 
-        public Class getServiceType() {
-            try {
-                return Thread.currentThread().getContextClassLoader().loadClass( 
-                        serviceType().get() );
-            }
-            catch (ClassNotFoundException e) {
-                throw new IllegalStateException( e );
-            }
+        public String getServiceType() {
+            return serviceType().get();
+        }
+
+        public boolean isServiceType( String serviceType ) {
+            assert serviceType != null;
+            return serviceType().get().equals( serviceType );
         }
 
         public void setServiceType( Class cl ) {
@@ -141,6 +140,7 @@ public interface ProvidedServiceComposite
         public void setSRS( List<String> srs ) {
             srs().set( srs );
         }
+
         
         public void start() 
         throws Exception {
@@ -149,18 +149,17 @@ public interface ProvidedServiceComposite
             IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
             log.info( "   Starting service for map: " + map.getLabel() + " ..." );
             
-            String pathSpec = pathSpec().get();
+            String pathSpec = getPathSpec();
             if (pathSpec == null || pathSpec.length() == 0) {
-                pathSpec = ServicesPlugin.simpleName( map.getLabel() );
-                // FIXME
-                //pathSpec().set( pathSpec );
+                // XXX why is this default needed?
+                pathSpec = ServicesPlugin.validPathSpec( map.getLabel() );
             }
-            pathSpec = !pathSpec.startsWith( "/" ) ? ("/"+pathSpec) : pathSpec;
 
-            wms = HttpServiceFactory.createWMS( map, ServicesPlugin.SERVICES_PATHSPEC + pathSpec, false );
-            log.info( "        service URL: " + wms.getURL() );
+            wms = MapHttpServletFactory.createWMS( map, pathSpec, false );
+            log.info( "        service URL: " + wms.getPathSpec() );
         }
 
+        
         public void stop() 
         throws Exception {
             if (wms == null) {
@@ -171,7 +170,7 @@ public interface ProvidedServiceComposite
                 log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
 
                 try {
-                    HttpServiceFactory.unregisterServer( wms, true );
+                    MapHttpServletFactory.destroyServer( wms );
                 }
                 catch (Exception e) {
                     log.warn( "", e );

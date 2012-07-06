@@ -39,13 +39,12 @@ public class JsonVectorLayer
     
     public JsonVectorLayer( String name, SimpleJsonServer jsonServer,
             JsonEncoder jsonEncoder, StyleMap styleMap ) {
-        
         super( name, new Protocol( Protocol.TYPE.HTTP, 
                 StringUtils.removeStart( jsonServer.getPathSpec(), "/" ) + "/" + jsonEncoder.getName(),
                 "GeoJSON" ), styleMap );
         this.jsonEncoder = jsonEncoder;
         this.jsonServer = jsonServer;
-        log.debug( "URL: " + jsonServer.getURL() + "/" + jsonEncoder.getName() );
+        log.debug( "URL: " + jsonServer.getPathSpec() + "/" + jsonEncoder.getName() );
     }
 
     

@@ -71,7 +71,7 @@ import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
 
-import org.polymap.service.http.WmsService;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * Provides a very simple WMS server to be used by the {@link MapEditor}. It
@@ -82,7 +82,7 @@ import org.polymap.service.http.WmsService;
  * @since 3.0
  */
 public class SimpleWmsServer
-        extends WmsService {
+        extends MapHttpServer {
 
     private static final Log log = LogFactory.getLog( SimpleWmsServer.class );
     
@@ -103,14 +103,13 @@ public class SimpleWmsServer
     private SessionContext          sessionContext;
 
     
-    public SimpleWmsServer( ) 
+    public SimpleWmsServer() 
     throws MalformedURLException {
     }
 
     
-    public void init( String _pathSpec, IMap _map )
-    throws MalformedURLException {
-        super.init( _pathSpec, _map );
+    public void init( IMap _map ) {
+        super.init( _map );
         this.sessionContext = SessionContext.current();
 
         pipelineIncubator = new DefaultPipelineIncubator();

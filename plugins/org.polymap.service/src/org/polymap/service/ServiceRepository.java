@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service;
 
@@ -44,7 +36,6 @@ import org.polymap.service.model.ServiceListComposite;
  * Factory and repository for the domain model artifacts.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class ServiceRepository
@@ -58,7 +49,7 @@ public class ServiceRepository
      * Get or create the repository for the current user session.
      */
     public static final ServiceRepository instance() {
-        return (ServiceRepository)Qi4jPlugin.Session.instance().module( ServiceRepository.class );
+        return Qi4jPlugin.Session.instance().module( ServiceRepository.class );
     }
 
 
@@ -134,10 +125,18 @@ public class ServiceRepository
             }
         }
     }
-    
-    
-    public IProvidedService findService( IMap map, Class cl ) {
-        List<IProvidedService> services = findServices( map, cl );
+
+
+    /**
+     * 
+     * 
+     * @param map The map to find the service for.
+     * @param serviceType One of the <code>SERVICE_TYPE_xxx</code> constants in
+     *        {@link ServicesPlugin}.
+     * @return The found service, or null.
+     */
+    public IProvidedService findService( IMap map, String serviceType ) {
+        List<IProvidedService> services = findServices( map, serviceType );
         if (services.size() > 1) {
             throw new IllegalStateException( "" );
         }
@@ -150,12 +149,20 @@ public class ServiceRepository
     }
 
     
-    public List<IProvidedService> findServices( IMap map, Class cl ) {
+    /**
+     * 
+     * 
+     * @param map The map to find the service for.
+     * @param serviceType One of the <code>SERVICE_TYPE_xxx</code> constants in
+     *        {@link ServicesPlugin}.
+     * @return The list of found services, or an empty list.
+     */
+    public List<IProvidedService> findServices( IMap map, String serviceType ) {
         List<IProvidedService> result = new ArrayList();
         for (IProvidedService service : serviceList.waitAndGet().getServices()) {
             try {
                 if (service.getMapId().equals( map.id() )
-                        && service.getServiceType().equals( cl )) {
+                        && service.isServiceType( serviceType )) {
                     result.add( service );
                 }
             }

@@ -63,7 +63,7 @@
                   The fully qualified name of a class that extends org.polymap.service.http.WmsService.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn="org.polymap.service.http.WmsService:"/>
+                  <meta.attribute kind="java" basedOn="org.polymap.service.http.MapHttpServer:"/>
                </appinfo>
             </annotation>
          </attribute>

@@ -98,6 +98,7 @@ import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.Stringer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
@@ -487,7 +488,7 @@ public class GeoServerLoader
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
         gsInfo.setTitle( "POLYMAP3 powered by GeoServer :)" );
         gsInfo.setId( "geoserver-polymap3" );
-        gsInfo.setProxyBaseUrl( proxyUrl + service.getPathSpec() );
+        gsInfo.setProxyBaseUrl( proxyUrl + service.getPathSpec() + "/" );
         // XXX indent XML output, make configurable
         gsInfo.setVerbose( true );
         gsInfo.setVerboseExceptions( true );
@@ -503,9 +504,9 @@ public class GeoServerLoader
         // WMS
         WMSInfoImpl wms = new WMSInfoImpl();
         wms.setGeoServer( geoserver );
-        wms.setId( map.getLabel() + "-wms" );
+        wms.setId( simpleName( map.getLabel() ) + "-wms" );
         wms.setMaintainer( "" );
-        wms.setTitle( map.getLabel() );
+        wms.setTitle( simpleName( map.getLabel() ) );
         wms.setAbstract( "POLYMAP3 (polymap.org) powered by GeoServer (geoserver.org)." );
         wms.setName( simpleName( map.getLabel() ) );
         // XXX
@@ -527,9 +528,9 @@ public class GeoServerLoader
         wfs.setGeoServer( geoserver );
         // XXX make this configurable (where to get authentication from when TRANSACTIONAL?)
         wfs.setServiceLevel( ServiceLevel.BASIC );
-        wfs.setId( map.getLabel() + "-wfs" );
+        wfs.setId( simpleName( map.getLabel() ) + "-wfs" );
         wfs.setMaintainer( "" );
-        wfs.setTitle( map.getLabel() );
+        wfs.setTitle( simpleName( map.getLabel() ) );
         wfs.setName( simpleName( map.getLabel() ) + "-wfs" );
         // XXX
         //wfs.setOnlineResource( "http://localhost:10080/services/Atlas" );
@@ -613,7 +614,7 @@ public class GeoServerLoader
         SimpleFeature feature = fb.buildFeature( null );
 
         final FeatureCollection<SimpleFeatureType, SimpleFeature> collection = 
-            FeatureCollections.newCollection();
+                FeatureCollections.newCollection();
         collection.add(feature);
 
         return new CollectionDataStore( collection );
@@ -621,7 +622,7 @@ public class GeoServerLoader
 
     
     protected String simpleName( String s ) {
-        return ServicesPlugin.simpleName( s );
+        return Stringer.on( s ).replaceUmlauts().toURIPath( "_" ).toString();
     }
     
 }

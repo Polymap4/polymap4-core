@@ -14,15 +14,20 @@
  */
 package org.polymap.core;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
+
+import org.geotools.util.logging.Logging;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.geotools.util.logging.Logging;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 
@@ -35,7 +40,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.http.HttpServiceRegistry;
+import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.RapSessionContextProvider;
 import org.polymap.core.runtime.SessionContext;
 
@@ -56,14 +61,67 @@ public class CorePlugin
 	// The shared instance
 	private static CorePlugin  plugin;
 
-	private static boolean     httpServiceRegistryStarted = false;
-
 
 	public static ImageDescriptor imageDescriptor( String path ) {
         return imageDescriptorFromPlugin( PLUGIN_ID, path );
     }
 
 
+    /**
+     * Registers a servlet into the URI namespace.
+     * 
+     * @see #registerServlet(String, Servlet, Dictionary, HttpContext) 
+     * @see HttpService
+     */
+    public static void registerServlet( String alias, HttpServlet servlet, Dictionary initParams )
+    throws Exception {
+        registerServlet( alias, servlet, initParams, null );
+    }
+
+    
+    /**
+     * Registers a servlet into the URI namespace. This helper provides some
+     * convenience over raw {@link HttpService}.
+     * <p/>
+     * The {@link CorePlugin} runs a {@link ServiceTracker} for {@link HttpService}. Callers
+     * of this method don't need to check for an existing {@link HttpService}.
+     * 
+     * @see HttpService
+     */
+    public static void registerServlet( String alias, HttpServlet servlet,
+            Dictionary initParams, HttpContext context )
+            throws Exception {
+        
+        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
+        
+        initParams = initParams != null ? initParams : new Hashtable();
+        initParams.put( "alias", alias );
+        
+        httpService.registerServlet( alias, servlet, initParams, context );
+    }
+
+
+    /**
+     * Unregisters a previous registration done by
+     * {@link #registerServlet(String, Servlet, Dictionary, HttpContext)} or
+     * <code>registerResources</code> methods.
+     * 
+     * @see HttpService
+     */
+    public static void unregister( HttpServlet servlet ) {
+        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
+        httpService.unregister( servletAlias( servlet ) );        
+    }
+
+    
+    public static String servletAlias( HttpServlet servlet ) {
+        assert servlet != null;
+        String alias = servlet.getInitParameter( "alias" );
+        assert alias != null : "There is no 'alias' init param in this servlet.";
+        return alias;
+    }
+    
+    
 	static {
 	    try {
             Logging.GEOTOOLS.setLoggerFactory( "org.geotools.util.logging.CommonsLoggerFactory" );
@@ -122,7 +180,7 @@ public class CorePlugin
 	
     private RapSessionContextProvider   rapSessionContextProvider;
 
-    private ServiceTracker              httpServiceTracker;
+    private HttpServiceTracker          httpServiceTracker;
 
 
 	public CorePlugin() {
@@ -148,16 +206,8 @@ public class CorePlugin
         this.rapSessionContextProvider = new RapSessionContextProvider();
         SessionContext.addProvider( rapSessionContextProvider );
 
-        // init HttpServiceRegistry
-        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
-            public Object addingService( ServiceReference reference ) {
-                HttpService httpService = (HttpService)super.addingService( reference );                
-                if (httpService != null) {
-                    HttpServiceRegistry.init( httpService );
-                }
-                return httpService;
-            }
-        };
+        // init HttpServiceTracker
+        httpServiceTracker = new HttpServiceTracker( context );
         httpServiceTracker.open();
     }
 

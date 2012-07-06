@@ -30,7 +30,8 @@ import org.eclipse.rwt.internal.service.ContextProvider;
 /**
  * Provides a default implementation as a backend for the static Messages class of a
  * bundle.
- *
+ * 
+ * @see ResourceBundle
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @SuppressWarnings("restriction")
@@ -47,11 +48,20 @@ public class MessagesImpl {
     private Locale              defaultLocale = Locale.GERMAN;
 
 
+    /**
+     * 
+     * @param bundleName The name of the resource bundle. This is different from the
+     *        OSGi bundle name.For example: PLUGIN_ID + ".messages".
+     * @param cl The {@link ClassLoader} to be used to load the resources.
+     */
     public MessagesImpl( String bundleName, ClassLoader cl ) {
         this.bundleName = bundleName;
         this.cl = cl;
     }
 
+//    public MessagesImpl( Bundle plugin, String resourceName ) {
+//        this( plugin.getBundleId() + resourceName, plugin.getClass().getClassLoader() );
+//    }
     
     public Locale getDefaultLocale() {
         return defaultLocale;

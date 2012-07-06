@@ -46,6 +46,7 @@ import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.CorePlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeListener;
 import org.polymap.core.data.FeatureEventManager;
@@ -64,8 +65,8 @@ import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.workbench.PolymapWorkbench;
 
-import org.polymap.service.http.HttpServiceFactory;
-import org.polymap.service.http.WmsService;
+import org.polymap.service.ServicesPlugin;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * The RenderManager is the bridge between an {@link IMap} and the {@link MapEditor}
@@ -84,7 +85,7 @@ public class RenderManager {
     
     private MapEditor               mapEditor;
 
-    private WmsService              wmsService;
+    private MapHttpServer          wmsServer;
     
     private TreeMap<String,RenderLayerDescriptor> descriptors = new TreeMap();
     
@@ -147,9 +148,9 @@ public class RenderManager {
             FeatureEventManager.instance().removeFeatureChangeListener( featureListener );
             featureListener = null;
         }
-        if (wmsService != null) {
-            deleteWms( wmsService );
-            wmsService = null;
+        if (wmsServer != null) {
+            destroyWms( wmsServer );
+            wmsServer = null;
         }
         this.map = null;
         this.mapEditor = null;
@@ -188,11 +189,11 @@ public class RenderManager {
         clearPipelines();
         IProgressMonitor monitor = UIJob.monitorForThread();
 
-        if (wmsService != null) {
-            deleteWms( wmsService );
-            wmsService = null;
+        if (wmsServer != null) {
+            destroyWms( wmsServer );
+            wmsServer = null;
         }
-        wmsService = createWms();
+        wmsServer = createWms();
         
         // check geoResource of layers
         for (final ILayer layer : map.getLayers()) {
@@ -219,7 +220,7 @@ public class RenderManager {
                     }
 
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
-                            wmsService.getURL(), layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
+                            wmsServer.getPathSpec(), layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
                     
@@ -238,7 +239,8 @@ public class RenderManager {
         }
     }
 
-    protected WmsService createWms() {
+    
+    protected SimpleWmsServer createWms() {
         try {
             ISettingStore settingStore = RWT.getSettingStore();
             String wmsNamesAttr = settingStore.getAttribute( "RenderManager.wmsnames" );
@@ -247,29 +249,21 @@ public class RenderManager {
 
             String pathSpec = wmsNames.optString( map.id(), null );
             if (pathSpec == null) {
-                pathSpec = "/services/" + map.getLabel() + "--" + System.currentTimeMillis();
+                pathSpec = ServicesPlugin.createServicePath( map.getLabel() + "--" + System.currentTimeMillis() );
                 wmsNames.put( map.id(), pathSpec );
                 settingStore.setAttribute( "RenderManager.wmsnames", wmsNames.toString() );
             }
         
-            log.info( "Service pathSpec: " + pathSpec );
+            log.info( "Service path: " + pathSpec );
 
             // use our own WMS impl
-            SimpleWmsServer wmsServer = new SimpleWmsServer();
-            log.debug( "    service: " + wmsServer.getClass().getName() );
+            SimpleWmsServer result = new SimpleWmsServer();
+            result.init( map );
 
-            String url = null;
-            try {
-                url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );
-            }
-            catch (/*Namespace*/Exception e) {
-                HttpServiceFactory.unregisterServer( pathSpec, false );
-                url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );                
-            }
-            wmsServer.init( url, map );
+            CorePlugin.registerServlet( pathSpec, result, null );
 
-            log.debug( "    URL: " + wmsServer.getURL() );
-            return wmsServer;
+            log.debug( "    URL: " + result.getPathSpec() );
+            return result;
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "Fehler beim Starten des WMS-Services.", e );
@@ -278,8 +272,8 @@ public class RenderManager {
     }
     
     
-    protected void deleteWms( WmsService wmsServer ) {
-        HttpServiceFactory.unregisterServer( wmsServer, true );
+    protected void destroyWms( MapHttpServer server ) {
+        CorePlugin.unregister( server );
     }
     
     
