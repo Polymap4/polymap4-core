@@ -53,7 +53,7 @@ public class ServicesPlugin
 	/** The general base pathSpec for all services. */
 	public static final String      SERVICES_PATHSPEC = "/services";
 
-	public static final String      PREF_PROXY_URL = "_proxyUrl_";
+    public static final String      PREF_PROXY_URL = "_proxyUrl_";
     
     public static final String      SERVICE_TYPE_WMS = "org.polymap.service.http.WmsService";
     public static final String      SERVICE_TYPE_WFS = "org.polymap.service.http.WfsService";
@@ -132,7 +132,11 @@ public class ServicesPlugin
     public ServicesPlugin() {
     }
 
-    
+    /**
+     * The configured base URL of this instance.
+     *
+     * @return The configured URL or somethong like http://localhost...
+     */
     public String getBaseUrl() {
         return proxyBaseUrl != null && proxyBaseUrl.length() > 0
             ? proxyBaseUrl : localBaseUrl;
@@ -183,7 +187,7 @@ public class ServicesPlugin
                     localBaseUrl = protocol + "://" + hostname + ":" + port;
                     log.info( "HTTP service found on: " + localBaseUrl );
 
-                    ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), getBundle().getSymbolicName() );
+                    ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), PLUGIN_ID );
                     proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
                     log.info( "Proxy URL set to: " + proxyBaseUrl );
 

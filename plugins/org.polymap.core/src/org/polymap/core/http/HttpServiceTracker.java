@@ -92,6 +92,7 @@ public class HttpServiceTracker
                 if (contextPath != null && !contextPath.startsWith( "/" )) {
                     contextPath = "/" + contextPath;
                 }
+                                
                 HttpServlet servlet = (HttpServlet)ext.createExecutableExtension( "class" );
                 httpService.registerServlet( path, servlet, null, null );
                 log.info( "    context: " + contextPath + " :" + servlet.getClass().getName() );
