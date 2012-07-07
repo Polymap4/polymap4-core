@@ -40,9 +40,9 @@ import org.polymap.service.ServicesPlugin;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
-public class MapHttpServletFactory {
+public class MapHttpServerFactory {
 
-    private static final Log log = LogFactory.getLog( MapHttpServletFactory.class );
+    private static final Log log = LogFactory.getLog( MapHttpServerFactory.class );
 
     private static final String             WMS_EXTENSION_POINT_ID = "org.polymap.service.wms";
 

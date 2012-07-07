@@ -34,7 +34,7 @@ import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.service.IProvidedService;
 import org.polymap.service.ServicesPlugin;
-import org.polymap.service.http.MapHttpServletFactory;
+import org.polymap.service.http.MapHttpServerFactory;
 import org.polymap.service.http.MapHttpServer;
 
 /**
@@ -155,7 +155,7 @@ public interface ProvidedServiceComposite
                 pathSpec = ServicesPlugin.validPathSpec( map.getLabel() );
             }
 
-            wms = MapHttpServletFactory.createWMS( map, pathSpec, false );
+            wms = MapHttpServerFactory.createWMS( map, pathSpec, false );
             log.info( "        service URL: " + wms.getPathSpec() );
         }
 
@@ -170,7 +170,7 @@ public interface ProvidedServiceComposite
                 log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
 
                 try {
-                    MapHttpServletFactory.destroyServer( wms );
+                    MapHttpServerFactory.destroyServer( wms );
                 }
                 catch (Exception e) {
                     log.warn( "", e );
