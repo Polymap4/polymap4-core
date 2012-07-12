@@ -22,6 +22,8 @@
  */
 package org.polymap.service.http;
 
+import org.osgi.service.http.NamespaceException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -80,9 +82,13 @@ public class MapHttpServerFactory {
     /**
      * 
      * @see pathSpec The alias of the servlet, without leading /services path.
+     * @param forceUnregister If true then a previously registered server for the
+     *        same pathSpec is silently unregistered. Otherwise a
+     *        {@link NamespaceException} is thrown if another server is registered
+     *        for the same pathSpec.
      * @return The newly created server.
      */
-    public static MapHttpServer createWMS( IMap map, String pathSpec, boolean forceException )
+    public static MapHttpServer createWMS( IMap map, String pathSpec, boolean forceUnregister )
             throws Exception {
         if (wmsExt == null) {
             throw new IllegalStateException( "No WMS service extension found." );
@@ -99,7 +105,20 @@ public class MapHttpServerFactory {
             else {
                 servicePath = ServicesPlugin.createServicePath( pathSpec );
             }
-            CorePlugin.registerServlet( servicePath, wmsServer, null );
+            
+            try {
+                CorePlugin.registerServlet( servicePath, wmsServer, null );
+            }
+            catch (NamespaceException e) {
+                if (forceUnregister) {
+                    log.warn( "Unregistering server found for alias: " + servicePath );
+                    CorePlugin.unregister( servicePath );
+                    CorePlugin.registerServlet( servicePath, wmsServer, null );
+                }
+                else {
+                    throw e;
+                }
+            }
             wmsServer.init( map );
             
             return wmsServer;

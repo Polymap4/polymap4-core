@@ -156,17 +156,17 @@ public class ServicesPlugin
         contextProvider = new DefaultSessionContextProvider();
         SessionContext.addProvider( contextProvider );
         
-        // legacy: delete services without a map
-        contextProvider.mapContext( "legacyDeleteServices", true );
-        Polymap.instance().addPrincipal( new AdminPrincipal() );
-        ServiceRepository repo = ServiceRepository.instance();
-        try {
-            repo.legacyRemoveServices();
-        }
-        finally {
-            repo.commitChanges();
-            contextProvider.unmapContext();
-        }
+//        // legacy: delete services without a map
+//        contextProvider.mapContext( "legacyDeleteServices", true );
+//        Polymap.instance().addPrincipal( new AdminPrincipal() );
+//        ServiceRepository repo = ServiceRepository.instance();
+//        try {
+//            repo.legacyRemoveServices();
+//        }
+//        finally {
+//            repo.commitChanges();
+//            contextProvider.unmapContext();
+//        }
 
         // register resource
         httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
@@ -198,7 +198,7 @@ public class ServicesPlugin
                             initServices();
                             return Status.OK_STATUS;
                         }
-                    }.schedule( 5000 );
+                    }.schedule( 2000 );
                 }
                 return httpService;
             }

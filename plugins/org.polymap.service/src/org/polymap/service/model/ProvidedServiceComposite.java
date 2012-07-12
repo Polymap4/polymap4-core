@@ -155,7 +155,7 @@ public interface ProvidedServiceComposite
                 pathSpec = ServicesPlugin.validPathSpec( map.getLabel() );
             }
 
-            wms = MapHttpServerFactory.createWMS( map, pathSpec, false );
+            wms = MapHttpServerFactory.createWMS( map, pathSpec, true );
             log.info( "        service URL: " + wms.getPathSpec() );
         }
 

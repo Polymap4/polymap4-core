@@ -31,6 +31,10 @@ public abstract class MapHttpServer
     protected IMap              map;
     
     
+    public MapHttpServer() {
+    }
+
+    
     protected void init( IMap _map ) {
         assert _map != null;
         this.map = _map;

@@ -114,6 +114,19 @@ public class CorePlugin
     }
 
     
+    /**
+     * Unregisters a previous registration done by
+     * {@link #registerServlet(String, Servlet, Dictionary, HttpContext)} or
+     * <code>registerResources</code> methods.
+     * 
+     * @see HttpService
+     */
+    public static void unregister( String alias ) {
+        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
+        httpService.unregister( alias );        
+    }
+
+    
     public static String servletAlias( HttpServlet servlet ) {
         assert servlet != null;
         String alias = servlet.getInitParameter( "alias" );
