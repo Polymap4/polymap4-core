@@ -28,6 +28,7 @@ import net.refractions.udig.catalog.IService;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.json.JSONObject;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -220,7 +221,8 @@ public class RenderManager {
                     }
 
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
-                            wmsServer.getPathSpec(), layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
+                            StringUtils.removeStart( wmsServer.getPathSpec(), "/" ), 
+                            layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
                     

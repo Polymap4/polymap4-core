@@ -29,8 +29,6 @@ import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -103,8 +101,7 @@ public class SimpleWmsServer
     private SessionContext          sessionContext;
 
     
-    public SimpleWmsServer() 
-    throws MalformedURLException {
+    public SimpleWmsServer() { 
     }
 
     
