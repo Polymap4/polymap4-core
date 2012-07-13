@@ -3,19 +3,21 @@
       title="Willkommen in der Workbench">
    <intro>
       <description>
-         Die Rhei-IDE ist ein Werkzeug zur Erstellung von <b>Scripten</b>, die innerhalb der Workbench ausgeführt werden können. Scripte können verschiedene Aspekte der Oberfläche erweitern, zum Beispiel: <b>Formulare, Druckvorlage</b> und <b>Datenprozessoren</b>.
-<br/><br/>
-Um die Arbeit so einfach als möglich zu gestalten, gibt es eine seaparate Perspektive innerhalb der Workbench. Sie heißt <b>Rhei-IDE</b> und beinhaltet alle entsprechenden Werkzeuge.
-<br/><br/>
-Dieser &quot;Spickzettel&quot; gibt eine kurze Einführung in die einzelnen Werkzeuge. Klicken Sie auf den nachfolgenden Link, um zu beginnen.
+         &lt;p formHeight=&quot;220&quot;&gt;Die Workbench ist die <b>Schaltzentrale</b> von POLYMAP3. In der Workbench werden Daten und Dienste in einem <b>Katalog</b> zusammen gestellt, um daraus fachspezifische <b>Projekte und Ebenen</b> zu erstellen.&lt;/p&gt;
+&lt;p&gt;In der Workbench können Geometrien und Sachdaten bearbeitet werden. Außerdem werden die Rechte, das Styling, die Abgabe von Diensten und jedweder andere Aspekt der Daten und ihrer Verarbeitung hier eingestellt.
+&lt;/p&gt;&lt;p&gt;
+Die Workbench besteht aus einer Reihe von <b>Sichten</b> (&quot;Views&quot;), die alle eine eigene Aufgabe erfüllen. Einige dieser Sichten und deren Funktion werden im Folgenden kurz erklärt.
+&lt;/p&gt;
       </description>
    </intro>
    <item
          title="Spickzettel">
       <description>
-         &quot;Spickzettel&quot; (engl. cheat sheets) sind eine neues Hilfsmittel in der Workbench. Ein Spickzettel gibt Hilfestellung bei der Lösung einer konkreten Aufgabe in einzelnen Schritten. 
-<br/><br/>
-Ein Spickzettel funktioniert also wie eine Checkliste. Einzelne Punkte werden nacheinander abgearbeitet und jeweils bestätigt. Dadurch wird kein Arbeitsschritt vergessen.
+         &lt;p formHeight=&quot;230&quot;&gt;Spickzettel&quot; (engl. &quot;cheat sheets&quot;) sind eine neues Hilfsmittel in der Workbench. Ein Spickzettel gibt Hilfestellung bei der Lösung einer <b>konkreten Aufgabe</b>. Jeder einzelne Schritt wird kurz und dann &quot;abgehackt&quot;. &lt;/p&gt;
+&lt;p&gt;
+Ein Spickzettel funktioniert wie eine <b>Checkliste</b>. Einzelne Punkte werden nacheinander abgearbeitet und jeweils bestätigt. Dadurch wird kein Arbeitsschritt vergessen.&lt;/p&gt;
+&lt;p&gt;
+Eine Liste mit vorhandenen Spickzetteln wird oberhalb in einem Baum angezeigt. Aus dem Baum kann man jederzeit einen Eintrag per <b>Doppelklick</b> wählen. Danach muss der Spickzettel <b>(neu) gestartet</b> werden.
       </description>
    </item>
 </cheatsheet>
