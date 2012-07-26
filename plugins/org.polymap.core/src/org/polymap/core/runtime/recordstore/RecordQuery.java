@@ -14,6 +14,9 @@
  */
 package org.polymap.core.runtime.recordstore;
 
+import java.io.IOException;
+
+
 /**
  * Basic query interace.
  *
@@ -21,12 +24,37 @@ package org.polymap.core.runtime.recordstore;
  */
 public abstract class RecordQuery {
 
-    public static final int DEFAULT_MAX_RESULTS = 10;
+    /** The default value returned by {@link #getMaxResults()}. Defaults to 10. */
+    public static final int     DEFAULT_MAX_RESULTS = 10;
     
-    private int             maxResults = DEFAULT_MAX_RESULTS;
+    public static final char    DEFAULT_ANY_WILDCARD = '*';
     
-    private int             firstResult;
+    public static final char    DEFAULT_ONE_WILDCARD = '?';
+    
+    /** Sort order: ascending */
+    public static final int     ASC = 0;
+    
+    public static final int     DESC = 1;
+    
+    private int                 maxResults = DEFAULT_MAX_RESULTS;
+    
+    private int                 firstResult;
 
+    private String              sortKey;
+
+    private int                 sortOrder;
+
+    private Class               sortType;
+    
+    
+    /**
+     * 
+     *
+     * @return
+     * @throws IOException
+     */
+    public abstract ResultSet execute() throws IOException;
+    
     
     public int getMaxResults() {
         return maxResults;
@@ -45,5 +73,31 @@ public abstract class RecordQuery {
         this.firstResult = firstResult;
         return this;
     }
+
+    /**
+     * Specify the sort order of the result.
+     * 
+     * @param key Key to sort by.
+     * @param order {@link #ASC} or {@link #DESC}
+     * @param type Optional type of the field to sort.
+     */
+    public RecordQuery sort( String key, int order, Class type ) {
+        sortKey = key;
+        sortOrder = order;
+        sortType = type;
+        return this;
+    }
     
+    public String getSortKey() {
+        return sortKey;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+    
+    public Class getSortType() {
+        return sortType;
+    }
+
 }

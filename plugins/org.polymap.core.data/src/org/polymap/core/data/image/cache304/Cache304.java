@@ -50,8 +50,8 @@ import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.RecordQuery;
+import org.polymap.core.runtime.recordstore.ResultSet;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
-import org.polymap.core.runtime.recordstore.IRecordStore.ResultSet;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**

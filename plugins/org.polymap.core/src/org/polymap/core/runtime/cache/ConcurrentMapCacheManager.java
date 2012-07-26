@@ -16,8 +16,6 @@ package org.polymap.core.runtime.cache;
 
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.concurrent.ConcurrentHashMap;
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
@@ -31,12 +29,12 @@ import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.ConcurrentMapCache.CacheEntry;
 
 /**
- * In-memory cache manager. The caches are backed by {@link ConcurrentHashMap}s.
- * Memory usage is periodically checked by the {@link MemoryChecker} thread. If
- * memory is low then the LRU entries ({@link #DEFAULT_EVICTION_SIZE}) from all
- * caches are evicted. The check interval is calculated from the amount of free
- * memory.
+ * Memory usage of all caches is periodically checked by the {@link MemoryChecker}
+ * thread. If memory is low then the LRU entries ({@link #DEFAULT_EVICTION_SIZE})
+ * from all caches are evicted. The check interval is calculated from the amount of
+ * free memory.
  * 
+ * @see ConcurrentMapCache
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 final class ConcurrentMapCacheManager

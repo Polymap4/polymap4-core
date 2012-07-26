@@ -26,7 +26,8 @@ import com.google.common.collect.Iterables;
 import org.polymap.core.runtime.ListenerList;
 
 /**
- * In-memory cache backed by a {@link ConcurrentHashMap}.
+ * Cache backed by a {@link ConcurrentHashMap} with separate thread
+ * evicting entries via LRU policy.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -104,11 +105,16 @@ final class ConcurrentMapCache<K,V>
         else {
             V value = loader.load( key );
             int memSize = loader.size();
-            entry = new CacheEntry( value, memSize != ELEMENT_SIZE_UNKNOW ? memSize : config.elementMemSize );
-            CacheEntry<V> previous = entries.putIfAbsent( key, entry );
-            return previous == null
-                    ? entry.value()
-                    : previous.value();
+            if (value != null) {
+                entry = new CacheEntry( value, memSize != ELEMENT_SIZE_UNKNOW ? memSize : config.elementMemSize );
+                CacheEntry<V> previous = entries.putIfAbsent( key, entry );
+                return previous == null
+                        ? entry.value()
+                        : previous.value();
+            }
+            else {
+                return null;
+            }
         }
     }
 

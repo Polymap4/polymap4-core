@@ -37,7 +37,7 @@ public class CacheConfig {
     protected int                   concurrencyLevel = DEFAULT_CONCURRENCY_LEVEL;
     
     protected int                   initSize = DEFAULT_INIT_SIZE;
-    
+
     
     /**
      * Creates a new cache config with default value:
@@ -64,5 +64,5 @@ public class CacheConfig {
         this.initSize = initSize;
         return this;
     }
-
+    
 }

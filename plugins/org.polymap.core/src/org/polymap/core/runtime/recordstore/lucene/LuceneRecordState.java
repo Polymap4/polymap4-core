@@ -103,6 +103,7 @@ public final class LuceneRecordState
                     sharedDoc = false;
                     
                     try {
+                        store.lock.readLock().lock();
                         TermDocs termDocs = store.reader.termDocs( new Term( LuceneRecordState.ID_FIELD, (String)id() ) );
                         try {
                             if (termDocs.next()) {
@@ -119,6 +120,9 @@ public final class LuceneRecordState
                     catch (Exception e) {
                         throw new RuntimeException( "Unable to copy Lucene document on write." );
                     }
+                    finally {
+                        store.lock.readLock().unlock();
+                    }
                 }
             }
         }
@@ -126,7 +130,7 @@ public final class LuceneRecordState
 
 
     public <T> LuceneRecordState put( String key, T value ) {
-        assert key != null;
+        assert key != null && key.length() > 0 : "Key must not be null or empty.";
         assert value != null : "Value must not be null.";
         
         checkCopyOnWrite();
