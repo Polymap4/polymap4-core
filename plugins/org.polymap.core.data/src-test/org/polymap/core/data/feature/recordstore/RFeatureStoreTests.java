@@ -37,8 +37,10 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
 
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**
@@ -118,12 +120,15 @@ public class RFeatureStoreTests
         RFeatureStore fs = (RFeatureStore)ds.getFeatureSource( shapeFs.getSchema().getName() );        
         fs.addFeatures( shapeFs.getFeatures() );
         
-//        log.debug( "iterating all features..." );
-//        fs.getFeatures().accepts( new FeatureVisitor() {
-//            public void visit( Feature feature ) {
-//                log.info( "Feature: " + feature );
-//            }
-//        }, null );
+        Timer timer = new Timer();
+        log.debug( "iterating all features..." );
+        fs.getFeatures().accepts( new FeatureVisitor() {
+            public void visit( Feature feature ) {
+                boolean isGeom = feature.getDefaultGeometryProperty().getValue() instanceof Geometry;
+                //log.info( "Feature: geom: " + (feature.getDefaultGeometryProperty().getValue() instanceof Geometry) );
+            }
+        }, null );
+        log.info( "Reading all features: " + timer.elapsedTime() + "ms" );
     }
     
 }

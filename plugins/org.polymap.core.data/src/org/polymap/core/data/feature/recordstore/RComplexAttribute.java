@@ -23,6 +23,8 @@ import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.ComplexType;
+import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.feature.type.GeometryType;
 import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.identity.Identifier;
@@ -76,6 +78,10 @@ public class RComplexAttribute
                 // complex (check more special first!)
                 if (child.getType() instanceof ComplexType) {
                     props.add( new RComplexAttribute( feature, key, (AttributeDescriptor)child, null ) );                    
+                }
+                // geometry
+                else if (child.getType() instanceof GeometryType) {
+                    props.add( new RGeometryAttribute( feature, key, (GeometryDescriptor)child, null ) );
                 }
                 // attribute
                 else if (child.getType() instanceof AttributeType) {

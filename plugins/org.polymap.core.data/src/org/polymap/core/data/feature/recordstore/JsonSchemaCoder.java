@@ -19,12 +19,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.geotools.feature.NameImpl;
-import org.geotools.feature.type.AttributeDescriptorImpl;
-import org.geotools.feature.type.AttributeTypeImpl;
-import org.geotools.feature.type.ComplexTypeImpl;
-import org.geotools.feature.type.FeatureTypeImpl;
-import org.geotools.feature.type.GeometryDescriptorImpl;
-import org.geotools.feature.type.GeometryTypeImpl;
+import org.geotools.feature.type.FeatureTypeFactoryImpl;
 import org.geotools.referencing.CRS;
 import org.geotools.util.SimpleInternationalString;
 import org.json.JSONArray;
@@ -32,6 +27,7 @@ import org.json.JSONObject;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.ComplexType;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.FeatureTypeFactory;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.GeometryType;
 import org.opengis.feature.type.Name;
@@ -161,6 +157,8 @@ class JsonSchemaCoder {
         
         private String              namespace;
         
+        private FeatureTypeFactory  factory = new FeatureTypeFactoryImpl();
+        
         
         public Decoder( String jsonInput ) throws Exception  {
             this.input = new JSONObject( jsonInput );
@@ -182,7 +180,7 @@ class JsonSchemaCoder {
                     geom = (GeometryDescriptor)prop;
             }
             
-            return new FeatureTypeImpl( complexType.getName(), complexType.getDescriptors(),
+            return factory.createFeatureType( complexType.getName(), complexType.getDescriptors(),
                     geom, complexType.isIdentified(), complexType.getRestrictions(),
                     complexType.getSuper(), complexType.getDescription() );
         }
@@ -206,7 +204,7 @@ class JsonSchemaCoder {
                 // attribute
                 if (typeStr.equals( "AttributeType" )) {
                     AttributeType propType = decodeAttributeType( descriptorJson );
-                    properties.add( new AttributeDescriptorImpl( propType, 
+                    properties.add( factory.createAttributeDescriptor( propType, 
                             propType.getName(), minOccurs, maxOccurs, isNillable, defaultValue ) );
                 }
                 // geometry
@@ -214,11 +212,11 @@ class JsonSchemaCoder {
                     CoordinateReferenceSystem crs = CRS.decode( descriptorJson.getString( "srs" ) );
                     AttributeType propType = decodeAttributeType( descriptorJson );
                     
-                    GeometryType geomType = new GeometryTypeImpl( propType.getName(),
+                    GeometryType geomType = factory.createGeometryType( propType.getName(),
                             propType.getBinding(), crs, propType.isIdentified(), propType.isAbstract(),
                             propType.getRestrictions(), propType.getSuper(), propType.getDescription() );
                     
-                    properties.add( new GeometryDescriptorImpl( geomType, 
+                    properties.add( factory.createGeometryDescriptor( geomType, 
                             geomType.getName(), minOccurs, maxOccurs, isNillable, defaultValue ) );
                 }
                 // complex
@@ -230,7 +228,7 @@ class JsonSchemaCoder {
                 }
             }
             
-            return new ComplexTypeImpl( attType.getName(), properties, 
+            return factory.createComplexType( attType.getName(), properties, 
                     attType.isIdentified(), attType.isAbstract(), attType.getRestrictions(), 
                     attType.getSuper(), attType.getDescription() );
         }
@@ -250,7 +248,7 @@ class JsonSchemaCoder {
                     ? decodeAttributeType( json.getJSONObject( "super" ) )
                     : null;
                     
-            return new AttributeTypeImpl( name, binding, false, isAbstract, restrictions, superType, description ); 
+            return factory.createAttributeType( name, binding, false, isAbstract, restrictions, superType, description ); 
         }
         
         

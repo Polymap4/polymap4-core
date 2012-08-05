@@ -16,6 +16,7 @@ package org.polymap.core.data.feature.recordstore;
 
 import java.util.Collection;
 import java.util.Iterator;
+
 import java.io.IOException;
 
 import org.geotools.data.Query;
@@ -32,7 +33,11 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.sort.SortBy;
 import org.opengis.util.ProgressListener;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.google.common.base.Supplier;
+
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.recordstore.IRecordState;
@@ -48,6 +53,8 @@ import org.polymap.core.runtime.recordstore.ResultSet;
  */
 class RFeatureCollection
         implements FeatureCollection {
+
+    private static Log log = LogFactory.getLog( RFeatureCollection.class );
 
     private String              id;
 
@@ -133,8 +140,9 @@ class RFeatureCollection
                 try {
                     visitor.visit( (Feature)it.next() );
                 }
-                catch (Exception e1) {
-                    progress.exceptionOccurred( e1 );
+                catch (Exception e) {
+                    log.warn( "Error while visiting features.", e );
+                    progress.exceptionOccurred( e );
                 }
             }            
         }
