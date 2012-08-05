@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
  * Thread-safe implementation of a listener list.
  * <p/>
  * This listener list supports adjustable listener comparators. A listener comparator
- * decides of any two listeners are "dublicates". Dublicates are not added to the list.
+ * decides if any two listeners are "dublicates". Dublicates are not added to the list.
  * There are {@link #EQUALITY} and {@link #IDENTITY} as default comparators.
  * <p/>
  * This listener list support different kinds of listener references. There are the

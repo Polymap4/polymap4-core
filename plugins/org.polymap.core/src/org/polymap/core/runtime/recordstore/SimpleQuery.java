@@ -31,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
  * If the property value is a list then CONTAINS semantic is assumed.
  * <p/>
  * The {@link #template()} method together with {@link RecordModel} allows type-safe
- * query by example.
+ * query-by-example.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

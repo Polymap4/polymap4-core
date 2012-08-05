@@ -14,13 +14,14 @@
  */
 package org.polymap.core;
 
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
+import org.polymap.core.model2.test.FeatureSimpleModelTest;
 import org.polymap.core.runtime.cache.test.ConcurrentMapTest;
 import org.polymap.core.runtime.mp.test.MPTest;
 import org.polymap.core.runtime.mp.test.SimpleTest;
 import org.polymap.core.runtime.recordstore.test.LuceneRecordStoreTest;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
 
 
 public class CoreTests {
@@ -28,10 +29,14 @@ public class CoreTests {
     public static Test suite() {
         TestSuite suite = new TestSuite( "Test for org.polymap.core" );
         //$JUnit-BEGIN$
+       // suite.addTestSuite( LuceneSimpleModelTest.class );
+        suite.addTestSuite( FeatureSimpleModelTest.class );
+
+        suite.addTestSuite( LuceneRecordStoreTest.class );
+
         suite.addTestSuite( MPTest.class );
         suite.addTestSuite( SimpleTest.class );
         suite.addTestSuite( ConcurrentMapTest.class );
-        suite.addTestSuite( LuceneRecordStoreTest.class );
         //$JUnit-END$
         return suite;
     }

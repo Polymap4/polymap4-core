@@ -70,7 +70,7 @@ public abstract class AbstractRecordStoreTest
 
     
     public void tst() throws Exception {
-        int loops = 100000;
+        int loops = 1000;
         createRecords( loops );
         readRecords( loops );
         queryRecords( loops );
@@ -78,7 +78,7 @@ public abstract class AbstractRecordStoreTest
 
 
     public void testThreaded() throws Exception {
-        final int loops = 25000;
+        final int loops = 250;
         final int threads = 4;
         createRecords( loops*threads );
         

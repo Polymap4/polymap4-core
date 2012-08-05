@@ -17,12 +17,15 @@ package org.polymap.core.runtime;
 import com.google.common.base.Supplier;
 
 /**
- * A way to provide a lazily initialized (cache) variable.
+ * Provides a lazily initialized (cache) variable.
  * <p/>
- * Advantage could be to 'stack' several suppliers to accumulate their behaviour. For
- * example Stack and JobLazyInit on a LockedLazyInit to get a lazily initialized
- * variable that is guaranteed to be initialized just ones *and* that is initialized
- * in a separate running job.
+ * Using a LazyInit keeps the client code independent from the initialization
+ * logic.
+ * <p/>
+ * {@link LazyInit} implements {@link Supplier}. This allows to 'stack' several
+ * implementations to combine their behaviour. For example a JobLazyInit on a
+ * {@link LockedLazyInit} results in a lazily initialized variable that is guaranteed
+ * to be initialized just ones *and* that is initialized in a separately running job.
  * 
  * @see Atomically
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

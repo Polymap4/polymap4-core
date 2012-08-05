@@ -272,6 +272,7 @@ public final class LuceneRecordStore
         public Document load( Object id ) throws Exception {
             TermDocs termDocs = null;
             try {
+                log.debug( "LUCENE: termDocs: " + LuceneRecordState.ID_FIELD + " = " + id.toString() );
                 lock.readLock().lock();
                 termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
                 if (termDocs.next()) {
