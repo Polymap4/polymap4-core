@@ -14,6 +14,7 @@
  */
 package org.polymap.core.model2.test;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Property;
 
 /**
@@ -21,7 +22,8 @@ import org.polymap.core.model2.Property;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class TrackableMixin {
+public class TrackableMixin
+        extends Composite {
 
     protected Property<Integer>    track;
     

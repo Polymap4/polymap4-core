@@ -19,66 +19,79 @@ import java.lang.reflect.ParameterizedType;
 
 import javax.annotation.Nullable;
 
+import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.Immutable;
+import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.NameInStore;
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
-import org.polymap.core.model2.store.PropertyDescriptor;
+import org.polymap.core.model2.Property;
+import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class PropertyDescriptorImpl
-        implements PropertyDescriptor {
+final class PropertyInfoImpl<T>
+        implements PropertyInfo<T> {
 
-    private static final String ParameterizedType = null;
-
-    private EntityRuntimeContext    context;
-    
     private Field                   field;
+
     
-    private PropertyDescriptor      parent;
-    
-    
-    public PropertyDescriptorImpl( EntityRuntimeContext context, Field field, PropertyDescriptor parent ) {
-        this.context = context;
+    public PropertyInfoImpl( Field field ) {
+        assert Property.class.isAssignableFrom( field.getType() );
         this.field = field;
-        this.parent = parent;
     }
 
-    public EntityRuntimeContext getContext() {
-        return context;
-    }
-
-    public Field getField() {
-        return field;
-    }
-
-    public PropertyDescriptor getParent() {
-        return parent;
-    }
-
-    public Class getPropertyType() {
+    @Override
+    public Class getType() {
         ParameterizedType declaredType = (ParameterizedType)field.getGenericType();
         return (Class)declaredType.getActualTypeArguments()[0];
-
     }
     
+    @Override
+    public String getName() {
+        return field.getName();
+    }
+
+    @Override
     public String getNameInStore() {
         return field.getAnnotation( NameInStore.class ) != null
                 ? field.getAnnotation( NameInStore.class ).value()
                 : field.getName();
     }
 
+    @Override
     public boolean isNullable() {
         return field.getAnnotation( Nullable.class ) != null;
     }
 
+    @Override
+    public boolean isImmutable() {
+        return field.getAnnotation( Immutable.class ) != null;
+    }
+
+    @Override
     public int getMaxOccurs() {
+        if (CollectionProperty.class.isAssignableFrom( field.getType() )) {
+            return field.getAnnotation( MaxOccurs.class ) != null
+                    ? field.getAnnotation( MaxOccurs.class ).value()
+                    : Integer.MAX_VALUE;
+        }
+        else {
+            return 1;
+        }
+    }
+
+    @Override
+    public T getDefaultValue() {
+        return (T)DefaultValues.valueOf( field );
+    }
+
+    @Override
+    public Entity getEntity() {
+        // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
-//        return field.getAnnotation( MaxOccurs.class ) != null
-//        ? field.getAnnotation( NameInStore.class ).value()
-//        : field.getName();
     }
 
 }

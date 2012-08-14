@@ -24,7 +24,6 @@ import org.polymap.core.model2.Concerns;
 import org.polymap.core.model2.DefaultValue;
 import org.polymap.core.model2.Description;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.EntityMixin;
 import org.polymap.core.model2.Mixins;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.store.feature.SRS;
@@ -36,11 +35,11 @@ import org.polymap.core.model2.store.feature.SRS;
  */
 @Description("Beschreibung dieses Datentyps")
 @Concerns( LogConcern.class )
-@Mixins( {EntityMixin.class, TrackableMixin.class} )
+@Mixins( {TrackableMixin.class} )
 @SRS( "EPSG:31468" )
 public abstract class Person
         extends Entity {
-
+    
     protected Property<Point>       geom;
 
     protected Property<String>      name;
@@ -50,5 +49,5 @@ public abstract class Person
 
     @Nullable
     protected Property<Date>        birthday;
-    
+ 
 }

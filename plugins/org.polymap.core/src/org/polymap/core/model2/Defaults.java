@@ -37,4 +37,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Defaults {
 
+    boolean value() default true;
+
 }

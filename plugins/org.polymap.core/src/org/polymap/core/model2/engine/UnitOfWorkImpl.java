@@ -15,112 +15,193 @@
 package org.polymap.core.model2.engine;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.io.IOException;
 
 import com.google.common.base.Function;
 import static com.google.common.collect.Collections2.*;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.runtime.EntityCreator;
-import org.polymap.core.model2.runtime.EntityRepository;
+import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
+import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.UnitOfWork;
+import org.polymap.core.model2.runtime.ValueInitializer;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
-import org.polymap.core.model2.store.StoreRuntimeContext;
+import org.polymap.core.model2.store.CompositeState;
+import org.polymap.core.model2.store.StoreUnitOfWork;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheLoader;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheEvictionListener;
+import org.polymap.core.runtime.cache.CacheManager;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public abstract class UnitOfWorkImpl
+public class UnitOfWorkImpl
         implements UnitOfWork {
 
-    protected StoreRuntimeContext           context;
+    private static final Exception          PREPARED = new Exception( "Successfully prepared for commit." );
     
-    protected EntityRepository              repo;
-
-    protected ConcurrentMap<Object,Entity>  loaded = new ConcurrentHashMap( 1024, 0.75f, 4 );
-
+    protected EntityRepositoryImpl          repo;
     
-    protected UnitOfWorkImpl( StoreRuntimeContext context ) {
-        this.context = context;
-        this.repo = context.getRepository();
-    }
+    protected StoreUnitOfWork               underlying;
 
-
-    protected abstract Object stateId( Object state );
-
-    protected abstract <T extends Entity> Object loadState( Object id, Class<T> entityClass );
-
-    protected abstract <T extends Entity> Object newState( Object id, Class<T> entityClass );
-
-    protected abstract <T extends Entity> Collection findStates( Class<T> entityClass );
+    protected Cache<Object,Entity>          loaded;
+    
+    private volatile Exception              prepareResult;
     
     
-    protected <T extends Entity> T getOrCreateEntity( Class<T> entityClass, Object state, Object id ) {
-        assert id != null;
-        Entity result = loaded.get( id );
-        if (result == null) {
-            result = context.buildEntity( id, state, entityClass, this );
-            Entity old = loaded.putIfAbsent( id, result );
-            result = old != null ? old : result;
-        }
-        return (T)result;
-    }
-
-
-    public <T extends Entity> T newEntity( Class<T> entityClass, Object id, EntityCreator<T> creator ) {
-        if (creator != null) {
-            throw new RuntimeException( "EntityCreator is not yet supported." );
-        }
-        Object state = newState( id, entityClass );
+    protected UnitOfWorkImpl( EntityRepositoryImpl repo, StoreUnitOfWork suow ) {
+        this.underlying = suow;
+        this.repo = repo;
         
-        // build fake id; don't depend on store's ability to deliver
-        // id for newly created state
-        id = id != null ? id : entityClass.getSimpleName() + "." + state.hashCode();
+        // cache
+        this.loaded = CacheManager.instance().newCache( 
+                new CacheConfig().setConcurrencyLevel( 4 ).setInitSize( 1024 ).setDefaultElementSize( 1024 ) );
         
-        T result = getOrCreateEntity( entityClass, state, id );
-        context.contextForEntity( result ).raiseStatus( EntityStatus.CREATED );
-        return result;
-    }
-
-
-    public <T extends Entity> T entity( Class<T> entityClass, Object id ) {
-        checkOpen();
-        Entity result = loaded.get( id );
-        if (result == null) {
-            Object state = loadState( id, entityClass );
-            if (state != null) {
-                result = context.buildEntity( id, state, entityClass, this );
-                Entity old = loaded.putIfAbsent( id, result );
-                result = old != null ? old : result;
+        // check evicted entries and re-insert if modified
+        this.loaded.addEvictionListener( new CacheEvictionListener<Object,Entity>() {
+            public void onEviction( Object key, Entity entity ) {
+                // re-insert if modified
+                if (entity.status() != EntityStatus.LOADED) {
+                    loaded.putIfAbsent( key, entity );
+                }
+                // mark entity as evicted otherwise
+                else {
+                    EntityRuntimeContext entityContext = UnitOfWorkImpl.this.repo.contextOfEntity( entity );
+                    entityContext.raiseStatus( EntityStatus.EVICTED );
+                }
             }
-        }
-        return (T)result;
+        });
     }
 
 
     @Override
-    public <T extends Entity> T entityForState( Class<T> entityClass, Object state ) {
-        checkOpen();
-        Object id = stateId( state );
-        return getOrCreateEntity( entityClass, state, id );
+    public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T> initializer ) {
+        if (initializer != null) {
+            throw new RuntimeException( "CompositeCreator is not yet supported." );
+        }
+        CompositeState state = underlying.newEntityState( id, entityClass );
+        assert id == null || state.id().equals( id );
+
+        // build fake id; don't depend on store's ability to deliver
+        // id for newly created state
+        id = id != null ? id : entityClass.getSimpleName() + "." + state.hashCode();
+        
+        T result = repo.buildEntity( state, entityClass, this );
+        repo.contextOfEntity( result ).raiseStatus( EntityStatus.CREATED );
+
+        Entity old = loaded.putIfAbsent( id, result );
+        if (old != null) {
+            throw new ModelRuntimeException( "ID of newly created Entity already exists." );
+        }
+        return result;
     }
 
-    
-    public <T extends Entity> Collection<T> find( final Class<T> entityClass ) {
-        return transform( findStates( entityClass ), new Function<Object,Entity>() {
-            public Entity apply( Object state ) {
-                return entityForState( entityClass, state );
+
+    @Override
+    public <T extends Entity> T entity( final Class<T> entityClass, final Object id ) {
+        checkOpen();
+        return (T)loaded.get( id, new EntityCacheLoader() {
+            public Entity load( Object key ) throws RuntimeException {
+                CompositeState state = underlying.loadEntityState( id, entityClass );
+                result = repo.buildEntity( state, entityClass, UnitOfWorkImpl.this );
+                return result;
+            }
+        });
+    }
+
+
+    @Override
+    public <T extends Entity> T entityForState( final Class<T> entityClass, Object state ) {
+        checkOpen();
+        
+        final CompositeState compositeState = underlying.adoptEntityState( state, entityClass );
+        final Object id = compositeState.id();
+        
+        return (T)loaded.get( id, new EntityCacheLoader() {
+            public Entity load( Object key ) throws RuntimeException {
+                result = repo.buildEntity( compositeState, entityClass, UnitOfWorkImpl.this );
+                return result;
             }
         });
     }
 
     
+    @Override
+    public void removeEntity( Entity entity ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    @Override
+    public <T extends Entity> Collection<T> find( final Class<T> entityClass ) {
+        return transform( underlying.find( entityClass ), new Function<Object,T>() {
+            public T apply( Object key ) {
+                return entity( entityClass, key ); 
+            }
+        });
+    }
+
+    
+    @Override
+    public void prepare()
+    throws IOException, ConcurrentEntityModificationException {
+        try {
+            prepareResult = null;
+            underlying.prepareCommit( loaded.values() );
+            prepareResult = PREPARED;
+        }
+        catch (ModelRuntimeException e) {
+            prepareResult = e;
+            throw e;
+        }
+        catch (IOException e) {
+            prepareResult = e;
+            throw e;
+        }
+        catch (Exception e) {
+            prepareResult = e;
+            throw new ModelRuntimeException( e );
+        }
+    }
+
+
+    @Override
+    public void commit() throws ModelRuntimeException {
+        // prepare if not yet done
+        if (prepareResult == null) {
+            try {
+                prepare();
+            }
+            catch (ModelRuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new ModelRuntimeException( e );
+            }
+        }
+        if (prepareResult != PREPARED) {
+            throw new ModelRuntimeException( "UnitOfWork was not successfully prepared for commit." );
+        }
+        // commit store
+        underlying.commit();
+        prepareResult = null;
+        
+        // reset Entity status
+        for (Entity entity : loaded.values()) {
+            repo.contextOfEntity( entity ).resetStatus( EntityStatus.LOADED );
+        }
+    }
+
+
     public void close() {
         if (isOpen()) {
+            underlying.close();
             repo = null;
             loaded.clear();
             loaded = null;
@@ -137,4 +218,18 @@ public abstract class UnitOfWorkImpl
         assert isOpen() : "UnitOfWork is closed.";
     }
     
+    
+    /**
+     * 
+     */
+    abstract class EntityCacheLoader
+            implements CacheLoader<Object,Entity,RuntimeException> {
+
+        protected Entity        result;
+        
+        public int size() throws RuntimeException {
+            // XXX rough approximation (count Composite props)
+            return Math.max( 1024, result.info().getProperties().size() * 100 );
+        }
+    }
 }

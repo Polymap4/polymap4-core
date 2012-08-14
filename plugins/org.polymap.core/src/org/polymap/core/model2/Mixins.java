@@ -30,6 +30,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Mixins {
 
-    public Class<?>[] value();
+    public Class<? extends Composite>[] value();
     
 }

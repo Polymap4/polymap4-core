@@ -20,18 +20,20 @@ import java.util.List;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Concerns;
-import org.polymap.core.model2.DefaultValue;
-import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyConcern;
+import org.polymap.core.model2.engine.EntityRepositoryImpl.EntityRuntimeContextImpl;
+import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.runtime.EntityRuntimeContext;
-import org.polymap.core.model2.store.PropertyDescriptor;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
+import org.polymap.core.model2.runtime.PropertyInfo;
+import org.polymap.core.model2.store.CompositeState;
+import org.polymap.core.model2.store.StoreProperty;
 import org.polymap.core.model2.store.StoreSPI;
 
 /**
@@ -44,13 +46,10 @@ public final class InstanceBuilder {
     private static Log log = LogFactory.getLog( InstanceBuilder.class );
     
     private EntityRuntimeContext    context;
-
-    private StoreSPI                store;
-
     
-    public InstanceBuilder( EntityRuntimeContext context, StoreSPI store ) {
+    
+    public InstanceBuilder( EntityRuntimeContext context ) {
         this.context = context;
-        this.store = store;
     }
     
     
@@ -61,47 +60,53 @@ public final class InstanceBuilder {
     }
     
     
-    public <T extends Entity> T newEntity( Class<T> entityClass ) 
-    throws Exception {
-        // new instance
-        Entity instance = null;
-        if (Entity.class.isAssignableFrom( entityClass )) {
+    public <T extends Composite> T newComposite( CompositeState state, Class<T> entityClass ) { 
+        try {
+            // new instance
             Constructor<?> ctor = entityClass.getConstructor( new Class[] {} );
-            instance = (Entity)ctor.newInstance( new Object[] {} );
-        }
-        else {
-            throw new RuntimeException();
-        }
-        
-        // set context
-        Field contextField = Entity.class.getDeclaredField( "context" );
-        contextField.setAccessible( true );
-        contextField.set( instance, context );
-        
-        // init concerns
-        List<PropertyConcern> concerns = new ArrayList();
-        Concerns concernsAnnotation = entityClass.getAnnotation( Concerns.class );
-        if (concernsAnnotation != null) {
-            for (Class<? extends PropertyConcern> concernClass : concernsAnnotation.value()) {
-                PropertyConcern concern = concernClass.newInstance();
-                concerns.add( concern );
+            T instance = (T)ctor.newInstance( new Object[] {} );
+            
+            // set context
+            Field contextField = Composite.class.getDeclaredField( "context" );
+            contextField.setAccessible( true );
+            contextField.set( instance, context );
+            
+            // init concerns
+            List<PropertyConcern> concerns = new ArrayList();
+            Concerns concernsAnnotation = entityClass.getAnnotation( Concerns.class );
+            if (concernsAnnotation != null) {
+                for (Class<? extends PropertyConcern> concernClass : concernsAnnotation.value()) {
+                    PropertyConcern concern = concernClass.newInstance();
+                    concerns.add( concern );
+                }
             }
-        }
 
-        // init properties
-        initProperties( instance, concerns, null );
-        
-        return (T)instance;
+            // init properties
+            initProperties( instance, concerns, state );
+            
+            return instance;
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new ModelRuntimeException( e );
+        }
     }
     
+    
     /**
-     * Recursivly init properties of the given instance and all complex
-     * properties.
+     * Initializes all properties of the given Composite, including all super classes.
+     * Composite properties are init with {@link CompositePropertyImpl} which comes back to 
+     * {@link InstanceBuilder} when the value is accessed.
      */
     protected void initProperties( Composite instance, 
             List<PropertyConcern> concerns,
-            PropertyDescriptor parent ) 
+            CompositeState state ) 
             throws Exception {
+        
+        StoreSPI store = context.getRepository().getStore();
+        CompositeInfo compositeInfo = context.getRepository().infoOf( instance.getClass() );
         
         Class superClass = instance.getClass();
         while (superClass != null) {
@@ -109,32 +114,36 @@ public final class InstanceBuilder {
                 if (field.getType().isAssignableFrom( Property.class )) {
                     field.setAccessible( true );
 
-                    PropertyDescriptorImpl descriptor = new PropertyDescriptorImpl( context, field, parent );
-                    Property prop = store.createProperty( descriptor );
+                    PropertyInfo info = compositeInfo.getProperty( field.getName() );
+                    StoreProperty storeProp = state.loadProperty( info );
                     
-                    // always check modifications
-                    prop = new ModificationPropertyInterceptor( prop, context );
-                    
-                    // default value
-                    if (field.getAnnotation( DefaultValue.class ) != null) {
-                        prop = new DefaultValuePropertyInterceptor( prop, field );
-                    }
-                    // concerns
-                    for (PropertyConcern concern : concerns) {
-                        prop = new ConcernPropertyInterceptor( prop, concern );
-                    }
-                    // init field
-                    field.set( instance, prop );
-                    
-                    // complex property?
-                    Class propType = descriptor.getPropertyType();
+                    // Composite
+                    Class propType = info.getType();
+                    Property prop = null;
                     if (Composite.class.isAssignableFrom( propType )) {
-                        initProperties( instance, concerns, descriptor );
+                        prop = new CompositePropertyImpl( context, storeProp );
                     }
+                    // Collection
                     else if (Collection.class.isAssignableFrom( propType )) {
                         // XXX no collections yet
                         throw new RuntimeException( "Type of property is not supported yet: " + propType );
                     }
+                    // primitive type
+                    else {
+                        prop = new PropertyImpl( storeProp );
+                    }
+                    
+                    // always check modifications;
+                    // default value, immutable, nullable
+                    prop = new ConstraintsPropertyInterceptor( prop, (EntityRuntimeContextImpl)context );
+                    
+                    // concerns
+                    for (PropertyConcern concern : concerns) {
+                        prop = new ConcernPropertyInterceptor( prop, concern );
+                    }
+                    
+                    // init field
+                    field.set( instance, prop );                    
                 }
             }
             superClass = superClass.getSuperclass();

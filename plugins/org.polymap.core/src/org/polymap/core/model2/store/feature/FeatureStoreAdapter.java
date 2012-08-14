@@ -20,21 +20,16 @@ import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.Property;
 import org.polymap.core.model2.runtime.EntityRepository;
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
-import org.polymap.core.model2.runtime.UnitOfWork;
-import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
-import org.polymap.core.model2.store.PropertyDescriptor;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreSPI;
+import org.polymap.core.model2.store.StoreUnitOfWork;
 
 /**
  * 
@@ -72,7 +67,9 @@ public class FeatureStoreAdapter
                 // update
                 if (! fs.getSchema().equals( entitySchema )) {
                     try {
-                        store.updateSchema( entitySchema.getName(), entitySchema );
+                        log.warn( "FeatureType has been changed: " + entitySchema.getName() + " !!!" );
+                        // which store does actually support this?
+                        //store.updateSchema( entitySchema.getName(), entitySchema );
                     }
                     catch (UnsupportedOperationException e) {
                         log.warn( "", e );
@@ -107,19 +104,19 @@ public class FeatureStoreAdapter
     }
 
     
-    public Property createProperty( final PropertyDescriptor descriptor ) {                
-        if (descriptor.getParent() != null) {
-            throw new UnsupportedOperationException( "Complex FeatureType is not supported yet." );
-        }
-        return new PropertyImpl( descriptor );
-    }
-
-
-    public UnitOfWork createUnitOfWork() {
+    public StoreUnitOfWork createUnitOfWork() {
         return new FeatureStoreUnitOfWork( context, this );
     }
-    
-    
+
+
+    /**
+     * Creates a new {@link FeatureType} instance for the given {@link Entity} class.
+     * The returned instance does not depend on the actually type in the store.
+     * 
+     * @param <T>
+     * @param entityClass
+     * @return Newly created {@link FeatureType} instance.
+     */
     public <T extends Entity> FeatureType featureType( Class<T> entityClass ) {
         try {
             return new FeatureTypeBuilder( entityClass ).build();
@@ -136,63 +133,6 @@ public class FeatureStoreAdapter
         }
         catch (Exception e) {
             throw new ModelRuntimeException( e );
-        }
-    }
-
-    
-    /**
-     * 
-     */
-    protected final class PropertyImpl
-            implements Property {
-    
-        //private final PropertyDescriptor    descriptor;
-    
-        @SuppressWarnings("hiding")
-        private final EntityRuntimeContext  context;
-    
-        private final String                propName;
-    
-    
-        protected PropertyImpl( PropertyDescriptor descriptor ) {
-            //this.descriptor = descriptor;
-            context = descriptor.getContext();
-            propName = descriptor.getNameInStore();
-        }
-    
-    
-        public Object get() {
-            Feature feature = (Feature)context.state();
-            org.opengis.feature.Property prop = feature.getProperty( propName );
-            assert prop != null : "No such Feature property: " + propName;
-            return feature.getProperty( propName ).getValue();
-        }
-    
-    
-        public void set( Object value ) {
-            Feature feature = (Feature)context.state();
-            org.opengis.feature.Property underlying = feature.getProperty( propName );
-            assert underlying != null : "No such Feature property: " + propName;
-            underlying.setValue( value );
-            
-            if (context.status() != EntityStatus.CREATED) {
-                ((FeatureStoreUnitOfWork)context.unitOfWork())
-                        .markPropertyModified( feature, (AttributeDescriptor)underlying.getDescriptor(), value );
-            }
-        }
-    
-    
-        public PropertyInfo getInfo() {
-            return new PropertyInfo() {
-
-                public Entity getEntity() {
-                    throw new RuntimeException( "Not yet implemented." );
-                }
-                
-                public String getName() {
-                    return propName;
-                }
-            };
         }
     }
     

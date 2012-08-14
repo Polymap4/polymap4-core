@@ -14,9 +14,6 @@
  */
 package org.polymap.core.model2.store;
 
-import org.polymap.core.model2.Property;
-import org.polymap.core.model2.runtime.UnitOfWork;
-
 /**
  * 
  *
@@ -30,8 +27,20 @@ public interface StoreSPI {
 
     public Object stateId( Object state );
 
-    public Property createProperty( PropertyDescriptor descriptor );
 
-    public UnitOfWork createUnitOfWork();
+    /**
+     * Creates a new Property defined by the given descriptor.
+     * <p/>
+     * This method is responsible of creating properties of primitive types only.
+     * Composite types and Collections are handled by the engine.
+     * {@link PropertyDescriptor#getParent()} decribes the position of this Property
+     * in the type hierarchy.
+     * 
+     * @param descriptor
+     * @return Newly created Property.
+     */
+//    public Property createProperty( PropertyDescriptor descriptor );
+
+    public StoreUnitOfWork createUnitOfWork();
 
 }

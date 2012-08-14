@@ -12,21 +12,29 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2.store;
+package org.polymap.core.model2.runtime;
+
+import com.google.common.base.Function;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.runtime.EntityRepository;
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
 
 /**
- * 
+ * Static filters, functions and helpers to work with {@link Entity}s. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface StoreRuntimeContext {
+public class Entities {
 
-    public EntityRepository getRepository();
-    
-    public EntityRuntimeContext contextOfEntity( Entity entity );
+    /**
+     * Provides a {@link Function} that transforms {@link Entity} into its underlying
+     * state.
+     */
+    public static <T> Function<Entity,T> toStates( Class<T> stateType ) {
+        return new Function<Entity,T>() {
+            public T apply( Entity input ) {
+                return (T)input.state();
+            }
+        };
+    }
 
 }

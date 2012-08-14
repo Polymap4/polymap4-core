@@ -75,14 +75,14 @@ public interface UnitOfWork {
      * @param <T>
      * @param entityClass
      * @param id The identifier of the newly created entity, or null if a new
-     *        identifier is to be created by the store automatically. For some
-     *        backend store explicitly given an id might not be supported.
-     * @param creator Allows to init properties, especially properties that must have
-     *        a value because they are non-{@link Nullable} and does not a default
-     *        value;.
+     *        identifier is to be created by the store automatically. Avoid using this
+     *        as most backend stores do not support this!
+     * @param initializer Allows to init properties, especially properties that must
+     *        have a value because they are non-{@link Nullable} and does not a
+     *        default value.
      * @return Newly created {@link Entity}.
      */
-    public <T extends Entity> T newEntity( Class<T> entityClass, Object id, EntityCreator<T> creator );
+    public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T> initializer );
 
 
     /**
@@ -151,6 +151,6 @@ public interface UnitOfWork {
      * @param entityClass
      * @return Collection representing the results of the query.
      */
-    public <T extends Entity> Collection find( Class<T> entityClass );
+    public <T extends Entity> Collection<T> find( Class<T> entityClass );
 
 }

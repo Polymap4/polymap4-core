@@ -1,5 +1,7 @@
 package org.polymap.core.model2.runtime;
 
+import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.engine.EntityRepositoryImpl;
 import org.polymap.core.model2.store.StoreSPI;
 
 /**
@@ -15,7 +17,7 @@ public class EntityRepositoryConfiguration {
     
     
     public EntityRepository create() {
-        return new EntityRepository( this );
+        return new EntityRepositoryImpl( this );
     }
     
     public StoreSPI getStore() {
@@ -27,7 +29,7 @@ public class EntityRepositoryConfiguration {
         return this;
     }
 
-    public Class[] getEntities() {
+    public Class<Entity>[] getEntities() {
         return entities;
     }
     

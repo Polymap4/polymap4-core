@@ -50,7 +50,6 @@ public abstract class RecordQuery {
     /**
      * 
      *
-     * @return
      * @throws IOException
      */
     public abstract ResultSet execute() throws IOException;

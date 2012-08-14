@@ -15,6 +15,8 @@
 package org.polymap.core.model2.runtime;
 
 import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.store.CompositeState;
+import org.polymap.core.model2.store.StoreUnitOfWork;
 
 /**
  * The API to access the engine from within an {@link Entity}. Holds the
@@ -31,7 +33,9 @@ public interface EntityRuntimeContext {
         LOADED( 0 ), 
         CREATED( 1 ), 
         MODIFIED( 2 ),
-        REMOVED( 3 );
+        REMOVED( 3 ),
+        /** This status indicates that the Entity was evicted from its UnitOfWork. */
+        EVICTED( 4 );
         
         public int         status;
         
@@ -41,15 +45,21 @@ public interface EntityRuntimeContext {
         
     }
     
-    public Object id();
+    public CompositeInfo getInfo();
 
-    public Object state();
+    public CompositeState getState();
     
-    public EntityStatus status();
+    public EntityStatus getStatus();
     
     public void raiseStatus( EntityStatus newStatus );
     
-    public UnitOfWork unitOfWork();
+    public void resetStatus( EntityStatus loaded );
+
+    public UnitOfWork getUnitOfWork();
+
+    public StoreUnitOfWork getStoreUnitOfWork();
+
+    public EntityRepository getRepository();
 
     public <T> T createMixin( Class<T> mixinClass );
 

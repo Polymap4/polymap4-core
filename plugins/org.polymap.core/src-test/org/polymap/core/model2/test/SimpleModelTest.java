@@ -43,7 +43,10 @@ public abstract class SimpleModelTest
         super( name );
     }
 
-    
+    protected void setUp() throws Exception {
+        log.info( " --------------------------------------- " + getClass().getSimpleName() + " : " + getName() );
+    }
+
     protected void tearDown() throws Exception {
         uow.close();
         repo.close();
@@ -54,7 +57,7 @@ public abstract class SimpleModelTest
     
     
     public void testCreateEmployee() throws Exception {    
-        Employee employee = uow.newEntity( Employee.class, null, null );
+        Employee employee = uow.createEntity( Employee.class, null, null );
         log.info( "Employee: id=" + employee.id() );
 //        assertEquals( employee.id(), "employee1" );
         log.info( "Employee: name=" + employee.name.get() );
@@ -73,7 +76,7 @@ public abstract class SimpleModelTest
 
         // re-read
         log.info( "Employee: id=" + employee.id() );
-        Employee employee2 = uow.entity( Employee.class, stateId( employee.state() ) );
+        Employee employee2 = uow.entityForState( Employee.class, employee.state() );
         log.info( "Employee: name=" + employee2.name.get() );
         assertEquals( "Philipp", employee2.name.get() );
         log.info( "Employee: firstname=" + employee2.firstname.get() );
@@ -93,7 +96,7 @@ public abstract class SimpleModelTest
     
     public void testCreateEmployees() throws Exception {
         for (int i=0; i<3; i++) {
-            Employee employee = uow.newEntity( Employee.class, null, null );
+            Employee employee = uow.createEntity( Employee.class, null, null );
             employee.jap.set( i );
         }
         // commit

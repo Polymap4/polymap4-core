@@ -14,18 +14,11 @@
  */
 package org.polymap.core.model2.runtime;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import java.lang.reflect.Field;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.engine.InstanceBuilder;
-import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
-import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreSPI;
 
 /**
@@ -37,7 +30,7 @@ import org.polymap.core.model2.store.StoreSPI;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class EntityRepository {
+public abstract class EntityRepository {
 
     private static Log log = LogFactory.getLog( EntityRepository.class );
 
@@ -49,150 +42,23 @@ public class EntityRepository {
     
     // instance *******************************************
     
-    private EntityRepositoryConfiguration   config;
+    public abstract StoreSPI getStore();
     
-    private List<Class>                     entityClasses = new ArrayList();
+    public abstract EntityRepositoryConfiguration getConfig();
     
-    
-    public EntityRepository( final EntityRepositoryConfiguration config ) {
-        this.config = config;
-        
-        getStore().init( new StoreRuntimeContext() {
-            
-            public EntityRepository getRepository() {
-                return EntityRepository.this;
-            }
-            
-            public EntityRuntimeContext contextForEntity( Entity entity ) {
-                try {
-                    Field f = Entity.class.getDeclaredField( "context" );
-                    f.setAccessible( true );
-                    return (EntityRuntimeContext)f.get( entity );
-                }
-                catch (Exception e) {
-                    throw new RuntimeException( e );
-                }
-            }
-            
-            public <T extends Entity> T buildEntity( Object id, Object state, Class<T> entityClass, UnitOfWork uow ) {
-                try {
-                    return new InstanceBuilder( new EntityRuntimeContextImpl( 
-                            state, EntityStatus.LOADED, uow ), config.getStore() )
-                            .newEntity( entityClass );
-                }
-                catch (Exception e) {
-                    throw new ModelRuntimeException( e );
-                }
-            }
-        });
-    }
+    public abstract void close();
 
-    
-    public StoreSPI getStore() {
-        return config.getStore();
-    }
 
-    
-    public EntityRepositoryConfiguration getConfig() {
-        return config;
-    }
-
-    
-    public void close() {
-    }
-    
-    
-//    /**
-//     * Builds an {@link Entity} that is not assigned to any {@link UnitOfWork}. The
-//     * resulting entity can be used for reading only. The state can be assigned to an
-//     * UnitOfWork via {@link UnitOfWork#entity(Object, Class)} and afterwards make
-//     * changes in order to persistently save changes.
-//     * 
-//     * @param <T>
-//     * @param state
-//     * @param entityClass
-//     * @return A newly created {@link Entity} for the given state.
-//     */
-//    public <T extends Entity> T entity( Object id, Object state, Class<T> entityClass ) {
-//        try {
-//            return new InstanceBuilder( 
-//                    new EntityRuntimeContextImpl( id, state, EntityStatus.LOADED ), config.getStore() )
-//                    .newEntity( entityClass );
-//        }
-//        catch (Exception e) {
-//            throw new ModelRuntimeException( e );
-//        }
-//    }
-    
-    
-    public UnitOfWork newUnitOfWork() {
-        return config.store.createUnitOfWork();
-    }
-    
-    
     /**
      * 
+     * 
+     * @param <T>
+     * @param compositeClass Class of {@link Entity}, Mixin or complex property.
+     * @return The info object, or null if the given Class is not an Entity, Mixin or
+     *         complex property in this repository.
      */
-    final class EntityRuntimeContextImpl
-            implements EntityRuntimeContext {
-
-        private Object              id;
-        
-        private Object              state;
-        
-        private EntityStatus        status;
-        
-        private UnitOfWork          uow;
-
-        
-        EntityRuntimeContextImpl( Object state, EntityStatus status, UnitOfWork uow ) {
-            assert state != null;
-            assert uow != null;
-            assert status != null;
-            
-            this.state = state;
-            this.status = status;
-            this.uow = uow;
-        }
-
-        public Object id() {
-            return config.getStore().stateId( state );
-        }
-
-        public UnitOfWork unitOfWork() {
-            return uow;
-        }
-
-        public Object state() {
-            return state;
-        }
-
-        public EntityStatus status() {
-            return status;
-        }
-
-        public void raiseStatus( EntityStatus newStatus ) {
-            assert newStatus.status >= status.status;
-            // keep created if modified
-            if (status != EntityStatus.CREATED) {
-                status = newStatus;
-            }
-        }
-
-        public <T> T createMixin( Class<T> mixinClass ) {
-            try {
-                return new InstanceBuilder( this, config.getStore() )
-                        .newMixin( mixinClass );
-            }
-            catch (Exception e) {
-                throw new ModelRuntimeException( e );
-            }
-        }
-
-        public void methodProlog( String methodName, Object[] args ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-    }
+    public abstract <T extends Composite> CompositeInfo infoOf( Class<T> compositeClass );
+    
+    public abstract UnitOfWork newUnitOfWork();
     
 }

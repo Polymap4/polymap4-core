@@ -19,7 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyConcern;
-import org.polymap.core.model2.Property.PropertyInfo;
+import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
  * 

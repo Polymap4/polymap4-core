@@ -12,21 +12,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2.store;
-
-import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.runtime.EntityRepository;
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
+package org.polymap.core.model2.runtime;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface StoreRuntimeContext {
-
-    public EntityRepository getRepository();
+public interface ValueInitializer<T> {
     
-    public EntityRuntimeContext contextOfEntity( Entity entity );
+    public T initialize( T value ) throws Exception;
 
 }

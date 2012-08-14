@@ -17,14 +17,10 @@ package org.polymap.core.model2.store.recordstore;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.Property;
-import org.polymap.core.model2.Property.PropertyInfo;
 import org.polymap.core.model2.runtime.EntityRepository;
-import org.polymap.core.model2.runtime.UnitOfWork;
-import org.polymap.core.model2.store.PropertyDescriptor;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreSPI;
+import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 
@@ -66,54 +62,8 @@ public class RecordStoreAdapter
     }
 
 
-    public Property createProperty( PropertyDescriptor descriptor ) {
-        if (descriptor.getParent() != null) {
-            throw new UnsupportedOperationException( "Complex FeatureType is not supported yet." );
-        }
-        return new PropertyImpl( descriptor );
-    }
-
-    
-    public UnitOfWork createUnitOfWork() {
+    public StoreUnitOfWork createUnitOfWork() {
         return new RecordStoreUnitOfWork( context, this );
     }
 
-
-    /*
-     * 
-     */
-    static final class PropertyImpl
-            implements Property, PropertyInfo {
-        
-        private String                  key;
-
-        private IRecordState            state;
-
-        protected PropertyImpl( PropertyDescriptor descriptor ) {
-            this.state = (IRecordState)descriptor.getContext().state();
-            this.key = descriptor.getNameInStore();
-        }
-
-        public Object get() {
-            return  state.get( key );
-        }
-
-        public void set( Object value ) {
-            state.put( key, value );
-        }
-
-        public PropertyInfo getInfo() {
-            return this;
-        }
-        
-        public String getName() {
-            return key;
-        }
-
-        public Entity getEntity() {
-            throw new RuntimeException( "Not yet implemented." );
-        }
-
-    }
-    
 }

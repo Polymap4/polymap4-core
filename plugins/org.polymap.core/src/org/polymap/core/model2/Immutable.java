@@ -12,29 +12,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2.store;
+package org.polymap.core.model2;
 
-import java.lang.reflect.Field;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 
 /**
+ * Specifies that a {@link Property} is immutable. An attempt to modify an immutable
+ * property results in a {@link ModelRuntimeException}.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PropertyDescriptor {
+@Retention( RetentionPolicy.RUNTIME )
+@Target( { ElementType.FIELD } )
+@Documented
+public @interface Immutable {
 
-    public EntityRuntimeContext getContext();
-    
-    public Field getField();
- 
-    public PropertyDescriptor getParent();
-
-    public String getNameInStore();
-    
-    public int getMaxOccurs();
-    
-    public boolean isNullable();
-    
+    boolean value() default true;
+   
 }

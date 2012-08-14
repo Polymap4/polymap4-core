@@ -14,20 +14,27 @@
  */
 package org.polymap.core.model2;
 
-import org.polymap.core.model2.runtime.PropertyInfo;
+import java.util.Collection;
 
+import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * 
+ * {@link Entity} property for {@link Collection} values.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PropertyConcern {
+public interface CollectionProperty<T>
+        extends Property<T>, Collection<T> {
 
-    public abstract Object doGet( Property delegate );
-    
-    public abstract void doSet( Property delegate, Object value );
-    
-    public abstract PropertyInfo doGetInfo( Property delegate );
-    
+    /**
+     * For composite properties: this method allows the initialize the
+     * {@link Composite} value of this property.
+     * 
+     * @param initializer
+     * @return The value of this property, or a newly created {@link Composite} that
+     *         is set as the new value of this property.
+     * @throws IllegalStateException If this is not a Composite collection.
+     */
+    public T createElement( ValueInitializer<T> initializer );
+
 }

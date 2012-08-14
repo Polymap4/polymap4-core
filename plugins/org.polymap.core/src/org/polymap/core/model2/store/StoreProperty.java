@@ -12,15 +12,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2;
+package org.polymap.core.model2.store;
+
+import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
- * 
  *
+ * @param <T> Simple types: primitive type, String or Date; or {@link CompositeState}.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class EntityMixin {
+public interface StoreProperty<T> {
 
-    protected Property<IIdentifier>        identifier;
+    public T get();
+    
+    public void set( Object value );
 
+
+    /**
+     * Creates a new value for this property. For simple properties usually this is
+     * just {@link PropertyInfo#getDefaultValue()}. For {@link CompositeState} value this
+     * is a new {@link CompositeState}.
+     * 
+     * @return Newly created value for this property.
+     */
+    public T newValue();
+
+    public PropertyInfo getInfo();
 }

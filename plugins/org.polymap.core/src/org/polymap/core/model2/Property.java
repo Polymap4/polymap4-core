@@ -14,29 +14,40 @@
  */
 package org.polymap.core.model2;
 
+import javax.annotation.Nullable;
+
+import org.polymap.core.model2.runtime.PropertyInfo;
+import org.polymap.core.model2.runtime.ValueInitializer;
+
 /**
- * 
+ * {@link Entity} property for simple and {@link Composite} values.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface Property<T> {
 
     public T get();
+
+    /**
+     * Creates a new value for this property if the current value is null.
+     * <p/>
+     * For <em>primitive</em> types a default value is created. This value is equal
+     * to the value created by the {@link Defaults} annotation. For {@link Composite}
+     * types a new instance is created with properties set to their default values.
+     * <p/>
+     * The initializer can be used to provide a default value for primitive types.
+     * For {@link Composite} types is called to initialize the properties of the
+     * instance, including non-{@link Nullable} ones.
+     * 
+     * @param initializer Change/set primitive values and set properties of a
+     *        {@link Composite} value. Might be null.
+     * @return The newly created (and initialized) value if the current value is
+     *         <code>null</code>, or the current value.
+     */
+    public T getOrCreate( ValueInitializer<T> initializer );
     
     public void set( T value );
-    
+
     public PropertyInfo getInfo();
-    
-    
-    /**
-     * Meta data of an {@link Property}.
-     */
-    public interface PropertyInfo {
-    
-        public String getName();
-        
-        public Entity getEntity();
-        
-    }
     
 }

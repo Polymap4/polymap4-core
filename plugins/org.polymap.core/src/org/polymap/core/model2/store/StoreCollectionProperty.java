@@ -12,17 +12,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2.runtime;
+package org.polymap.core.model2.store;
 
-import org.polymap.core.model2.Entity;
+import java.util.Collection;
 
 /**
- * Used by {@link UnitOfWork#newEntity(Class, Object, EntityCreator)} 
+ * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface EntityCreator<T extends Entity> {
+public interface StoreCollectionProperty<T>
+        extends StoreProperty<T>, Collection<T> {
 
-    public void create( T prototype ) throws Exception;
-    
 }

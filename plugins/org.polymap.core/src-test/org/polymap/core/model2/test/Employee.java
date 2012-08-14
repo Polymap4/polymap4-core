@@ -17,6 +17,7 @@ package org.polymap.core.model2.test;
 import org.polymap.core.model2.Defaults;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
+import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.store.feature.SRS;
 
 /**
@@ -29,8 +30,10 @@ import org.polymap.core.model2.store.feature.SRS;
 public class Employee
         extends Person {
     
+    public static CompositeInfo     INFO;
+
     @Defaults
-    public Property<Integer>       jap;
+    public Property<Integer>        jap;
 
 
     /**

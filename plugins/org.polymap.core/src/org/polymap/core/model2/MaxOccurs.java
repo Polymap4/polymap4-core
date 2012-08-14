@@ -12,21 +12,24 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2.store;
+package org.polymap.core.model2;
 
-import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.runtime.EntityRepository;
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * Specifies the cardinality of a {@link Property} or {@link CompositeProperty}.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface StoreRuntimeContext {
-
-    public EntityRepository getRepository();
+@Retention( RetentionPolicy.RUNTIME )
+@Target( { ElementType.FIELD } )
+@Documented
+public @interface MaxOccurs {
     
-    public EntityRuntimeContext contextOfEntity( Entity entity );
-
+    int value();
+    
 }

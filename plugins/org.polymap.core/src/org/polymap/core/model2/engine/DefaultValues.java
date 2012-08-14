@@ -42,14 +42,14 @@ public class DefaultValues {
      */
     public static Object valueOf( Field field ) {
         DefaultValue annotation = field.getAnnotation( DefaultValue.class );
+        if (annotation == null) {
+            return null;
+        }
         
         Class<?> type = (Class)((ParameterizedType)field.getGenericType())
                 .getActualTypeArguments()[0];
 
-        if (annotation == null) {
-            return null;
-        }
-        else if (type.equals( String.class )) {
+        if (type.equals( String.class )) {
             return annotation.value();
         }
         else if (type.equals( Integer.class )) {
@@ -59,4 +59,5 @@ public class DefaultValues {
             throw new UnsupportedOperationException( "Default values of this type are not supported yet: " + type );
         }
     }
+    
 }

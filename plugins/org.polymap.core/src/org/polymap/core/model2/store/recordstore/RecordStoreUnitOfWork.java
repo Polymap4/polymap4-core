@@ -20,12 +20,16 @@ import java.util.Iterator;
 
 import java.io.IOException;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
+
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
+import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.ResultSet;
@@ -37,8 +41,8 @@ import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class RecordStoreUnitOfWork
-        extends UnitOfWorkImpl {
+public class RecordStoreUnitOfWork
+        implements StoreUnitOfWork {
 
     public static final String          TYPE_KEY = "_type_";
     
@@ -50,14 +54,15 @@ final class RecordStoreUnitOfWork
     
     
     public RecordStoreUnitOfWork( StoreRuntimeContext context, RecordStoreAdapter rsa ) {
-        super( context );
         this.store = rsa.store;
     }
 
-
-    protected <T extends Entity> Object loadState( Object id, Class<T> entityClass ) {
+    
+    @Override
+    public <T extends Entity> CompositeState loadEntityState( Object id, Class<T> entityClass ) {
         try {
-            return store.get( id );
+            IRecordState state = store.get( id );
+            return new RecordCompositeState( state );
         }
         catch (Exception e) {
             throw new ModelRuntimeException( e );
@@ -65,29 +70,37 @@ final class RecordStoreUnitOfWork
     }
 
 
-    protected Object stateId( Object state ) {
-        return ((IRecordState)state).id();
-    }
-
-
-    protected <T extends Entity> Object newState( Object id, Class<T> entityClass ) {
+    @Override
+    public <T extends Entity> CompositeState newEntityState( Object id, Class<T> entityClass ) {
         if (id != null) {
             throw new UnsupportedOperationException( "Not supported: preset id in newly created entity" );
         }
-        IRecordState result = store.newRecord();
-        result.put( TYPE_KEY, entityClass.getName() );
-        return result;
+        IRecordState state = store.newRecord();
+        state.put( TYPE_KEY, entityClass.getName() );
+        return new RecordCompositeState( state );
     }
 
 
-    protected <T extends Entity> Collection findStates( Class<T> entityClass ) {
+    @Override
+    public <T extends Entity> CompositeState adoptEntityState( Object state, Class<T> entityClass ) {
+        return new RecordCompositeState( (IRecordState)state );
+    }
+
+
+    @Override
+    public <T extends Entity> Collection find( Class<T> entityClass ) {
         try {
+            // XXX cache result for subsequent loadEntityState() (?)
             final ResultSet results = store.find( new SimpleQuery().eq( TYPE_KEY, entityClass.getName() ) );
             
             return new AbstractCollection() {
 
                 public Iterator iterator() {
-                    return results.iterator();
+                    return Iterators.transform( results.iterator(), new Function<IRecordState,Object>() {
+                        public Object apply( IRecordState input ) {
+                            return input.id();
+                        }
+                    });
                 }
 
                 public int size() {
@@ -105,14 +118,15 @@ final class RecordStoreUnitOfWork
     }
 
 
-    public void prepare()
+    @Override
+    public void prepareCommit( Iterable<Entity> loaded )
             throws IOException, ConcurrentEntityModificationException {
         assert tx == null;
         prepareFailed = false;
         tx = store.prepareUpdate();
         
         try {
-            for (Entity entity : loaded.values()) {
+            for (Entity entity : loaded) {
                 IRecordState state = (IRecordState)entity.state();
 
                 if (entity.status() == EntityStatus.CREATED
@@ -127,31 +141,38 @@ final class RecordStoreUnitOfWork
         catch (Exception e) {
             tx.discard();
             prepareFailed = true;
+            
+            if (e instanceof IOException) { 
+                throw (IOException)e; 
+            }
+            else if (e instanceof ConcurrentEntityModificationException) { 
+                throw (ConcurrentEntityModificationException)e; 
+            }
+            else if (e instanceof RuntimeException) {
+                throw (RuntimeException)e;
+            }
+            else {
+                throw new RuntimeException( e );
+            }
         }
     }
 
+    
+    @Override
+    public void commit() {
+        assert tx != null;
+        assert !prepareFailed : "Previous prepareCommit() failed.";
 
-    public void commit() throws ModelRuntimeException {
-        assert !prepareFailed : "Previous prepare() failed.";
-        if (tx == null) {
-            try {
-                prepare();
-            }
-            catch (IOException e) {
-                throw new ModelRuntimeException( e );
-            }
-        }
         tx.apply();
         tx = null;
-        
-        // clear entities, contexts and their status
-        // XXX this also clears cache, ok?
-        loaded.clear();
     }
 
 
-    public void removeEntity( Entity entity ) {
-        throw new RuntimeException( "not yet implemented." );
+    @Override
+    public void close() {
+        if (tx != null && ! prepareFailed) {
+            tx.discard();
+        }
     }
-    
+
 }

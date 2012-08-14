@@ -14,11 +14,37 @@
  */
 package org.polymap.core.model2;
 
+import org.polymap.core.model2.runtime.CompositeInfo;
+import org.polymap.core.model2.runtime.EntityRuntimeContext;
+
 /**
+ * A Composite is the base abstraction for defining a domain model. A Composite
+ * consists of a number of Properties. Properties can have primitive or Composite
+ * values or a Collection thereof. Properties are declared as {@link Property}
+ * members.
+ * <p/>
+ * Runtime information about an instance of a Composite can be retrieved by calling
+ * {@link #info()}.
+ * <p/>
+ * A Composite can be an {@link Entity}, a Mixin or a complex Property.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class Composite {
 
+    protected EntityRuntimeContext      context;
+    
+
+    public Object state() {
+        return context.getState().getUnderlying();
+    }
+    
+
+    /**
+     * 
+     */
+    public CompositeInfo info() {
+        return context.getRepository().infoOf( getClass() );
+    }
+    
 }

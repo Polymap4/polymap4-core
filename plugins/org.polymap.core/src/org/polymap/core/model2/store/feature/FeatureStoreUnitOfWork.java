@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 
 import java.io.IOException;
 
+import org.geotools.data.DefaultQuery;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
@@ -45,6 +46,7 @@ import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.identity.FeatureId;
 
@@ -52,19 +54,21 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.NameInStore;
-import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
-import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
+import org.polymap.core.model2.store.StoreUnitOfWork;
 
 /**
  * 
@@ -72,8 +76,7 @@ import org.polymap.core.model2.store.StoreRuntimeContext;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureStoreUnitOfWork
-        extends UnitOfWorkImpl
-        implements UnitOfWork {
+        implements StoreUnitOfWork {
 
     private static Log log = LogFactory.getLog( FeatureStoreUnitOfWork.class );
     
@@ -93,7 +96,6 @@ public class FeatureStoreUnitOfWork
 
     
     protected FeatureStoreUnitOfWork( StoreRuntimeContext context, FeatureStoreAdapter store ) {
-        super( context );
         this.store = store;
 
         this.featureSources = CacheBuilder.newBuilder().build( new CacheLoader<Class<?>,FeatureStore>() {
@@ -121,12 +123,8 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    protected Object stateId( Object state ) {
-        return ((Feature)state).getIdentifier().getID();
-    }
-
-    
-    protected <T extends Entity> Object loadState( Object id, Class<T> entityClass ) {
+    @Override
+    public <T extends Entity> CompositeState loadEntityState( Object id, Class<T> entityClass ) {
         FeatureStore fs = featureSource( entityClass );
         FeatureType schema = fs.getSchema();
         FeatureIterator it = null;
@@ -134,7 +132,7 @@ public class FeatureStoreUnitOfWork
             FeatureCollection features = fs.getFeatures(
                     ff.id( Collections.singleton( ff.featureId( (String)id ) ) ) );
             it = features.features();
-            return it.hasNext() ? entityForState( entityClass, it.next() ) : null;
+            return it.hasNext() ? new FeatureCompositeState( it.next(), this ) : null;
         }
         catch (Exception e) {
             throw new ModelRuntimeException( e );
@@ -145,7 +143,14 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    public <T extends Entity> Object newState( Object id, Class<T> entityClass ) {
+    @Override
+    public <T extends Entity> CompositeState adoptEntityState( Object state, Class<T> entityClass ) {
+        return new FeatureCompositeState( (Feature)state, this );
+    }
+
+
+    @Override
+    public <T extends Entity> CompositeState newEntityState( Object id, Class<T> entityClass ) {
         // find schema for entity
         FeatureStore fs = featureSource( entityClass );
         FeatureType schema = fs.getSchema();
@@ -159,7 +164,8 @@ public class FeatureStoreUnitOfWork
         else {
             throw new UnsupportedOperationException( "Complex FeatureType is not supported yet." );
         }
-        return feature;
+        feature.getUserData().put( "__created__", Boolean.TRUE );
+        return new FeatureCompositeState( feature, this );
     }
 
 
@@ -168,20 +174,25 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    protected <T extends Entity> Collection findStates( Class<T> entityClass ) {
+    public <T extends Entity> Collection find( Class<T> entityClass ) {
         try {
             // schema
             FeatureStore fs = featureSource( entityClass );
             FeatureType schema = fs.getSchema();
 
-            // features 
-            final FeatureCollection features = fs.getFeatures();
-            final Iterator it = features.iterator();
+            // features (just IDs) 
+            final FeatureCollection features = fs.getFeatures( 
+                    new DefaultQuery( schema.getName().getLocalPart(), Filter.INCLUDE, new String[] {} ) );
+            final Iterator<Feature> it = features.iterator();
             
-            return new AbstractCollection<T>() {
+            return new AbstractCollection<String>() {
 
-                public Iterator iterator() {
-                    return it;
+                public Iterator<String> iterator() {
+                    return Iterators.transform( it, new Function<Feature,String>() {
+                        public String apply( Feature input ) {
+                            return input.getIdentifier().getID();
+                        }
+                    });
                 }
 
                 public int size() {
@@ -203,14 +214,14 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    public void prepare()
+    @Override
+    public void prepareCommit( Iterable<Entity> loaded )
     throws IOException, ConcurrentEntityModificationException {
-        checkOpen();
         assert tx == null;
         
         tx = new DefaultTransaction( getClass().getName() + " Transaction" );
         try {
-            apply();
+            apply( loaded );
         }
         catch (IOException e) {
             Transaction tx2 = tx;
@@ -219,23 +230,12 @@ public class FeatureStoreUnitOfWork
             tx2.close();
             throw e;
         }
-        catch (ConcurrentEntityModificationException e) {
-            Transaction tx2 = tx;
-            tx = TX_FAILED;
-            tx2.rollback();
-            tx2.close();
-            throw e;            
-        }
     }
 
 
     public void commit() throws ModelRuntimeException {
-        assert tx != TX_FAILED;
+        assert tx != TX_FAILED && tx != null;
         try {
-            // prepare if not yet done
-            if (tx == null) {
-                prepare();
-            }
             tx.commit();
             tx.close();
             tx = null;
@@ -250,11 +250,7 @@ public class FeatureStoreUnitOfWork
                 }, null );
             }
 
-            modifications.clear();
-            
-            // flush entities and contexts; entities are reloaded with new status
-            // XXX this also clears cache, ok?
-            loaded.clear();
+            modifications.clear();            
             featureSources.asMap().clear();
         }
         catch (Exception e) {
@@ -264,7 +260,6 @@ public class FeatureStoreUnitOfWork
 
 
     public void close() {
-        super.close();
         if (tx != null && tx != TX_FAILED) {
             try {
                 tx.rollback();
@@ -280,18 +275,23 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    protected void apply()
-    throws IOException, ConcurrentEntityModificationException {
+    protected void apply( Iterable<Entity> loaded )
+    throws IOException {  //, ConcurrentEntityModificationException {
         assert tx != null;
         // find created, modified, removed
         Map<Class,FeatureCollection> created = new HashMap();
         Map<Class,Set<FeatureId>> removed = new HashMap();
 
-        for (Entity entity : loaded.values()) {
+        for (Entity entity : loaded) {
             Feature feature = (Feature)entity.state();
 
             // created
             if (entity.status() == EntityStatus.CREATED) {
+                // it in case of exception while prepare the mark is removed to early; but
+                // it should not cause trouble as potential subsequent modufications are
+                // just send twice to the store, one in create and the equal modification
+                feature.getUserData().remove( "__created__" );
+                
                 FeatureCollection coll = created.get( entity.getClass() );
                 if (coll == null) {
                     coll = new DefaultFeatureCollection( null, null );
@@ -301,6 +301,7 @@ public class FeatureStoreUnitOfWork
             }
             // removed
             else if (entity.status() == EntityStatus.REMOVED) {
+                //assert feature.getUserData().get( "__created__" ) == null;
                 Set<FeatureId> fids = removed.get( entity.getClass() );
                 if (fids == null) {
                     fids = new HashSet( 1024 );
@@ -339,6 +340,8 @@ public class FeatureStoreUnitOfWork
         // write modified
         for (Entry<FeatureId,FeatureModifications> entry : modifications.entrySet()) {
             FeatureModifications mods = entry.getValue();
+            assert mods.feature.getUserData().get( "__created__" ) == null;
+            
             FeatureStore fs = (FeatureStore)store.getStore().getFeatureSource( 
                     mods.feature.getType().getName() );
 
@@ -362,13 +365,15 @@ public class FeatureStoreUnitOfWork
 
 
     protected void markPropertyModified( Feature feature, AttributeDescriptor att, Object value) {
-        FeatureModifications fm = modifications.get( feature.getIdentifier() );
-        if (fm == null) {
-            fm = new FeatureModifications( feature );
-            FeatureModifications other = modifications.putIfAbsent( feature.getIdentifier(), fm );
-            fm = other != null ? other : fm;
+        if (feature.getUserData().get( "__created__" ) == null) {
+            FeatureModifications fm = modifications.get( feature.getIdentifier() );
+            if (fm == null) {
+                fm = new FeatureModifications( feature );
+                FeatureModifications other = modifications.putIfAbsent( feature.getIdentifier(), fm );
+                fm = other != null ? other : fm;
+            }
+            fm.put( att, value );
         }
-        fm.put( att, value );
     }
 
     

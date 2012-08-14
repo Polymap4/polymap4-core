@@ -14,32 +14,31 @@
  */
 package org.polymap.core.model2;
 
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 
 /**
- * 
+ * An Entity is a special kind of an {@link Composite}.
  *
+ * @see Composite
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class Entity
         extends Composite {
-
-    protected EntityRuntimeContext      context;
     
     public Object id() {
-        return context.id();
-    }
-    
-    public Object state() {
-        return context.state();
+        return context.getState().id();
     }
     
     public EntityStatus status() {
-        return context.status();
+        return context.getStatus();
     }
 
+    
+    public String toString() {
+        return getClass().getSimpleName() + "[id=" + id() + ",status=" + status() + ",state=" + state() + "]" ;
+    }
 
+    
     /**
      * Casts this entity into one of its Mixin types. Mixins are defined via the
      * {@link Mixins} annotation.
@@ -48,7 +47,7 @@ public abstract class Entity
      * @param mixinClass
      * @return A mixin of the given type, or null if no such mixin was defined.
      */
-    public <T> T as( Class<T> mixinClass ) {
+    public <T extends Composite> T as( Class<T> mixinClass ) {
         return context.createMixin( mixinClass );
     }
 

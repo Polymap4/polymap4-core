@@ -16,6 +16,8 @@ package org.polymap.core.model2.engine;
 
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyConcern;
+import org.polymap.core.model2.runtime.PropertyInfo;
+import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
  * 
@@ -41,6 +43,11 @@ final class ConcernPropertyInterceptor<T>
 
     public void set( T value ) {
         concern.doSet( delegate, value );
+    }
+
+    public T getOrCreate( ValueInitializer<T> initializer ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
     }
 
     public PropertyInfo getInfo() {
