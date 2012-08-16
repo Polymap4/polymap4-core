@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies that a {@link Property} can by used in a Query. Underlying stores may
+ * Denotes that a {@link Property} can by used in a Query. Underlying stores may
  * use this to determine if a property is indexed for (faster) searching.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

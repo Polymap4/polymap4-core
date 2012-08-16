@@ -16,12 +16,18 @@ package org.polymap.core.model2;
 
 import javax.annotation.Nullable;
 
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
 import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * {@link Entity} property for simple and {@link Composite} values.
- *
+ * Property for simple and {@link Composite} values.
+ * <p/>
+ * The property value of a newly created Entity is null unless {@link Defaults} or
+ * {@link DefaultValue} was specified for this property or a {@link ValueInitializer}
+ * was used when creating the Entity. A {@link ModelRuntimeException} is thrown if
+ * the value is <code>null</code> and no {@link Nullable} annotation is given.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface Property<T> {

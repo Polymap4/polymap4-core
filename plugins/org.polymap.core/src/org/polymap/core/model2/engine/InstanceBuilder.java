@@ -15,7 +15,6 @@
 package org.polymap.core.model2.engine;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import java.lang.reflect.Constructor;
@@ -120,13 +119,11 @@ public final class InstanceBuilder {
                     // Composite
                     Class propType = info.getType();
                     Property prop = null;
-                    if (Composite.class.isAssignableFrom( propType )) {
-                        prop = new CompositePropertyImpl( context, storeProp );
+                    if (info.getMaxOccurs() > 1) {
+                        throw new RuntimeException( "No Collection properties yet: " + propType );                        
                     }
-                    // Collection
-                    else if (Collection.class.isAssignableFrom( propType )) {
-                        // XXX no collections yet
-                        throw new RuntimeException( "Type of property is not supported yet: " + propType );
+                    else if (Composite.class.isAssignableFrom( propType )) {
+                        prop = new CompositePropertyImpl( context, storeProp );
                     }
                     // primitive type
                     else {

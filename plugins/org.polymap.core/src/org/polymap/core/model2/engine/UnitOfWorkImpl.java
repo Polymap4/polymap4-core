@@ -45,6 +45,8 @@ public class UnitOfWorkImpl
 
     private static final Exception          PREPARED = new Exception( "Successfully prepared for commit." );
     
+    private static volatile long            idCount = 0;
+    
     protected EntityRepositoryImpl          repo;
     
     protected StoreUnitOfWork               underlying;
@@ -89,7 +91,7 @@ public class UnitOfWorkImpl
 
         // build fake id; don't depend on store's ability to deliver
         // id for newly created state
-        id = id != null ? id : entityClass.getSimpleName() + "." + state.hashCode();
+        id = id != null ? id : entityClass.getSimpleName() + "." + idCount++;
         
         T result = repo.buildEntity( state, entityClass, this );
         repo.contextOfEntity( result ).raiseStatus( EntityStatus.CREATED );
@@ -206,6 +208,11 @@ public class UnitOfWorkImpl
             loaded.clear();
             loaded = null;
         }
+    }
+
+
+    protected void finalize() throws Throwable {
+        close();
     }
 
 

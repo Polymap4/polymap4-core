@@ -91,7 +91,8 @@ public class RecordStoreUnitOfWork
     public <T extends Entity> Collection find( Class<T> entityClass ) {
         try {
             // XXX cache result for subsequent loadEntityState() (?)
-            final ResultSet results = store.find( new SimpleQuery().eq( TYPE_KEY, entityClass.getName() ) );
+            final ResultSet results = store.find( 
+                    new SimpleQuery().eq( TYPE_KEY, entityClass.getName() ).setMaxResults( Integer.MAX_VALUE ) );
             
             return new AbstractCollection() {
 

@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Defines the name/key of the attribute in the underlying store.
+ * Denotes the name/key of the attribute in the underlying store.
  * <p/>
  * Can by applied to properties. 
  *

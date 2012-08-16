@@ -18,11 +18,14 @@ import java.util.Collection;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.runtime.EntityRepository;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.UnitOfWork;
+import org.polymap.core.runtime.Timer;
 
 /**
  * 
@@ -53,9 +56,6 @@ public abstract class SimpleModelTest
     }
 
 
-    protected abstract Object stateId( Object state );
-    
-    
     public void testCreateEmployee() throws Exception {    
         Employee employee = uow.createEntity( Employee.class, null, null );
         log.info( "Employee: id=" + employee.id() );
@@ -94,8 +94,32 @@ public abstract class SimpleModelTest
     }
     
     
+    public void testDefaults() throws Exception {
+        Employee employee = uow.createEntity( Employee.class, null, null );
+        assertEquals( "", employee.defaultString.get() );        
+        assertEquals( 0, (int)employee.jap.get() );
+        assertEquals( "Ulli", employee.firstname.get() );
+    }
+    
+
+    public void testNullable() throws Exception {
+        Employee employee = uow.createEntity( Employee.class, null, null );
+        Exception thrown = null;
+        try { 
+            employee.jap.set( null ); 
+        } 
+        catch (Exception e) { thrown = e; }        
+        assertTrue( thrown instanceof ModelRuntimeException );
+        
+        try { 
+            employee.nonNullable.get(); } catch (Exception e) { thrown = e; }        
+        assertTrue( thrown instanceof ModelRuntimeException );
+    }
+    
+    
     public void testCreateEmployees() throws Exception {
-        for (int i=0; i<3; i++) {
+        // loop count greater than default query size of RecordStore
+        for (int i=0; i<11; i++) {
             Employee employee = uow.createEntity( Employee.class, null, null );
             employee.jap.set( i );
         }
@@ -106,12 +130,53 @@ public abstract class SimpleModelTest
         // check
         UnitOfWork uow2 = repo.newUnitOfWork();
         Collection<Employee> results = uow2.find( Employee.class );
-        assertEquals( 3, results.size() );
+        assertEquals( 11, results.size() );
+
+        int previousJap = -1;
+        for (Employee employee : results) {
+            int jap = employee.jap.get();
+            assertTrue( jap >= 0 && jap <= results.size() && previousJap != jap );
+        }
+    }
+
+    
+    public void tstPerformance() throws Exception {
+        logHeap();
+        Timer timer = new Timer();
+        int loops = 50000;
+        for (int i=0; i<loops; i++) {
+            Employee employee = uow.createEntity( Employee.class, null, null );
+            employee.jap.set( i );
+        }
+        log.info( "Employees created: " + loops + " in " + timer.elapsedTime() + "ms" );
+        logHeap();
+
+        // commit
+        timer.start();
+        uow.commit();
+        log.info( "Commit time: " + timer.elapsedTime() + "ms" );
+        logHeap();
+        
+        // load
+        timer.start();
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        Collection<Employee> results = uow2.find( Employee.class );
 
         for (Employee employee : results) {
             int jap = employee.jap.get();
-            assertTrue( jap >= 0 && jap <= results.size() );
+            assert jap >= 0 && jap <= results.size() : "jap = " + jap + ", result.size() = " + results.size();
         }
+        log.info( "Load time: " + timer.elapsedTime() + "ms" );
+        logHeap();
+    }
+
+    
+    protected void logHeap() {
+        System.gc();
+        Runtime rt = Runtime.getRuntime();
+        log.info( "HEAP: free/total: " + 
+                FileUtils.byteCountToDisplaySize( rt.freeMemory() ) + " / " + 
+                FileUtils.byteCountToDisplaySize( rt.totalMemory() ) );
     }
 
 }

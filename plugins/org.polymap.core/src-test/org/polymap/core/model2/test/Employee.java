@@ -14,6 +14,8 @@
  */
 package org.polymap.core.model2.test;
 
+import java.util.Date;
+
 import org.polymap.core.model2.Defaults;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
@@ -34,7 +36,14 @@ public class Employee
 
     @Defaults
     public Property<Integer>        jap;
+    
+    @Defaults
+    public Property<String>         defaultString;
+    
+    @Defaults
+    public Property<Date>           defaultDate;
 
+    public Property<String>         nonNullable;
 
     /**
      * Computed property: back reference of {@link Company#employees()}.

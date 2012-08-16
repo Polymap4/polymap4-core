@@ -42,7 +42,6 @@ import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.NameImpl;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
@@ -55,6 +54,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -69,6 +69,7 @@ import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreUnitOfWork;
+import org.polymap.core.runtime.LazyInit;
 
 /**
  * 
@@ -169,11 +170,7 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    public void removeEntity( Entity entity ) {
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-
+    @Override
     public <T extends Entity> Collection find( Class<T> entityClass ) {
         try {
             // schema
@@ -186,6 +183,8 @@ public class FeatureStoreUnitOfWork
             final Iterator<Feature> it = features.iterator();
             
             return new AbstractCollection<String>() {
+                
+                private LazyInit<Integer> size = new LazyInit(); 
 
                 public Iterator<String> iterator() {
                     return Iterators.transform( it, new Function<Feature,String>() {
@@ -196,11 +195,15 @@ public class FeatureStoreUnitOfWork
                 }
 
                 public int size() {
-                    return features.size();
+                    return size.get( new Supplier<Integer>() {
+                        public Integer get() {
+                            return features.size();
+                        }                    
+                    });
                 }
 
                 public boolean isEmpty() {
-                    return features.isEmpty();
+                    return size() == 0;  //features.isEmpty();
                 }
 
                 protected void finalize() throws Throwable {
@@ -241,13 +244,13 @@ public class FeatureStoreUnitOfWork
             tx = null;
 
             for (FeatureStore fs : featureSources.asMap().values()) {
-                log.debug( "Checking features: " + fs );
+//                log.debug( "Checking features: " + fs );
                 fs.setTransaction( Transaction.AUTO_COMMIT );
-                fs.getFeatures().accepts( new FeatureVisitor() {
-                    public void visit( Feature feature ) {
-                        log.debug( "FeatureId: " + feature.getIdentifier() );
-                    }
-                }, null );
+//                fs.getFeatures().accepts( new FeatureVisitor() {
+//                    public void visit( Feature feature ) {
+//                        log.debug( "FeatureId: " + feature.getIdentifier() );
+//                    }
+//                }, null );
             }
 
             modifications.clear();            
@@ -338,6 +341,7 @@ public class FeatureStoreUnitOfWork
         }
         
         // write modified
+        log.debug( "    Modified feature(s): " + modifications.size() );
         for (Entry<FeatureId,FeatureModifications> entry : modifications.entrySet()) {
             FeatureModifications mods = entry.getValue();
             assert mods.feature.getUserData().get( "__created__" ) == null;
@@ -354,9 +358,9 @@ public class FeatureStoreUnitOfWork
             AttributeDescriptor[] atts = mods.types();
             Object values[] = mods.values2();
             
-            log.debug( "    Modifying feature: " + mods.feature.getIdentifier() ); 
+            log.trace( "    Modifying feature: " + mods.feature.getIdentifier() ); 
             for (int i=0; i<atts.length; i++) {
-                log.debug( "        attribute: " + atts[i].getLocalName() + " = " + values[i] );
+                log.trace( "        attribute: " + atts[i].getLocalName() + " = " + values[i] );
             }
             fs.modifyFeatures( mods.types(), mods.values2(), 
                     ff.id( singleton( mods.feature.getIdentifier() ) ) );

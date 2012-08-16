@@ -21,9 +21,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Defines the description of a type or property. The description can be used by
- * concrete stores in their specific type descriptors. For example in the Feature
- * store backend this maps to the description field in the {@link PropertyType}
+ * Specifies the description of an {@link Entity} or {@link Property}. The
+ * description can be used by concrete stores in their specific type descriptors. For
+ * example in the Feature store backend this maps to the description field in the
+ * {@link PropertyType}
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

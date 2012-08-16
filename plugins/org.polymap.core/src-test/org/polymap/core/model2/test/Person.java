@@ -42,8 +42,10 @@ public abstract class Person
     
     protected Property<Point>       geom;
 
+    @Nullable
     protected Property<String>      name;
 
+    /** Defaults to "Ulli". Not Nullable. */
     @DefaultValue("Ulli")
     protected Property<String>      firstname;
 

@@ -48,8 +48,6 @@ public class FeatureSimpleModelTest
 
     static {
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "trace" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2.store.feature", "debug" );
     }

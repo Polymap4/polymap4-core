@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 
 /**
- * Specifies that a {@link Property} is immutable. An attempt to modify an immutable
+ * Denotes that a {@link Property} is immutable. An attempt to modify an immutable
  * property results in a {@link ModelRuntimeException}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

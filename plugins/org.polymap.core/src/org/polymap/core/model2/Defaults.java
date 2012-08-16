@@ -21,12 +21,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies that the annotated {@link Property} is to initialized with
- * default value:
+ * Denotes that a {@link Property} returnes default value if its value is null.
  * <ul>
  * <li>String: ""</li>
  * <li>Number: 0</li>
- * <li>Date: now (?)</li>
+ * <li>Date: new Date( 0 )</li>
  * <li>Collection: empty collection</li>
  * </ul>  
  *

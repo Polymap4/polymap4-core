@@ -17,20 +17,22 @@ package org.polymap.core.runtime;
 import com.google.common.base.Supplier;
 
 /**
- * Provides a lazily initialized (cache) variable.
+ * Provides a lazily initialized variable. Using a LazyInit keeps the client code
+ * independent from the actual check/set logic provided by this class or sub classes.
  * <p/>
- * Using a LazyInit keeps the client code independent from the initialization
- * logic.
+ * This default implementation does no checks before set whatoever. Consider using
+ * sub classes for specific behaviour.
  * <p/>
  * {@link LazyInit} implements {@link Supplier}. This allows to 'stack' several
  * implementations to combine their behaviour. For example a JobLazyInit on a
  * {@link LockedLazyInit} results in a lazily initialized variable that is guaranteed
  * to be initialized just ones *and* that is initialized in a separately running job.
  * 
+ * @see LockedLazyInit
  * @see Atomically
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public abstract class LazyInit<T>
+public class LazyInit<T>
         implements Supplier<T> {
 
     protected T                 value;
@@ -42,11 +44,21 @@ public abstract class LazyInit<T>
     }
     
     public LazyInit( Supplier<T> supplier ) {
+        this.supplier = supplier;
     }
-    
-    public abstract T get();
+
+    public T get() {
+        assert this.supplier != null : "No supplier specified.";
+        return get( this.supplier );
+    }
 
     @SuppressWarnings("hiding")
-    public abstract T get( Supplier<T> supplier );
+    public T get( Supplier<T> supplier ) {
+        this.supplier = supplier;
+        if (value == null) {
+            value = this.supplier.get();
+        }
+        return value;
+    }
 
 }

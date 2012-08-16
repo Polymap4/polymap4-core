@@ -63,16 +63,25 @@ final class ConstraintsPropertyInterceptor<T>
         this.isNullable = info.isNullable();
     }
 
+    protected String fullPropName() {
+        return context.getInfo().getName() + "." + getInfo().getName();
+    }
+    
     
     public T get() {
         T value = delegate.get();
         
+        // check/init default value
         if (value == null) {
             if (defaultValue == UNINITIALIZED) {
                 // not synchronized; concurrent inits are ok here 
                 defaultValue = delegate.getInfo().getDefaultValue();
             }
-            return (T)defaultValue;
+            value = (T)defaultValue;
+        }
+        // check Nullable
+        if (value == null && !isNullable) {
+            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
         }
         return value;
     }
@@ -82,10 +91,10 @@ final class ConstraintsPropertyInterceptor<T>
         context.checkEviction();
         
         if (isImmutable) {
-            throw new ModelRuntimeException( "Property is immutable: " + context.getInfo().getName() + "." + getInfo().getName() );
+            throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
         }
         if (!isNullable && value == null) {
-            throw new ModelRuntimeException( "Property is not nullable: " + context.getInfo().getName() + "." + getInfo().getName() );
+            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
         }
         delegate.set( value );
         
