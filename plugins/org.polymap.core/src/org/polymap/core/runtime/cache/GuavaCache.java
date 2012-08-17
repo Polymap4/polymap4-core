@@ -26,14 +26,14 @@ import com.google.common.cache.CacheBuilder;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class SoftReferenceCache<K,V>
+final class GuavaCache<K,V>
         implements Cache<K,V> {
 
-    private static Log log = LogFactory.getLog( SoftReferenceCache.class );
+    private static Log log = LogFactory.getLog( GuavaCache.class );
     
     private String                                  name;
     
-    private SoftReferenceCacheManager               manager;
+    private GuavaCacheManager                       manager;
 
     private CacheConfig                             config;
 
@@ -45,7 +45,7 @@ final class SoftReferenceCache<K,V>
     private com.google.common.cache.Cache<K,V>      cache;
     
 
-    SoftReferenceCache( SoftReferenceCacheManager manager, String name, CacheConfig config ) {
+    GuavaCache( GuavaCacheManager manager, String name, CacheConfig config ) {
         this.manager = manager;
         this.name = name != null ? name : String.valueOf( hashCode() );
         this.config = config;

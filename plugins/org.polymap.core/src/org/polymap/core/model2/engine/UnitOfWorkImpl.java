@@ -31,9 +31,7 @@ import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheEvictionListener;
-import org.polymap.core.runtime.cache.CacheManager;
 
 /**
  * 
@@ -61,8 +59,7 @@ public class UnitOfWorkImpl
         this.repo = repo;
         
         // cache
-        this.loaded = CacheManager.instance().newCache( 
-                new CacheConfig().setConcurrencyLevel( 4 ).setInitSize( 1024 ).setDefaultElementSize( 1024 ) );
+        this.loaded = repo.getConfig().newCache(); 
         
         // check evicted entries and re-insert if modified
         this.loaded.addEvictionListener( new CacheEvictionListener<Object,Entity>() {

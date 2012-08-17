@@ -1,21 +1,42 @@
 package org.polymap.core.model2.runtime;
 
+import com.google.common.base.Supplier;
+
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.engine.EntityRepositoryImpl;
 import org.polymap.core.model2.store.StoreSPI;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheManager;
 
 /**
- * Fluent configuration API.
+ * Configuration API.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class EntityRepositoryConfiguration {
 
-    protected StoreSPI            store;
+    protected StoreSPI              store;
     
-    protected Class[]             entities;
+    protected Class[]               entities;
+    
+    protected Supplier<Cache>       cacheFactory;
     
     
+    /**
+     * 
+     */
+    protected EntityRepositoryConfiguration() {
+        cacheFactory = new Supplier<Cache>() {
+            public Cache get() {
+                return CacheManager.instance().newCache( new CacheConfig()
+                        .setConcurrencyLevel( 4 )
+                        .setInitSize( 1024 )
+                        .setDefaultElementSize( 1024 ) );
+            }
+        };
+    }
+
     public EntityRepository create() {
         return new EntityRepositoryImpl( this );
     }
@@ -38,4 +59,17 @@ public class EntityRepositoryConfiguration {
         return this;
     }
     
+    public <K,V> Cache<K,V> newCache() {
+        return cacheFactory.get();
+    }
+    
+    /**
+     * Specifies the factory to create caches for {@link Entity} and state
+     * instances.
+     */
+    public EntityRepositoryConfiguration setCacheFactory( Supplier<Cache> cacheFactory ) {
+        this.cacheFactory = cacheFactory;
+        return this;
+    }
+
 }

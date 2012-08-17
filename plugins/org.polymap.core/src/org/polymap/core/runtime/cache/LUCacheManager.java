@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.MapMaker;
 
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.runtime.cache.ConcurrentMapCache.CacheEntry;
+import org.polymap.core.runtime.cache.LUCache.CacheEntry;
 
 /**
  * Memory usage of all caches is periodically checked by the {@link MemoryChecker}
@@ -34,21 +34,21 @@ import org.polymap.core.runtime.cache.ConcurrentMapCache.CacheEntry;
  * from all caches are evicted. The check interval is calculated from the amount of
  * free memory.
  * 
- * @see ConcurrentMapCache
+ * @see LUCache
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class ConcurrentMapCacheManager
+public class LUCacheManager
         extends CacheManager {
 
-    private static Log log = LogFactory.getLog( ConcurrentMapCacheManager.class );
+    private static Log log = LogFactory.getLog( LUCacheManager.class );
     
-    private static final int                        DEFAULT_EVICTION_SIZE = 1000;
-    private static final int                        DEFAULT_EVICTION_MEM_PERCENT = 10;
+    private static final int                DEFAULT_EVICTION_SIZE = 1000;
+    private static final int                DEFAULT_EVICTION_MEM_PERCENT = 20;
     
-    private static final ConcurrentMapCacheManager  instance = new ConcurrentMapCacheManager();
+    private static final LUCacheManager     instance = new LUCacheManager();
     
     
-    public static ConcurrentMapCacheManager instance() {
+    public static LUCacheManager instance() {
         return instance;
     }
     
@@ -57,10 +57,10 @@ final class ConcurrentMapCacheManager
     
     private Thread                          memoryCheckerThread;
     
-    private Map<String,ConcurrentMapCache>  caches;
+    private Map<String,LUCache>             caches;
     
 
-    protected ConcurrentMapCacheManager() {
+    protected LUCacheManager() {
         // start thread
         memoryCheckerThread = new Thread( new MemoryChecker(), "CacheMemoryChecker" );
         memoryCheckerThread.setPriority( Thread.MAX_PRIORITY );
@@ -71,17 +71,17 @@ final class ConcurrentMapCacheManager
     
 
     public <K, V> Cache<K, V> newCache( CacheConfig config ) {
-        return add( new ConcurrentMapCache( this, null, config ) );
+        return add( new LUCache( this, null, config ) );
     }
 
     
     public <K, V> Cache<K, V> getOrCreateCache( String name, CacheConfig config ) {
-        return add( new ConcurrentMapCache( this, name, config ) );
+        return add( new LUCache( this, name, config ) );
     }
 
 
-    private <K, V> Cache<K, V> add( ConcurrentMapCache cache ) {
-        ConcurrentMapCache elm = caches.put( cache.getName(), cache );
+    private <K, V> Cache<K, V> add( LUCache cache ) {
+        LUCache elm = caches.put( cache.getName(), cache );
         if (elm != null) {
             caches.put( cache.getName(), elm );
             throw new IllegalArgumentException( "Cache name already exists: " + cache.getName() );
@@ -90,8 +90,8 @@ final class ConcurrentMapCacheManager
     }
 
     
-    void disposeCache( ConcurrentMapCache cache ) {
-        ConcurrentMapCache elm = caches.remove( cache.getName() );
+    void disposeCache( LUCache cache ) {
+        LUCache elm = caches.remove( cache.getName() );
         if (elm == null) {
             throw new IllegalArgumentException( "Cache name does not exists: " + cache.getName() );
         }
@@ -142,9 +142,9 @@ final class ConcurrentMapCacheManager
             float ratio = (float)free / (float)maxFree;
             //log.info( "    memory free ratio: " + ratio );
             // sleep no longer than 100ms
-            long sleep = (long)Math.min( 1000, 1000*ratio );
+            long sleep = (long)Math.min( 50, 50*ratio );
 
-            if (sleep < 500) {
+            if (sleep < 10) {
                 System.gc();
                 sleep = 0;
             }
@@ -167,7 +167,7 @@ final class ConcurrentMapCacheManager
                 log.debug( String.format( "    Eviction target size: %dMB", memSizeTarget/1024/1024 ) );
 
                 // all caches
-                for (ConcurrentMapCache cache : caches.values()) {
+                for (LUCache cache : caches.values()) {
                     
                     Iterable<Map.Entry<Object,CacheEntry>> entries = cache.entries();
                     for (Map.Entry<Object,CacheEntry> entry : entries) {
@@ -207,9 +207,9 @@ final class ConcurrentMapCacheManager
                     candidate.entry.dispose();
                 }
             
-                if (evictionQueue.isEmpty()) {
+                //if (evictionQueue.isEmpty()) {
                     System.gc();
-                }
+                //}
                 
                 lastEvictionCount = Math.max( 1000, evictionQueue.size() );
                 log.info( "    Checked: " + count
@@ -275,7 +275,7 @@ final class ConcurrentMapCacheManager
     class EvictionCandidate
             implements Comparable {
        
-        ConcurrentMapCache          cache;
+        LUCache                     cache;
         
         CacheEntry                  entry;
         
@@ -288,14 +288,14 @@ final class ConcurrentMapCacheManager
         int                         lastAccessed;            
 
         
-        EvictionCandidate( ConcurrentMapCache cache, CacheEntry entry, Object key ) {
+        EvictionCandidate( LUCache cache, CacheEntry entry, Object key ) {
             this.cache = cache;
             this.entry = entry;
             this.key = key;
             this.lastAccessed = entry.accessed();
         }
 
-        public EvictionCandidate set( ConcurrentMapCache cache, CacheEntry entry, Object key ) {
+        public EvictionCandidate set( LUCache cache, CacheEntry entry, Object key ) {
             this.cache = cache;
             this.entry = entry;
             this.key = key;

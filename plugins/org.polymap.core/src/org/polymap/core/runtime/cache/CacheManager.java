@@ -23,8 +23,8 @@ public abstract class CacheManager {
 
     public static CacheManager instance() {
         // XXX make this configurable
-        //return SoftReferenceCacheManager.instance();
-        return ConcurrentMapCacheManager.instance();
+        //return GuavaCacheManager.instance();
+        return LUCacheManager.instance();
     }
     
     // instance *******************************************

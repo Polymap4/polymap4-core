@@ -18,7 +18,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.polymap.core.model2.test.FeatureSimpleModelTest;
-import org.polymap.core.runtime.cache.test.ConcurrentMapTest;
+import org.polymap.core.runtime.cache.test.PerformanceCacheTest;
 import org.polymap.core.runtime.mp.test.MPTest;
 import org.polymap.core.runtime.mp.test.SimpleTest;
 import org.polymap.core.runtime.recordstore.test.LuceneRecordStoreTest;
@@ -36,7 +36,7 @@ public class CoreTests {
 
         suite.addTestSuite( MPTest.class );
         suite.addTestSuite( SimpleTest.class );
-        suite.addTestSuite( ConcurrentMapTest.class );
+        //suite.addTestSuite( PerformanceCacheTest.class );
         //$JUnit-END$
         return suite;
     }

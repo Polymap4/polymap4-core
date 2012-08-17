@@ -21,45 +21,45 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.MapMaker;
 
 /**
- * Experimental manager for {@link SoftReferenceCache}s.
+ * Experimental manager for {@link GuavaCache}s.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class SoftReferenceCacheManager
+public class GuavaCacheManager
         extends CacheManager {
 
-    private static Log log = LogFactory.getLog( SoftReferenceCacheManager.class );
+    private static Log log = LogFactory.getLog( GuavaCacheManager.class );
     
-    private static final SoftReferenceCacheManager  instance = new SoftReferenceCacheManager();
+    private static final GuavaCacheManager  instance = new GuavaCacheManager();
     
     
-    public static SoftReferenceCacheManager instance() {
+    public static GuavaCacheManager instance() {
         return instance;
     }
     
     
     // instance *******************************************
     
-    private Map<String,SoftReferenceCache>  caches;
+    private Map<String,GuavaCache>  caches;
     
 
-    protected SoftReferenceCacheManager() {
+    protected GuavaCacheManager() {
         caches = new MapMaker().initialCapacity( 256 ).weakValues().makeMap();
     }
     
 
     public <K, V> Cache<K, V> newCache( CacheConfig config ) {
-        return add( new SoftReferenceCache( this, null, config ) );
+        return add( new GuavaCache( this, null, config ) );
     }
 
     
     public <K, V> Cache<K, V> getOrCreateCache( String name, CacheConfig config ) {
-        return add( new SoftReferenceCache( this, name, config ) );
+        return add( new GuavaCache( this, name, config ) );
     }
 
 
-    private <K, V> Cache<K, V> add( SoftReferenceCache cache ) {
-        SoftReferenceCache elm = caches.put( cache.getName(), cache );
+    private <K, V> Cache<K, V> add( GuavaCache cache ) {
+        GuavaCache elm = caches.put( cache.getName(), cache );
         if (elm != null) {
             caches.put( cache.getName(), elm );
             throw new IllegalArgumentException( "Cache name already exists: " + cache.getName() );
@@ -68,8 +68,8 @@ final class SoftReferenceCacheManager
     }
 
     
-    void disposeCache( ConcurrentMapCache cache ) {
-        SoftReferenceCache elm = caches.remove( cache.getName() );
+    void disposeCache( GuavaCache cache ) {
+        GuavaCache elm = caches.remove( cache.getName() );
         if (elm == null) {
             throw new IllegalArgumentException( "Cache name does not exists: " + cache.getName() );
         }
