@@ -47,6 +47,12 @@ public class LazyInit<T>
         this.supplier = supplier;
     }
 
+    /**
+     * This default implementation calls {@link #get(Supplier)} with the supplier
+     * specified in the constructor.
+     * 
+     * @throws AssertionError If no supplier was given to the constructor.
+     */
     public T get() {
         assert this.supplier != null : "No supplier specified.";
         return get( this.supplier );

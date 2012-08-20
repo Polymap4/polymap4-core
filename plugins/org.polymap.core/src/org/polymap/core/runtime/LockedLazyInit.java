@@ -42,11 +42,6 @@ public final class LockedLazyInit<T>
         super( supplier );
     }
 
-    public T get() {
-        assert this.supplier != null : "No supplier specified.";
-        return get( this.supplier );
-    }
-
     @SuppressWarnings("hiding")
     public T get( Supplier<T> supplier ) {
         this.supplier = supplier;
