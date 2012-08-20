@@ -39,7 +39,7 @@ Menu {
 
 Text.formeditor {
     margin: 2px;
-    border: 1px solid #CCCCCC;
+    border: 1px solid #C0C0C0;
 }
 
 Text.formeditor:disabled {
@@ -47,11 +47,11 @@ Text.formeditor:disabled {
 }
 
 Combo.formeditor {
-    border: 1px solid #CCCCCC;
+    border: 1px solid #C0C0C0;
 }
 
 DateTime.formeditor {
-    border: 1px solid #CCCCCC;
+    border: 1px solid #C0C0C0;
 }
 
 DateTime.formeditor:disabled {
