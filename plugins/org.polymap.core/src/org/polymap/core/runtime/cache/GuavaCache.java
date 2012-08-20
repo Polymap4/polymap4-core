@@ -20,10 +20,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+
+import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.cache.GuavaCacheManager.CacheEntry;
 
 /**
- * Experimental cache implementation backed by {@link CacheBuilder}.
- *
+ * Experimental cache implementation backed by Guava's cache implementation
+ * {@link CacheBuilder}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 final class GuavaCache<K,V>
@@ -39,10 +45,12 @@ final class GuavaCache<K,V>
 
     private com.google.common.cache.CacheLoader<K,V> loaderWapper;
     
-    /** FIXME this works for single threads only; ThreadLocal seem to big overhead(?) */
+    /** FIXME this works for single threads only; ThreadLocal seems to big overhead(?) */
     private CacheLoader<K,V,? extends Throwable>    currentLoader;
 
     private com.google.common.cache.Cache<K,V>      cache;
+    
+    private ListenerList<CacheEvictionListener>     listeners;
     
 
     GuavaCache( GuavaCacheManager manager, String name, CacheConfig config ) {
@@ -53,7 +61,9 @@ final class GuavaCache<K,V>
         loaderWapper = new com.google.common.cache.CacheLoader<K,V>() {
             public V load( K key ) throws Exception {
                 try {
-                    return currentLoader.load( key );
+                    V result = currentLoader.load( key );
+                    GuavaCache.this.manager.event( CacheEntry.ADDED, GuavaCache.this, key, result );
+                    return result;
                 }
                 catch (Exception e) {
                     throw e;
@@ -63,16 +73,28 @@ final class GuavaCache<K,V>
                 }
             }
         };
-//        cache = new MapMaker()
-//                .concurrencyLevel( config.concurrencyLevel )
-//                .initialCapacity( config.initSize )
-//                .softValues()
-//                .makeMap().g
+        
+        RemovalListener<K,V> removalListener = new RemovalListener<K,V>() {
+            public void onRemoval( RemovalNotification<K,V> notification ) {
+                // fire event
+                if (notification.wasEvicted() && listeners != null) {
+                    for (CacheEvictionListener l : listeners.getListeners()) {
+                        l.onEviction( notification.getKey(), notification.getValue() );
+                    }
+                }
+                // manager
+                GuavaCache.this.manager.event( CacheEntry.REMOVED, GuavaCache.this, 
+                        notification.getKey(), notification.getValue() );
+            }
+        };
+        
         cache = CacheBuilder.newBuilder()
                 .concurrencyLevel( config.concurrencyLevel )
                 .initialCapacity( config.initSize )
                 .softValues()
+                .removalListener( removalListener )
                 .build( loaderWapper );
+        
     }
 
     
@@ -97,8 +119,12 @@ final class GuavaCache<K,V>
     public V get( K key ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
         assert cache != null : "Cache is closed.";
+
+        V result = cache.asMap().get( key );
         
-        return cache.asMap().get( key );
+        manager.event( CacheEntry.ACCESSED, this, key, result );
+        
+        return result;
     }
 
     
@@ -109,9 +135,13 @@ final class GuavaCache<K,V>
         assert currentLoader == null || currentLoader == loader;
         try {
             currentLoader = loader;
-            return cache.get( key );
+            V result = cache.get( key );
+
+            manager.event( CacheEntry.ACCESSED, this, key, result );
+            
+            return result;
         }
-        // XXX for the google cache the loade *always* returns a value
+        // XXX for the google cache the loader *always* returns a value
         catch (NullPointerException e) {
             return null;
         }
@@ -122,6 +152,7 @@ final class GuavaCache<K,V>
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
+        manager.event( CacheEntry.ADDED, this, key, value );
         return putIfAbsent( key, value, config.elementMemSize );
     }
     
@@ -131,6 +162,7 @@ final class GuavaCache<K,V>
         assert cache != null : "Cache is closed.";
         assert elementMemSize > 0;
 
+        manager.event( CacheEntry.ADDED, this, key, value );
         return cache.asMap().putIfAbsent( key, value );
     }
     
@@ -162,12 +194,15 @@ final class GuavaCache<K,V>
 
     
     public boolean addEvictionListener( CacheEvictionListener listener ) {
-        throw new RuntimeException( "not yet implemented" );
+        if (listeners == null) {
+            listeners = new ListenerList();
+        }
+        return listeners.add( listener );
     }
 
     
     public boolean removeEvictionListener( CacheEvictionListener listener ) {
-        throw new RuntimeException( "not yet implemented" );
+        return listeners != null ? listeners.remove( listener ) : false;
     }
     
 }

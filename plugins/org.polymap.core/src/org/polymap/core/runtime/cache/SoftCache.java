@@ -15,17 +15,14 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.ConcurrentReferenceHashMap;
 import org.polymap.core.runtime.ConcurrentReferenceHashMap.ReferenceType;
-import org.polymap.core.runtime.ListenerList;
 
 /**
- * Cache backed by a {@link ConcurrentReferenceHashMap}.
+ * Cache implementation backed by a {@link ConcurrentReferenceHashMap}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -40,9 +37,9 @@ final class SoftCache<K,V>
     
     private SoftCacheManager            manager;
 
-    private ConcurrentMap<K,V>          entries;
+    private ConcurrentReferenceHashMap<K,V> entries;
 
-    private ListenerList<CacheEvictionListener> listeners;
+//    private ListenerList<CacheEvictionListener> listeners;
     
     private CacheConfig                 config;
     
@@ -54,12 +51,6 @@ final class SoftCache<K,V>
         
         this.entries = new ConcurrentReferenceHashMap( config.initSize, 0.75f, config.concurrencyLevel,
                 ReferenceType.STRONG, ReferenceType.SOFT, null );
-
-//        this.entries = new MapMaker()
-//                .initialCapacity( config.initSize )
-//                .concurrencyLevel( config.concurrencyLevel )
-//                //.softValues()
-//                .makeMap();
     }
 
     
@@ -153,24 +144,26 @@ final class SoftCache<K,V>
 
     
     public boolean addEvictionListener( CacheEvictionListener listener ) {
-        if (listeners == null) {
-            listeners = new ListenerList();
-        }
-        return listeners.add( listener );
+        throw new UnsupportedOperationException( "CacheEvictionListener is not supported." );
+//        if (listeners == null) {
+//            listeners = new ListenerList();
+//        }
+//        return listeners.add( listener );
     }
 
     
     public boolean removeEvictionListener( CacheEvictionListener listener ) {
-        return listeners != null ? listeners.remove( listener ) : false;
+        throw new UnsupportedOperationException( "CacheEvictionListener is not supported." );
+//        return listeners != null ? listeners.remove( listener ) : false;
     }
     
     
-    void fireEvictionEvent( K key, V value ) {
-        if (listeners != null) {
-            for (CacheEvictionListener l : listeners.getListeners()) {
-                l.onEviction( key, value );
-            }
-        }
-    }
+//    void fireEvictionEvent( K key, V value ) {
+//        if (listeners != null) {
+//            for (CacheEvictionListener l : listeners.getListeners()) {
+//                l.onEviction( key, value );
+//            }
+//        }
+//    }
 
 }

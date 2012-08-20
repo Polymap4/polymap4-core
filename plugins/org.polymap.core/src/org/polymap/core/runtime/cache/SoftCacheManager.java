@@ -15,10 +15,8 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.concurrent.ConcurrentMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.runtime.ConcurrentReferenceHashMap;
 import org.polymap.core.runtime.ConcurrentReferenceHashMap.ReferenceType;
 
@@ -44,6 +42,7 @@ public class SoftCacheManager
     // instance *******************************************
 
     private ConcurrentMap<String,SoftCache>     caches;
+    
     
     
     protected SoftCacheManager() {

@@ -32,6 +32,9 @@ public class CacheConfig {
      */
     public static final CacheConfig DEFAULT = new CacheConfig();
 
+    
+    // instance *******************************************
+    
     protected int                   elementMemSize = DEFAULT_ELEMENT_SIZE;
     
     protected int                   concurrencyLevel = DEFAULT_CONCURRENCY_LEVEL;
@@ -47,22 +50,32 @@ public class CacheConfig {
      * <li>{@link #initSize}: 1024
      * </ul>
      */
-    public CacheConfig() {
+    protected CacheConfig() {
     }
     
-    public CacheConfig setDefaultElementSize( int elementSize ) {
-        this.elementMemSize = elementSize;
-        return this;
+    protected CacheConfig( CacheConfig other ) {
+        this.concurrencyLevel = other.concurrencyLevel;
+        this.initSize = other.initSize;
+        this.elementMemSize = other.elementMemSize;
+        
+    }
+    
+    public CacheConfig defaultElementSize( int value ) {
+        CacheConfig result = new CacheConfig( this );
+        result.elementMemSize = value;
+        return result;
     }
 
-    public CacheConfig setConcurrencyLevel( int concurrencyLevel ) {
-        this.concurrencyLevel = concurrencyLevel;
-        return this;
+    public CacheConfig concurrencyLevel( int value ) {
+        CacheConfig result = new CacheConfig( this );
+        result.concurrencyLevel = value;
+        return result;
     }
     
-    public CacheConfig setInitSize( int initSize ) {
-        this.initSize = initSize;
-        return this;
+    public CacheConfig initSize( int value ) {
+        CacheConfig result = new CacheConfig( this );
+        this.initSize = value;
+        return result;
     }
-    
+
 }

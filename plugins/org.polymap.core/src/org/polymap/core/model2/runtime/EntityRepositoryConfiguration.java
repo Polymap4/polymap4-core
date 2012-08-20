@@ -29,10 +29,10 @@ public class EntityRepositoryConfiguration {
     protected EntityRepositoryConfiguration() {
         cacheFactory = new Supplier<Cache>() {
             public Cache get() {
-                return CacheManager.instance().newCache( new CacheConfig()
-                        .setConcurrencyLevel( 4 )
-                        .setInitSize( 1024 )
-                        .setDefaultElementSize( 1024 ) );
+                return CacheManager.instance().newCache( CacheConfig.DEFAULT
+                        .concurrencyLevel( 4 )
+                        .initSize( 1024 )
+                        .defaultElementSize( 1024 ) );
             }
         };
     }

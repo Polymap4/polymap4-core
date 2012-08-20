@@ -111,7 +111,7 @@ public class SimpleWmsServer
 
         pipelineIncubator = new DefaultPipelineIncubator();
         pipelines = CacheManager.instance().newCache(
-                new CacheConfig().setInitSize( 16 ) );
+                CacheConfig.DEFAULT.initSize( 16 ) );
     }
 
     

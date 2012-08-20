@@ -24,7 +24,7 @@ import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.SoftCacheManager;
+import org.polymap.core.runtime.cache.LUCacheManager;
 
 /**
  * 
@@ -45,7 +45,8 @@ public class PerformanceCacheTest
 
     protected void setUp() throws Exception {
         //cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
-        cache = SoftCacheManager.instance().newCache( CacheConfig.DEFAULT );
+        cache = LUCacheManager.instance().newCache( CacheConfig.DEFAULT
+                .initSize( 1000000 ).concurrencyLevel( 8 ) );
     }
 
     
@@ -94,10 +95,11 @@ public class PerformanceCacheTest
         int count = 0;
         Random random = new Random();
         ByteArrayLoader loader = new ByteArrayLoader();
-        while (timer.elapsedTime() < 10000) {
+        while (timer.elapsedTime() < 30000) {
             log.println( "adding 1000 to " + cache.size() );
-            for (int i=0; i<1000; i++) {
-                Integer key = new Integer( (int)(Math.abs( random.nextGaussian() ) * 10000) );
+            for (int i=0; i<10000; i++) {
+                Integer key = new Integer( (int)(Math.abs( 
+                        random.nextGaussian() ) * 400000) );
                 cache.get( key, loader );
                 count++;
             }
@@ -115,7 +117,7 @@ public class PerformanceCacheTest
             byte[] result = new byte[1024];
             Random rand = new Random();
             for (int i=0; i<result.length; i++) {
-                result[i] = (byte)rand.nextInt();
+                //result[i] = (byte)rand.nextInt();
             }
             return result;
         }

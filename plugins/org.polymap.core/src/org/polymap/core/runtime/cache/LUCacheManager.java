@@ -19,6 +19,8 @@ import java.util.PriorityQueue;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +45,7 @@ public class LUCacheManager
     private static Log log = LogFactory.getLog( LUCacheManager.class );
     
     private static final int                DEFAULT_EVICTION_SIZE = 1000;
-    private static final int                DEFAULT_EVICTION_MEM_PERCENT = 20;
+    private static final int                DEFAULT_EVICTION_MEM_PERCENT = 10;
     
     private static final LUCacheManager     instance = new LUCacheManager();
     
@@ -98,22 +100,61 @@ public class LUCacheManager
     }
 
     
-    /*
+    /**
      * 
      */
     class MemoryChecker
             implements Runnable {
 
-        private MemoryMXBean            memBean = ManagementFactory.getMemoryMXBean();
+        private MemoryMXBean        memBean = ManagementFactory.getMemoryMXBean();
         
-        private int                     lastEvictionCount = 1000;
+        private int                 lastEvictionCount = 1000;
+        
+//        private AtomicBoolean       lowMemory = new AtomicBoolean();
+        
+        private SoftReference       probe;
+        
+        private ReferenceQueue      probeQueue = new ReferenceQueue();
+        
+        private PriorityQueue<EvictionCandidate> evictionQueue = new PriorityQueue( 1000 );
         
 
+        protected MemoryChecker() {
+//            // memory listener
+//            NotificationListener memListener = new NotificationListener() {
+//                public void handleNotification( Notification notification, Object handback)  {
+//                    String type = notification.getType();
+//                    if (type.equals( MemoryNotificationInfo.MEMORY_THRESHOLD_EXCEEDED ) ) {
+//                        synchronized (lowMemory) {
+//                            lowMemory.set( true );
+//                            lowMemory.notifyAll();
+//                        }
+//                    }
+//                }
+//           };
+//
+//           // register listener with MemoryMXBean  
+//           NotificationEmitter emitter = (NotificationEmitter)memBean;
+//           emitter.addNotificationListener( memListener, null, null);
+//
+//           // set threshold
+//           List<MemoryPoolMXBean> pools = ManagementFactory.getMemoryPoolMXBeans();
+//           for (MemoryPoolMXBean pool : pools) {
+//               if (pool.isUsageThresholdSupported() 
+//                       && pool.getType() == MemoryType.HEAP ) {
+//                   pool.setUsageThreshold( 1*1024*1024 );                   
+//               }
+//           }           
+        }
+
+        
         public void run() {
             while (true) {
                 long nextSleep = 1000;
                 try {
-                    nextSleep = checkMemory();
+                    /*nextSleep =*/ checkMemory();
+                    probe = new SoftReference( new Object[1*1024*1024], probeQueue );
+                    
                     checkMaxHeapFreeRatio();
                 }
                 catch (Exception e) {
@@ -123,7 +164,12 @@ public class LUCacheManager
                 try {
                     //log.info( "sleeping: " + nextSleep + " ..." );
                     if (nextSleep > 0) {
-                        Thread.sleep( nextSleep );
+                        probeQueue.remove();
+                        log.info( "Memory low! ############################" );
+                        
+//                        synchronized (lowMemory) {
+//                            lowMemory.wait( /*nextSleep*/ );
+//                        }
                     }
                 }
                 catch (InterruptedException e) {
@@ -131,24 +177,20 @@ public class LUCacheManager
             }
         }
         
+        
         public long checkMemory() {
             Timer timer = new Timer();
             MemoryUsage heap = memBean.getHeapMemoryUsage();
             MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
 
-            long memUsedGoal = (long)(heap.getMax() * 0.80);
+            long memUsedGoal = (long)(heap.getMax() * 0.70);
             long maxFree = heap.getMax() - memUsedGoal;
             long free = heap.getMax() - heap.getUsed();
             float ratio = (float)free / (float)maxFree;
             //log.info( "    memory free ratio: " + ratio );
             // sleep no longer than 100ms
-            long sleep = (long)Math.min( 50, 50*ratio );
+            long sleep = (long)Math.min( 10, 10*ratio );
 
-            if (sleep < 10) {
-                System.gc();
-                sleep = 0;
-            }
-            
             if (heap.getUsed() > memUsedGoal) {
                 log.debug( "Eviction..." );
                 log.debug( String.format( "    Heap: used: %dMB, max: %dMB", heap.getUsed()/1024/1024, heap.getMax()/1024/1024 ) );
@@ -158,8 +200,7 @@ public class LUCacheManager
                 // simple eviction algorithm that sorts *all* entries in a fixed size TreeSet;
                 // for a fast, incremental O(1)? algorithm, see the develop-cache-evict branch
                 
-                // XXX memory allocation!?
-                PriorityQueue<EvictionCandidate> evictionQueue = new PriorityQueue( (int)(lastEvictionCount * 1.1) );
+                evictionQueue.clear();
                 int count = 0;
                 int accessThreshold = 0;
                 int evictionMemSize = 0;
@@ -167,12 +208,20 @@ public class LUCacheManager
                 log.debug( String.format( "    Eviction target size: %dMB", memSizeTarget/1024/1024 ) );
 
                 // all caches
-                for (LUCache cache : caches.values()) {
+                OUTER : for (LUCache cache : caches.values()) {
                     
                     Iterable<Map.Entry<Object,CacheEntry>> entries = cache.entries();
                     for (Map.Entry<Object,CacheEntry> entry : entries) {
                         count++;
 
+                        // don't spent more than 100ms with collecting
+                        if (count % 1000 == 0
+                                && timer.elapsedTime() > 100
+                                && !evictionQueue.isEmpty()) {
+                            log.info( "    Abort collecting. Spent more than 100ms collecting: " + timer.elapsedTime() + "ms" );
+                            break OUTER;
+                        }
+                        
                         if (evictionMemSize < memSizeTarget
                                 || entry.getValue().accessed() < accessThreshold) {
                             
@@ -207,15 +256,13 @@ public class LUCacheManager
                     candidate.entry.dispose();
                 }
             
-                //if (evictionQueue.isEmpty()) {
-                    System.gc();
-                //}
-                
                 lastEvictionCount = Math.max( 1000, evictionQueue.size() );
-                log.info( "    Checked: " + count
-                        + " - Evicted: " + lastEvictionCount
-                        + " / " + evictionMemSize + " bytes"
-                        + ", accessThreshold: " + accessThreshold + " (" + timer.elapsedTime() + "ms)" );
+                if (!evictionQueue.isEmpty()) {
+                    log.info( "    Checked: " + count
+                            + " - Evicted: " + evictionQueue.size()
+                            + " / " + evictionMemSize + " bytes"
+                            + ", accessThreshold: " + accessThreshold + " (" + timer.elapsedTime() + "ms)" );
+                }
             }
             
             return sleep;
@@ -312,7 +359,7 @@ public class LUCacheManager
             EvictionCandidate other = (EvictionCandidate)obj;
             return other.entry != null
                     // early/small accessTime -> high prio in eviction queue
-                    ? -(lastAccessed - other.lastAccessed)
+                    ? other.lastAccessed - lastAccessed
                     : 0;
         }
 
@@ -328,12 +375,12 @@ public class LUCacheManager
             if (obj == this) {
                 return true;
             }
-            if (obj instanceof EvictionCandidate) {
+            else {  //if (obj instanceof EvictionCandidate) {
                 EvictionCandidate other = (EvictionCandidate)obj;
                 return cache == other.cache
                         && key.equals( other.key );
             }
-            return false;
+            //return false;
         }
 
     }

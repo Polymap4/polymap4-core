@@ -129,7 +129,7 @@ public class ContentManager {
         this.locale = locale;
 
         this.nodes = CacheManager.instance().newCache( 
-                new CacheConfig().setInitSize( 256 ).setConcurrencyLevel( 4 ) );
+                CacheConfig.DEFAULT.initSize( 256 ).concurrencyLevel( 4 ) );
 
         // eviction listener -> node.dispose()
         nodes.addEvictionListener( new CacheEvictionListener<IPath,Map<String,IContentNode>>() {
