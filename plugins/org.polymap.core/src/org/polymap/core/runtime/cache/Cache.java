@@ -72,6 +72,7 @@ public interface Cache<K,V> {
      * <p/>
      * Consider using {@link #get(Object, CacheLoader)} instead.
      * 
+     * @see EvictionAware
      * @see #putIfAbsent(Object, Object, int)
      * @return The element for the given key, or null if the key was <b>not</b> yet
      *         in the cache.
@@ -104,8 +105,8 @@ public interface Cache<K,V> {
 
     public Iterable<V> values();
 
-    public boolean addEvictionListener( CacheEvictionListener listener );
-
-    public boolean removeEvictionListener( CacheEvictionListener listener );
+//    public boolean addEvictionListener( CacheEvictionListener listener );
+//
+//    public boolean removeEvictionListener( CacheEvictionListener listener );
     
 }

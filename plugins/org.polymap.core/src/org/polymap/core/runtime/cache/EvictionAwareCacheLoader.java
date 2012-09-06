@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,11 +16,12 @@ package org.polymap.core.runtime.cache;
 
 /**
  * 
- * @deprecated
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface CacheEvictionListener<K,V> {
-
-    public void onEviction( K key, V value );
+public interface EvictionAwareCacheLoader<K,V,E extends Throwable>
+        extends CacheLoader<K,V,E> {
     
+    public EvictionListener evictionListener();
+
 }

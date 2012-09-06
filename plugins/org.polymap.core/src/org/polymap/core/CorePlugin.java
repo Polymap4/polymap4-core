@@ -176,7 +176,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
@@ -185,7 +185,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
 	}
 
 	

@@ -25,8 +25,8 @@ package org.polymap.core.data;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.LinkedBlockingDeque;
-
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -112,7 +112,7 @@ class AsyncPipelineFeatureCollection
          * The FIFO between the fetcher and the calling thread. Holds chunks of
          * features to minimize synchronization overhead between the threads.
          */
-        LinkedBlockingDeque<List<Feature>> deque = new LinkedBlockingDeque( DEFAULT_QUEUE_SIZE );
+        BlockingQueue<List<Feature>>    queue = new ArrayBlockingQueue( DEFAULT_QUEUE_SIZE );
 
         List<Feature>                   buffer;
         
@@ -125,28 +125,28 @@ class AsyncPipelineFeatureCollection
         
         protected AsyncPipelineIterator() {
             final Runnable fetcher = new Runnable() {
-                private int fetcherNumber = fetcherCount++;
+                private volatile int fetcherNumber = fetcherCount++;
                 public void run() {
                     try {
                         fs.fetchFeatures( query, new FeatureResponseHandler() {
                             public void handle( List<Feature> features )
                             throws Exception {
                                 if (checkEnd()) {
-                                    //log.debug( "Async fetcher[" + fetcherNumber + "]: deque=" + deque.size() );
-                                    deque.putLast( features );
+                                    //log.info( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() );
+                                    queue.put( features );
                                     Thread.yield();
                                 }
                             }
                             public void endOfResponse()
                             throws Exception {
                                 if (checkEnd()) {
-                                    deque.putLast( END_OF_RESPONSE );
+                                    queue.put( END_OF_RESPONSE );
                                 }
                             }
                             boolean checkEnd() 
                             throws InterruptedException {
                                 // FIXME cancel job immediately
-                                return deque != null;
+                                return queue != null;
                             }
                         });
                         log.debug( "Async fetcher: done." );
@@ -156,13 +156,13 @@ class AsyncPipelineFeatureCollection
                         try {
                             log.warn( "Async fetcher: error.", e );
                             resultException = e;
-                            if (deque != null) {
-                                deque.putLast( END_OF_RESPONSE );
+                            if (queue != null) {
+                                queue.put( END_OF_RESPONSE );
                             }
                         }
                         catch (InterruptedException e1) {
                             log.error( e1 );
-                            //deque = null;
+                            //queue = null;
                         }
                         //return Status.CANCEL_STATUS;
                     }
@@ -181,7 +181,7 @@ class AsyncPipelineFeatureCollection
         }
         
         public void close() {
-            deque = null;
+            queue = null;
             buffer = null;
         }
         
@@ -189,10 +189,10 @@ class AsyncPipelineFeatureCollection
             if (bufferIt != null && bufferIt.hasNext()) {
                 return true;
             }
-            else if (/*!deque.isEmpty() ||*/ !endOfResponse) {
+            else if (/*!queue.isEmpty() ||*/ !endOfResponse) {
                 while (true) {
                     try {
-                        List<Feature> chunk = deque.takeFirst();
+                        List<Feature> chunk = queue.take();
                         if (chunk == END_OF_RESPONSE) {
                             endOfResponse = true;
                             if (resultException != null) {

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,12 +15,22 @@
 package org.polymap.core.runtime.cache;
 
 /**
+ * Values stored in a {@link Cache} can implement this interface in order to listen
+ * to eviction events and perform some cleanup operations.
  * 
- * @deprecated
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface CacheEvictionListener<K,V> {
+public interface EvictionAware {
 
-    public void onEviction( K key, V value );
-    
+    /**
+     * 
+     * <p/>
+     * The returned object <b>must not<b/> reference the value in any way. So it cannot
+     * be an inner class of the value! The listener should just reference the resources
+     * that needs to be cleaned up.
+     *
+     * @return Newly created listener for this element.
+     */
+    public EvictionListener newListener();
+
 }

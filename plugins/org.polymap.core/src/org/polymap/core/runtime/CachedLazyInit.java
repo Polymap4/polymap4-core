@@ -74,4 +74,9 @@ public class CachedLazyInit<T>
         });
     }
 
+    @Override
+    public void clear() {
+        cache.remove( this );
+    }
+    
 }

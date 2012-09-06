@@ -241,12 +241,14 @@ public class ListenerList<T>
                 newList.add( elm );
             }
         }
-        //atomic assignment
-        this.list = (T[])(newList.isEmpty() ? EMPTY : newList.toArray());
-
         if (!found) {
-            log.warn( "!!! Listener not found to remove !!!" );
+            log.warn( "!!! Listener not found to remove: " + listener );
         }
+        else {
+            //atomic assignment
+            this.list = (T[])(newList.isEmpty() ? EMPTY : newList.toArray());
+        }
+
         return found;
     }
 

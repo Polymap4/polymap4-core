@@ -21,12 +21,11 @@ import org.eclipse.core.runtime.IPath;
 import org.polymap.core.runtime.cache.Cache;
 
 /**
- * 
+ * Base SPI of all content nodes.
  * <p/>
- * Content nodes are stored in a {@link Cache}. So they are subject to be reclaimed
- * by the GC. Implementations should carefully return its size in mory via
- * {@link #getSizeInMemory()} in order to help the cache instead of doing their own
- * cache stuff.
+ * Content nodes are stored in a {@link Cache}. They are subject to be reclaimed
+ * by the GC. Implementations should carefully return its size in memory via
+ * {@link #getSizeInMemory()} in order to help the global content cache.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

@@ -28,7 +28,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -38,6 +39,8 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import net.refractions.udig.catalog.IService;
@@ -50,9 +53,10 @@ import org.geotools.renderer.RenderListener;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Supplier;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.image.GetLayerTypesRequest;
@@ -61,13 +65,15 @@ import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.CachedLazyInit;
+import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.style.geotools.DefaultStyles;
 
 /**
@@ -112,18 +118,29 @@ public class FeatureRenderProcessor2
     
     // instance *******************************************
         
-    protected MapContext              mapContext;
+    protected LazyInit<MapContext>              mapContextRef = new CachedLazyInit( 1024 );
     
-    protected ReentrantReadWriteLock  mapContextLock = new ReentrantReadWriteLock();
-    
-    /** The styles used in the current {@link #mapContext}, used to check if new context is needed. */
-    protected Map<ILayer,Style>       styles = new HashMap();
+    /**
+     * The layers for which an {@link LayerStyleListener} was registered. Entries are
+     * created in {@link #getMap(Set, int, int, ReferencedEnvelope)} and released in
+     * {@link #finalize()}.
+     */
+    protected ConcurrentMap<ILayer,LayerStyleListener> watchedLayers = new ConcurrentHashMap();
     
     
     public void init( Properties props ) {
     }
 
 
+    protected void finalize() throws Throwable {
+        log.info( "FINALIZE: watchedLayers: " + watchedLayers.size() );
+        for (Map.Entry<ILayer,LayerStyleListener> entry : watchedLayers.entrySet()) {
+            entry.getKey().removePropertyChangeListener( entry.getValue() );
+        }
+        mapContextRef.clear();
+    }
+
+    
     public void processRequest( ProcessorRequest r, ProcessorContext context )
     throws Exception {
         // GetMapRequest
@@ -160,39 +177,14 @@ public class FeatureRenderProcessor2
     }
 
 
-    protected Image getMap( Set<ILayer> layers, int width, int height, ReferencedEnvelope bbox ) {
+    protected Image getMap( final Set<ILayer> layers, int width, int height, final ReferencedEnvelope bbox ) {
 //        Logger wfsLog = Logging.getLogger( "org.geotools.data.wfs.protocol.http" );
 //        wfsLog.setLevel( Level.FINEST );
 
         // mapContext
-        try {
-            mapContextLock.readLock().lock();
-            
-            // check style objects
-            boolean needsNewContext = false;
-            if (mapContext != null) {
-                for (ILayer layer : layers) {
-                    Style old = styles.get( layer );
-                    try {
-                        Style current = layer.getStyle().resolve( Style.class, null );
-                        if (current != old) {
-                            needsNewContext = true;
-                            styles.clear();
-                            break;
-                        }
-                    }
-                    catch (IOException e) {
-                        needsNewContext = true;
-                        styles.clear();
-                        break;
-                    }
-                }
-            }
-            // create mapContext
-            if (mapContext == null || needsNewContext) {
-                mapContextLock.readLock().unlock();
-                mapContextLock.writeLock().lock();
-                
+        MapContext mapContext = mapContextRef.get( new Supplier<MapContext>() {            
+            public MapContext get() {
+                log.debug( "Creating new MapContext... " );
                 // sort z-priority
                 TreeMap<String,ILayer> sortedLayers = new TreeMap();
                 for (ILayer layer : layers) {
@@ -200,7 +192,7 @@ public class FeatureRenderProcessor2
                     sortedLayers.put( uniqueOrderKey, layer );
                 }
                 // add to mapContext
-                mapContext = new DefaultMapContext( bbox.getCoordinateReferenceSystem() );
+                MapContext result = new DefaultMapContext( bbox.getCoordinateReferenceSystem() );
                 for (ILayer layer : sortedLayers.values()) {
                     try {
                         FeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
@@ -212,8 +204,13 @@ public class FeatureRenderProcessor2
                             log.warn( "            fs.getName(): " + fs.getName() );
                             style = new DefaultStyles().findStyle( fs );
                         }
-                        mapContext.addLayer( fs, style );
-                        styles.put( layer, style );
+                        result.addLayer( fs, style );
+                        
+                        // watch layer for style changes
+                        LayerStyleListener listener = new LayerStyleListener( mapContextRef );
+                        if (watchedLayers.putIfAbsent( layer, listener ) == null) {
+                            layer.addPropertyChangeListener( listener );
+                        }
                     }
                     catch (IOException e) {
                         log.warn( e );
@@ -223,19 +220,24 @@ public class FeatureRenderProcessor2
                         log.warn( "No pipeline.", e );
                     }
                 }
+                log.debug( "created: " + result );
+                return result;
             }
-        }
-        finally {
-            if (mapContextLock.writeLock().isHeldByCurrentThread()) {
-                mapContextLock.readLock().lock();
-                mapContextLock.writeLock().unlock();
-            }
-            mapContextLock.readLock().unlock();
-        }
+        });
+        log.debug( "using: " + mapContext );
         
         // render
+        
+        // Get default graphics device
+//        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//        GraphicsDevice[] screens = ge.getScreenDevices();
+//        log.info( "IMAGE: headles=" + ge.isHeadlessInstance() );
+
         BufferedImage result = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
+        result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
+//        log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
+        
         try {
             StreamingRenderer renderer = new StreamingRenderer();
 
@@ -252,7 +254,7 @@ public class FeatureRenderProcessor2
             // rendering hints
             RenderingHints hints = new RenderingHints(
                     RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_QUALITY );
+                    RenderingHints.VALUE_RENDER_SPEED );
             hints.add( new RenderingHints(
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON ) );
@@ -280,6 +282,29 @@ public class FeatureRenderProcessor2
         }
         finally {
             if (g != null) { g.dispose(); }
+        }
+    }
+
+    
+    /**
+     * Static class listening to changes of the Style of a layer. This does not reference
+     * the Processor, so it does not prevent the Processor from being GCed. The finalyze()
+     * of the Processor clears the listeners. 
+     */
+    public static class LayerStyleListener
+            implements PropertyChangeListener {
+        
+        private LazyInit        mapContextRef;
+        
+        public LayerStyleListener( LazyInit mapContextRef ) {
+            this.mapContextRef = mapContextRef;
+        }
+
+        public void propertyChange( PropertyChangeEvent ev ) {
+            if (ev.getPropertyName().equals( ILayer.PROP_STYLE )) {
+                log.debug( "clearing: " + mapContextRef );
+                mapContextRef.clear();
+            }
         }
     }
 

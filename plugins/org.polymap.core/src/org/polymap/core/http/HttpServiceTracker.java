@@ -83,7 +83,7 @@ public class HttpServiceTracker
         // servlet extensions ******
         IConfigurationElement[] exts = Platform.getExtensionRegistry().getConfigurationElementsFor( 
                 SERVLETS_EXTENSION_POINT_ID ); 
-        log.info( "servlet extensions found: " + exts.length );
+        log.debug( "servlet extensions found: " + exts.length );
         
         for (IConfigurationElement ext : exts) {
             try {
@@ -95,7 +95,7 @@ public class HttpServiceTracker
                                 
                 HttpServlet servlet = (HttpServlet)ext.createExecutableExtension( "class" );
                 httpService.registerServlet( path, servlet, null, null );
-                log.info( "    context: " + contextPath + " :" + servlet.getClass().getName() );
+                log.debug( "    context: " + contextPath + " :" + servlet.getClass().getName() );
             }
             catch (Exception e) {
                 CorePlugin.logError( "Error while starting servlet extension: " + ext.getName(), log, e );

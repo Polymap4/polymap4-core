@@ -19,9 +19,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -104,7 +105,7 @@ public class AsyncExecutor<T,S>
      */
     private volatile int            queueSize = 0;
     
-    private LinkedBlockingDeque<Chunk> results = new LinkedBlockingDeque();
+    private BlockingQueue<Chunk>    results = new ArrayBlockingQueue( queueCapacity );
     
     private Iterator                currentResultChunk;
     
@@ -177,7 +178,7 @@ public class AsyncExecutor<T,S>
         else {
             while (!isEndOfProcessing()) {                
                 try {
-                    Chunk chunk = results.pollFirst( 100, TimeUnit.MILLISECONDS );
+                    Chunk chunk = results.poll( 100, TimeUnit.MILLISECONDS );
                     if (chunk != null) {
                         log.debug( "Took chunk from queue. chunkSize=" + chunk.elements.size() );
                     

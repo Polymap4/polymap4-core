@@ -31,9 +31,10 @@ import org.eclipse.core.runtime.Path;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.cache.CacheEvictionListener;
 import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
+import org.polymap.core.runtime.cache.EvictionAware;
+import org.polymap.core.runtime.cache.EvictionListener;
 
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentProvider;
@@ -116,12 +117,38 @@ public class ContentManager {
      * Holds the tree structure of the already created nodes. It maps
      * parent path into child nodes mapped by their node names. 
      */
-    private Cache<IPath,Map<String,IContentNode>> nodes;
+    private Cache<IPath,CachedNode>     nodes;
     
     private DefaultContentFolder        rootNode;
 
     private List<IContentProvider>      providers;
     
+    
+    /**
+     * 
+     */
+    static class CachedNode
+            extends HashMap<String,IContentNode>
+            implements EvictionAware {
+
+        public CachedNode() {
+            super( 64 );
+        }
+
+        public EvictionListener newListener() {
+            return new CachedNodeEvictionListener();
+        }
+        
+        static class CachedNodeEvictionListener
+                implements EvictionListener {
+
+            public void onEviction( Object key ) {
+                log.debug( "*** EVICTED *************************************" );
+            }
+        }
+        
+    }
+
     
     protected ContentManager( String username, Locale locale, SessionContext sessionContext ) {
         this.sessionContext = sessionContext;
@@ -131,25 +158,25 @@ public class ContentManager {
         this.nodes = CacheManager.instance().newCache( 
                 CacheConfig.DEFAULT.initSize( 256 ).concurrencyLevel( 4 ) );
 
-        // eviction listener -> node.dispose()
-        nodes.addEvictionListener( new CacheEvictionListener<IPath,Map<String,IContentNode>>() {
-            public void onEviction( IPath path, final Map<String,IContentNode> children ) {
-                ContentManager.this.sessionContext.execute( new Runnable() {
-                    public void run() {
-                        if (children != null) {
-                            for (IContentNode child : children.values()) {
-                                try {
-                                    child.dispose();
-                                }
-                                catch (Exception e) {
-                                    log.warn( "Error during dispose for eviction.", e );
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        });
+//        // eviction listener -> node.dispose()
+//        nodes.addEvictionListener( new CacheEvictionListener<IPath,Map<String,IContentNode>>() {
+//            public void onEviction( IPath path, final Map<String,IContentNode> children ) {
+//                ContentManager.this.sessionContext.execute( new Runnable() {
+//                    public void run() {
+//                        if (children != null) {
+//                            for (IContentNode child : children.values()) {
+//                                try {
+//                                    child.dispose();
+//                                }
+//                                catch (Exception e) {
+//                                    log.warn( "Error during dispose for eviction.", e );
+//                                }
+//                            }
+//                        }
+//                    }
+//                });
+//            }
+//        });
         
         // init providers
         this.providers = new ArrayList();
@@ -207,14 +234,14 @@ public class ContentManager {
         else {
             IPath parentPath = path.removeLastSegments( 1 );
             String nodeName = path.lastSegment();
-            Map<String, IContentNode> parentChildren = checkInitContent( parentPath );
+            CachedNode parentChildren = checkInitContent( parentPath );
             return parentChildren.get( nodeName );
         }
     }
     
     
     public Iterable<IContentNode> getChildren( IPath path ) {
-        Map<String,IContentNode> result = checkInitContent( path );
+        CachedNode result = checkInitContent( path );
         assert result != null : "No result for path: " + path;
         return result.values();
     }
@@ -227,23 +254,23 @@ public class ContentManager {
      * @param path
      * @return 
      */
-    private Map<String,IContentNode> checkInitContent( IPath path ) {
+    private CachedNode checkInitContent( IPath path ) {
         assert path != null;
 
         IPath initPath = rootNode.getPath();
-        Map<String,IContentNode> lastResult = null;
+        CachedNode lastResult = null;
         
         for (int i=-1; i<path.segmentCount(); i++) {
 
             // first loop for the root
             initPath = (i >= 0) ? initPath.append( path.segment( i ) ) : initPath;
 
-            lastResult = nodes.get( initPath, new CacheLoader<IPath,Map<String,IContentNode>,RuntimeException>() {
+            lastResult = nodes.get( initPath, new CacheLoader<IPath,CachedNode,RuntimeException>() {
 
                 int memSize = 1024;
                 
-                public Map<String, IContentNode> load( IPath key ) throws RuntimeException {
-                    Map<String,IContentNode> result = new HashMap( 64 );
+                public CachedNode load( IPath key ) throws RuntimeException {
+                    CachedNode result = new CachedNode();
 
                     for (IContentProvider provider : providers) {
                         List<? extends IContentNode> children = provider.getChildren( key );

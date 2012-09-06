@@ -24,7 +24,7 @@ import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.LUCacheManager;
+import org.polymap.core.runtime.cache.Soft2CacheManager;
 
 /**
  * 
@@ -45,7 +45,7 @@ public class PerformanceCacheTest
 
     protected void setUp() throws Exception {
         //cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
-        cache = LUCacheManager.instance().newCache( CacheConfig.DEFAULT
+        cache = Soft2CacheManager.instance().newCache( CacheConfig.DEFAULT
                 .initSize( 1000000 ).concurrencyLevel( 8 ) );
     }
 

@@ -24,7 +24,7 @@ public abstract class CacheManager {
     public static CacheManager instance() {
         // XXX make this configurable
         //return GuavaCacheManager.instance();
-        return LUCacheManager.instance();
+        return Soft2CacheManager.instance();
     }
     
     // instance *******************************************

@@ -35,18 +35,29 @@ import com.google.common.base.Supplier;
 public class LazyInit<T>
         implements Supplier<T> {
 
-    protected T                 value;
+    protected volatile T        value;
     
     protected Supplier<T>       supplier;
     
     
     public LazyInit() {
     }
-    
+
+
+    /**
+     * Constructs a new instance.
+     * <p/>
+     * The code of the given {@link Supplier} has to be thread-safe as it may be
+     * called from different threads concurrently. It is also possible that the
+     * Supplier is called (concurrently) for the same key.
+     * 
+     * @param supplier The supplier to use to load the value.
+     */
     public LazyInit( Supplier<T> supplier ) {
         this.supplier = supplier;
     }
 
+    
     /**
      * This default implementation calls {@link #get(Supplier)} with the supplier
      * specified in the constructor.
@@ -58,6 +69,20 @@ public class LazyInit<T>
         return get( this.supplier );
     }
 
+
+    /**
+     * Gets the value of this variable. The value is created/loaded if necessary
+     * using the given {@link Supplier}.
+     * <p/>
+     * The code of the Supplier has to be <b>thread-safe</b>. It also has to be aware
+     * that different Suppliers initialized from different threads are called for the
+     * <b>same key</b>! It is up to the specific implementations of the LazyInit to
+     * decide to use this to avoid synchronizing/blocking threads. However, just one
+     * of the created values is returned to all threads.
+     * 
+     * @param supplier The supplier to use to load the value if nessecary.
+     * @return The value of this variable.
+     */
     @SuppressWarnings("hiding")
     public T get( Supplier<T> supplier ) {
         this.supplier = supplier;
@@ -65,6 +90,11 @@ public class LazyInit<T>
             value = this.supplier.get();
         }
         return value;
+    }
+
+    
+    public void clear() {
+        value = null;
     }
 
 }
