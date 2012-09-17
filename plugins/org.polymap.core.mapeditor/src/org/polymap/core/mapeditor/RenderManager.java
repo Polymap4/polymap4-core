@@ -27,6 +27,7 @@ import net.refractions.udig.catalog.IService;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.json.JSONObject;
+import org.osgi.service.http.NamespaceException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -262,7 +263,14 @@ public class RenderManager {
             SimpleWmsServer result = new SimpleWmsServer();
             result.init( map );
 
-            CorePlugin.registerServlet( pathSpec, result, null );
+            try {
+                CorePlugin.registerServlet( pathSpec, result, null );
+            }
+            // session logged out without closing all services 
+            catch (NamespaceException e) {
+                CorePlugin.unregister( pathSpec );
+                CorePlugin.registerServlet( pathSpec, result, null );
+            }
 
             log.debug( "    URL: " + result.getPathSpec() );
             return result;

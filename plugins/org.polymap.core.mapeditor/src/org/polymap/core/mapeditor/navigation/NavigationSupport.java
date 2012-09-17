@@ -27,7 +27,7 @@ import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.project.IMap;
 import org.polymap.core.workbench.PolymapWorkbench;
-import org.polymap.openlayers.rap.widget.controls.MouseDefaultsControl;
+import org.polymap.openlayers.rap.widget.controls.NavigationControl;
 
 /**
  * Provides the navigation support methods for an {@link MapEditor}.
@@ -47,7 +47,7 @@ public class NavigationSupport
     /** The {@link MapEditor} we are working with. */
     private MapEditor                   mapEditor;
 
-    private MouseDefaultsControl        control;
+    private NavigationControl        control;
     
     private boolean                     active;
     
@@ -117,7 +117,7 @@ public class NavigationSupport
         this.active = active;
         if (active) {
             if (control == null) {
-                control = new MouseDefaultsControl();
+                control = new NavigationControl();
                 this.mapEditor.addControl( control );
             }
             control.activate();
