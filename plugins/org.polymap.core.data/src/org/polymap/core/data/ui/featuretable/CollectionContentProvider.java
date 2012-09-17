@@ -20,8 +20,6 @@ import java.util.List;
 
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.Feature;
-import org.opengis.feature.type.FeatureType;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -42,16 +40,13 @@ public class CollectionContentProvider
 
     private Iterable<? extends Feature>     features;
 
-    private FeatureType                     schema;
-
 
     public CollectionContentProvider() {
     }
 
 
-    public CollectionContentProvider( Iterable<? extends Feature> features, FeatureType schema ) {
+    public CollectionContentProvider( Iterable<? extends Feature> features ) {
         this.features = features;
-        this.schema = schema;
     }
 
 

@@ -198,7 +198,7 @@ class DeferredFeatureContentProvider2
             try {
                 coll = fs.getFeatures( filter );
                 monitor.beginTask( getName(), coll.size() );
-                viewer.markTableLoading( true );
+                if (viewer != null) { viewer.markTableLoading( true ); }
 
                 it = coll.iterator();
                 int chunkSize = 8;
@@ -235,7 +235,7 @@ class DeferredFeatureContentProvider2
             finally {
                 coll.close( it );
                 monitor.done();
-                viewer.markTableLoading( false );
+                if (viewer != null) { viewer.markTableLoading( false ); }
             }
         }
     };
