@@ -70,6 +70,7 @@ import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.LazyInit;
+import org.polymap.core.runtime.PlainLazyInit;
 
 /**
  * 
@@ -184,7 +185,7 @@ public class FeatureStoreUnitOfWork
             
             return new AbstractCollection<String>() {
                 
-                private LazyInit<Integer> size = new LazyInit(); 
+                private LazyInit<Integer> size = new PlainLazyInit(); 
 
                 public Iterator<String> iterator() {
                     return Iterators.transform( it, new Function<Feature,String>() {

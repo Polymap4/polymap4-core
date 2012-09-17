@@ -17,47 +17,45 @@ package org.polymap.core.runtime;
 import com.google.common.base.Supplier;
 
 /**
- * This {@link LazyInit} makes sure that the variable is initialized by exactly one
- * thread. Concurrent access is synchronized via:
- * <pre>
- *     if (value == null) {
- *         synchronized (this) {
- *            if (value == null) {
- *                value = this.supplier.get();
- *            }
- *          }
- *      }
- * </pre>
+ * This simple implementation can be used for a single thread only.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public final class LockedLazyInit<T>
+public class PlainLazyInit<T>
         extends LazyInit<T> {
 
-    private volatile T          value;
+    protected volatile T        value;
     
     
-    public LockedLazyInit() {
+    public PlainLazyInit() {
         super();
     }
 
-    public LockedLazyInit( Supplier<T> supplier ) {
+
+    /**
+     * Constructs a new instance.
+     * <p/>
+     * The code of the given {@link Supplier} has to be thread-safe as it may be
+     * called from different threads concurrently. It is also possible that the
+     * Supplier is called (concurrently) for the same key.
+     * 
+     * @param supplier The supplier to use to load the value.
+     */
+    public PlainLazyInit( Supplier<T> supplier ) {
         super( supplier );
     }
 
+    
     @SuppressWarnings("hiding")
     public T get( Supplier<T> supplier ) {
         this.supplier = supplier;
         if (value == null) {
-            synchronized (this) {
-                if (value == null) {
-                    value = this.supplier.get();
-                }
-            }
+            value = this.supplier.get();
         }
         return value;
     }
 
+    
     public void clear() {
         value = null;
     }

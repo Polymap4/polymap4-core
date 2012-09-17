@@ -18,10 +18,8 @@ import com.google.common.base.Supplier;
 
 /**
  * Provides a lazily initialized variable. Using a LazyInit keeps the client code
- * independent from the actual check/set logic provided by this class or sub classes.
- * <p/>
- * This default implementation does no checks before set whatoever. Consider using
- * sub classes for specific behaviour.
+ * independent from the actual check/set logic provided by the different
+ * implementations.
  * <p/>
  * {@link LazyInit} implements {@link Supplier}. This allows to 'stack' several
  * implementations to combine their behaviour. For example a JobLazyInit on a
@@ -29,18 +27,17 @@ import com.google.common.base.Supplier;
  * to be initialized just ones *and* that is initialized in a separately running job.
  * 
  * @see LockedLazyInit
+ * @see PlainLazyInit
  * @see Atomically
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LazyInit<T>
+public abstract class LazyInit<T>
         implements Supplier<T> {
 
-    protected volatile T        value;
-    
     protected Supplier<T>       supplier;
     
     
-    public LazyInit() {
+    protected LazyInit() {
     }
 
 
@@ -53,14 +50,14 @@ public class LazyInit<T>
      * 
      * @param supplier The supplier to use to load the value.
      */
-    public LazyInit( Supplier<T> supplier ) {
+    protected LazyInit( Supplier<T> supplier ) {
         this.supplier = supplier;
     }
 
     
     /**
-     * This default implementation calls {@link #get(Supplier)} with the supplier
-     * specified in the constructor.
+     * Gets the value of this variable. The value is created/loaded if necessary
+     * using the {@link Supplier} given to the constructor.
      * 
      * @throws AssertionError If no supplier was given to the constructor.
      */
@@ -84,17 +81,12 @@ public class LazyInit<T>
      * @return The value of this variable.
      */
     @SuppressWarnings("hiding")
-    public T get( Supplier<T> supplier ) {
-        this.supplier = supplier;
-        if (value == null) {
-            value = this.supplier.get();
-        }
-        return value;
-    }
+    public abstract T get( Supplier<T> supplier );
 
-    
-    public void clear() {
-        value = null;
-    }
+
+    /**
+     * 
+     */
+    public abstract void clear();
 
 }

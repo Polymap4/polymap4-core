@@ -15,6 +15,9 @@
 package org.polymap.core.model2.engine;
 
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import java.io.IOException;
 
 import com.google.common.base.Function;
@@ -22,7 +25,6 @@ import static com.google.common.collect.Collections2.*;
 
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
-import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.model2.runtime.ValueInitializer;
@@ -31,7 +33,6 @@ import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.CacheEvictionListener;
 
 /**
  * 
@@ -51,7 +52,40 @@ public class UnitOfWorkImpl
 
     protected Cache<Object,Entity>          loaded;
     
+    protected ConcurrentMap<Object,Entity>  modified;
+    
     private volatile Exception              prepareResult;
+
+    
+//    /**
+//     * 
+//     */
+//    static class CachedEntity
+//            implements EvictionAware {
+//        
+//        Entity          entity;
+//        
+//        Object          evictableDummy = new Object();
+//
+//        public CachedEntity( Entity entity ) {
+//            this.entity = entity;
+//        }
+//
+//        public EvictionListener newListener() {
+//            CachedEntityEvictionListener result = new CachedEntityEvictionListener();
+//            result.entity = entity;
+//            return result;
+//        }
+//        
+//        static class CachedEntityEvictionListener
+//                implements EvictionListener {
+//            
+//            Entity      entity;   
+//
+//            public void onEviction() {
+//            }
+//        }
+//    }
     
     
     protected UnitOfWorkImpl( EntityRepositoryImpl repo, StoreUnitOfWork suow ) {
@@ -59,22 +93,31 @@ public class UnitOfWorkImpl
         this.repo = repo;
         
         // cache
-        this.loaded = repo.getConfig().newCache(); 
+        this.loaded = repo.getConfig().newCache();
+        this.modified = new ConcurrentHashMap( 1024, 0.75f, 4 );
         
-        // check evicted entries and re-insert if modified
-        this.loaded.addEvictionListener( new CacheEvictionListener<Object,Entity>() {
-            public void onEviction( Object key, Entity entity ) {
-                // re-insert if modified
-                if (entity.status() != EntityStatus.LOADED) {
-                    loaded.putIfAbsent( key, entity );
-                }
-                // mark entity as evicted otherwise
-                else {
-                    EntityRuntimeContext entityContext = UnitOfWorkImpl.this.repo.contextOfEntity( entity );
-                    entityContext.raiseStatus( EntityStatus.EVICTED );
-                }
-            }
-        });
+//        // check evicted entries and re-insert if modified
+//        this.loaded.addEvictionListener( new CacheEvictionListener<Object,Entity>() {
+//            public void onEviction( Object key, Entity entity ) {
+//                // re-insert if modified
+//                if (entity.status() != EntityStatus.LOADED) {
+//                    loaded.putIfAbsent( key, entity );
+//                }
+//                // mark entity as evicted otherwise
+//                else {
+//                    EntityRuntimeContext entityContext = UnitOfWorkImpl.this.repo.contextOfEntity( entity );
+//                    entityContext.raiseStatus( EntityStatus.EVICTED );
+//                }
+//            }
+//        });
+    }
+
+
+    protected void raiseStatus( Entity entity) {
+        if (entity.status() == EntityStatus.MODIFIED
+                || entity.status() == EntityStatus.REMOVED) {
+            modified.putIfAbsent( entity.id(), entity );
+        }        
     }
 
 
@@ -97,6 +140,7 @@ public class UnitOfWorkImpl
         if (old != null) {
             throw new ModelRuntimeException( "ID of newly created Entity already exists." );
         }
+        modified.put( id, result );
         return result;
     }
 
@@ -152,7 +196,7 @@ public class UnitOfWorkImpl
     throws IOException, ConcurrentEntityModificationException {
         try {
             prepareResult = null;
-            underlying.prepareCommit( loaded.values() );
+            underlying.prepareCommit( modified.values() );
             prepareResult = PREPARED;
         }
         catch (ModelRuntimeException e) {
@@ -195,6 +239,7 @@ public class UnitOfWorkImpl
         for (Entity entity : loaded.values()) {
             repo.contextOfEntity( entity ).resetStatus( EntityStatus.LOADED );
         }
+        modified.clear();
     }
 
 
@@ -204,6 +249,8 @@ public class UnitOfWorkImpl
             repo = null;
             loaded.clear();
             loaded = null;
+            modified.clear();
+            modified = null;
         }
     }
 

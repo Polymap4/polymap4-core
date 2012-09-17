@@ -111,10 +111,12 @@ public class EntityRepositoryImpl
     
     protected <T extends Entity> T buildEntity( CompositeState state, Class<T> entityClass, UnitOfWork uow ) {
         try {
-            EntityRuntimeContext entityContext = new EntityRuntimeContextImpl( 
-                    entityClass, state, EntityStatus.LOADED, uow );
+            EntityRuntimeContextImpl entityContext = new EntityRuntimeContextImpl( 
+                    state, EntityStatus.LOADED, uow );
             InstanceBuilder builder = new InstanceBuilder( entityContext );
-            return builder.newComposite( state, entityClass );
+            T result = builder.newComposite( state, entityClass );
+            entityContext.entity = result;
+            return result;
         }
         catch (RuntimeException e) {
             throw e;
@@ -164,7 +166,9 @@ public class EntityRepositoryImpl
     protected class EntityRuntimeContextImpl
             implements EntityRuntimeContext {
 
-        private Class<? extends Entity> entityClass;
+//        private Class<? extends Entity> entityClass;
+        
+        private Entity                  entity;
         
         private CompositeState          state;
         
@@ -173,13 +177,12 @@ public class EntityRepositoryImpl
         private UnitOfWork              uow;
 
         
-        EntityRuntimeContextImpl( Class<? extends Entity> entityClass, CompositeState state, EntityStatus status, UnitOfWork uow ) {
-            assert entityClass != null;
+        EntityRuntimeContextImpl( CompositeState state, EntityStatus status, UnitOfWork uow ) {
             assert state != null;
             assert uow != null;
             assert status != null;
             
-            this.entityClass = entityClass;
+//            this.entityClass = entityClass;
             this.state = state;
             this.status = status;
             this.uow = uow;
@@ -201,7 +204,7 @@ public class EntityRepositoryImpl
         }
         
         public CompositeInfo getInfo() {
-            return getRepository().infoOf( entityClass );
+            return getRepository().infoOf( entity.getClass() );
         }
 
 
@@ -235,10 +238,11 @@ public class EntityRepositoryImpl
 
         public void raiseStatus( EntityStatus newStatus ) {
             assert newStatus.status >= status.status;
-            // keep created if modified
+            // keep created if modified after creation
             if (status != EntityStatus.CREATED) {
                 status = newStatus;
             }
+            ((UnitOfWorkImpl)uow).raiseStatus( entity );
         }
 
         public void resetStatus( EntityStatus newStatus ) {
