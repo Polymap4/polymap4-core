@@ -22,13 +22,17 @@
  */
 package org.polymap.core.project.model;
 
+import java.lang.reflect.Type;
+
+import org.qi4j.api.common.QualifiedName;
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.concern.Concerns;
+import org.qi4j.api.entity.association.Association;
 import org.qi4j.api.mixin.Mixins;
 
+import org.polymap.core.project.IMap;
 import org.polymap.core.project.ITempLayer;
 import org.polymap.core.qi4j.QiEntity;
-import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.qi4j.security.ACL;
 import org.polymap.core.qi4j.security.ACLCheckConcern;
@@ -52,11 +56,77 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
         ParentMap.Mixin.class,
         PipelineHolder.Mixin.class,
         PropertyChangeSupport.Mixin.class,
-        ModelChangeSupport.Mixin.class,
-        QiEntity.Mixin.class
+//        ModelChangeSupport.Mixin.class,
+        QiEntity.Mixin.class,
+        TempLayerComposite.Mixin.class
 } )
 public interface TempLayerComposite
         extends ITempLayer, LayerState, Labeled, ACL, ParentMap, PipelineHolder,
-                PropertyChangeSupport, ModelChangeSupport, TransientComposite {
+                PropertyChangeSupport, TransientComposite {
 
+    Association<IMap>       map();
+    
+//    @This
+//    private EntityComposite         composite;
+
+    abstract static class Mixin
+            implements TempLayerComposite {
+
+        public Mixin() {
+            //identity    
+        }
+        
+        public Association<IMap> map() {
+            return new Association<IMap>() {
+
+                public IMap get() {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                public void set( IMap associated )
+                        throws IllegalArgumentException {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                public boolean isAggregated() {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                public boolean isImmutable() {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                public <T> T metaInfo( Class<T> infoType ) {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                public QualifiedName qualifiedName() {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                public Type type() {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+            };
+        }
+    
+    
+        public long lastModified() {
+            return -1;
+        }
+        
+        
+        public String lastModifiedBy() {
+            return null;
+        }
+
+    }
+    
 }
