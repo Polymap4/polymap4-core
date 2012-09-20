@@ -27,12 +27,14 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.File;
@@ -52,6 +54,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -151,6 +154,8 @@ public final class Polymap {
 
     
     private static ExecutorService      executorService;
+    
+    private static AtomicBoolean        queueFull = new AtomicBoolean();
 
     /**
      * Returns the {@link ExecutorService} for the calling session. This should be
@@ -161,7 +166,7 @@ public final class Polymap {
         return executorService;
     }
 
-    
+
     static {
         ThreadFactory threadFactory = new ThreadFactory() {
 
@@ -176,12 +181,42 @@ public final class Polymap {
             }
         };
 
-        BlockingQueue queue = new SynchronousQueue();           
-
         int procNum = Runtime.getRuntime().availableProcessors();
-        ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum, 
-                100, 3, TimeUnit.MINUTES, queue );
+        // render pipeline executes 6 browser request concurrently -> min = 8
+        final int minPoolSize = procNum * 8;
+        //final int maxPoolSize = minPoolSize * 2;
+        
+        BlockingQueue queue = new ArrayBlockingQueue( minPoolSize * 10 );
+        ThreadPoolExecutor pool = new ThreadPoolExecutor( minPoolSize, minPoolSize, 3, TimeUnit.MINUTES, queue ) {
+            
+            protected void afterExecute( Runnable r, Throwable t ) {
+                super.afterExecute( r, t );
+                if (queueFull.get()) {
+                    synchronized (queueFull) {
+                        queueFull.set( false );
+                        queueFull.notifyAll();
+                    }
+                }
+            }
+        };
         pool.setThreadFactory( threadFactory );
+
+        // rejected? -> wait and try again
+        pool.setRejectedExecutionHandler( new RejectedExecutionHandler() {
+            public void rejectedExecution( Runnable r, ThreadPoolExecutor executor ) {
+                log.warn( "Unable to queue task: " + r );
+                // wait (a long time) and try again (until StackOverflow)
+                synchronized (queueFull) {
+                    queueFull.set( true );
+                    try {
+                        queueFull.wait( 5000 );
+                    }
+                    catch (InterruptedException e) {
+                    }
+                }
+                executor.execute( r );
+            }
+        });
         executorService = pool;
     }
     

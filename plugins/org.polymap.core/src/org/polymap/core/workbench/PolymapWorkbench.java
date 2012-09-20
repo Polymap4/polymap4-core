@@ -54,7 +54,6 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.workbench.dnd.DesktopDndSupport;
 
 /**
  * 
@@ -83,7 +82,7 @@ public class PolymapWorkbench
      * @param msg The error message. If null, then a standard message is used.
      * @param e The reason of the error, must not be null.
      */
-    public static void handleError( String pluginId, Object src, final String msg, Throwable e) {
+    public static void handleError( String pluginId, Object src, final String msg, Throwable e ) {
         log.error( msg, e );
 
         final Status status = new Status( IStatus.ERROR, pluginId, e.getLocalizedMessage(), e );

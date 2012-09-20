@@ -67,10 +67,11 @@ public interface IFeatureOperation {
      *         otherwise.
      */
     public boolean canExecute();
-    
+
+
     /**
-     * Execute the operation. This method is only be called the first time that
-     * an operation is executed.
+     * Execute the operation. This method is only be called the first time an
+     * operation is executed.
      * 
      * @param monitor the progress monitor (or <code>null</code>) to use for
      *        reporting progress to the user.

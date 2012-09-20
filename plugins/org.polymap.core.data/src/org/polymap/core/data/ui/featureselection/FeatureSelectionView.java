@@ -324,6 +324,11 @@ public class FeatureSelectionView
     }
     
     
+    public IFeatureTableElement[] getSelectedElements() {
+        return viewer.getSelectedElements();
+    }
+    
+    
     public void createPartControl( @SuppressWarnings("hiding") Composite parent ) {
         if (initLayer.get() != null) {
             init( initLayer.get() );
@@ -343,7 +348,7 @@ public class FeatureSelectionView
             return;
         }
 
-        viewer = new FeatureTableViewer( parent, SWT.NONE );
+        viewer = new FeatureTableViewer( parent, SWT.MULTI );
         viewer.getTable().setLayoutData( new SimpleFormData().fill().create() );
 
         viewer.addPropertyChangeListener( new PropertyChangeListener() {
