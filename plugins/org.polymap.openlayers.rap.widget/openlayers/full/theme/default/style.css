@@ -1,3 +1,6 @@
+/********************************************************** 
+ * Polymap 
+ */
 .olControlLoadingPanel {
     background-image: url("img/loader_big.gif");
     background-position: center;
@@ -12,11 +15,28 @@
     display: none;  
 }
 
+/* For:
+ * org.polymap.openlayers.rap.widget.controls.NavigationControl
+ * org.polymap.core.mapeditor.navigation.NavigationSupport 
+ */
+.olControlNavigationActive {
+    /*cursor: url(cursor/navigation.cur), move !important;*/
+    cursor: move !important;
+}
+
+/* SelectFeatureSupport */
+.olControlSelectFeatureActive {
+    cursor: crosshair !important;
+}
+
+/**********************************************************
+ * OpenLayers 
+ */
 div.olMap {
     z-index: 0;
     padding: 0px!important;
     margin: 0px!important;
-    cursor: default;
+    /*cursor: default;*/
 }
 
 div.olMapViewport {
