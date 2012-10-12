@@ -107,7 +107,7 @@ public class Soft2CacheManager
                 try {
                     count ++;
                     
-                    CacheEntry entry = (CacheEntry)refQueue.remove( 1*60*1000 );
+                    CacheEntry entry = (CacheEntry)refQueue.remove( 3*60*1000 );
                     
                     // timeout? -> periodic GC
                     if (entry == null) {

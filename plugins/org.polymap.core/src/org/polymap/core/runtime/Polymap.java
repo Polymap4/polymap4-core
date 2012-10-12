@@ -182,12 +182,12 @@ public final class Polymap {
         };
 
         int procNum = Runtime.getRuntime().availableProcessors();
-        // render pipeline executes 6 browser request concurrently -> min = 8
-        final int minPoolSize = procNum * 8;
-        //final int maxPoolSize = minPoolSize * 2;
+        // render pipeline executes 6 browser request concurrently -> min >= 6
+        final int minPoolSize = procNum * 6;
+        final int maxPoolSize = minPoolSize * 5;
         
-        BlockingQueue queue = new ArrayBlockingQueue( minPoolSize * 10 );
-        ThreadPoolExecutor pool = new ThreadPoolExecutor( minPoolSize, minPoolSize, 3, TimeUnit.MINUTES, queue ) {
+        BlockingQueue queue = new ArrayBlockingQueue( minPoolSize );
+        ThreadPoolExecutor pool = new ThreadPoolExecutor( minPoolSize, maxPoolSize, 3, TimeUnit.MINUTES, queue ) {
             
             protected void afterExecute( Runnable r, Throwable t ) {
                 super.afterExecute( r, t );
