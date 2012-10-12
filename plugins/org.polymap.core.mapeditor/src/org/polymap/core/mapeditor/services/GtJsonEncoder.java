@@ -203,7 +203,7 @@ class GtJsonEncoder
                     // encode feature
                     fjson.writeFeature( transform( (SimpleFeature)it.next() ), out );
                     featureCount++;
-                    if (it.hasNext()) { out.write(","); }
+                    if (it.hasNext()) { out.write( "," ); }
                 }
             }
             catch (IOException e) {
