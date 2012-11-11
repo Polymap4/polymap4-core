@@ -146,7 +146,8 @@ abstract class LocalFileNatives {
 	private static void logMissingNativeLibrary(UnsatisfiedLinkError e) {
 		String libName = System.mapLibraryName(LIBRARY_NAME);
 		String message = NLS.bind(Messages.couldNotLoadLibrary, libName);
-		Policy.log(IStatus.INFO, message, e);
+		// XXX _p3: no stack trace in log
+		Policy.log(IStatus.WARNING, message, null /*e*/);
 	}
 
 	/**
