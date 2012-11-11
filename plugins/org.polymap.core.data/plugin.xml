@@ -5,6 +5,7 @@
    <extension-point id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners" schema="schema/org.polymap.core.data.pipeline.listeners.exsd"/>
    <extension-point id="org.polymap.core.data.featureOperations" name="FeatureOperations" schema="schema/org.polymap.core.data.featureOperations.exsd"/>
    <extension-point id="org.polymap.core.data.csvimport.operations" name="CSV Import Operation" schema="schema/org.polymap.core.data.csvimport.operations.exsd"/>
+   <extension-point id="org.polymap.core.data.reports" name="Reports" schema="schema/org.polymap.core.data.reports.exsd"/>
    <extension
          point="org.eclipse.ui.importWizards">
       <wizard
@@ -356,10 +357,10 @@
    </extension>
    <extension
          point="org.polymap.core.operation.concerns">
-      <concern
+      <!--concern
             class="org.polymap.core.data.ui.featureselection.LayerSelectableOperationConcern"
             id="org.polymap.core.data.layerSelectableConcern">
-      </concern>
+      </concern-->
       <concern
             class="org.polymap.core.data.image.cache304.CacheNewLayerOperationConcern"
             id="org.polymap.core.data.addLayerCacheConcern">
@@ -415,6 +416,13 @@
             tooltip="%CountFeaturesOperation_label">
       </featureOperation>
       <featureOperation
+            class="org.polymap.core.data.report.ReportOperation"
+            icon="icons/etool16/report.gif"
+            id="org.polymap.core.data.ReportOperation"
+            label="%ReportOperation_label"
+            tooltip="%ReportOperation_tip">
+      </featureOperation>
+      <featureOperation
             class="org.polymap.core.data.operations.feature.CopyFeaturesOperation2"
             icon="icons/etool16/copy_features.gif"
             id="org.polymap.core.data.CopyFeaturesOperation"
@@ -430,12 +438,14 @@
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"
+            icon="icons/etool16/exportas.gif"
             id="org.polymap.core.data.operations.feature.CsvExportFeatureOperation"
             label="%CsvExportFeatureOperation_label"
             tooltip="%CsvExportFeatureOperation_tip">
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.ShapeExportFeaturesOperation"
+            icon="icons/etool16/exportas.gif"
             id="org.polymap.core.data.operations.feature.ShapeExportFeatureOperation"
             label="%ShapeExportFeaturesOperation_label"
             tooltip="%ShapeExportFeaturesOperation_tip">
@@ -447,6 +457,13 @@
             class="org.polymap.core.data.operation.DownloadServiceHandler"
             id="org.polymap.core.data.DownloadServiceHandler">
       </serviceHandler>
+   </extension>
+   <extension
+         point="org.polymap.core.data.reports">
+      <report
+            class="org.polymap.core.data.report.HtmlReportFactory"
+            id="org.polymap.core.data.HtmlReports">
+      </report>
    </extension>
    <!--extension
          point="net.refractions.udig.catalog.ServiceExtension">

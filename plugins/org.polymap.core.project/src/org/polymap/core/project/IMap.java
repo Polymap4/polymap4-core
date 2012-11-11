@@ -138,4 +138,7 @@ public interface IMap
     @TransientProperty(PROP_RENDERSTATUS)
     public void setRenderStatus( RenderStatus status );
     
+    
+    public <T> T visit( LayerVisitor<T> visitor );
+
 }

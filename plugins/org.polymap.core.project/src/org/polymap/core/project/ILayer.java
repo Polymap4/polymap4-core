@@ -55,7 +55,7 @@ public interface ILayer
     
     public static final String      PROP_VISIBLE = "visible";
     public static final String      PROP_EDITABLE = "editable";
-    public static final String      PROP_SELECTABLE = "selectable";
+//    public static final String      PROP_SELECTABLE = "selectable";
 
     public static final String      PROP_LAYERSTATUS = "layerstatus";
 
@@ -158,23 +158,23 @@ public interface ILayer
     public void setVisible( boolean visible );
     
     
-    /**
-     * True, if this layer is in edit mode.
-     */
-    public boolean isEditable();
-    
-    @TransientProperty(PROP_EDITABLE)
-    public void setEditable( boolean editable );
+//    /**
+//     * True, if this layer is in edit mode.
+//     */
+//    public boolean isEditable();
+//    
+//    @TransientProperty(PROP_EDITABLE)
+//    public void setEditable( boolean editable );
 
 
-    /**
-     * True, if this layer is select mode. In select mode the objects/features
-     * of this layer are 
-     */
-    public boolean isSelectable();
-
-    @TransientProperty(PROP_SELECTABLE)
-    public void setSelectable( boolean selectable );
+//    /**
+//     * True, if this layer is select mode. In select mode the objects/features
+//     * of this layer are 
+//     */
+//    public boolean isSelectable();
+//
+//    @TransientProperty(PROP_SELECTABLE)
+//    public void setSelectable( boolean selectable );
 
 
     /**

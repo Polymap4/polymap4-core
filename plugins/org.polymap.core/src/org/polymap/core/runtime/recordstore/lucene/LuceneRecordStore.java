@@ -37,8 +37,8 @@ import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -76,12 +76,39 @@ public final class LuceneRecordStore
     private static Log log = LogFactory.getLog( LuceneRecordStore.class );
 
     private static final Version    VERSION = Version.LUCENE_34;
+
+    /**
+     * The {@link ExecutorService} used by the {@link #searcher}.
+     * <p/>
+     * XXX This is not the {@link Polymap#executorService()}, as this used Eclipse
+     * Jobs, which results in deadlocks.
+     */
+    private static ExecutorService  executor = Polymap.executorService();
+    
+//    static {
+//        int nThreads = Runtime.getRuntime().availableProcessors() * 8;
+//        ThreadFactory threadFactory = new ThreadFactory() {
+//            volatile int threadNumber = 0;
+//            public Thread newThread( Runnable r ) {
+//                String prefix = "LuceneRecordStore-searcher-";
+//                Thread t = new Thread( r, prefix + threadNumber++ );
+//                t.setDaemon( false );
+//                t.setPriority( Thread.NORM_PRIORITY - 1 );
+//                return t;
+//            }
+//        };
+//        executor = new ThreadPoolExecutor( nThreads, nThreads,
+//                60L, TimeUnit.SECONDS,
+//                new LinkedBlockingQueue<Runnable>(),
+//                threadFactory);
+//        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
+//    }
+    
+    // instance *******************************************
     
     private Directory               directory;
 
     private Analyzer                analyzer = new WhitespaceAnalyzer( VERSION );
-    
-    private ExecutorService         executor = Polymap.executorService();
     
     private Cache<Object,Document>  cache = null;
     
@@ -176,7 +203,7 @@ public final class LuceneRecordStore
     
     
     public IndexSearcher getIndexSearcher() {
-        return searcher;    
+        return searcher;
     }
     
     

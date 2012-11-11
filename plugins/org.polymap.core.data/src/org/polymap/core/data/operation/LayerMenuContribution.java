@@ -59,10 +59,9 @@ public class LayerMenuContribution
                         if (fs == null) {
                             fs = PipelineFeatureSource.forLayer( layer, false );
                         }
-                        if (fc == null) {
+                        if (fs != null && fc == null) {
                             fc = fs.getFeatures( query );
                         }
-                        
                     }
 
                     public FeatureCollection features() 

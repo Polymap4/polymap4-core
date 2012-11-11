@@ -33,8 +33,17 @@ Menu {
     /*animation: slideIn 25ms linear*/;
 }
 
-/* Form widgets *******************************************/
+/* EditorTool widgets *************************************/
 
+ToolBar.tooling {
+    background-color: #e5e5e5;
+}
+ToolItem.tooling {
+    padding: 5px 6px 5px 6px;
+    margin: 2px;
+}
+
+/* Form widgets *******************************************/
 /* !! background-color does not work here; see FormEditorToolkit !! */
 
 Text.formeditor {
@@ -59,6 +68,10 @@ DateTime.formeditor:disabled {
 }
 
 /* Toolbar ************************************************/
+ToolItem {
+    padding: 5px;
+    margin: 2px;
+}
 ToolItem:selected {
     border: 1px solid #b5b5b5;
     border-radius: 2px;

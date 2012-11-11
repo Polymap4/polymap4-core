@@ -23,8 +23,6 @@ import net.refractions.udig.ui.UDIGDragDropUtilities;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.qi4j.api.unitofwork.NoSuchEntityException;
-
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -44,7 +42,6 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.LayerStatusLineAdapter;
 import org.polymap.core.project.ui.PartListenerAdapter;
-import org.polymap.core.runtime.Polymap;
 
 /**
  * Spreading the Rhei while listening to Charlotte McKinnon... :) 
@@ -78,31 +75,31 @@ public class LayerNavigator
     throws PartInitException {
         super.init( _site, _memento );
 
-        // restore state
-        if (memento != null) {
-            final String mapId = memento.getString( "mapId" );
-            if (mapId != null) {
-                // set input *after* createPartControl(); give (geo) resources time to setup
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                    public void run() {
-                        try {
-                            // set map input
-                            ProjectRepository repo = ProjectRepository.instance();
-                            IMap _map = repo.findEntity( IMap.class, mapId );
-                            if (_map != null) {
-                                setInputMap( _map );
-                            }
-                        }
-                        catch (NoSuchEntityException e) {
-                            log.warn( "Map does no longer exists: " + mapId );
-                        }
-                        catch (Exception e) {
-                            log.warn( "Unable to restore view.", e );
-                        }
-                    }
-                });
-            }
-        }
+//        // restore state
+//        if (memento != null) {
+//            final String mapId = memento.getString( "mapId" );
+//            if (mapId != null) {
+//                // set input *after* createPartControl(); give (geo) resources time to setup
+//                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+//                    public void run() {
+//                        try {
+//                            // set map input
+//                            ProjectRepository repo = ProjectRepository.instance();
+//                            IMap _map = repo.findEntity( IMap.class, mapId );
+//                            if (_map != null) {
+//                                setInputMap( _map );
+//                            }
+//                        }
+//                        catch (NoSuchEntityException e) {
+//                            log.warn( "Map does no longer exists: " + mapId );
+//                        }
+//                        catch (Exception e) {
+//                            log.warn( "Unable to restore view.", e );
+//                        }
+//                    }
+//                });
+//            }
+//        }
     }
 
 

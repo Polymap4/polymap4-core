@@ -67,6 +67,7 @@ public class ProjectPerspective
         bottomLeft.addPlaceholder( "org.polymap.rhei.filter.FilterView:*" );
 
         topRight.addView( "net.refractions.udig.catalog.ui.CatalogView" );
+//        topRight.addView( "org.polymap.core.mapeditor.ToolingView" );
         topRight.addPlaceholder( "org.polymap.geocoder.*" );
 
         topRight.addView( "org.eclipse.ui.cheatsheets.views.CheatSheetView" );
@@ -80,6 +81,7 @@ public class ProjectPerspective
         bottom.addPlaceholder( "org.polymap.*" );        
         bottom.addPlaceholder( "org.polymap.*:*" );
         bottom.addPlaceholder( "org.eclipse.*" );
+
 
         // add shortcuts to show view menu
         layout.addShowViewShortcut( "net.refractions.udig.catalog.ui.CatalogView" );

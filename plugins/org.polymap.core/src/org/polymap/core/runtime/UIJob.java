@@ -64,6 +64,9 @@ public abstract class UIJob
 
     private static Log log = LogFactory.getLog( UIJob.class );
     
+    /** The default priority for newly created jobs. */
+    public static int                       DEFAULT_PRIORITY = Job.SHORT;
+    
     private static final ThreadLocal<UIJob> threadJob = new ThreadLocal();
     
     private static final NullProgressMonitor nullMonitor = new NullProgressMonitor();
@@ -111,6 +114,7 @@ public abstract class UIJob
 //        assert display != null : "Unable to determine current session/display.";
 
         setSystem( false );
+        setPriority( DEFAULT_PRIORITY );
     }
 
 

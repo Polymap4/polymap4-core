@@ -185,8 +185,9 @@ public class ShapeExportFeaturesOperation
                         return new ByteArrayInputStream( bout.toByteArray() );
                     }
 
-                    public void done( boolean success ) {
+                    public boolean done( boolean success ) {
                         // all files deleted in #getInputStream()
+                        return true;
                     }
                 });
                 

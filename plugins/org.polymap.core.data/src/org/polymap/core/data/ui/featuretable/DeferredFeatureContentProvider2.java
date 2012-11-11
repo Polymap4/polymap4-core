@@ -180,10 +180,13 @@ class DeferredFeatureContentProvider2
             // update UI
             display.asyncExec( new Runnable() {
                 public void run() {
-                    viewer.getTable().clearAll();
-                    viewer.getTable().setItemCount( sortedElements.length );
-                    viewer.refresh();
-                    viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, sortedElements.length );
+                    // disposed?
+                    if (viewer != null && viewer.getTable() != null) {
+                        viewer.getTable().clearAll();
+                        viewer.getTable().setItemCount( sortedElements.length );
+                        viewer.refresh();
+                        viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, sortedElements.length );
+                    }
                 }
             });
         }
@@ -204,12 +207,15 @@ class DeferredFeatureContentProvider2
                 int chunkSize = 8;
                 List chunk = new ArrayList( chunkSize ); 
 
-                for (c=0; it.hasNext(); c++) {
+                for (c=0; it.hasNext() && elementCache != null; c++) {
                     SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs, elementCache );
                     chunk.add( elm );
                     monitor.worked( 1 );
 
-                    if (monitor.isCanceled() || Thread.interrupted()) {
+                    if (monitor.isCanceled() 
+                            || Thread.interrupted()
+                            // disposed?
+                            || elementCache == null) {
                         return Status.CANCEL_STATUS;
                     }
 
@@ -224,17 +230,22 @@ class DeferredFeatureContentProvider2
                         Thread.sleep( 100 );
                     }
                 }
-                addChunk( chunk, monitor );
-
-                return Status.OK_STATUS;
+                // disposed?
+                if (elementCache != null) {
+                    addChunk( chunk, monitor );
+                    return Status.OK_STATUS;
+                }
+                else {
+                    return Status.CANCEL_STATUS;
+                }
             }
             catch (Exception e) {
                 log.warn( "", e );
                 return new Status( IStatus.ERROR, DataPlugin.PLUGIN_ID, "", e );
             }
             finally {
-                coll.close( it );
                 monitor.done();
+                if (coll != null) { coll.close( it ); }
                 if (viewer != null) { viewer.markTableLoading( false ); }
             }
         }

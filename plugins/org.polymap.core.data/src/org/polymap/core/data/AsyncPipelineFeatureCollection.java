@@ -168,7 +168,7 @@ class AsyncPipelineFeatureCollection
                     }
                 }
             };
-            Polymap.executorService().execute( new Runnable() {
+            Polymap.executorService().submit( new Runnable() {
                 public void run() {
                     if (sessionContext != null) {
                         sessionContext.execute( fetcher );

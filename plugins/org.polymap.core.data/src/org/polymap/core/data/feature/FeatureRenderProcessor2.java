@@ -133,7 +133,7 @@ public class FeatureRenderProcessor2
 
 
     protected void finalize() throws Throwable {
-        log.info( "FINALIZE: watchedLayers: " + watchedLayers.size() );
+        log.debug( "FINALIZE: watchedLayers: " + watchedLayers.size() );
         for (Map.Entry<ILayer,LayerStyleListener> entry : watchedLayers.entrySet()) {
             entry.getKey().removePropertyChangeListener( entry.getValue() );
         }

@@ -54,8 +54,6 @@ public class LayerLabelProvider
             
         public Image getImage( Object elm ) {
             if (elm instanceof ILayer) {
-//                LayerIconImageDescriptor imageDescr = new LayerIconImageDescriptor();
-//                Image result = RheiPlugin.getDefault().imageForDescriptor( imageDescr, "layerIcon" );
                 Image result = ProjectPlugin.getDefault().imageForName( "icons/obj16/layer_disabled_obj.gif" );
                 return result;
             }

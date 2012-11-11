@@ -27,16 +27,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
@@ -152,10 +143,9 @@ public final class Polymap {
         return RWT.getLocale();
     }
 
+   // public static ExecutorService      executorService = new PolymapJobExecutor();
+    public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
     
-    private static ExecutorService      executorService;
-    
-    private static AtomicBoolean        queueFull = new AtomicBoolean();
 
     /**
      * Returns the {@link ExecutorService} for the calling session. This should be
@@ -167,60 +157,6 @@ public final class Polymap {
     }
 
 
-    static {
-        ThreadFactory threadFactory = new ThreadFactory() {
-
-            final AtomicInteger threadNumber = new AtomicInteger( 1 );
-
-            public Thread newThread( Runnable r ) {
-                String prefix = "polymap-pool-";
-                Thread t = new Thread( r, prefix + threadNumber.getAndIncrement() );
-                t.setDaemon( false );
-                t.setPriority( Thread.NORM_PRIORITY );
-                return t;
-            }
-        };
-
-        int procNum = Runtime.getRuntime().availableProcessors();
-        // render pipeline executes 6 browser request concurrently -> min >= 6
-        final int minPoolSize = procNum * 6;
-        final int maxPoolSize = minPoolSize * 5;
-        
-        BlockingQueue queue = new ArrayBlockingQueue( minPoolSize );
-        ThreadPoolExecutor pool = new ThreadPoolExecutor( minPoolSize, maxPoolSize, 3, TimeUnit.MINUTES, queue ) {
-            
-            protected void afterExecute( Runnable r, Throwable t ) {
-                super.afterExecute( r, t );
-                if (queueFull.get()) {
-                    synchronized (queueFull) {
-                        queueFull.set( false );
-                        queueFull.notifyAll();
-                    }
-                }
-            }
-        };
-        pool.setThreadFactory( threadFactory );
-
-        // rejected? -> wait and try again
-        pool.setRejectedExecutionHandler( new RejectedExecutionHandler() {
-            public void rejectedExecution( Runnable r, ThreadPoolExecutor executor ) {
-                log.warn( "Unable to queue task: " + r );
-                // wait (a long time) and try again (until StackOverflow)
-                synchronized (queueFull) {
-                    queueFull.set( true );
-                    try {
-                        queueFull.wait( 5000 );
-                    }
-                    catch (InterruptedException e) {
-                    }
-                }
-                executor.execute( r );
-            }
-        });
-        executorService = pool;
-    }
-    
-    
     // instance *******************************************
 
     /** The session attributes. */

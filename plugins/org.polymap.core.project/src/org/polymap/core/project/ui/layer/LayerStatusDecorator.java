@@ -37,13 +37,14 @@ import org.eclipse.rwt.graphics.Graphics;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.BaseLabelProvider;
+import org.eclipse.jface.viewers.DecorationContext;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
-import org.polymap.core.project.Messages;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
+import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.runtime.Polymap;
 
@@ -66,14 +67,16 @@ public class LayerStatusDecorator
     public static final int         BOTTOM_LEFT = 2;
     public static final int         BOTTOM_RIGHT = 3;
 
-    private static final String     visible = "icons/ovr16/visible_ovr2.gif";    
+    private static final String     visible = "icons/obj16/layer_visible_obj.gif";
+    //private static final String     visible = "icons/elcl16/eye.png";
+    private static final String     visible_ovr = "icons/ovr16/visible_ovr.png";    
     private static final String     selectable = "icons/ovr16/selectable_ovr_small.png";
     private static final String     editable = "icons/ovr16/write_ovr.gif";
     private static final String     waiting = "icons/ovr16/clock0_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
     
     private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
-    private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
+    private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x60, 0x60, 0x60 );
     
     public static final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
     public static final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
@@ -120,20 +123,16 @@ public class LayerStatusDecorator
                 return;
             }
             
-            // editable
-            if (layer.isEditable()) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, editable );
-                decoration.addOverlay( ovr, TOP_RIGHT );
-            }
             // visible
-            else if (layer.isVisible()) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible );
+            if (layer.isVisible()) {
+                ImageDescriptor image = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible );
                 decoration.setFont( bold );
-                decoration.addOverlay( ovr, TOP_RIGHT );
-            }
-            // selectable
-            if (layer.isSelectable()) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, selectable );
+
+                DecorationContext context = (DecorationContext)decoration.getDecorationContext();
+                context.putProperty( IDecoration.ENABLE_REPLACE, Boolean.TRUE );
+                decoration.addOverlay( image, IDecoration.REPLACE );
+
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible_ovr );
                 decoration.addOverlay( ovr, TOP_LEFT );
             }
 
@@ -147,14 +146,14 @@ public class LayerStatusDecorator
                 decoration.setForegroundColor( MISSING_COLOR );    
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_missing") );    
             }
-            else if (layerStatus == LayerStatus.STATUS_OK) {
-                //
-            }
             else if (layerStatus == LayerStatus.STATUS_WAITING) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, waiting );
                 decoration.setFont( italic );
                 decoration.addOverlay( ovr, TOP_RIGHT );
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );
+            }
+            else if (layerStatus == LayerStatus.STATUS_OK) {
+                //
             }
             
             // register listener
@@ -233,7 +232,7 @@ public class LayerStatusDecorator
         log.debug( "propertyChange(): " + ev.getSource() + " : " + ev.getPropertyName() );
         if (ev.getSource() instanceof ILayer
                 && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
-                || ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
+                //|| ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
                 || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
                 || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS ))) {
 

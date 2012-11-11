@@ -117,9 +117,9 @@ public class Soft2CacheManager
                         continue;
                     }
                     
-                    System.err.print( "." );
+                    System.out.print( "." );
                     if (count % 100 == 0) {
-                        System.err.println( "/" );
+                        System.out.println( "/" );
                     }
 
                     boolean removed = entry.cache().removeEntry( entry.key(), entry );

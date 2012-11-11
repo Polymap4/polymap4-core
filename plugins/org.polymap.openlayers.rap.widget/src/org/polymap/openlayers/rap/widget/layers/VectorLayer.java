@@ -174,4 +174,9 @@ public class VectorLayer
         addObjModCode("obj.refresh();");
     }
 
+    
+    public void setStyleMap( StyleMap styleMap ) {
+        setObjAttr( "styleMap", styleMap );
+    }
+    
 }

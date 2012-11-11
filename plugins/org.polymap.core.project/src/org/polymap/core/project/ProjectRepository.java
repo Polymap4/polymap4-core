@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All righrs reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project;
 
 import java.net.URL;
@@ -65,7 +56,7 @@ public class ProjectRepository
      * Get or create the repository for the current user session.
      */
     public static final ProjectRepository instance() {
-        return (ProjectRepository)Qi4jPlugin.Session.instance().module( ProjectRepository.class );
+        return Qi4jPlugin.Session.instance().module( ProjectRepository.class );
     }
 
 
@@ -133,25 +124,13 @@ public class ProjectRepository
     }
 
     
-    public <T> T visitProjects( ProjectVisitor<T> visitor ) {
+    public <T> T visit( LayerVisitor<T> visitor ) {
         for (IMap map : rootMap.getMaps()) {
             for (ILayer layer : map.getLayers()) {
                 visitor.visit( layer );
             }
         }
         return visitor.result;
-    }
-    
-    
-    /**
-     * 
-     */
-    public abstract static class ProjectVisitor<T> {
-
-        protected T         result;
-        
-        public abstract void visit( ILayer layer );
-        
     }
     
     

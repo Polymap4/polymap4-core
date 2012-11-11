@@ -35,6 +35,7 @@ import org.opengis.util.ProgressListener;
 
 import org.geotools.data.AbstractFeatureSource;
 import org.geotools.data.DataStore;
+import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.FeatureSource;
@@ -215,6 +216,12 @@ public class PipelineFeatureSource
     public FeatureCollection<SimpleFeatureType, SimpleFeature> getFeatures( Query query )
     throws IOException {
         log.debug( "query= " + query );
+        //assert query.getFilter() != null : "No filter in query.";
+        if (query.getFilter() == null) {
+            log.warn( "Filter is NULL -> changing to EXCLUDE to prevent unwanted loading of all features! Use INCLUDE to get all." );
+            query = new DefaultQuery( query );
+            ((DefaultQuery)query).setFilter( Filter.EXCLUDE );
+        }
         return new AsyncPipelineFeatureCollection( this, query, sessionContext );
     }
 
@@ -407,7 +414,7 @@ public class PipelineFeatureSource
                 }
             });
             // fire event
-            log.info( "Event: type=" + getName().getLocalPart() );
+            log.debug( "Event: type=" + getName().getLocalPart() );
             store.listeners.fireFeaturesChanged( getName().getLocalPart(), tx, null, false );
 //            store.listeners.fireEvent( getName().getLocalPart(), tx,
 //                    new FeatureEvent( this, FeatureEvent.Type.CHANGED, null, filter ) );

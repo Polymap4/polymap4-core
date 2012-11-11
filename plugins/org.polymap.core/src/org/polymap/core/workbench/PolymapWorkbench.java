@@ -112,12 +112,12 @@ public class PolymapWorkbench
                 }
             }
         };
-        if (Display.getCurrent() != null) {
-            runnable.run();
-        }
-        else {
+//        if (Display.getCurrent() == display) {
+//            runnable.run();
+//        }
+//        else {
             display.asyncExec( runnable );
-        }
+//        }
     }
 
     

@@ -174,14 +174,14 @@ public class LayerFeatureSelectionManager {
                 throw new UnsupportedOperationException( "Operation not supported yet: " + modeHint );
         }
         fc = null;
-        fireEvent( PROP_FILTER, old, filter, ommit );
+        fireEvent( PROP_FILTER, old, getFilter(), ommit );
     }
 
     
     public void clearSelection() {
         Filter old = filter;
         filter = null;
-        fireEvent( PROP_FILTER, old, filter, null );
+        fireEvent( PROP_FILTER, old, getFilter(), null );
     }
 
 
@@ -193,7 +193,7 @@ public class LayerFeatureSelectionManager {
     public FeatureCollection getFeatureCollection() {
         assert fcf != null;
         if (fc == null) {
-            fc = fcf.newFeatureCollection( layer, filter );
+            fc = fcf.newFeatureCollection( layer, getFilter() );
         }
         return fc;
     }

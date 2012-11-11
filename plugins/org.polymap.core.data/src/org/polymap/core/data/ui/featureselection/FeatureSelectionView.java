@@ -59,6 +59,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
@@ -101,14 +102,15 @@ public class FeatureSelectionView
 
     /* Bad but effective way to pass the layer to the view. */
     private static final ThreadLocal<ILayer>    initLayer = new ThreadLocal();
-    
-    
+
+
     /**
-     * Makes sure that the view for the layer is open. If the view is already
-     * open, then it is activated.
-     *
+     * Makes sure that the view for the layer is open. If the view is already open,
+     * then it is activated.
+     * 
      * @param layer
-     * @return The view for the given layer.
+     * @return The view for the given layer, or null if there was an error opening
+     *         the view.
      */
     public static FeatureSelectionView open( final ILayer layer ) {
         final FeatureSelectionView[] result = new FeatureSelectionView[1];
@@ -119,8 +121,10 @@ public class FeatureSelectionView
                     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
                     initLayer.set( layer );
-                    result[0] = (FeatureSelectionView)page.showView(
-                            FeatureSelectionView.ID, layer.id(), IWorkbenchPage.VIEW_ACTIVATE );
+                    IViewPart view = page.showView( FeatureSelectionView.ID, layer.id(), IWorkbenchPage.VIEW_ACTIVATE );
+                    if (view instanceof FeatureSelectionView) {
+                        result[0] = (FeatureSelectionView)view;
+                    }
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, null, e.getMessage(), e );
@@ -161,7 +165,7 @@ public class FeatureSelectionView
     /** Might be null if fs could not be instantiated for the layer */
     private PipelineFeatureSource   fs;
 
-    private Filter                  filter;
+    private Filter                  filter = Filter.EXCLUDE;
 
     /** Might be null if fs could not be instantiated for the layer */
     private FeatureTableViewer      viewer;
@@ -214,8 +218,11 @@ public class FeatureSelectionView
 
     
     public void saveState( IMemento memento ) {
-        if (layer != null && filter != null) {
+        if (layer != null) {
             try {
+                if (filter == null) {
+                    filter = Filter.EXCLUDE;
+                }
                 if (filter instanceof Id) {
                     // save max. 500 Fids
                     if (((Id)filter).getIdentifiers().size() > 500) {
@@ -252,7 +259,9 @@ public class FeatureSelectionView
             layer.addPropertyChangeListener( modelListener );
 
             // FeatureSelectionListener
-            LayerFeatureSelectionManager.forLayer( layer ).addSelectionChangeListener( selectionListener );
+            LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+            filter = fsm.getFilter();
+            fsm.addSelectionChangeListener( selectionListener );
 
             // FeatureChangeListener
             FeatureEventManager.instance().addFeatureChangeListener( changeListener = 
@@ -274,7 +283,7 @@ public class FeatureSelectionView
                 }
             );
                 
-            this.fs = PipelineFeatureSource.forLayer( layer, false );
+            this.fs = PipelineFeatureSource.forLayer( layer, false );            
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
@@ -388,6 +397,8 @@ public class FeatureSelectionView
 
         getSite().setSelectionProvider( viewer );
         hookContextMenu();
+        
+        loadTable( filter );
     }
 
 
@@ -438,7 +449,7 @@ public class FeatureSelectionView
                         loadTable( (Filter)ev.getNewValue() );
                     }
                     // hover
-                    if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+                    else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
                         LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
                         viewer.removeSelectionChangedListener( FeatureSelectionView.this );
                         viewer.selectElement( fsm.getHovered(), true );

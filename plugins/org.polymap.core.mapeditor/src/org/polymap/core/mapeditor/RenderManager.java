@@ -223,7 +223,7 @@ public class RenderManager {
 
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
                             StringUtils.removeStart( wmsServer.getPathSpec(), "/" ), 
-                            layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
+                            false, layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
                     

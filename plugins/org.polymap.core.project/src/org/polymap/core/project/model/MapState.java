@@ -47,6 +47,7 @@ import org.polymap.core.model.AssocCollection;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ITempLayer;
+import org.polymap.core.project.LayerVisitor;
 import org.polymap.core.project.MapStatus;
 import org.polymap.core.project.RenderStatus;
 import org.polymap.core.qi4j.AssocCollectionImpl;
@@ -273,6 +274,13 @@ public interface MapState
             assert status != null : "status == null";
             RenderStatus old = renderStatus;
             renderStatus = status;
+        }
+        
+        public <T> T visit( LayerVisitor<T> visitor ) {
+            for (ILayer layer : getLayers()) {
+                visitor.visit( layer );
+            }
+            return visitor.result;
         }
 
     }
