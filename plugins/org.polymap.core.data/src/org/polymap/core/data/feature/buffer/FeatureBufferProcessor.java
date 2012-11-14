@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.feature.buffer;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -136,8 +137,14 @@ public class FeatureBufferProcessor
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
-            buffer.registerFeatures( request.getFeatures() );
-            List<FeatureId> result = buffer.markAdded( request.getFeatures() );
+            List<FeatureId> result = new ArrayList( 1024 );
+            
+            // features are send in a Collection backed by the real source
+            // (see PipelineFeatureSource#addFeatures()) 
+            // XXX load features once - but hold them all in memory
+            List<Feature> features = new ArrayList( request.getFeatures() );
+            buffer.registerFeatures( features );
+            result.addAll( buffer.markAdded( features ) );
             
             context.sendResponse( new ModifyFeaturesResponse( result ) );
             context.sendResponse( ProcessorResponse.EOP );

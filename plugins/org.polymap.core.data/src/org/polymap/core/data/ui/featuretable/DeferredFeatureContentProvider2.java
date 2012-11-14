@@ -36,7 +36,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
-import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
@@ -241,7 +240,9 @@ class DeferredFeatureContentProvider2
             }
             catch (Exception e) {
                 log.warn( "", e );
-                return new Status( IStatus.ERROR, DataPlugin.PLUGIN_ID, "", e );
+                // NPE when disposed and variables are null; dont show to user
+                return Status.CANCEL_STATUS;
+               // return new Status( IStatus.ERROR, DataPlugin.PLUGIN_ID, "", e );
             }
             finally {
                 monitor.done();

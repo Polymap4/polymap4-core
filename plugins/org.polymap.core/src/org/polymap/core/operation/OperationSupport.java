@@ -238,6 +238,7 @@ public class OperationSupport
         job.schedule();
         
         if (!async) {
+            log.info( "Waiting for operation job to finish..." );
             job.joinAndDispatch( 3 * 60 * 1000 );
         }
     }

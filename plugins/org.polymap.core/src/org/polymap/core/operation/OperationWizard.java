@@ -76,22 +76,41 @@ public abstract class OperationWizard
     public static boolean openDialog( final OperationWizard wizard ) {
         final AtomicInteger returnCode = new AtomicInteger( -1 );
 
-        wizard.getDisplay().syncExec( new Runnable() {
+        wizard.getDisplay().asyncExec( new Runnable() {
 
             public void run() {
                 Shell shell = PolymapWorkbench.getShellToParentOn();
-                OperationWizardDialog dialog = new OperationWizardDialog( shell, wizard );
+                OperationWizardDialog dialog = new OperationWizardDialog( shell, wizard ) {
+                    @Override
+                    protected void setReturnCode( int code ) {
+                        super.setReturnCode( code );
+                        returnCode.set( code );
+                    }
+                };
                 
                 // earlyListeners
                 for (Iterator<IPageChangedListener> it=wizard.earlyListeners.iterator(); it.hasNext(); ) {
                     dialog.addPageChangedListener( it.next() );
                     it.remove();
                 }
+                dialog.setBlockOnOpen( false );
+                dialog.open();
                 
-                dialog.setBlockOnOpen( true );
-                returnCode.set( dialog.open() );
+                //dialog.setBlockOnOpen( true );
+                //returnCode.set( dialog.open() );
             }
         });
+        
+        // wait for dialog to close
+        synchronized (returnCode) {
+            while (returnCode.get() == -1 && !wizard.monitor.isCanceled()) {
+                try {
+                    returnCode.wait( 1000 );
+                }
+                catch (InterruptedException e) {
+                }
+            }
+        }
         return returnCode.get() == Window.OK;
     }
 

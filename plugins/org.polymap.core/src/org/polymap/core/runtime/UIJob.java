@@ -49,6 +49,7 @@ import org.polymap.core.Messages;
  * <ul>
  * <li>implicite handling of (RWT) {@link SessionContext}</li>
  * <li>support for progress dialog</li>
+ * <li>wrapping monitor into {@link OffThreadProgressMonitor}</li>
  * <li>simplified exception handling</li>
  * <li>access to the {@link #forThread() job of the current thread} and its monitor and status</li>
  * <li>{@link #joinAndDispatch(int)}</li>
@@ -143,7 +144,10 @@ public abstract class UIJob
             public void run() {
                 if (display == null || !PlatformUI.getWorkbench().isClosing()) {
                     try {
-                        executionMonitor = monitor;
+                        executionMonitor = progressDialog != null
+                                ? progressDialog.getProgressMonitor() 
+                                : monitor;  //new OffThreadProgressMonitor( monitor, display );
+                                
                         threadJob.set( UIJob.this );
 
 //                        if (showProgress && display != null) {
@@ -156,10 +160,7 @@ public abstract class UIJob
 //                            }
 //                        }
 
-                        IProgressMonitor mon = progressDialog != null
-                                ? progressDialog.getProgressMonitor() : monitor;
-                        
-                        runWithException( mon );
+                        runWithException( executionMonitor );
                         
                         resultStatus = Status.OK_STATUS;
                     }

@@ -25,7 +25,6 @@ import org.eclipse.jface.action.StatusLineManager;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardDialog;
 
-
 /**
  * 
  *

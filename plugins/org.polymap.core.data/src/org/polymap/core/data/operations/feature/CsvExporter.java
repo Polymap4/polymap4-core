@@ -150,6 +150,7 @@ public class CsvExporter {
                 }
                 if ((++count % 100) == 0) {
                     monitor.subTask( "Objekte: " + count++ );
+                    monitor.worked( 100 );
                 }
                 Feature feature = it.next();
 
