@@ -14,6 +14,7 @@
  */
 package org.polymap.core.runtime.cache;
 
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -22,11 +23,6 @@ import java.lang.ref.SoftReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-
-import static com.google.common.collect.Iterables.*;
 
 /**
  * Cache backed by a {@link ConcurrentHashMap} with separate thread
@@ -183,19 +179,35 @@ final class Soft2Cache<K,V>
     public Iterable<V> values() {
         assert entries != null : "Cache is closed.";
         
-        // transform ref -> value (including null for reclaimed entries)
-        Iterable<V> result = transform( entries.values(), new Function<CacheEntry<K,V>,V>() {
-            public V apply( CacheEntry<K,V> entry ) {
-                return entry != null ? entry.value() : null;
+        // the returned iterator should be aware off reclaimed entries
+        // and needs to support remove()
+        return new Iterable<V>() {
+            public Iterator<V> iterator() {
+                return new Iterator<V>() {
+                    
+                    private Iterator<CacheEntry<K,V>>   it = entries.values().iterator();
+                    
+                    private CacheEntry<K,V>             next;
+                    
+                    public boolean hasNext() {
+                        // find next, un-reclaimed entry
+                        while ((next == null || next.value() == null) && it.hasNext()) {
+                            next = it.next();
+                        }
+                        return next != null;
+                    }
+                    
+                    public V next() {
+                        assert next != null;
+                        try { return next.value(); } finally { next = null; }
+                    }
+                    
+                    public void remove() {
+                        it.remove();
+                    }
+                };
             }
-        });
-        
-        // filter null values
-        return filter( result, new Predicate<V>() {
-            public boolean apply( V input ) {
-                return input != null;
-            }
-        });
+        };
     }
 
     
