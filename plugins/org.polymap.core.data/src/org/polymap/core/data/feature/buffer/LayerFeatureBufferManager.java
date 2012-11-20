@@ -280,7 +280,10 @@ public class LayerFeatureBufferManager
         // the first processor after the DataStoreProcessor
         IGeoResource geores = layer.getGeoResource();
         FeatureStore fs = geores.resolve( FeatureStore.class, null );
-  
+
+        if (fs == null) {
+            throw new IOException( "Unable to write to the data source of layer: " + layer.getLabel() );
+        }
         fs.setTransaction( tx );
 
         updater = ModelChangeTracker.instance().newUpdater();
