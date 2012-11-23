@@ -267,7 +267,7 @@ public class FeatureSelectionView
             FeatureEventManager.instance().addFeatureChangeListener( changeListener = 
                 new FeatureChangeListener() {
                     public void featureChange( FeatureChangeEvent ev ) {
-                        if (viewer != null) {
+                        if (viewer != null && layer.equals( ev.getSource() )) {
                             viewer.getControl().getDisplay().asyncExec( new Runnable() {
                                 public void run() {
                                     loadTable( filter );

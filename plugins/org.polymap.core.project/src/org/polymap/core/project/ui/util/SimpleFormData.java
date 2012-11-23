@@ -127,7 +127,7 @@ public class SimpleFormData {
     }
 
     public SimpleFormData right( int num, int offset ) {
-        formData.right = new FormAttachment( num, offset );
+        formData.right = num > -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
@@ -169,9 +169,7 @@ public class SimpleFormData {
     }
 
     public SimpleFormData bottom( int num, int offset ) {
-        formData.bottom = num != -1 
-                ? new FormAttachment( num, offset )
-                : null;
+        formData.bottom = num != -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 

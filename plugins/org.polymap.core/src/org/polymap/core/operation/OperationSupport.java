@@ -176,7 +176,8 @@ public class OperationSupport
         
         OperationJob job = new OperationJob( op ) {
             protected void run() throws Exception {
-                monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                // try to preset task name without beginTask()
+                monitor.setTaskName( op.getLabel() );
                 history.undo( context, monitor, null );
             }
         };
@@ -191,7 +192,8 @@ public class OperationSupport
         
         OperationJob job = new OperationJob( op ) {
             protected void run() throws Exception {
-                monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                // try to preset task name without beginTask()
+                monitor.setTaskName( op.getLabel() );
                 history.redo( context, monitor, null );
             }
         };
@@ -282,6 +284,7 @@ public class OperationSupport
         public OperationJob( IUndoableOperation op ) {
             super( op.getLabel() );
             this.op = op;
+            setPriority( LONG );
             setRule( new MultipleOperations() );
         }
 

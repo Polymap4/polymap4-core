@@ -107,7 +107,7 @@ class FeatureOperationContainer
             // preset task name without beginTask()
             monitor.setTaskName( getLabel() );
             
-            switch (delegate.redo( monitor )) {
+            switch (delegate.undo( monitor )) {
                 case OK :
                     return Status.OK_STATUS;
                 case Cancel :

@@ -54,6 +54,7 @@ import org.polymap.core.data.operation.FeatureOperationFactory.IContextProvider;
 import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.data.ui.featuretable.SimpleFeatureTableElement;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -100,15 +101,12 @@ public class FeatureSelectionViewMenuContribution
                         }
 
                         menuItem.addSelectionListener( new SelectionListener() {
-
                             public void widgetSelected( SelectionEvent se ) {
                                 widgetDefaultSelected( se );
                             }
-
                             public void widgetDefaultSelected( SelectionEvent se ) {
                                 action.run();
                             }
-
                         });
                     }
                     menu.setVisible( true );
@@ -150,6 +148,12 @@ public class FeatureSelectionViewMenuContribution
 
                 private FeatureCollection   fc;
 
+                public Object getAdapter( Class adapter ) {
+                    return adapter.equals( ILayer.class )
+                            ? view.get().getLayer()
+                            : super.getAdapter( adapter );
+                }
+
                 /**
                  * Lazily init.
                  */
@@ -185,7 +189,7 @@ public class FeatureSelectionViewMenuContribution
                                             DefaultQuery query = new DefaultQuery( typeName, view.get().getFilter() );
                                             fc = fs.getFeatures( query );                                
                                         }
-                                    }
+                                    }                                    
                                 }
                                 catch (IOException e) {
                                     PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
@@ -205,7 +209,6 @@ public class FeatureSelectionViewMenuContribution
                 throws Exception {
                     return fs;
                 }
-
             };
         }
         catch (Exception e) {

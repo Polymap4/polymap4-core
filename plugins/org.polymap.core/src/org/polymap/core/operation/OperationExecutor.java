@@ -16,8 +16,7 @@
 package org.polymap.core.operation;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -57,11 +56,13 @@ class OperationExecutor
     private List<IUndoableOperation>    concerns;
     
     private Display                     display;
-    
-    private int                         concernIndex = 0;
 
-    private ReentrantLock               lock = new ReentrantLock();
-        
+    /**
+     * The next index in the list of Concerns. {@link ThreadLocal} allows this to be
+     * called from different threads.
+     */
+    private ThreadLocal<AtomicInteger>  concernIndex = new ThreadLocal();
+
     
     protected OperationExecutor( IUndoableOperation op ) {
         super();
@@ -103,29 +104,29 @@ class OperationExecutor
         }
         else {
             try {
-                if (lock.isHeldByCurrentThread()) {
-                    throw new IllegalStateException( "Reentrant calls from operation and/or concerns into same operation are not allowed." );
-                }
-                lock.lockInterruptibly();
+//                if (lock.isHeldByCurrentThread()) {
+//                    throw new IllegalStateException( "Reentrant calls from operation and/or concerns into same operation are not allowed." );
+//                }
                 
-                concernIndex = 0;
+                concernIndex.set( new AtomicInteger( 0 ) );
                 return method.invoke( next(), args );
             }
             catch (InvocationTargetException e) {
                 throw e.getTargetException();
             }
             finally {
-                lock.unlock();
+                concernIndex.set( null );
             }
         }
     }
 
     
     // OperationInfo **************************************
-
     
     public IUndoableOperation next() {
-        return concernIndex < concerns.size() ? concerns.get( concernIndex++ ) : op; 
+        return concernIndex.get().get() < concerns.size() 
+                ? concerns.get( concernIndex.get().getAndIncrement() ) 
+                : op; 
     }
 
     

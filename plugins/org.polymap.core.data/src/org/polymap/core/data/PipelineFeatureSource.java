@@ -425,7 +425,7 @@ public class PipelineFeatureSource
 
     public void modifyFeatures( AttributeDescriptor type, Object value, Filter filter )
     throws IOException {
-        modifyFeatures( new AttributeDescriptor[] { type, }, new Object[] { value, }, filter );
+        modifyFeatures( new AttributeDescriptor[] { type }, new Object[] { value }, filter );
     }
 
 

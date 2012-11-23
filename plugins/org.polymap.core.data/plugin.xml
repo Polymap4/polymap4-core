@@ -430,6 +430,20 @@
             tooltip="%CopyFeaturesOperation_tip">
       </featureOperation>
       <featureOperation
+            class="org.polymap.core.data.operations.feature.IntersectFeaturesOperation"
+            icon="icons/etool16/feature_ops.gif"
+            id="org.polymap.core.data.IntersectFeaturesOperation"
+            label="%IntersectFeaturesOperation_label"
+            tooltip="%IntersectFeaturesOperation_tip">
+      </featureOperation>
+      <featureOperation
+            class="org.polymap.core.data.operations.feature.BufferFeaturesOperation"
+            icon="icons/etool16/feature_ops.gif"
+            id="org.polymap.core.data.BufferFeaturesOperation"
+            label="%BufferFeaturesOperation_label"
+            tooltip="%BufferFeaturesOperation_tip">
+      </featureOperation>
+      <featureOperation
             class="org.polymap.core.data.operations.feature.RemoveFeaturesOperation"
             icon="icons/etool16/delete_edit.gif"
             id="org.polymap.core.data.RemoveFeaturesOperation"
