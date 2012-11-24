@@ -233,9 +233,9 @@ public class ToolingViewer {
             
             // description
             Label description = new Label( toolArea, SWT.WRAP );
-            description.setLayoutData( new ColumnLayoutData( 200, SWT.DEFAULT ) );
+            // this width defines the minimum width of the view
+            description.setLayoutData( new ColumnLayoutData( 230, SWT.DEFAULT ) );
             description.setForeground( Graphics.getColor( 0x90, 0x90, 0x90 ) );
-            //description.setFont( JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ) );
             if (tool.getDescription() != null) {
                 description.setText( tool.getDescription() );
             } 

@@ -76,10 +76,10 @@ public abstract class DefaultEditorTool
     protected void layoutControl( @SuppressWarnings("hiding") String label, Control control ) {
         Label l = new Label( parent, SWT.NONE );
         l.setText( label );
-        FormData labelData = new FormData( 90, SWT.DEFAULT );
+        FormData labelData = new FormData( 80, SWT.DEFAULT );
         labelData.left = new FormAttachment( 0 );
         labelData.top = lastLabel != null
-                ? new FormAttachment( lastLabel )
+                ? new FormAttachment( lastControl, 3 )
                 : new FormAttachment( 0 );
         l.setLayoutData( labelData );
         
