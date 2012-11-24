@@ -33,10 +33,18 @@ import org.polymap.core.runtime.cache.CacheManager;
  */
 public class CachedLazyInit<T>
         extends LazyInit<T> {
-    
-    /** The global cache. */
-    private static final Cache<CachedLazyInit,Object>   cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
 
+    /**
+     * The global cache. Use hashCode()/Integer as key to allow the instance to be
+     * GC'ed - and {@link #clear()} the value from cache.
+     */
+    private static final Cache<Integer,Object>   cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
+
+    /**
+     * Store the hashKey to prevent call to hashCode and auto-boxing on each access.
+     */
+    private Integer                 cacheKey = hashCode();
+    
     private int                     elementSize;
     
     
@@ -59,12 +67,25 @@ public class CachedLazyInit<T>
         this.elementSize = elementSize;
     }
 
+    /**
+     * This ctor allows to preset the value. This can be used if the value is
+     * available when initialized but may be reclaimed during processing.
+     * 
+     * @param elementSize The size of the value in the cache in bytes.
+     * @param supplier
+     */
+    public CachedLazyInit( T value, int elementSize, Supplier<T> supplier ) {
+        super( supplier );
+        cache.putIfAbsent( cacheKey, value, elementSize );
+        this.elementSize = elementSize;
+    }
+
     @Override
     @SuppressWarnings("hiding")
     public T get( final Supplier<T> supplier ) {
-        return (T)cache.get( this, new CacheLoader<CachedLazyInit,Object,RuntimeException>() {
+        return (T)cache.get( cacheKey, new CacheLoader<Integer,Object,RuntimeException>() {
 
-            public Object load( CachedLazyInit key ) throws RuntimeException {
+            public Object load( Integer key ) throws RuntimeException {
                 return supplier.get();
             }
 
@@ -76,7 +97,12 @@ public class CachedLazyInit<T>
 
     @Override
     public void clear() {
-        cache.remove( this );
+        cache.remove( cacheKey );
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        clear();
     }
     
 }

@@ -117,9 +117,8 @@ public class Soft2CacheManager
                         continue;
                     }
                     
-                    System.out.print( "." );
-                    if (count % 100 == 0) {
-                        System.out.println( "/" );
+                    if (count % 1000 == 0) {
+                        log.debug( "[Soft2Cache: 1000 entries reclaimed by GC; total: " + count + "]" );
                     }
 
                     boolean removed = entry.cache().removeEntry( entry.key(), entry );

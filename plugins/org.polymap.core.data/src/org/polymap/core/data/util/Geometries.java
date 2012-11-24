@@ -15,6 +15,7 @@
 package org.polymap.core.data.util;
 
 import org.geotools.geometry.jts.JTS;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -24,6 +25,7 @@ import org.opengis.referencing.operation.TransformException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.runtime.cache.Cache;
@@ -148,6 +150,13 @@ public class Geometries {
     public static Geometry transform( Geometry geom, String sourceCode, String targetCode ) 
     throws MismatchedDimensionException, TransformException, Exception {
         return JTS.transform( geom, transform( sourceCode, targetCode ) );
+    }
+
+
+    public static ReferencedEnvelope transform( ReferencedEnvelope bounds, CoordinateReferenceSystem target )
+    throws TransformException, Exception {
+        Envelope result = JTS.transform( bounds, transform( bounds.getCoordinateReferenceSystem(), target ) );
+        return new ReferencedEnvelope( result, target );
     }
     
 }

@@ -14,27 +14,38 @@
  */
 package org.polymap.core.data.operations.feature;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+
+import java.io.IOException;
 
 import javax.measure.unit.Unit;
 
+import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.type.Name;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Supplier;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.index.strtree.STRtree;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -71,6 +82,8 @@ import org.polymap.core.geohub.LayerFeatureSelectionOperation;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.runtime.CachedLazyInit;
+import org.polymap.core.runtime.Timer;
 
 /**
  * Intersect the geometries of the features with features of another layer. The
@@ -143,6 +156,7 @@ public class IntersectFeaturesOperation
 
         // open wizard dialog
         if (OperationWizard.openDialog( wizard )) {
+            Timer timer = new Timer();
             monitor.worked( 10 );
             final IProgressMonitor submon = new SubProgressMonitor( monitor, 80,
                     SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK );
@@ -152,6 +166,7 @@ public class IntersectFeaturesOperation
 
             int featuresSize = features.size();
             submon.beginTask( i18n( "submonTitle", featuresSize ), featuresSize );
+            submon.subTask( "Preparing..." );
 
             // query layer
             ILayer queryLayer = chooseLayerPage.getResult();
@@ -185,6 +200,7 @@ public class IntersectFeaturesOperation
                     }
                 }
             }, new NullProgressListener() );
+            log.info( "Intersection: " + featuresSize + " in " + timer.elapsedTime() + "ms" );
 
             // change selection
             if (!submon.isCanceled()) {
@@ -248,7 +264,7 @@ public class IntersectFeaturesOperation
         /** The CRS of the paretion features. */
         private CoordinateReferenceSystem   crs;
 
-        private CoordinateReferenceSystem   queryCrs;
+        protected CoordinateReferenceSystem queryCrs;
 
         protected Name                      queryGeomName;
         
@@ -297,10 +313,10 @@ public class IntersectFeaturesOperation
     /**
      * Implements 'intersects' mode based on <code>ff.intersects()</code>.
      */
-    protected class Intersects
+    protected class PlainIntersects
             extends IntersectionMode {
 
-        public Intersects( double distance ) {
+        public PlainIntersects( double distance ) {
             super( distance );
         }
 
@@ -314,6 +330,96 @@ public class IntersectFeaturesOperation
                     ff.intersects( ff.property( queryGeomName ), ff.literal( geom ) ) ) );
             
             return !intersected.isEmpty() ? feature.getIdentifier() : null;
+        }
+    }
+
+    /**
+     * Implements 'intersects' mode using {@link STRtree}.
+     */
+    protected class IndexedIntersects
+            extends IntersectionMode {
+
+        private STRtree         index;
+        
+        public IndexedIntersects( double distance ) {
+            super( distance );
+        }
+
+        public FeatureId perform( Feature feature, final FeatureSource queryFs ) 
+        throws Exception {
+            Geometry geom = transformed( feature, queryFs );
+
+            // build index
+            if (index == null) {
+                Timer timer = new Timer();
+                index = new STRtree();
+                
+                ReferencedEnvelope bbox = Geometries.transform( context.features().getBounds(), queryCrs );
+                FeatureCollection features = queryFs.getFeatures( 
+                        new DefaultQuery( null, 
+                                ff.bbox( ff.property( queryGeomName ), bbox ),
+                                new String[] { queryGeomName.getLocalPart() } ) );
+                
+                features.accepts( new FeatureVisitor() {
+                    public void visit( final Feature _feature ) {
+                        Geometry _geom = (Geometry)_feature.getDefaultGeometryProperty().getValue();
+                        index.insert( _geom.getEnvelopeInternal(), new CachedFeatureRef( _feature, queryFs ) );
+                    }
+                }, new NullProgressListener() );
+                log.info( "    Building index: " + timer.elapsedTime() + "ms" );
+            }
+
+            // query feature
+            Iterator it = index.query( geom.getEnvelopeInternal() ).iterator();
+            boolean found = false;
+            Filter filter = null;
+            while (it.hasNext() && !found) {
+                filter = filter != null ? filter : ff.intersects( ff.property( queryGeomName ), ff.literal( geom ) );
+                found = filter.evaluate( ((CachedFeatureRef)it.next()).get() );
+            }
+            return found ? feature.getIdentifier() : null;
+        }
+    }
+
+
+    /**
+     * Pseudo-persistent (soft) reference to a {@link Feature}. This is used during
+     * build of the in-memory spatial index. It allows the Feature and Geometry to be
+     * reclaimed by GC while processing.
+     */
+    private static class CachedFeatureRef
+            extends CachedLazyInit<Feature> {
+
+        private String          fid;
+        
+        private FeatureSource   fs;
+        
+        private Supplier        supplier;
+
+        public CachedFeatureRef( Feature feature, FeatureSource fs ) {
+            super( feature, 1024, null );
+            this.fid = feature.getIdentifier().getID();
+            this.fs = fs;
+        }
+
+        public Feature get() {
+            return get( new Supplier<Feature>() {
+                public Feature get() {
+                    FeatureIterator it = null;
+                    try {
+                        //log.info( "Fetching " + fid + "..." );
+                        Id filter = ff.id( Collections.singleton( ff.featureId( fid ) ) );
+                        it = fs.getFeatures( filter ).features();
+                        return it.hasNext() ? it.next() : null;
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException( e );
+                    }
+                    finally {
+                        if (it != null) { it.close(); }
+                    }
+                }
+            });        
         }
     }
 
@@ -440,7 +546,7 @@ public class IntersectFeaturesOperation
 
         private boolean                     mandatory = false;
         
-        protected IntersectionMode          mode = new Intersects( 0 );
+        protected IntersectionMode          mode = new IndexedIntersects( 0 );
 
         
         public BufferInputPage() {
@@ -473,7 +579,7 @@ public class IntersectFeaturesOperation
             intersectsBtn.setSelection( true );
             intersectsBtn.addSelectionListener( new SelectionAdapter() {
                 public void widgetSelected( SelectionEvent ev ) {
-                    mode = new Intersects( mode.distance );
+                    mode = new IndexedIntersects( mode.distance );
                 }
             });
 

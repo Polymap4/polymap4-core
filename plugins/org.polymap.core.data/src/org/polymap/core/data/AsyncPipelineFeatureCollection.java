@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data;
 
@@ -27,13 +19,15 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+
+import java.io.IOException;
+
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +41,6 @@ import org.polymap.core.runtime.SessionContext;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 class AsyncPipelineFeatureCollection
@@ -69,6 +62,8 @@ class AsyncPipelineFeatureCollection
     private int                             size = -1;
     
     private SessionContext                  sessionContext;
+
+    private ReferencedEnvelope              bounds;
 
 
     protected AsyncPipelineFeatureCollection( PipelineFeatureSource fs, Query query, SessionContext sessionContext ) {
@@ -97,8 +92,27 @@ class AsyncPipelineFeatureCollection
     }
 
     public ReferencedEnvelope getBounds() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        if (bounds == null) {
+            try {
+                bounds = fs.getBounds( query );
+            }
+            catch (IOException e) {
+                throw new RuntimeException( "Why does GeoTool's FeatureSource throws exception while FeatureCollection does not?", e );
+            }
+//            bounds = new ReferencedEnvelope();
+//            accepts( new FeatureVisitor() {
+//                public void visit( Feature feature ) {
+//                    BoundingBox geomBounds = feature.getBounds();
+//                    // as of 1.3, JTS expandToInclude ignores "null" Envelope
+//                    // and simply adds the new bounds...
+//                    // This check ensures this behavior does not occur.
+//                    if (! geomBounds.isEmpty()) {
+//                        bounds.include( geomBounds );
+//                    }
+//                }
+//            }, new NullProgressListener() );
+        }
+        return bounds;
     }
 
 
