@@ -148,6 +148,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
