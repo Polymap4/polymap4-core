@@ -77,7 +77,7 @@ public class OpenMapConcern
             display.syncExec( new Runnable() {
                 public void run() {
                     try {
-                        monitor.subTask( getLabel() );
+                        monitor.subTask( op.getLabel() );
                         MapEditorInput input = new MapEditorInput( op.getMap() );
                         openMap( input, op.getPage(), monitor );
                         monitor.worked( 1 );
