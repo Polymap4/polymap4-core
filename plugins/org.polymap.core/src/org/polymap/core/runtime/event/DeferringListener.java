@@ -15,16 +15,22 @@
 package org.polymap.core.runtime.event;
 
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+
+import org.eclipse.rwt.lifecycle.UICallBack;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
+import org.polymap.core.Messages;
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
 
 /**
@@ -37,13 +43,55 @@ public class DeferringListener
 
     private static Log log = LogFactory.getLog( DeferringListener.class );
 
+    /**
+     * 
+     */
+    static class SessionUICallbackCounter
+            extends SessionSingleton {
+
+        public static SessionUICallbackCounter instance() {
+            return instance( SessionUICallbackCounter.class );
+        }
+        
+        private volatile int        jobCount = 0;
+        
+        private int                 maxJobCount = 0;
+        
+        public synchronized void jobStarted() {
+            maxJobCount ++;
+            if (jobCount++ == 0) {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        UICallBack.activate( "DeferredEvents" );
+                        log.debug( "UI Callback activated." );
+                    }
+                });
+            }
+        }
+        
+        public synchronized void jobFinished() {
+            if (--jobCount == 0) {
+                final int temp = maxJobCount;
+                maxJobCount = 0;
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        UICallBack.deactivate( "DeferredEvents" );
+                        log.debug( "UI Callback deactivated. (maxJobCount=" + temp + ")" );
+                    }
+                });
+            }
+        }
+    }
+    
+    // instance *******************************************
+    
     private int                     delay = 3000;
     
     private int                     maxEvents = 10000;
     
     private Job                     job;
     
-    private List<Event>             events = new ArrayList( 128 );
+    private List<EventObject>       events = new ArrayList( 128 );
     
 
     public DeferringListener( EventListener delegate, int delay, int maxEvents ) {
@@ -53,11 +101,11 @@ public class DeferringListener
     }
 
     @Override
-    public void handleEvent( Event ev ) throws Exception {
+    public void handleEvent( EventObject ev ) throws Exception {
         events.add( ev );
         
         if (job == null) {
-            job = new UIJob( "DeferredEvents" ) {
+            job = new UIJob( Messages.get( "DeferringListener_jobTitle" ) ) {
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     job = null;
 
@@ -65,10 +113,12 @@ public class DeferringListener
                     events = new ArrayList( 128 );
 
                     delegate.handleEvent( dev );
+                    SessionUICallbackCounter.instance().jobFinished();
                 }
             };
-            job.setSystem( true );
-            job.schedule( delay);
+            //job.setUser( true );
+            job.schedule( delay );
+            SessionUICallbackCounter.instance().jobStarted();
         }
         else {
             job.cancel();
@@ -83,18 +133,18 @@ public class DeferringListener
     public static class DeferredEvent
             extends Event {
     
-        private List<Event>         events;
+        private List<EventObject>       events;
         
-        DeferredEvent( Object source, List<Event> events ) {
+        DeferredEvent( Object source, List<EventObject> events ) {
             super( source );
             this.events = new ArrayList( events );
         }
         
-        public List<Event> events() {
+        public List<EventObject> events() {
             return events;
         }
         
-        public List<Event> events( EventFilter filter ) {
+        public List<EventObject> events( EventFilter filter ) {
             return ImmutableList.copyOf( Iterables.filter( events, filter ) );
         }
     }

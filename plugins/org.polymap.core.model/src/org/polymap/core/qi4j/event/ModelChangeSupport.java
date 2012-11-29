@@ -34,7 +34,6 @@ import org.qi4j.spi.entitystore.ConcurrentEntityStateModificationException;
 
 import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelEventManager;
 import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.model.event.IModelHandleable;
 import org.polymap.core.model.event.ModelChangeTracker.Updater;

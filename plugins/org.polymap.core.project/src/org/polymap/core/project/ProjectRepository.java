@@ -33,6 +33,7 @@ import org.polymap.core.project.model.TempLayerComposite;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
+import org.polymap.core.qi4j.Qi4jPlugin.Session;
 import org.polymap.core.runtime.ISessionContextProvider;
 import org.polymap.core.workbench.PolymapWorkbench;
 

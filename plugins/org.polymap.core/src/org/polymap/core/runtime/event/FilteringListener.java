@@ -14,6 +14,11 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * 
  *
@@ -21,6 +26,8 @@ package org.polymap.core.runtime.event;
  */
 public class FilteringListener
         extends DecoratingListener {
+
+    private static Log log = LogFactory.getLog( FilteringListener.class );
 
     private EventFilter[]           filters;
     
@@ -33,9 +40,10 @@ public class FilteringListener
 
 
     @Override
-    public void handleEvent( Event ev ) throws Exception {
+    public void handleEvent( EventObject ev ) throws Exception {
         for (EventFilter filter : filters) {
             if (!filter.apply( ev )) {
+                log.debug( "Offending filter: " + filter + "\n           event: " + ev + ")" );
                 return;
             }
         }

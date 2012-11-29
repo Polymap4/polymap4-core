@@ -15,6 +15,7 @@
 package org.polymap.core.data.feature.buffer;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -35,14 +36,15 @@ import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeListener;
 import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.FeatureStoreEvent;
 import org.polymap.core.data.FeatureStoreListener;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.model.event.ModelChangeTracker;
 import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Decorates {@link ILayer} according their buffer state.
@@ -80,13 +82,8 @@ public class LayerBufferDecorator
         this.display = Polymap.getSessionDisplay();
         
         // FeatureChangeListener
-        changeListener = new FeatureChangeListener() {
-            public void featureChange( FeatureChangeEvent ev ) {
-                LayerBufferDecorator.this.featureChange( ev );
-            }
-        };
-        FeatureEventManager.instance().addFeatureChangeListener( changeListener, new IEventFilter<FeatureChangeEvent>() {
-            public boolean accept( FeatureChangeEvent ev ) {
+        EventManager.instance().subscribe( this, new EventFilter<FeatureChangeEvent>() {
+            public boolean apply( FeatureChangeEvent ev ) {
                 return decorated.contains( ev.getSource().id() );
             }
         });
@@ -102,12 +99,18 @@ public class LayerBufferDecorator
 
     
     public void dispose() {
-        FeatureEventManager.instance().removeFeatureChangeListener( changeListener );
+        EventManager.instance().unsubscribe( this );
         FeatureChangeTracker.instance().removeFeatureListener( storeListener );
         decorated.clear();
     }
 
+    
+    @EventHandler(delay=3000,display=true)
+    protected void featureChanges( List<FeatureChangeEvent> events ) {
+        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+    }
 
+    
     public void decorate( Object elm, IDecoration decoration ) {
         if (elm instanceof ILayer) {
             ILayer layer = (ILayer)elm;
@@ -150,68 +153,6 @@ public class LayerBufferDecorator
             }
 
             decorated.add( layer.id() );
-        }
-    }
-
-
-//    public Image decorateImage( Image image, Object elm ) {
-//        Image result = null;
-//        
-//        if (elm instanceof ILayer) {
-//            ILayer layer = (ILayer)elm;
-//
-//            LayerFeatureBufferManager layerBuffer = LayerFeatureBufferManager.forLayer( layer, false );
-//            if (layerBuffer == null) {
-//                return image;
-//            }
-//            
-//            try {
-//                String name = "layer_buffer";
-//                DecoratedImageDescriptor decoratedImageDescriptor = null;
-//                
-//                // outgoing
-//                if (!layerBuffer.getBuffer().isEmpty()) {
-//                    decoratedImageDescriptor = new DecoratedImageDescriptor( image );
-//                    decoratedImageDescriptor.addDecoration( outgoing, BOTTOM_RIGHT );
-//                    name += "_outgoing";
-//                }
-//                // XXX add incoming and conflict
-//        
-//                if (decoratedImageDescriptor != null) {
-//                    result = DataPlugin.getDefault().imageForDescriptor( decoratedImageDescriptor, name );
-//                }
-//            }
-//            catch (Exception e) {
-//                log.warn( "", e );
-//                // XXX add question mark overlay
-//            }
-//
-//            // register changeListener
-//            if (decorated.put( layer.id(), layerBuffer ) == null) {
-//                layerBuffer.getBuffer().addFeatureChangeListener( this );
-//            }
-//        }
-//        return result;
-//    }
-//
-//
-//    public String decorateText( String text, Object element ) {
-//        return text;
-//    }
-
-
-    public void featureChange( final FeatureChangeEvent ev ) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
-            }
-        };
-
-        if (Display.getCurrent() != null) {
-            runnable.run();
-        }
-        else {
-            display.asyncExec( runnable );
         }
     }
 

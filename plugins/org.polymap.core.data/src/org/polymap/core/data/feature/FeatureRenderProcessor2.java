@@ -40,7 +40,6 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import net.refractions.udig.catalog.IService;
@@ -74,6 +73,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
+import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.style.geotools.DefaultStyles;
 
 /**
@@ -291,8 +291,7 @@ public class FeatureRenderProcessor2
      * the Processor, so it does not prevent the Processor from being GCed. The finalyze()
      * of the Processor clears the listeners. 
      */
-    public static class LayerStyleListener
-            implements PropertyChangeListener {
+    public static class LayerStyleListener {
         
         private LazyInit        mapContextRef;
         
@@ -300,6 +299,7 @@ public class FeatureRenderProcessor2
             this.mapContextRef = mapContextRef;
         }
 
+        @EventHandler
         public void propertyChange( PropertyChangeEvent ev ) {
             if (ev.getPropertyName().equals( ILayer.PROP_STYLE )) {
                 log.debug( "clearing: " + mapContextRef );

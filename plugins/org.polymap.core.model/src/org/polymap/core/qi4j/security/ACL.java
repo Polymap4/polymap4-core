@@ -82,7 +82,7 @@ public interface ACL
      * The mixin.
      */
     abstract static class Mixin
-            implements ACL, IModelChangeListener {
+            implements ACL {  //, IModelChangeListener {
 
         private Acl                     acl;
         

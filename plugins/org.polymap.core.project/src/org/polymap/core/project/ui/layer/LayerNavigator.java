@@ -25,8 +25,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -35,7 +33,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.navigator.CommonNavigator;
 
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.project.IMap;
@@ -51,7 +48,7 @@ import org.polymap.core.project.ui.PartListenerAdapter;
  */
 public class LayerNavigator
         extends CommonNavigator 
-        implements IDropTargetProvider {
+        implements IDropTargetProvider, IModelChangeListener {
 
     private Log log = LogFactory.getLog( LayerNavigator.class );
 
@@ -63,8 +60,6 @@ public class LayerNavigator
     private IWorkbenchPage              page;
 
     private PartListener                partListener;
-
-    private IModelChangeListener        modelListener;
 
     private UDIGViewerDropAdapter       dropAdapter;
 
@@ -173,6 +168,9 @@ public class LayerNavigator
             page = null;
             partListener = null;
         }
+        if (this.map != null) {
+            ProjectRepository.instance().removeEntityListener( this );
+        }
     }
 
     
@@ -183,32 +181,25 @@ public class LayerNavigator
 
     protected void setInputMap( IMap map ) {
         if (map != null && !map.equals( this.map )) {
-            // deconnect old map
-            if (this.map != null && modelListener != null) {
-                ProjectRepository.instance().removeModelChangeListener( modelListener );
-                modelListener = null;
+            // disconnect old map
+            if (this.map != null) {
+                ProjectRepository.instance().removeEntityListener( this );
             }
             // set input
             this.map = map;
             getCommonViewer().setInput( this.map );
             getCommonViewer().refresh();
-            // new listener
-            modelListener = new IModelChangeListener() {
-                public void modelChanged( ModelChangeEvent ev ) {
-                    log.debug( "ev= " + ev + ", display= " + Display.getCurrent() );
-                    getCommonViewer().getControl().getDisplay().asyncExec( new Runnable() {
-                        public void run() {
-                            getCommonViewer().setInput( LayerNavigator.this.map );
-                            getCommonViewer().refresh();
-                        }
-                    });
-                }
-            };
-            ProjectRepository.instance().addModelChangeListener( modelListener, IEventFilter.ALL );
+            ProjectRepository.instance().addEntityListener( this );
         }
     }
 
+    
+    public void modelChanged( ModelChangeEvent ev ) {
+        getCommonViewer().setInput( LayerNavigator.this.map );
+        getCommonViewer().refresh();
+    }
 
+    
     public Object getTarget( DropTargetEvent ev ) {
         log.info( "DnD: ev= " + ev );
         return this;

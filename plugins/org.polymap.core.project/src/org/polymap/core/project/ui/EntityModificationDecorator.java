@@ -15,7 +15,6 @@
  */
 package org.polymap.core.project.ui;
 
-import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +32,6 @@ import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeEvent;
@@ -44,6 +42,7 @@ import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.EntityChangeStatus;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventFilter;
 
 /**
  * 
@@ -77,8 +76,8 @@ public class EntityModificationDecorator
         
         module.addModelStoreListener( this );
         
-        module.addModelChangeListener( this, new IEventFilter() {
-            public boolean accept( EventObject ev ) {
+        module.addEntityListener( this, new EventFilter<ModelChangeEvent>() {
+            public boolean apply( ModelChangeEvent ev ) {
                 if (ev.getSource() instanceof ModelChangeSupport) {
                     ModelChangeSupport entity = (ModelChangeSupport)ev.getSource();
                     return decorated.containsKey( entity.id() );
@@ -93,7 +92,7 @@ public class EntityModificationDecorator
             try {
                 super.dispose();
                 decorated = null;
-                module.removeModelChangeListener( this );
+                module.removeEntityListener( this );
                 module.removeModelStoreListener( this );
             }
             finally {
@@ -161,13 +160,7 @@ public class EntityModificationDecorator
             if (ev != null && ev.getEventType() == EventType.COMMIT) {
                 display.asyncExec( new Runnable() {
                     public void run() {
-                        try {
-                            fireLabelProviderChanged( new LabelProviderChangedEvent( 
-                                    EntityModificationDecorator.this ) );
-                        }
-                        catch (Exception e) {
-                            log.error( "", e );
-                        }
+                        fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
                     }
                 });
             }

@@ -14,6 +14,7 @@
  */
 package org.polymap.core.runtime.event.test;
 
+import java.util.EventObject;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -32,7 +33,8 @@ import org.polymap.core.runtime.event.EventManager;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class EventManagerTest
-        extends TestCase {
+        extends TestCase 
+        implements ListenerInterface {
 
     private static Log log = LogFactory.getLog( EventManagerTest.class );
     
@@ -54,9 +56,9 @@ public class EventManagerTest
     }
 
     
-    public void tstSimple() {
+    public void testSimple() {
         EventManager.instance().subscribe( this );
-        EventManager.instance().publish( new TestEvent( this ) );
+        EventManager.instance().syncPublish( new TestEvent( this ) );
     }
     
     @EventHandler
@@ -68,9 +70,13 @@ public class EventManagerTest
     public void failOnSessionEvent( TestEvent ev ) {
         log.info( "JVM scope: " + ev );
     }
-
     
-    public synchronized void testPerformance() throws InterruptedException {
+    @Override
+    public void handleEvent( EventObject ev ) {
+        log.info( "ListenerInterface: " + ev );
+    }
+
+    public synchronized void tstPerformance() throws InterruptedException {
         EventManager.instance().subscribe( this );
         
         Timer timer = new Timer();
@@ -125,3 +131,12 @@ public class EventManagerTest
     }
     
 }
+
+/**
+ * 
+ */
+interface ListenerInterface {
+    @EventHandler
+    void handleEvent( EventObject ev );
+}
+

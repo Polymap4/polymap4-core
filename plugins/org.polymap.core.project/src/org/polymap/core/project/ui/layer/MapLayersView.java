@@ -41,7 +41,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 
 import org.eclipse.jface.action.Action;
@@ -235,7 +234,7 @@ public class MapLayersView
             return;
         }
         if (root != null && modelListener != null) {
-            ProjectRepository.instance().removeModelChangeListener( modelListener );
+            ProjectRepository.instance().removeEntityListener( modelListener );
             modelListener = null;
         }
         root = null;
@@ -268,7 +267,7 @@ public class MapLayersView
     private void setRootMap( IMap map ) {
         if (map != null && !map.equals( root )) {
             if (root != null && modelListener != null) {
-                ProjectRepository.instance().removeModelChangeListener( modelListener );
+                ProjectRepository.instance().removeEntityListener( modelListener );
                 modelListener = null;
             }
             root = map;
@@ -277,16 +276,11 @@ public class MapLayersView
             
             modelListener = new IModelChangeListener() {
                 public void modelChanged( ModelChangeEvent ev ) {
-                    log.debug( "ev= " + ev + ", display= " + Display.getCurrent() );
-                    viewer.getControl().getDisplay().asyncExec( new Runnable() {
-                        public void run() {
-                            viewer.setInput( root );
-                            viewer.refresh();
-                        }
-                    });
+                    viewer.setInput( root );
+                    viewer.refresh();
                 }
             };
-            ProjectRepository.instance().addModelChangeListener( modelListener,
+            ProjectRepository.instance().addEntityListener( modelListener,
                     new SourceClassPropertyEventFilter( ILayer.class ));
         }
     }

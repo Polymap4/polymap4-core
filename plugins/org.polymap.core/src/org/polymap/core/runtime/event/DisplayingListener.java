@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
+
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.logging.Log;
@@ -46,7 +48,7 @@ public class DisplayingListener
 
 
     @Override
-    public void handleEvent( final Event ev ) throws Exception {
+    public void handleEvent( final EventObject ev ) throws Exception {
         display.asyncExec( new Runnable() {
             public void run() {
                 try {

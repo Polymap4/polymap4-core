@@ -174,8 +174,7 @@ public class ServiceContext
             }
             // unregister listener
             try {
-                boolean removed = ModelChangeTracker.instance().removeListener( this );
-//            assert removed;
+                ModelChangeTracker.instance().removeListener( this );
             }
             catch (Throwable e) {
                 // FIXME hack to 

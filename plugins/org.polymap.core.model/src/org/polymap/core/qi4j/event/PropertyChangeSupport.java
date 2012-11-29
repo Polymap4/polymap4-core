@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -43,13 +42,12 @@ import org.qi4j.runtime.entity.EntityInstance;
 
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
-import org.polymap.core.model.event.ModelEventManager;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.QiModule;
-import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Adds support for {@link PropertyChangeEvent}s to an entity. The {@link Mixin}
@@ -65,9 +63,9 @@ public interface PropertyChangeSupport
     public static final String              PROP_ENTITY_REMOVED = "_entity_removed_";
     
     
-    public void addPropertyChangeListener( PropertyChangeListener l );
+    public void addPropertyChangeListener( Object handler, EventFilter... filters );
 
-    public void removePropertyChangeListener( PropertyChangeListener l );
+    public void removePropertyChangeListener( Object handler );
 
     public void fireEvent( QualifiedName name, @Optional Object newValue, @Optional Object oldValue, @Optional Object propOrAssoc );
     
@@ -85,8 +83,6 @@ public interface PropertyChangeSupport
         
 //        @State
 //        private EntityStateHolder                       entityState;
-        
-        private ListenerList<PropertyChangeListener>    listeners;
 
         
         public void create()
@@ -110,21 +106,19 @@ public interface PropertyChangeSupport
         }
 
         
-        public void addPropertyChangeListener( PropertyChangeListener l ) {
-            if (listeners == null) {
-                synchronized (this) {
-                    if (listeners == null) {
-                        listeners = new ListenerList();
-                    }
+        public void addPropertyChangeListener( Object handler, EventFilter... filters ) {
+            EventManager.instance().subscribe( handler, new EventFilter<PropertyChangeEvent>() {
+                public boolean apply( PropertyChangeEvent ev ) {
+                    return ev.getSource() == composite;
                 }
-            }
-            listeners.add( l );    
+                public String toString() {
+                    return "PropertyChangeSupport.Filter [composite=" + composite + "]";
+                }
+            });
         }
 
-        public void removePropertyChangeListener( PropertyChangeListener l ) {
-            if (listeners != null) {
-                listeners.remove( l );
-            }
+        public void removePropertyChangeListener( Object handler ) {
+            EventManager.instance().unsubscribe( handler );
         }
 
 
@@ -133,21 +127,7 @@ public interface PropertyChangeSupport
                     ? new StoredPropertyChangeEvent( composite, name.name(), oldValue, newValue, propOrAssoc )
                     : new PropertyChangeEvent( composite, name.name(), oldValue, newValue );
 
-            ModelEventManager instance = ModelEventManager.instance();
-            if (instance != null) {
-                instance.firePropertyChangeEvent( ev );
-            }
-
-            if (listeners != null) {
-                for (PropertyChangeListener listener : listeners) {
-                    try {
-                        listener.propertyChange( ev );
-                    }
-                    catch (Throwable e) {
-                        PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, listener, "Error while changing object: " + composite, e );
-                    }
-                }
-            }
+            EventManager.instance().publish( ev );
         }
     }
 

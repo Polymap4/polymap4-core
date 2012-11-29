@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
+
 import java.lang.ref.WeakReference;
 
 import org.apache.commons.logging.Log;
@@ -52,7 +54,7 @@ public class WeakListener
 
 
     @Override
-    public void handleEvent( Event ev ) throws Exception {
+    public void handleEvent( EventObject ev ) throws Exception {
         if (delegateRef != null) {
             EventListener delegate = delegateRef.get();
             if (delegate == null) {

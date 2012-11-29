@@ -14,33 +14,23 @@
  */
 package org.polymap.core.data;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.EventListener;
+import java.util.List;
 
-import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.Event;
 
 /**
+ * Provides a convenience declaration of an {@link EventHandler} method that
+ * receives {@link FeatureChangeEvent}s, within display thread and delayed for 3s.
  * 
- *
+ * @see EventManager
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public abstract class FeatureChangeListener
-        implements IModelChangeListener {
+public interface FeatureChangeListener
+        extends EventListener {
 
-    private static Log log = LogFactory.getLog( FeatureChangeListener.class );
-
-    
-    public abstract void featureChange( FeatureChangeEvent ev );
-
-    
-    public final void modelChanged( ModelChangeEvent ev ) {
-        if (ev instanceof FeatureChangeEvent) {
-            featureChange( (FeatureChangeEvent)ev );
-        }
-        else {
-            log.warn( "skipping event: " + ev );
-        }
-    }
+    @EventHandler(scope=Event.Scope.Session, delay=1000, display=true)
+    public void featureChanges( List<FeatureChangeEvent> ev );
     
 }

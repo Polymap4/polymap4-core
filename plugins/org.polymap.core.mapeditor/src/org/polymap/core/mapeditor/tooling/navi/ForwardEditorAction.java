@@ -14,8 +14,9 @@
  */
 package org.polymap.core.mapeditor.tooling.navi;
 
+import java.util.List;
+
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,7 +33,8 @@ import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.NavigationHistory;
 import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -42,7 +44,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @since 3.1
  */
 public class ForwardEditorAction
-        implements IEditorActionDelegate, PropertyChangeListener {
+        implements IEditorActionDelegate {
 
     private static Log log = LogFactory.getLog( ForwardEditorAction.class );
 
@@ -73,7 +75,13 @@ public class ForwardEditorAction
         if (mapEditor != null) {
             NavigationHistory history = mapEditor.getNaviHistory();
             action.setEnabled( history.canRedo() );
-            mapEditor.getMap().addPropertyChangeListener( this );
+            mapEditor.getMap().addPropertyChangeListener( this, new EventFilter<PropertyChangeEvent>() {
+                public boolean apply( PropertyChangeEvent ev ) {
+                    String name = ev.getPropertyName();
+                    return action != null
+                            && (IMap.PROP_EXTENT.equals( name ) || IMap.PROP_EXTENT_UPDATE.equals( name ));
+                }
+            });
         }
         else {
             action.setEnabled( false );
@@ -81,19 +89,10 @@ public class ForwardEditorAction
     }
 
 
-    public void propertyChange( final PropertyChangeEvent ev ) {
-        String name = ev.getPropertyName();
-        if (action != null
-                && mapEditor.getMap().equals( ev.getSource() )
-                && (IMap.PROP_EXTENT.equals( name ) || IMap.PROP_EXTENT_UPDATE.equals( name )) ) {
-    
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    NavigationHistory history = mapEditor.getNaviHistory();
-                    action.setEnabled( history != null && history.canRedo() );
-                }
-            });
-        }
+    @EventHandler(delay=1000,display=true)
+    public void propertyChange( List<PropertyChangeEvent> ev ) {
+        NavigationHistory history = mapEditor.getNaviHistory();
+        action.setEnabled( history != null && history.canRedo() );
     }
 
 

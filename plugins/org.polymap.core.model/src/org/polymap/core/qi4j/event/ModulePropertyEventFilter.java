@@ -22,9 +22,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.QiModule;
+import org.polymap.core.runtime.event.EventFilter;
 
 /**
  * Filter events that are fired by entities of the given module.
@@ -33,7 +33,7 @@ import org.polymap.core.qi4j.QiModule;
  * @since 3.1
  */
 public class ModulePropertyEventFilter
-        implements IEventFilter {
+        implements EventFilter<EventObject> {
 
     private static Log log = LogFactory.getLog( ModulePropertyEventFilter.class );
 
@@ -44,7 +44,7 @@ public class ModulePropertyEventFilter
         this.module = module;
     }
 
-    public boolean accept( EventObject ev ) {
+    public boolean apply( EventObject ev ) {
         QiEntity entity = (QiEntity)ev.getSource();
         try {
             module.findEntity( entity.getCompositeType(), entity.id() );
@@ -54,5 +54,5 @@ public class ModulePropertyEventFilter
             return false;
         }
     }
-    
+
 }

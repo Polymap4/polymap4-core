@@ -52,14 +52,14 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.mapeditor.tooling.DefaultEditorTool;
 import org.polymap.core.mapeditor.tooling.IEditorToolSite;
 import org.polymap.core.model.AssocCollection;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Layers;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.runtime.ListenerList;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -222,7 +222,7 @@ public abstract class BaseLayerEditorTool
         }
 
         mapListener = new MapListener();
-        ProjectRepository.instance().addPropertyChangeListener( mapListener, mapListener );
+        EventManager.instance().subscribe( mapListener, mapListener );
 
         // Hmmm...?! the PageListener is anoying without the possibility to pin the active layer
 //        pageListener = new PageListener();
@@ -243,7 +243,7 @@ public abstract class BaseLayerEditorTool
     @Override
     public void onDeactivate() {
         if (mapListener != null) {
-            ProjectRepository.instance().removePropertyChangeListener( mapListener );
+            EventManager.instance().unsubscribe( mapListener );
             mapListener = null;
         }
         if (pageListener != null) {
@@ -324,34 +324,31 @@ public abstract class BaseLayerEditorTool
      * Listen to property changes of the {@link #map} or its layers. 
      */
     protected class MapListener
-            implements PropertyChangeListener, IEventFilter<PropertyChangeEvent> {
+            implements EventFilter<PropertyChangeEvent> {
     
+        @EventHandler(display=true)
         public void propertyChange( PropertyChangeEvent ev ) {
             if (layersList == null) {
                 return;
             }
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    String[] items = labels( selectableLayers() );
-                    layersList.setItems( items );
-                    
-                    // old layer still visible? -> select in combo
-                    if (selectedLayer != null && selectedLayer.isVisible()) {
-                        for (int i=0; i < items.length; i++) {
-                            if (items[i].equalsIgnoreCase( selectedLayer.getLabel() )) {
-                                layersList.select( i );
-                            }
-                        }
-                    }
-                    // otherwise deactivate
-                    else {
-                        onDeactivate();
+            String[] items = labels( selectableLayers() );
+            layersList.setItems( items );
+
+            // old layer still visible? -> select in combo
+            if (selectedLayer != null && selectedLayer.isVisible()) {
+                for (int i=0; i < items.length; i++) {
+                    if (items[i].equalsIgnoreCase( selectedLayer.getLabel() )) {
+                        layersList.select( i );
                     }
                 }
-            });
+            }
+            // otherwise deactivate
+            else {
+                onDeactivate();
+            }
         }
         
-        public boolean accept( PropertyChangeEvent ev ) {
+        public boolean apply( PropertyChangeEvent ev ) {
             if (allowedMapEvents.contains( ev.getPropertyName() )) {
                 if (ev.getSource() instanceof IMap) {
                     return ev.getSource().equals( map );

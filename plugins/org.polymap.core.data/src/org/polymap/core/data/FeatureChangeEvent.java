@@ -15,13 +15,13 @@
 package org.polymap.core.data;
 
 import java.util.Collection;
+import java.util.EventObject;
 
 import org.opengis.feature.Feature;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.project.ILayer;
 
 /**
@@ -29,8 +29,9 @@ import org.polymap.core.project.ILayer;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FeatureChangeEvent
-        extends ModelChangeEvent {
+public class FeatureChangeEvent 
+        extends EventObject {
+        // extends ModelChangeEvent {
 
     private static Log log = LogFactory.getLog( FeatureChangeEvent.class );
     
@@ -65,12 +66,4 @@ public class FeatureChangeEvent
         return type;
     }
 
-//    public Iterable<PropertyChangeEvent> events() {
-//        throw new RuntimeException( "not yet implemented." );
-//    }
-//
-//    public Iterable<PropertyChangeEvent> events( IEventFilter f ) {
-//        throw new RuntimeException( "not yet implemented." );
-//    }
-    
 }

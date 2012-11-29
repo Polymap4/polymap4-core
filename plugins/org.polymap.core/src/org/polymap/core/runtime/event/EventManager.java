@@ -14,6 +14,7 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,9 @@ import static com.google.common.collect.Iterables.transform;
 import org.eclipse.osgi.framework.eventmgr.EventDispatcher;
 import org.eclipse.osgi.framework.eventmgr.ListenerQueue;
 
+import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.Timer;
+
 /**
  * 
  *
@@ -37,12 +41,18 @@ public class EventManager {
 
     private static Log log = LogFactory.getLog( EventManager.class );
     
-    private static final EventManager   instance = new EventManager();
+    private static SessionContext           threadPublishSession;
+    
+    private static final EventManager       instance = new EventManager();
     
     public static final EventManager instance() {
        return instance;    
     }
     
+    static SessionContext publishSession() {
+        assert threadPublishSession != null;
+        return threadPublishSession; 
+    }
     
     // instance *******************************************
     
@@ -50,23 +60,13 @@ public class EventManager {
     
     private ConcurrentMap<Integer,EventListener>    listeners = new ConcurrentHashMap( 1024, 0.75f, 8 );
     
-    private EventDispatcher                         dispatcher;
+    private volatile int                            statCount;
+    
+    private Timer                                   statTimer;
     
     
     protected EventManager() {
         manager = new org.eclipse.osgi.framework.eventmgr.EventManager( "EventManager-Dispatcher" );
-
-        dispatcher = new EventDispatcher() {
-            public void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
-                try {
-                    ((EventListener)listener).handleEvent( (Event)event );
-                } 
-                catch (Throwable e) {
-                    log.warn( "Error during event dispatch: " + e );
-                    log.debug( "", e );
-                }
-            }
-        };
     }
 
     
@@ -82,9 +82,9 @@ public class EventManager {
      * 
      * @param ev The event to dispatch.
      */
-    public void publish( Event ev ) {
+    public void publish( EventObject ev ) {
         ListenerQueue listenerQueue = new ListenerQueue( manager );        
-        listenerQueue.queueListeners( queueableListeners(), dispatcher );
+        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher() );
         listenerQueue.dispatchEventAsynchronous( 0, ev );
     }
 
@@ -94,14 +94,14 @@ public class EventManager {
      * caller until the event is dispatched to all listeners.
      * <p>
      * Using this method is discouraged. For normal event dispatch use teh
-     * asynchronous {@link #publish(Event)}.
+     * asynchronous {@link #publish(EventObject)}.
      * 
      * @see #publish(Event)
      * @param ev The event to dispatch.
      */
-    public void syncPublish( Event ev ) {
+    public void syncPublish( EventObject ev ) {
         ListenerQueue listenerQueue = new ListenerQueue( manager );
-        listenerQueue.queueListeners( queueableListeners(), dispatcher );
+        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher() );
         listenerQueue.dispatchEventSynchronous( 0, ev );
     }
 
@@ -130,32 +130,32 @@ public class EventManager {
     }
 
     
-    /**
-     * <p/>
-     * Listeners are weakly referenced by the EventManager. A listener is reclaimed
-     * by the GC and removed from the EventManager as soon as there is no strong
-     * reference to it. An anonymous inner class can not be used as event listener.
-     * 
-     * @param scope
-     * @param type
-     * @param listener
-     * @throws IllegalArgumentException If the given listener is registered already.
-     */
-    public void subscribe( Event.Scope scope, Class<? extends Event> type, EventListener listener, EventFilter... filters ) {
-        // weak reference
-        Integer key = System.identityHashCode( listener );
-        WeakListener chained = new WeakListener( listener, key );
-        
-        // scope/type filter
-        TypeEventFilter typeFilter = new TypeEventFilter( type );
-        ScopeEventFilter scopeFilter = ScopeEventFilter.forScope( scope );
-        EventListener tweaked = new FilteringListener( chained, typeFilter, scopeFilter );
-        
-        EventListener found = listeners.putIfAbsent( key, tweaked );
-        if (found != null) {
-            throw new IllegalArgumentException( "EventListener already registered: " + listener ); 
-        }
-    }
+//    /**
+//     * <p/>
+//     * Listeners are weakly referenced by the EventManager. A listener is reclaimed
+//     * by the GC and removed from the EventManager as soon as there is no strong
+//     * reference to it. An anonymous inner class can not be used as event listener.
+//     * 
+//     * @param scope
+//     * @param type
+//     * @param listener
+//     * @throws IllegalArgumentException If the given listener is registered already.
+//     */
+//    public void subscribe( Event.Scope scope, Class<? extends EventObject> type, EventListener listener, EventFilter... filters ) {
+//        // weak reference
+//        Integer key = System.identityHashCode( listener );
+//        WeakListener chained = new WeakListener( listener, key );
+//        
+//        // scope/type filter
+//        TypeEventFilter typeFilter = new TypeEventFilter( type );
+//        ScopeEventFilter scopeFilter = ScopeEventFilter.forScope( scope );
+//        EventListener tweaked = new FilteringListener( chained, typeFilter, scopeFilter );
+//        
+//        EventListener found = listeners.putIfAbsent( key, tweaked );
+//        if (found != null) {
+//            throw new IllegalArgumentException( "EventListener already registered: " + listener ); 
+//        }
+//    }
 
 
     /**
@@ -168,12 +168,9 @@ public class EventManager {
      * @see EventHandler
      * @param annotatedEventHandler
      */
-    public void subscribe( Object annotatedEventHandler ) {
-        EventListener listener = new AnnotatedEventListener( annotatedEventHandler ); 
-        
+    public void subscribe( Object annotatedEventHandler, EventFilter... filters ) {
+        EventListener listener = new AnnotatedEventListener( annotatedEventHandler, filters ); 
         Integer key = System.identityHashCode( annotatedEventHandler );
-//        listener = new WeakListener( listener, key );
-        
         listeners.put( key, listener );        
     }
 
@@ -182,7 +179,7 @@ public class EventManager {
      *
      * @param listenerOrHandler
      */
-    public boolean remove( Object listenerOrHandler ) {
+    public boolean unsubscribe( Object listenerOrHandler ) {
         assert listenerOrHandler != null;
         Integer key = System.identityHashCode( listenerOrHandler );
         return listeners.remove( key ) != null;
@@ -191,6 +188,51 @@ public class EventManager {
     
     EventListener removeKey( Object key ) {
         return listeners.remove( key );
+    }
+
+    
+    /**
+     * 
+     */
+    class SessionEventDispatcher
+            implements EventDispatcher {
+        
+        private SessionContext          publishSession;
+        
+        SessionEventDispatcher() {
+            publishSession = SessionContext.current();
+            assert publishSession != null; 
+        }
+    
+        public void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
+            assert threadPublishSession == null;
+            threadPublishSession = publishSession;
+            
+            try {
+                ((EventListener)listener).handleEvent( (EventObject)event );
+            } 
+            catch (Throwable e) {
+                log.warn( "Error during event dispatch: " + e );
+                log.debug( "", e );
+            }
+            finally {
+                threadPublishSession = null;
+            }
+
+            // statistics
+            if (log.isDebugEnabled()) {
+                statCount++;
+                if (statTimer == null) {
+                    statTimer = new Timer();
+                }
+                long elapsed = statTimer.elapsedTime();
+                if (elapsed > 1000) {
+                    log.debug( "STATISTICS: " + statCount + " events in " + elapsed + "ms" );
+                    statCount = 0;
+                    statTimer = null;
+                }
+            }
+        }
     }
     
 }

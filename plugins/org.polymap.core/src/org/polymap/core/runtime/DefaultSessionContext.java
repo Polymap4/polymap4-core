@@ -41,10 +41,29 @@ public class DefaultSessionContext
 
 
     public DefaultSessionContext( String sessionKey ) {
+        assert sessionKey != null;
         this.sessionKey = sessionKey;
     }
 
     
+    @Override
+    public int hashCode() {
+        return sessionKey.hashCode();
+    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultSessionContext) {
+            DefaultSessionContext other = (DefaultSessionContext)obj;
+            return sessionKey.equals( other.sessionKey );
+        }
+        return false;
+    }
+
+
     protected void destroy() {
         log.debug( "destroy(): ..." );
         checkDestroyed();

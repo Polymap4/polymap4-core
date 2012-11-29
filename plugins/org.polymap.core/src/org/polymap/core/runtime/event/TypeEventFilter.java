@@ -14,12 +14,14 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public final class TypeEventFilter<E extends Event>
+public final class TypeEventFilter<E extends EventObject>
         implements EventFilter<E> {
     
     private Class<E>            type;
@@ -31,8 +33,13 @@ public final class TypeEventFilter<E extends Event>
     }
 
     @Override
-    public boolean apply( Event ev ) {
+    public boolean apply( EventObject ev ) {
         return type.isAssignableFrom( ev.getClass() );
     }
 
+    @Override
+    public String toString() {
+        return "TypeEventFilter [type=" + type.getSimpleName() + "]";
+    }
+    
 }

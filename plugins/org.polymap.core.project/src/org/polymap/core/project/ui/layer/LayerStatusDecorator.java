@@ -16,11 +16,10 @@
 package org.polymap.core.project.ui.layer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,8 +29,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
-
 import org.eclipse.rwt.graphics.Graphics;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -46,7 +43,8 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
 
 /**
  * 
@@ -56,7 +54,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public class LayerStatusDecorator
         extends BaseLabelProvider
-        implements ILightweightLabelDecorator, PropertyChangeListener {
+        implements ILightweightLabelDecorator {
 
     private static Log log = LogFactory.getLog( LayerStatusDecorator.class );
     
@@ -158,7 +156,14 @@ public class LayerStatusDecorator
             
             // register listener
             if (decorated.put( layer.id(), layer ) == null) {
-                layer.addPropertyChangeListener( this );
+                layer.addPropertyChangeListener( this, new EventFilter<PropertyChangeEvent>() {
+                    public boolean apply( PropertyChangeEvent ev ) {
+                        return ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
+                                //|| ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
+                                || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
+                                || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS );
+                    }
+                });
             }
         }
     }
@@ -228,26 +233,9 @@ public class LayerStatusDecorator
 //    }
 
 
-    public void propertyChange( PropertyChangeEvent ev ) {
-        log.debug( "propertyChange(): " + ev.getSource() + " : " + ev.getPropertyName() );
-        if (ev.getSource() instanceof ILayer
-                && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
-                //|| ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
-                || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
-                || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS ))) {
-
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
-                }
-            };
-            if (Display.getCurrent() != null) {
-                runnable.run();
-            }
-            else {
-                Polymap.getSessionDisplay().asyncExec( runnable );
-            }
-        }
+    @EventHandler(delay=3000,display=true)
+    public void propertyChange( List<PropertyChangeEvent> ev ) {
+        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
     }
 
 

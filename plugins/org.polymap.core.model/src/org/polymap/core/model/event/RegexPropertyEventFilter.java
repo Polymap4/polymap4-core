@@ -21,6 +21,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.event.EventFilter;
+
 /**
  * Filter events that are fired by entities which classnames match the given
  * reges pattern.
@@ -30,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
  * @since 3.1
  */
 public class RegexPropertyEventFilter
-        implements IEventFilter {
+        implements EventFilter<EventObject> {
 
     private static Log log = LogFactory.getLog( RegexPropertyEventFilter.class );
 
@@ -45,7 +47,7 @@ public class RegexPropertyEventFilter
         this.pattern = Pattern.compile( pattern, flags );
     }
 
-    public boolean accept( EventObject ev ) {
+    public boolean apply( EventObject ev ) {
         Object source = ev.getSource();
         return pattern.matcher( source.getClass().getName() ).matches();
     }

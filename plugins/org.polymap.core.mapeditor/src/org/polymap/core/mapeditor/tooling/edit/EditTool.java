@@ -44,7 +44,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.ModifyFeatureControl;
-import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
  * 
@@ -183,8 +182,9 @@ public class EditTool
                 public void done( IJobChangeEvent event ) {
                     Polymap.getSessionDisplay().asyncExec( new Runnable() {
                         public void run() {
-                            WMSLayer olayer = (WMSLayer)getSite().getEditor().findLayer( getSelectedLayer() );
-                            olayer.redraw( true );
+                            // let RenderManager listeners update
+//                            WMSLayer olayer = (WMSLayer)getSite().getEditor().findLayer( getSelectedLayer() );
+//                            olayer.redraw( true );
                         }
                     });
                 }

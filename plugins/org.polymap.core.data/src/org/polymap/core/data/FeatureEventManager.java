@@ -19,46 +19,50 @@ import java.util.EventObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.model.event.IEventFilter;
-import org.polymap.core.model.event.ModelEventManager;
+import org.polymap.core.runtime.WeakListener;
 
-/**
- * A simple extension of the {@link ModelEventManager} that allows to register
- * {@link FeatureChangeListener}s.
- * 
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- */
-public class FeatureEventManager {
-
-    private static Log log = LogFactory.getLog( FeatureEventManager.class );
-    
-    private static final FeatureEventManager    instance = new FeatureEventManager();
-    
-    
-    public static final FeatureEventManager instance() {
-        return instance;    
-    }
-
-    
-    // instance *******************************************
-    
-    public void addFeatureChangeListener( FeatureChangeListener l, final IEventFilter f ) {
-        IEventFilter filter = new IEventFilter() {
-            public boolean accept( EventObject ev ) {
-                return (ev instanceof FeatureChangeEvent) && f.accept( ev );
-            }
-        };
-        ModelEventManager.instance().addModelChangeListener( l, filter );
-    }
-
-    
-    public void removeFeatureChangeListener( FeatureChangeListener l ) {
-        ModelEventManager.instance().removeModelChangeListener( l );
-    }
-
-    
-    public void fireEvent( FeatureChangeEvent ev ) {
-        ModelEventManager.instance().fireModelChangeEvent( ev );
-    }
-    
-}
+///**
+// * A simple extension of the {@link ModelEventManager} that allows to register
+// * {@link FeatureChangeListener}s.
+// * 
+// * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+// */
+//public class FeatureEventManager {
+//
+//    private static Log log = LogFactory.getLog( FeatureEventManager.class );
+//    
+//    private static final FeatureEventManager    instance = new FeatureEventManager();
+//    
+//    
+//    public static final FeatureEventManager instance() {
+//        return instance;    
+//    }
+//
+//    
+//    // instance *******************************************
+//    
+//    /**
+//     * 
+//     * @see DelayedFeatureChangeListener
+//     * @see WeakListener
+//     */
+//    public void addFeatureChangeListener( FeatureChangeListener l, final IEventFilter f ) {
+//        IEventFilter filter = new IEventFilter() {
+//            public boolean accept( EventObject ev ) {
+//                return (ev instanceof FeatureChangeEvent) && f.accept( ev );
+//            }
+//        };
+//        ModelEventManager.instance().addModelChangeListener( l, filter );
+//    }
+//
+//    
+//    public void removeFeatureChangeListener( FeatureChangeListener l ) {
+//        ModelEventManager.instance().removeModelChangeListener( l );
+//    }
+//
+//    
+//    public void fireEvent( FeatureChangeEvent ev ) {
+//        ModelEventManager.instance().fireModelChangeEvent( ev );
+//    }
+//    
+//}

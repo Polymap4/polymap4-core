@@ -15,16 +15,16 @@
  */
 package org.polymap.core.model;
 
-import java.beans.PropertyChangeListener;
+import java.lang.ref.WeakReference;
 
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IEventFilter;
-import org.polymap.core.model.event.ModelEventManager;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Provides the API of one module of the domain model. A {@link Module} instance
@@ -58,33 +58,15 @@ public interface Module {
 
 
     /**
-     * See
-     * {@link ModelEventManager#addPropertyChangeListener(PropertyChangeListener, IEventFilter)}
-     * for details.
+     *
      * 
-     * @param l The listener to add.
-     * @param f The filter to apply.
-     * @see ModelEventManager#addPropertyChangeListener(PropertyChangeListener,
-     *      IEventFilter)
+     * @see EventManager#subscribe(org.polymap.core.runtime.event.Event.Scope, Class, org.polymap.core.runtime.event.EventListener, EventFilter...)
+     * @param handler The {@link EventHandler annotated} handler to add.
+     * @param filters The filters to apply.
      */
-    public void addPropertyChangeListener( PropertyChangeListener l, IEventFilter f );
-
-    public void removePropertyChangeListener( PropertyChangeListener l );
-
-
-    /**
-     * See
-     * {@link ModelEventManager#addModelChangeListener(IModelChangeListener, IEventFilter)}
-     * for details.
-     * 
-     * @param l The listener to add.
-     * @param f The filter to apply.
-     * @see ModelEventManager#addModelChangeListener(IModelChangeListener,
-     *      IEventFilter)
-     */
-    public void addModelChangeListener( IModelChangeListener l, IEventFilter f );
+    public void addEntityListener( Object handler, EventFilter... filters );
     
-    public void removeModelChangeListener( IModelChangeListener l );
+    public void removeEntityListener( Object handler );
 
 
     /**

@@ -56,7 +56,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.FeatureChangeEvent.Type;
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.model.ConcurrentModificationException;
@@ -68,6 +67,7 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -183,7 +183,7 @@ public class LayerFeatureBufferManager
     
     protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
         FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, features );
-        FeatureEventManager.instance().fireEvent( ev );
+        EventManager.instance().publish( ev );
     }
     
     

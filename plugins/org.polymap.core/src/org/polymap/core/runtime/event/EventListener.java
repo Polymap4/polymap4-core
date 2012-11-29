@@ -14,14 +14,16 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface EventListener
+interface EventListener
         extends java.util.EventListener {
 
-    public void handleEvent( Event ev ) throws Exception;
+    public void handleEvent( EventObject ev ) throws Exception;
     
 }

@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,6 +35,8 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
 
 /**
  * 
@@ -45,7 +45,7 @@ import org.polymap.core.project.ILayer;
  */
 public class LayerVisibleStatusAction
         //extends ActionDelegate
-        implements IObjectActionDelegate, IViewActionDelegate, PropertyChangeListener {
+        implements IObjectActionDelegate, IViewActionDelegate {
 
     private static Log log = LogFactory.getLog( LayerVisibleStatusAction.class );
 
@@ -94,7 +94,11 @@ public class LayerVisibleStatusAction
                     
                     layers.add( (ILayer)elm );
                     
-                    ((ILayer)elm).addPropertyChangeListener( this );
+                    ((ILayer)elm).addPropertyChangeListener( this, new EventFilter<PropertyChangeEvent>() {
+                        public boolean apply( PropertyChangeEvent ev ) {
+                            return ev.getPropertyName().equals( ILayer.PROP_VISIBLE );
+                        }
+                    });
                     
                     if (!((ILayer)elm).isVisible()) {
                         allLayersVisible = false;
@@ -108,11 +112,9 @@ public class LayerVisibleStatusAction
     }
 
     
+    @EventHandler(display=true)
     public void propertyChange( PropertyChangeEvent ev ) {
-        if (ev.getSource() instanceof ILayer
-                && ev.getPropertyName().equals( ILayer.PROP_VISIBLE )) {
-            selectionChanged( action, new StructuredSelection( layers ) );
-        }
+        selectionChanged( action, new StructuredSelection( layers ) );
     }
 
 }

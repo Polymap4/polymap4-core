@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.List;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,9 +39,9 @@ import org.eclipse.core.runtime.Status;
 //import org.polymap.core.model.EntityType.Property;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelEventManager;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.qi4j.QiModule;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Operations that change the domain model should extend this class. It provides:
@@ -61,7 +59,7 @@ import org.polymap.core.qi4j.QiModule;
  */
 public abstract class AbstractModelChangeOperation
         extends AbstractOperation
-        implements IUndoableOperation, PropertyChangeListener {
+        implements IUndoableOperation {
 
     private static Log log = LogFactory.getLog( AbstractModelChangeOperation.class );
 
@@ -131,8 +129,8 @@ public abstract class AbstractModelChangeOperation
             List<StoredPropertyChangeEvent> revertEvents = revert();
 
             // fire ModelChangeEvent
-            ModelEventManager manager = ModelEventManager.instance();
-            manager.fireModelChangeEvent( new ModelChangeEvent( this, revertEvents ) );
+            EventManager manager = EventManager.instance();
+            manager.publish( new ModelChangeEvent( this, revertEvents ) );
 
             return Status.OK_STATUS;
         }
@@ -163,16 +161,16 @@ public abstract class AbstractModelChangeOperation
 
     
     protected void start() {
-        ModelEventManager.instance().addPropertyChangeListener( this, IEventFilter.ALL );
+        EventManager.instance().subscribe( this );
     }
 
     
     protected void end( boolean fireEvent ) {
-        ModelEventManager manager = ModelEventManager.instance();
-        if (!manager.removePropertyChangeListener( this )) {
+        EventManager manager = EventManager.instance();
+        if (!manager.unsubscribe( this )) {
             throw new IllegalStateException( "Unable to remove property change listener" );
         }
-        manager.fireModelChangeEvent( new ModelChangeEvent( this, events ) );
+        manager.publish( new ModelChangeEvent( this, events ) );
     }
     
     
@@ -233,6 +231,7 @@ public abstract class AbstractModelChangeOperation
     /**
      * PropertyChangeListener.
      */
+    @EventHandler
     public void propertyChange( PropertyChangeEvent ev ) {
         log.debug( "Property: " + ev );
         if (ev instanceof StoredPropertyChangeEvent) {

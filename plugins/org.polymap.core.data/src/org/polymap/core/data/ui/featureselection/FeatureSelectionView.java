@@ -15,6 +15,7 @@
 package org.polymap.core.data.ui.featureselection;
 
 import java.util.EventObject;
+import java.util.List;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -70,18 +71,19 @@ import org.eclipse.ui.part.ViewPart;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeListener;
-import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.ui.featuretable.DefaultFeatureTableColumn;
 import org.polymap.core.data.ui.featuretable.FeatureTableViewer;
 import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 
@@ -178,7 +180,7 @@ public class FeatureSelectionView
     
     private FeatureChangeListener   changeListener;
     
-    private PropertyChangeListener  modelListener = new ModelListener();
+    private ModelListener           modelListener = new ModelListener();
     
     public IActionDelegate          openAction;
 
@@ -264,21 +266,15 @@ public class FeatureSelectionView
             fsm.addSelectionChangeListener( selectionListener );
 
             // FeatureChangeListener
-            FeatureEventManager.instance().addFeatureChangeListener( changeListener = 
+            EventManager.instance().subscribe( changeListener = 
                 new FeatureChangeListener() {
-                    public void featureChange( FeatureChangeEvent ev ) {
-                        if (viewer != null && layer.equals( ev.getSource() )) {
-                            viewer.getControl().getDisplay().asyncExec( new Runnable() {
-                                public void run() {
-                                    loadTable( filter );
-                                }
-                            });
-                        }
+                    public void featureChanges( List<FeatureChangeEvent> events ) {
+                        loadTable( filter );
                     }
                 }, 
-                new IEventFilter() {
-                    public boolean accept( EventObject ev ) {
-                        return true;
+                new EventFilter<EventObject>() {
+                    public boolean apply( EventObject ev ) {
+                        return viewer != null && layer.equals( ev.getSource() );
                     }
                 }
             );
@@ -298,7 +294,7 @@ public class FeatureSelectionView
             try {
                 layer.removePropertyChangeListener( modelListener );
                 LayerFeatureSelectionManager.forLayer( layer ).removeSelectionChangeListener( selectionListener );
-                FeatureEventManager.instance().removeFeatureChangeListener( changeListener ); 
+                EventManager.instance().unsubscribe( changeListener ); 
             }
             catch (NoSuchEntityException e) {
                 // layer is deleted -> ignore
@@ -464,22 +460,12 @@ public class FeatureSelectionView
     /**
      * 
      */
-    class ModelListener
-            implements PropertyChangeListener {
-        
-        public void propertyChange( final PropertyChangeEvent ev ) {
+    class ModelListener {
+        @EventHandler(display=true)
+        public void propertyChange( PropertyChangeEvent ev ) {
             if (PropertyChangeSupport.PROP_ENTITY_REMOVED.equals( ev.getPropertyName() )) {
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                    public void run() {
-                        try {
-                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-                            page.hideView( FeatureSelectionView.this );
-                        }
-                        catch (Exception e) {
-                            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getMessage(), e );
-                        }
-                    }
-                });
+                IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                page.hideView( FeatureSelectionView.this );
             }
         }
     }

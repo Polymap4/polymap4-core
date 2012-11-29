@@ -14,7 +14,6 @@
  */
 package org.polymap.core.data.image.cache304;
 
-import java.util.EventObject;
 import java.util.Properties;
 
 import java.io.ByteArrayOutputStream;
@@ -24,9 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureChangeListener;
 import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.FeatureStoreEvent;
 import org.polymap.core.data.FeatureStoreListener;
 import org.polymap.core.data.image.EncodedImageResponse;
@@ -39,10 +36,11 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * 
@@ -228,33 +226,10 @@ public class ImageCacheProcessor
             this.procRef = new WeakReference( processor );
             
             // feature modifications
-            FeatureEventManager.instance().addFeatureChangeListener( new FeatureChangeListener() {
-                public void featureChange( FeatureChangeEvent ev ) {
-                    ImageCacheProcessor proc = procRef.get();
-                    if (proc == null) {
-                        FeatureEventManager.instance().removeFeatureChangeListener( this );
-                        LayerListener.this.layer = null;
-                    }
-                    else if (ev.getSource() == LayerListener.this.layer) {
-                        // just activate update if changes have been dropped
-                        if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
-                            proc.updateAndActivate( false );
-                        }
-                        // deactivate cache when features have been modified
-                        else {
-                            proc.deactivate();
-                        }
-                    }
-                }                        
-            }, 
-            new IEventFilter() {
-                public boolean accept( EventObject ev ) {
-                    return true;
-                }
-            });
+            EventManager.instance().subscribe( this );
             
             // feature stored
-            FeatureChangeTracker.instance().addFeatureListener( new FeatureStoreListener() {
+            FeatureChangeTracker.instance().addFeatureListener( this, new FeatureStoreListener() {
                 public void featureChange( FeatureStoreEvent ev ) {
                     if (!ev.isMySession()) {
                         return;
@@ -273,6 +248,24 @@ public class ImageCacheProcessor
             });
         }
         
+        @EventHandler
+        protected void featureChange( FeatureChangeEvent ev ) {
+            ImageCacheProcessor proc = procRef.get();
+            if (proc == null) {
+                EventManager.instance().unsubscribe( this );
+                LayerListener.this.layer = null;
+            }
+            else if (ev.getSource() == LayerListener.this.layer) {
+                // just activate update if changes have been dropped
+                if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
+                    proc.updateAndActivate( false );
+                }
+                // deactivate cache when features have been modified
+                else {
+                    proc.deactivate();
+                }
+            }
+        }                        
     }
         
 }

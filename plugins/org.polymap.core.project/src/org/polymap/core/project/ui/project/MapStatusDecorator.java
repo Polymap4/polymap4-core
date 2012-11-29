@@ -15,17 +15,14 @@
 package org.polymap.core.project.ui.project;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
-
-import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
@@ -36,7 +33,8 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectPlugin;
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
 
 /**
  * 
@@ -45,7 +43,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public class MapStatusDecorator
         extends BaseLabelProvider
-        implements ILightweightLabelDecorator, PropertyChangeListener {
+        implements ILightweightLabelDecorator {
 
     private static final Log log = LogFactory.getLog( MapStatusDecorator.class );
 
@@ -66,7 +64,11 @@ public class MapStatusDecorator
 
             // register listener
             if (decorated.put( map.id(), map ) == null) {
-                map.addPropertyChangeListener( this );
+                map.addPropertyChangeListener( this, new EventFilter<PropertyChangeEvent>() {
+                    public boolean apply( PropertyChangeEvent ev ) {
+                        return ev.getPropertyName().equals( IMap.PROP_LAYERS );
+                    }
+                });
             }
         }
     }
@@ -84,28 +86,10 @@ public class MapStatusDecorator
         decorated.clear();
     }
 
-
-    public void propertyChange( PropertyChangeEvent ev ) {
-        if (ev.getSource() instanceof IMap
-                && ev.getPropertyName().equals( IMap.PROP_LAYERS )) {
-
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    try {
-                        fireLabelProviderChanged( new LabelProviderChangedEvent( MapStatusDecorator.this ) );
-                    }
-                    catch (Exception e) {
-                        log.warn( e.getLocalizedMessage() );
-                    }
-                }
-            };
-            if (Display.getCurrent() != null) {
-                runnable.run();
-            }
-            else {
-                Polymap.getSessionDisplay().asyncExec( runnable );
-            }
-        }
+    
+    @EventHandler(display=true,delay=3000)
+    public void propertyChange( List<PropertyChangeEvent> ev ) {
+        fireLabelProviderChanged( new LabelProviderChangedEvent( MapStatusDecorator.this ) );
     }
 
 }
