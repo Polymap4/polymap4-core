@@ -23,7 +23,7 @@ import org.polymap.core.runtime.SessionContext;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public abstract class ScopeEventFilter
+abstract class ScopeEventFilter
         implements EventFilter<EventObject> {
     
     /**

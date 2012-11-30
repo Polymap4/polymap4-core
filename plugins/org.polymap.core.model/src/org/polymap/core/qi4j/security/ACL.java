@@ -42,12 +42,7 @@ import com.google.common.base.Function;
 import static com.google.common.collect.Iterables.transform;
 
 import org.polymap.core.model.Entity;
-import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.security.AclPermission;
-import org.polymap.core.qi4j.Qi4jPlugin;
-import org.polymap.core.qi4j.QiModule;
-
 import sun.security.acl.AclEntryImpl;
 import sun.security.acl.AclImpl;
 import sun.security.acl.PrincipalImpl;
@@ -135,36 +130,10 @@ public interface ACL
 //                        throw new RuntimeException( "Sould never happen.", e );
 //                    }
 //                }
-                
-//                // listen to entity (model) changes
-//                // don't care outside Session
-//                if (Polymap.getSessionDisplay() != null) {
-//                    final QiModule module = Qi4jPlugin.Session.instance().resolveModule( entity );
-//                    if (module != null) {
-//                        module.addModelChangeListener( new IModelChangeListener() {
-//                        });
-//                    }
-//                }
-//                else {
-//                    log.warn( "No module found for this ACL entity. -> no model change events are catched!" );
-//                }
             }
         }
 
-        public void modelChanged( ModelChangeEvent ev ) {
-            log.info( "modelChanged(): ..." );
-            acl = null;
-            entries.clear();
 
-            final QiModule module = Qi4jPlugin.Session.instance().resolveModule( entity );
-            if (module != null) {
-                // the next checkInit() adds a new listener again; if this
-                // entity is no longer used, then checkInit() is never called again
-                // and the listener was removed correctly
-                module.removeModelChangeListener( this );
-            }
-        }
-        
         protected void serialize() {
             Set<String> aclEntries = new HashSet();
             

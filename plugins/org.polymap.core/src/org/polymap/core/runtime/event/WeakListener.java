@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class WeakListener
+class WeakListener
        // extends DecoratingListener 
         implements EventListener {
 

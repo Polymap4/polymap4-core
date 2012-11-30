@@ -32,7 +32,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DisplayingListener
+class DisplayingListener
         extends DecoratingListener {
 
     private static Log log = LogFactory.getLog( DisplayingListener.class );

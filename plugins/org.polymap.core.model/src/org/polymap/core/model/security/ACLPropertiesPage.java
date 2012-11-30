@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java.beans.PropertyChangeListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -82,7 +80,6 @@ import org.polymap.core.model.Messages;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
-import org.polymap.core.runtime.WeakListener;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -126,8 +123,7 @@ public class ACLPropertiesPage
         // start operation
         if (acl instanceof PropertyChangeSupport) {
             op = new ACLOperation();
-            ((PropertyChangeSupport)acl).addPropertyChangeListener( 
-                    WeakListener.forListener( (PropertyChangeListener)op ) );
+            ((PropertyChangeSupport)acl).addPropertyChangeListener( op );
         }
   
         Composite parent = new Composite( composite, SWT.NONE );

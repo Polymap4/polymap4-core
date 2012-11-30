@@ -21,7 +21,7 @@ import java.util.EventObject;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public final class TypeEventFilter<E extends EventObject>
+final class TypeEventFilter<E extends EventObject>
         implements EventFilter<E> {
     
     private Class<E>            type;

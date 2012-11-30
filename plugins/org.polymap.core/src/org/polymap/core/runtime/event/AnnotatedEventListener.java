@@ -37,7 +37,7 @@ import org.polymap.core.runtime.event.DeferringListener.DeferredEvent;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class AnnotatedEventListener
+class AnnotatedEventListener
         implements EventListener {
 
     private static Log log = LogFactory.getLog( AnnotatedEventListener.class );

@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FilteringListener
+class FilteringListener
         extends DecoratingListener {
 
     private static Log log = LogFactory.getLog( FilteringListener.class );

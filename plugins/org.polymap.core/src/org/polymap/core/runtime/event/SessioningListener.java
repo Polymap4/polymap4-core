@@ -28,7 +28,7 @@ import org.polymap.core.runtime.SessionContext;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class SessioningListener
+class SessioningListener
         extends DecoratingListener {
 
     private static Log log = LogFactory.getLog( SessioningListener.class );

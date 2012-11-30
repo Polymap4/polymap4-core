@@ -38,7 +38,7 @@ import org.polymap.core.runtime.UIJob;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DeferringListener
+class DeferringListener
         extends DecoratingListener {
 
     private static Log log = LogFactory.getLog( DeferringListener.class );

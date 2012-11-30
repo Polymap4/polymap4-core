@@ -19,7 +19,7 @@ package org.polymap.core.runtime.event;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public abstract class DecoratingListener
+abstract class DecoratingListener
         implements EventListener {
 
     protected EventListener     delegate;
