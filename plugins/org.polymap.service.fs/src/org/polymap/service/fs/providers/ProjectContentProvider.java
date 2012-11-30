@@ -17,19 +17,18 @@ package org.polymap.service.fs.providers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
 
-import org.polymap.core.model.event.IModelHandleable;
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.entity.IEntityStateListener;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 
 import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.DefaultContentFolder;
@@ -50,15 +49,17 @@ public class ProjectContentProvider
 
     private static Log log = LogFactory.getLog( ProjectContentProvider.class );
 
-    public static final String      PROJECT_REPOSITORY_KEY = "projectRepository";
+    //public static final String      PROJECT_REPOSITORY_KEY = "projectRepository";
     
 
     public List<? extends IContentNode> getChildren( IPath path ) {
+        // don't cache; use the current repo (per session) for each call
+        // so that changes (signaled by invalidateFolder()) get reflected
+        ProjectRepository repo = ProjectRepository.instance();
         
         // projects root
         if (path.segmentCount() == 0) {
-            ProjectRepository repo = ProjectRepository.instance();
-            getSite().put( PROJECT_REPOSITORY_KEY, repo );
+            //getSite().put( PROJECT_REPOSITORY_KEY, repo );
             
             String name = Messages.get( getSite().getLocale(), "ProjectContentProvider_projectNode" );
             return Collections.singletonList( new ProjectsFolder( name, path, this ) );
@@ -68,7 +69,7 @@ public class ProjectContentProvider
         IContentFolder parent = getSite().getFolder( path );
         if (parent instanceof ProjectsFolder) {
             List<IContentNode> result = new ArrayList();
-            ProjectRepository repo = (ProjectRepository)getSite().get( PROJECT_REPOSITORY_KEY );
+            //ProjectRepository repo = (ProjectRepository)getSite().get( PROJECT_REPOSITORY_KEY );
             for (IMap map : repo.getRootMap().getMaps()) {
                 result.add( new MapFolder( path, this, map ) );
             }
@@ -109,12 +110,18 @@ public class ProjectContentProvider
      */
     public static class MapFolder
             extends DefaultContentFolder 
-            implements IModelStoreListener {
+            implements IEntityStateListener {
 
         public MapFolder( IPath parentPath, IContentProvider provider, IMap map ) {
             super( map.getLabel(), parentPath, provider, map );
             
-            ProjectRepository.instance().addModelStoreListener( this );
+            ProjectRepository.instance().addEntityListener( this );
+        }
+
+        @Override
+        public void dispose() {
+            ProjectRepository.instance().removeEntityListener( this );
+            super.dispose();
         }
 
         public IMap getMap() {
@@ -125,16 +132,17 @@ public class ProjectContentProvider
             return "Dieses Verzeichnis enthält Daten des <b>Projektes</b> \"" + getName() + "\".";
         }
 
-        public boolean isValid() {
-            return true;
-        }
-
-        public void modelChanged( ModelStoreEvent ev ) {
+        public void modelChanged( final EntityStateEvent ev ) {
             if (ev.getEventType() == EventType.COMMIT) {
-                if (ev.hasChanged( (IModelHandleable)getMap() )) {
-
-                    log.info( "modelChanged(): " + ev );
-                    ((ProjectContentProvider)getProvider()).getSite().invalidateSession();
+                if (ev.hasChanged( (IEntityHandleable)getMap() )) {
+                    try {
+                        ((ProjectContentProvider)getProvider()).getSite().invalidateSession();
+                    }
+                    catch (Exception e) {
+                        log.warn( "Error during invalidateSession(): " + e );
+                    } 
+//                    ((ProjectContentProvider)getProvider()).getSite().invalidateFolder( 
+//                            getSite().getFolder( getParentPath() ) );                    
                 }
             }
         }
@@ -146,12 +154,36 @@ public class ProjectContentProvider
      * 
      */
     public static class LayerFolder
-            extends DefaultContentFolder {
+            extends DefaultContentFolder
+            implements IEntityStateListener {
 
         public LayerFolder( IPath parentPath, IContentProvider provider, ILayer layer ) {
             super( layer.getLabel(), parentPath, provider, layer );
+            ProjectRepository.instance().addEntityListener( this );
         }
 
+        @Override
+        public void dispose() {
+            ProjectRepository.instance().removeEntityListener( this );
+            super.dispose();
+        }
+        
+        public void modelChanged( final EntityStateEvent ev ) {
+            if (ev.getEventType() == EventType.COMMIT) {
+                if (ev.hasChanged( (IEntityHandleable)getLayer() )) {
+                    try {
+                        // force reload changes
+                        ((ProjectContentProvider)getProvider()).getSite().invalidateSession();
+                    }
+                    catch (Exception e) {
+                        log.warn( "Error during invalidateSession(): " + e );
+                    } 
+//                    ((ProjectContentProvider)getProvider()).getSite().invalidateFolder( 
+//                            getSite().getFolder( getParentPath() ) );                    
+                }
+            }
+        }
+        
         public ILayer getLayer() {
             return (ILayer)getSource();
         }

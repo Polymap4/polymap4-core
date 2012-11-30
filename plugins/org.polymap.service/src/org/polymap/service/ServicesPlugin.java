@@ -43,7 +43,7 @@ import org.polymap.service.ui.GeneralPreferencePage;
  */
 public class ServicesPlugin 
         extends AbstractUIPlugin {
-        //implements IModelStoreListener {
+        //implements IEntityStateListener {
 
     private static Log log = LogFactory.getLog( ServicesPlugin.class );
 

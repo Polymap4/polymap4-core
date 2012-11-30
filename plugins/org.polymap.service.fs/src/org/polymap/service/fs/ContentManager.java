@@ -302,6 +302,7 @@ public class ContentManager {
     }
 
     public void invalidateFolder( IContentFolder node ) {
+        assert node != null;
         //      IPath path = node.getPath();
         //      IPath parentPath = path.removeLastSegments( 1 );
         //      String nodeName = path.lastSegment();
@@ -317,9 +318,11 @@ public class ContentManager {
         if (children != null) {
             // XXX do it recursively
             for (IContentNode child : children.values()) {
+                nodes.remove( child.getPath() );
                 child.dispose();
             }
         }
+        node.dispose();
     }
 
 

@@ -67,16 +67,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
 
-import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureStoreEvent;
-import org.polymap.core.data.FeatureStoreListener;
+import org.polymap.core.data.FeatureStateTracker;
+import org.polymap.core.data.FeatureStateListener;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelHandle;
-import org.polymap.core.model.event.ModelChangeTracker.Updater;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateTracker.Updater;
+import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 
 import org.polymap.service.fs.spi.IContentSite;
 
@@ -86,8 +86,8 @@ import org.polymap.service.fs.spi.IContentSite;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class ShapefileContainer
-        extends FeatureStoreListener {
+class ShapefileContainer 
+        implements FeatureStateListener {
     
     private static Log log = LogFactory.getLog( ShapefileContainer.class );
 
@@ -122,7 +122,7 @@ class ShapefileContainer
         try {
             this.layerFs = PipelineFeatureSource.forLayer( layer, true );
             
-            FeatureChangeTracker.instance().addFeatureListener( this );
+            FeatureStateTracker.instance().addFeatureListener( this );
         }
         catch (Exception e) {
             throw new RuntimeException( e );
@@ -130,11 +130,11 @@ class ShapefileContainer
     }
 
 
-    public void featureChange( FeatureStoreEvent ev ) {
+    public void featureChanged( EntityStateEvent ev ) {
         log.info( "ev= " + ev );
         if (ev.getEventType() == EventType.COMMIT
                 && !ev.isMySession()
-                && layer.id().equals( ev.getSource().id() )) {
+                && layer.id().equals( ((ILayer)ev.getSource()).id() )) {
             flush();
         }
     }
@@ -274,7 +274,7 @@ class ShapefileContainer
             log.info( "UpdateJob: starting..." );
             lock.writeLock().lock();
 
-            final Updater updater = ModelChangeTracker.instance().newUpdater();
+            final Updater updater = EntityStateTracker.instance().newUpdater();
 
             try {
                 ShapefileDataStoreFactory shapeFactory = new ShapefileDataStoreFactory();
@@ -336,10 +336,10 @@ class ShapefileContainer
 //                                }
                                 
                                 // update feature timestamp (check concurrent modifications within this JVM)
-                                //ModelHandle key = FeatureChangeTracker.featureHandle( (Feature)orig[0] );
+                                //EntityHandle key = FeatureStateTracker.featureHandle( (Feature)orig[0] );
                                 String id = (String)((SimpleFeature)candidate).getAttribute( ShapefileGenerator.ORIG_FID_FIELD );
-                                String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + layerFs.getSchema().getName().getLocalPart();
-                                ModelHandle key = ModelHandle.instance( id, type );
+                                String type = FeatureStateTracker.MODEL_TYPE_PREFIX + layerFs.getSchema().getName().getLocalPart();
+                                EntityHandle key = EntityHandle.instance( id, type );
 
                                 Long timestamp = timestamp( (SimpleFeature)candidate );
                                 updater.checkSet( key, timestamp, null );
@@ -433,7 +433,7 @@ class ShapefileContainer
                     // none of the features had concurrent modifications, so just upgrade
                     // timestamp for the layer (no checking is needed and done)
                     if (!modified.isEmpty() || !added.isEmpty() || !removed.isEmpty() ) {
-                        ModelHandle layerHandle = FeatureChangeTracker.layerHandle( layer );
+                        EntityHandle layerHandle = FeatureStateTracker.layerHandle( layer );
                         updater.checkSet( layerHandle, updater.getStartTime(), null );
                     }
 
@@ -542,27 +542,5 @@ class ShapefileContainer
                     ((SimpleFeature)candidate).getID() );
         }
     }
-    
-    
-//    /**
-//     * Encapsulates a modification to a single feature.
-//     *
-//     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
-//     */
-//    public abstract class FeatureModification {
-//    
-//        private String      name;
-//        
-//        private String      description;
-//    
-//        
-//        public FeatureModification( String name, String description ) {
-//            this.name = name;
-//            this.description = description;
-//        }
-//
-//        public abstract void perform( FeatureStore fs );
-//        
-//    }
     
 }

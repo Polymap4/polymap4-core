@@ -35,15 +35,16 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
-import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.feature.CsvExporter;
-import org.polymap.core.model.event.IModelHandleable;
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.entity.IEntityStateListener;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
+
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentNode;
@@ -114,7 +115,7 @@ public class CsvContentProvider
      */
     public static class CsvFile
             extends DefaultContentNode
-            implements IContentFile, IModelStoreListener {
+            implements IContentFile, IEntityStateListener {
 
         /** GZipped bytes. */
         private byte[]              content;
@@ -156,29 +157,25 @@ public class CsvContentProvider
             }
 
             // add model listener
-            ModelChangeTracker.instance().addListener( this );
+            EntityStateTracker.instance().addListener( this );
         }
 
 
         public void dispose() {
             log.debug( "DISPOSE");
-            ModelChangeTracker.instance().removeListener( this );
+            EntityStateTracker.instance().removeListener( this );
         }
 
 
-        public boolean isValid() {
-            return true;
-        }
-
-        public void modelChanged( final ModelStoreEvent ev ) {
+        public void modelChanged( final EntityStateEvent ev ) {
             log.debug( "ev= " + ev );
             log.debug( "session=" + getSite().getSessionContext() );
             if (ev.getEventType() == EventType.COMMIT 
                     // flush also if shapefile has changed for example
                     //&& !ev.isMySession() 
                     // layer or features changed?
-                    && (ev.hasChanged( (IModelHandleable)getLayer() ) 
-                            || ev.hasChanged( FeatureChangeTracker.layerHandle( getLayer() ) ))) {
+                    && (ev.hasChanged( (IEntityHandleable)getLayer() ) 
+                            || ev.hasChanged( FeatureStateTracker.layerHandle( getLayer() ) ))) {
                 log.info( "FLUSHING : " + getParentPath() );
                 getSite().invalidateFolder( getSite().getFolder( getParentPath() ) );                    
             }
