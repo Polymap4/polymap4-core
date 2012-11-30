@@ -15,7 +15,6 @@
  */
 package org.polymap.core.project.ui.layer;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
+
+import com.google.common.collect.MapMaker;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -45,6 +46,7 @@ import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * 
@@ -79,33 +81,40 @@ public class LayerStatusDecorator
     public static final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
     public static final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
 
-    private Map<String,ILayer>      decorated = new HashMap();
+    private Map<String,ILayer>      decorated;
 
 
     public LayerStatusDecorator() {
-//        final Display display = Polymap.getSessionDisplay();
-//        display.syncExec( new Runnable() {
-//            public void run() {
-//                Font systemFont = display.getSystemFont();
-//                FontData fd = systemFont.getFontData()[0];
-//                bold = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.BOLD );
-//                italic = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.ITALIC );
-//                //font = new Font( systemFont.getDevice(), fd.getName(), fd.getHeight(), SWT.BOLD );
-//            }
-//        });
+        decorated = new MapMaker().weakValues().initialCapacity( 128 ).makeMap();
+
+        EventManager.instance().subscribe( this, new EventFilter<PropertyChangeEvent>() {
+            public boolean apply( PropertyChangeEvent ev ) {
+                try {
+                    return ev.getSource() instanceof ILayer 
+                            && decorated.containsKey( ((ILayer)ev.getSource()).id() )
+                            && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
+                            //|| ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
+                            || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
+                            || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS ) );
+                }
+                catch (NoSuchEntityException e) {
+                    return false;
+                }
+            }
+        });
     }
 
     
     public void dispose() {
-        super.dispose();
-        for (ILayer layer : decorated.values()) {
-            try {
-                layer.removePropertyChangeListener( this );
-            }
-            catch (NoSuchEntityException e) {
-            }
-        }
+        EventManager.instance().unsubscribe( this );
         decorated.clear();
+        super.dispose();
+    }
+
+
+    @EventHandler(delay=2000,display=true)
+    public void propertyChange( List<PropertyChangeEvent> ev ) {
+        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
     }
 
 
@@ -155,16 +164,7 @@ public class LayerStatusDecorator
             }
             
             // register listener
-            if (decorated.put( layer.id(), layer ) == null) {
-                layer.addPropertyChangeListener( this, new EventFilter<PropertyChangeEvent>() {
-                    public boolean apply( PropertyChangeEvent ev ) {
-                        return ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
-                                //|| ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
-                                || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
-                                || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS );
-                    }
-                });
-            }
+            decorated.put( layer.id(), layer );
         }
     }
 
@@ -214,28 +214,6 @@ public class LayerStatusDecorator
 //            }
         }
         return text;
-    }
-
-
-//    public void decorate( Object elm, IDecoration decoration ) {
-//        if (elm instanceof ILayer) {
-//            ILayer layer = (ILayer)elm;
-//            // visible
-//            if (layer.isVisible()) {
-//                decoration.addOverlay( visible, IDecoration.BOTTOM_RIGHT );
-//                decoration.addPrefix( "*" );
-//            }
-//            // register listener
-//            if (decorated.put( layer.id(), layer ) == null) {
-//                layer.addPropertyChangeListener( this );
-//            }
-//        }
-//    }
-
-
-    @EventHandler(delay=3000,display=true)
-    public void propertyChange( List<PropertyChangeEvent> ev ) {
-        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
     }
 
 

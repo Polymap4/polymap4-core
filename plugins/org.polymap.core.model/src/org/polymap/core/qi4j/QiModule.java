@@ -41,13 +41,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.model.CompletionException;
 import org.polymap.core.model.Composite;
-import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.model.Module;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
@@ -57,6 +54,8 @@ import org.polymap.core.qi4j.Qi4jPlugin.Session;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.entity.ConcurrentModificationException;
+import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -181,20 +180,6 @@ public abstract class QiModule
     // events ***
 
     /**
-     * Register the given listener for the current session.
-     * <p/>
-     * All listeners are disposed when the session is destroyed.
-     */
-    public void addModelStoreListener( IModelStoreListener l ) {
-        ModelChangeTracker.instance().addListener( l );
-    }
-
-    public void removeModelStoreListener( IModelStoreListener l ) {
-        ModelChangeTracker.instance().removeListener( l );
-    }
-
-    
-    /**
      * 
      */
     public void addEntityListener( Object handler, EventFilter... filters ) {
@@ -203,6 +188,11 @@ public abstract class QiModule
                 public boolean apply( EventObject ev ) {
                     // ModelChangeEvent (dies not have entity as source)
                     if (ev instanceof ModelChangeEvent) {
+                        return true;
+                    }
+                    //
+                    else if (ev instanceof EntityStateEvent) {
+                        // XXX is there a way to check if entity of this module are changed
                         return true;
                     }
                     // PropertyChangeEvent

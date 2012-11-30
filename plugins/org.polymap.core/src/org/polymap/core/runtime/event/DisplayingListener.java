@@ -49,20 +49,26 @@ public class DisplayingListener
 
     @Override
     public void handleEvent( final EventObject ev ) throws Exception {
-        display.asyncExec( new Runnable() {
-            public void run() {
-                try {
-                    delegate.handleEvent( ev );
-                }
-                // as this is used by AnnotatedEventListener
-                catch (InvocationTargetException e) {
-                    PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, delegate, "Error during event dispatch.", e.getTargetException() );
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, delegate, "Error during event dispatch.", e );
-                }
-            }            
-        });
+        if (display.isDisposed()) {
+            log.warn( "Display is disposed!" );
+            delegate = null;
+        }
+        else {
+            display.asyncExec( new Runnable() {
+                public void run() {
+                    try {
+                        delegate.handleEvent( ev );
+                    }
+                    // as this is used by AnnotatedEventListener
+                    catch (InvocationTargetException e) {
+                        PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, delegate, "Error during event dispatch.", e.getTargetException() );
+                    }
+                    catch (Exception e) {
+                        PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, delegate, "Error during event dispatch.", e );
+                    }
+                }            
+            });
+        }
     }
 
 }

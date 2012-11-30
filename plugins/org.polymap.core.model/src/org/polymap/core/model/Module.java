@@ -15,13 +15,12 @@
  */
 package org.polymap.core.model;
 
-import java.lang.ref.WeakReference;
-
+import java.beans.PropertyChangeEvent;
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 
-import org.eclipse.core.runtime.jobs.Job;
-
-import org.polymap.core.model.event.IModelStoreListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.runtime.entity.ConcurrentModificationException;
+import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
@@ -58,9 +57,11 @@ public interface Module {
 
 
     /**
-     *
+     * Adds the given event handler.Possible events are: {@link PropertyChangeEvent}
+     * ,{@link ModelChangeEvent} and {@link EntityStateEvent}.
      * 
-     * @see EventManager#subscribe(org.polymap.core.runtime.event.Event.Scope, Class, org.polymap.core.runtime.event.EventListener, EventFilter...)
+     * @see EventManager#subscribe(org.polymap.core.runtime.event.Event.Scope, Class,
+     *      org.polymap.core.runtime.event.EventListener, EventFilter...)
      * @param handler The {@link EventHandler annotated} handler to add.
      * @param filters The filters to apply.
      */
@@ -69,17 +70,17 @@ public interface Module {
     public void removeEntityListener( Object handler );
 
 
-    /**
-     * Adds the given event listener. Has no effect if the same listener is
-     * already registerd. The given listener might be stored in a
-     * {@link WeakReference}, the caller has to make sure that a strong
-     * reference exists as long as the listener should receive events.
-     * <p>
-     * The listener is probably called from a {@link Job}. So proper
-     * synchronization with the UI has to be done.
-     */
-    public void addModelStoreListener( IModelStoreListener l );
-
-    public void removeModelStoreListener( IModelStoreListener l );
+//    /**
+//     * Adds the given event listener. Has no effect if the same listener is
+//     * already registerd. The given listener might be stored in a
+//     * {@link WeakReference}, the caller has to make sure that a strong
+//     * reference exists as long as the listener should receive events.
+//     * <p>
+//     * The listener is probably called from a {@link Job}. So proper
+//     * synchronization with the UI has to be done.
+//     */
+//    public void addModelStoreListener( IEntityStateListener l );
+//
+//    public void removeModelStoreListener( IEntityStateListener l );
 
 }

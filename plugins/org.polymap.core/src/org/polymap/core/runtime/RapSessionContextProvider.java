@@ -47,6 +47,7 @@ public class RapSessionContextProvider
     public SessionContext currentContext() {
         if (ContextProvider.hasContext()) {
             ServiceContext serviceContext = ContextProvider.getContext();
+            // FIXME always returning new instances raises issues
             return new RapSessionContext( serviceContext );
         }
         return null;
@@ -93,7 +94,7 @@ public class RapSessionContextProvider
 
 
         public boolean isDestroyed() {
-            return serviceContext != null;
+            return serviceContext == null || display.isDisposed();
         }
 
 

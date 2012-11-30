@@ -12,25 +12,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data;
-
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.project.ILayer;
+package org.polymap.core.runtime.entity;
 
 /**
  * 
- * @see FeatureChangeTracker
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FeatureStoreEvent
-        extends ModelStoreEvent {
-
-    public FeatureStoreEvent( ModelStoreEvent other ) {
-        super( other );
-    }
-
-    public ILayer getSource() {
-        return (ILayer)super.getSource();
-    }
+public interface IEntityHandleable {
+    
+    public EntityHandle handle();
 
 }

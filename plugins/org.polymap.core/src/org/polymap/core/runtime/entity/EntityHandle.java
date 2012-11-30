@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model.event;
+package org.polymap.core.runtime.entity;
 
 /**
  * A surrogate of an entity, feature, object of a model.
@@ -20,10 +20,10 @@ package org.polymap.core.model.event;
  * @since 3.1
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ModelHandle {
+public class EntityHandle {
 
-    public static ModelHandle instance( String id, String type ) {
-        return new ModelHandle( id, type );
+    public static EntityHandle instance( String id, String type ) {
+        return new EntityHandle( id, type );
     }
 
     // instance *******************************************
@@ -33,7 +33,7 @@ public class ModelHandle {
     String              id;
 
     
-    ModelHandle( String id, String type ) {
+    EntityHandle( String id, String type ) {
         assert id != null : "id must not be null.";
         assert type != null : "type must not be null.";
         this.id = id;
@@ -50,16 +50,16 @@ public class ModelHandle {
         if (this == obj) {
             return true;
         }
-        if (obj == null || obj.getClass() != ModelHandle.class) {
+        if (obj == null || obj.getClass() != EntityHandle.class) {
             return false;
         }
-        ModelHandle other = (ModelHandle)obj;
+        EntityHandle other = (EntityHandle)obj;
         return id.equals( other.id ) && type.equals( other.type );
     }
 
     
     public String toString() {
-        return "ModelHandle [id=" + id + ", type=" + type + "]";
+        return "EntityHandle [id=" + id + ", type=" + type + "]";
     }
     
 }

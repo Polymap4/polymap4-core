@@ -26,7 +26,7 @@ import org.geotools.data.DefaultQuery;
 import org.opengis.feature.Feature;
 import org.opengis.filter.identity.FeatureId;
 
-import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
@@ -48,7 +48,7 @@ import org.polymap.core.project.LayerUseCase;
  *
  * <p/>
  * This processor presets the {@link FeatureBufferState#TIMESTAMP_KEY} in the features. This
- * helps {@link LayerFeatureBufferManager} together with {@link FeatureChangeTracker} to find
+ * helps {@link LayerFeatureBufferManager} together with {@link FeatureStateTracker} to find
  * concurrent changes between feature rad and {@link IFeatureBuffer#registerFeatures(Collection)}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>

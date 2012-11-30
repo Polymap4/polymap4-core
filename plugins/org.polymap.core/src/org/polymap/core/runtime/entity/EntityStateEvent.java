@@ -1,40 +1,54 @@
-package org.polymap.core.model.event;
+/* 
+ * polymap.org
+ * Copyright 2011-2012, Polymap GmbH. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
+package org.polymap.core.runtime.entity;
 
-import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.event.Event;
 
 /**
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ModelStoreEvent 
-        extends EventObject {
+public class EntityStateEvent<S>
+        extends Event<S> {
 
     public enum EventType { CHANGE, COMMIT };
     
     private EventType           eventType;
     
-    private Set<ModelHandle>    keys = new HashSet();
+    private Set<EntityHandle>   keys = new HashSet();
     
     /** The Tracker that has issued this event. */
     private SessionContext      srcContext;
     
     
-    public ModelStoreEvent( ModelStoreEvent other ) {
-        super( other.getSource() );
+    public EntityStateEvent( EntityStateEvent other ) {
+        super( (S)other.getSource() );
         this.keys = other.keys;
         this.eventType = other.eventType;
         this.srcContext = other.srcContext;
     }
     
-    public ModelStoreEvent( SessionContext srcContext, Object src, Set<ModelHandle> keys, EventType eventType ) {
+    public EntityStateEvent( SessionContext srcContext, S src, Set<EntityHandle> keys, EventType eventType ) {
         super( src );
         assert srcContext != null : "No SessionContext for this thread.";
         this.srcContext = srcContext;
-        this.keys = new HashSet<ModelHandle>( keys );
+        this.keys = new HashSet<EntityHandle>( keys );
         this.eventType = eventType;
     }
 
@@ -50,20 +64,20 @@ public class ModelStoreEvent
        return eventType;    
     }
     
-    public boolean hasChanged( IModelHandleable handleable ) {
+    public boolean hasChanged( IEntityHandleable handleable ) {
         return keys.contains( handleable.handle() );
     }
     
-    public boolean hasChanged( ModelHandle key ) {
+    public boolean hasChanged( EntityHandle key ) {
         return keys.contains( key );
     }
     
     public boolean hasChanged( String id, String type ) {
-        return keys.contains( ModelHandle.instance( id, type ) );
+        return keys.contains( EntityHandle.instance( id, type ) );
     }
 
     public String toString() {
-        return "ModelStoreEvent [eventType=" + eventType 
+        return "EntityStateEvent [eventType=" + eventType 
                 + ", keys=" + keys 
                 + ", isMySession=" + isMySession() 
                 + "]";

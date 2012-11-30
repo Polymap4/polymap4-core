@@ -43,7 +43,7 @@ public class FilteringListener
     public void handleEvent( EventObject ev ) throws Exception {
         for (EventFilter filter : filters) {
             if (!filter.apply( ev )) {
-                log.debug( "Offending filter: " + filter + "\n           event: " + ev + ")" );
+                //log.debug( "Offending filter: " + filter + "\n           event: " + ev + ")" );
                 return;
             }
         }

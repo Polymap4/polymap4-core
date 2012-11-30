@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.image.cache304;
 
+import java.util.EventObject;
 import java.util.Properties;
 
 import java.io.ByteArrayOutputStream;
@@ -23,9 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureStoreEvent;
-import org.polymap.core.data.FeatureStoreListener;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
@@ -39,6 +38,9 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.event.Event;
+import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
 
@@ -225,27 +227,36 @@ public class ImageCacheProcessor
             this.layer = layer;
             this.procRef = new WeakReference( processor );
             
-            // feature modifications
-            EventManager.instance().subscribe( this );
-            
-            // feature stored
-            FeatureChangeTracker.instance().addFeatureListener( this, new FeatureStoreListener() {
-                public void featureChange( FeatureStoreEvent ev ) {
-                    if (!ev.isMySession()) {
-                        return;
+            EventManager.instance().subscribe( this, new EventFilter<EventObject>() {
+                public boolean apply( EventObject ev ) {
+                    // EntityStateEvent
+                    if (ev instanceof EntityStateEvent) {
+                        EntityStateEvent eev = (EntityStateEvent)ev;
+                        return eev.getEventType() == EntityStateEvent.EventType.COMMIT; //ev.isMySession();
                     }
-                    ImageCacheProcessor proc = procRef.get();
-                    if (proc != null) {
-                        if (ev.getSource() == LayerListener.this.layer) {
-                            proc.updateAndActivate( true );
-                        }
+                    // FeatureChangeEvent
+                    else if (ev instanceof FeatureChangeEvent) {
+                        return true;
                     }
                     else {
-                        FeatureChangeTracker.instance().removeFeatureListener( this ); 
-                        LayerListener.this.layer = null;                                
+                        throw new IllegalStateException( "Unknown event type: " + ev );
                     }
                 }
             });
+        }
+        
+        @EventHandler(scope=Event.Scope.Session)
+        protected void featureChange( EntityStateEvent ev ) {
+            ImageCacheProcessor proc = procRef.get();
+            if (proc != null) {
+                if (ev.getSource() == LayerListener.this.layer) {
+                    proc.updateAndActivate( true );
+                }
+            }
+            else {
+                FeatureStateTracker.instance().removeFeatureListener( this ); 
+                LayerListener.this.layer = null;                                
+            }
         }
         
         @EventHandler

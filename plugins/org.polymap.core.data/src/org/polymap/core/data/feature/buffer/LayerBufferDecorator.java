@@ -14,17 +14,17 @@
  */
 package org.polymap.core.data.feature.buffer;
 
-import java.util.HashSet;
+import java.util.EventObject;
 import java.util.List;
-import java.util.Set;
-
+import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
+import com.google.common.collect.MapMaker;
+
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
@@ -34,14 +34,12 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureChangeListener;
-import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureStoreEvent;
-import org.polymap.core.data.FeatureStoreListener;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.event.Event;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
@@ -69,44 +67,42 @@ public class LayerBufferDecorator
     private static final String     CONFLICT = "icons/ovr16/conf_synch.gif";    
 
     /** The ids of the decorated layers. */
-    private Set<String>             decorated = new HashSet();
+    private Map<String,ILayer>      decorated;
 
-    private FeatureChangeListener   changeListener;
-    
-    private FeatureStoreListener    storeListener;
-    
-    private Display                 display;
-    
     
     public LayerBufferDecorator() {
-        this.display = Polymap.getSessionDisplay();
+        decorated = new MapMaker().weakValues().initialCapacity( 128 ).makeMap();
         
-        // FeatureChangeListener
-        EventManager.instance().subscribe( this, new EventFilter<FeatureChangeEvent>() {
-            public boolean apply( FeatureChangeEvent ev ) {
-                return decorated.contains( ev.getSource().id() );
+        EventManager.instance().subscribe( this, new EventFilter<EventObject>() {
+            public boolean apply( EventObject ev ) {
+                if (ev instanceof FeatureChangeEvent) {
+                    FeatureChangeEvent fev = (FeatureChangeEvent)ev;                    
+                    return decorated.containsKey( fev.getSource().id() );
+                }
+                else if (ev instanceof EntityStateEvent) {
+                    return ev.getSource() instanceof ILayer;
+                }
+                return false;
             }
         });
-        
-        // FeatureStoreListener
-        storeListener = new FeatureStoreListener() {
-            public void featureChange( FeatureStoreEvent ev ) {
-                LayerBufferDecorator.this.featureChange( ev );
-            }
-        };
-        FeatureChangeTracker.instance().addFeatureListener( storeListener );
     }
 
     
     public void dispose() {
         EventManager.instance().unsubscribe( this );
-        FeatureChangeTracker.instance().removeFeatureListener( storeListener );
+        FeatureStateTracker.instance().removeFeatureListener( this );
         decorated.clear();
     }
 
     
-    @EventHandler(delay=3000,display=true)
+    @EventHandler(delay=2000,display=true)
     protected void featureChanges( List<FeatureChangeEvent> events ) {
+        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+    }
+
+    
+    @EventHandler(delay=2000,display=true,scope=Event.Scope.JVM)
+    protected void featureStored( List<EntityStateEvent> events ) {
         fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
     }
 
@@ -131,8 +127,8 @@ public class LayerBufferDecorator
             try {
                 boolean outgoing = !layerBuffer.getBuffer().isEmpty();
                 
-                ModelHandle layerHandle = FeatureChangeTracker.layerHandle( layer );
-                boolean incoming = ModelChangeTracker.instance().isConflicting( 
+                EntityHandle layerHandle = FeatureStateTracker.layerHandle( layer );
+                boolean incoming = EntityStateTracker.instance().isConflicting( 
                         layerHandle, layerBuffer.getLayerTimestamp() );
                 
                 if (outgoing && incoming) {
@@ -152,17 +148,8 @@ public class LayerBufferDecorator
                 // XXX add question mark overlay
             }
 
-            decorated.add( layer.id() );
+            decorated.put( layer.id(), layer );
         }
-    }
-
-
-    public void featureChange( FeatureStoreEvent ev ) {
-        display.asyncExec( new Runnable() {
-            public void run() {
-                fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
-            }
-        });
     }
 
 }

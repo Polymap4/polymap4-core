@@ -21,13 +21,17 @@ import org.opengis.filter.identity.FeatureId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static com.google.common.collect.ObjectArrays.*;
+
 import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.event.EventFilter;
 
 /**
- * Provides an extension of the {@link ModelChangeTracker}.
+ * Provides an extension of the {@link EntityStateTracker} related to {@link Feature}s.
  * <p/>
  * Register a listener if you want to get informed about feature changes in any
  * session of this VM. This does refer to changes of an underlying data store only!
@@ -40,34 +44,45 @@ import org.polymap.core.project.ILayer;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FeatureChangeTracker {
+public class FeatureStateTracker {
 
-    private static Log log = LogFactory.getLog( FeatureChangeTracker.class );
+    private static Log log = LogFactory.getLog( FeatureStateTracker.class );
 
     public static final String                  MODEL_TYPE_PREFIX = "feature:";
 
-    private static final FeatureChangeTracker   instance = new FeatureChangeTracker();
+    private static final FeatureStateTracker    instance = new FeatureStateTracker();
     
     
-    public static FeatureChangeTracker instance()  {
+    public static FeatureStateTracker instance()  {
         return instance;
     }
     
     
     // instance *******************************************
     
-    public ModelChangeTracker delegate() {
-        return ModelChangeTracker.instance();
-    }
-    
-    
-    public boolean addFeatureListener( FeatureStoreListener listener ) {
-        return ModelChangeTracker.instance().addListener( listener );
+//    public ModelChangeTracker delegate() {
+//        return ModelChangeTracker.instance();
+//    }
+
+    /**
+     * Adds the given handler of {@link EntityStateEvent} events.
+     * 
+     * @see EntityStateTracker#addListener(Object, EventFilter...)
+     * @param handler An {@link FeatureStateListener} or any other
+     *        {@link EventHandler annotated} object.
+     * @param filters
+     */
+    public void addFeatureListener( Object handler, EventFilter... filters ) {
+        EntityStateTracker.instance().addListener( handler, concat( new EventFilter<EntityStateEvent>() {
+            public boolean apply( EntityStateEvent ev ) {
+                return ev.getSource() instanceof ILayer;
+            }
+        }, filters ) );
     }
     
 
-    public boolean removeFeatureListener( FeatureStoreListener listener ) {
-        return ModelChangeTracker.instance().removeListener( listener );
+    public void removeFeatureListener( Object handler ) {
+        EntityStateTracker.instance().removeListener( handler );
     }
 
 
@@ -76,10 +91,10 @@ public class FeatureChangeTracker {
      * 
      * @param layer
      */
-    public static ModelHandle layerHandle( ILayer layer ) {
+    public static EntityHandle layerHandle( ILayer layer ) {
         String id = layer.id();
         String type = "features:" + layer.getEntityType().getName();
-        return ModelHandle.instance( id, type );
+        return EntityHandle.instance( id, type );
     }
 
     
@@ -88,21 +103,22 @@ public class FeatureChangeTracker {
      * 
      * @param feature
      */
-    public static ModelHandle featureHandle( Feature feature ) {
+    public static EntityHandle featureHandle( Feature feature ) {
         String id = feature.getIdentifier().getID();
-        String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + feature.getType().getName().getLocalPart();
-        return ModelHandle.instance( id, type );
+        String type = FeatureStateTracker.MODEL_TYPE_PREFIX + feature.getType().getName().getLocalPart();
+        return EntityHandle.instance( id, type );
     }
 
+    
     /**
      * Creates a handle for the given feature.
      * 
      * @param feature
      */
-    public static ModelHandle featureHandle( FeatureId fid, String typeName ) {
+    public static EntityHandle featureHandle( FeatureId fid, String typeName ) {
         String id = fid.getID();
-        String type = FeatureChangeTracker.MODEL_TYPE_PREFIX + typeName;
-        return ModelHandle.instance( id, type );
+        String type = FeatureStateTracker.MODEL_TYPE_PREFIX + typeName;
+        return EntityHandle.instance( id, type );
     }
 
 }

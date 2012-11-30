@@ -43,6 +43,8 @@ public interface IModelChangeListener
      * Fired after an {@link IUndoableOperation} has finished. The
      * {@link ModelChangeEvent} collects all {@link PropertyChangeEvent}s fired
      * during the operation.
+     * <p/>
+     * Annotation: @EventHandler(scope=Event.Scope.Session, delay=0, display=true)
      * 
      * @param ev
      */

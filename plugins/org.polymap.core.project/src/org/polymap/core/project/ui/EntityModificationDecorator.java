@@ -15,13 +15,16 @@
  */
 package org.polymap.core.project.ui;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import java.beans.PropertyChangeEvent;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
+
+import com.google.common.collect.MapMaker;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -31,18 +34,20 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
+
+import org.polymap.core.model.Entity;
 import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.EntityChangeStatus;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.entity.IEntityStateListener;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 
 /**
  * 
@@ -52,7 +57,7 @@ import org.polymap.core.runtime.event.EventFilter;
  */
 public class EntityModificationDecorator
         extends BaseLabelProvider
-        implements ILightweightLabelDecorator, IModelStoreListener, IModelChangeListener {
+        implements ILightweightLabelDecorator, IEntityStateListener, IModelChangeListener {
 
     private static final Log log = LogFactory.getLog( EntityModificationDecorator.class );
     
@@ -65,26 +70,16 @@ public class EntityModificationDecorator
 
     private ProjectRepository           module;
     
-    private Map<String,ModelChangeSupport> decorated = new HashMap();
+    private Map<String,ModelChangeSupport> decorated;
 
     private Display                     display;
     
 
     public EntityModificationDecorator() {
+        decorated = new MapMaker().weakValues().initialCapacity( 128 ).makeMap();
         display = Polymap.getSessionDisplay();
         module = ProjectRepository.instance();
-        
-        module.addModelStoreListener( this );
-        
-        module.addEntityListener( this, new EventFilter<ModelChangeEvent>() {
-            public boolean apply( ModelChangeEvent ev ) {
-                if (ev.getSource() instanceof ModelChangeSupport) {
-                    ModelChangeSupport entity = (ModelChangeSupport)ev.getSource();
-                    return decorated.containsKey( entity.id() );
-                }
-                return false;
-            }
-        });
+        module.addEntityListener( this );
     }
 
     public void dispose() {
@@ -93,10 +88,46 @@ public class EntityModificationDecorator
                 super.dispose();
                 decorated = null;
                 module.removeEntityListener( this );
-                module.removeModelStoreListener( this );
             }
             finally {
                 module = null;
+            }
+        }
+    }
+
+    public void modelChanged( ModelChangeEvent ev ) {
+        for (PropertyChangeEvent pev : ev.events()) {
+            Entity entity = (Entity)pev.getSource();
+            try {
+                ((IAdaptable)entity).getAdapter( String.class );
+                if (decorated.containsKey( entity.id() )) {
+                    fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                    break;                
+                }
+            }
+            catch (NoSuchEntityException e) {
+            }
+        }
+    }
+
+    public void modelChanged( final EntityStateEvent ev ) {
+        // make sure that display is not disposed and our session is still valid
+        if (module == null) {
+            return;
+        }
+        else if (display.isDisposed()) {
+            dispose();
+        }
+        else {
+            // just listen to COMMIT events; CHANGE events are handled by
+            // LayerNavigator and other views directly; firing labelChange on CHANGE
+            // causes a race condition and throws exception for deleted entities (layer)
+            if (ev != null && ev.getEventType() == EventType.COMMIT) {
+                display.asyncExec( new Runnable() {
+                    public void run() {
+                        fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                    }
+                });
             }
         }
     }
@@ -131,39 +162,6 @@ public class EntityModificationDecorator
         }
         catch (NoSuchEntityException e) {
             decoration.addSuffix( " (deleted)" );
-        }
-    }
-
-    
-    // model listeners ************************************
-    
-    public void modelChanged( ModelChangeEvent ev ) {
-        modelChanged( (ModelStoreEvent)null );
-    }
-    
-    public boolean isValid() {
-        return true;
-    }
-
-    public void modelChanged( final ModelStoreEvent ev ) {
-        // make sure that display is not disposed and our session is still valid
-        if (module == null) {
-            return;
-        }
-        else if (display.isDisposed()) {
-            dispose();
-        }
-        else {
-            // just listen to COMMIT events; CHANGE events are handled by
-            // LayerNavigator and other views directly; firing labelChange on CHANGE
-            // causes a race condition and throws exception for deleted entities (layer)
-            if (ev != null && ev.getEventType() == EventType.COMMIT) {
-                display.asyncExec( new Runnable() {
-                    public void run() {
-                        fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
-                    }
-                });
-            }
         }
     }
 

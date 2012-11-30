@@ -166,12 +166,15 @@ public class EventManager {
      * reference to it. An anonymous inner class can not be used as event listener.
      * 
      * @see EventHandler
-     * @param annotatedEventHandler
+     * @param annotated
+     * @throws IllegalStateException If the handler is subscribed already.
      */
-    public void subscribe( Object annotatedEventHandler, EventFilter... filters ) {
-        EventListener listener = new AnnotatedEventListener( annotatedEventHandler, filters ); 
-        Integer key = System.identityHashCode( annotatedEventHandler );
-        listeners.put( key, listener );        
+    public void subscribe( Object annotated, EventFilter... filters ) {
+        EventListener listener = new AnnotatedEventListener( annotated, filters ); 
+        Integer key = System.identityHashCode( annotated );
+        if (listeners.putIfAbsent( key, listener ) != null) {
+            throw new IllegalStateException( "Event handler already registered: " + annotated );        
+        }
     }
 
     

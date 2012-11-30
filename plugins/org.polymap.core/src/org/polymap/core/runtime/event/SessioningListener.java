@@ -17,8 +17,6 @@ package org.polymap.core.runtime.event;
 import java.util.EventObject;
 import java.util.concurrent.Callable;
 
-import java.lang.ref.WeakReference;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,7 +33,7 @@ public class SessioningListener
 
     private static Log log = LogFactory.getLog( SessioningListener.class );
     
-    private WeakReference<SessionContext>   sessionRef;
+    private SessionContext                  session;
     
     private Object                          mapKey;
 
@@ -47,15 +45,15 @@ public class SessioningListener
     public SessioningListener( EventListener delegate, Object mapKey ) {
         super( delegate );
         assert mapKey != null;
-        this.sessionRef = new WeakReference( SessionContext.current() );
+        this.session = SessionContext.current();
         this.mapKey = mapKey;
+        assert session != null;
     }
 
     @Override
     public void handleEvent( final EventObject ev ) throws Exception {
-        if (sessionRef != null) {
-            SessionContext session = sessionRef.get();
-            if (session != null && !session.isDestroyed()) {
+        if (session != null) {
+            if (!session.isDestroyed()) {
                 session.execute( new Callable() {
                     public Object call() throws Exception {
                         delegate.handleEvent( ev );
@@ -64,8 +62,10 @@ public class SessioningListener
                 });
             }
             else {
+                log.debug( "Removing event handler for destroyed session: " + session.getClass().getSimpleName() );
                 EventManager.instance().removeKey( mapKey );
-                sessionRef = null;
+                session = null;
+                delegate = null;
             }
         }
     }

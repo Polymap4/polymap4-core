@@ -16,8 +16,6 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 
-import java.lang.ref.WeakReference;
-
 import org.polymap.core.runtime.SessionContext;
 
 /**
@@ -59,17 +57,16 @@ public abstract class ScopeEventFilter
     static class SessionScope
             extends ScopeEventFilter {
         
-        private WeakReference<SessionContext>   sessionRef;
+        private SessionContext          session;
         
         protected SessionScope() {
-            sessionRef = new WeakReference( SessionContext.current() );
-            assert sessionRef.get() != null;
+            session = SessionContext.current();
+            assert session != null;
         }
         
         @Override
         public boolean apply( EventObject ev ) {
-            SessionContext handlerSession = sessionRef.get();
-            return handlerSession.equals( EventManager.publishSession() );
+            return session.equals( EventManager.publishSession() );
         }
 
         public String toString() {

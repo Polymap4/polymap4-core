@@ -12,36 +12,31 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model.event;
+package org.polymap.core.runtime.entity;
 
 import java.util.EventListener;
 
-import org.polymap.core.model.Module;
+import org.eclipse.swt.widgets.Display;
+
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.event.Event;
+import org.polymap.core.runtime.event.EventHandler;
 
 /**
- * Register this listener type with {@link ModelChangeTracker} to get informed
+ * Register this listener type with {@link EntityStateTracker} to get informed
  * about changes of entities and/or features changed in this or another session.
  *
- * @see ModelChangeTracker
+ * @see EntityStateTracker
  */
-public interface IModelStoreListener
+public interface IEntityStateListener
         extends EventListener {
-
-    /**
-     * Checks if the session of this listener is still valid. If false then
-     * this listener is removed. As the listeners are stored globally, this
-     * is a potential memory leak.
-     */
-    public boolean isValid();
-
 
     /**
      * Entity and/or feature has been changed.
      * <p/>
-     * This method is called from a dedicated job. For this call the
-     * {@link SessionContext} is mapped that was active when this listener has been
-     * {@link ModelChangeTracker#addListener(IModelStoreListener) registered}.
+     * This method is called from a dedicated job/thread. The {@link SessionContext}
+     * is mapped which was active when this listener has been registered. Code that updates the
+     * UI should be properly wrapped inside {@link Display#asyncExec(Runnable)}.
      * <p/>
      * Called when:
      * <ul>
@@ -53,6 +48,7 @@ public interface IModelStoreListener
      * This method must never block. Implementations have to be thread save and aware
      * of reentrance of the method.
      */
-    public void modelChanged( ModelStoreEvent ev );
+    @EventHandler(scope=Event.Scope.JVM)
+    public void modelChanged( EntityStateEvent ev );
 
 }
