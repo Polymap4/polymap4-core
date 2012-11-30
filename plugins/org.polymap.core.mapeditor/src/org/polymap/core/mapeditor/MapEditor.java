@@ -57,7 +57,6 @@ import org.polymap.openlayers.rap.widget.base_types.Size;
 import org.polymap.openlayers.rap.widget.controls.Control;
 import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
 import org.polymap.openlayers.rap.widget.controls.LoadingPanelControl;
-import org.polymap.openlayers.rap.widget.controls.MousePositionControl;
 import org.polymap.openlayers.rap.widget.controls.NavigationHistoryControl;
 import org.polymap.openlayers.rap.widget.controls.PanZoomBarControl;
 import org.polymap.openlayers.rap.widget.controls.ScaleControl;
@@ -189,7 +188,7 @@ public class MapEditor
         
 //        olmap.addControl( new LayerSwitcherControl() );
         olmap.addControl( new PanZoomBarControl() );
-        olmap.addControl( new MousePositionControl() );
+//        olmap.addControl( new MousePositionControl() );
         olmap.addControl( new NavigationHistoryControl() );
         olmap.addControl( new KeyboardDefaultsControl() );
 
