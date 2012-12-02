@@ -99,10 +99,12 @@ public class EntityModificationDecorator
         for (PropertyChangeEvent pev : ev.events()) {
             Entity entity = (Entity)pev.getSource();
             try {
-                ((IAdaptable)entity).getAdapter( String.class );
-                if (decorated.containsKey( entity.id() )) {
-                    fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
-                    break;                
+                if (entity instanceof IAdaptable) {
+                    ((IAdaptable)entity).getAdapter( String.class );
+                    if (decorated.containsKey( entity.id() )) {
+                        fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                        break;                
+                    }
                 }
             }
             catch (NoSuchEntityException e) {

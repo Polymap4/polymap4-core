@@ -61,11 +61,23 @@ public interface PropertyChangeSupport
     
     public static final String              PROP_ENTITY_CREATED = "_entity_created_";
     public static final String              PROP_ENTITY_REMOVED = "_entity_removed_";
-    
-    
+
+
+    /**
+     * Registeres the given {@link EventHandler annotated} handler as event listener.
+     * <p/>
+     * Listeners are weakly referenced by the EventManager. A listener is reclaimed
+     * by the GC and removed from the EventManager as soon as there is no strong
+     * reference to it. An anonymous inner class can not be used as event listener.
+     * 
+     * @see EventManager#subscribe(Object, EventFilter...)
+     * @param handler
+     * @param filters
+     * @throws IllegalStateException If the handler is subscribed already.
+     */
     public void addPropertyChangeListener( Object handler, EventFilter... filters );
 
-    public void removePropertyChangeListener( Object handler );
+    public boolean removePropertyChangeListener( Object handler );
 
     public void fireEvent( QualifiedName name, @Optional Object newValue, @Optional Object oldValue, @Optional Object propOrAssoc );
     
@@ -117,8 +129,8 @@ public interface PropertyChangeSupport
             });
         }
 
-        public void removePropertyChangeListener( Object handler ) {
-            EventManager.instance().unsubscribe( handler );
+        public boolean removePropertyChangeListener( Object handler ) {
+            return EventManager.instance().unsubscribe( handler );
         }
 
 

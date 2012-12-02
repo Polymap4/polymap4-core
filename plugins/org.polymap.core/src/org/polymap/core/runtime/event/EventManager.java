@@ -181,6 +181,7 @@ public class EventManager {
     /**
      *
      * @param listenerOrHandler
+     * @throws True if the given handler actually was removed.
      */
     public boolean unsubscribe( Object listenerOrHandler ) {
         assert listenerOrHandler != null;
@@ -230,7 +231,7 @@ public class EventManager {
                 }
                 long elapsed = statTimer.elapsedTime();
                 if (elapsed > 1000) {
-                    log.debug( "STATISTICS: " + statCount + " events in " + elapsed + "ms" );
+                    log.debug( "********************************************** STATISTICS: " + statCount + " events in " + elapsed + "ms" );
                     statCount = 0;
                     statTimer = null;
                 }
