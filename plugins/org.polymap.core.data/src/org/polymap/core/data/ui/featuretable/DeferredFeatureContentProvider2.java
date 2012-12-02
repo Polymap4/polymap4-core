@@ -32,11 +32,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.jface.viewers.IIndexableLazyContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-
 import org.polymap.core.data.Messages;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheManager;
@@ -107,10 +104,13 @@ class DeferredFeatureContentProvider2
 
 
     public void setSortOrder( Comparator sortOrder ) {
+//        if (sortedElements != null) {
+//            viewer.remove( sortedElements );
+//        }
         sortedElements = new Object[0];
         this.sortOrder = sortOrder;
         UpdatorJob job = new UpdatorJob();
-        job.schedule();
+        job.schedule( 100 );
         viewer.refresh();
     }
 
@@ -134,7 +134,7 @@ class DeferredFeatureContentProvider2
      * 
      */
     class UpdatorJob
-            extends Job {
+            extends UIJob {
 
         private Display         display;
         
@@ -183,7 +183,6 @@ class DeferredFeatureContentProvider2
                     if (viewer != null && viewer.getTable() != null) {
                         viewer.getTable().clearAll();
                         viewer.getTable().setItemCount( sortedElements.length );
-                        viewer.refresh();
                         viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, sortedElements.length );
                     }
                 }
@@ -191,7 +190,9 @@ class DeferredFeatureContentProvider2
         }
 
         
-        protected IStatus run( IProgressMonitor monitor ) {
+        @Override
+        protected void runWithException( IProgressMonitor monitor )
+        throws Exception {
 
             FeatureCollection coll = null;
             Iterator it = null;
@@ -215,7 +216,8 @@ class DeferredFeatureContentProvider2
                             || Thread.interrupted()
                             // disposed?
                             || elementCache == null) {
-                        return Status.CANCEL_STATUS;
+                        monitor.setCanceled( true );
+                        return;
                     }
 
                     if (chunk.size() >= chunkSize) {
@@ -232,16 +234,14 @@ class DeferredFeatureContentProvider2
                 // disposed?
                 if (elementCache != null) {
                     addChunk( chunk, monitor );
-                    return Status.OK_STATUS;
                 }
                 else {
-                    return Status.CANCEL_STATUS;
+                    monitor.setCanceled( true );
                 }
             }
             catch (Exception e) {
                 log.warn( "", e );
                 // NPE when disposed and variables are null; dont show to user
-                return Status.CANCEL_STATUS;
                // return new Status( IStatus.ERROR, DataPlugin.PLUGIN_ID, "", e );
             }
             finally {
