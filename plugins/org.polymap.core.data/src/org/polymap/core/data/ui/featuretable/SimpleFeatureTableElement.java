@@ -17,8 +17,6 @@ package org.polymap.core.data.ui.featuretable;
 import java.util.Collections;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import org.geotools.data.FeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.feature.Feature;
@@ -27,6 +25,8 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 
+import org.apache.commons.collections.KeyValue;
+import org.apache.commons.collections.keyvalue.DefaultKeyValue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -61,6 +61,12 @@ public class SimpleFeatureTableElement
     
     private Cache<String,SimpleFeature> cache;
     
+    /** 
+     * The value that was last returned by {@link #getValue(String)}. Key/value
+     * is cached to avoid ref-fetch of the feature during one sorting run.
+     */
+    private KeyValue                    sortedValue;          
+    
     
     public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs, Cache<String,SimpleFeature> cache ) {
         super();
@@ -94,8 +100,14 @@ public class SimpleFeatureTableElement
 
 
     public Object getValue( String name ) {
-        SimpleFeature feature = feature();
-        return feature != null ? feature.getAttribute( name ) : null;
+        if (sortedValue == null
+                || !sortedValue.getKey().equals( name )) {
+            SimpleFeature feature = feature();
+            if (feature != null) {
+                sortedValue = new DefaultKeyValue( name, feature.getAttribute( name ) );
+            }
+        }
+        return sortedValue != null ? sortedValue.getValue() : null;
     }
     
     
@@ -155,11 +167,6 @@ public class SimpleFeatureTableElement
     }
 
     
-    protected <T> Reference<T> newReference( T feature ) {
-        return new SoftReference( feature );
-    }
-
-
     /*
      * 
      */

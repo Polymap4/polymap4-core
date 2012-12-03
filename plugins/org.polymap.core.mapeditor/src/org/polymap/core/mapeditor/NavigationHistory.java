@@ -93,14 +93,16 @@ public class NavigationHistory {
     @EventHandler
     public void propertyChange( PropertyChangeEvent ev ) {
         try {
-            ReferencedEnvelope newExtent = (ReferencedEnvelope)ev.getNewValue();
-            if (lastMapExtent != null && !newExtent.equals( lastMapExtent )) {
-                NavigationOperation op = new NavigationOperation( lastMapExtent, newExtent );
-                op.addContext( context );
-                history.execute( op, new NullProgressMonitor(), null );
-                log.debug( "propertyChange(): " + newExtent + ", history= " + history.getUndoHistory( context ).length );
+            if (ev.getNewValue() instanceof ReferencedEnvelope) {
+                ReferencedEnvelope newExtent = (ReferencedEnvelope)ev.getNewValue();
+                if (lastMapExtent != null && !newExtent.equals( lastMapExtent )) {
+                    NavigationOperation op = new NavigationOperation( lastMapExtent, newExtent );
+                    op.addContext( context );
+                    history.execute( op, new NullProgressMonitor(), null );
+                    log.debug( "propertyChange(): " + newExtent + ", history= " + history.getUndoHistory( context ).length );
+                }
+                lastMapExtent = newExtent;
             }
-            lastMapExtent = newExtent;
         }
         catch (ExecutionException e) {
             PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );

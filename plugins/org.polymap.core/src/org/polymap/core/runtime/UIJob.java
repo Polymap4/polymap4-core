@@ -162,7 +162,7 @@ public abstract class UIJob
 
                         runWithException( executionMonitor );
                         
-                        resultStatus = Status.OK_STATUS;
+                        resultStatus = executionMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
                     }
                     // ThreadDeath is a normal error when the thread is dying.
                     // We must propagate it in order for it to properly terminate.

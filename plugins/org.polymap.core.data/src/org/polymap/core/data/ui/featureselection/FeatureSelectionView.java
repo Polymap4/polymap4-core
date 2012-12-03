@@ -339,8 +339,15 @@ public class FeatureSelectionView
             init( initLayer.get() );
         }
         else {
-            assert layer != null;
-            init( layer );
+            if (layer == null) {
+                log.warn( "No layer set. Closing view..." );
+                Label msg = new Label( parent, SWT.NONE );
+                msg.setText( "No layer." );
+                close( null );
+            }
+            else {
+                init( layer );
+            }
         }
         
         this.parent = parent;
