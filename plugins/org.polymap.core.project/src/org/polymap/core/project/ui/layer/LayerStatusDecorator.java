@@ -26,11 +26,16 @@ import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
+import org.eclipse.rwt.graphics.Graphics;
+
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
@@ -67,11 +72,11 @@ public class LayerStatusDecorator
     private static final String     waiting = "icons/ovr16/clock0_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
     
-//    private final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
-//    private final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
-//    
-//    public final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
-//    public final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
+    private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
+    private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
+    
+    public static final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
+    public static final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
 
     private Map<String,ILayer>      decorated = new HashMap();
 
