@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -22,12 +22,12 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.SoftReference;
 import java.security.Principal;
 
 import org.apache.commons.io.IOUtils;
@@ -50,6 +50,7 @@ import org.polymap.service.fs.Messages;
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentNode;
+import org.polymap.service.fs.spi.DefaultContentProvider;
 import org.polymap.service.fs.spi.IContentDeletable;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
@@ -67,13 +68,14 @@ import org.polymap.service.fs.spi.Range;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ShapefileContentProvider
+        extends DefaultContentProvider
         implements IContentProvider {
 
     private static Log log = LogFactory.getLog( ShapefileContentProvider.class );
 
     
-    public List<? extends IContentNode> getChildren( IPath path, IContentSite site ) {
-        IContentFolder parent = site.getFolder( path );
+    public List<? extends IContentNode> getChildren( IPath path ) {
+        IContentFolder parent = getSite().getFolder( path );
         
         // files
         if (parent instanceof ShapefileFolder) {
@@ -81,13 +83,13 @@ public class ShapefileContentProvider
             
             // shapefile
             ILayer layer = ((ShapefileFolder)parent).getLayer();
-            ShapefileContainer container = new ShapefileContainer( layer, site );
+            ShapefileContainer container = new ShapefileContainer( layer, getSite() );
             for (String fileSuffix : ShapefileGenerator.FILE_SUFFIXES) {
-                result.add( new ShapefileFile( path, this, (ILayer)parent.getSource()
-                        , container, fileSuffix ) );
+                result.add( new ShapefileFile( path, this, (ILayer)parent.getSource(),
+                        container, fileSuffix ) );
             }
             // snapshot.txt
-            result.add( new SnapshotFile( path, this, (ILayer)parent.getSource(), container, site ) );
+            result.add( new SnapshotFile( path, this, (ILayer)parent.getSource(), container, getSite() ) );
             // shape-zip
             result.add( new ShapeZipFile( path, this, (ILayer)parent.getSource(), container ) );
             return result;
@@ -247,14 +249,11 @@ public class ShapefileContentProvider
         
         private ShapefileContainer          container;
         
-        private IContentSite                site;
-        
         
         public SnapshotFile( IPath parentPath, IContentProvider provider, ILayer layer,
                 ShapefileContainer container, IContentSite site ) {
             super( "snapshot.txt", parentPath, provider, layer );
             this.container = container;
-            this.site = site;
         }
 
 
@@ -267,7 +266,7 @@ public class ShapefileContentProvider
         public byte[] content() {
             try {
                 String modified = df.format( container.lastModified );
-                return Messages.get( site.getLocale(), "SnapshotFile_content", 
+                return Messages.get( getSite().getLocale(), "SnapshotFile_content", 
                         ((ILayer)getSource()).getLabel(), modified ).getBytes( "UTF-8" );
             }
             catch (UnsupportedEncodingException e) {
@@ -312,7 +311,7 @@ public class ShapefileContentProvider
 
         private ShapefileContainer      container;
         
-        private SoftReference<byte[]>   contentRef;
+        private byte[]                  content;
         
         private Date                    modified = new Date();
         
@@ -324,6 +323,18 @@ public class ShapefileContentProvider
         }
 
         
+        public int getSizeInMemory() {
+            try {
+                // initializing the zip just to calculate the cache size should no problem
+                // here since probable getContentLength() is called by the client side anyway
+                return getContentLength().intValue() + super.getSizeInMemory();
+            }
+            catch (Exception e) {
+                return super.getSizeInMemory();
+            }
+        }
+
+
         public String getContentType( String accepts ) {
             return "application/zip";
         }
@@ -353,8 +364,8 @@ public class ShapefileContentProvider
         throws IOException, BadRequestException {
             log.debug( "range: " + range + ", params: " + params + ", contentType: " + contentType );
             try {
-                byte[] content = checkInitContent();
-                out.write( content );
+                checkInitContent();
+                IOUtils.copy( new ByteArrayInputStream( content ), out );
             }
             catch (Exception e) {
                 throw new RuntimeException( "", e );
@@ -369,9 +380,7 @@ public class ShapefileContentProvider
                 throw container.exception;
             }
 
-            byte[] result = contentRef != null ? contentRef.get() : null;
-            
-            if (result == null || container.lastModified.after( modified )) {
+            if (content == null || container.lastModified.after( modified )) {
                 // generate shapefile
                 container.getFileSize( "shp" );
 
@@ -396,8 +405,7 @@ public class ShapefileContentProvider
                     }
                     zipOut.close();
                     
-                    result = bout.toByteArray();
-                    contentRef = new SoftReference( result );
+                    content = bout.toByteArray();
                     modified = new Date();
                 }
                 catch (IOException e) {
@@ -407,7 +415,7 @@ public class ShapefileContentProvider
                     IOUtils.closeQuietly( in );
                 }
             }
-            return result;
+            return content;
         }
     }
 

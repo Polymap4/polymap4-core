@@ -155,7 +155,7 @@ class ShapefileGenerator {
         FeatureStore<SimpleFeatureType,SimpleFeature> shapeFs 
                 = (FeatureStore<SimpleFeatureType, SimpleFeature>)shapeDs.getFeatureSource( typeName );
 
-        // doing this without tx saves A LOT of memory; and tx is not
+        // doing this without tx saves a LOT of memory; and tx is not
         // strictly necessary here
 //        shapeFs.setTransaction( tx );
 //        try {

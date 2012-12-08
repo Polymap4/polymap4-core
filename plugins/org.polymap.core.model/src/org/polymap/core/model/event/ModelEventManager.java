@@ -26,6 +26,8 @@ import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.qi4j.Qi4jPlugin;
+import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -175,13 +177,19 @@ public class ModelEventManager
 
 
     /**
-     * Add the given property listener. Has no effect if the same listener is
-     * already registered. The given listener might be stored in a
-     * {@link WeakReference}, so the caller has to make sure that a strong
-     * reference exists as long as the listener should receive events.
+     * Add the given property listener. Has no effect if the same listener is already
+     * registered.
      * <p/>
-     * The listener receives events from all entities of all modules of the
-     * current session.
+     * Entity creation and deletion are signaled via special properties
+     * {@link PropertyChangeSupport#PROP_ENTITY_CREATED} and
+     * {@link PropertyChangeSupport#PROP_ENTITY_REMOVED}.
+     * <p/>
+     * The given listener might be stored in a {@link WeakReference}, so the caller
+     * has to make sure that a strong reference exists as long as the listener should
+     * receive events.
+     * <p/>
+     * The listener receives events from all entities of all modules of the current
+     * session.
      */
     public boolean addPropertyChangeListener( PropertyChangeListener l, IEventFilter f ) {
         return propertyListeners.add( new FilteredPropertyChangeListener( l, f ) );

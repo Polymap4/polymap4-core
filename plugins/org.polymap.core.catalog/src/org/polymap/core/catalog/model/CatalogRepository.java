@@ -26,15 +26,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import net.refractions.udig.catalog.CatalogPlugin;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.catalog.CatalogImportDropListener;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.workbench.dnd.DesktopDndSupport;
 
 /**
  * Factory and repository for the domain model artifacts.
@@ -54,10 +55,20 @@ public class CatalogRepository
      * Get or create the repository for the current user session.
      */
     public static final CatalogRepository instance() {
-        return (CatalogRepository)Qi4jPlugin.Session.instance().module( CatalogRepository.class );
+        return Qi4jPlugin.Session.instance().module( CatalogRepository.class );
     }
 
-
+//    static ListenerList<CatalogStartupListener> startupListeners = new ListenerList();
+//    
+//    public static void addCatalogStartupListener( CatalogStartupListener l ) {
+//        startupListeners.add( l );    
+//    }
+//
+//    public interface CatalogStartupListener {
+//        void catalogStarted( ICatalog catalog );
+//    }
+    
+    
     // instance *******************************************
 
     private CatalogComposite        catalog;
@@ -72,7 +83,8 @@ public class CatalogRepository
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
         catalog = uow.get( CatalogComposite.class, "catalog" );
-        System.out.println( "Catalog: " + catalog );
+        
+        DesktopDndSupport.instance().addDropListener( new CatalogImportDropListener() );
     }
     
     

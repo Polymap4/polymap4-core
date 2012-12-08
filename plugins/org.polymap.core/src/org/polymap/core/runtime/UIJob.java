@@ -92,11 +92,18 @@ public abstract class UIJob
 
     private ProgressDialog      progressDialog;
     
+    private boolean             showProgress;
+    
     private IProgressMonitor    executionMonitor;
 
     private SessionContext      sessionContext;
-    
-    
+
+
+    /**
+     * Construct a new job with the given name and default priority {@link Job#LONG}.
+     * 
+     * @param name The name of the job. Must not be null.
+     */
     public UIJob( String name ) {
         super( name );
         this.sessionContext = SessionContext.current();
@@ -128,12 +135,22 @@ public abstract class UIJob
     
 
     protected final IStatus run( final IProgressMonitor monitor ) {
-        Runnable runnable = new Runnable() {
+        sessionContext.execute( new Runnable() {
             public void run() {
                 if (display == null || !PlatformUI.getWorkbench().isClosing()) {
                     try {
                         executionMonitor = monitor;
                         threadJob.set( UIJob.this );
+
+//                        if (showProgress && display != null) {
+//                            if (progressDialog == null) {
+//                                display.syncExec( new Runnable() {
+//                                    public void run() {
+//                                        progressDialog = new ProgressDialog( getName(), true );
+//                                    }
+//                                });
+//                            }
+//                        }
 
                         IProgressMonitor mon = progressDialog != null
                                 ? progressDialog.getProgressMonitor() : monitor;
@@ -150,7 +167,7 @@ public abstract class UIJob
                     catch (Throwable e) {
                         log.warn( "Job exception: ", e );
                         resultStatus = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID,
-                                Messages.get( "UIJob_errormsg" ), e );
+                                e.getLocalizedMessage() /*Messages.get( "UIJob_errormsg" )*/, e );
                     }
                     finally {
                         threadJob.set( null );
@@ -158,9 +175,7 @@ public abstract class UIJob
                     }
                 }
             }
-        };
-        sessionContext.execute( runnable );
-        
+        });
         return resultStatus;
     }
 
@@ -173,12 +188,19 @@ public abstract class UIJob
      * @param showRunInBackground Signals that the dialog should have a
      *        "showInBackground" button.
      */
-    public UIJob setShowProgressDialog( String dialogTitle, boolean showRunInBackground ) {
+    public UIJob setShowProgressDialog( final String dialogTitle, final boolean showRunInBackground ) {
+        this.showProgress = true;
+
         // enable UI only if we have a display
         if (display != null) {
-//        if (progressDialog == null) {
-//            progressDialog = new ProgressDialog( dialogTitle, showRunInBackground );
-//        }
+//            if (progressDialog == null) {
+//                display.syncExec( new Runnable() {
+//                    public void run() {
+//                        progressDialog = new ProgressDialog( dialogTitle != null ? dialogTitle : getName(), 
+//                                showRunInBackground );
+//                    }
+//                });
+//            }
             setUser( true );
         }
         return this;
@@ -186,7 +208,7 @@ public abstract class UIJob
 
     
     public boolean isShowProgressDialog() {
-        return progressDialog != null;
+        return showProgress;
     }
 
 
@@ -225,7 +247,7 @@ public abstract class UIJob
             return true;
         }
 
-        Display threadDisplay = Display.getCurrent();
+        final Display threadDisplay = Display.getCurrent();
         final Timer timer = new Timer();
         while (!done.get() 
                 && timer.elapsedTime() < timeoutMillis
@@ -234,23 +256,31 @@ public abstract class UIJob
             Thread.yield();
             if (threadDisplay != null) {
                 if (!threadDisplay.readAndDispatch()) {
-                    // just waiting on done causes the UIThread to hang, so use
-                    // timerExec and sleep
-                    threadDisplay.timerExec( 250, new Runnable() {
-                        public void run() {
-                            // just wakeup thread                                
-                        }
-                    });
-                    threadDisplay.sleep();
+                    synchronized (done) {
+                        try { 
+                            done.wait( 300 ); 
+                            log.debug( "wake after: " + timer.elapsedTime() + "ms" );
+                        } 
+                        catch (InterruptedException e) {}
+                    }
+//                    // just wait on #done blocks hangs;
+//                    // display.sleep() might wait forever, so we need this watchdog
+//                    Polymap.executorService().execute( new Runnable() {
+//                        public void run() {
+//                            synchronized (done) {
+//                                try { done.wait( 300 ); } catch (InterruptedException e) {}
+//                            }
+//                            log.info( "wake ..." );
+//                            threadDisplay.wake();
+//                        }
+//                    });
+//                    threadDisplay.sleep();
                 }
             }
             else {
                 synchronized (done) {
-                    try {
-                        done.wait( 250 );
-                    }
-                    catch (InterruptedException e) {
-                    }
+                    try { done.wait( 250 );
+                    } catch (InterruptedException e) {}
                 }
             }
         }
@@ -336,7 +366,6 @@ public abstract class UIJob
                     ? title : Messages.get( "UIJob_ProgressDialog_title" );
             this.showRunInBackground = showRunInBackground;
             setCancelable( true );
-            setSystem( false );
 //            setBlockOnOpen( true );
             
             // job listener

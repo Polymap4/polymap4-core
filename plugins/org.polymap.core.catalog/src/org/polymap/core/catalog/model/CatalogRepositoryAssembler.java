@@ -61,6 +61,8 @@ public class CatalogRepositoryAssembler
     private UnitOfWorkFactory           uowf;
     
     private Module                      module;
+
+    private File                        moduleRoot;
     
     
     public QiModule newModule() {
@@ -82,7 +84,7 @@ public class CatalogRepositoryAssembler
 
     public void assemble( ApplicationAssembly _app )
     throws Exception {
-        log.info( "Assembling: org.polymap.core.catalog ..." );
+        log.info( "assembling ..." );
         
         LayerAssembly domainLayer = _app.layerAssembly( "adhoc-layer" );
         ModuleAssembly domainModule = domainLayer.moduleAssembly( "catalog-module" );
@@ -90,16 +92,12 @@ public class CatalogRepositoryAssembler
                 ServiceComposite.class,
                 CatalogComposite.class
         );
-//        domainModule.addTransients( 
-//                NewServiceOperation.class,
-//                RemoveServiceOperation.class
-//        );
 
         // persistence: workspace/JSON
         File root = new File( Polymap.getWorkspacePath().toFile(), "data" );
         root.mkdir();
         
-        File moduleRoot = new File( root, "org.polymap.core.catalog" );
+        moduleRoot = new File( root, "org.polymap.core.catalog" );
         moduleRoot.mkdir();
 
         domainModule.addServices( JsonEntityStoreService.class )
@@ -112,32 +110,20 @@ public class CatalogRepositoryAssembler
     
     public void createInitData() 
     throws Exception {
+        if (moduleRoot.list().length == 0) {
+            UnitOfWork start_uow = uowf.newUnitOfWork();
+            log.info( "creating initial data..." );
+            CatalogComposite catalog = start_uow.newEntity( CatalogComposite.class, "catalog" );
+            catalog.addPermission( Authentication.ALL.getName(), AclPermission.ALL );
+            start_uow.complete();
+        }
         
         // check catalog
         UnitOfWork start_uow = uowf.newUnitOfWork();
         try {
             CatalogComposite catalog = start_uow.get( CatalogComposite.class, "catalog" );
-            System.out.println( "Catalog: " + catalog );
             if (catalog == null) {
                 throw new NoSuchEntityException( null );
-            }
-        }
-        // init catalog
-        catch (Throwable e) {
-            try {
-                log.info( "No config or error, creating catalog composite. (" + e + ")" );
-//                EntityBuilder<IMap> builder = start_uow.newEntityBuilder( IMap.class, "root" );
-//                //builder.instance().setLabel( "root" );
-//                IMap rootMap = builder.newInstance();
-//                rootMap.setLabel( "root" );
-
-                CatalogComposite catalog = start_uow.newEntity( CatalogComposite.class, "catalog" );
-                catalog.addPermission( Authentication.ALL.getName(), AclPermission.ALL );
-                System.out.println( "    created: " + catalog );
-            }
-            catch (Exception e1) {
-                log.error( e1.getMessage(), e1 );
-                throw e1;
             }
         }
         finally {

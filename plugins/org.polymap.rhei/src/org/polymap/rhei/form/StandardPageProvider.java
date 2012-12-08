@@ -20,24 +20,27 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.vividsolutions.jts.geom.Geometry;
-
 import org.geotools.feature.FeatureTypes;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.PropertyDescriptor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Geometry;
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 import org.eclipse.jface.action.Action;
 
+import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.Polymap;
 
 import org.polymap.rhei.field.CheckboxFormField;
@@ -147,6 +150,10 @@ public class StandardPageProvider
                             last = field;
                         }
                     }
+                }
+                if (last != null) {
+                    new Label( site.getPageBody(), SWT.SEPARATOR ).setLayoutData(
+                            new SimpleFormData().top( last, 2 ).bottom( 100 ).create() );
                 }
             }
         });

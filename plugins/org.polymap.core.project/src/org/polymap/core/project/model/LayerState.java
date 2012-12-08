@@ -46,10 +46,9 @@ import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.property.Property;
 
-import org.eclipse.ui.views.properties.IPropertySource;
-
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.project.IGeoResourceResolver;
 import org.polymap.core.project.ILayer;
@@ -57,7 +56,6 @@ import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.RenderStatus;
-import org.polymap.core.project.ui.properties.LayerPropertySource;
 import org.polymap.core.style.IStyle;
 import org.polymap.core.style.IStyleCatalog;
 import org.polymap.core.style.StylePlugin;
@@ -80,6 +78,15 @@ public interface LayerState
     
     @Optional
     Property<String>                styleId();
+    
+    /**
+     * The complete SLD of this layer. The primary source of the style for the
+     * layer is the catalog. This property just changes the entity when the style
+     * is changed and helps the "dirty" the entity. It might be used for other
+     * things in the future.
+     */
+    @Optional
+    Property<String>                style();
     
     @Optional
     @UseDefaults
@@ -123,13 +130,11 @@ public interface LayerState
         private boolean                         selectable = false;
         
         
+        /**
+         * Not used, see {@link ILayer}. 
+         */
         public Object getAdapter( Class adapter ) {
-            if (IPropertySource.class.isAssignableFrom( adapter )) {
-                return new LayerPropertySource( this );
-            }
-            else {
-                return null;
-            }
+            return Platform.getAdapterManager().getAdapter( this, adapter );
         }    
 
         public int getOrderKey() {
@@ -281,7 +286,9 @@ public interface LayerState
             }
             else if (style == old) {
                 // make the layer "dirty" in the UI and for service to reload on save
-                styleId().set( styleId().get() );
+                String sld = style.createSLD( new NullProgressMonitor() );
+                style().set( sld );
+                log.info( "Style of layer: " + id() + "\n" + sld );
             }
             else {
                 throw new IllegalStateException( "Wrong style set: " + style );

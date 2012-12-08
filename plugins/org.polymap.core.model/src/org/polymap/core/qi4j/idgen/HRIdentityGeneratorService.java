@@ -52,7 +52,7 @@ public interface HRIdentityGeneratorService
 
 
         public synchronized String generate( Class<? extends Identity> compositeType ) {
-            StringBuffer result = new StringBuffer( 128 );
+            StringBuilder result = new StringBuilder( 128 );
             
             result.append( compositeType.getSimpleName() );
             

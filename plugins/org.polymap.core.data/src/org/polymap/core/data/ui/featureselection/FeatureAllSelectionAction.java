@@ -63,14 +63,16 @@ public class FeatureAllSelectionAction
                     // ensure that the view is shown
                     FeatureSelectionView view = FeatureSelectionView.open( selectedLayer );
 
-                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( selectedLayer, false );
-                    int featureCount = fs.getCount( new DefaultQuery( null, Filter.INCLUDE ) );
-                    if (featureCount < 1000
-                            || MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
-                                    Messages.get( "FeatureAllSelectionAction_confirm_title" ),
-                                    Messages.get( "FeatureAllSelectionAction_confirm_msg", featureCount ) )) {
-                        
-                        view.loadTable( Filter.INCLUDE );
+                    PipelineFeatureSource fs = view.getFeatureStore();
+                    if (fs != null) {
+                        int featureCount = fs.getCount( new DefaultQuery( null, /*view.getFilter()*/Filter.INCLUDE ) );
+                        if (featureCount < 1000
+                                || MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                                        Messages.get( "FeatureAllSelectionAction_confirm_title" ),
+                                        Messages.get( "FeatureAllSelectionAction_confirm_msg", featureCount ) )) {
+
+                            view.loadTable( Filter.INCLUDE );
+                        }
                     }
                 }
                 catch (Exception e) {

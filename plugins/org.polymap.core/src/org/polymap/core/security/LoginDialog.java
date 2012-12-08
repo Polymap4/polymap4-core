@@ -21,9 +21,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.resource.ImageDescriptor;
-
-import org.polymap.core.CorePlugin;
 
 /**
  * Handles the callbacks to show an UI for the LoginModule.
@@ -31,8 +28,8 @@ import org.polymap.core.CorePlugin;
 public class LoginDialog
         extends AbstractLoginDialog {
 
-    private static final ImageDescriptor titleImageDescriptor = 
-            CorePlugin.imageDescriptor( "icons/polymap_logo2_app.png" ); //$NON-NLS-1$
+//    private static final ImageDescriptor titleImageDescriptor = 
+//            CorePlugin.imageDescriptor( "icons/polymap_logo2_app.png" ); //$NON-NLS-1$
 
 
     public LoginDialog() {

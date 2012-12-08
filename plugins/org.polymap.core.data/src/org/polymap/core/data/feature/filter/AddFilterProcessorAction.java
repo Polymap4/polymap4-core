@@ -15,14 +15,13 @@
 package org.polymap.core.data.feature.filter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.opengis.filter.Filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

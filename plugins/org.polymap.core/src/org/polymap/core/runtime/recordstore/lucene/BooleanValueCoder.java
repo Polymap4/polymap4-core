@@ -19,8 +19,12 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+
 import org.polymap.core.runtime.recordstore.QueryExpression;
+import org.polymap.core.runtime.recordstore.QueryExpression.Equal;
 
 /**
  * Encode/decode boolean values. 
@@ -30,17 +34,17 @@ import org.polymap.core.runtime.recordstore.QueryExpression;
 final class BooleanValueCoder
         implements LuceneValueCoder {
 
-    public static final String      FIELD_SUFFIX = "_bool";
+    public static final String      SUFFIX = "_bool";
     
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         if (value instanceof Boolean) {
-            Field field = (Field)doc.getFieldable( key+FIELD_SUFFIX );
+            Field field = (Field)doc.getFieldable( key+SUFFIX );
             if (field != null) {
                 field.setValue( value.toString() );
             }
             else {
-                doc.add( new Field( key, value.toString(), 
+                doc.add( new Field( key+SUFFIX, value.toString(), 
                         Store.YES, indexed ? Index.NOT_ANALYZED : Index.NO ) );
             }
             return true;
@@ -52,20 +56,19 @@ final class BooleanValueCoder
     
 
     public Object decode( Document doc, String key ) {
-        Fieldable field = doc.getFieldable( key+FIELD_SUFFIX );
+        Fieldable field = doc.getFieldable( key+SUFFIX );
         return field != null ? Boolean.valueOf( field.stringValue() ) : null;
     }
 
 
     public Query searchQuery( QueryExpression exp ) {
         // EQUALS
-//        if (exp instanceof QueryExpression.Equal) {
-//            Equal equalExp = (QueryExpression.Equal)exp;
-//            
-//            if (equalExp.value instanceof String) {
-//                return new TermQuery( new Term( equalExp.key, (String)equalExp.value) );
-//            }
-//        }
+        if (exp instanceof QueryExpression.Equal) {
+            Equal equalExp = (QueryExpression.Equal)exp;
+            if (equalExp.value instanceof Boolean) {
+                return new TermQuery( new Term( equalExp.key+SUFFIX, equalExp.value.toString()) );
+            }
+        }
         return null;
     }
     

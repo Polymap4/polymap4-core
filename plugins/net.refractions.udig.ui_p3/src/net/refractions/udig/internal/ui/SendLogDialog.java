@@ -157,7 +157,7 @@ public class SendLogDialog extends TitleAreaDialog {
     @Override
     protected void createButtonsForButtonBar( Composite parent ) {
         createButton(parent, IDialogConstants.PROCEED_ID, Messages.SendLogDialog_submit, false);
-        createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
         refreshButtons();
     }
 

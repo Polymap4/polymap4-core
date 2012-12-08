@@ -20,6 +20,8 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
@@ -109,6 +111,14 @@ public class LayerBufferDecorator
     public void decorate( Object elm, IDecoration decoration ) {
         if (elm instanceof ILayer) {
             ILayer layer = (ILayer)elm;
+
+            try {
+                layer.id();
+            }
+            catch (NoSuchEntityException e) {
+                // handled by EntityModificationDecorator
+                return;
+            }
 
             LayerFeatureBufferManager layerBuffer = LayerFeatureBufferManager.forLayer( layer, true );
             if (layerBuffer == null) {

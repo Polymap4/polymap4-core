@@ -22,8 +22,14 @@ import java.util.Map;
 
 import org.opengis.feature.Property;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ScrollBar;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -37,7 +43,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
+
 import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormField;
@@ -63,6 +71,8 @@ import org.polymap.rhei.internal.DefaultFormFieldLabeler;
 public class FormEditorPageContainer
         extends FormPage
         implements IFormEditorPageSite, IFormFieldListener {
+
+    static Log log = LogFactory.getLog( FormEditorPageContainer.class );
 
     private IFormEditorPage             page;
 
@@ -109,25 +119,26 @@ public class FormEditorPageContainer
         fieldChange( new FormFieldEvent( source, fieldName, null, eventCode, null, newValue ) );
     }
 
-    /*
-     * Called from form fields.
+    /**
+     * Called from form fields via {@link IFormFieldListener}.
      */
     public void fieldChange( FormFieldEvent ev ) {
-// XXX a event scope is needed when registering for listener for field to distinguish
-// between local event within that field or changes from other fields in the page or whole form
-
-//        // propagate event to all fields
-//        for (FormFieldComposite field : fields) {
-//            if (field.getFormField() != ev.getFormField()) {
-//                field.fireEvent( ev.getEventCode(), ev.getNewValue() );
-//            }
-//        }
-
-        for (Object l : listeners.getListeners()) {
-            ((IFormFieldListener)l).fieldChange( ev );
-        }
+        // propagate to my listeners
+        fireEventLocally( ev );
+        // propagate to other pages
+        ((FormEditor)getEditor()).propagateFieldChange( ev, this );
     }
 
+    public void fireEventLocally( FormFieldEvent ev ) {
+        for (Object l : listeners.getListeners()) {
+            try {
+                ((IFormFieldListener)l).fieldChange( ev );
+            }
+            catch (Exception e) {
+                log.warn( "", e );
+            }
+        }        
+    }
 
     public boolean isDirty() {
         if (page instanceof IFormEditorPage2) {
@@ -209,7 +220,7 @@ public class FormEditorPageContainer
     protected void createFormContent( IManagedForm managedForm ) {
         form = managedForm;
         toolkit = new FormEditorToolkit( form.getToolkit() );
-
+        
         // ask the delegate to create content
         page.createFormContent( this );
         try {
@@ -219,6 +230,21 @@ public class FormEditorPageContainer
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
 
+        // XXX hack: help the ScrolledCompositeLayout to correctly display
+        // the vertical scrollbar on init
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                Rectangle clientSize = form.getForm().getClientArea();
+                ScrollBar vbar = form.getForm().getVerticalBar();
+                vbar.setVisible( true );
+                
+                Point formSize = form.getForm().computeSize( clientSize.width-vbar.getSize().x, SWT.DEFAULT );
+                
+                form.getForm().setMinHeight( clientSize.height );
+                form.getForm().getContent().setBounds( 0, 0, formSize.x, formSize.y );
+            }
+        });
+        
         // form.getToolkit().decorateFormHeading( form.getForm().getForm() );
 
         // add page editor actions

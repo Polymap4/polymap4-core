@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,18 +11,12 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.model.security;
 
 import java.security.Principal;
 
+import static org.polymap.core.model.Messages.i18n;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.security.Authentication;
 import org.polymap.core.security.SecurityUtils;
@@ -34,7 +27,6 @@ import org.polymap.core.security.SecurityUtils;
  * on.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public final class ACLUtils {
@@ -77,26 +69,29 @@ public final class ACLUtils {
         
         // nothing found
         if (throwException) {
-            throwException( permission );
+            throwException( entity, permission );
         }
         return false;
     }
     
     
-    private static void throwException( AclPermission permission ) {
-        StringBuffer principals  = new StringBuffer();
+    private static void throwException( ACL entity, AclPermission permission ) {
+        StringBuilder principals  = new StringBuilder();
         for (Principal principal : Polymap.instance().getPrincipals()) {
             principals.append( principal.getName() ).append( " " );
         }
 
         if (AclPermission.READ.equals( permission )) {
-            throw new SecurityException( "Keine Lese-Berechtigung für: " + principals.toString() );
+            throw new SecurityException( i18n( "ACL_noReadPermission", principals.toString() ) );
         }
         else if (AclPermission.WRITE.equals( permission )) {
-            throw new SecurityException( "Keine Schreib-Berechtigung." );
+            throw new SecurityException( i18n( "ACL_noWritePermission", principals.toString() ) );
         }
         else if (AclPermission.DELETE.equals( permission )) {
-            throw new SecurityException( "Keine Berechtigung zum Löschen dieses Objektes." );
+            throw new SecurityException( i18n( "ACL_noDeletePermission", principals.toString() ) );
+        }
+        else if (AclPermission.ACL.equals( permission )) {
+            throw new SecurityException( i18n( "ACL_noAclPermission", principals.toString() ) );
         }
         else {
             throw new SecurityException( "Keine Berechtigung." );

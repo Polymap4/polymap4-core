@@ -39,8 +39,6 @@ public class DefaultSessionContextProvider
 
     private ConcurrentHashMap<String,DefaultSessionContext> contexts = new ConcurrentHashMap( 32, 0.75f, 4 );
     
-    //private ReentrantReadWriteLock              contextsLock = new ReentrantReadWriteLock();
-    
 
     /**
      * Map the current thread to the context with the given sessionKey. If no context
@@ -68,7 +66,7 @@ public class DefaultSessionContextProvider
         if (context == null) {
             if (create) {
                 context = newContext( sessionKey );
-                log.info( "new session context: " + sessionKey );
+                log.debug( "new session context: " + sessionKey );
                 DefaultSessionContext old = contexts.putIfAbsent( sessionKey, context );
                 // no lock -> check after put
                 context = old != null ? old : context;
@@ -95,17 +93,6 @@ public class DefaultSessionContextProvider
         }
         currentContext.set( null );
     }
-
-    
-//    public void inContext( String sessionKey, Runnable task ) {
-//        try {
-//            mapContext( sessionKey, false );
-//            task.run();
-//        }
-//        finally {
-//            unmapContext();
-//        }
-//    }
 
     
     protected DefaultSessionContext newContext( String sessionKey ) {

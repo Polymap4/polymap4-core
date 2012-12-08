@@ -73,6 +73,7 @@ public class FeatureSelectionViewMenuContribution
             public void widgetDefaultSelected( final SelectionEvent e ) {
                 if (e.detail == SWT.ARROW) {
                     Menu menu = new Menu( parent );
+                    menu.setLocation( parent.toDisplay( e.x, e.y ) );
 
                     FeatureOperationFactory factory = FeatureOperationFactory.forContext( 
                             FeatureSelectionViewMenuContribution.this );

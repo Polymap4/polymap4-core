@@ -23,37 +23,6 @@
 
 package org.polymap.core.data.feature;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geotools.data.DataStore;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.shapefile.indexed.IndexedShapefileDataStore;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.map.DefaultMapContext;
-import org.geotools.map.MapContext;
-import org.geotools.referencing.CRS;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import net.refractions.udig.catalog.IGeoResource;
-
-import org.polymap.core.data.pipeline.PipelineProcessor;
-import org.polymap.core.data.pipeline.ProcessorRequest;
-import org.polymap.core.data.pipeline.ProcessorResponse;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.project.ILayer;
 
 /**
  * Example code to render a shapefile. Currently it is not used because we

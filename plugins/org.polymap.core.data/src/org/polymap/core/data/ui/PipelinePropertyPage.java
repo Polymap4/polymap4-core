@@ -33,15 +33,16 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
+import org.eclipse.jface.preference.IPreferencePageContainer;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -58,6 +59,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.DataPlugin;
@@ -68,6 +70,7 @@ import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetProcessorConfigurationsOperation;
+import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -154,7 +157,17 @@ public class PipelinePropertyPage
     }
 
 
+    public PipelineHolder getPipelineHolder() {
+        IAdaptable obj = getElement();
+        return obj instanceof PipelineHolder 
+                ? (PipelineHolder)obj 
+                : (PipelineHolder)obj.getAdapter( PipelineHolder.class );
+    }
+
+
     public Control createContents( Composite parent ) {
+        noDefaultAndApplyButton();
+        
         SashForm composite = new SashForm( parent, SWT.VERTICAL );
         GridLayout layout = new GridLayout();
         composite.setLayout( layout );
@@ -180,7 +193,7 @@ public class PipelinePropertyPage
 
         try {
             List<PipelineProcessorConfiguration> content = result.getContent();
-            PipelineProcessorConfiguration[] array = (PipelineProcessorConfiguration[]) content.toArray(new PipelineProcessorConfiguration[content.size()]);
+            PipelineProcessorConfiguration[] array = content.toArray(new PipelineProcessorConfiguration[content.size()]);
             
             SetProcessorConfigurationsOperation op = ProjectRepository.instance().newOperation( 
                     SetProcessorConfigurationsOperation.class );
@@ -213,33 +226,23 @@ public class PipelinePropertyPage
     
     protected void createFirstSection( Composite parent ) {
         Composite section = new Composite( parent, SWT.NONE );
-        RowLayout sectionLayout = new RowLayout( SWT.HORIZONTAL );
-        sectionLayout.pack = true;
-        sectionLayout.wrap = false;
-        sectionLayout.marginLeft = 0;
-        sectionLayout.marginRight = 0;
-        section.setLayout( sectionLayout );
+        section.setLayout( new FormLayout() );
         
-        GridData gridData = new GridData();
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.verticalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-//        col.setLayoutData( gridData );
+        int spacing = 5;
 
+        // separator ******************
+        Label sep = new Label( section, SWT.SEPARATOR | SWT.HORIZONTAL );
+        sep.setLayoutData( new SimpleFormData()
+                .top( 100, -20 ).bottom( 100 ).left( 0 ).right( 100 ).create() );
 
-        // pipeline section
-        Composite procsSection = new Composite( section, SWT.NONE );
-        RowLayout procsLayout = new RowLayout( SWT.VERTICAL );
-        procsLayout.pack = true;
-        procsLayout.marginLeft = 0;
-        procsLayout.marginRight = 0;
-        procsSection.setLayout( procsLayout );
-        
-        Label l = new Label( procsSection, SWT.NONE );
+        // processors section *********
+        Label l = new Label( section, SWT.NONE );
         l.setText( Messages.get( "PipelinePropertyPage_activeProcessors" ) );
+        l.setLayoutData( new SimpleFormData().left( 0 ).top( 0 ).right( 38 ).create() );
 
-        procsTable = new TableViewer( procsSection, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
-        procsTable.getControl().setLayoutData( new RowData( 120, 140 ) );
+        procsTable = new TableViewer( section, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
+        procsTable.getControl().setLayoutData( 
+                new SimpleFormData().left( 0 ).top( l ).right( 41 ).bottom( sep ).width( 50 ).create() );
 
         procsTable.addSelectionChangedListener( new ISelectionChangedListener() {
             public void selectionChanged( SelectionChangedEvent ev ) {
@@ -270,54 +273,15 @@ public class PipelinePropertyPage
             }
         });
         
-        // buttons col
-        Composite buttons = new Composite( section, SWT.NONE );
-        RowLayout buttonsLayout = new RowLayout( SWT.VERTICAL );
-        buttonsLayout.pack = false;
-        buttonsLayout.justify = true;
-        buttonsLayout.marginTop = 30;
-        buttons.setLayout( buttonsLayout );
-
-        // add button
-        addBtn = new Button( buttons, SWT.BORDER );
-        addBtn.setText( "<< " + Messages.get( "PipelinePropertyPage_add" ) );
-        addBtn.setToolTipText( Messages.get( "PipelinePropertyPage_addTip" ) );
-        addBtn.addSelectionListener( new SelectionAdapter() {
-            public void widgetSelected( SelectionEvent ev ) {
-                IStructuredSelection sel = (IStructuredSelection)extsTable.getSelection();
-                addProcessor( (ProcessorExtension)sel.getFirstElement() );
-                updateEnables();
-                extsTable.refresh();
-            }
-        });
-        
-        // remove button
-        removeBtn = new Button( buttons, SWT.BORDER );
-        removeBtn.setText( ">> " + Messages.get( "PipelinePropertyPage_remove" ) );
-        removeBtn.setToolTipText( Messages.get( "PipelinePropertyPage_removeTip" ) );
-        removeBtn.addSelectionListener( new SelectionAdapter() {
-            public void widgetSelected( SelectionEvent ev ) {
-                IStructuredSelection sel = (IStructuredSelection)procsTable.getSelection();
-                PipelineProcessorConfiguration proc = (PipelineProcessorConfiguration)sel.getFirstElement();
-                
-                result.remove( proc );
-                updateEnables();
-                extsTable.refresh();
-            }
-        });
-        
-        // extensions section
-        Composite extsSection = new Composite( section, SWT.NONE );
-        RowLayout extsLayout = new RowLayout( SWT.VERTICAL );
-        extsLayout.pack = true;
-        extsSection.setLayout( extsLayout );
-        
-        Label l2 = new Label( extsSection, SWT.None );
+        // extensions section *********
+        Label l2 = new Label( section, SWT.None );
         l2.setText( Messages.get( "PipelinePropertyPage_availableProcessors" ) );
+        l2.setLayoutData( new SimpleFormData().top( 0 ).right( 100 ).left( 59 ).create() );
         
         // extsTable
-        extsTable = new TableViewer( extsSection, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
-        extsTable.getControl().setLayoutData( new RowData( 120, 140 ) );
+        extsTable = new TableViewer( section, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
+        extsTable.getControl().setLayoutData( 
+                new SimpleFormData().top( l2 ).right( 100 ).left( 59 ).bottom( sep ).width( 50 ).create() );
 
         extsTable.addSelectionChangedListener( new ISelectionChangedListener() {
             public void selectionChanged( SelectionChangedEvent event ) {
@@ -361,7 +325,40 @@ public class PipelinePropertyPage
             }
         });
 
-        //createSeparator( composite );
+        // buttons col ****************
+        // add button
+        addBtn = new Button( section, SWT.NONE );
+        addBtn.setText( Messages.get( "PipelinePropertyPage_add" ) );
+        addBtn.setToolTipText( Messages.get( "PipelinePropertyPage_addTip" ) );
+        addBtn.setImage( DataPlugin.getDefault().imageForName( "icons/etool16/add.gif" ) );
+        addBtn.setLayoutData( 
+                new SimpleFormData( spacing ).top( 30 ).left( procsTable.getControl() ).right( extsTable.getControl() ).create() );
+        addBtn.addSelectionListener( new SelectionAdapter() {
+            public void widgetSelected( SelectionEvent ev ) {
+                IStructuredSelection sel = (IStructuredSelection)extsTable.getSelection();
+                addProcessor( (ProcessorExtension)sel.getFirstElement() );
+                updateEnables();
+                extsTable.refresh();
+            }
+        });
+
+        // remove button
+        removeBtn = new Button( section, SWT.NONE );
+        removeBtn.setText( Messages.get( "PipelinePropertyPage_remove" ) );
+        removeBtn.setToolTipText( Messages.get( "PipelinePropertyPage_removeTip" ) );
+        removeBtn.setImage( DataPlugin.getDefault().imageForName( "icons/etool16/delete.gif" ) );
+        removeBtn.setLayoutData( 
+                new SimpleFormData( spacing ).top( addBtn ).left( procsTable.getControl() ).right( extsTable.getControl() ).create() );
+        removeBtn.addSelectionListener( new SelectionAdapter() {
+            public void widgetSelected( SelectionEvent ev ) {
+                IStructuredSelection sel = (IStructuredSelection)procsTable.getSelection();
+                PipelineProcessorConfiguration proc = (PipelineProcessorConfiguration)sel.getFirstElement();
+
+                result.remove( proc );
+                updateEnables();
+                extsTable.refresh();
+            }
+        });
     }
 
     
@@ -380,22 +377,52 @@ public class PipelinePropertyPage
             propertyPage.dispose();
             propertyPage = null;
         }
+        for (Control child : propertiesSection.getChildren()) {
+            child.dispose();
+        }
         if (config == null) {
             return;
         }
         
         ProcessorExtension ext = ProcessorExtension.forExtensionId( config.getExtensionId() );
         try {
-            if (ext.hasPropertyPage()) {
+            if (ext == null) {
+                Label l = new Label( propertiesSection, SWT.NONE );
+                l.setText( Messages.get( "PipelinePropertyPage_noExtension" ) );                
+            }
+            else if (ext.hasPropertyPage()) {
                 propertyPage = ext.newPropertyPage();
 
                 PipelineHolder elm = (PipelineHolder)getElement();
                 propertyPage.init( elm, config.getConfig() );
                 propertyPage.createControl( propertiesSection );
+                
+                propertyPage.setContainer( new IPreferencePageContainer() {
+                    public void updateTitle() {
+                        setTitle( propertyPage.getTitle() );
+                    }
+                    public void updateMessage() {
+                        if (propertyPage.getErrorMessage() != null) {
+                            setMessage( propertyPage.getErrorMessage(), ERROR );
+                        }
+                        else if (propertyPage.getMessage() != null) {
+                            setMessage( propertyPage.getMessage(), INFORMATION );
+                        }
+                        else {
+                            setMessage( null );
+                        }
+                    }
+                    public void updateButtons() {
+                        setValid( propertyPage.isValid() );
+                    }
+                    public IPreferenceStore getPreferenceStore() {
+                        return null;
+                    }
+                });
             }
             else {
                 Label l = new Label( propertiesSection, SWT.NONE );
-                l.setText( "No properties to setup." );
+                l.setText( Messages.get( "PipelinePropertyPage_noConfig" ) );
             }
             propertiesSection.getParent().layout( true );
             propertiesSection.layout( true );
@@ -426,15 +453,6 @@ public class PipelinePropertyPage
         composite.setLayoutData( data );
 
         return composite;
-    }
-
-    
-    protected void createSeparator( Composite parent ) {
-        Label separator = new Label( parent, SWT.SEPARATOR | SWT.HORIZONTAL );
-        GridData gridData = new GridData();
-        gridData.horizontalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        separator.setLayoutData( gridData );
     }
 
 }

@@ -34,7 +34,6 @@
 			<remoteRepository refid="central.repository" />
 
             <dependency groupId="com.healthmarketscience.jackcess" artifactId="jackcess" version="1.1.18" />
-            <dependency groupId="net.sf.ehcache" artifactId="ehcache" version="1.4.1" />
             <dependency groupId="org.supercsv" artifactId="SuperCSV" version="1.52" />
 
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />

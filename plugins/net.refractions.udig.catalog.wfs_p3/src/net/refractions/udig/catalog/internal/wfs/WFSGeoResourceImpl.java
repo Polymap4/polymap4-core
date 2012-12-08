@@ -16,32 +16,29 @@
  */
 package net.refractions.udig.catalog.internal.wfs;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
 
-import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IGeoResourceInfo;
 import net.refractions.udig.catalog.IService;
-import net.refractions.udig.ui.graphics.Glyph;
 
-import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.ResourceInfo;
 import org.geotools.data.wfs.WFSDataStore;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Access a feature type in a wfs.

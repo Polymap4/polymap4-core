@@ -150,7 +150,7 @@ public class Qi4jPlugin
 	public static final class Session
 	        extends SessionSingleton {
 	
-	    private Map<Class,QiModule>        modules = new HashMap();
+	    private Map<Class,QiModule>        modules;
 	    
 	    
         /**
@@ -171,15 +171,21 @@ public class Qi4jPlugin
 			}
 	    	
 	    	// build the modules of the session
-	        for (QiModuleAssembler assembler : Qi4jPlugin.assemblers) {
-	            QiModule module = assembler.newModule();
-	            modules.put( module.getClass(), module );
-	        }
+	    	if (modules == null) {
+	    	    modules = new HashMap();
+	    	    for (QiModuleAssembler assembler : Qi4jPlugin.assemblers) {
+	    	        QiModule module = assembler.newModule();
+	    	        modules.put( module.getClass(), module );
+	    	    }
+	    	    for (QiModule module : modules.values()) {
+	    	        module.init( this );
+	    	    }
+	    	}
 	    }
 	    
-	    public QiModule module( Class type ) {
+	    public <T extends QiModule> T module( Class<T> type ) {
 	        QiModule result = modules.get( type );
-	        return result;
+	        return (T)result;
 	    }
 
 //	    /**

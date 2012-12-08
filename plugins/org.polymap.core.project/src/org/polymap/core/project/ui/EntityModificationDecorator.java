@@ -12,13 +12,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.project.ui;
 
@@ -29,6 +22,8 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -38,12 +33,12 @@ import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.eclipse.core.runtime.IConfigurationElement;
-
-import org.polymap.core.model.event.ModelStoreEvent;
+import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IModelStoreListener;
 import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.ModelStoreEvent;
+import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.EntityChangeStatus;
@@ -54,7 +49,6 @@ import org.polymap.core.runtime.Polymap;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class EntityModificationDecorator
@@ -109,32 +103,36 @@ public class EntityModificationDecorator
     }
 
     public void decorate( Object elm, IDecoration decoration ) {
-        ModelChangeSupport entity = (ModelChangeSupport)elm;
-        log.debug( "### Decorating: entity=" + entity.id() );
-        EntityChangeStatus entityState = EntityChangeStatus.forEntity( entity );
-        
-        boolean dirty = entityState.isDirty();
-        boolean pendingConflict = entityState.isConcurrentlyDirty();
-        boolean conflicting = entityState.isConflicting();
+        try {
+            ModelChangeSupport entity = (ModelChangeSupport)elm;
+            EntityChangeStatus entityState = EntityChangeStatus.forEntity( entity );
+            
+            boolean dirty = entityState.isDirty();
+            boolean pendingConflict = entityState.isConcurrentlyDirty();
+            boolean conflicting = entityState.isConflicting();
 
-        if (dirty && conflicting) {
-            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, conflictImage );
-            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-            decoration.addPrefix( "# " );
-        }
-        else if (!dirty && conflicting) {
-            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, warningImage );
-            //decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-            decoration.addPrefix( "< " );
-        }
-        else if (dirty) {
-            ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, dirtyImage );
-            decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-            decoration.addPrefix( "> " );
-        }
+            if (dirty && conflicting) {
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, conflictImage );
+                decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+                decoration.addPrefix( "# " );
+            }
+            else if (!dirty && conflicting) {
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, warningImage );
+                //decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+                decoration.addPrefix( "< " );
+            }
+            else if (dirty) {
+                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, dirtyImage );
+                decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
+                decoration.addPrefix( "> " );
+            }
 
-        // register
-        decorated.put( entity.id(), entity );
+            // register
+            decorated.put( entity.id(), entity );
+        }
+        catch (NoSuchEntityException e) {
+            decoration.addSuffix( " (deleted)" );
+        }
     }
 
     
@@ -153,17 +151,50 @@ public class EntityModificationDecorator
         if (module == null) {
             return;
         }
-        if (display.isDisposed()) {
+        else if (display.isDisposed()) {
             dispose();
         }
         else {
-            display.asyncExec( new Runnable() {
-                public void run() {
-                    fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
-//                    log.warn( "Skipping global event: " + ev );
-                }
-            });
+            // just listen to COMMIT events; CHANGE events are handled by
+            // LayerNavigator and other views directly; firing labelChange on CHANGE
+            // causes a race condition and throws exception for deleted entities (layer)
+            if (ev != null && ev.getEventType() == EventType.COMMIT) {
+                display.asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            fireLabelProviderChanged( new LabelProviderChangedEvent( 
+                                    EntityModificationDecorator.this ) );
+                        }
+                        catch (Exception e) {
+                            log.error( "", e );
+                        }
+                    }
+                });
+            }
         }
     }
-    
+
+
+//    /**
+//     * Overrides the default implementation in order to catch
+//     * {@link NoSuchEntityException} if entity was deleted right before.
+//     */
+//    protected void fireLabelProviderChanged( final LabelProviderChangedEvent ev ) {
+//        for (final Object l : getListeners()) {
+//            try {
+//                ((ILabelProviderListener)l).labelProviderChanged( ev );
+//            }
+//            catch (OperationCanceledException e) {
+//                log.info( "Operation canceled.", e );
+//            }
+//            catch (NoSuchEntityException e) {
+//                log.info( "Entity deleted.", e );                
+//            }
+//            catch (Throwable e) {
+//                Policy.getLog().log( 
+//                        new Status( IStatus.ERROR, Policy.JFACE, IStatus.ERROR, "Exception occurred", e ) );
+//            }
+//        }
+//    }
+
 }

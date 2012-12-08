@@ -1,11 +1,22 @@
 * {
-    background-color: #f4f4fb;
+    background-color: #f0f0f0;
 }
 
-Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label {
-    background-color: #f4f4fb;
+Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label, Label:hover, CLabel {
+    background-color: #f0f0f0;
+}
+CTabItem:selected {
+    background-color: #909095;
+    color: #ffffff;
+    /*background-color: #C5DCFE;
+    color: black; */
 }
 
+Shell[BORDER] {
+    /*border-radius: 4px;*/
+    /*border: 2px solid #808080;*/
+}
+ 
 Shell-DisplayOverlay {
     background-image: none;
     background-color: #000000;
@@ -14,63 +25,85 @@ Shell-DisplayOverlay {
 }
 
 Menu {
-    background-color: #fefefe;
-    /*animation: slideIn 10ms linear, slideOut 10ms ease-out;*/
+    background-color: #fbfbfb;
+    border: 1px solid #a0a0a0;
+    padding: 3px;
+    border-radius: 2px;
+    /*box-shadow: 1px 1px 1px #808080;*/
+    /*animation: slideIn 25ms linear*/;
 }
 
 /* Form widgets *******************************************/
+
+/* !! background-color does not work here; see FormEditorToolkit !! */
+
 Text.formeditor {
+    margin: 2px;
     border: 1px solid #CCCCCC;
-    background-color: #FFFDD4;
+}
+
+Text.formeditor:disabled {
+    color: #202020;
 }
 
 Combo.formeditor {
     border: 1px solid #CCCCCC;
-    background-color: #FFFDD4;
 }
 
 DateTime.formeditor {
     border: 1px solid #CCCCCC;
-    background-color: #FFFDD4;
+}
+
+DateTime.formeditor:disabled {
+    color: #202020;
 }
 
 /* Toolbar ************************************************/
 ToolItem:selected {
-    background-color: #DFDFF8;
+    border: 1px solid #b5b5b5;
+    border-radius: 2px;
+    background-color: #d0d0d0;
     background-image: gradient(
       linear, left top, left bottom,
-      from( #e7e7e7 ),
+      from( #e5e5e5 ),
       to( #c8c8c8 )
     );
     padding: 0px 0px 0px 0px;
-    border-radius: 2px;
 }
 ToolItem:hover {
+    border: 1px solid #b5b5b5;
+    border-radius: 2px;
     background-color: #DFDFF8;
     background-image: gradient(
       linear, left top, left bottom,
-      from( #fefeff ),
-      to( #dfdfe7 )
+      from( #ffffff ),
+      to( #e0e0e0 )
     );
+/*    background-image: gradient(
+      linear, left top, left bottom,
+      from( #e5e5e5 ),
+      to( #c8c8c8 )
+    );*/
 }
 
 /* Button *************************************************/
 Button[PUSH] {
-    border-radius: 6px;
+    border: 1px solid #b4b4b4;
+    border-radius: 2px;
     background-image: gradient(
       linear, left top, left bottom,
-      from( #f8f8fb ),
-      to( #ebebf3 )
-    );
-    
+      from( #ffffff ),
+      to( #dddddd )
+    );    
 }
-  
+
 Button[PUSH]:hover {
+    border: 1px solid #989898;
     background-color: #ffffff;
     background-image: gradient(
       linear, left top, left bottom,
-      from( #fefeff ),
-      to( #dfdfe7 )
+      from( #ffffff ),
+      to( #cacaca )
     );
 }
 

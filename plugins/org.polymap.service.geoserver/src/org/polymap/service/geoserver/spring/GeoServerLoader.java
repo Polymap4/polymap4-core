@@ -32,36 +32,8 @@ import java.util.Set;
 import java.io.File;
 import java.io.IOException;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.web.context.WebApplicationContext;
-import org.vfny.geoserver.global.GeoserverDataDirectory;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.Name;
-import org.opengis.geometry.Envelope;
-import org.opengis.parameter.GeneralParameterValue;
-
-import org.geotools.data.DataStore;
-import org.geotools.data.collection.CollectionDataStore;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureCollections;
-import org.geotools.feature.NameImpl;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.util.Version;
+import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IService;
 
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
@@ -76,6 +48,7 @@ import org.geoserver.catalog.impl.WorkspaceInfoImpl;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.impl.GeoServerInfoImpl;
 import org.geoserver.platform.GeoServerResourceLoader;
+import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.GMLInfo;
 import org.geoserver.wfs.GMLInfoImpl;
 import org.geoserver.wfs.WFSInfo;
@@ -83,15 +56,53 @@ import org.geoserver.wfs.WFSInfoImpl;
 import org.geoserver.wfs.GMLInfo.SrsNameStyle;
 import org.geoserver.wfs.WFSInfo.ServiceLevel;
 import org.geoserver.wms.WMSInfoImpl;
+import org.geotools.data.DataStore;
+import org.geotools.data.collection.CollectionDataStore;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.NameImpl;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.map.MapLayer;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.util.Version;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
+import org.opengis.geometry.Envelope;
+import org.opengis.parameter.GeneralParameterValue;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.web.context.WebApplicationContext;
+import org.vfny.geoserver.global.GeoserverDataDirectory;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Polygon;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
+import org.polymap.core.data.pipeline.IPipelineIncubator;
+import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.Stringer;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheLoader;
+import org.polymap.core.runtime.cache.CacheManager;
 import org.polymap.core.style.IStyle;
 
 import org.polymap.service.ServicesPlugin;
@@ -123,9 +134,15 @@ public class GeoServerLoader
     
     private Map<String,ILayer>      layers = new HashMap();
     
+    private IPipelineIncubator      pipelineIncubator;
+    
+    private Cache<String,Pipeline>  pipelines;
+
     
     public GeoServerLoader( GeoServerResourceLoader resourceLoader ) {
         this.resourceLoader = resourceLoader;
+        this.pipelineIncubator = new DefaultPipelineIncubator();
+        this.pipelines = CacheManager.instance().newCache( new CacheConfig().setInitSize( 32 ) );
     }
     
 
@@ -135,6 +152,10 @@ public class GeoServerLoader
             geoserver.dispose();
             geoserver = null;
         }
+        if (pipelines != null) {
+            pipelines.dispose();
+            pipelines = null;
+        }
     }
 
     
@@ -142,6 +163,68 @@ public class GeoServerLoader
         return layers.get( name );
     }
 
+    /**
+     * Creates a new processing {@link Pipeline} for the given {@link ILayer}
+     * and usecase.
+     * <p>
+     * XXX The result needs to be cached
+     * 
+     * @throws IOException 
+     * @throws PipelineIncubationException 
+     */
+    public Pipeline getOrCreatePipeline( final ILayer layer, final LayerUseCase usecase ) 
+    throws IOException, PipelineIncubationException {
+        
+        return pipelines.get( layer.id(), new CacheLoader<String,Pipeline,IOException>() {
+        
+            public Pipeline load( String key ) throws IOException {
+                try {
+                    IService service = findService( layer );
+                    return pipelineIncubator.newPipeline( 
+                            usecase, layer.getMap(), layer, service );
+                }
+                catch (PipelineIncubationException e) {
+                    // should never happen
+                    throw new RuntimeException( e );
+                }
+            }
+            
+            public int size() throws IOException {
+                return Cache.ELEMENT_SIZE_UNKNOW;
+            }
+        });
+    }
+
+
+    /**
+     * Find the corresponding {@link ILayer} for the given {@link MapLayer} of
+     * the MapContext.
+     */
+    protected ILayer findLayer( MapLayer mapLayer ) {
+        log.debug( "findLayer(): mapLayer= " + mapLayer );
+        
+        ILayer layer = getLayer( mapLayer.getTitle() );
+        
+//        FeatureSource<? extends FeatureType, ? extends Feature> fs = mapLayer.getFeatureSource();
+//        PipelineDataStore pds = (PipelineDataStore)fs.getDataStore();
+//        ILayer layer = pds.getFeatureSource().getPipeline().getLayers().iterator().next();
+        
+        return layer;
+    }
+
+    
+    protected IService findService( ILayer layer ) 
+    throws IOException {
+        IGeoResource res = layer.getGeoResource();
+        if (res == null) {
+            throw new ServiceException( "Unable to find geo resource of layer: " + layer );
+        }
+        // XXX give a reasonable monitor; check state 
+        IService service = res.service( null );
+        log.debug( "service: " + service );
+        return service;
+    }
+    
     
     public void setApplicationContext( ApplicationContext applicationContext )
     throws BeansException {
@@ -216,13 +299,11 @@ public class GeoServerLoader
             // try feature/vector resource
             try {
                 PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-                if (fs.getPipeline().length() == 0) {
+                if (fs == null || fs.getPipeline().length() == 0) {
                     throw new PipelineIncubationException( "WMS layer? : " + layer.getLabel() );
                 }
 
                 // set name/namespace for target schema
-//                IGeoResource geores = layer.getGeoResource();
-//                FeatureSource srcfs = geores.resolve( FeatureSource.class, null );
                 Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
                 fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
                 
@@ -238,95 +319,96 @@ public class GeoServerLoader
             }
             // no geores found or something
             catch (Exception e) {
-                log.warn( "Error while creating catalog: " + e.getLocalizedMessage() );
+                log.error( "Error while creating catalog: " + e.getLocalizedMessage() );
                 log.debug( "", e );
                 break;
             }
                 
-                // DataStore
-                MyDataStoreInfoImpl dsInfo = new MyDataStoreInfoImpl( catalog, ds );
-                dsInfo.setId( layer.id() );
-                dsInfo.setName( layer.getLabel() );
-                dsInfo.setDescription( "DataStore of ILayer: " + layer.getLabel() );
-                dsInfo.setWorkspace( wsInfo );
-                dsInfo.setType( "PipelineDataStore" );
-                Map params = new HashMap();
-                params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
-                dsInfo.setConnectionParameters( params );
-                dsInfo.setEnabled( true );
-                catalog.add( dsInfo );
-                log.debug( "    loaded DataStore: '" + dsInfo.getName() +"'");
+            // DataStore
+            MyDataStoreInfoImpl dsInfo = new MyDataStoreInfoImpl( catalog, ds );
+            dsInfo.setId( layer.id() );
+            dsInfo.setName( layer.getLabel() );
+            dsInfo.setDescription( "DataStore of ILayer: " + layer.getLabel() );
+            dsInfo.setWorkspace( wsInfo );
+            dsInfo.setType( "PipelineDataStore" );
+            Map params = new HashMap();
+            params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
+            dsInfo.setConnectionParameters( params );
+            dsInfo.setEnabled( true );
+            catalog.add( dsInfo );
+            log.debug( "    loaded DataStore: '" + dsInfo.getName() +"'");
 
-                // FeatureType
-                MyFeatureTypeInfoImpl ftInfo = new MyFeatureTypeInfoImpl( catalog, layer.id(), ds );
-                ftInfo.setName( schema.getTypeName() );
-                ftInfo.setTitle( layer.getLabel() );
-                ftInfo.setKeywords( new ArrayList( layer.getKeywords() ) );
-                ftInfo.setDescription( "FeatureType of ILayer: " + layer.getLabel() );
-                ftInfo.setStore( dsInfo );
-                ftInfo.setNamespace( defaultNsInfo );
-                ftInfo.setNativeCRS( layer.getCRS() );
-                //ftInfo.setNativeBoundingBox( map.getMaxExtent() );
-                ftInfo.setNativeName( schema.getTypeName() );
-                ftInfo.setProjectionPolicy( ProjectionPolicy.NONE );
-                // XXX this the "default" SRS; WFS needs this to work; shouldn't this be the the "native"
-                // SRS of the data?
-                ftInfo.setSRS( layer.getCRSCode() );
-                ReferencedEnvelope bbox = map.getMaxExtent();
-                try {
-                    Envelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
-                    double[] lu = latlon.getLowerCorner().getCoordinate();
-                    double[] ro = latlon.getUpperCorner().getCoordinate();
-                    ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( 
-                            lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
-                }
-                catch (Exception e) {
-                    log.warn( e );
-                    ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
-                }
-                ftInfo.setEnabled( true );
-                
-                List<AttributeTypeInfo> attributeInfos = new ArrayList();
-                for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
-                    AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
-                    attributeInfo.setFeatureType( ftInfo );
-                    attributeInfo.setAttribute( attribute );
-                    attributeInfo.setId( attribute.toString() );
-                }
-                ftInfo.setAttributes( attributeInfos );
-                catalog.add( ftInfo );
-                log.debug( "    loaded FeatureType: '" + ftInfo.getName() +"'");
-                
-                // Layer
-                LayerInfoImpl layerInfo = new LayerInfoImpl();
-                layerInfo.setResource( ftInfo );
-                layerInfo.setId( layer.id() );
-                layerInfo.setName( schema.getTypeName() );
-                layers.put( layerInfo.getName(), layer );
-                layerInfo.setEnabled( true );
-                layerInfo.setType( Type.VECTOR );
-                Set styles = new HashSet();
-                
-                StyleInfoImpl style = new StyleInfoImpl( catalog );
-                IStyle layerStyle = layer.getStyle();
-                String styleName = layerStyle.getTitle() != null ?
-                        layerStyle.getTitle() : layer.getLabel() + "-style";
-                style.setId( simpleName( styleName ) );
-                style.setName( simpleName( styleName ) );
+            // FeatureType
+            MyFeatureTypeInfoImpl ftInfo = new MyFeatureTypeInfoImpl( catalog, layer.id(), ds );
+            ftInfo.setName( schema.getTypeName() );
+            ftInfo.setTitle( layer.getLabel() );
+            ftInfo.setKeywords( new ArrayList( layer.getKeywords() ) );
+            ftInfo.setDescription( "FeatureType of ILayer: " + layer.getLabel() );
+            ftInfo.setStore( dsInfo );
+            ftInfo.setNamespace( defaultNsInfo );
+            ftInfo.setNativeCRS( layer.getCRS() );
+            //ftInfo.setNativeBoundingBox( map.getMaxExtent() );
+            ftInfo.setNativeName( schema.getTypeName() );
+            ftInfo.setProjectionPolicy( ProjectionPolicy.NONE );
+            // XXX this the "default" SRS; WFS needs this to work; shouldn't this be the the "native"
+            // SRS of the data?
+            ftInfo.setSRS( layer.getCRSCode() );
+            ReferencedEnvelope bbox = map.getMaxExtent();
+            try {
+                Envelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
+                double[] lu = latlon.getLowerCorner().getCoordinate();
+                double[] ro = latlon.getUpperCorner().getCoordinate();
+                ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( 
+                        lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
+            }
+            catch (Exception e) {
+                log.warn( e );
+                ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
+            }
+            ftInfo.setEnabled( true );
 
-                File sldFile = GeoserverDataDirectory.findStyleFile( styleName + ".sld", true );
-                if (!sldFile.getParentFile().exists()) {
-                    sldFile.getParentFile().mkdirs();
-                }
-                FileUtils.writeStringToFile( sldFile, layerStyle.createSLD( new NullProgressMonitor() ), "UTF-8" );
+            List<AttributeTypeInfo> attributeInfos = new ArrayList();
+            for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
+                AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
+                attributeInfo.setFeatureType( ftInfo );
+                attributeInfo.setAttribute( attribute );
+                attributeInfo.setId( attribute.toString() );
+            }
+            ftInfo.setAttributes( attributeInfos );
+            catalog.add( ftInfo );
+            log.debug( "    loaded FeatureType: '" + ftInfo.getName() +"'");
+
+            // Layer
+            LayerInfoImpl layerInfo = new LayerInfoImpl();
+            layerInfo.setResource( ftInfo );
+            layerInfo.setId( layer.id() );
+            layerInfo.setName( schema.getTypeName() );
+            layers.put( layerInfo.getName(), layer );
+            layerInfo.setEnabled( true );
+            layerInfo.setType( Type.VECTOR );
+            Set styles = new HashSet();
+
+            StyleInfoImpl style = new StyleInfoImpl( catalog );
+            IStyle layerStyle = layer.getStyle();
+            String styleName = layerStyle.getTitle() != null 
+                    ? layerStyle.getTitle() : layer.getLabel() + "-style";
+            style.setId( simpleName( styleName ) );
+            style.setName( simpleName( styleName ) );
+
+            File sldFile = GeoserverDataDirectory.findStyleFile( styleName + ".sld", true );
+            if (!sldFile.getParentFile().exists()) {
+                sldFile.getParentFile().mkdirs();
+            }
+            FileUtils.writeStringToFile( sldFile, layerStyle.createSLD( new NullProgressMonitor() ), "UTF-8" );
+
+            style.setFilename( sldFile.getName() );
+            catalog.add( style );
+            styles.add( style );
+            layerInfo.setStyles( styles );
+            layerInfo.setDefaultStyle( style );
+            catalog.add( layerInfo );
+            log.debug( "    loaded Layer: '" + layerInfo.getName() +"'");
                 
-                style.setFilename( sldFile.getName() );
-                catalog.add( style );
-                styles.add( style );
-                layerInfo.setStyles( styles );
-                layerInfo.setDefaultStyle( style );
-                catalog.add( layerInfo );
-                log.debug( "    loaded Layer: '" + layerInfo.getName() +"'");
 //            }
 //            catch (Exception e) {
 //                log.info( "No feature pipeline, creating CoverageStore..." );
@@ -406,7 +488,7 @@ public class GeoServerLoader
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
         gsInfo.setTitle( "POLYMAP3 powered by GeoServer :)" );
         gsInfo.setId( "geoserver-polymap3" );
-        gsInfo.setProxyBaseUrl( proxyUrl + service.getPathSpec() );
+        gsInfo.setProxyBaseUrl( proxyUrl + service.getPathSpec() + "/" );
         // XXX indent XML output, make configurable
         gsInfo.setVerbose( true );
         gsInfo.setVerboseExceptions( true );
@@ -422,9 +504,9 @@ public class GeoServerLoader
         // WMS
         WMSInfoImpl wms = new WMSInfoImpl();
         wms.setGeoServer( geoserver );
-        wms.setId( map.getLabel() + "-wms" );
+        wms.setId( simpleName( map.getLabel() ) + "-wms" );
         wms.setMaintainer( "" );
-        wms.setTitle( map.getLabel() );
+        wms.setTitle( simpleName( map.getLabel() ) );
         wms.setAbstract( "POLYMAP3 (polymap.org) powered by GeoServer (geoserver.org)." );
         wms.setName( simpleName( map.getLabel() ) );
         // XXX
@@ -446,9 +528,9 @@ public class GeoServerLoader
         wfs.setGeoServer( geoserver );
         // XXX make this configurable (where to get authentication from when TRANSACTIONAL?)
         wfs.setServiceLevel( ServiceLevel.BASIC );
-        wfs.setId( map.getLabel() + "-wfs" );
+        wfs.setId( simpleName( map.getLabel() ) + "-wfs" );
         wfs.setMaintainer( "" );
-        wfs.setTitle( map.getLabel() );
+        wfs.setTitle( simpleName( map.getLabel() ) );
         wfs.setName( simpleName( map.getLabel() ) + "-wfs" );
         // XXX
         //wfs.setOnlineResource( "http://localhost:10080/services/Atlas" );
@@ -532,7 +614,7 @@ public class GeoServerLoader
         SimpleFeature feature = fb.buildFeature( null );
 
         final FeatureCollection<SimpleFeatureType, SimpleFeature> collection = 
-            FeatureCollections.newCollection();
+                FeatureCollections.newCollection();
         collection.add(feature);
 
         return new CollectionDataStore( collection );
@@ -540,7 +622,7 @@ public class GeoServerLoader
 
     
     protected String simpleName( String s ) {
-        return ServicesPlugin.simpleName( s );
+        return Stringer.on( s ).replaceUmlauts().toURIPath( "_" ).toString();
     }
     
 }

@@ -40,10 +40,11 @@ public interface IRecordState
      *         stored.
      */
     public abstract Object id();
-    
+
     /**
-     * Stores the given value for the given key.
-     *
+     * Stores the given value for the given key. If the property already has value,
+     * then the old value is replaced with the new one.
+     * 
      * @param key
      * @param value
      * @return this
@@ -51,9 +52,8 @@ public interface IRecordState
     public abstract <T> IRecordState put( String key, T value );
 
     /**
-     * Fügt einen neuen Wert zum Property mit dem angegebenen Namen. Wenn
-     * bereits ein oder mehrere Werte existieren, dann wird eine {@link List}
-     * initialisiert.
+     * Add the value to the property with the given name. If the property already has
+     * value, then a {@link List} is initialized.
      * 
      * @param name
      * @param value

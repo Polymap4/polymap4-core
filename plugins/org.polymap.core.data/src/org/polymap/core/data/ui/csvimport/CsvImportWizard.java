@@ -25,11 +25,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
+
 import org.geotools.data.DataStoreFactorySpi;
-import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
-import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
@@ -43,8 +42,7 @@ import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.IServiceInfo;
 import net.refractions.udig.catalog.internal.shp.ShpServiceExtension;
 import net.refractions.udig.ui.ExceptionDetailsDialog;
-import net.refractions.udig.ui.PlatformJobs;
-import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 
@@ -61,11 +59,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.runtime.UIJob;
+
+import static org.polymap.core.data.ui.csvimport.Messages.i18n;
 
 /**
  * @author Andrea Antonello - www.hydrologis.com
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
+@SuppressWarnings("restriction")
 public class CsvImportWizard extends Wizard implements INewWizard {
 
     private CsvImportWizardPage                     page1;
@@ -84,23 +86,18 @@ public class CsvImportWizard extends Wizard implements INewWizard {
     }
 
     public void init( IWorkbench workbench, IStructuredSelection selection ) {
-        setWindowTitle(Messages.getString("CsvImportWizard.fileimport")); //$NON-NLS-1$
+        setWindowTitle( i18n( "CsvImportWizard.csvimport" ) );
         setDefaultPageImageDescriptor(AbstractUIPlugin.imageDescriptorFromPlugin(
-                DataPlugin.PLUGIN_ID, "icons/workset_wiz.png")); //$NON-NLS-1$
+                DataPlugin.PLUGIN_ID, "icons/workset_wiz.png" ) );
         setNeedsProgressMonitor(true);
-        page1 = new CsvImportWizardPage(Messages.getString("CsvImportWizard.csvimport"), params); //$NON-NLS-1$
-        page2 = new CsvImportWizardPage2("Results", params); //$NON-NLS-1$
+        page1 = new CsvImportWizardPage( i18n( "CsvImportWizard.csvimport" ), params);
+        page2 = new CsvImportWizardPage2( i18n( "CsvImportWizard.csvimport" ), params );
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.wizard.IWizard#addPages()
-     */
     public void addPages() {
         super.addPages();
-        addPage(page1);
-        addPage(page2);
+        addPage( page1 );
+        addPage( page2 );
     }
 
     void createCsvFeatureCollection() {
@@ -108,31 +105,26 @@ public class CsvImportWizard extends Wizard implements INewWizard {
         final CsvImporter csvImporter = page1.getCsvImporter();
         final LinkedHashMap<String, Integer> fieldsAndTypesIndex = page1.getFieldsAndTypesIndex();
 
-        IRunnableWithProgress operation = new IRunnableWithProgress(){
-            public void run( IProgressMonitor monitor ) throws InvocationTargetException,
-                    InterruptedException {
-//                if (!csvFile.exists()) {
-//                    ProblemDialogs.errorDialog( null,
-//                            Messages.getString("CsvImportWizard.inputnotexist") + csvFile.getAbsolutePath(), true); //$NON-NLS-1$ 
-//                    return;
-//                }
+        UIJob job = new UIJob( "Reading CSV Data" ) {
+            protected void runWithException( IProgressMonitor monitor )
+            throws Exception {
                 try {
                     csvFeatureCollection = csvImporter.createFeatureCollection( 
-                            crs, fieldsAndTypesIndex, new EclipseProgressMonitorAdapter(monitor));
+                            crs, fieldsAndTypesIndex, new EclipseProgressMonitorAdapter( monitor ) );
                 } 
                 catch (Exception e) {
                     e.printStackTrace();
-                    String message = Messages.getString("CsvImportWizard.error");
-                    ExceptionDetailsDialog.openError(null, message, IStatus.ERROR,
-                            DataPlugin.PLUGIN_ID, e);
+                    ExceptionDetailsDialog.openError( null, i18n( "CsvImportWizard.error" ), 
+                            IStatus.ERROR, DataPlugin.PLUGIN_ID, e);
                 }
-            }
+            }            
         };
-        try {
-            PlatformJobs.runSync(operation, null);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+        job.setShowProgressDialog( job.getName(), false );
+        job.schedule();
+        
+        if (! job.joinAndDispatch( 180000 )) {
+            job.cancelAndInterrupt();
+            MessageDialog.openInformation( getShell(), "Info", i18n( "CsvImportWizard.timeout" ) );
         }
         
         //FIXME
@@ -145,13 +137,15 @@ public class CsvImportWizard extends Wizard implements INewWizard {
     public boolean performFinish() {
         final AtomicBoolean ok_flag = new AtomicBoolean( false );
         
-        IRunnableWithProgress operation = new IRunnableWithProgress(){
-            public void run( IProgressMonitor pm ) throws InvocationTargetException,
-                    InterruptedException {
-
+        UIJob job = new UIJob( "CSV Import" ) {
+            protected void runWithException( IProgressMonitor monitor )
+            throws Exception {
                 try {
+                    monitor.beginTask( i18n( "CsvImportWizard.tasktitle" ), IProgressMonitor.UNKNOWN );
+                    
                     SimpleFeatureType featureType = csvFeatureCollection.getSchema();
                     CoordinateReferenceSystem crs = page1.getCrs();
+                    Charset charset = page1.getCsvImporter().prefs().getFileEncoding();
 
                     // memory store
                     if (page2.getImportTarget() == 1) {
@@ -176,37 +170,31 @@ public class CsvImportWizard extends Wizard implements INewWizard {
                         File newFile = new File( path.toFile(), page2.getShpName() /*+ suffix*/ + ".shp" );
                         DataStoreFactorySpi dataStoreFactory = new ShapefileDataStoreFactory();
 
-                        Map<String, Serializable> params = new HashMap<String, Serializable>();
-                        params.put("url", newFile.toURI().toURL());
-                        params.put("create spatial index", Boolean.TRUE);
+                        Map<String,Serializable> shapeParams = new HashMap<String,Serializable>();
+                        shapeParams.put( ShapefileDataStoreFactory.URLP.key, newFile.toURI().toURL() );
+                        shapeParams.put( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, Boolean.TRUE );
+                        // does not work as Charset is NOT!!! serializable :((
+                        //shapeParams.put( ShapefileDataStoreFactory.DBFCHARSET.key, encoding );
 
-                        ShapefileDataStore newDataStore = (ShapefileDataStore)dataStoreFactory.createNewDataStore(params);
+                        ShapefileDataStore newDataStore = (ShapefileDataStore)dataStoreFactory.createNewDataStore(shapeParams);
                         newDataStore.createSchema( featureType );
                         newDataStore.forceSchemaCRS( crs );
-                        //newDataStore.setStringCharset( Charset.forName( "ISO-8859-1" ) );
+                        System.out.println( "CHARSET: " + charset.name() );
+                        newDataStore.setStringCharset( charset );
 
                         // write the features to shape
-                        Transaction transaction = new DefaultTransaction( "create" );
                         String typeName = newDataStore.getTypeNames()[0];
-                        FeatureStore<SimpleFeatureType, SimpleFeature> featureStore =
+                        FeatureStore<SimpleFeatureType, SimpleFeature> fs =
                                 (FeatureStore<SimpleFeatureType, SimpleFeature>) newDataStore.getFeatureSource( typeName );
-                        featureStore.setTransaction( transaction );
-                        try {
-                            featureStore.addFeatures(csvFeatureCollection);
-                            transaction.commit();
-                        } 
-                        catch (Exception ee) {
-                            transaction.rollback();
-                            throw ee;
-                        } 
-                        finally {
-                            transaction.close();
-                        }
+                        
+                        // no transaction: save memory                        
+                        fs.addFeatures( csvFeatureCollection );
 
                         // adding service to catalog
                         ShpServiceExtension creator = new ShpServiceExtension();
-                        params = creator.createParams( newFile.toURI().toURL() );
-                        IService service = creator.createService( null, params );
+                        shapeParams.put( ShapefileDataStoreFactory.DBFCHARSET.key, charset.name() );
+                        //shapeParams = creator.createParams( newFile.toURI().toURL() );
+                        IService service = creator.createService( null, shapeParams );
                         IServiceInfo info = service.getInfo( new NullProgressMonitor() ); // load
 
                         CatalogPlugin.getDefault().getLocalCatalog().add( service );
@@ -215,25 +203,19 @@ public class CsvImportWizard extends Wizard implements INewWizard {
                 } 
                 catch (Exception e) {
                     e.printStackTrace();
-                    String message = Messages.getString("CsvImportWizard.error");
-                    ExceptionDetailsDialog.openError(null, message, IStatus.ERROR,
-                            DataPlugin.PLUGIN_ID, e);
+                    ExceptionDetailsDialog.openError( null, i18n( "CsvImportWizard.error" ), 
+                            IStatus.ERROR, DataPlugin.PLUGIN_ID, e);
                 }
 
             }
-
         };
+        job.setShowProgressDialog( "CSV Import", false );
+        job.schedule();
 
-        PlatformJobs.runInProgressDialog( "Importing data", true, operation, false );
-        System.out.println( "after operation..." );
-        
-//        try {
-//            PlatformJobs.runSync( operation, null );
-//            //MessageDialog.openInformation( getShell(), "Info", "Shapefile created." );
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        if (! job.joinAndDispatch( 180000 )) {
+            job.cancelAndInterrupt();
+            MessageDialog.openInformation( getShell(), "Info", i18n( "CsvImportWizard.timeout" ) );
+        }
 
         return ok_flag.get();
     }

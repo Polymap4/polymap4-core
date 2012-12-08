@@ -109,7 +109,22 @@ public interface IRecordStore {
         
         void discard();
         
+        /**
+         * Same as <code>apply(true)</code>.
+         */
         void apply();
+
+
+        /**
+         * Commit the changes of this Updater to the underlying data store.
+         *  
+         * @param optimizeIndex True specifies that the underlying index or database
+         *        should be optimized for memory usage. This includes expunge deleted
+         *        data and/or re-organizing indices. This might be somewhat time
+         *        consuming.
+         */
+        void apply( boolean optimizeIndex );
+
     }
     
 }

@@ -54,6 +54,8 @@ public final class SimpleQuery
     
     private int                         sortOrder;
     
+    private Class                       sortType;
+
     public char                         anyWildcard = DEFAULT_ANY_WILDCARD; 
     
     public char                         oneWildcard = DEFAULT_ONE_WILDCARD;
@@ -94,7 +96,9 @@ public final class SimpleQuery
         return this;
     }
     
-    
+    /**
+     * 'IsLike' query. Wildcard characters: *, ?
+     */
     public SimpleQuery match( String key, Object value ) {
         assert value instanceof String : "Only String expressions are allowed for MATCHES predicate.";
         expressions.add( new QueryExpression.Match( key, value ) );
@@ -102,9 +106,17 @@ public final class SimpleQuery
     }
 
     
-    public SimpleQuery sort( String key, int order ) {
+    /**
+     * Specify the sort order of the result.
+     * 
+     * @param key Key to sort by.
+     * @param order {@link #ASC} or {@link #DESC}
+     * @param type Optional type of the field to sort.
+     */
+    public SimpleQuery sort( String key, int order, Class type ) {
         sortKey = key;
         sortOrder = order;
+        sortType = type;
         return this;
     }
     
@@ -121,6 +133,11 @@ public final class SimpleQuery
     
     public int getSortOrder() {
         return sortOrder;
+    }
+
+    
+    public Class getSortType() {
+        return sortType;
     }
 
 

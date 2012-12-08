@@ -11,14 +11,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
-
 import net.refractions.udig.catalog.CatalogPlugin;
+import net.refractions.udig.catalog.IDeletingSchemaService;
+import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.IServiceInfo;
 import net.refractions.udig.ui.ErrorManager;
 import net.refractions.udig.ui.UDIGDisplaySafeLock;
 
+import org.geotools.data.h2.H2DialectBasic;
 import org.geotools.jdbc.JDBCDataStore;
 
 import org.apache.commons.lang.StringUtils;
@@ -37,9 +39,10 @@ import org.polymap.catalog.h2.data.H2DataStoreFactory;
  * @since 3.1
  */
 public class H2ServiceImpl 
-        extends IService {
+        extends IService
+        implements IDeletingSchemaService {
 
-    private static final Log log = LogFactory.getLog( H2ServiceImpl.class );
+    private static Log log = LogFactory.getLog( H2ServiceImpl.class );
 
     private URL                       url;
 
@@ -196,6 +199,16 @@ public class H2ServiceImpl
     }
 
     
+    public void deleteSchema( IGeoResource geores, IProgressMonitor monitor )
+    throws IOException {
+        if (geores.service( monitor ) != this) {
+            throw new IllegalStateException( "Geores is not H2" );
+        }
+        new JDBCHelper( getDS(), new H2DialectBasic( getDS() ) )
+                .deleteSchema( geores, monitor );
+    }
+
+
     /*
      * 
      */

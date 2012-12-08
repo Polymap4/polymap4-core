@@ -27,12 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -68,8 +64,12 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheLoader;
+import org.polymap.core.runtime.cache.CacheManager;
 
-import org.polymap.service.http.WmsService;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * Provides a very simple WMS server to be used by the {@link MapEditor}. It
@@ -80,7 +80,7 @@ import org.polymap.service.http.WmsService;
  * @since 3.0
  */
 public class SimpleWmsServer
-        extends WmsService {
+        extends MapHttpServer {
 
     private static final Log log = LogFactory.getLog( SimpleWmsServer.class );
     
@@ -96,25 +96,31 @@ public class SimpleWmsServer
     private IPipelineIncubator      pipelineIncubator = new DefaultPipelineIncubator();
 
     /** Maps layer name into corresponding Pipeline. */
-    private Map<String,Pipeline>    pipelines = new HashMap();
-    
-    private ReentrantReadWriteLock  pipelinesLock = new ReentrantReadWriteLock();
+    private Cache<String,Pipeline>  pipelines;
     
     private SessionContext          sessionContext;
 
     
-    public SimpleWmsServer( ) 
-    throws MalformedURLException {
+    public SimpleWmsServer() { 
     }
 
     
-    public void init( String _pathSpec, IMap _map )
-    throws MalformedURLException {
-        super.init( _pathSpec, _map );
+    public void init( IMap _map ) {
+        super.init( _map );
         this.sessionContext = SessionContext.current();
+
+        pipelineIncubator = new DefaultPipelineIncubator();
+        pipelines = CacheManager.instance().newCache(
+                new CacheConfig().setInitSize( 16 ) );
     }
 
     
+    public void destroy() {
+        super.destroy();
+        pipelines.dispose();
+    }
+
+
     protected void doGet( final HttpServletRequest request, final HttpServletResponse response )
     throws ServletException, IOException {
         log.debug( "Request: " + request.getQueryString() );
@@ -151,7 +157,7 @@ public class SimpleWmsServer
                     log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
             
                     // find/create pipeline
-                    final Pipeline pipeline = getOrCreatePipeline( layers, LayerUseCase.ENCODED_IMAGE );
+                    final Pipeline pipeline = getOrCreatePipeline( layers );
 
                     long modifiedSince = request.getDateHeader( "If-Modified-Since" );
                     final ProcessorRequest pr = new GetMapRequest( 
@@ -217,42 +223,33 @@ public class SimpleWmsServer
      * @throws PipelineIncubationException 
      * @throws ServletException 
      */
-    protected Pipeline getOrCreatePipeline( String[] layers, LayerUseCase usecase ) 
+    protected Pipeline getOrCreatePipeline( String[] layers ) 
     throws IOException, PipelineIncubationException, ServletException {
         if (layers.length == 0 || layers.length > 1) {
             throw new ServletException( "Wrong layers param: " + layers );
         }
+        
+        return pipelines.get( layers[0], new CacheLoader<String,Pipeline,IOException>() {
 
-        try {
-            pipelinesLock.readLock().lock();
-            Pipeline pipeline = pipelines.get( layers[0] );
-            
-            if (pipeline == null) {
-                pipelinesLock.readLock().unlock();
-                pipelinesLock.writeLock().lock();
-
-                pipeline = pipelines.get( layers[0] );
-                if (pipeline == null) {
-                    ILayer layer = findLayer( layers[0] );
-                    IService service = findService( layer );
-                    pipeline = pipelineIncubator.newPipeline( usecase, layer.getMap(), layer, service );
-                    
+            public Pipeline load( String key ) throws IOException {
+                ILayer layer = findLayer( key );
+                IService service = findService( layer );
+                try {
+                    Pipeline pipeline = pipelineIncubator.newPipeline( LayerUseCase.ENCODED_IMAGE, layer.getMap(), layer, service );
                     if (pipeline.length() == 0) {
                         throw new ServiceException( "Unable to build processor pipeline for layer: " + layer );                        
                     }
-
-                    pipelines.put( layer.getLabel(), pipeline );
+                    return pipeline;
+                }
+                catch (PipelineIncubationException e) {
+                    throw new RuntimeException( e );
                 }
             }
-            return pipeline;
-        }
-        finally {
-            if (pipelinesLock.writeLock().isHeldByCurrentThread()) {
-                pipelinesLock.readLock().lock();
-                pipelinesLock.writeLock().unlock();
+
+            public int size() throws IOException {
+                return Cache.ELEMENT_SIZE_UNKNOW;
             }
-            pipelinesLock.readLock().unlock();
-        }
+        });
     }
 
 

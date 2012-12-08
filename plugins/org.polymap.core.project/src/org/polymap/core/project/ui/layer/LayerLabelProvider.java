@@ -17,10 +17,11 @@ package org.polymap.core.project.ui.layer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 
 import org.eclipse.ui.PlatformUI;
@@ -34,8 +35,8 @@ import org.polymap.core.project.ProjectPlugin;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
 public class LayerLabelProvider
-        extends DecoratingLabelProvider
-        implements ILabelProvider {
+        extends DecoratingLabelProvider {
+        //implements ILabelProvider, IFontProvider {
 
     private static final Log log = LogFactory.getLog( LayerLabelProvider.class );
 
@@ -63,14 +64,19 @@ public class LayerLabelProvider
 
 
         public String getText( Object elm ) {
-            if (elm instanceof ILayer) {
-                return ((ILayer)elm).getLabel();
+            try {
+                if (elm instanceof ILayer) {
+                    return ((ILayer)elm).getLabel();
+                }
+                else if (elm instanceof IMap) {
+                    return ((IMap)elm).getLabel();
+                }
+                else {
+                    return elm.toString();
+                }
             }
-            else if (elm instanceof IMap) {
-                return ((IMap)elm).getLabel();
-            }
-            else {
-                return elm.toString();
+            catch (NoSuchEntityException e) {
+                return "<deleted>";
             }
         }
         

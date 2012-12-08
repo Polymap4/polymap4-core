@@ -14,8 +14,7 @@
  */
 package org.polymap.rhei.data.entitystore.lucene;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.Arrays;
 
 import java.io.IOException;
 
@@ -38,8 +37,12 @@ import org.qi4j.api.service.ServiceComposite;
 import org.qi4j.spi.query.EntityFinder;
 import org.qi4j.spi.query.EntityFinderException;
 
+import com.google.common.base.Function;
+import static com.google.common.collect.Iterables.transform;
+
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordState;
+import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**
  * This query service relies on the store directly, which is Lucene. 
@@ -91,46 +94,61 @@ public interface LuceneEntityStoreQueryService
                 Query query = queryParser.createQuery( resultType, whereClause, orderBySegments );
 
                 // execute Lucene query
-                final IndexSearcher searcher = entityStoreService.getStore().getIndexSearcher();
+                final LuceneRecordStore store = entityStoreService.getStore();
+                final IndexSearcher searcher = store.getIndexSearcher();
                 TopDocs topDocs = searcher.search( query, maxResults != null ? maxResults : Integer.MAX_VALUE );
                 final ScoreDoc[] scoreDocs = topDocs.scoreDocs;
                 log.debug( "    results: " + scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
                 
-                return new Iterable<EntityReference>() {
-
-                    public Iterator<EntityReference> iterator() {
-                        
-                        return new Iterator<EntityReference>() {
-                    
-                            private int     index = 0;
-
-                            public boolean hasNext() {
-                                return index < scoreDocs.length;
-                            }
-
-                            public EntityReference next() {
-                                if (hasNext()) {
-                                    try {
-                                        int docnum = scoreDocs[index++].doc;
-                                        Document doc = searcher.doc( docnum, identityFieldSelector );
-                                        return new LuceneEntityReference( doc.get( LuceneRecordState.ID_FIELD ), docnum );
-                                    }
-                                    catch (Exception e) {
-                                        throw new RuntimeException( e );
-                                    }
-                                }
-                                else {
-                                    throw new NoSuchElementException( "Query result count: " + scoreDocs.length );
-                                }
-                            }
-
-                            public void remove() {
-                                throw new UnsupportedOperationException( "Removing entities from query result is not defined.");
-                            }
-                            
-                        };
+                return transform( Arrays.asList( scoreDocs ), new Function<ScoreDoc,EntityReference>() {
+                    public EntityReference apply( ScoreDoc input ) {
+                        try {
+                            // use record store instead of getting the document directly
+                            // to allow the cache to optimize access
+                            LuceneRecordState record = store.get( input.doc );
+                            return EntityReference.parseEntityReference( (String)record.id() );
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( e );
+                        }
                     }
-                };
+                } );
+                
+//                return new Iterable<EntityReference>() {
+//
+//                    public Iterator<EntityReference> iterator() {
+//                        
+//                        return new Iterator<EntityReference>() {
+//                    
+//                            private int     index = 0;
+//
+//                            public boolean hasNext() {
+//                                return index < scoreDocs.length;
+//                            }
+//
+//                            public EntityReference next() {
+//                                if (hasNext()) {
+//                                    try {
+//                                        int docnum = scoreDocs[index++].doc;
+//                                        Document doc = searcher.doc( docnum, identityFieldSelector );
+//                                        return new LuceneEntityReference( doc.get( LuceneRecordState.ID_FIELD ), docnum );
+//                                    }
+//                                    catch (Exception e) {
+//                                        throw new RuntimeException( e );
+//                                    }
+//                                }
+//                                else {
+//                                    throw new NoSuchElementException( "Query result count: " + scoreDocs.length );
+//                                }
+//                            }
+//
+//                            public void remove() {
+//                                throw new UnsupportedOperationException( "Removing entities from query result is not defined.");
+//                            }
+//                            
+//                        };
+//                    }
+//                };
             }
             catch (Exception e) {
                 throw new EntityFinderException( e );
@@ -155,7 +173,7 @@ public interface LuceneEntityStoreQueryService
                 if (scoreDocs.length > 0) { 
                     int docnum = scoreDocs[0].doc;
                     Document doc = searcher.doc( docnum, identityFieldSelector );
-                    return new LuceneEntityReference( doc.get( LuceneRecordState.ID_FIELD ), docnum );
+                    return EntityReference.parseEntityReference( doc.get( LuceneRecordState.ID_FIELD ) );
                 }
                 else {
                     return null;

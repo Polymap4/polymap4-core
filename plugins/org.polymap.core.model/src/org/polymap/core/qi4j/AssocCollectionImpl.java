@@ -25,7 +25,6 @@ package org.polymap.core.qi4j;
 
 import java.util.AbstractCollection;
 import java.util.Iterator;
-import org.apache.commons.collections.ListUtils;
 import org.qi4j.api.entity.association.ManyAssociation;
 
 import org.polymap.core.model.AssocCollection;
@@ -52,12 +51,15 @@ public class AssocCollectionImpl<E>
     }
 
     public Iterator<E> iterator() {
-        if (isEmpty()) {
-            return ListUtils.EMPTY_LIST.iterator();
-        }
-        else {
+        
+//        return Iterables.concat( underlying ).iterator();
+        
+//        if (isEmpty()) {
+//            return ListUtils.EMPTY_LIST.iterator();
+//        }
+//        else {
             return new IteratorImpl();
-        }
+//        }
     }
 
     public int size() {

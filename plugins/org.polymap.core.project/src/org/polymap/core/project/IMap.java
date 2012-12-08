@@ -12,21 +12,14 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 
 import org.eclipse.core.runtime.IAdaptable;
 
@@ -38,15 +31,10 @@ import org.polymap.core.model.security.ACL;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 
 /**
- * A Map contains Maps and Layers. It holds information about the rendering of
- * the Services of the Layers.
- * <p>
- * Setting of properties should be done inside Operations only.
- * <p>
- * Implementing class have to provide an {@link #equals(Object)} method.
+ * A Map contains Maps and Layers. It holds information about the rendering of the
+ * Services of the Layers.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public interface IMap
@@ -94,7 +82,7 @@ public interface IMap
 
     @ModelProperty(PROP_CRSCODE)
     public void setCRSCode( String code )
-            throws NoSuchAuthorityCodeException, FactoryException;
+            throws NoSuchAuthorityCodeException, FactoryException, TransformException;
     
     public CoordinateReferenceSystem getCRS();
 

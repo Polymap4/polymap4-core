@@ -38,6 +38,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
 import org.polymap.core.data.operation.FeatureOperationFactory.IContextProvider;
 
 /**
@@ -50,6 +51,8 @@ abstract class DefaultMenuContribution
         implements IExecutableExtension, IContextProvider {
 
     private static Log log = LogFactory.getLog( DefaultMenuContribution.class );
+    
+    private static Image icon = DataPlugin.getDefault().imageForName( "icons/etool16/feature_ops.gif" );
 
     
     public DefaultMenuContribution() {
@@ -63,15 +66,21 @@ abstract class DefaultMenuContribution
     public void fill( Menu menu, int index ) {
         super.fill( menu, index );
         
-        Image icon = DataPlugin.getDefault().imageForName( "icons/etool16/feature_ops.gif" );
-        MenuItem item = menu.getParentItem();
-        if (item != null) {
-            item.setImage( icon );
+        for (MenuItem item : menu.getItems()) {
+            if (item.getMenu() != null
+                    && item.getText().equals( Messages.get( "FeatureOperationMenu_title" ) )) {
+                item.setImage( icon );
+            }
         }
     }
 
 
-    public IStructuredSelection currentSelection() {
+    public void fill( ToolBar parent, int index ) {
+        super.fill( parent, index );
+    }
+
+
+    protected IStructuredSelection currentSelection() {
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window != null) {
             ISelection sel = window.getSelectionService().getSelection();
@@ -82,11 +91,6 @@ abstract class DefaultMenuContribution
         return null;
     }
 
-    
-    public void fill( ToolBar parent, int index ) {
-        super.fill( parent, index );
-    }
-
     protected IContributionItem[] getContributionItems() {
         DefaultOperationContext context = newContext();
 
@@ -94,7 +98,7 @@ abstract class DefaultMenuContribution
             return new IContributionItem[] {};
         }
         
-        MenuManager subMenu = new MenuManager( "Massenoperationen", "featureOperations" );
+        MenuManager subMenu = new MenuManager( Messages.get( "FeatureOperationMenu_title" ), "featureOperations" );
         subMenu.setVisible( true );
 
         FeatureOperationFactory factory = FeatureOperationFactory.forContext( this );
@@ -111,7 +115,7 @@ abstract class DefaultMenuContribution
     public void setInitializationData( 
             IConfigurationElement config, String propertyName, Object data ) 
             throws CoreException {
-        log.info( "setInitializationData(): config=" + config + ", propertyName=" + propertyName );
+        log.debug( "setInitializationData(): config=" + config + ", propertyName=" + propertyName );
     }
 
 }

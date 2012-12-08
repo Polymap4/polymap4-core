@@ -24,16 +24,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.geotools.data.Query;
+import org.geotools.filter.spatial.BBOXImpl;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.spatial.BBOX;
 
-import org.geotools.data.Query;
-import org.geotools.filter.spatial.BBOXImpl;
-import org.geotools.util.SoftValueHashMap;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * A memory backed query/feature cache implementation for

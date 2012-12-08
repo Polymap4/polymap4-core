@@ -23,6 +23,8 @@ import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.feature.type.PropertyType;
 
+import com.google.common.base.Joiner;
+
 /**
  * Adapter between a Qi4j {@link org.qi4j.api.property.Property} and a OGC
  * property. Used by {@link IFormPageProvider} instances to handle complex
@@ -34,19 +36,37 @@ import org.opengis.feature.type.PropertyType;
 public class PropertyAdapter
         implements Property {
 
-    private org.qi4j.api.property.Property      delegate;
+    private org.qi4j.api.property.Property  delegate;
+    
+    private String                          prefix;
+    
+    private boolean                         readOnly;
 
 
     public PropertyAdapter( org.qi4j.api.property.Property delegate ) {
         this.delegate = delegate;
     }
 
+    public PropertyAdapter( String prefix, org.qi4j.api.property.Property delegate ) {
+        this.delegate = delegate;
+        this.prefix = prefix;
+    }
+
     protected org.qi4j.api.property.Property delegate() {
         return delegate;
     }
 
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    public PropertyAdapter setReadOnly( boolean readOnly ) {
+        this.readOnly = readOnly;
+        return this;
+    }
+
     public Name getName() {
-        return new NameImpl( delegate.qualifiedName().name() );
+        return new NameImpl( Joiner.on( "_" ).skipNulls().join( prefix, delegate.qualifiedName().name() ) );
     }
 
     public PropertyType getType() {
@@ -64,7 +84,9 @@ public class PropertyAdapter
     }
 
     public void setValue( Object value ) {
-        delegate.set( value );
+        if (!readOnly) {
+            delegate.set( value );
+        }
     }
 
     public Map<Object, Object> getUserData() {

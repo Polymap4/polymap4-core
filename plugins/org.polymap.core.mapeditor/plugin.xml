@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension-point id="org.polymap.core.mapeditor.mapContextMenu" name="MapContextMenu" schema="schema/org.polymap.core.mapEditor.mapContextMenu.exsd"/>
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -11,13 +12,6 @@
             id="org.polymap.core.mapeditor.MapEditor"
             name="%Map">
       </editor>
-   </extension>
-   <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            class="org.polymap.core.mapeditor.actions.OpenMapHandler"
-            commandId="org.polymap.core.project.command.openMap">
-      </handler>
    </extension>
    <extension
          point="org.eclipse.ui.viewActions">
@@ -107,7 +101,7 @@
                toolbarPath="mouseMode"
                tooltip="%actions_snap">
          </action>
-         <action
+         <!--action
                class="org.polymap.core.mapeditor.edit.DeleteFeatureEditorAction"
                icon="icons/etool16/remove_vertext_mode.gif"
                id="org.polymap.core.mapeditor.action.deleteFeatures_editor"
@@ -115,7 +109,7 @@
                style="toggle"
                toolbarPath="mouseMode"
                tooltip="%actions_deleteFeatures">
-         </action>
+         </action-->
          <action
                class="org.polymap.core.mapeditor.edit.DrawFeatureEditorAction"
                icon="icons/etool16/new_line_mode.gif"
@@ -217,6 +211,32 @@
             class="org.polymap.core.mapeditor.edit.LayerEditableOperationConcern"
             id="org.polymap.core.mapeditor.LayerEditableOperationConcern">
       </concern>
+      <concern
+            class="org.polymap.core.mapeditor.operations.OpenMapConcernFactory"
+            id="org.polymap.core.mapeditor.OpenMapConcern">
+      </concern>
+   </extension>
+   <extension
+         point="org.polymap.core.mapeditor.mapContextMenu">
+      <contribution
+            class="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution"
+            id="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution">
+      </contribution>
+      <contribution
+            class="org.polymap.core.mapeditor.contextmenu.LayerSelectableContribution"
+            id="org.polymap.core.mapeditor.contextmenu.LayerSelectableContribution">
+      </contribution>
+      <contribution
+            class="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfoContribution"
+            id="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfo">
+      </contribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.elementFactories">
+      <factory
+            class="org.polymap.core.mapeditor.MapEditorInput"
+            id="org.polymap.core.mapeditor.MapEditorInputFactory">
+      </factory>
    </extension>
    <!--extension
          point="org.eclipse.ui.decorators">

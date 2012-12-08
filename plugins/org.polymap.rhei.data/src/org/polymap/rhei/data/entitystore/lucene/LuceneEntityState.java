@@ -51,6 +51,8 @@ import org.qi4j.spi.property.PropertyType;
 import org.qi4j.spi.property.PropertyTypeDescriptor;
 import org.qi4j.spi.property.ValueType;
 
+import com.google.common.base.Joiner;
+
 import org.polymap.core.runtime.recordstore.IRecordState;
 
 /**
@@ -209,7 +211,7 @@ public class LuceneEntityState
     
     public void remove() {
         status = EntityStatus.REMOVED;
-//        uow.statusChanged( this );
+        uow.statusChanged( this );
     }
 
 
@@ -241,7 +243,7 @@ public class LuceneEntityState
     public void hasBeenApplied() {
         status = EntityStatus.LOADED;
         //version = uow.identity();
-//        uow.statusChanged( this );
+        uow.statusChanged( this );
     }
 
 
@@ -249,7 +251,7 @@ public class LuceneEntityState
         if (status == EntityStatus.LOADED) {
             status = EntityStatus.UPDATED;
         }
-//        uow.statusChanged( this );
+        uow.statusChanged( this );
     }
 
 
@@ -260,13 +262,15 @@ public class LuceneEntityState
             ValueCompositeType actualValueType = (ValueCompositeType)propertyType;
             List<PropertyType> actualTypes = actualValueType.types();
 
+            //log.debug( "    loadProperty(): ValueComposite: " + actualValueType );
             final Map<QualifiedName, Object> values = new HashMap<QualifiedName, Object>();
             for (PropertyType actualType : actualTypes) {
-                Object value = loadProperty(
-                        fieldName + SEPARATOR_PROP + actualType.qualifiedName().name(),
+                Object value = loadProperty( Joiner.on( SEPARATOR_PROP ).join(
+                        fieldName, actualType.qualifiedName().name() ),
                         actualType.type() );
                 if (value != null) {
                     values.put( actualType.qualifiedName(), value );
+                    //log.debug( "        property: " + actualType.qualifiedName() + ", value: " + value );
                 }
             }
 
@@ -299,7 +303,7 @@ public class LuceneEntityState
 
         // Collection
         else if (propertyType instanceof CollectionType) {
-            return new ValueCollection( fieldName, propertyType );
+            return new ValueCollection( this, fieldName, propertyType );
         }
 
         // primitive type
@@ -327,10 +331,9 @@ public class LuceneEntityState
                 return newValue;
             }
             ValueComposite valueComposite = (ValueComposite)newValue;
-            StateHolder state = valueComposite.state();
             final Map<QualifiedName, Object> values = new HashMap<QualifiedName, Object>();
     
-            state.visitProperties( new StateHolder.StateVisitor() {
+            valueComposite.state().visitProperties( new StateHolder.StateVisitor() {
                 public void visitProperty( QualifiedName name, Object value ) {
                     values.put( name, value );
                 }
@@ -348,8 +351,7 @@ public class LuceneEntityState
             }
     
             for (PropertyType actualType : actualTypes) {
-                storeProperty(
-                        fieldName + SEPARATOR_PROP + actualType.qualifiedName().name(),
+                storeProperty( Joiner.on( SEPARATOR_PROP ).join( fieldName, actualType.qualifiedName().name() ),
                         actualType.type(),
                         values.get( actualType.qualifiedName() ) );
             }
@@ -361,16 +363,15 @@ public class LuceneEntityState
             assert newValue != null : "Setting collection to null is not supported.";
             
             if (newValue instanceof ValueCollection) {
-                // XXX is this store actually needed? 
-                // changes are checked by ValueCollection already!?
-                ((ValueCollection)newValue).store();
-                return newValue;
+                ValueCollection coll = (ValueCollection)newValue;
+                if (coll.state == this && coll.fieldName.equals( fieldName )) {        
+                    return newValue;
+                }
             }
-            else {
-                ValueCollection coll = new ValueCollection( fieldName, propertyType, (Collection)newValue );
-                coll.store();
-                return coll;
-            }
+
+            ValueCollection coll = new ValueCollection( this, fieldName, propertyType, (Collection)newValue );
+            coll.store();
+            return coll;
         }
     
         // values
@@ -408,31 +409,36 @@ public class LuceneEntityState
      * <p/>
      * XXX don't store the entire collection on every add()/remove()
      */
-    class ValueCollection
+    static class ValueCollection
             extends ArrayList {
         
-        private String          fieldName;
+        private LuceneEntityState   state;
         
-        private ValueType       propertyType;
+        private String              fieldName;
+        
+        private ValueType           propertyType;
         
         
-        ValueCollection( String fieldName, ValueType propertyType ) {
+        ValueCollection( LuceneEntityState state, String fieldName, ValueType propertyType ) {
+            this.state = state;
             this.fieldName = fieldName;    
             this.propertyType = propertyType;
 
-            Integer size = record.get( fieldName + "__length");
+            Integer size = state.record.get( fieldName + "__length");
             if (size != null) {
                 ValueType collectedType = ((CollectionType)propertyType).collectedType();
 
                 for (int i=0; i<size; i++) {
-                    Object elm = loadProperty( fieldName + "[" + i + "]", collectedType );
+                    Object elm = state.loadProperty( Joiner.on( "" ).join( 
+                            fieldName, "[", i, "]" ), collectedType );
                     add( elm );
                 }
             }
         }
         
         
-        ValueCollection( String fieldName, ValueType propertyType, Collection value ) {
+        ValueCollection( LuceneEntityState state, String fieldName, ValueType propertyType, Collection value ) {
+            this.state = state;
             this.fieldName = fieldName;    
             this.propertyType = propertyType;
             
@@ -444,12 +450,13 @@ public class LuceneEntityState
             ValueType collectedType = ((CollectionType)propertyType).collectedType();
             int count = 0;
             for (Object collectedValue : this) {
-                storeProperty( fieldName + "[" + count++ + "]", collectedType, collectedValue );
+                state.storeProperty( Joiner.on( "" ).join( 
+                        fieldName, "[", count++, "]" ), collectedType, collectedValue );
             }
             // ignore removed entries, just update the length field
-            record.put( fieldName + "__length", count );
+            state.record.put( fieldName + "__length", count );
             
-            markUpdated();
+            state.markUpdated();
         }
         
         
@@ -487,12 +494,41 @@ public class LuceneEntityState
         }
         
         
+        public boolean remove( Object o ) {
+            log.debug( "remove(): o=" + o );
+            boolean result = super.remove( o );
+            store();
+            return result;
+        }
+
+
         public Object set( int index, Object object ) {
             log.debug( "set(): index=" + index + ", object=" + object );
             Object result = super.set( index, object );
             store();
             return result;
         }
+
+
+        public boolean addAll( Collection c ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public void clear() {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public boolean removeAll( Collection c ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        public boolean retainAll( Collection c ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+        
     }
     
 }

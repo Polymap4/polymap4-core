@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.rwt.lifecycle.WidgetUtil;
 
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -64,8 +65,8 @@ public class ProjectTreeViewer
         ILabelProvider lp = new ProjectLabelProvider();
         ILabelDecorator decorator = PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator();
         setLabelProvider( new DecoratingLabelProvider( lp, decorator ) );
-        
         setSorter( new NameSorter() );
+        getColorAndFontCollector().setFont( JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ) );
     }
 
     
@@ -106,7 +107,8 @@ public class ProjectTreeViewer
      * 
      */
     class ProjectLabelProvider
-            extends LabeledLabelProvider {
+            extends LabeledLabelProvider
+         {
 
         public Image getImage( Object elm ) {
             if (elm instanceof IMap) {
@@ -117,7 +119,6 @@ public class ProjectTreeViewer
             }
             return null;
         }
-
     }
     
     

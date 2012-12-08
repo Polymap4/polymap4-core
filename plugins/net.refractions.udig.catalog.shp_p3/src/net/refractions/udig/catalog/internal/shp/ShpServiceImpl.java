@@ -21,16 +21,16 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.nio.charset.Charset;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import net.refractions.udig.catalog.CatalogPlugin;
+import net.refractions.udig.catalog.IDeletingSchemaService;
 import net.refractions.udig.catalog.ICatalog;
 import net.refractions.udig.catalog.ID;
+import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IResolveChangeEvent;
 import net.refractions.udig.catalog.IResolveDelta;
@@ -60,13 +60,17 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Connect to a shapefile
  * 
  * @author David Zwiers, Refractions Research
  * @since 0.6
  */
-public class ShpServiceImpl extends IService {
+public class ShpServiceImpl 
+        extends IService
+        implements IDeletingSchemaService {
 
 	private URL url;
 	private ID id;
@@ -105,8 +109,7 @@ public class ShpServiceImpl extends IService {
     				ShpPlugin.getDefault().isUseSpatialIndex());
         }
         if( !params.containsKey(ShapefileDataStoreFactory.DBFCHARSET.key)){
-            params.put(ShapefileDataStoreFactory.DBFCHARSET.key,
-                    "ISO-8859-1");
+            params.put(ShapefileDataStoreFactory.DBFCHARSET.key, "ISO-8859-1");
                     // _p3: we rely on fix ISO setting, since the preference setting is not yet available in p3
                     //ShpPlugin.getDefault().defaultCharset());
         }
@@ -236,7 +239,7 @@ public class ShpServiceImpl extends IService {
                         
                             
                         try {
-							ds = (ShapefileDataStore) dsf
+							ds = dsf
 									.createDataStore(params);
 							openIndexGenerationDialog(ds);     
                             // hit it lightly to make sure it exists.
@@ -247,7 +250,7 @@ public class ShpServiceImpl extends IService {
 							try {
 								params
 										.remove(ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key);
-								ds = (ShapefileDataStore) dsf
+								ds = dsf
 										.createDataStore(params);
                                 // hit it lightly to make sure it exists.
                                 ds.getFeatureSource();
@@ -374,4 +377,20 @@ public class ShpServiceImpl extends IService {
         URL url = (URL) parametersMap.get(ShapefileDataStoreFactory.URLP.key);
         return URLUtils.urlToFile(url);        
     }
+
+
+    public void deleteSchema( IGeoResource geores, IProgressMonitor monitor ) 
+    throws IOException {
+        File file = resolve( File.class, monitor );
+        String baseName = FilenameUtils.getBaseName( file.getName() );
+        for (File f : file.getParentFile().listFiles()) {
+            if (FilenameUtils.getBaseName( f.getName() ).equals( baseName )) {
+                System.out.println( "deleting: " + f.getAbsolutePath() );
+                if (!f.delete()) {
+                    throw new IOException( "Unable to delete file: " + f.getAbsolutePath() );
+                }
+            }
+        }
+    }
+    
 }

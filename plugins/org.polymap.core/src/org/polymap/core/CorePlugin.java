@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, 2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,28 +11,23 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
+
+import org.geotools.util.logging.Logging;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
+import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.geotools.util.logging.Logging;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 
@@ -46,7 +40,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.http.HttpServiceRegistry;
+import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.RapSessionContextProvider;
 import org.polymap.core.runtime.SessionContext;
 
@@ -54,8 +48,6 @@ import org.polymap.core.runtime.SessionContext;
  * The activator class controls the plug-in life cycle
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- *         <li>24.06.2009: created</li>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class CorePlugin
@@ -69,14 +61,80 @@ public class CorePlugin
 	// The shared instance
 	private static CorePlugin  plugin;
 
-	private static boolean     httpServiceRegistryStarted = false;
-
 
 	public static ImageDescriptor imageDescriptor( String path ) {
         return imageDescriptorFromPlugin( PLUGIN_ID, path );
     }
 
 
+    /**
+     * Registers a servlet into the URI namespace.
+     * 
+     * @see #registerServlet(String, Servlet, Dictionary, HttpContext) 
+     * @see HttpService
+     */
+    public static void registerServlet( String alias, HttpServlet servlet, Dictionary initParams )
+    throws Exception {
+        registerServlet( alias, servlet, initParams, null );
+    }
+
+    
+    /**
+     * Registers a servlet into the URI namespace. This helper provides some
+     * convenience over raw {@link HttpService}.
+     * <p/>
+     * The {@link CorePlugin} runs a {@link ServiceTracker} for {@link HttpService}. Callers
+     * of this method don't need to check for an existing {@link HttpService}.
+     * 
+     * @see HttpService
+     */
+    public static void registerServlet( String alias, HttpServlet servlet,
+            Dictionary initParams, HttpContext context )
+            throws Exception {
+        
+        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
+        
+        initParams = initParams != null ? initParams : new Hashtable();
+        initParams.put( "alias", alias );
+        
+        httpService.registerServlet( alias, servlet, initParams, context );
+    }
+
+
+    /**
+     * Unregisters a previous registration done by
+     * {@link #registerServlet(String, Servlet, Dictionary, HttpContext)} or
+     * <code>registerResources</code> methods.
+     * 
+     * @see HttpService
+     */
+    public static void unregister( HttpServlet servlet ) {
+        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
+        httpService.unregister( servletAlias( servlet ) );        
+    }
+
+    
+    /**
+     * Unregisters a previous registration done by
+     * {@link #registerServlet(String, Servlet, Dictionary, HttpContext)} or
+     * <code>registerResources</code> methods.
+     * 
+     * @see HttpService
+     */
+    public static void unregister( String alias ) {
+        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
+        httpService.unregister( alias );        
+    }
+
+    
+    public static String servletAlias( HttpServlet servlet ) {
+        assert servlet != null;
+        String alias = servlet.getInitParameter( "alias" );
+        assert alias != null : "There is no 'alias' init param in this servlet.";
+        return alias;
+    }
+    
+    
 	static {
 	    try {
             Logging.GEOTOOLS.setLoggerFactory( "org.geotools.util.logging.CommonsLoggerFactory" );
@@ -93,11 +151,13 @@ public class CorePlugin
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.mp", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "trace" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.workbench.dnd", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.service.geoserver", "debug" );
 
@@ -110,7 +170,6 @@ public class CorePlugin
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
-
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
 
@@ -118,19 +177,23 @@ public class CorePlugin
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
+
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
 	}
 
 	
 	// instance *******************************************
 	
-    private RapSessionContextProvider rapSessionContextProvider;
+    private RapSessionContextProvider   rapSessionContextProvider;
+
+    private HttpServiceTracker          httpServiceTracker;
 
 
 	public CorePlugin() {
@@ -149,38 +212,26 @@ public class CorePlugin
         log.debug( "start..." );
         plugin = this;
         
-        //
+        System.setProperty( "http.agent", "Polymap3 (http://polymap.org/polymap3/)" );
+        System.setProperty( "https.agent", "Polymap3 (http://polymap.org/polymap3/)" );
+
+        // RAP session context
         this.rapSessionContextProvider = new RapSessionContextProvider();
         SessionContext.addProvider( rapSessionContextProvider );
 
-        // start HttpServiceRegistry
-        context.addBundleListener( new BundleListener() {
-            public void bundleChanged( BundleEvent ev ) {
-                // check all bundles if HttpService appears
-                if (ev.getType() == BundleEvent.STARTED && !httpServiceRegistryStarted) {
-                    try {
-                        ServiceReference[] httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
-                        if (httpReferences != null) {
-                            HttpServiceRegistry.init();
-                            httpServiceRegistryStarted = true;
-                        }
-                    }
-                    catch (InvalidSyntaxException e) {
-                        throw new RuntimeException( e.getMessage(), e );
-                    }
-                }
-                // stop
-                else if (ev.getType() == BundleEvent.STOPPED && ev.getBundle().equals( getBundle() )) {
-                    HttpServiceRegistry.dispose();
-                }
-            }
-        });
+        // init HttpServiceTracker
+        httpServiceTracker = new HttpServiceTracker( context );
+        httpServiceTracker.open();
     }
 
 
     public void stop( BundleContext context )
     throws Exception {
         log.debug( "stop..." );
+        
+        httpServiceTracker.close();
+        httpServiceTracker = null;
+        
         plugin = null;
         super.stop( context );
         

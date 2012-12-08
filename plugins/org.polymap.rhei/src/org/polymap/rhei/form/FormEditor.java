@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
@@ -36,6 +39,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.action.Action;
@@ -60,12 +65,12 @@ import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.rhei.Messages;
 import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.field.FormFieldEvent;
-import org.polymap.rhei.field.IFormFieldListener;
 import org.polymap.rhei.internal.form.FormEditorPageContainer;
 import org.polymap.rhei.internal.form.FormPageProviderExtension;
 
@@ -76,8 +81,7 @@ import org.polymap.rhei.internal.form.FormPageProviderExtension;
  */
 @SuppressWarnings("deprecation")
 public class FormEditor
-        extends org.eclipse.ui.forms.editor.FormEditor
-        implements IFormFieldListener {
+        extends org.eclipse.ui.forms.editor.FormEditor {
 
     private static Log log = LogFactory.getLog( FormEditor.class );
 
@@ -95,7 +99,7 @@ public class FormEditor
     public static FormEditor open( FeatureStore fs, Feature feature, ILayer layer ) {
         try {
             log.debug( "open(): feature= " + feature );
-            FormEditorInput input = new FormEditorInput( fs, feature, layer );
+            FormEditorInput input = new FormEditorInput( fs, feature );
 
             // check current editors
             IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -141,7 +145,9 @@ public class FormEditor
 
     private Action                      revertAction;
 
-    private OperationSaveListener operationSaveListener;
+    private OperationSaveListener       operationSaveListener;
+    
+    private LayerListener               layerListener;               
     
 
     public FormEditor() {
@@ -151,7 +157,9 @@ public class FormEditor
     public void init( IEditorSite site, IEditorInput input )
             throws PartInitException {
         super.init( site, input );
+    }
 
+    protected Composite createPageContainer( Composite parent ) {
         // zoom feature action
         final ILayer layer = ((FormEditorInput)getEditorInput()).getLayer();
         if (layer != null) {
@@ -176,6 +184,9 @@ public class FormEditor
             zoomAction.setToolTipText( Messages.get( "FormEditor_zoomTip" ) );
             zoomAction.setEnabled( true );
             standardPageActions.add( zoomAction );
+    
+            // LayerListener
+            layer.addPropertyChangeListener( layerListener = new LayerListener() );
         }
         
         // submit action
@@ -218,9 +229,34 @@ public class FormEditor
         // save listener 
         operationSaveListener = new OperationSaveListener();
         OperationSupport.instance().addOperationSaveListener( operationSaveListener );
+
+        return super.createPageContainer( parent );
     }
 
 
+    /**
+     * Listens to property changes of the layer, especially deletion.
+     */
+    class LayerListener
+            implements PropertyChangeListener {
+
+        public void propertyChange( PropertyChangeEvent ev ) {
+            if (PropertyChangeSupport.PROP_ENTITY_REMOVED.equals( ev.getPropertyName() )) {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                            page.closeEditor( FormEditor.this, false );
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getMessage(), e );
+                        }
+                    }
+                });
+            }
+        }
+    }
+    
     /*
      * 
      */
@@ -258,9 +294,24 @@ public class FormEditor
     }
 
 
-    public void fieldChange( FormFieldEvent ev ) {
+    /**
+     * Propagates the given event to all pages of the form, except the <code>srcPage</code>.
+     * 
+     * @param ev
+     * @param srcPage
+     */
+    public void propagateFieldChange( FormFieldEvent ev, FormEditorPageContainer srcPage ) {
+        // propagate event to other pages
+        if (ev != null) {
+            for (FormEditorPageContainer page : pages) {
+                if (page != srcPage) {
+                    page.fireEventLocally( ev );
+                }
+            }
+        }
+        
+        // update isDirty / isValid
         boolean oldIsDirty = isDirty;
-
         isDirty = false;
         for (FormEditorPageContainer page : pages) {
             if (page.isDirty()) {
@@ -291,6 +342,16 @@ public class FormEditor
         super.dispose();
         pages.clear();
         OperationSupport.instance().removeOperationSaveListener( operationSaveListener );
+        
+        ILayer layer = ((FormEditorInput)getEditorInput()).getLayer();
+        if (layer != null) {
+            try {
+                layer.removePropertyChangeListener( layerListener );
+            }
+            catch (NoSuchEntityException e) {
+                // layer has been deleted -> ignore
+            }
+        }
     }
 
 
@@ -320,8 +381,6 @@ public class FormEditor
                             setActivePage( page.getId() );
                             //setPartName( page.getTitle() );
                         }
-
-                        wrapper.addFieldListener( this );
                     }
                 }
             }
@@ -390,7 +449,7 @@ public class FormEditor
             OperationSupport.instance().execute( op, false, false );
 
             // update isDirt/isValid
-            fieldChange( null );
+            propagateFieldChange( null, null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Objekt konnte nicht gespeichert werden.", e );
@@ -405,7 +464,7 @@ public class FormEditor
                 page.doLoad( monitor );
             }
             // update isDirt/isValid
-            fieldChange( null );
+            propagateFieldChange( null, null );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, "Objekt konnte nicht gespeichert werden.", e );

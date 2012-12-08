@@ -91,6 +91,8 @@ public class OpenLayersMap
 	
 	private float                      maxResolution;
 	
+	//private int[]                      scales;
+	
 	
     public OpenLayersMap(OpenLayersWidget widget,Projection projection,Projection display_projection,String units,Bounds maxExtent,float maxResolution) {
         this.widget = widget;
@@ -110,7 +112,11 @@ public class OpenLayersMap
     }
     
 	
-	public void addLayer(Layer layer2add) {
+    public OpenLayersWidget getWidget() {
+        return widget;
+    }
+
+    public void addLayer(Layer layer2add) {
 		super.addObjModCode("addLayer",layer2add);
 	}
 

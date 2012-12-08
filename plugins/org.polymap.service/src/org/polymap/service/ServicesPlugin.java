@@ -9,11 +9,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
+import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,14 +19,16 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.Stringer;
 import org.polymap.core.security.SecurityUtils;
 import org.polymap.core.security.UserPrincipal;
 
@@ -42,8 +42,8 @@ import org.polymap.service.ui.GeneralPreferencePage;
  * @since 3.0
  */
 public class ServicesPlugin 
-        extends AbstractUIPlugin
-        implements IModelStoreListener {
+        extends AbstractUIPlugin {
+        //implements IModelStoreListener {
 
     private static Log log = LogFactory.getLog( ServicesPlugin.class );
 
@@ -53,38 +53,65 @@ public class ServicesPlugin
 	/** The general base pathSpec for all services. */
 	public static final String      SERVICES_PATHSPEC = "/services";
 
-	public static final String      PREF_PROXY_URL = "_proxyUrl_";
+    public static final String      PREF_PROXY_URL = "_proxyUrl_";
     
+    public static final String      SERVICE_TYPE_WMS = "org.polymap.service.http.WmsService";
+    public static final String      SERVICE_TYPE_WFS = "org.polymap.service.http.WfsService";
 
     // The shared instance
     private static ServicesPlugin   plugin;
     
-    private static boolean          started = false;
-
 
     public static ServicesPlugin getDefault() {
         return plugin;
     }
 
+
     /**
-     * Static helper function that builds names that can be used as part
-     * of an URL out of label Strings.
-     * <p>
-     * Currently german umlauts are replaced. Afterwards all chars other than
-     * [a-zA-Z\\-_] are removed.
+     * Replace invalid chars to form a valid servlet pathSpec.
+     * <p/>
+     * Also ensures that the given pathSpec The pathSpec must begin with slash ('/')
+     * and must not end with slash ('/'), with the exception that an alias of the
+     * form &quot;/&quot; is used to denote the root alias. See the specification
+     * text for details on how HTTP requests are mapped to servlet and resource
+     * registrations.
+     * 
+     * @param s The name or pathSpec to check.
+     * @return The modified pathSpec.
      */
-    public static String simpleName( String s ) {
-        String result = s;
-        result = result.replaceAll("[Üü]", "ue").
-                replaceAll( "[Ää]", "ae").
-                replaceAll( "[Öö]", "oe").
-                replaceAll( "[ß]", "ss");
-        result = result.replaceAll( "[^a-zA-Z0-9\\-_]", "" );
-        return result;
+    public static String validPathSpec( String s ) {
+        //s = s.startsWith( "/" ) ? s.substring( 1 ) : s;
+        Stringer result = Stringer.on( s ).replaceUmlauts().toURIPath( "_" );
+        if (!result.startsWith( "/" )) {
+            result.insert( 0, '/' );
+        }
+        if (result.endsWith( "/" )) {
+            result.deleteCharAt( result.length() - 1 );
+        }
+        return result.toString();
+    }
+
+    /**
+     * 
+     * @param pathSpec The simple name or pathSpec to use in the URL.
+     * @return The complete URL including protocol, host, port, services base URL and
+     *         tteh validated pathSpec.
+     */
+    public static String createServiceUrl( String pathSpec ) {
+        return getDefault().getServicesBaseUrl() + validPathSpec( pathSpec );
     }
     
-
-
+    /**
+     * 
+     * @param pathSpec The simple name or pathSpec to use in the URL.
+     * @return The complete URL including protocol, host, port, services base URL and
+     *         tteh validated pathSpec.
+     */
+    public static String createServicePath( String pathSpec ) {
+        return SERVICES_PATHSPEC + validPathSpec( pathSpec );
+    }
+    
+    
     // instance *******************************************
     
     private Map<String,ServiceContext> serviceContexts = new HashMap();
@@ -98,12 +125,18 @@ public class ServicesPlugin
     private DefaultSessionContextProvider contextProvider;
 
     private HttpService             httpService;
+
+    private ServiceTracker          httpServiceTracker;
     
     
     public ServicesPlugin() {
     }
 
-    
+    /**
+     * The configured base URL of this instance.
+     *
+     * @return The configured URL or somethong like http://localhost...
+     */
     public String getBaseUrl() {
         return proxyBaseUrl != null && proxyBaseUrl.length() > 0
             ? proxyBaseUrl : localBaseUrl;
@@ -123,58 +156,62 @@ public class ServicesPlugin
         contextProvider = new DefaultSessionContextProvider();
         SessionContext.addProvider( contextProvider );
         
-        // start HttpServiceRegistry
-        context.addBundleListener( new BundleListener() {
-            public void bundleChanged( BundleEvent ev ) {
-                
-                if (!started && (HttpService.class != null)) {
-                    ServiceReference[] httpReferences = null;
+//        // legacy: delete services without a map
+//        contextProvider.mapContext( "legacyDeleteServices", true );
+//        Polymap.instance().addPrincipal( new AdminPrincipal() );
+//        ServiceRepository repo = ServiceRepository.instance();
+//        try {
+//            repo.legacyRemoveServices();
+//        }
+//        finally {
+//            repo.commitChanges();
+//            contextProvider.unmapContext();
+//        }
+
+        // register resource
+        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+            public Object addingService( ServiceReference reference ) {
+                httpService = (HttpService)super.addingService( reference );                
+                if (httpService != null) {
+                    String protocol = "http";
+                    String port = context.getProperty( "org.osgi.service.http.port" );
+                    String hostname = "localhost";
                     try {
-                        httpReferences = context.getServiceReferences( HttpService.class.getName(), null );
+                        InetAddress.getLocalHost().getHostAddress();
                     }
-                    catch (InvalidSyntaxException e) {
-                        // FIXME Auto-generated catch block
-                        e.printStackTrace();
+                    catch (UnknownHostException e) {
+                        // ignore; use "localhost" then
                     }
-                    
-                    if (httpReferences != null) {
-                        String protocol = "http";
-                        String port = context.getProperty( "org.osgi.service.http.port" );
-                        String hostname = "localhost";
-                        try {
-                            InetAddress.getLocalHost().getHostAddress();
+
+                    // get baseUrl
+                    localBaseUrl = protocol + "://" + hostname + ":" + port;
+                    log.info( "HTTP service found on: " + localBaseUrl );
+
+                    ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), PLUGIN_ID );
+                    proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
+                    log.info( "Proxy URL set to: " + proxyBaseUrl );
+
+                    // delayed starting services in separate thread
+                    new Job( "ServiceStarter" ) {
+                        protected IStatus run( IProgressMonitor monitor ) {
+                            log.info( "Starting services..." );
+                            initServices();
+                            return Status.OK_STATUS;
                         }
-                        catch (UnknownHostException e) {
-                            // ignore; use "localhost" then
-                        }
-
-                        // get baseUrl
-                        localBaseUrl = protocol + "://" + hostname + ":" + port;
-                        log.info( "HTTP service found on: " + localBaseUrl );
-
-                        ScopedPreferenceStore prefStore = new ScopedPreferenceStore( new InstanceScope(), getBundle().getSymbolicName() );
-                        proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
-                        log.info( "Proxy URL set to: " + proxyBaseUrl );
-
-                        httpService = (HttpService)context.getService( httpReferences[0] );
-                        reStartServices();                            
-                        started = true;
-                    } 
-                    else {
-                        // No http service yet available - waiting for next BundleEvent
-                    }
+                    }.schedule( 2000 );
                 }
-                // stop
-                else if (ev.getType() == BundleEvent.STOPPED && ev.getBundle().equals( getBundle() )) {
-
-                }
+                return httpService;
             }
-        });
+        };
+        httpServiceTracker.open();
     }
 
 
     public void stop( BundleContext context )
     throws Exception {
+        httpServiceTracker.close();
+        httpServiceTracker = null;
+        
         plugin = null;
         super.stop( context );
         
@@ -187,7 +224,7 @@ public class ServicesPlugin
      * Start all global services and register model change listener
      * and preference listener.
      */
-    protected void reStartServices() {
+    protected void initServices() {
         try {
             contextProvider.mapContext( "services", true );
             Polymap.instance().addPrincipal( new AdminPrincipal() );
@@ -195,17 +232,13 @@ public class ServicesPlugin
             // create/start ServiceContexts
             ServiceRepository repo = ServiceRepository.instance();
             List<IProvidedService> services = new ArrayList( repo.allServices() );
-            repo.addModelStoreListener( this );
             
             // ServiceContext maps its own context and DefaultSessionContextProvider
-            // uses a static ThreadLocal to store contexts
+            // uses a static ThreadLocal to store contexts -> unmap now
             contextProvider.unmapContext();
 
             for (IProvidedService service : services) {
-                if (!serviceContexts.containsKey( service.id() )) {
-                    ServiceContext serviceContext = new ServiceContext( service.id(), httpService );
-                    serviceContexts.put( service.id(), serviceContext );
-                }
+                initServiceContext( service );
             }
         }
         catch (Exception e) {
@@ -221,22 +254,15 @@ public class ServicesPlugin
     }
 
     
-    public void modelChanged( ModelStoreEvent ev ) {
-        if (ev.getEventType() == EventType.COMMIT) {
-            try {
-                contextProvider.mapContext( "services", false );
-                ServiceRepository repo = ServiceRepository.instance();
-                repo.removeModelStoreListener( this );
-            }
-            finally {
-                contextProvider.unmapContext();
-            }
-            contextProvider.destroyContext( "services" );
-            
-            reStartServices();
+    public ServiceContext initServiceContext( IProvidedService service ) {
+        ServiceContext context = serviceContexts.get( service.id() );
+        if (context == null) {
+            context = new ServiceContext( service.id(), httpService );
+            serviceContexts.put( service.id(), context );
         }
+        return context;
     }
-
+    
     
     public boolean isValid() {
         return true;

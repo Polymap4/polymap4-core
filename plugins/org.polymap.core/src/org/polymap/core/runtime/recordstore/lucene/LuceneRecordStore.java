@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011, 2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,6 +16,7 @@ package org.polymap.core.runtime.recordstore.lucene;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 
 import java.io.File;
@@ -29,6 +30,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -38,20 +40,24 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
+import com.google.common.collect.MapMaker;
+
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.recordstore.BaseRecordStore;
-import org.polymap.core.runtime.recordstore.IRecordCache;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
-import org.polymap.core.runtime.recordstore.NullRecordCache;
 import org.polymap.core.runtime.recordstore.RecordModel;
 import org.polymap.core.runtime.recordstore.RecordQuery;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
 
-
 /**
+ * A record store backed by a Lucene index.
+ * <p/>
+ * This store supports copy-on-write caching of the underlying Lucene documents. To
+ * activate caching call {@link #setDocumentCache(Cache)}.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public final class LuceneRecordStore
@@ -68,10 +74,15 @@ public final class LuceneRecordStore
     
     private ExecutorService         executor = null; //Polymap.executorService();
     
-    /** Maps document number (instead of record ID!) into record */
-    private IRecordCache            recordCache = new NullRecordCache();
+    private Cache<Object,Document>  cache = null;
     
-    private IRecordCache.RecordLoader recordLoader = new DocumentLoader();
+    private CacheLoader<Object,Document,Exception> loader = new DocumentLoader();
+    
+    /** 
+     * Maps docnum into record id; this helps to find a cached record
+     * for a given docnum. This contains a map only if a cache is set.
+     */
+    private ConcurrentMap<Integer,Object> doc2id = null;
 
     IndexSearcher                   searcher;
 
@@ -136,6 +147,11 @@ public final class LuceneRecordStore
             reader = null;
             directory.close();
             directory = null;
+            
+            if (cache != null) {
+                cache.dispose();
+                doc2id.clear();
+            }
         }
         catch (IOException e) {
             throw new RuntimeException( e );
@@ -169,19 +185,15 @@ public final class LuceneRecordStore
     }
 
 
-    public IRecordCache getRecordCache() {
-        return recordCache;
-    }
-
-    
-    public void setRecordCache( IRecordCache recordCache ) {
-        this.recordCache = recordCache;
+    public void setDocumentCache( Cache<Object,Document> cache ) {
+        this.cache = cache;
+        this.doc2id = new MapMaker().initialCapacity( 1024 ).concurrencyLevel( 8 ).makeMap();
     }
 
 
     public IRecordState newRecord() {
         assert reader != null : "Store is closed.";
-        return new LuceneRecordState( this, new Document() );
+        return new LuceneRecordState( this, new Document(), false );
     }
 
 
@@ -190,43 +202,66 @@ public final class LuceneRecordStore
         assert reader != null : "Store is closed.";
         assert id instanceof String : "Given record identifier is not a String: " + id;
         
-        TermDocs termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
-        try {
-            if (termDocs.next()) {
-                Document doc = reader.document( termDocs.doc() );
-                return new LuceneRecordState( LuceneRecordStore.this, doc );
-                // XXX fill cache?
-            }
-            return null;
-        }
-        finally {
-            termDocs.close();
-        }
+        Document doc = cache != null
+                ? cache.get( id, loader )
+                : loader.load( id );
+                
+        return new LuceneRecordState( LuceneRecordStore.this, doc, cache != null );
     }
 
 
-    public IRecordState get( int docnum ) 
+    public LuceneRecordState get( int docnum ) 
     throws Exception {
         assert reader != null : "Store is closed.";
-        return cacheOrLoad( docnum );        
+
+        // if doc2id contains the docnum *and* the cache contains the id, then
+        // we can create a record without accessing the underlying store
+        if (doc2id != null) {
+            Object id = doc2id.get( docnum );
+            if (id != null) {
+                Document doc = cache.get( id );
+                if (doc != null) {
+                    //System.out.print( "." );
+                    return new LuceneRecordState( LuceneRecordStore.this, doc, true );
+                }
+            }
+        }
+         
+        Document doc = reader.document( docnum );
+        LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
+        
+        if (cache != null) {
+            doc2id.put( docnum, result.id() );
+            if (cache.putIfAbsent( result.id(), doc ) == null) {
+                result.setShared( true );
+            }
+        }
+        return result;
     }
 
 
-    LuceneRecordState cacheOrLoad( int docnum ) 
-    throws Exception {
-        return (LuceneRecordState)recordCache.get( docnum, recordLoader );
-    }
-
-    
     /**
-     * Loads records triggered by the cache in in {@link LuceneRecordStore#get(Object)}.
+     * Loads records triggered by the cache in {@link LuceneRecordStore#get(Object)}.
      */
     class DocumentLoader
-            implements IRecordCache.RecordLoader {
+            implements CacheLoader<Object,Document,Exception> {
         
-        public IRecordState load( Object docNum ) throws Exception {
-            Document doc = reader.document( (Integer)docNum );
-            return new LuceneRecordState( LuceneRecordStore.this, doc );
+        public Document load( Object id ) throws Exception {
+            TermDocs termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
+            try {
+                if (termDocs.next()) {
+                    return reader.document( termDocs.doc() );
+                }
+                return null;
+            }
+            finally {
+                termDocs.close();
+            }
+
+        }
+
+        public int size() throws Exception {
+            return Cache.ELEMENT_SIZE_UNKNOW;
         }
     }
     
@@ -254,7 +289,7 @@ public final class LuceneRecordStore
             implements Updater {
 
         private IndexWriter         writer;
-
+        
 
         LuceneUpdater() {
             try {
@@ -263,6 +298,10 @@ public final class LuceneRecordStore
                 // 8 concurrent thread
                 IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
                         .setOpenMode( OpenMode.APPEND );
+                // limit segment size for lower pauses on interactive indexing
+                LogByteSizeMergePolicy mergePolicy = new LogByteSizeMergePolicy();
+                mergePolicy.setMaxMergeMB( 10 );
+                config.setMergePolicy( mergePolicy );
                 writer = new IndexWriter( directory, config );
             }
             catch (Exception e) {
@@ -274,18 +313,26 @@ public final class LuceneRecordStore
         public void store( IRecordState record ) throws Exception {
             if (log.isTraceEnabled()) {
                 for (Map.Entry<String,Object> entry : record) {
-                    log.debug( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
+                    log.trace( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
                 }
             }
             // add
             if (record.id() == null) {
                 ((LuceneRecordState)record).createId();
                 writer.addDocument( ((LuceneRecordState)record).getDocument() );
+                
+                if (cache != null) {
+                    cache.remove( record.id() );
+                }
             }
             // update
             else {
                 Term idTerm = new Term( LuceneRecordState.ID_FIELD, (String)record.id() );
                 writer.updateDocument( idTerm, ((LuceneRecordState)record).getDocument() );
+
+                if (cache != null) {
+                    cache.remove( record.id() );
+                }
             }
         }
 
@@ -295,23 +342,37 @@ public final class LuceneRecordStore
 
             Term idTerm = new Term( LuceneRecordState.ID_FIELD, (String)record.id() );
             writer.deleteDocuments( idTerm );
+
+            if (cache != null) {
+                cache.remove( record.id() );
+            }
         }
 
         
         public void apply() {
+            apply( true );
+        }
+        
+        
+        public void apply( boolean optimizeIndex ) {
             assert writer != null : "Updater is closed.";
             Timer timer = new Timer();
             try {
                 writer.commit();
-                
-                writer.expungeDeletes( true );
-                
+                if (optimizeIndex) {
+                    writer.expungeDeletes( true );
+                }
                 writer.close();
                 writer = null;
                 
                 searcher.close();
                 reader = reader.reopen();
                 searcher = new IndexSearcher( reader, executor );
+                
+                if (doc2id != null) {
+                    doc2id.clear();
+                }
+                
                 log.debug( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
@@ -321,9 +382,12 @@ public final class LuceneRecordStore
 
         
         public void discard() {
+            log.warn( "Updater is closed." );
             assert writer != null : "Updater is closed.";
+            
             try {
                 writer.rollback();
+                writer.close();
                 writer = null;
             }
             catch (Exception e) {

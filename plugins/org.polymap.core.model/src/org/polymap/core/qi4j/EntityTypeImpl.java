@@ -96,6 +96,7 @@ class EntityTypeImpl<T extends Composite>
     }
 
     public Property getProperty( String name ) {
+        assert name != null;
         return checkInitProps().get( name );
     }
 

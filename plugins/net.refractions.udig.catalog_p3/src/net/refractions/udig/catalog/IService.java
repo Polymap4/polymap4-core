@@ -438,14 +438,12 @@ public abstract class IService
      * @return string representing this IResolve
      */
     public String toString() {
-        StringBuffer buf = new StringBuffer();
-        String classname = getClass().getName();
-        String name = classname.substring(classname.lastIndexOf('.') + 1);
-        buf.append(name);
-        buf.append("("); //$NON-NLS-1$
-        buf.append(getIdentifier());
-        buf.append(")"); //$NON-NLS-1$
-        return buf.toString();
+        return new StringBuilder( 128 )
+                .append( getClass().getSimpleName() )
+                .append( "(" )
+                .append( getIdentifier() )
+                .append( ")" )
+                .toString();
     }
 
     public void dispose( IProgressMonitor monitor ) {
@@ -473,6 +471,5 @@ public abstract class IService
             }
         }
     }
-
 
 }

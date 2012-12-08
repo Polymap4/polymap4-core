@@ -26,7 +26,9 @@ import org.apache.lucene.search.Query;
 import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.QueryExpression.Equal;
 import org.polymap.core.runtime.recordstore.QueryExpression.Greater;
+import org.polymap.core.runtime.recordstore.QueryExpression.GreaterOrEqual;
 import org.polymap.core.runtime.recordstore.QueryExpression.Less;
+import org.polymap.core.runtime.recordstore.QueryExpression.LessOrEqual;
 import org.polymap.core.runtime.recordstore.QueryExpression.Match;
 
 
@@ -136,6 +138,31 @@ public final class NumericValueCoder
                 }
             }
         }
+        // GREATER OR EQUAL
+        else if (exp instanceof QueryExpression.GreaterOrEqual) {
+            GreaterOrEqual greaterExp = (QueryExpression.GreaterOrEqual)exp;
+            
+            if (greaterExp.value instanceof Number) {
+                String key = greaterExp.key;
+                Number value = (Number)greaterExp.value;
+                
+                if (greaterExp.value instanceof Integer) {
+                    return NumericRangeQuery.newIntRange( key, value.intValue(), null, true, false );
+                }
+                else if (greaterExp.value instanceof Long) {
+                    return NumericRangeQuery.newLongRange( key, value.longValue(), null, true, false );
+                }
+                else if (greaterExp.value instanceof Float) {
+                    return NumericRangeQuery.newFloatRange( key, value.floatValue(), null, true, false );
+                }
+                else if (greaterExp.value instanceof Double) {
+                    return NumericRangeQuery.newDoubleRange( key, value.doubleValue(), null, true, false );
+                }
+                else {
+                    throw new RuntimeException( "Unknown Number type: " + value.getClass() );
+                }
+            }
+        }
         // LESS
         else if (exp instanceof QueryExpression.Less) {
             Less lessExp = (QueryExpression.Less)exp;
@@ -155,6 +182,31 @@ public final class NumericValueCoder
                 }
                 else if (lessExp.value instanceof Double) {
                     return NumericRangeQuery.newDoubleRange( key, null, value.doubleValue(), false, false );
+                }
+                else {
+                    throw new RuntimeException( "Unknown Number type: " + value.getClass() );
+                }
+            }
+        }
+        // LESS or equal
+        else if (exp instanceof QueryExpression.LessOrEqual) {
+            LessOrEqual lessExp = (QueryExpression.LessOrEqual)exp;
+            
+            if (lessExp.value instanceof Number) {
+                String key = lessExp.key;
+                Number value = (Number)lessExp.value;
+                
+                if (lessExp.value instanceof Integer) {
+                    return NumericRangeQuery.newIntRange( key, null, value.intValue(), false, true );
+                }
+                else if (lessExp.value instanceof Long) {
+                    return NumericRangeQuery.newLongRange( key, null, value.longValue(), false, true );
+                }
+                else if (lessExp.value instanceof Float) {
+                    return NumericRangeQuery.newFloatRange( key, null, value.floatValue(), false, true );
+                }
+                else if (lessExp.value instanceof Double) {
+                    return NumericRangeQuery.newDoubleRange( key, null, value.doubleValue(), false, true );
                 }
                 else {
                     throw new RuntimeException( "Unknown Number type: " + value.getClass() );

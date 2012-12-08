@@ -21,10 +21,14 @@ import org.apache.commons.lang.StringUtils;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 
+import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormFieldLabel;
+import org.polymap.rhei.field.IFormFieldListener;
 import org.polymap.rhei.field.IFormFieldSite;
 import org.polymap.rhei.form.IFormEditorToolkit;
+import org.polymap.rhei.internal.form.FormEditorToolkit;
 
 /**
  * 
@@ -34,8 +38,6 @@ import org.polymap.rhei.form.IFormEditorToolkit;
 public class DefaultFormFieldLabeler
         implements IFormFieldLabel {
 
-    public static final String  NO_LABEL = "_nolabel_";
-    
     private IFormFieldSite      site;
     
     private String              label;
@@ -67,9 +69,25 @@ public class DefaultFormFieldLabeler
     }
 
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
-        return toolkit.createLabel( parent, label != null
-                ? label
-                : StringUtils.capitalize( site.getFieldName() ) );
+        final Label result = toolkit.createLabel( parent, 
+                label != null ? label : StringUtils.capitalize( site.getFieldName() ) );
+        
+        // focus listener
+        site.addChangeListener( new IFormFieldListener() {
+//            Font normFont = result.getFont();
+//            Font boldFont = FormFonts.getInstance().getBoldFont( 
+//                    result.getDisplay(), normFont );
+
+            public void fieldChange( FormFieldEvent ev ) {
+                if (ev.getEventCode() == FOCUS_GAINED) {
+                    result.setForeground( FormEditorToolkit.labelForegroundFocused );
+                }
+                else if (ev.getEventCode() == FOCUS_LOST) {
+                    result.setForeground( FormEditorToolkit.labelForeground );
+                }
+            }
+        });
+        return result;
     }
     
     public void setMaxWidth( int maxWidth ) {

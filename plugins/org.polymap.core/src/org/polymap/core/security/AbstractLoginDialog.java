@@ -5,17 +5,23 @@ import java.io.IOException;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
+import org.eclipse.rwt.RWT;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.operation.ModalContext;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
+import org.polymap.core.runtime.Timer;
 
 /**
  * 
@@ -94,10 +100,18 @@ public abstract class AbstractLoginDialog
             ModalContext.run( new IRunnableWithProgress() {
 
                 public void run( final IProgressMonitor monitor ) {
+                    Timer start = new Timer();
                     // Wait here until OK or cancel is pressed, then let it rip.
                     // The event listener is responsible for closing the dialog 
                     // (in the loginSucceeded event).
                     while (!processCallbacks) {
+                        // XXX see http://polymap.org/svn-anta2/ticket/128; force restart session to
+                        // prevent deadlock in UIThread
+                        if (start.elapsedTime() > 60000) {
+                            System.out.println( "No login. Refreshing..." );
+                            RWT.getSessionStore().getHttpSession().invalidate();
+                            return;
+                        }
                         try {
                             Thread.sleep( 100 );
                         }

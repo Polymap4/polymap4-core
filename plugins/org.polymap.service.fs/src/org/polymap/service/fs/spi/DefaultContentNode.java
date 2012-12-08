@@ -45,10 +45,29 @@ public abstract class DefaultContentNode
     
 
     public DefaultContentNode( String name, IPath parentPath, IContentProvider provider, Object source ) {
+        assert name != null;
+//        assert parentPath != null;
+//        assert provider != null;
         this.name = name;
         this.parentPath = parentPath;
         this.provider = provider;
         this.source = source;
+    }
+
+    
+    /**
+     * This default implementation does nothing. Override this to
+     * perform any folder/file specific cleanup.
+     */
+    public void dispose() {
+    }
+
+
+    /**
+     * Default implementation: 1kB
+     */
+    public int getSizeInMemory() {
+        return 1024;
     }
 
     
@@ -71,6 +90,12 @@ public abstract class DefaultContentNode
         return provider;
     }
 
+    /**
+     * Convenient for <code>getProvider().getSite()</code>.
+     */
+    public IContentSite getSite() {
+        return getProvider().getSite();
+    }
 
     public Object getSource() {
         return source;

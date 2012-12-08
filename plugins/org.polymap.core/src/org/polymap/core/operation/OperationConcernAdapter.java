@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, Falko Bräutigam, and other contributors as indicated
- * by the @authors tag.
+ * Copyright 2010-2012, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,12 +22,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
 /**
- * Base class of all operation concern implementations. Provides a default
- * implementation of all operation methods that delegates the call to the next
- * concern in the chain.
+ * Base class of operation concern implementations. Provides a default implementation
+ * of all operation methods. All methods delegate the call to the next concern in the
+ * chain by default.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * qsince 3.1
+ * @since 3.1
  */
 public abstract class OperationConcernAdapter
         implements IUndoableOperation {

@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.polymap.rhei.form.IFormEditorToolkit;
+import org.polymap.rhei.internal.form.FormEditorToolkit;
 import org.polymap.rhei.model.ConstantWithSynonyms;
 
 /**
@@ -253,9 +254,11 @@ public class PicklistFormField
         // focus listener
         combo.addFocusListener( new FocusListener() {
             public void focusLost( FocusEvent event ) {
+                combo.setBackground( FormEditorToolkit.textBackground );
                 site.fireEvent( this, IFormFieldListener.FOCUS_LOST, combo.getText() );
             }
             public void focusGained( FocusEvent event ) {
+                combo.setBackground( FormEditorToolkit.textBackgroundFocused );
                 site.fireEvent( this, IFormFieldListener.FOCUS_GAINED, combo.getText() );
             }
         });
@@ -264,12 +267,13 @@ public class PicklistFormField
     }
 
     
-    public void setEnabled( boolean enabled ) {
+    public IFormField setEnabled( boolean enabled ) {
         combo.setEnabled( enabled );
+        return this;
     }
 
 
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         combo.setText( "" );
         combo.deselectAll();
 
@@ -285,6 +289,7 @@ public class PicklistFormField
         else {
             combo.setText( value != null ? (String)value : "" );
         }
+        return this;
     }
 
     

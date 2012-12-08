@@ -14,38 +14,72 @@
  */
 package org.polymap.core.data.ui.featureselection;
 
+import java.util.EventObject;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
+import org.geotools.filter.v1_1.OGCConfiguration;
+import org.geotools.xml.Configuration;
+import org.geotools.xml.Encoder;
+import org.geotools.xml.Parser;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+
+import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+
+import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeListener;
+import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.ui.featuretable.DefaultFeatureTableColumn;
 import org.polymap.core.data.ui.featuretable.FeatureTableViewer;
 import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
+import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -57,7 +91,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  */
 public class FeatureSelectionView
         extends ViewPart 
-        implements PropertyChangeListener, ISelectionChangedListener {
+        implements ISelectionChangedListener {
 
     private static Log log = LogFactory.getLog( FeatureSelectionView.class );
     
@@ -124,15 +158,88 @@ public class FeatureSelectionView
 
     private ILayer                  layer;
     
+    /** Might be null if fs could not be instantiated for the layer */
     private PipelineFeatureSource   fs;
 
     private Filter                  filter;
 
+    /** Might be null if fs could not be instantiated for the layer */
     private FeatureTableViewer      viewer;
 
     private String                  basePartName;
 
     private Composite               parent;
+    
+    private FeatureSelectionListener selectionListener = new FeatureSelectionListener();
+    
+    private FeatureChangeListener   changeListener;
+    
+    private PropertyChangeListener  modelListener = new ModelListener();
+    
+    public IActionDelegate          openAction;
+
+
+    public void init( IViewSite site, IMemento memento )
+    throws PartInitException {
+        super.init( site, memento );
+        if (memento != null) {
+            final String layerId = memento.getString( "layerId" );
+            final String filterText = memento.getTextData();
+            if (layerId != null && filterText != null) {
+                try {
+                    layer = ProjectRepository.instance().findEntity( ILayer.class, layerId );
+                    if (layer != null) {
+                        Configuration config = new org.geotools.filter.v1_1.OGCConfiguration();
+                        Parser parser = new Parser( config );
+                        filter = (Filter)parser.parse( new ByteArrayInputStream( filterText.getBytes( "UTF8" ) ) );
+                        
+                        // *after* createPartControl()
+                        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                            public void run() {
+                                LayerFeatureSelectionManager.forLayer( layer ).changeSelection( filter );
+                                //loadTable( filter );
+                            }
+                        });
+                    }
+                }
+                catch (NoSuchEntityException e) {
+                    log.warn( "Layer does no longer exists: " + layerId );
+                }
+                catch (Exception e) {
+                    log.warn( "Unable to restore state.", e );
+                }
+            }
+        }
+    }
+
+    
+    public void saveState( IMemento memento ) {
+        if (layer != null && filter != null) {
+            try {
+                if (filter instanceof Id) {
+                    // save max. 500 Fids
+                    if (((Id)filter).getIdentifiers().size() > 500) {
+                        return;
+                    }
+                }
+                OGCConfiguration config = new org.geotools.filter.v1_1.OGCConfiguration();
+                Encoder encoder = new Encoder( config );
+                encoder.setIndenting( true );
+                encoder.setIndentSize( 4 );
+                ByteArrayOutputStream bout = new ByteArrayOutputStream( 4096 );
+                encoder.encode( filter, org.geotools.filter.v1_0.OGC.Filter, bout );
+    
+                if (bout.size() < 10*1024) {
+                    memento.putTextData( bout.toString( "UTF8" ) );
+                    memento.putString( "layerId", layer.id() );
+                    log.info( bout.toString( "UTF8" ) );
+                }
+            }
+            catch (Exception e) {
+                log.warn( "Unable to save state:", e );
+            }
+        }
+    }
 
 
     protected void init( ILayer _layer ) {
@@ -140,9 +247,33 @@ public class FeatureSelectionView
             this.layer = _layer;
             this.basePartName = layer.getLabel(); 
             setPartName( basePartName );
-
-            LayerFeatureSelectionManager.forLayer( layer ).addChangeListener( this );
             
+            // PropertyChangeListener: layer
+            layer.addPropertyChangeListener( modelListener );
+
+            // FeatureSelectionListener
+            LayerFeatureSelectionManager.forLayer( layer ).addSelectionChangeListener( selectionListener );
+
+            // FeatureChangeListener
+            FeatureEventManager.instance().addFeatureChangeListener( changeListener = 
+                new FeatureChangeListener() {
+                    public void featureChange( FeatureChangeEvent ev ) {
+                        if (viewer != null) {
+                            viewer.getControl().getDisplay().asyncExec( new Runnable() {
+                                public void run() {
+                                    loadTable( filter );
+                                }
+                            });
+                        }
+                    }
+                }, 
+                new IEventFilter() {
+                    public boolean accept( EventObject ev ) {
+                        return true;
+                    }
+                }
+            );
+                
             this.fs = PipelineFeatureSource.forLayer( layer, false );
         }
         catch (Exception e) {
@@ -150,14 +281,23 @@ public class FeatureSelectionView
         }
     }
     
-    
+
     public void dispose() {
         super.dispose();
         
-        LayerFeatureSelectionManager.forLayer( layer ).removeChangeListener( this );        
-        
+        if (layer != null) {
+            try {
+                layer.removePropertyChangeListener( modelListener );
+                LayerFeatureSelectionManager.forLayer( layer ).removeSelectionChangeListener( selectionListener );
+                FeatureEventManager.instance().removeFeatureChangeListener( changeListener ); 
+            }
+            catch (NoSuchEntityException e) {
+                // layer is deleted -> ignore
+            }        
+        }
         if (viewer != null) {
             viewer.dispose();
+            viewer = null;
         }
         layer = null;
         fs = null;
@@ -180,15 +320,28 @@ public class FeatureSelectionView
 
     
     public IFeatureTableElement[] getTableElements() {
-        return viewer.getElements();
+        return fs != null ? viewer.getElements() : new IFeatureTableElement[0];
     }
     
     
     public void createPartControl( @SuppressWarnings("hiding") Composite parent ) {
-        init( initLayer.get() );
+        if (initLayer.get() != null) {
+            init( initLayer.get() );
+        }
+        else {
+            assert layer != null;
+            init( layer );
+        }
         
         this.parent = parent;
         this.parent.setLayout( new FormLayout() );
+        
+        // check fs -> error message
+        if (fs == null) {
+            Label msg = new Label( parent, SWT.NONE );
+            msg.setText( "No feature pipeline for layer: " + layer.getLabel() );
+            return;
+        }
 
         viewer = new FeatureTableViewer( parent, SWT.NONE );
         viewer.getTable().setLayoutData( new SimpleFormData().fill().create() );
@@ -202,6 +355,17 @@ public class FeatureSelectionView
             }
         });
         viewer.addSelectionChangedListener( this );
+        
+        // double-click
+        viewer.addDoubleClickListener( new IDoubleClickListener() {
+            public void doubleClick( DoubleClickEvent ev ) {
+                log.info( "doubleClick(): " + ev );
+                //IAction openHandler = getViewSite().getActionBars().getGlobalActionHandler( "org.polymap.rhei.OpenFormAction" );
+                if (openAction != null) {
+                    openAction.run( null );
+                }
+            }
+        });
         
         // columns
         assert fs != null : "fs not set. Call init() first.";
@@ -218,6 +382,30 @@ public class FeatureSelectionView
         viewer.getTable().pack( true );
 
         getSite().setSelectionProvider( viewer );
+        hookContextMenu();
+    }
+
+
+    protected void hookContextMenu() {
+        final MenuManager contextMenu = new MenuManager( "#PopupMenu" );
+        contextMenu.setRemoveAllWhenShown( true );
+        
+        contextMenu.addMenuListener( new IMenuListener() {
+            public void menuAboutToShow( IMenuManager manager ) {
+                // Other plug-ins can contribute there actions here
+                manager.add( new Separator( IWorkbenchActionConstants.MB_ADDITIONS ) );
+                manager.add( new GroupMarker( IWorkbenchActionConstants.MB_ADDITIONS ) );
+                //manager.add( new Separator() );
+
+//                TreeSelection sel = (TreeSelection)viewer.getSelection();
+//                if (!sel.isEmpty() && sel.getFirstElement() instanceof IMap) {
+//                    ProjectView.this.fillContextMenu( manager );
+//                }
+            }
+        } );
+        Menu menu = contextMenu.createContextMenu( viewer.getControl() );        
+        viewer.getControl().setMenu( menu );
+        getSite().registerContextMenu( contextMenu, viewer );
     }
 
 
@@ -227,28 +415,58 @@ public class FeatureSelectionView
     }
 
     
-    /*
-     * Other party has changed feature selection.
+    /**
+     * 
      */
-    public void propertyChange( final PropertyChangeEvent ev ) {
+    class FeatureSelectionListener
+            implements PropertyChangeListener {
         
-        Polymap.getSessionDisplay().asyncExec( new Runnable() {
-            public void run() {
-                // select
-                if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
-                    loadTable( (Filter)ev.getNewValue() );
-                }
-                // hover
-                if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
-                    LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
-                    viewer.removeSelectionChangedListener( FeatureSelectionView.this );
-                    viewer.selectElement( fsm.getHovered(), true );
-                    viewer.addSelectionChangedListener( FeatureSelectionView.this );
-                }
-            }
-        });
-    }
+        /**
+         * Other party has changed feature selection.
+         */
+        public void propertyChange( final PropertyChangeEvent ev ) {
 
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    // select
+                    if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
+                        loadTable( (Filter)ev.getNewValue() );
+                    }
+                    // hover
+                    if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+                        LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
+                        viewer.removeSelectionChangedListener( FeatureSelectionView.this );
+                        viewer.selectElement( fsm.getHovered(), true );
+                        viewer.addSelectionChangedListener( FeatureSelectionView.this );
+                    }
+                }
+            });
+        }
+    }
+    
+
+    /**
+     * 
+     */
+    class ModelListener
+            implements PropertyChangeListener {
+        
+        public void propertyChange( final PropertyChangeEvent ev ) {
+            if (PropertyChangeSupport.PROP_ENTITY_REMOVED.equals( ev.getPropertyName() )) {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                            page.hideView( FeatureSelectionView.this );
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getMessage(), e );
+                        }
+                    }
+                });
+            }
+        }
+    }
     
     /*
      * Element was selected in the table.

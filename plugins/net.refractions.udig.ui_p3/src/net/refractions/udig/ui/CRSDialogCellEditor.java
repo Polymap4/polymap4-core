@@ -15,8 +15,11 @@
 package net.refractions.udig.ui;
 
 import org.eclipse.jface.viewers.DialogCellEditor;
+
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Tree;
+
+import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -26,29 +29,31 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  * @since 1.1.0
  */
 public class CRSDialogCellEditor extends DialogCellEditor {
-        public CRSDialogCellEditor( Tree tree ) {
-            super(tree);
-        }
+        
+    public CRSDialogCellEditor( Composite parent ) {
+        super( parent );
+    }
 
-		@Override
-		protected void updateContents(Object value) {
-			CoordinateReferenceSystem crs = (CoordinateReferenceSystem) value;
-			if( crs != null ){
-				super.updateContents(crs.getName());
-			}
-		}
-		
-        @Override
-        protected Object openDialogBox( Control cellEditorWindow ) {
-            
-            final CRSChooserDialog d = new CRSChooserDialog(cellEditorWindow
-				.getDisplay().getActiveShell(),
-				// FIXME _p3: the value seems to crash the chooserDialog if its not null
-				/*(CoordinateReferenceSystem) getValue()*/ null);
-		d.setBlockOnOpen(true);
-		d.open( );
-            if( d.getResult()==null || d.getResult().equals(getValue()) )
-                return null;
-            return d.getResult();
+
+    protected void updateContents( Object value ) {
+        CoordinateReferenceSystem crs = (CoordinateReferenceSystem)value;
+        if (crs != null) {
+            String srs = CRS.toSRS( crs );
+            super.updateContents( srs /*crs.getName()*/ );
         }
+    }
+
+
+    protected Object openDialogBox( Control cellEditorWindow ) {
+
+        final CRSChooserDialog d = new CRSChooserDialog( cellEditorWindow.getDisplay()
+                .getActiveShell(),
+        // FIXME _p3: the value seems to crash the chooserDialog if its not null
+                /* (CoordinateReferenceSystem) getValue() */null );
+        d.setBlockOnOpen( true );
+        d.open();
+        if (d.getResult() == null || d.getResult().equals( getValue() ))
+            return null;
+        return d.getResult();
+    }
 }

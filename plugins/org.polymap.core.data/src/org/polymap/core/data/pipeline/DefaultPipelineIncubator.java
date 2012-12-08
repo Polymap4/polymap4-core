@@ -186,6 +186,10 @@ public class DefaultPipelineIncubator
             for (PipelineProcessorConfiguration procConfig : procConfigs) {
                 ProcessorExtension ext = ProcessorExtension.forExtensionId( procConfig.getExtensionId() );
 
+                if (ext == null) {
+                    log.warn( "No processor extension found for: " + procConfig.getExtensionId() + "!!!" );
+                    break;
+                }
                 try {
                     PipelineProcessor processor = ext.newProcessor();
                     ProcessorDescription candidate = new ProcessorDescription(

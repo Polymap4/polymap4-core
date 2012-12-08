@@ -23,6 +23,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -33,18 +34,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.AuthenticationService;
+import com.bradmcevoy.http.CompressingResponseHandler;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.SecurityManager;
 
+import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.Timer;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;
-import org.polymap.service.http.WmsService;
 
 /**
  * WebDAV server/servlet based on Milton.
@@ -52,7 +56,7 @@ import org.polymap.service.http.WmsService;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class WebDavServer
-        extends WmsService {
+        extends HttpServlet {
 
     private static Log log = LogFactory.getLog( WebDavServer.class );
     
@@ -106,7 +110,18 @@ public class WebDavServer
             
             resourceFactory = new WebDavResourceFactory( securityManager, "webdav" );
             
-            httpManager = new HttpManager( resourceFactory );
+            AuthenticationService authService = new AuthenticationService();
+            BalkonCacheControl cacheControl = new BalkonCacheControl( false );
+            
+            BalkonWebDavResponseHandler defaultHandler = new BalkonWebDavResponseHandler( authService );
+            defaultHandler.setCacheControl( cacheControl );
+
+            CompressingResponseHandler compressHandler = 
+                    new CompressingResponseHandler( defaultHandler );
+            compressHandler.setMaxMemorySize( 1024*1024 );
+            compressHandler.setCacheControlHelper( cacheControl );
+
+            httpManager = new HttpManager( resourceFactory, compressHandler, authService );
             httpManager.addFilter( 0, new PreAuthenticationFilter( 
                     httpManager.getResponseHandler(), securityManager ) );
         }
@@ -127,27 +142,37 @@ public class WebDavServer
 
     public void service( ServletRequest servletRequest, ServletResponse servletResponse ) 
     throws ServletException, IOException {
+        Timer timer = new Timer();
         HttpServletRequest req = (HttpServletRequest)servletRequest;
         HttpServletResponse resp = (HttpServletResponse)servletResponse;
-
+        
+        DefaultSessionContextProvider contextProvider = FsPlugin.getDefault().sessionContextProvider;
+        
         try {
             Request request = new com.bradmcevoy.http.ServletRequest( req );
             Response response = new com.bradmcevoy.http.ServletResponse( resp );
             threadRequest.set( request );
             threadResponse.set( response );
 
-            // map/create session context
-            final HttpSession session = req.getSession( true );
-            FsPlugin.getDefault().sessionContextProvider.mapContext( session.getId(), true );
-            final SessionContext sessionContext = SessionContext.current();
-
             Auth auth = request.getAuthorization();
             log.debug( "Auth: " + auth );
             
+            // map/create session context
+            final HttpSession session = req.getSession( true );
+            if (auth != null) {
+                contextProvider.mapContext( auth.getUser(), true );
+                log.debug( "SessionContext: " + SessionContext.current() );
+            }
+
             httpManager.process( request, response );
+            log.debug( "Request: " + Request.Header.ACCEPT_ENCODING.code + ": " + request.getHeaders().get( Request.Header.ACCEPT_ENCODING.code ) +
+                    " --> Response: " + Response.Header.CONTENT_ENCODING.code + ": " + response.getHeaders().get( Response.Header.CONTENT_ENCODING.code ) );
+            log.debug( "Response: " + response.getStatus() );
         }
         finally {
-            FsPlugin.getDefault().sessionContextProvider.unmapContext();
+            if (contextProvider.currentContext() != null) {
+                contextProvider.unmapContext();
+            }
 
             threadRequest.set( null );
             threadResponse.set( null );
@@ -155,6 +180,7 @@ public class WebDavServer
             servletResponse.getOutputStream().flush();
             servletResponse.flushBuffer();
         }
+        log.info( "WebDAV request: " + timer.elapsedTime() + "ms" );
     }
 
     
@@ -173,6 +199,7 @@ public class WebDavServer
         // HTTP session timeout: 30min
         session.setMaxInactiveInterval( 30*60 );
         
+        FsPlugin.getDefault().sessionContextProvider.mapContext( user.getName(), true );
         final SessionContext sessionContext = SessionContext.current();
         
         // ContentManager
@@ -193,10 +220,14 @@ public class WebDavServer
             }
             public void valueUnbound( HttpSessionBindingEvent ev ) {
                 //
+                sessionContext.execute( new Runnable() {
+                    public void run() {
+                        ContentManager.releaseSession( user.getName() );
+                    }
+                });
+                //
                 FsPlugin.getDefault().sessionContextProvider.destroyContext(
                         sessionContext.getSessionKey() );
-                //
-                ContentManager.releaseSession( user.getName() );
                 log.info( "HTTP Session destroyed: " + session.getId() + ", user: " + user );
             }
         });

@@ -14,19 +14,25 @@
  */
 package org.polymap.core.data.operations.featuretype;
 
-import java.net.URL;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import net.refractions.udig.catalog.CatalogPlugin;
+import net.refractions.udig.catalog.ICatalog;
+import net.refractions.udig.catalog.IDeletingSchemaService;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
+import net.refractions.udig.catalog.internal.shp.ShpServiceImpl;
 
-import org.geotools.data.DataStore;
-import org.geotools.data.shapefile.ShapefileDataStore;
 import org.opengis.feature.type.FeatureType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.jface.dialogs.MessageDialog;
+
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -34,6 +40,10 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
+
+import org.polymap.core.catalog.actions.ResetServiceAction;
+import org.polymap.core.catalog.model.CatalogRepository;
 import org.polymap.core.data.Messages;
 
 /**
@@ -48,6 +58,13 @@ public class DeleteFeatureTypeOperation
 
     private static Log log = LogFactory.getLog( DeleteFeatureTypeOperation.class );
 
+    public static String i18n( String key, Object... args) {
+        return Messages.get( "DeleteFeatureTypeOperation_" + key, args );
+    }
+
+    
+    // instance *******************************************
+    
     private IGeoResource        geores;
 
 
@@ -58,103 +75,74 @@ public class DeleteFeatureTypeOperation
      * @param service The service to create the new type in.
      */
     public DeleteFeatureTypeOperation( IGeoResource geores ) {
-        super( Messages.get( "DeleteFeatureTypeOperation_label" ) );
+        super( i18n( "label" ) );
         this.geores = geores;
     }
 
 
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
-        monitor.beginTask( getLabel(), 1 );
+        monitor.beginTask( getLabel(), 2 );
 
         try {
             IService service = geores.service( monitor );
-            final DataStore ds = service.resolve( DataStore.class, monitor );
-            if (ds == null) {
-                throw new ExecutionException( "No DataStore found for service: " + service );
-            }
-            // shapefile
-            else if (ds instanceof ShapefileDataStore) {
-                Display display = (Display)info.getAdapter( Display.class );
-                deleteShapefile( display, monitor, service.getIdentifier() );
-            }
-            // all other
-            else {
-                throw new ExecutionException( Messages.get( "DeleteFeatureTypeOperation_unsupportedDataStore" ) + ds.getClass().getSimpleName() );
+            final String title = service.getInfo( monitor ).getTitle();
 
-//                List<IService> resets = new ArrayList<IService>();
-//                resets.add( service );
-//                ResetServiceAction.reset( resets, new SubProgressMonitor( monitor, 2 ) );
+            if (!(service instanceof IDeletingSchemaService)) {
+                throw new ExecutionException( i18n( "unsupportedDataStore", title ) );
             }
 
-            monitor.worked( 1 );
+            // confirm
+            final AtomicBoolean confirmed = new AtomicBoolean();
+            final Display display = (Display)info.getAdapter( Display.class );
+            display.syncExec( new Runnable() {
+                public void run() {
+                    confirmed.set( MessageDialog.openConfirm( display.getActiveShell(),
+                            i18n( "confirmTitle", title ), i18n( "confirmMessage", title ) ) );
+                }
+            });
+            
+            if (confirmed.get()) {
+                // delete geores
+                ((IDeletingSchemaService)service).deleteSchema( geores, 
+                        new SubProgressMonitor( monitor, 1 ) );
+                
+                // shapefile? -> remove service altogether
+                if (service instanceof ShpServiceImpl) {
+                    ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
+                    catalog.remove( service );
+                    CatalogRepository.instance().commitChanges();
+                }
+                // other -> reset service
+                else {
+                    ResetServiceAction.reset( Collections.singletonList( service ), monitor );
+                }
+            }
             return Status.OK_STATUS;
         }
         catch (ExecutionException e) {
             throw e;
         }
         catch (Exception e) {
-            throw new ExecutionException( Messages.get( "DeleteFeatureTypeOperation_executeError" ), e );
+            throw new ExecutionException( e.getLocalizedMessage(), e );
         }
     }
 
     
-    private void deleteShapefile( final Display display, IProgressMonitor monitor, URL oldID ) 
-    throws Exception {
-        throw new ExecutionException( Messages.get( "DeleteFeatureTypeOperation_unsupportedDataStore" ) + "Shapefile" );
-
-        //        File file = null;
-//        if (!oldID.getProtocol().equals( "file" )) { //$NON-NLS-1$
-//            try {
-//                String workingDir = FileLocator.toFileURL( Platform.getInstanceLocation().getURL() )
-//                        .getFile();
-//                file = new File( workingDir, type.getName().getLocalPart() + ".shp" ); //$NON-NLS-1$
-//            }
-//            catch (IOException e) {
-//                file = new File(
-//                        System.getProperty( "java.user" ) + type.getName().getLocalPart() + ".shp" ); //$NON-NLS-1$ //$NON-NLS-2$
-//            }
-//            final File f = file;
-////            if (!testing) {
-////                display.asyncExec( new Runnable() {
-////
-////                    public void run() {
-////                        MessageDialog.openInformation( display.getActiveShell(),
-////                                Messages.NewFeatureTypeOp_shpTitle,
-////                                Messages.NewFeatureTypeOp_shpMessage + f.toString() );
-////                    }
-////                } );
-////            }
-//        }
-//        else {
-//            String s = new File( oldID.getFile() ).toString();
-//            int lastIndexOf = s.lastIndexOf( ".shp" ); //$NON-NLS-1$
-//            s = s.substring( 0, lastIndexOf == -1 ? s.length() : lastIndexOf + 1 );
-//            lastIndexOf = s.lastIndexOf( File.separator );
-//            s = s.substring( 0, lastIndexOf == -1 ? s.length() : lastIndexOf + 1 );
-//            file = new File( s + type.getName().getLocalPart() + ".shp" ); //$NON-NLS-1$
-//        }
-//        ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
-//        Map<String, Serializable> params = new HashMap<String, Serializable>();
-//        params.put( ShapefileDataStoreFactory.URLP.key, file.toURI().toURL() );
-//        params.put( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, true );
+//    private void deleteShapefile( ShapefileDataStore ds, final File file, final Display display, IProgressMonitor monitor ) 
+//    throws Exception {
+////        throw new ExecutionException( i18n( "unsupportedDataStore", "Shapefile" ) );
 //
-//        DataStore ds = factory.createNewDataStore( params );
-//        ds.createSchema( type );
-//        List<IService> services = CatalogPlugin.getDefault().getServiceFactory().createService(
-//                file.toURI().toURL() );
-//        for (IService service2 : services) {
-//            try {
-//                DataStore ds2 = service2.resolve( DataStore.class, monitor );
-//                if (ds2 instanceof ShapefileDataStore) {
-//                    CatalogPlugin.getDefault().getLocalCatalog().add( service2 );
+//        
+//        if (yes.get()) {
+//            String baseName = FilenameUtils.getBaseName( file.getName() );
+//            for (File f : file.getParentFile().listFiles()) {
+//                if (FilenameUtils.getBaseName( f.getName() ).equals( baseName )) {
+//                    log.info( "deleting: " + f.getAbsolutePath() );
 //                }
 //            }
-//            catch (Exception e) {
-//                continue;
-//            }
 //        }
-    }
+//    }
 
 
     public boolean canUndo() {
@@ -176,5 +164,5 @@ public class DeleteFeatureTypeOperation
             throws ExecutionException {
         throw new RuntimeException( "not yet implemented." );
     }
-
+    
 }

@@ -47,6 +47,14 @@
                label="%actions_resetService"
                tooltip="%actions_resetServiceTip">
          </action>
+         <action
+               class="org.polymap.core.catalog.actions.RemoveServiceAction"
+               enablesFor="+"
+               icon="icons/etool16/remove_service.gif"
+               id="org.polymap.core.catalog.removeServiceAction"
+               label="%actions_removeService"
+               tooltip="%actions_removeServiceTip">
+         </action>
       </objectContribution>
    </extension>
    <extension

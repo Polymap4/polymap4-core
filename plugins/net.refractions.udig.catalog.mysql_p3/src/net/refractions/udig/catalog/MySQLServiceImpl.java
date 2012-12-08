@@ -35,6 +35,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.geotools.data.mysql.MySQLDataStoreFactory;
+import org.geotools.data.mysql.MySQLDialectBasic;
 import org.geotools.jdbc.JDBCDataStore;
 
 /**
@@ -45,9 +46,12 @@ import org.geotools.jdbc.JDBCDataStore;
  * 
  * @author David Zwiers, Refractions Research
  * @author Harry Bullen, Intelligent Automation
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 1.1.0
  */
-public class MySQLServiceImpl extends IService {
+public class MySQLServiceImpl 
+        extends IService 
+        implements IDeletingSchemaService {
 
     private URL url = null;
     private Map<String, Serializable> params = null;
@@ -215,6 +219,19 @@ public class MySQLServiceImpl extends IService {
         return url;
     }
 
+    public void deleteSchema( IGeoResource geores, IProgressMonitor monitor )
+    throws IOException {
+        if (geores.service( monitor ) != this) {
+            throw new IllegalStateException( "Geores is not MySQL" );
+        }
+        new JDBCHelper( getDS(), new MySQLDialectBasic( getDS() ) )
+                .deleteSchema( geores, monitor );
+    }
+
+    
+    /**
+     * 
+     */
     private class IServiceMySQLInfo extends IServiceInfo {
 
         IServiceMySQLInfo( JDBCDataStore resource ) {

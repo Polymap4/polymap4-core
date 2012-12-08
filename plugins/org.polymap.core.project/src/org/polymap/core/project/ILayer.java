@@ -12,13 +12,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
+ * 
+ * Created: 30.10.2009
  */
 
 package org.polymap.core.project;
@@ -44,12 +39,8 @@ import org.polymap.core.style.IStyle;
 
 /**
  * A Layer represents an {@link IGeoResource} inside an {@link IMap}.
- * <p>
- * Setting attributes is done via Commands.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- *         <li>30.10.2009: created</li>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
 public interface ILayer

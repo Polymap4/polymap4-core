@@ -24,8 +24,11 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.CoreException;
 
 /**
- * 
+ * This API allows to intercept the execution of other operations. A new factory
+ * is registered with the extension point: {@value OperationConcernExtension#EXTENSION_POINT_ID}.
  *
+ * @see OperationConcernAdapter
+ * @see OperationConcernExtension
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
@@ -66,6 +69,8 @@ public abstract class IOperationConcernFactory {
      * Checks if the given operation is supported by this factory and returns a newly
      * created concern instance for it, or null if the given operation is not handled by
      * this factory.
+     * <p/>
+     * Implementations should return an operation of type {@link OperationConcernAdapter}.
      * 
      * @param op
      * @return The newly created concern, or null.

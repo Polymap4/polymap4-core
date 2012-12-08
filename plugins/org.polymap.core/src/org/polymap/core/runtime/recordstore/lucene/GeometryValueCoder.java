@@ -14,27 +14,28 @@
  */
 package org.polymap.core.runtime.recordstore.lucene;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import org.geotools.geojson.geom.GeometryJSON;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.NumericField;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+import com.vividsolutions.jts.io.WKTWriter;
 
 import org.polymap.core.runtime.recordstore.QueryExpression;
+import org.polymap.core.runtime.recordstore.QueryExpression.BBox;
 import org.polymap.core.runtime.recordstore.QueryExpression.Equal;
+import org.polymap.core.runtime.recordstore.QueryExpression.Greater;
+import org.polymap.core.runtime.recordstore.QueryExpression.Less;
 
 /**
  * Encode/Decode {@link Geometry} values using {@link NumericField} build-in support of
@@ -50,29 +51,36 @@ public final class GeometryValueCoder
     static final String                 FIELD_MINX = "_minx_";
     static final String                 FIELD_MINY = "_miny_";
     
-
+    /** The coder used to handle bbox min/max values for queries. */
     private NumericValueCoder           numeric = new NumericValueCoder();
     
-    private GeometryJSON                jsonCoder = new GeometryJSON( 8 );
+    //private GeometryJSON                jsonCoder = new GeometryJSON( 8 );
+    
+    
+    protected String encode( Geometry geom ) {
+        return new WKTWriter().write( geom );    
+    }
+    
+    protected Geometry decode( String encoded ) {
+        try {
+            return new WKTReader().read( encoded );
+        }
+        catch (ParseException e) {
+            throw new RuntimeException( e );
+        }
+    }
     
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         if (value instanceof Geometry) {
             Geometry geom = (Geometry)value;
 
-            // store geom -> JSON
-            StringWriter out;
-            try {
-                out = new StringWriter( 4*1024 );
-                jsonCoder.write( geom, out );
-            }
-            catch (IOException e) {
-                throw new RuntimeException( e );
-            }
+            // store geom -> WKT, JSON, ...
+            String out = encode( geom );
 
             Field field = (Field)doc.getFieldable( key );
             if (field != null) {
-                field.setValue( out.toString() );
+                field.setValue( out );
             }
             else {
                 doc.add( new Field( key, out.toString(), Store.YES, Index.NO ) );
@@ -94,13 +102,8 @@ public final class GeometryValueCoder
 
     public Object decode( Document doc, String key ) {
         if (doc.getFieldable( key+FIELD_MAXX ) != null) {
-            try {
-                Field field = (Field)doc.getFieldable( key );
-                return jsonCoder.read( new StringReader( field.stringValue() ) );
-            }
-            catch (IOException e) {
-                throw new RuntimeException( e );
-            }
+            Field field = (Field)doc.getFieldable( key );
+            return decode( field.stringValue() );
         }
         else {
             return null;
@@ -109,32 +112,41 @@ public final class GeometryValueCoder
 
 
     public Query searchQuery( QueryExpression exp ) {
-        // EQUALS
-        if (exp instanceof QueryExpression.Equal) {
-            Equal equalExp = (QueryExpression.Equal)exp;
+        // BBOX
+        if (exp instanceof QueryExpression.BBox) {
+            //        return !(other.minx > maxx ||
+            //                other.maxx < minx ||
+            //                other.miny > maxy ||
+            //                other.maxy < miny);
+            //        -> !maxx < other.minx && !mixx > other.maxx
+            //        -> maxx > other.minx && minx < other.maxx
+
+            BBox bbox = (QueryExpression.BBox)exp;
             
-            if (equalExp.value instanceof Coordinate) {
-                String key = equalExp.key;
-                Coordinate coord = (Coordinate)equalExp.value;
-                
-                BooleanQuery result = new BooleanQuery();
-                
-                QueryExpression.Equal xQuery = new Equal( key + "_x", coord.x );
-                result.add( numeric.searchQuery( xQuery ), BooleanClause.Occur.MUST );
-                
-                QueryExpression.Equal yQuery = new Equal( key + "_y", coord.y );
-                result.add( numeric.searchQuery( xQuery ), BooleanClause.Occur.MUST );
-                
-                return result;
-            }
+            BooleanQuery result = new BooleanQuery();
+
+            // maxx > bbox.getMinX
+            result.add( numeric.searchQuery(
+                    new Greater( bbox.key+FIELD_MAXX, bbox.minX ) ), BooleanClause.Occur.MUST );
+            // minx < bbox.getMaxX
+            result.add( numeric.searchQuery(
+                    new Less( bbox.key+FIELD_MINX, bbox.maxX ) ), BooleanClause.Occur.MUST );
+            // maxy > bbox.getMinY
+            result.add( numeric.searchQuery(
+                    new Greater( bbox.key+FIELD_MAXY, bbox.minY ) ), BooleanClause.Occur.MUST );
+            // miny < bbox.getMaxY
+            result.add( numeric.searchQuery(
+                    new Less( bbox.key+FIELD_MINY, bbox.maxY ) ), BooleanClause.Occur.MUST );
+            return result;
         }
-        // MATCHES
-        else if (exp instanceof QueryExpression.Match) {
-//            Match matchExp = (Match)exp;
-//
-//            if (matchExp.value instanceof Number) {
-//                throw new UnsupportedOperationException( "MATCHES not supported for Number values." );
-//            }
+        // EQUALS
+        else if (exp instanceof QueryExpression.Equal) {
+            Equal equal = (QueryExpression.Equal)exp;
+            
+            if (equal.value instanceof Geometry) {
+                String encoded = encode( (Geometry)equal.value );
+                return new TermQuery( new Term( equal.key, encoded ) );
+            }
         }
         return null;
     }

@@ -20,8 +20,6 @@ import java.util.Set;
 import javax.swing.Icon;
 
 import net.refractions.udig.catalog.IGeoResourceInfo;
-import net.refractions.udig.ui.graphics.AWTSWTImageUtils;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.geotools.data.ResourceInfo;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -69,7 +67,7 @@ public class GeotoolsResourceInfoAdapter extends IGeoResourceInfo implements Res
 
     @Override
     public ImageDescriptor getImageDescriptor() {
-        return AWTSWTImageUtils.awtIcon2ImageDescriptor(getIcon());
+        return null; // XXX _p3: AWTSWTImageUtils.awtIcon2ImageDescriptor(getIcon());
     }
     
     @Override

@@ -111,7 +111,7 @@
          point="org.eclipse.ui.commands">
       <category
             id="net.refractions.udig.catalog.ui.service"
-            name="%Service Commands">
+            name="%Service.Category">
       </category>
       <command
             categoryId="net.refractions.udig.catalog.ui.service"
@@ -286,7 +286,7 @@
          <adapter type="net.refractions.udig.core.IBlockingAdaptable"/>
       </factory>
    </extension>
-   <extension
+   <!--extension
         point="org.eclipse.ui.exportWizards">
      <wizard
            class="net.refractions.udig.catalog.ui.export.CatalogExport$CatalogExportAdapter"
@@ -297,7 +297,7 @@
            %layerExport.desc
         </description>
      </wizard>
-   </extension>
+   </extension-->
    <extension
          point="org.eclipse.ui.importWizards">
       <wizard
@@ -381,7 +381,7 @@
            <adaptsTo target="org.geotools.data.DataStore"/>
         </enablement>
      </operation-->
-       <operation
+       <!--operation
              categoryId="net.refractions.udig.catalog.ui.operation.resourceCategory"
              class="net.refractions.udig.catalog.ui.operation.ReshapeOperation"
              id="net.refractions.udig.catalog.ui.operation.operationReshape"
@@ -392,7 +392,7 @@
                    target="org.geotools.data.FeatureSource">
              </adaptsTo>
           </enablement>
-       </operation>
+       </operation-->
      <category
            context="GeoResource"
            id="net.refractions.udig.catalog.ui.operation.resourceCategory"

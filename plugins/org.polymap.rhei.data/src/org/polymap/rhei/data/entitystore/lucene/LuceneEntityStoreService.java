@@ -34,8 +34,9 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  * @see org.qi4j.api.configuration.Configuration
  */
 @Mixins( 
-        LuceneEntityStoreMixin.class 
+        LuceneEntityStoreMixin.class
 )
 public interface LuceneEntityStoreService
-        extends LuceneSearcher, EntityStore, ServiceComposite/*, EntityStateVersions*/, Activatable {    
+        extends LuceneSearcher, EntityStore, ServiceComposite/*, EntityStateVersions*/, Activatable {
+
 }

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.mapeditor;
 
 import java.util.EventObject;
@@ -31,17 +22,24 @@ import java.util.TreeMap;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IService;
+
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.geotools.geometry.jts.ReferencedEnvelope;
-
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.catalog.IService;
+import com.google.common.collect.Iterables;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
+
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.service.ISettingStore;
 
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -49,21 +47,27 @@ import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.CorePlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeListener;
 import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
 import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.project.operations.OpenMapOperation;
+import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.UIJob;
-import org.polymap.service.http.HttpServiceFactory;
-import org.polymap.service.http.WmsService;
 import org.polymap.core.workbench.PolymapWorkbench;
+
+import org.polymap.service.ServicesPlugin;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * The RenderManager is the bridge between an {@link IMap} and the {@link MapEditor}
@@ -78,18 +82,17 @@ public class RenderManager {
 
     private static Log log = LogFactory.getLog( RenderManager.class );
 
-    /** Suffix counter helps to distinguish between pipelines generated in this VM. */
-    private static int              pipeCount = 0;
-    
     private IMap                    map;
     
     private MapEditor               mapEditor;
 
-    private WmsService              wmsService;
+    private MapHttpServer          wmsServer;
     
     private TreeMap<String,RenderLayerDescriptor> descriptors = new TreeMap();
     
-    private MapDomainListener       mapDomainListener = new MapDomainListener();
+    private MapDomainListener       modelListener = new MapDomainListener();
+    
+    private FeatureListener         featureListener = new FeatureListener();
     
     /** The layer that is currently in edit (vector) mode or null. */
     private ILayer                  editLayer;
@@ -101,8 +104,7 @@ public class RenderManager {
         this.mapEditor = mapEditor;
         
         // model listener
-        ProjectRepository module = ProjectRepository.instance();
-        module.addPropertyChangeListener( mapDomainListener, new IEventFilter() {
+        IEventFilter eventFilter = new IEventFilter() {
             public boolean accept( EventObject ev ) {
                 if (RenderManager.this.map == null || ev.getSource() == null) {
                     return false;
@@ -115,14 +117,16 @@ public class RenderManager {
                     ILayer layer = (ILayer)ev.getSource();
                     return RenderManager.this.map.equals( layer.getMap() );
                 }
-                log.info( "Skipping: " + ev );
                 return false;
             }
-        });
+        };
+        ProjectRepository module = ProjectRepository.instance();
+        module.addPropertyChangeListener( modelListener, eventFilter ); 
+        module.addModelChangeListener( modelListener, eventFilter );
         
         // feature listener
         FeatureEventManager fem = FeatureEventManager.instance();
-        fem.addFeatureChangeListener( mapDomainListener, new IEventFilter<FeatureChangeEvent>() {
+        fem.addFeatureChangeListener( featureListener, new IEventFilter<FeatureChangeEvent>() {
             public boolean accept( FeatureChangeEvent ev ) {
                 if (RenderManager.this.map == null || ev.getSource() == null) {
                     return false;
@@ -135,19 +139,23 @@ public class RenderManager {
     
     public void dispose() {
         clearPipelines();
-        if (mapDomainListener != null && map != null) {
+        if (modelListener != null && map != null) {
             ProjectRepository module = ProjectRepository.instance();
-            module.removePropertyChangeListener( mapDomainListener );
-            mapDomainListener = null;
+            module.removePropertyChangeListener( modelListener );
+            module.removeModelChangeListener( modelListener );
+            modelListener = null;
         }
-        if (wmsService != null) {
-            deleteWms( wmsService );
-            wmsService = null;
+        if (featureListener != null) {
+            FeatureEventManager.instance().removeFeatureChangeListener( featureListener );
+            featureListener = null;
+        }
+        if (wmsServer != null) {
+            destroyWms( wmsServer );
+            wmsServer = null;
         }
         this.map = null;
         this.mapEditor = null;
     }
-    
     
     
     /** 
@@ -159,8 +167,8 @@ public class RenderManager {
 
 
     protected synchronized void clearPipelines() {
-        for (RenderLayerDescriptor descriptor : descriptors.values()) {
-            if (mapEditor != null) {
+        if (mapEditor != null) {
+            for (RenderLayerDescriptor descriptor : descriptors.values()) {
                 mapEditor.removeLayer( descriptor );
             }
         }
@@ -182,11 +190,11 @@ public class RenderManager {
         clearPipelines();
         IProgressMonitor monitor = UIJob.monitorForThread();
 
-        if (wmsService != null) {
-            deleteWms( wmsService );
-            wmsService = null;
+        if (wmsServer != null) {
+            destroyWms( wmsServer );
+            wmsServer = null;
         }
-        wmsService = createWms();
+        wmsServer = createWms();
         
         // check geoResource of layers
         for (final ILayer layer : map.getLayers()) {
@@ -211,26 +219,13 @@ public class RenderManager {
                         });
                         continue;
                     }
-//                    IService service = res.service( monitor );
-//                    log.debug( "service: " + service );
-                    
-                    // load style -> avoid 'outside lifecycle' in renderer
-                    //layer.getStyle();
 
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
-                            wmsService.getURL(), layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
+                            StringUtils.removeStart( wmsServer.getPathSpec(), "/" ), 
+                            layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
                     
-//                    String key = descriptor.renderLayerKey();
-//                    RenderLayerDescriptor old = descriptors.get( key );
-//                    if (old == null) {
-//                        descriptors.put( key, descriptor );
-//                    }
-//                    else {
-//                        descriptor = old;
-//                    }
-//                    descriptor.layers.add( layer );
                     monitor.worked( 1 );
                 }
             }
@@ -246,20 +241,31 @@ public class RenderManager {
         }
     }
 
-    protected WmsService createWms() {
-        String pathSpec = "/services/" + map.getLabel() + "--" + pipeCount++;
+    
+    protected SimpleWmsServer createWms() {
         try {
-            log.info( "Service pathSpec: " + pathSpec );
+            ISettingStore settingStore = RWT.getSettingStore();
+            String wmsNamesAttr = settingStore.getAttribute( "RenderManager.wmsnames" );
+            JSONObject wmsNames = wmsNamesAttr != null
+                    ? new JSONObject( wmsNamesAttr ) : new JSONObject();
+
+            String pathSpec = wmsNames.optString( map.id(), null );
+            if (pathSpec == null) {
+                pathSpec = ServicesPlugin.createServicePath( map.getLabel() + "--" + System.currentTimeMillis() );
+                wmsNames.put( map.id(), pathSpec );
+                settingStore.setAttribute( "RenderManager.wmsnames", wmsNames.toString() );
+            }
+        
+            log.info( "Service path: " + pathSpec );
 
             // use our own WMS impl
-            SimpleWmsServer wmsServer = new SimpleWmsServer();
-            log.debug( "    service: " + wmsServer.getClass().getName() );
+            SimpleWmsServer result = new SimpleWmsServer();
+            result.init( map );
 
-            String url = HttpServiceFactory.registerServer( wmsServer, pathSpec, true );
-            wmsServer.init( url, map );
+            CorePlugin.registerServlet( pathSpec, result, null );
 
-            log.debug( "    URL: " + wmsServer.getURL() );
-            return wmsServer;
+            log.debug( "    URL: " + result.getPathSpec() );
+            return result;
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "Fehler beim Starten des WMS-Services.", e );
@@ -268,8 +274,24 @@ public class RenderManager {
     }
     
     
-    protected void deleteWms( WmsService wmsServer ) {
-        HttpServiceFactory.unregisterServer( wmsServer, true );
+    protected void destroyWms( MapHttpServer server ) {
+        CorePlugin.unregister( server );
+    }
+    
+    
+    /**
+     * 
+     */
+    class FeatureListener
+            extends FeatureChangeListener {
+        
+        public void featureChange( FeatureChangeEvent ev ) {
+            RenderLayerDescriptor descriptor = findDescriptorForLayer( ev.getSource() );
+            if (descriptor != null) {
+                // XXX delay reload for subsequent changes?
+                mapEditor.reloadLayer( descriptor );
+            }
+        }
     }
     
     
@@ -277,18 +299,60 @@ public class RenderManager {
      * 
      */
     class MapDomainListener
-            extends FeatureChangeListener
-            implements PropertyChangeListener {
+            implements IModelChangeListener, PropertyChangeListener {
 
-        public void featureChange( FeatureChangeEvent ev ) {
-            RenderLayerDescriptor descriptor = findDescriptorForLayer( ev.getSource() );
-            if (descriptor != null) {
-                mapEditor.reloadLayer( descriptor );
+        /**
+         * Close the corresponding {@link MapEditor}. This call triggers {@link MapEditor#dispose()}
+         * and then {@link RenderManager#dispose()}. So after this call <code>map</code> is null.
+         * @return
+         */
+        protected IWorkbenchPage closeMapEditor() {
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            IWorkbenchPage page = window.getActivePage();
+
+            page.closeEditor( mapEditor, false );
+            return page;
+        }
+        
+        public void modelChanged( ModelChangeEvent ev ) {
+            Display display = mapEditor.getEditorSite().getShell().getDisplay();
+            
+            // check CRS changes after an operation has has finished and
+            // extends are transformed in new CRS
+            Iterable<PropertyChangeEvent> crsEvents = ev.events( new IEventFilter<PropertyChangeEvent>() {
+                public boolean accept( PropertyChangeEvent iev ) {
+                    return iev.getSource() instanceof IMap 
+                            && IMap.PROP_CRSCODE.equalsIgnoreCase( iev.getPropertyName() );
+                }
+            });
+            if (!Iterables.isEmpty( crsEvents )) {
+                display.asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            // map is null after MapEditor closed and dispose()
+                            IMap savedMap = map;
+                            IWorkbenchPage page = closeMapEditor();
+                            
+                            // re-open editor
+                            OpenMapOperation op = new OpenMapOperation( savedMap, page );
+                            OperationSupport.instance().execute( op, true, true );
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
+                        }
+
+//                        MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(),
+//                                Messages.get( "RenderManager_updateCrs_title" ),
+//                                Messages.get( "RenderManager_updateCrs_msg" ) );
+//                        //mapEditor.updateMapCRS();
+                    }
+                });
             }
         }
 
         public void propertyChange( PropertyChangeEvent ev ) {
-            log.debug( "property: name= " + ev.getPropertyName() );
+            Display display = mapEditor.getEditorSite().getShell().getDisplay();
+
             // ILayer
             if (ev.getSource() instanceof ILayer) {
                 ILayer layer = (ILayer)ev.getSource();
@@ -329,38 +393,60 @@ public class RenderManager {
             }
             // IMap
             else if (ev.getSource() instanceof IMap) {
-                if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
+                // check if map was deleted
+                if (PropertyChangeSupport.PROP_ENTITY_REMOVED .equals( ev.getPropertyName() )) {
+                    display.asyncExec( new Runnable() {
+                        public void run() {
+                            closeMapEditor();
+                            return;
+                        }
+                    });
+                }
+                else if (IMap.PROP_LAYERS.equals( ev.getPropertyName() )) {
+                    updatePipelines();                    
+                }
+                else if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
                     ReferencedEnvelope extent = (ReferencedEnvelope)ev.getNewValue();
                     mapEditor.setMapExtent( extent );
                     
                     // XXX refactor this out to MapEditor so that it can be used elsewhere 
-                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    display.asyncExec( new Runnable() {
                         public void run() {
                             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                             IWorkbenchPage page = window.getActivePage();
-                            page.activate( mapEditor );
+                            if (page != null && mapEditor != null 
+                                    && page.findEditor( mapEditor.getEditorInput() ) != null) {
+                                page.activate( mapEditor );
+                            }
                         }
                     });
                 }
                 else if (IMap.PROP_MAXEXTENT.equals( ev.getPropertyName() )) {
-                    mapEditor.getEditorSite().getShell().getDisplay().syncExec( new Runnable() {
+                    display.syncExec( new Runnable() {
                         public void run() {
                             mapEditor.setMapExtent( map.getMaxExtent() );
                             mapEditor.setMaxExtent( map.getMaxExtent() );
                         }
                     });
                 }
-            }
-        }
-
-        private final RenderLayerDescriptor findDescriptorForLayer( ILayer layer ) {
-            for (RenderLayerDescriptor descriptor : descriptors.values()) {
-                if (descriptor.layers.contains( layer )) {
-                    return descriptor;
+                else if (IMap.PROP_CRSCODE.equalsIgnoreCase( ev.getPropertyName() )) {
+                    // stop listening to events as extents and CRS do not match an longer;
+                    // wait for ModelChangeEvent to reload
+                    ProjectRepository module = ProjectRepository.instance();
+                    module.removePropertyChangeListener( modelListener );
                 }
             }
-            return null;
         }
+    }
+
+    
+    private final RenderLayerDescriptor findDescriptorForLayer( ILayer layer ) {
+        for (RenderLayerDescriptor descriptor : descriptors.values()) {
+            if (descriptor.layers.contains( layer )) {
+                return descriptor;
+            }
+        }
+        return null;
     }
 
     
@@ -400,7 +486,7 @@ public class RenderManager {
          * -> edit -> zPriority -> opacity.
          */
         String renderLayerKey() {
-            StringBuffer result = new StringBuffer( 256 );
+            StringBuilder result = new StringBuilder( 256 );
             result.append( hashCode() /*service.getIdentifier()*/ )
                     .append( isEdit ? "1" : "0" ).append( zPriority ).append( opacity );
             return result.toString();

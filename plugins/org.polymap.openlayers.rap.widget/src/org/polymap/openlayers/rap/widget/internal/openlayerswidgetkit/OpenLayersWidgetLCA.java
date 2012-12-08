@@ -111,8 +111,12 @@ public class OpenLayersWidgetLCA extends AbstractWidgetLCA {
 		writer.set("appearance", "composite");
 		writer.set("overflow", "hidden");
 		ControlLCAUtil.writeStyleFlags((OpenLayersWidget) widget);
-		 writer.call((OpenLayersWidget) widget, "load_lib",
-				new Object[] { ((OpenLayersWidget) widget).getJSLocation() });
+        writer.call(widget, "load_lib",
+                new Object[] { ((OpenLayersWidget) widget).getJSLocation() });
+
+// XXX does not work yet; load_addin can be called after OpenLayers.js is loaded
+//        writer.call(widget, "load_addin",
+//                new Object[] { "ol_js_addins/ContextMenu.js" });
 	}
 
 	public void renderChanges(final Widget widget) throws IOException {

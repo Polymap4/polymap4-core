@@ -51,7 +51,7 @@ function loadScript(url, callback, context) {
 }
 
 qx.Class.define("org.polymap.openlayers.rap.widget.OpenLayersWidget", {
-	extend : qx.ui.layout.CanvasLayout,
+	extend : org.eclipse.swt.widgets.Composite,
 
 	construct : function(id) {
 		this.base(arguments);
@@ -63,26 +63,35 @@ qx.Class.define("org.polymap.openlayers.rap.widget.OpenLayersWidget", {
 	properties : {},
 
 	members : {
-		load_lib : function(lib_url) {
+        load_lib : function(lib_url) {
+            loadScript( lib_url, function(context) {
+                qx.ui.core.Widget.flushGlobalQueues();
 
-			loadScript(lib_url, function(context) {
-				qx.ui.core.Widget.flushGlobalQueues();
+                    if (!org_eclipse_rap_rwt_EventUtil_suspend) {
+                        var openlayersId = org.eclipse.swt.WidgetManager
+                                .getInstance().findIdByWidget(context);
+                        var req = org.eclipse.swt.Request.getInstance();
+                        req.addParameter(openlayersId + ".load_lib_done",
+                                "true");
 
-					if (!org_eclipse_rap_rwt_EventUtil_suspend) {
-						var openlayersId = org.eclipse.swt.WidgetManager
-								.getInstance().findIdByWidget(context);
-						var req = org.eclipse.swt.Request.getInstance();
-						req.addParameter(openlayersId + ".load_lib_done",
-								"true");
+                        req.send();
+                    }
 
-						req.send();
-					}
-
-				}
-			, this); // loadScript
-
-		},
-					
+                }
+            , this ); // loadScript
+        },
+        
+        /**
+         * Load addins after OpenLayer.js is loaded.
+         * 
+         * FIXME: does not work correctly yet. Can be called *after* Openlayer.js is loaded.
+         */
+        load_addin : function( lib_url ) {
+            loadScript( lib_url, function( context ) {
+                //alert( 'Addin loaded: ' + lib_url );
+            }, this );
+        },
+                    
 		eval : function(code2eval) {
 			eval(code2eval);
 		}

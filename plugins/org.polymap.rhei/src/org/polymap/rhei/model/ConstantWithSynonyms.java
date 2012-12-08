@@ -18,6 +18,7 @@
 package org.polymap.rhei.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,8 +28,6 @@ import org.opengis.filter.FilterFactory2;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * Provides means to handle a set of constant values and synonyms that might be

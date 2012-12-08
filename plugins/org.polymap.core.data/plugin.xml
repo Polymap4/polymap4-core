@@ -59,7 +59,7 @@
          point="org.eclipse.ui.views">
       <view
             allowMultiple="true"
-            category="org.polymap.core.project"
+            category="org.polymap.core.project.ViewCategory"
             class="org.polymap.core.data.ui.featureselection.FeatureSelectionView"
             icon="icons/eview16/table_view.gif"
             id="org.polymap.core.data.FeatureSelectionView"
@@ -68,12 +68,12 @@
       </view>
       <view
             allowMultiple="true"
-            category="org.polymap.core.project"
+            category="org.polymap.core.project.ViewCategory"
             class="org.polymap.core.data.ui.featuretable.SourceFeatureTableView"
             icon="icons/eview16/table_view.gif"
             id="org.polymap.core.data.SourceFeatureTableView"
             name="%views_sourceFeatureTable"
-            restorable="true">
+            restorable="false">
       </view>
    </extension>
    <extension
@@ -136,6 +136,9 @@
             <separator
                   name="org.polymap.core.data.separator1">
             </separator>
+            <groupMarker
+                  name="org.polymap.core.data.groupMarker1">
+            </groupMarker>
          </menu>
       </objectContribution>
       <objectContribution
@@ -189,18 +192,10 @@
    <extension
          point="org.polymap.core.data.pipeline.processors">
       <processor
-            class="org.polymap.core.data.image.ImageBufferProcessor"
-            description="%processor_bufferDesc"
-            id="org.polymap.core.data.image.ImageBufferProcessor"
-            isTerminal="false"
-            name="%processor_buffer"
-            propertyPage="org.polymap.core.data.image.ImageBufferProcessorConfig">
-      </processor>
-      <processor
             class="org.polymap.core.data.feature.memory.FeatureCacheProcessor"
             id="org.polymap.core.data.feature.FeatureCacheProcessor"
             isTerminal="false"
-            name="Feature-Cache">
+            name="%processor_featureCache">
       </processor>
       <processor
             class="org.polymap.core.data.image.ImageGrayscaleProcessor"
@@ -219,12 +214,12 @@
             propertyPage="org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig">
       </processor>
       <processor
-            class="org.polymap.core.data.image.cache.ImageCacheProcessor"
+            class="org.polymap.core.data.image.cache304.ImageCacheProcessor"
             description="%processor_imageCache"
             id="org.polymap.core.data.image.cache.ImageCacheProcessor"
             isTerminal="false"
             name="%processor_imageCache"
-            propertyPage="org.polymap.core.data.image.cache.ImageCacheProcessorConfig">
+            propertyPage="org.polymap.core.data.image.cache304.ImageCacheProcessorConfig">
       </processor>
       <processor
             class="org.polymap.core.data.image.ImageTransparencyProcessor"
@@ -237,13 +232,13 @@
             class="org.polymap.core.data.feature.lucene.LuceneFeatureCacheProcessor"
             id="org.polymap.core.data.feature.lucene.LuceneCacheProcessor"
             isTerminal="false"
-            name="Feature-Cache (Lucene)">
+            name="%processor_featureCacheLucene">
       </processor>
       <processor
             class="org.polymap.core.data.feature.filter.FeatureFilterProcessor"
             id="org.polymap.core.data.FilterProcessor"
             isTerminal="false"
-            name="Feature-Filter"
+            name="%processor_featureFilter"
             propertyPage="org.polymap.core.data.feature.filter.FeatureFilterProcessorConfig">
       </processor>
       <processor
@@ -251,7 +246,8 @@
             description="%processor_imageCache304Desc"
             id="org.polymap.core.data.image.cache304.ImageCacheProcessor"
             isTerminal="false"
-            name="%processor_imageCache304">
+            name="%processor_imageCache304"
+            propertyPage="org.polymap.core.data.image.cache304.ImageCacheProcessorConfig">
       </processor>
    </extension>
    <extension

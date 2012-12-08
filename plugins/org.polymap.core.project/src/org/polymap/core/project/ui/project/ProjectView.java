@@ -36,12 +36,9 @@ import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
-import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.ViewPart;
 
@@ -53,8 +50,8 @@ import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetPropertyOperation;
-import org.polymap.core.project.ui.PartListenerAdapter;
 import org.polymap.core.project.ui.LayerStatusLineAdapter;
+import org.polymap.core.project.ui.PartListenerAdapter;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -85,8 +82,6 @@ public class ProjectView
     
     private Action             renameAction;
 
-    private Action             openMapAction;
-    
     private IAction            newWizardAction;
     
     private Action             collapsAllAction = new CollapseAllAction();
@@ -210,13 +205,11 @@ public class ProjectView
 
     private void fillLocalPullDown( IMenuManager manager ) {
 //        manager.add( renameAction );
-//        manager.add( openMapAction );
     }
 
 
     private void fillContextMenu( IMenuManager manager ) {
         manager.add( renameAction );
-        //manager.add( openMapAction );
         manager.add( new Separator() );
         drillDownAdapter.addNavigationActions( manager );
     }
@@ -229,7 +222,6 @@ public class ProjectView
 
         System.out.println( "TOOLBAR Items: " + manager.getItems() );
 //        manager.add( renameAction );
-//        manager.add( openMapAction );
 //        manager.add( new Separator() );
 //        manager.add( collapsAllAction );
         drillDownAdapter.addNavigationActions( manager );
@@ -269,38 +261,21 @@ public class ProjectView
         };
         renameAction.setText( Messages.get( "actions_renameMap" ) );
         renameAction.setToolTipText( Messages.get( "actions_renameMapTip" ) );
-//        renameAction.setImageDescriptor( ProjectPlugin.getImageDescriptor( "icons/etool16/newprj_wiz.gif" ) );
 
-        openMapAction = new Action() {
-            public void run() {
-                try {
-                    //IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                    IWorkbenchPage page = window.getActivePage();
-                    
-                    IHandlerService service = (IHandlerService)getSite().getService( IHandlerService.class );
-                    service.executeCommand( "org.polymap.core.project.command.openMap", null );
-                    
-                    //OpenMapHandler.openMap( new MapEditorInput( selectedMap ), page );
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "Projekt konnte nicht geöffnet werden.", e );
-                }
-            }
-        };
-        openMapAction.setText( "Karte öffnen (action)" );
-        openMapAction.setToolTipText( "Karte öffnen" );
-        openMapAction.setImageDescriptor( PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
-                ISharedImages.IMG_OBJ_ADD ) );
-        
         doubleClickAction = new Action() {
             public void run() {
-                ISelection selection = viewer.getSelection();
-                Object obj = ((IStructuredSelection)selection).getFirstElement();
-                //showMessage( "Double-click detected on " + obj.toString() );
+//                IActionBars bars = getViewSite().getActionBars();
+//                bars.getGlobalActionHandler( OpenMapAction.ID ).run();
+
+                ISelection sel = viewer.getSelection();
+                Object obj = ((IStructuredSelection)sel).getFirstElement();
                 if (obj instanceof IMap) {
-                    openMapAction.run();
+                    OpenMapAction delegate = new OpenMapAction();
+                    delegate.selectionChanged( this, sel );
+                    delegate.runWithEvent( this, null );
                 }
             }
+            
         };
     }
 

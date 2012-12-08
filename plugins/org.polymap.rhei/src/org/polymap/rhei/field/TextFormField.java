@@ -46,7 +46,7 @@ public class TextFormField
     }
 
     public Control createControl( Composite parent, IFormEditorToolkit toolkit ) {
-        Text text = (Text)createControl( parent, toolkit, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL );
+        Text text = (Text)super.createControl( parent, toolkit, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL );
         
         FormData layoutData = new FormData();
 //        layoutData.height = 75;

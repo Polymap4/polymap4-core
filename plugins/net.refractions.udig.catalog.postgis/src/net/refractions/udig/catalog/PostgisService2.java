@@ -25,6 +25,10 @@ import static org.geotools.jdbc.JDBCDataStoreFactory.USER;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
+
+import org.geotools.data.postgis.PostGISDialect;
+import org.geotools.jdbc.JDBCDataStore;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +54,9 @@ import org.eclipse.core.runtime.SubMonitor;
  * @author jesse
  * @since 1.1.0
  */
-public class PostgisService2 extends IService {
+public class PostgisService2 
+        extends IService 
+        implements IDeletingSchemaService {
 
     private final URL id;
     private Map<String, Serializable> params;
@@ -197,4 +203,15 @@ public class PostgisService2 extends IService {
             folder.dispose(monitor);
         }
     }
+    
+    public void deleteSchema( IGeoResource geores, IProgressMonitor monitor )
+    throws IOException {
+        if (geores.service( monitor ) != this) {
+            throw new IllegalStateException( "Geores is not Postgis" );
+        }
+        PostgisSchemaFolder folder = (PostgisSchemaFolder)geores.parent( monitor );
+        JDBCDataStore ds = folder.getDataStore();
+        new JDBCHelper( ds, new PostGISDialect( ds ) ).deleteSchema( geores, monitor );
+    }
+
 }

@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
@@ -59,9 +60,12 @@ public class FormEditorToolkit
 
     private FormToolkit         delegate;
 
-    public Color                textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
-    
-    private Color               labelForeground = Graphics.getColor( 0x70, 0x70, 0x70 );
+    public static final Color   textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
+    public static final Color   textBackgroundDisabled = Graphics.getColor( 0xF6, 0xF4, 0xF4 );
+    public static final Color   textBackgroundFocused = Graphics.getColor( 0xff, 0xf0, 0xd2 );
+    public static final Color   backgroundFocused = Graphics.getColor( 0xF0, 0xF0, 0xFF );
+    public static final Color   labelForeground = Graphics.getColor( 0x70, 0x70, 0x70 );
+    public static final Color   labelForegroundFocused = Graphics.getColor( 0x00, 0x00, 0x20 );
     
     
     public FormEditorToolkit( FormToolkit delegate ) {
@@ -75,11 +79,11 @@ public class FormEditorToolkit
     }
 
     public Composite createComposite( Composite parent, int style ) {
-        return delegate.createComposite( parent, style );
+        return delegate.createComposite( parent, style | SWT.NO_FOCUS );
     }
 
     public Composite createComposite( Composite parent ) {
-        return delegate.createComposite( parent );
+        return delegate.createComposite( parent, SWT.NO_FOCUS );
     }
 
     public Composite createCompositeSeparator( Composite parent ) {
@@ -87,7 +91,7 @@ public class FormEditorToolkit
     }
 
     public ExpandableComposite createExpandableComposite( Composite parent, int expansionStyle ) {
-        return delegate.createExpandableComposite( parent, expansionStyle );
+        return delegate.createExpandableComposite( parent, expansionStyle | SWT.NO_FOCUS );
     }
 
     public Form createForm( Composite parent ) {
@@ -99,21 +103,21 @@ public class FormEditorToolkit
     }
 
     public Hyperlink createHyperlink( Composite parent, String text, int style ) {
-        return delegate.createHyperlink( parent, text, style );
+        return delegate.createHyperlink( parent, text, style | SWT.NO_FOCUS );
     }
 
     public ImageHyperlink createImageHyperlink( Composite parent, int style ) {
-        return delegate.createImageHyperlink( parent, style );
+        return delegate.createImageHyperlink( parent, style | SWT.NO_FOCUS );
     }
 
     public Label createLabel( Composite parent, String text, int style ) {
-        Label result = delegate.createLabel( parent, text, style );
+        Label result = delegate.createLabel( parent, text, style /*| SWT.NO_FOCUS*/ );
         result.setForeground( labelForeground );
         return result;
     }
 
     public Label createLabel( Composite parent, String text ) {
-        Label result = delegate.createLabel( parent, text );
+        Label result = delegate.createLabel( parent, text/*, SWT.NO_FOCUS*/ );
         result.setForeground( labelForeground );
         //result.setFont( Graphics.getFont( result.getFont().getFontData()[0].
         return result;
@@ -128,15 +132,22 @@ public class FormEditorToolkit
     }
 
     public Section createSection( Composite parent, int sectionStyle ) {
-        return delegate.createSection( parent, sectionStyle );
+        return delegate.createSection( parent, sectionStyle | SWT.NO_FOCUS );
     }
 
     public Label createSeparator( Composite parent, int style ) {
-        return delegate.createSeparator( parent, style );
+        return delegate.createSeparator( parent, style | SWT.NO_FOCUS );
     }
 
     public Table createTable( Composite parent, int style ) {
         return delegate.createTable( parent, style );
+    }
+
+    public List createList( Composite parent, int style ) {
+        List result = new List( parent, style );
+        result.setBackground( textBackground );
+        result.setData( WidgetUtil.CUSTOM_VARIANT, "formeditor" );
+        return result;
     }
 
     public Text createText( Composite parent, String value, int style ) {
@@ -167,6 +178,7 @@ public class FormEditorToolkit
         delegate.adapt( combo );
         combo.setBackground( textBackground );
         combo.setData( WidgetUtil.CUSTOM_VARIANT, "formeditor" );
+        combo.setVisibleItemCount( 12 );
         for (String value : values) {
             combo.add( value );
         }

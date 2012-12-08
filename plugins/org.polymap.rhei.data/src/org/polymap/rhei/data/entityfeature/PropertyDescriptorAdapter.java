@@ -44,7 +44,7 @@ public class PropertyDescriptorAdapter
     private Property            delegate;
 
     public PropertyDescriptorAdapter( Property delegate ) {
-        super();
+        assert delegate != null;
         this.delegate = delegate;
     }
 

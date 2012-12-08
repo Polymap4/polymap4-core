@@ -73,9 +73,9 @@ public class ProcessorExtension {
         if (result.size() > 1) {
             throw new IllegalStateException( "More than 1 extension: " + elms );
         }
-        if (result.isEmpty()) {
-            throw new IllegalArgumentException( "No extension for id: " + id );
-        }
+//        if (result.isEmpty()) {
+//            throw new IllegalArgumentException( "No extension for id: " + id );
+//        }
         return !result.isEmpty() ? result.get( 0 ) : null;
     }
     

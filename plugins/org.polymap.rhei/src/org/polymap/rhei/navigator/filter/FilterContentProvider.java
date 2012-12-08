@@ -17,9 +17,6 @@
  */
 package org.polymap.rhei.navigator.filter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang.ArrayUtils;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
@@ -28,9 +25,8 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import org.polymap.core.project.ILayer;
-import org.polymap.core.workbench.PolymapWorkbench;
-import org.polymap.rhei.RheiPlugin;
-import org.polymap.rhei.filter.IFilter;
+
+import org.polymap.rhei.filter.FilterFactory;
 
 /**
  * 
@@ -56,23 +52,7 @@ public class FilterContentProvider
         // filters
         else if (elm instanceof FiltersFolderItem) {
             FiltersFolderItem folder = (FiltersFolderItem)elm;
-
-            // extensions
-            List<IFilter> result = new ArrayList();
-            for (FilterProviderExtension ext : FilterProviderExtension.allExtensions()) {
-                try {
-                    // FIXME IFilter is stateful but currently the same IFilter might be subject
-                    // to subsequent openDialog/View... request! Creating IFilter instances with
-                    // every getChildren() here might help but does not cure the problem
-                    List<IFilter> filters = ext.newFilterProvider().addFilters( folder.getLayer() );
-                    if (filters != null) {
-                        result.addAll( filters );
-                    }
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( RheiPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );                }
-            }
-            return result.toArray();            
+            return FilterFactory.instance().filtersForLayer( folder.getLayer() ).toArray();
         }
         return null;
     }

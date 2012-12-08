@@ -11,11 +11,6 @@
             id="polymap3.core.entrypoint1"
             parameter="default">
       </entrypoint>
-      <entrypoint
-            class="org.polymap.core.workbench.UdigWorkbench"
-            id="org.polymap.core.entrypoint.udig"
-            parameter="udig">
-      </entrypoint>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -25,13 +20,18 @@
             name="Workbench Kategorie">
       </category>
    </extension>
-   <extension
+   <!--extension
          point="org.eclipse.ui.views">
-      <category
-            id="polymap3.map"
-            name="Polymap">
-      </category>
-   </extension>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.ui"
+            class="org.polymap.core.workbench.PolymapCheatSheetView"
+            icon="icons/eview16/cheatsheet_view.gif"
+            id="org.eclipse.ui.cheatsheets.views.CheatSheetView"
+            name="%views_cheatsheets"
+            restorable="true">
+      </view>
+   </extension-->
    <!--extension
          point="net.refractions.udig.project.ui.editorInputs">
       <editorInput
@@ -43,18 +43,26 @@
    <extension
          point="org.polymap.core.http.servlets">
       <servlet
-            class="org.polymap.core.http.TestServlet"
-            name="Test"
-            path="/test">
+            class="org.polymap.core.workbench.dnd.DndUploadServlet"
+            name="DndUpload"
+            path="/dndupload">
       </servlet>
    </extension>
    <extension
          point="org.eclipse.rap.ui.branding">
       <branding
+            exitConfirmationClass="org.polymap.core.workbench.BrowserExitConfirmation"
+            favicon="icons/favicon.gif"
             id="org.polymap.core.branding1"
             servletName="polymap"
-            themeId="org.eclipse.rap.rwt.theme.Default"
+            themeId="org.eclipse.rap.design.example.fancy.theme"
             title="POLYMAP3 Workbench">
+         <additionalHeaders>
+            <meta
+                  content="chrome=1"
+                  name="X-UA-Compatible">
+            </meta>
+         </additionalHeaders>
       </branding>
    </extension>
    <extension
@@ -124,7 +132,7 @@
          point="org.eclipse.rap.ui.themes">
       <themeContribution
             file="defaultTheme.css"
-            themeId="org.eclipse.rap.rwt.theme.Default">
+            themeId="org.eclipse.rap.design.example.fancy.theme">
       </themeContribution>
    </extension>
    <extension
@@ -183,21 +191,38 @@
       </config>
    </extension>
    <extension
-         point="org.eclipse.help.toc">
-      <toc
-            file="toc.xml">
-      </toc>
-      <toc
-            file="testToc.xml"
-            primary="true">
-      </toc>
-   </extension>
-   <extension
          point="org.polymap.core.operation.concerns">
       <concern
             class="org.polymap.core.operation.LogOperationConcernFactory"
             id="org.polymap.core.LogOperationConcern">
       </concern>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.resources">
+      <resource
+            class="org.polymap.core.workbench.dnd.DndResource">
+      </resource>
+   </extension>
+   <extension
+         point="org.eclipse.rap.ui.serviceHandler">
+      <serviceHandler
+            class="org.polymap.core.workbench.dnd.DndServiceHandler"
+            id="org.polymap.core.DndServiceHandler">
+      </serviceHandler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.cheatsheets.cheatSheetContent">
+      <category
+            id="org.polymap.core.cheatsheet.category"
+            name="Workbench">
+      </category>
+      <cheatsheet
+            category="org.polymap.core.cheatsheet.category"
+            composite="false"
+            contentFile="%cheatsheets_welcomeContent"
+            id="org.polymap.core.cheatsheet.welcome"
+            name="%cheatsheets_welcome">
+      </cheatsheet>
    </extension>
 
 </plugin>

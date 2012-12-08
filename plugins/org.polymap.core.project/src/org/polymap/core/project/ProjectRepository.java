@@ -23,13 +23,22 @@
 
 package org.polymap.core.project;
 
+import java.net.URL;
+
+import net.refractions.udig.catalog.memory.ActiveMemoryDataStore;
+import net.refractions.udig.catalog.memory.internal.MemoryGeoResourceImpl;
+import net.refractions.udig.catalog.memory.internal.MemoryServiceImpl;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.qi4j.api.composite.TransientBuilderFactory;
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.model.MapState;
+import org.polymap.core.project.model.TempLayerComposite;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
@@ -143,6 +152,37 @@ public class ProjectRepository
         
         public abstract void visit( ILayer layer );
         
+    }
+    
+    
+    @SuppressWarnings("restriction")
+    public TempLayerComposite newTempLayer( String name, IMap parent ) {
+        assert parent != null;
+        
+        try {
+            TransientBuilderFactory factory = assembler.getModule().transientBuilderFactory();
+            TempLayerComposite result = factory.newTransient( TempLayerComposite.class );
+            result.setLabel( "Graph" );
+            result.setOrderKey( 100 );
+            result.setOpacity( 100 );
+            
+            parent.addLayer( result );
+
+            MemoryServiceImpl service = new MemoryServiceImpl( new URL( "http://polymap.org/" + name ) );
+            ActiveMemoryDataStore ds = service.resolve( ActiveMemoryDataStore.class, null );
+            
+            String typeName = name;
+            MemoryGeoResourceImpl geores = new MemoryGeoResourceImpl( typeName, service );
+            result.setGeoResource( geores );
+
+            return result;
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
     
     

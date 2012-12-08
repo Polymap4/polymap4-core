@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service.model;
 
@@ -42,8 +34,8 @@ import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.service.IProvidedService;
 import org.polymap.service.ServicesPlugin;
-import org.polymap.service.http.HttpServiceFactory;
-import org.polymap.service.http.WmsService;
+import org.polymap.service.http.MapHttpServerFactory;
+import org.polymap.service.http.MapHttpServer;
 
 /**
  * 
@@ -70,7 +62,7 @@ public interface ProvidedServiceComposite
     @Optional
     Property<String>                    pathSpec();
   
-    /** Fully qualified name of the service class. */
+    /** One of the <code>SERVICE_TYPE_xxx</code> constants in {@link ServicesPlugin}. */
     @Optional
     Property<String>                    serviceType();
     
@@ -96,7 +88,7 @@ public interface ProvidedServiceComposite
 
         @This ProvidedServiceComposite      composite;
 
-        private transient WmsService        wms;
+        private transient MapHttpServer    wms;
         
         
         public boolean isEnabled() {
@@ -124,17 +116,17 @@ public interface ProvidedServiceComposite
         }
 
         public void setPathSpec( String url ) {
+            assert ServicesPlugin.validPathSpec( url ).equals( url );
             pathSpec().set( url );
         }
 
-        public Class getServiceType() {
-            try {
-                return Thread.currentThread().getContextClassLoader().loadClass( 
-                        serviceType().get() );
-            }
-            catch (ClassNotFoundException e) {
-                throw new IllegalStateException( e );
-            }
+        public String getServiceType() {
+            return serviceType().get();
+        }
+
+        public boolean isServiceType( String serviceType ) {
+            assert serviceType != null;
+            return serviceType().get().equals( serviceType );
         }
 
         public void setServiceType( Class cl ) {
@@ -148,6 +140,7 @@ public interface ProvidedServiceComposite
         public void setSRS( List<String> srs ) {
             srs().set( srs );
         }
+
         
         public void start() 
         throws Exception {
@@ -156,26 +149,34 @@ public interface ProvidedServiceComposite
             IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
             log.info( "   Starting service for map: " + map.getLabel() + " ..." );
             
-            String pathSpec = pathSpec().get();
+            String pathSpec = getPathSpec();
             if (pathSpec == null || pathSpec.length() == 0) {
-                pathSpec = ServicesPlugin.simpleName( map.getLabel() );
-                // FIXME
-                //pathSpec().set( pathSpec );
+                // XXX why is this default needed?
+                pathSpec = ServicesPlugin.validPathSpec( map.getLabel() );
             }
-            pathSpec = !pathSpec.startsWith( "/" ) ? ("/"+pathSpec) : pathSpec;
 
-            wms = HttpServiceFactory.createWMS( map, ServicesPlugin.SERVICES_PATHSPEC + pathSpec, false );
-            log.info( "        service URL: " + wms.getURL() );
+            wms = MapHttpServerFactory.createWMS( map, pathSpec, true );
+            log.info( "        service URL: " + wms.getPathSpec() );
         }
 
+        
         public void stop() 
         throws Exception {
-//            assert wms != null : "Service is not yet started.";
-            IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
-            log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
-            
-            HttpServiceFactory.unregisterServer( wms, false );
-            wms = null;            
+            if (wms == null) {
+                log.info( "No service started: " + pathSpec().get() );
+            }
+            else {
+                IMap map = ProjectRepository.instance().findEntity( IMap.class, mapId().get() );
+                log.info( "   Stopping service for map: " + map.getLabel() + " ..." );
+
+                try {
+                    MapHttpServerFactory.destroyServer( wms );
+                }
+                catch (Exception e) {
+                    log.warn( "", e );
+                }
+                wms = null;
+            }
         }
         
         public boolean isStarted() {

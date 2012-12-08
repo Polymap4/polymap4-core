@@ -2,7 +2,7 @@
 <feature
       id="org.polymap.core.feature"
       label="Polymap3 Core Feature"
-      version="3.1.0"
+      version="3.1.0.qualifier"
       provider-name="polymap.org"
       os="linux,win32"
       ws="gtk,win32"
@@ -74,8 +74,7 @@
          id="org.polymap.core"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.eclipse.core.contenttype"
@@ -118,13 +117,6 @@
 
    <plugin
          id="org.eclipse.rap.jface"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.rap.jface.databinding"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -289,15 +281,13 @@
          id="org.polymap.core.data"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.polymap.core.libs"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.polymap.core.mapeditor"
@@ -356,13 +346,6 @@
 
    <plugin
          id="org.eclipse.jdt.junit.runtime"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.osgi.source"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -452,20 +435,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.rhei"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.polymap.rhei.data"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.eclipse.rwt.widgets.upload"
          download-size="0"
          install-size="0"
@@ -522,14 +491,21 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.lka"
+         id="org.polymap.alkis"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.polymap.alkis"
+         id="org.polymap.geonetwork"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.rap.jface.databinding"
          download-size="0"
          install-size="0"
          version="0.0.0"

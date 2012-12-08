@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-20122, Polymap GmbH. ALl rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,18 +11,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service.model.operations;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import org.qi4j.api.composite.TransientComposite;
 import org.qi4j.api.mixin.Mixins;
@@ -40,15 +29,14 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.IMap;
 import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
-
 import org.polymap.service.ServiceRepository;
+import org.polymap.service.ServicesPlugin;
 import org.polymap.service.model.ProvidedServiceComposite;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 @Mixins( NewServiceOperation.Mixin.class )
@@ -58,7 +46,7 @@ public interface NewServiceOperation
     static Log log = LogFactory.getLog( NewServiceOperation.class );
     
 
-    public void init( IMap _map, Class _type/*, String _pathSpec*/ );
+    public void init( IMap _map, String serviceType );
     
     /** Implementation is provided bei {@link AbstractOperation} */ 
     public boolean equals( Object obj );
@@ -73,11 +61,11 @@ public interface NewServiceOperation
             extends AbstractModelChangeOperation
             implements NewServiceOperation {
 
-        private IMap                        map;
+        private IMap                    map;
 
-        private Class                       type;
+        private String                  serviceType;
 
-        private String                      pathSpec;
+        private String                  pathSpec;
 
 
         public Mixin() {
@@ -85,17 +73,10 @@ public interface NewServiceOperation
         }
 
 
-        @SuppressWarnings("deprecation")
-        public void init( IMap _map, Class _type/*, String _pathSpec*/ ) {
+        public void init( IMap _map, String _serviceType ) {
             this.map = _map;
-            this.type = _type;
-            try {
-                this.pathSpec = "/" + URLEncoder.encode( map.getLabel(), "UTF-8" );
-            }
-            catch (UnsupportedEncodingException e) {
-                log.warn( "", e );
-                this.pathSpec = "/" + URLEncoder.encode( map.getLabel() );
-            }
+            this.serviceType = _serviceType;
+            this.pathSpec = ServicesPlugin.validPathSpec( map.getLabel() );
             setLabel( "Service anlegen" );
         }
 
@@ -106,7 +87,7 @@ public interface NewServiceOperation
                 ServiceRepository repo = ServiceRepository.instance();
                 ProvidedServiceComposite service = repo.newEntity( ProvidedServiceComposite.class, null );
                 service.mapId().set( map.id() );
-                service.serviceType().set( type.getName() );
+                service.serviceType().set( serviceType );
                 service.setPathSpec( pathSpec );
                 
                 repo.addService( service );

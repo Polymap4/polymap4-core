@@ -216,7 +216,7 @@ public class FeatureTypeEditorProcessorConfig
         FormLayout layout = new FormLayout();
         layout.marginHeight = 0;
         layout.marginWidth = 0;
-        layout.spacing = 0;
+        layout.spacing = 3;
         contents.setLayout( layout );
 
         dTable.left = new FormAttachment( 0 );
@@ -239,7 +239,7 @@ public class FeatureTypeEditorProcessorConfig
 
 
     protected Button createButton( Composite composite, final IAction action ) {
-        final Button button = new Button( composite, SWT.PUSH | SWT.BORDER );
+        final Button button = new Button( composite, SWT.PUSH );
         button.setToolTipText( action.getToolTipText() );
 
         // FIXME UiPlugin...

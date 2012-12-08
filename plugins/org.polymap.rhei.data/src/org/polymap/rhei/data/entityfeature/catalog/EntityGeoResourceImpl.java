@@ -131,7 +131,7 @@ public class EntityGeoResourceImpl
 
     public URL getIdentifier() {
         try {
-            return new URL( service.getIdentifier().toString() + "#" + provider.getClass().getName() ); //$NON-NLS-1$
+            return new URL( service.getIdentifier().toString() + "#" + provider.getEntityType().getName() ); //$NON-NLS-1$
         }
         catch (MalformedURLException e) {
             return service.getIdentifier();

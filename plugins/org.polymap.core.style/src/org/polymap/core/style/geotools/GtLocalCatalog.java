@@ -74,7 +74,7 @@ public class GtLocalCatalog
         this.info = new ICatalogInfo( "GtLocalCatalog", "", null, null );
         this.base_path = new File( ws.toFile(), "sld" );
         base_path.mkdirs();
-        log.info( "Crating path for Local Style Catalog " + base_path.getAbsolutePath() );
+        log.info( "Creating path for Local Style Catalog " + base_path.getAbsolutePath() );
     }
     
     

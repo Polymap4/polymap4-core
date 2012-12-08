@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,22 +11,14 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.style;
 
 import java.util.HashMap;
 
-import javax.servlet.Servlet;
-
 import net.refractions.udig.catalog.ID;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -48,7 +39,6 @@ import org.polymap.core.style.geotools.GtLocalCatalog;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class StylePlugin 
@@ -116,7 +106,7 @@ public class StylePlugin
                         try {
                             SLDDownloadServlet s = new SLDDownloadServlet();
 
-                            httpService.registerServlet( sld_servlet_path, (Servlet)s, null, null );
+                            httpService.registerServlet( sld_servlet_path, s, null, null );
                             started = true;
                         }
                         catch (Exception e) {
@@ -140,7 +130,7 @@ public class StylePlugin
 
     public String getServletPathForId(ID id) {
     	servlet_path_mapping.put(id.labelResource(), id);
-    	return sld_servlet_path + "/" + id.labelResource();
+    	return StringUtils.removeStart( sld_servlet_path, "/" ) + "/" + id.labelResource();
     }
     	
     public ID getIDbyServletPath(String path) {

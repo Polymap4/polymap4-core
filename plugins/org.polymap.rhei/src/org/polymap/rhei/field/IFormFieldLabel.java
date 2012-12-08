@@ -29,7 +29,12 @@ import org.polymap.rhei.form.IFormEditorToolkit;
  * @version ($Revision$)
  */
 public interface IFormFieldLabel {
-
+    
+    /** 
+     * Signals that no label should be displayed and no space is to be reserved. 
+     */
+    public static final String  NO_LABEL = "_nolabel_";
+    
     public void init( IFormFieldSite site );
 
     public void dispose();

@@ -23,24 +23,31 @@ import net.refractions.udig.ui.UDIGDragDropUtilities;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.navigator.CommonNavigator;
 
-import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.IModelChangeListener;
+import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.LayerStatusLineAdapter;
 import org.polymap.core.project.ui.PartListenerAdapter;
+import org.polymap.core.runtime.Polymap;
 
 /**
- * Spread the Rhei while listening to Charlotte McKinnon... :) 
+ * Spreading the Rhei while listening to Charlotte McKinnon... :) 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
@@ -65,6 +72,44 @@ public class LayerNavigator
     private UDIGViewerDropAdapter       dropAdapter;
 
     private LayerStatusLineAdapter      statusLineAdapter;
+
+
+    public void init( IViewSite _site, final IMemento _memento )
+    throws PartInitException {
+        super.init( _site, _memento );
+
+        // restore state
+        if (memento != null) {
+            final String mapId = memento.getString( "mapId" );
+            if (mapId != null) {
+                // set input *after* createPartControl(); give (geo) resources time to setup
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            // set map input
+                            ProjectRepository repo = ProjectRepository.instance();
+                            IMap _map = repo.findEntity( IMap.class, mapId );
+                            if (_map != null) {
+                                setInputMap( _map );
+                            }
+                        }
+                        catch (NoSuchEntityException e) {
+                            log.warn( "Map does no longer exists: " + mapId );
+                        }
+                        catch (Exception e) {
+                            log.warn( "Unable to restore view.", e );
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+
+    public void saveState( IMemento _memento ) {
+        super.saveState( _memento );
+        _memento.putString( "mapId", map != null ? map.id() : "" );
+    }
 
 
     public void createPartControl( Composite parent ) {
@@ -119,7 +164,7 @@ public class LayerNavigator
 
         // part listener
         partListener = new PartListener();
-        page = getSite().getWorkbenchWindow().getActivePage();
+        page = getSite().getPage();
         page.addPartListener( partListener );
     }
 

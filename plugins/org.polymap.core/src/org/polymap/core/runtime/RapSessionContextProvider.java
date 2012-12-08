@@ -71,6 +71,12 @@ public class RapSessionContextProvider
 
 
         public void destroy() {
+            serviceContext = null;
+        }
+
+
+        public boolean isDestroyed() {
+            return serviceContext != null;
         }
 
 

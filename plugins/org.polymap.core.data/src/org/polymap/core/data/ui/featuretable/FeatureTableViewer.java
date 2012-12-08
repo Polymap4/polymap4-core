@@ -15,11 +15,9 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
@@ -89,7 +87,7 @@ public class FeatureTableViewer
         getTable().setLayout( new TableLayout() );
 
         this.foreground = getTable().getForeground();
-        
+
         //setUseHashlookup( true );
     }
 
@@ -118,12 +116,13 @@ public class FeatureTableViewer
 
     
     public IFeatureTableElement[] getSelectedElements() {
-        List<IFeatureTableElement> result = new ArrayList();
         IStructuredSelection sel = (IStructuredSelection)getSelection();
-        for (Iterator it=sel.iterator(); it.hasNext(); ) {
-            result.add( (IFeatureTableElement)it.next() );
+        IFeatureTableElement[] result = new IFeatureTableElement[ sel.size() ];
+        int i = 0;
+        for (Iterator it=sel.iterator(); it.hasNext(); i++) {
+            result[i] = (IFeatureTableElement)it.next();
         }
-        return result.toArray( new IFeatureTableElement[ result.size() ] );
+        return result;
     }
 
     
@@ -140,6 +139,10 @@ public class FeatureTableViewer
                 throw new RuntimeException( "not yet implemented." );
             }
     
+            public void setValue( String name, Object value ) {
+                throw new RuntimeException( "not yet implemented." );
+            }
+
             public String fid() {
                 return fid;
             }

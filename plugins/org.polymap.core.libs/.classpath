@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/lucene-queryparser-3.4.0.jar" sourcepath="lib/sources/lucene-queryparser-3.4.0-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-10.0.1.jar" sourcepath="lib/sources/guava-10.0.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/lucene-core-3.4.0.jar" sourcepath="/home/falko/.m2/repository/org/apache/lucene/lucene-core/3.4.0/lucene-core-3.4.0-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/xercesImpl-2.7.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xercesImpl-2.7.1.jar" sourcepath="/home/falko/.m2/repository/xerces/xercesImpl/2.7.1/xercesImpl-2.7.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ant-1.8.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.12.jar"/>
@@ -11,18 +13,17 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-codec-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.1.jar" sourcepath="/home/falko/.m2/repository/commons-collections/commons-collections/3.1/commons-collections-3.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-dbcp-1.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar" sourcepath="/home/falko/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-1.4.jar" sourcepath="lib/sources/commons-io-1.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-jxpath-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.3.jar" sourcepath="lib/sources/commons-lang-2.3-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.1.1.jar" sourcepath="/home/falko/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-pool-1.5.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ecore-2.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/geoapi-2.3-M1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/geoapi-2.3-M1.jar" sourcepath="lib/sources/geoapi-2.3-M1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar" sourcepath="lib/sources/geoapi-pending-2.3-M1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/geodb-0.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-collections-0.8.jar" sourcepath="/home/falko/.m2/repository/com/google/collections/google-collections/0.8/google-collections-0.8-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-metadata-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-api-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-2.6.4.jar"/>
@@ -35,10 +36,10 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-imagemosaic-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-h2-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-h2-2.6.4-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-mysql-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-postgis-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-mysql-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-mysql-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-postgis-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-postgis-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jp2k-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-main-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-main-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-process-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-property-2.6.4.jar"/>
@@ -48,7 +49,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-svg-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-validation-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar" sourcepath="lib/sources/gt-wfs-2.6.4-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-wms-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-wms-2.6.4.jar" sourcepath="lib/sources/gt-wms-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wps-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-2.6.4.jar"/>

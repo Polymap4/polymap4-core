@@ -64,7 +64,6 @@ public class ProjectPlugin
     
 
     public ProjectPlugin() {
-        super();
         instance = this;
     }
 
@@ -83,7 +82,6 @@ public class ProjectPlugin
     public void start( BundleContext context )
             throws Exception {
         super.start( context );
-        log.info( "start..." );
     }
     
     

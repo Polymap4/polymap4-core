@@ -21,6 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ServiceExtension2;
@@ -34,6 +36,8 @@ import net.refractions.udig.catalog.wms.internal.Messages;
  */
 public class WMSServiceExtension implements ServiceExtension2 {
 
+    public static final Pattern servicePattern = Pattern.compile( "service=([a-zA-Z]*)", Pattern.CASE_INSENSITIVE );
+    
     public IService createService( URL id, Map<String, Serializable> params ) {
         if (params == null){
             return null;
@@ -118,23 +122,22 @@ public class WMSServiceExtension implements ServiceExtension2 {
         String PATH = url.getPath();
         String QUERY = url.getQuery();
         String PROTOCOL = url.getProtocol();
-        if (PROTOCOL==null || PROTOCOL.indexOf("http") == -1) { //$NON-NLS-1$ supports 'https' too.
+        if (PROTOCOL==null || !PROTOCOL.startsWith("http")) { //$NON-NLS-1$ supports 'https' too.
             return Messages.WMSServiceExtension_protocol + "'"+PROTOCOL+"'"; //$NON-NLS-1$ //$NON-NLS-2$
         }
-        if( QUERY != null && QUERY.toUpperCase().indexOf( "SERVICE=" ) != -1){ //$NON-NLS-1$
-            int indexOf = QUERY.toUpperCase().indexOf( "SERVICE=" ); //$NON-NLS-1$
-            // we have a service! it better be wfs            
-            if( QUERY.toUpperCase().indexOf( "SERVICE=WMS") == -1 ){ //$NON-NLS-1$
-                int endOfExp = QUERY.indexOf('&', indexOf);
-                if( endOfExp == -1 )
-                	endOfExp=QUERY.length();
-                if( endOfExp>indexOf+8)
-                	return Messages.WMSServiceExtension_badService+QUERY.substring(indexOf+8, endOfExp );
-                else{
-                	return Messages.WMSServiceExtension_badService+""; //$NON-NLS-1$
+        if (QUERY != null) {
+            Matcher matcher = servicePattern.matcher( QUERY );
+            if (matcher.find()) {
+                String service = matcher.group( 1 ).toUpperCase();
+                if (!"WMS".equals( service )) {
+                    return Messages.WMSServiceExtension_badService + service;
                 }
             }
-        } else if (PATH != null && PATH.toUpperCase().indexOf("GEOSERVER/WMS") != -1) { //$NON-NLS-1$
+        }
+//        if (!url.toExternalForm().toUpperCase().contains( "WMS" )) {
+//            return Messages.WMSServiceExtension_badService + "";
+//        }
+        if (PATH != null && PATH.toUpperCase().indexOf("GEOSERVER/WMS") != -1) { 
             return null;
         }
         return null; // try it anyway

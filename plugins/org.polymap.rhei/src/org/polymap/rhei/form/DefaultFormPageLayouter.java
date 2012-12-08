@@ -18,6 +18,7 @@ package org.polymap.rhei.form;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -34,9 +35,9 @@ public class DefaultFormPageLayouter {
 
     private static Log log = LogFactory.getLog( DefaultFormPageLayouter.class );
 
-    public static final int         DEFAULT_FIELD_SPACING_H = 5;
+    public static final int         DEFAULT_FIELD_SPACING_H = 3;
     public static final int         DEFAULT_FIELD_SPACING_V = 1;
-    public static final int         DEFAULT_SECTION_SPACING = 8;
+    public static final int         DEFAULT_SECTION_SPACING = 6;
 
     private Composite               lastLayoutElm = null;
 
@@ -60,7 +61,8 @@ public class DefaultFormPageLayouter {
     public Composite setFieldLayoutData( Composite field ) {
         assert field.getParent().getLayout() instanceof FormLayout;
 
-        FormData layoutData = new FormData();
+        // defines the minimum width of the entire form before horiz. scrollbar starts to appear
+        FormData layoutData = new FormData( 40, SWT.DEFAULT );
         layoutData.left = new FormAttachment( 0, DEFAULT_FIELD_SPACING_H );
         layoutData.right = new FormAttachment( 100, -DEFAULT_FIELD_SPACING_H );
         layoutData.top = lastLayoutElm != null

@@ -158,13 +158,37 @@ public abstract class QueryExpression {
 
 
     /**
-     * 
+     * 'IsLike' query. Wildcards: *, ?
      */
     public static class Match<T>
             extends Comparison<T> {
 
         public Match( String key, T value ) {
             super( key, value );
+        }
+
+        public boolean evaluate( IRecordState record ) {
+            throw new RuntimeException( "Not yet implemented." );
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    public static class BBox<T>
+            extends QueryExpression {
+
+        public String       key;
+        
+        public double       minX, minY, maxX, maxY;
+
+        public BBox( String key, double minX, double minY, double maxX, double maxY ) {
+            this.key = key;
+            this.minX = minX;
+            this.minY = minY;
+            this.maxX = maxX;
+            this.maxY = maxY;
         }
 
         public boolean evaluate( IRecordState record ) {

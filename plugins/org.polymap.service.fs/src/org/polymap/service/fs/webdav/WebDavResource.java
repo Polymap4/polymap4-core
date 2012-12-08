@@ -33,7 +33,7 @@ import org.polymap.service.fs.spi.IContentNode;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 abstract class WebDavResource
-        implements Resource {
+        implements Resource, ContentNodeResource {
 
     private static Log log = LogFactory.getLog( WebDavResource.class );
 
@@ -51,6 +51,11 @@ abstract class WebDavResource
     }
 
     
+    public IContentNode getNode() {
+        return node;
+    }
+    
+    
     public String getName() {
         return node.getName();
     }
@@ -62,10 +67,17 @@ abstract class WebDavResource
 
     
     public Long getMaxAgeSeconds( Auth auth ) {
+        // XXX workaround for bug(?) in Milton's HTTP1.1 GetHandler
+        // see BalkonCacheControl for details
+        return Long.MAX_VALUE;
+        //return node.getMaxAgeSeconds();
+    }
+
+    public Long getRealMaxAgeSeconds( Auth auth ) {
         return node.getMaxAgeSeconds();
     }
 
-    
+
     public String getUniqueId() {
         return String.valueOf( node.hashCode() );
     }

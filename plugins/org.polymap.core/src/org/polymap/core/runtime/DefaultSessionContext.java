@@ -47,6 +47,7 @@ public class DefaultSessionContext
     
     protected void destroy() {
         log.debug( "destroy(): ..." );
+        checkDestroyed();
         for (ISessionListener l : listeners.getListeners()) {
             try {
                 l.beforeDestroy();
@@ -59,16 +60,30 @@ public class DefaultSessionContext
         listeners = null;
         attributes.clear();
         attributes = null;
-        sessionKey = null;
+        // keep sessionKey for debugging/logging
+        //sessionKey = null;
+    }
+
+    
+    public boolean isDestroyed() {
+        return attributes == null;
     }
 
 
+    private void checkDestroyed() {
+        assert !isDestroyed() : "Session context is destroyed: " + sessionKey;
+    }
+    
+    
     public String getSessionKey() {
+        checkDestroyed();
         return sessionKey;
     }
 
     
     public final <T> T sessionSingleton( final Class<T> type ) {
+        assert type != null;
+        checkDestroyed();
         try {
             T result = (T)attributes.get( type.getName() );
             if (result == null) {
@@ -97,6 +112,7 @@ public class DefaultSessionContext
 
     public <T> T execute( final Callable<T> task ) 
     throws Exception {
+        checkDestroyed();
         SessionContext current = DefaultSessionContextProvider.currentContext.get();
         if (current != null) {
             if (current.getSessionKey().equals( sessionKey )) {
@@ -118,6 +134,7 @@ public class DefaultSessionContext
 
     
     public void execute( final Runnable task ) {
+        checkDestroyed();
         try {
             execute( new Callable() {
                 public Object call() throws Exception {
@@ -137,21 +154,25 @@ public class DefaultSessionContext
     
     public boolean addSessionListener( ISessionListener l ) {
         log.debug( "addListener(): " + l );
+        checkDestroyed();
         return listeners.add( l );
     }
 
 
     public boolean removeSessionListener( ISessionListener l ) {
+        checkDestroyed();
         return listeners.remove( l );
     }
 
 
     public Object getAttribute( String key ) {
+        checkDestroyed();
         return attributes.get( key );
     }
 
 
     public void setAttribute( String key, Object value ) {
+        checkDestroyed();
         attributes.put( key, value );
     }
 

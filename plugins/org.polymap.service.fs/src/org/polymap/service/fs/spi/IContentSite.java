@@ -18,6 +18,8 @@ import java.util.Locale;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.runtime.SessionContext;
+
 /**
  * Provides the context of an {@link IContentProvider}.
  *
@@ -26,6 +28,8 @@ import org.eclipse.core.runtime.IPath;
 public interface IContentSite {
 
     public IContentFolder getFolder( IPath path );
+    
+    public Iterable<IContentNode> getChildren( IPath path );
     
     public Object put( String key, Object value );
     
@@ -42,5 +46,10 @@ public interface IContentSite {
     public void invalidateFolder( IContentFolder node );
     
     public void invalidateSession();
-        
+    
+    /**
+     * Returns the corresponding {@link SessionContext}.
+     */
+    public SessionContext getSessionContext();
+
 }

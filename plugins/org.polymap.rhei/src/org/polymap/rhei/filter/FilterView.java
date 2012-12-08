@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -43,8 +44,12 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.part.ViewPart;
 
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.project.ProjectRepository.ProjectVisitor;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
+
 import org.polymap.rhei.RheiPlugin;
 import org.polymap.rhei.field.FormFieldEvent;
 import org.polymap.rhei.field.IFormFieldListener;
@@ -82,8 +87,9 @@ public class FilterView
                 try {
                     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                     
+                    String secondaryId = filter.getLayer().id() + "_" + filter.getId();
                     result[0] = (FilterView)page.showView( 
-                            FilterView.ID, String.valueOf( filter.hashCode() ), IWorkbenchPage.VIEW_ACTIVATE );
+                            FilterView.ID, secondaryId, IWorkbenchPage.VIEW_ACTIVATE );
                     result[0].showFilter( filter );
                 }
                 catch (Exception e) {
@@ -128,19 +134,47 @@ public class FilterView
     private Button submitBtn;
     
     
-    public FilterView() {
+    public void init( IViewSite site, IMemento memento )
+    throws PartInitException {
+        log.debug( "secondary: " + site.getSecondaryId() );
+        super.init( site, memento );
+
+        // restore state
+        if (memento != null) {
+            final String filterId = memento.getString( "filterId" );
+            final String layerId = memento.getString( "layerId" );
+            if (filterId != null && layerId != null) {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        ProjectRepository.instance().visitProjects( new ProjectVisitor() {
+                            public void visit( ILayer layer ) {
+                                if (layer.id().equals( layerId )) {
+                                    filter = FilterFactory.instance().filterForLayer( layer, filterId );
+                                    if (filter != null) {
+                                        showFilter( filter );
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
     }
 
 
-    public void init( IViewSite site )
-            throws PartInitException {
-        super.init( site );
+    public void saveState( IMemento memento ) {
+        if (memento != null && filter != null) {
+            memento.putString( "filterId", filter.getId() );
+            memento.putString( "layerId", filter.getLayer().id() );
+        }
     }
 
 
     public void showFilter( IFilter _filter ) {
         assert _filter != null && _filter.hasControl();
         filter = _filter;
+        setPartName( filter.getLayer().getLabel() + ": " + filter.getLabel() );
         
         // FilterEditor
         assert filterEditor == null;

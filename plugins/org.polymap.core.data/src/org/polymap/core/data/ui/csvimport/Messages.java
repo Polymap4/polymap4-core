@@ -35,7 +35,7 @@ import org.polymap.core.runtime.MessagesImpl;
  */
 public class Messages {
 
-    private static final String BUNDLE_NAME = DataPlugin.PLUGIN_ID + "ui.csvimport.messages";
+    private static final String BUNDLE_NAME = DataPlugin.PLUGIN_ID + ".ui.csvimport.messages";
 
     private static final MessagesImpl   instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
@@ -45,6 +45,18 @@ public class Messages {
     }
 
     public static String getString( String key, Object... args ) {
+        return instance.get( key, args );
+    }
+
+    public static String get( String key, Object... args ) {
+        return instance.get( key, args );
+    }
+
+    public static String i18n( String key, Object... args ) {
+        return instance.get( key, args );
+    }
+
+    public static String nls( String key, Object... args ) {
         return instance.get( key, args );
     }
 

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,11 +15,9 @@
 package org.polymap.core.data.image.cache304;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,9 +37,9 @@ public class CacheUpdateQueue {
 
     private Cache304            cache;
 
-    private Queue<Command>      queue = new LinkedList();
+    private Queue<Command>      queue = new ConcurrentLinkedQueue();
     
-    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    //private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     
     
     public CacheUpdateQueue( Cache304 cache ) {
@@ -55,54 +53,35 @@ public class CacheUpdateQueue {
     
     
     public void push( final Command command ) {
-        try {
-            lock.writeLock().lock();
-            queue.add( command );    
-        }
-        finally {
-            lock.writeLock().unlock();
+        queue.add( command );    
+    }
+
+
+    /**
+     * Called during {@link Cache304#get()} in order to adapt the result according
+     * the commands in the queue.
+     */
+    public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
+        log.debug( "adaptCacheResult(): elements in queue: " + queue.size() );
+        for (Command command : queue) {
+            command.adaptCacheResult( tiles, query );
         }
     }
 
-    
-    public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
-        try {
-            lock.readLock().lock();
-            log.debug( "adaptCacheResult(): elements in queue: " + queue.size() );
-            for (Command command : queue) {
-                command.adaptCacheResult( tiles, query );
-            }
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-    
-            
+
+    /**
+     * Makes a stable copy for the updater. The returned alements are
+     * {@link #remove(List)} from the queue after they are applied to persistent
+     * backend.
+     */
     public List<Command> state() {
-        try {
-            lock.readLock().lock();
-            return new ArrayList( queue );        
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return new ArrayList( queue );        
     }
     
         
     public void remove( List<Command> commands ) {
-        try {
-            lock.writeLock().lock();
-            // should be O(n) as both list are in same order
-            for (Command command : commands) {
-                if (!queue.remove( command )) {
-                    throw new RuntimeException( "No such command in queue: " + command );
-                }
-            }
-        }
-        finally {
-            lock.writeLock().unlock();
-        }
+        // should be O(n) as both list are in same order
+        queue.removeAll( commands );
     }
     
         
@@ -129,8 +108,7 @@ public class CacheUpdateQueue {
      */
     abstract static class Command {
         
-        public abstract void apply( Updater updater ) 
-        throws Exception;
+        public abstract void apply( Updater updater ) throws Exception;
         
         public abstract void adaptCacheResult( List<CachedTile> tiles, RecordQuery query );
     }
@@ -139,7 +117,7 @@ public class CacheUpdateQueue {
     /**
      * 
      */
-    static class StoreCommand
+    static final class StoreCommand
             extends Command {
         
         private CachedTile          tile;
@@ -149,8 +127,7 @@ public class CacheUpdateQueue {
             this.tile = tile;
         }
         
-        public void apply( Updater updater ) 
-        throws Exception {
+        public void apply( Updater updater ) throws Exception {
             updater.store( tile.state() );
         }
 
@@ -162,15 +139,15 @@ public class CacheUpdateQueue {
                 }
             }
             tiles.add( tile );
+            log.debug( "StoreCommand: APAPTED: TILE ADDED" );
         }
-    
     }
 
     
     /**
      * 
      */
-    static class TouchCommand
+    static final class TouchCommand
             extends Command {
         
         private CachedTile          tile;
@@ -180,15 +157,12 @@ public class CacheUpdateQueue {
             this.tile = tile;
         }
         
-        public void apply( Updater updater ) 
-        throws Exception {
+        public void apply( Updater updater ) throws Exception {
             updater.store( tile.state() );
         }
 
         public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
         }
-    
     }
-    
     
 }

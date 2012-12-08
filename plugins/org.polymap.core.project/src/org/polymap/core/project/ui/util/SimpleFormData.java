@@ -36,8 +36,21 @@ public class SimpleFormData {
     private int             defaultOffset;
 
 
+    /**
+     * Constructs a new instance with defaultOffset 0.
+     */
     public SimpleFormData() {
         this( 0 );
+    }
+
+    public SimpleFormData( FormData other ) {
+        this( 0 );
+        formData.bottom = other.bottom;
+        formData.top = other.top;
+        formData.left = other.left;
+        formData.right = other.right;
+        formData.width = other.width;
+        formData.height = other.height;
     }
 
     public SimpleFormData( int defaultOffset ) {
@@ -59,6 +72,11 @@ public class SimpleFormData {
 
     public SimpleFormData height( int height ) {
         formData.height = height;
+        return this;
+    }
+    
+    public SimpleFormData width( int width ) {
+        formData.width = width;
         return this;
     }
     

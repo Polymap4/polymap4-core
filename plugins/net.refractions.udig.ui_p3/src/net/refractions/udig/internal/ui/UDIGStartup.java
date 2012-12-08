@@ -11,7 +11,6 @@ import java.util.Set;
 import javax.measure.unit.SI;
 
 import net.refractions.udig.ui.ShutdownTaskList;
-import net.refractions.udig.ui.graphics.AWTSWTImageUtils;
 import net.refractions.udig.ui.internal.Messages;
 
 import org.eclipse.core.runtime.Path;
@@ -22,7 +21,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.PlatformUI;
 import org.geotools.referencing.ReferencingFactoryFinder;
-
 
 /**
  * This class checks that the UDIG plug-ins are able to function.

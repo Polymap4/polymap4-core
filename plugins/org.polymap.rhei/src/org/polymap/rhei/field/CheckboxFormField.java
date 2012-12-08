@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.polymap.rhei.form.IFormEditorToolkit;
+import org.polymap.rhei.internal.form.FormEditorToolkit;
 
 /**
  * 
@@ -73,21 +74,25 @@ public class CheckboxFormField
         // focus listener
         checkbox.addFocusListener( new FocusListener() {
             public void focusLost( FocusEvent event ) {
+                checkbox.setBackground( FormEditorToolkit.textBackground );
                 site.fireEvent( this, IFormFieldListener.FOCUS_LOST, checkbox.getText() );
             }
             public void focusGained( FocusEvent event ) {
+                checkbox.setBackground( FormEditorToolkit.textBackgroundFocused );
                 site.fireEvent( this, IFormFieldListener.FOCUS_GAINED, checkbox.getText() );
             }
         });
         return checkbox;
     }
 
-    public void setEnabled( boolean enabled ) {
+    public IFormField setEnabled( boolean enabled ) {
         checkbox.setEnabled( enabled );
+        return this;
     }
 
-    public void setValue( Object value ) {
+    public IFormField setValue( Object value ) {
         checkbox.setSelection( (Boolean)value );
+        return this;
     }
 
     public void load() throws Exception {

@@ -158,7 +158,7 @@ class SelectFeatureSupport
         setActive( false );
 
         if (fsm != null) {
-            fsm.removeChangeListener( this );
+            fsm.removeSelectionChangeListener( this );
             fsm = null;
         }
 
@@ -194,7 +194,7 @@ class SelectFeatureSupport
         assert layer == null;
         this.layer = _layer;
         this.fsm = LayerFeatureSelectionManager.forLayer( layer );
-        this.fsm.addChangeListener( this );
+        this.fsm.addSelectionChangeListener( this );
     }
 
 

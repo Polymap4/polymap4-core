@@ -153,8 +153,7 @@ public class LuceneCache {
     throws IOException {
         this.schema = schema;
         
-        File cacheDir = new File( Polymap.getWorkspacePath().toFile(), "cache" );
-        File luceneCacheDir = new File( cacheDir, "luceneCache_" + layer.id() );
+        File luceneCacheDir = new File( Polymap.getCacheDir(), "luceneCache_" + layer.id() );
         luceneCacheDir.mkdirs();
 
         directory = FSDirectory.open( luceneCacheDir );

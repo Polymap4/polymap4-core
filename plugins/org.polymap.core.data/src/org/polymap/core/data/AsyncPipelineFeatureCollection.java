@@ -41,6 +41,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.SessionContext;
 
 /**
  * 
@@ -66,12 +67,15 @@ class AsyncPipelineFeatureCollection
     protected Query                         query;
     
     private int                             size = -1;
+    
+    private SessionContext                  sessionContext;
 
 
-    protected AsyncPipelineFeatureCollection( PipelineFeatureSource fs, Query query ) {
+    protected AsyncPipelineFeatureCollection( PipelineFeatureSource fs, Query query, SessionContext sessionContext ) {
         super( fs.getSchema() );
         this.fs = fs;
         this.query = query;
+        this.sessionContext = sessionContext;
         fs.addFeatureListener( this );
     }
 
@@ -120,8 +124,7 @@ class AsyncPipelineFeatureCollection
         
         
         protected AsyncPipelineIterator() {
-
-            Runnable fetcher = new Runnable() {
+            final Runnable fetcher = new Runnable() {
                 private int fetcherNumber = fetcherCount++;
                 public void run() {
                     try {
@@ -165,7 +168,16 @@ class AsyncPipelineFeatureCollection
                     }
                 }
             };
-            Polymap.executorService().execute( fetcher );
+            Polymap.executorService().execute( new Runnable() {
+                public void run() {
+                    if (sessionContext != null) {
+                        sessionContext.execute( fetcher );
+                    }
+                    else {
+                        fetcher.run();
+                    }
+                }
+            });
         }
         
         public void close() {

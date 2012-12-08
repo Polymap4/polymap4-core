@@ -25,8 +25,6 @@ import java.util.Set;
 
 import javax.swing.Icon;
 
-import net.refractions.udig.ui.graphics.AWTSWTImageUtils;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.geotools.data.Parameter;
 import org.geotools.process.ProcessFactory;
@@ -191,7 +189,7 @@ public class IProcessInfo {
             return null;
         }
         
-        Icon awtIcon = AWTSWTImageUtils.imageDescriptor2awtIcon(icon);
+        Icon awtIcon = null; // XXX _p3: AWTSWTImageUtils.imageDescriptor2awtIcon(icon);
         return awtIcon;
         
     }
@@ -211,7 +209,7 @@ public class IProcessInfo {
             return null;
         }
         
-        return AWTSWTImageUtils.awtIcon2ImageDescriptor(icon2);
+        return null;  // XXX _p3: AWTSWTImageUtils.awtIcon2ImageDescriptor(icon2);
     }
 
     public Map<String, Parameter< ? >> getInputs() {

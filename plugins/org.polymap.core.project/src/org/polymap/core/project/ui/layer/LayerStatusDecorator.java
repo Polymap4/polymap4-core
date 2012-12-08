@@ -24,24 +24,21 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.graphics.Graphics;
-
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
-import org.polymap.core.project.Messages;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
+import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.runtime.Polymap;
 
@@ -70,35 +67,39 @@ public class LayerStatusDecorator
     private static final String     waiting = "icons/ovr16/clock0_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
     
-    private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
-    private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
-    
+//    private final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
+//    private final Color      INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
+//    
+//    public final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
+//    public final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
+
     private Map<String,ILayer>      decorated = new HashMap();
 
-    private Font                    bold, italic;
 
-    
     public LayerStatusDecorator() {
-        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT ); 
-        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ); 
-        
 //        final Display display = Polymap.getSessionDisplay();
 //        display.syncExec( new Runnable() {
 //            public void run() {
-//                Font systemFont = display.getSystemFont();
-//                FontData fd = systemFont.getFontData()[0];
-//                bold = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.BOLD );
-//                italic = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.ITALIC );
-//                //font = new Font( systemFont.getDevice(), fd.getName(), fd.getHeight(), SWT.BOLD );
+//                MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
+//                INACTIVE_COLOR = Graphics.getColor( 0x80, 0x80, 0x80 );
+////                Font systemFont = display.getSystemFont();
+////                FontData fd = systemFont.getFontData()[0];
+////                bold = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.BOLD );
+////                italic = Graphics.getFont( fd.getName(), fd.getHeight(), SWT.ITALIC );
+////                //font = new Font( systemFont.getDevice(), fd.getName(), fd.getHeight(), SWT.BOLD );
 //            }
 //        });
     }
 
     
     public void dispose() {
-        log.info( "dispose(): ..." );
+        super.dispose();
         for (ILayer layer : decorated.values()) {
-            layer.removePropertyChangeListener( this );
+            try {
+                layer.removePropertyChangeListener( this );
+            }
+            catch (NoSuchEntityException e) {
+            }
         }
         decorated.clear();
     }
@@ -108,6 +109,14 @@ public class LayerStatusDecorator
         if (elm instanceof ILayer) {
             ILayer layer = (ILayer)elm;
 
+            try {
+                layer.id();
+            }
+            catch (NoSuchEntityException e) {
+                // handled by EntityModificationDecorator
+                return;
+            }
+            
             // editable
             if (layer.isEditable()) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, editable );
@@ -116,7 +125,7 @@ public class LayerStatusDecorator
             // visible
             else if (layer.isVisible()) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible );
-                decoration.setFont( bold );
+//                decoration.setFont( bold );
                 decoration.addOverlay( ovr, TOP_RIGHT );
             }
             // selectable
@@ -127,12 +136,12 @@ public class LayerStatusDecorator
 
             // inactive == not visible
             if (!layer.isVisible()) {
-                decoration.setForegroundColor( INACTIVE_COLOR );
+//                decoration.setForegroundColor( INACTIVE_COLOR );
             }
 
             LayerStatus layerStatus = layer.getLayerStatus();
             if (layerStatus == LayerStatus.STATUS_MISSING) {
-                decoration.setForegroundColor( MISSING_COLOR );    
+//                decoration.setForegroundColor( MISSING_COLOR );    
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_missing") );    
             }
             else if (layerStatus == LayerStatus.STATUS_OK) {
@@ -140,7 +149,7 @@ public class LayerStatusDecorator
             }
             else if (layerStatus == LayerStatus.STATUS_WAITING) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, waiting );
-                decoration.setFont( italic );
+//                decoration.setFont( italic );
                 decoration.addOverlay( ovr, TOP_RIGHT );
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );
             }

@@ -40,9 +40,11 @@ import org.eclipse.jface.viewers.ComboBoxCellEditor;
 
 import org.polymap.core.data.feature.typeeditor.AttributeMapping;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeMapping;
+import org.polymap.core.data.util.FastApplyComboBoxCellEditor;
 
 /**
- * 
+ * Used in a {@link FeatureTypeEditor} to select the source attribute names
+ * to be mapped to the attributes of the edited feature type.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
@@ -94,7 +96,7 @@ public class ValueViewerColumn {
                 }
             }
         }
-        ComboBoxCellEditor result = new ComboBoxCellEditor( tree, 
+        ComboBoxCellEditor result = new FastApplyComboBoxCellEditor( tree, 
                 items.toArray( new String[items.size()] ),
                 SWT.READ_ONLY | SWT.FULL_SELECTION );
         return result;

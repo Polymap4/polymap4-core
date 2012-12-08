@@ -32,9 +32,9 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.operations.SetLayerBoundsOperation;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.operations.SetLayerBoundsOperation;
 import org.polymap.core.project.ui.layer.LayerNavigator;
 import org.polymap.core.workbench.PolymapWorkbench;
 

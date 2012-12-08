@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, Polymap GmbH, and individual contributors as indicated
- * by the @author tag.
+ * Copyright 2010-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service.ui;
 
@@ -30,17 +22,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
-
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
-
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.PlatformUI;
 
@@ -54,9 +42,9 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.IProvidedService;
 import org.polymap.service.Messages;
+import org.polymap.service.ServiceContext;
 import org.polymap.service.ServiceRepository;
 import org.polymap.service.ServicesPlugin;
-import org.polymap.service.http.WmsService;
 import org.polymap.service.model.operations.NewServiceOperation;
 
 /**
@@ -91,17 +79,21 @@ public class OwsPropertiesPage
     public void setElement( IAdaptable element ) {
         log.info( "element= " + element );
         map = (IMap)element;
-        providedService = ServiceRepository.instance().findService( map, WmsService.class );
+        providedService = ServiceRepository.instance().findService( map, ServicesPlugin.SERVICE_TYPE_WMS );
 
         // create service entity if none exists
         if (providedService == null) {
             try {
                 log.info( "No Service found, creating new..." );
                 NewServiceOperation op = ServiceRepository.instance().newOperation( NewServiceOperation.class );
-                op.init( map, WmsService.class );
+                op.init( map, ServicesPlugin.SERVICE_TYPE_WMS );
                 OperationSupport.instance().execute( op, false, false );
 
-                providedService = ServiceRepository.instance().findService( map, WmsService.class );
+                providedService = ServiceRepository.instance().findService( map, ServicesPlugin.SERVICE_TYPE_WMS );
+                
+                ServiceContext context = ServicesPlugin.getDefault().initServiceContext( providedService );
+                context.stopService();
+                context.startService();
             }
             catch (Exception e) {
                 PolymapWorkbench.handleError( ServicesPlugin.PLUGIN_ID, this, "Fehler beim Anlegen des Service.", e );
@@ -119,20 +111,34 @@ public class OwsPropertiesPage
         store.setDefault( IProvidedService.PROP_PATHSPEC, providedService.getPathSpec() );
         store.setDefault( IProvidedService.PROP_SRS, StringUtils.join( providedService.getSRS(), ", " ) );
         
-        // service path
         Composite pathParent = getFieldEditorParent();
-        StringFieldEditor pathField = new StringFieldEditor(
-                IProvidedService.PROP_PATHSPEC, "Service Name/Pfad", pathParent );
-        addField( pathField );
-//        pathField.setEnabled( false, getFieldEditorParent() );
-        
-        Label link = new Label( pathParent, SWT.NONE );
-        link.setText( "URI*: " + ServicesPlugin.getDefault().getServicesBaseUrl() + providedService.getPathSpec() );
-        link.setToolTipText( "The complete URI of this service." );
-        GridData gridData = new GridData();
-        gridData.horizontalSpan = 2;
-        link.setLayoutData( gridData );
+        Composite uriParent = getFieldEditorParent();
 
+        // URI
+        final StringFieldEditor uriField = new StringFieldEditor( "URI", "URI*", uriParent );
+        addField( uriField );
+        uriField.setStringValue( ServicesPlugin.createServiceUrl( providedService.getPathSpec() ) );
+        uriField.getTextControl( uriParent ).setToolTipText( "The complete URI of this service." );
+        uriField.setEnabled( false, uriParent );
+
+        // service path
+        StringFieldEditor pathField = new StringFieldEditor(
+                IProvidedService.PROP_PATHSPEC, "Service Name/Pfad", pathParent ) {
+
+            protected boolean doCheckState() {
+                String value = getStringValue();
+                uriField.setStringValue( ServicesPlugin.createServiceUrl( value ) );
+
+                String validName = ServicesPlugin.validPathSpec( value );
+                if (!value.equals( validName )) {
+                    setErrorMessage( "Der Name darf nur Buchstaben, Zahlen oder '-', '_', '.' enthalten." );
+                    return false;
+                }
+                return true;
+            }
+        };
+        addField( pathField );
+        
         // WMS
         BooleanFieldEditor wmsField = new BooleanFieldEditor(
                 "WMS", "WMS aktivieren", getFieldEditorParent() );

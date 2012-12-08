@@ -92,7 +92,7 @@ public class EditFeatureSupport
         this.mapEditor = mapEditor;
         this.layer = layer;
         this.fsm = LayerFeatureSelectionManager.forLayer( layer );
-        this.fsm.addChangeListener( this );
+        this.fsm.addSelectionChangeListener( this );
 
         this.mapEditor.addSupportListener( this );
 
@@ -180,7 +180,7 @@ public class EditFeatureSupport
         this.active  = false;
 
         if (fsm != null) {
-            fsm.removeChangeListener( this );
+            fsm.removeSelectionChangeListener( this );
             fsm = null;
         }
 

@@ -229,10 +229,10 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
                     // see Polymap.getWorkspacePath()
                     IWorkspace workspace = ResourcesPlugin.getWorkspace();
                     IWorkspaceRoot root = workspace.getRoot();
-                    IPath path = root.getLocation();
+                    IPath path = root.getLocation().append( "data/filedata" );
 
                     File uploadDir = path.toFile();
-                    uploadDir.mkdir();
+                    uploadDir.mkdirs();
                     File dest = new File( uploadDir, item.getFileName() );
                     out = new FileOutputStream( dest );
                     StreamUtils.copy( item.getFileInputStream(), out );
@@ -295,7 +295,7 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
     @Override
     public void shown() {
         // FIXME _p3: all this complex worklow stuff is very suspicious to me; I don't see
-        // the advantages over plan eclipse stuff; So, I don't see where and when this page
+        // the advantages over plain eclipse stuff; So, I don't see where and when this page
         // gets initialized: it seems that it is used over multiple runs of the Import wizard
         // -> the list holds the previous entries here.
         list.clear();

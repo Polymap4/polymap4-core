@@ -82,5 +82,13 @@ public interface IFormEditorPageSite {
      */
     public void reloadEditor()
     throws Exception;
+    
+    /**
+     * True if any field of the page is dirty and/or if {@link IFormEditorPage2}
+     * has reported that it is dirty.
+     *
+     * @return True if the page has unsaved changes.
+     */
+    public boolean isDirty();
 
 }

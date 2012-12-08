@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.text.MessageFormat;
 
-import net.refractions.udig.libs.internal.Activator;
 import net.refractions.udig.ui.internal.Messages;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -38,7 +37,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.WorkbenchAdvisor;
-import org.geotools.referencing.factory.epsg.ThreadedH2EpsgFactory;
 import org.osgi.framework.Bundle;
 
 /**
@@ -159,37 +157,38 @@ public class UDIGApplication implements IApplication {
      */
     protected boolean init() {
         ProgressMonitorDialog progress = new ProgressMonitorDialog( Display.getCurrent().getActiveShell());
-        final Bundle bundle = Platform.getBundle(Activator.ID);
-        
-        // We should kick the libs plugin to load the EPSG database now
-        if( ThreadedH2EpsgFactory.isUnpacked()){
-            // if there is not going to be a long delay
-            // don't annoy users with a dialog
-            Activator.initializeReferencingModule( null );            
-        }
-        else {
-            // We are going to take a couple of minutes to set this up
-            // so we better set up a progress dialog thing
-            //
-            try {
-                progress.run(false,false, new IRunnableWithProgress(){            
-                    public void run( IProgressMonitor monitor ) throws InvocationTargetException,
-                            InterruptedException {
-                        Activator.initializeReferencingModule( monitor);
-                    }
-                });
-            } catch (InvocationTargetException e) {
-                Platform.getLog(bundle).log(
-                        new Status(IStatus.ERROR, Activator.ID, e.getCause().getLocalizedMessage(), e
-                                .getCause()));
-                return false;
-            } catch (InterruptedException e) {
-                Platform.getLog(bundle).log(
-                        new Status(IStatus.ERROR, Activator.ID, e.getCause().getLocalizedMessage(), e
-                                .getCause()));
-                return false;
-            }
-        }
+        final Bundle bundle = Platform.getBundle(UiPlugin.ID);
+
+        // XXX _p3: ???
+//        // We should kick the libs plugin to load the EPSG database now
+//        if( ThreadedH2EpsgFactory.isUnpacked()){
+//            // if there is not going to be a long delay
+//            // don't annoy users with a dialog
+//            UiPlugin.initializeReferencingModule( null );            
+//        }
+//        else {
+//            // We are going to take a couple of minutes to set this up
+//            // so we better set up a progress dialog thing
+//            //
+//            try {
+//                progress.run(false,false, new IRunnableWithProgress(){            
+//                    public void run( IProgressMonitor monitor ) throws InvocationTargetException,
+//                            InterruptedException {
+//                        UiPlugin.initializeReferencingModule( monitor);
+//                    }
+//                });
+//            } catch (InvocationTargetException e) {
+//                Platform.getLog(bundle).log(
+//                        new Status(IStatus.ERROR, UiPlugin.ID, e.getCause().getLocalizedMessage(), e
+//                                .getCause()));
+//                return false;
+//            } catch (InterruptedException e) {
+//                Platform.getLog(bundle).log(
+//                        new Status(IStatus.ERROR, UiPlugin.ID, e.getCause().getLocalizedMessage(), e
+//                                .getCause()));
+//                return false;
+//            }
+//        }
         // We should kick the CatalogPlugin to load now...
         return true;
     }

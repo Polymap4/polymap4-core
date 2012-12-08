@@ -12,20 +12,13 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
-
 package org.polymap.openlayers.rap.widget;
 
 import org.eclipse.rwt.lifecycle.IWidgetLifeCycleAdapter;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Layout;
-
 import org.polymap.openlayers.rap.widget.base.OpenLayersSessionHandler;
 import org.polymap.openlayers.rap.widget.base_types.Bounds;
 import org.polymap.openlayers.rap.widget.base_types.OpenLayersMap;
@@ -37,9 +30,8 @@ import org.polymap.openlayers.rap.widget.internal.openlayerswidgetkit.OpenLayers
  * Composite part for the OpenLayers RAP Widget
  * 
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
- * 
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-
 public class OpenLayersWidget extends Composite {
 
 	public boolean lib_init_done=false;
@@ -50,34 +42,46 @@ public class OpenLayersWidget extends Composite {
 	/** default external openlayers lib location **/
 	public String js_location = "http://www.openlayers.org/api/OpenLayers.js";
 
-	@Override
-	 public Object getAdapter( Class adapter ) {
-		    Object result;
-		    if( adapter == IWidgetLifeCycleAdapter.class ) {
-		      result = new OpenLayersWidgetLCA();
-		    } else {
-		      result = super.getAdapter( adapter );
-		    }
-		    return result;
-		  }
-
+	public Object getAdapter( Class adapter ) {
+	    Object result;
+	    if( adapter == IWidgetLifeCycleAdapter.class ) {
+	        result = new OpenLayersWidgetLCA();
+	    } else {
+	        result = super.getAdapter( adapter );
+	    }
+	    return result;
+	}
 	
-	public OpenLayersWidget(final Composite parent, final int style) {
+	public OpenLayersWidget(Composite parent, int style) {
 		super(parent, style);
 		prepare();
+		//hookContextMenu();
 	}
 
-	public OpenLayersWidget(final Composite parent, final int style,
-			String lib_location) {
-		super(parent, style);
-		prepare();
+	public OpenLayersWidget(Composite parent, int style, String lib_location) {
+		this(parent, style);
 		js_location = lib_location;
 	}
 
+//	protected void hookContextMenu() {
+//        final MenuManager contextMenu = new MenuManager();
+//        contextMenu.setRemoveAllWhenShown( true );
+//        contextMenu.addMenuListener( new IMenuListener() {
+//            public void menuAboutToShow( IMenuManager manager ) {
+//                contextMenu.add( new Action( "Text" ) {
+//                    public void run() {
+//                    }
+//                });
+//            }
+//        } );
+//        Menu menu = contextMenu.createContextMenu( this );
+//        setMenu( menu );
+//	}
+	
 	public OpenLayersMap getMap() {
-	    if (map==null) 
+	    if (map == null) {
 	       map = new OpenLayersMap(this);    
-
+	    }
 		return map;
 	}
 

@@ -32,6 +32,7 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.qi4j.api.unitofwork.UnitOfWork;
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 import org.qi4j.api.unitofwork.UnitOfWorkException;
+import org.qi4j.api.value.ValueBuilder;
 
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -52,6 +53,7 @@ import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.qi4j.Qi4jPlugin.Session;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
@@ -99,12 +101,27 @@ public abstract class QiModule
         }
     }
 
+    
+    /**
+     * During init a module can access other modules of the {@link Session} via
+     * {@link Session#module(Class)}.
+     *
+     * @param session 
+     */
+    public void init( Session session ) {
+    }
+    
+
     protected void done() {
         if (uow != null) {
+            uow.discard();
             uow = null;
         }
     }
 
+    /**
+     * @see {@link ModelEventManager#addPropertyChangeListener(PropertyChangeListener, IEventFilter)}
+     */
     public void addPropertyChangeListener( final PropertyChangeListener l, final IEventFilter f ) {
         ModelEventManager.instance().addPropertyChangeListener( l,
             new IEventFilter() {
@@ -253,11 +270,8 @@ public abstract class QiModule
     public <T> T newEntity( Class<T> type, String id, EntityCreator<T> creator )
     throws Exception {
         EntityBuilder<T> builder = uow.newEntityBuilder( type );
-
         creator.create( builder.instance() );
-
-        T result = builder.newInstance();
-        return result;
+        return builder.newInstance();
     }
 
     /**
@@ -265,9 +279,13 @@ public abstract class QiModule
      */
     public interface EntityCreator<T> {
 
-        public void create( T builderInstance )
+        public void create( T prototype )
         throws Exception;
 
+    }
+
+    public <T> ValueBuilder<T> newValueBuilder( Class<T> type ) {
+        return assembler.getModule().valueBuilderFactory().newValueBuilder( type );
     }
 
     /**

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,25 +11,19 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-
-import org.qi4j.api.unitofwork.NoSuchEntityException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
@@ -43,7 +36,6 @@ import org.polymap.service.model.ServiceListComposite;
  * Factory and repository for the domain model artifacts.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class ServiceRepository
@@ -57,25 +49,49 @@ public class ServiceRepository
      * Get or create the repository for the current user session.
      */
     public static final ServiceRepository instance() {
-        return (ServiceRepository)Qi4jPlugin.Session.instance().module( ServiceRepository.class );
+        return Qi4jPlugin.Session.instance().module( ServiceRepository.class );
     }
 
 
+    class WaitingAtomicReference<T>
+            extends AtomicReference<T> {
+        
+        public T waitAndGet() {
+            T ref = get();
+            if (ref == null) {
+                synchronized (this) {
+                    while ((ref = get()) == null) {
+                        try { wait( 1000 ); } catch (InterruptedException e) { }
+                    }
+                    return get();
+                }
+            }
+            return ref;
+        }
+        
+        public void setAndNotify( T value ) {
+            set( value );
+            synchronized (this) {
+                notifyAll();
+            }
+        }
+    }
+    
+    
     // instance *******************************************
 
-    private ServiceListComposite    serviceList;
+    private WaitingAtomicReference<ServiceListComposite>   serviceList = new WaitingAtomicReference();
     
-    private OperationSaveListener   operationListener;
+    private OperationSaveListener               operationListener;
     
 
-    protected ServiceRepository( QiModuleAssembler assembler ) {
+    protected ServiceRepository( final QiModuleAssembler assembler ) {
         super( assembler );
         
         operationListener = new OperationSaveListener();
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
-        serviceList = uow.get( ServiceListComposite.class, "serviceList" );
-        log.info( "ServiceList: " + serviceList.getServices() );
+        serviceList.setAndNotify( uow.get( ServiceListComposite.class, "serviceList" ) );
     }
     
     
@@ -87,8 +103,40 @@ public class ServiceRepository
     }
 
     
-    public IProvidedService findService( IMap map, Class cl ) {
-        List<IProvidedService> services = findServices( map, cl );
+    protected void legacyRemoveServices() {
+        ServiceListComposite tempServiceList = serviceList.get();        
+        Iterator<IProvidedService> it = tempServiceList.services().iterator();
+        IProvidedService service = null;
+        while (it.hasNext()) {
+            try {
+                service = it.next();
+                service.getMap();
+            }
+            catch (NoSuchEntityException e) {
+                log.info( "Map is no longer found for service: " + e.identity() );
+                if (service == null) {
+                    it.remove();
+                }
+                else {
+                    //tempServiceList.removeService( service );
+                    it.remove();
+                    removeService( service );
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 
+     * 
+     * @param map The map to find the service for.
+     * @param serviceType One of the <code>SERVICE_TYPE_xxx</code> constants in
+     *        {@link ServicesPlugin}.
+     * @return The found service, or null.
+     */
+    public IProvidedService findService( IMap map, String serviceType ) {
+        List<IProvidedService> services = findServices( map, serviceType );
         if (services.size() > 1) {
             throw new IllegalStateException( "" );
         }
@@ -101,43 +149,45 @@ public class ServiceRepository
     }
 
     
-    public List<IProvidedService> findServices( IMap map, Class cl ) {
-//        try {
-            List<IProvidedService> result = new ArrayList();
-            for (IProvidedService service : serviceList.getServices()) {
-                try {
-                    System.out.println( "   service: " + service );
-                    if (service.getMapId().equals( map.id() )
-                            && service.getServiceType().equals( cl )) {
-                        result.add( service );
-                    }
-                }
-                catch (NoSuchEntityException e) {
-                    // the IMap of the service is no longer found
-                    log.info( "Map is no longer found for service: " + service.getPathSpec() );
-                    // FIXME delete this entity on IMap delete
+    /**
+     * 
+     * 
+     * @param map The map to find the service for.
+     * @param serviceType One of the <code>SERVICE_TYPE_xxx</code> constants in
+     *        {@link ServicesPlugin}.
+     * @return The list of found services, or an empty list.
+     */
+    public List<IProvidedService> findServices( IMap map, String serviceType ) {
+        List<IProvidedService> result = new ArrayList();
+        for (IProvidedService service : serviceList.waitAndGet().getServices()) {
+            try {
+                if (service.getMapId().equals( map.id() )
+                        && service.isServiceType( serviceType )) {
+                    result.add( service );
                 }
             }
-            return result;
-//        }
-//        catch (Exception e) {
-//            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, e.getMessage(), e );
-//        }
+            catch (NoSuchEntityException e) {
+                // the IMap of the service is no longer found
+                log.info( "Map is no longer found for service: " + service.getPathSpec() );
+            }
+        }
+        return result;
     }
     
     
     public void addService( IProvidedService service ) { 
-        serviceList.addService( service );
+        serviceList.waitAndGet().addService( service );
     }
     
     
     public void removeService( IProvidedService service ) { 
-        serviceList.removeService( service );
+        serviceList.waitAndGet().removeService( service );
+        removeEntity( service );
     }
     
     
     public Collection<IProvidedService> allServices() {
-        AssocCollection<IProvidedService> services = serviceList.getServices();
+        AssocCollection<IProvidedService> services = serviceList.waitAndGet().getServices();
         List<IProvidedService> result = new ArrayList();
         for (IProvidedService service : services) {
             // check if the IMap is still there

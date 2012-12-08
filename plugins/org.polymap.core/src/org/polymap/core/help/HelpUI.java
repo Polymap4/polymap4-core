@@ -51,7 +51,7 @@ public class HelpUI
 
     private static Log log = LogFactory.getLog( HelpUI.class );
 
-    public static final String  HELP_SERVER_URL = "http://polymap.org/polymap3/wiki/UserGuide";
+    public static final String  HELP_SERVER_URL = "http://polymap.org/polymap3/wiki/UserGuide/";
         
     private Shell               window;
     
@@ -66,7 +66,7 @@ public class HelpUI
         for (IToc toc : HelpSystem.getTocs()) {
             log.debug( "TOC: " + toc.getLabel() );
         }
-        openHelpWindow( HELP_SERVER_URL + "/Start" );
+        openHelpWindow( HELP_SERVER_URL + "Start" );
     }
 
 
@@ -77,7 +77,7 @@ public class HelpUI
 
     public void displayHelpResource( String href ) {
         log.debug( "displayHelpResource(): href= " + href );
-        openHelpWindow( getBaseUrl( "/topic" + href ) );
+        openHelpWindow( HELP_SERVER_URL + href );
     }
 
 

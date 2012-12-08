@@ -462,11 +462,11 @@ public class UDIGMenuBuilder implements MenuBuilder {
         helpMenu.insertAfter(Constants.HELP_END, new Separator());
         // helpMenu.insertAfter(, new Separator());
 
-        if (helpMenu.findUsingPath(ActionFactory.ABOUT.getId()) == null) {
-            IAction about = ActionFactory.ABOUT.create(window);
-            about.setText(Messages.UDIGWorkbenchAdvisor_aboutUDig_text);
-            // About should always be at the bottom, so just append it to the menu
-            helpMenu.add(about);
-        }
+//        if (helpMenu.findUsingPath(ActionFactory.ABOUT.getId()) == null) {
+//            IAction about = ActionFactory.ABOUT.create(window);
+//            about.setText(Messages.UDIGWorkbenchAdvisor_aboutUDig_text);
+//            // About should always be at the bottom, so just append it to the menu
+//            helpMenu.add(about);
+//        }
     }
 }

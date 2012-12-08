@@ -23,14 +23,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TermRangeQuery;
-import org.apache.lucene.search.WildcardQuery;
-
 import org.qi4j.api.common.QualifiedName;
-import org.qi4j.api.property.Property;
 import org.qi4j.api.property.StateHolder.StateVisitor;
 import org.qi4j.api.query.grammar.AssociationNullPredicate;
 import org.qi4j.api.query.grammar.AssociationReference;
@@ -58,14 +53,20 @@ import org.qi4j.runtime.value.ValueInstance;
 import org.qi4j.runtime.value.ValueModel;
 import org.qi4j.spi.property.PropertyType;
 
+import com.google.common.base.Joiner;
+
+import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.QueryExpression;
+import org.polymap.core.runtime.recordstore.SimpleQuery;
+import org.polymap.core.runtime.recordstore.IRecordStore.ResultSet;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 import org.polymap.core.runtime.recordstore.lucene.ValueCoders;
 
 /**
+ * Converts Qi4j queries into Lucene queries.
  *
- *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class LuceneQueryParserImpl {
 
@@ -84,7 +85,7 @@ class LuceneQueryParserImpl {
     public Query createQuery( final String resultType, final BooleanExpression whereClause,
             final OrderBy[] orderBySegments ) {
 
-        Query filterQuery = processFilter( whereClause );
+        Query filterQuery = processFilter( whereClause, resultType );
 
         Query typeQuery = new TermQuery( new Term( "type", resultType ) );
         Query result = null;
@@ -106,7 +107,7 @@ class LuceneQueryParserImpl {
     }
 
 
-    protected Query processFilter( final BooleanExpression expression ) {
+    protected Query processFilter( final BooleanExpression expression, String resultType ) {
         // start
         if (expression == null) {
             return ALL;
@@ -114,8 +115,8 @@ class LuceneQueryParserImpl {
         // AND
         else if (expression instanceof Conjunction) {
             final Conjunction conjunction = (Conjunction)expression;
-            Query left = processFilter( conjunction.leftSideExpression() );
-            Query right = processFilter( conjunction.rightSideExpression() );
+            Query left = processFilter( conjunction.leftSideExpression(), resultType );
+            Query right = processFilter( conjunction.rightSideExpression(), resultType );
 
             if (left.equals( ALL )) {
                 log.warn( "Operant of conjunction is empty!" );
@@ -135,8 +136,8 @@ class LuceneQueryParserImpl {
         // OR
         else if (expression instanceof Disjunction) {
             Disjunction disjunction = (Disjunction)expression;
-            Query left = processFilter( disjunction.leftSideExpression() );
-            Query right = processFilter( disjunction.rightSideExpression() );
+            Query left = processFilter( disjunction.leftSideExpression(), resultType );
+            Query right = processFilter( disjunction.rightSideExpression(), resultType );
 
             if (left.equals( ALL )) {
                 log.warn( "Operant of disjunction is empty!" );
@@ -155,7 +156,7 @@ class LuceneQueryParserImpl {
         }
         // NOT
         else if (expression instanceof Negation) {
-            Query arg = processFilter( ((Negation)expression).expression() );
+            Query arg = processFilter( ((Negation)expression).expression(), resultType );
             BooleanQuery result = new BooleanQuery();
             result.add( arg, BooleanClause.Occur.MUST_NOT );
             return result;
@@ -178,7 +179,7 @@ class LuceneQueryParserImpl {
         }
         // contains
         else if (expression instanceof ContainsPredicate) {
-            return processContainsPredicate( (ContainsPredicate)expression );
+            return processContainsPredicate( (ContainsPredicate)expression, resultType );
         }
         else {
             throw new UnsupportedOperationException( "Expression " + expression + " is not supported" );
@@ -193,13 +194,31 @@ class LuceneQueryParserImpl {
      * org.qi4j.runtime.query.grammar.impl.PropertyReferenceImpl<T> to work with
      * Qi4j 1.0.
      */
-    protected Query processContainsPredicate( ContainsPredicate predicate ) {
-        final int maxElements = 10;
+    protected Query processContainsPredicate( ContainsPredicate predicate, String resultType ) {
+        final ValueCoders valueCoders = store.getValueCoders();
 
         PropertyReference property = predicate.propertyReference();
         final String baseFieldname = property2Fieldname( property );
         SingleValueExpression valueExpression = (SingleValueExpression)predicate.valueExpression();
 
+        //
+        int maxElements = 10;
+        try {
+            Timer timer = new Timer();
+            String lengthFieldname = baseFieldname + "__length";
+            SimpleQuery query = new SimpleQuery().setMaxResults( 1 )
+                    .eq( "type", resultType )
+                    .sort( lengthFieldname, SimpleQuery.DESC, Integer.class );
+            ResultSet lengthResult = store.find( query );
+            IRecordState biggest = lengthResult.get( 0 );
+            maxElements = biggest.get( lengthFieldname );
+            log.info( "    LUCENE: maxLength query: result: " + maxElements + " (" + timer.elapsedTime() + "ms)" );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+        
+        //
         BooleanQuery result = new BooleanQuery();
         for (int i=0; i<maxElements; i++) {
             final BooleanQuery valueQuery = new BooleanQuery();
@@ -221,27 +240,18 @@ class LuceneQueryParserImpl {
                         log.warn( "Non-optional field ommitted: " + name.name() + ", value=" + propValue );
                     }
                     else {
-                        String fieldname = baseFieldname + "[" + index + "]" + LuceneEntityState.SEPARATOR_PROP + name.name();
+                        String fieldname = Joiner.on( "" ).join( 
+                                baseFieldname, "[", index, "]", 
+                                LuceneEntityState.SEPARATOR_PROP, name.name() );
+                        
+                        //Property<Object> fieldProp = value.state().getProperty( name );
 
-                        Property<Object> fieldProperty = value.state().getProperty( name );
-                        String encodedValue = ValueCoder.encode( propValue, (Class)fieldProperty.type() );
-
-                        // checking for wildcards in the value, like in the matches predicate;
-                        // this might not be the semantics of contains predicate but it is useless
-                        // if one cannot do a search without (instead of just a strict match)
-                        Query propQuery = null;
-                        if (encodedValue.endsWith( "*" )
-                                && StringUtils.countMatches( encodedValue, "*" ) == 1
-                                && StringUtils.countMatches( encodedValue, "?" ) == 0) {
-                            propQuery = new PrefixQuery( new Term( fieldname, encodedValue.substring( 0, encodedValue.length()-1 ) ) );
-                        }
-                        else if (StringUtils.countMatches( encodedValue, "*" ) > 1
-                                || StringUtils.countMatches( encodedValue, "?" ) > 0) {
-                            propQuery = new WildcardQuery( new Term( fieldname, encodedValue ) );
-                        }
-                        else {
-                            propQuery = new TermQuery( new Term( fieldname, encodedValue ) );
-                        }
+//                      // this might not be the semantics of contains predicate but it is useless
+//                      // if one cannot do a search without (instead of just a strict match)
+                        Query propQuery = propValue instanceof String
+                                && !StringUtils.containsNone( (String)propValue, "*?")
+                                ? valueCoders.searchQuery( new QueryExpression.Match( fieldname, propValue ) ) 
+                                : valueCoders.searchQuery( new QueryExpression.Equal( fieldname, propValue ) ); 
 
                         valueQuery.add( propQuery, BooleanClause.Occur.MUST );
                     }
@@ -318,14 +328,16 @@ class LuceneQueryParserImpl {
         String prefix = "";
         PropertyReference traversedProperty = property.traversedProperty();
         if (traversedProperty != null) {
-            prefix = property2Fieldname( traversedProperty ) + LuceneEntityState.SEPARATOR_PROP;
+            prefix = Joiner.on( "" ).join(
+                    property2Fieldname( traversedProperty ),
+                    LuceneEntityState.SEPARATOR_PROP );
         }
         AssociationReference traversedAssoc = property.traversedAssociation();
         if (traversedAssoc != null) {
             throw new UnsupportedOperationException( "Traversed association in query. (Property:" + property.propertyName() + ")" );
         }
 
-        return prefix + property.propertyName();
+        return Joiner.on( "" ).join( prefix, property.propertyName() );
     }
 
 }

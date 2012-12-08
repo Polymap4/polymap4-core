@@ -17,6 +17,7 @@
  */
 package org.polymap.rhei.data.entityfeature;
 
+import org.geotools.data.Query;
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
 
@@ -39,5 +40,7 @@ public interface EntityProvider2<T extends Entity>
 
     public void modifyFeature( Entity entity, String propName, Object value )
     throws Exception;
+
+    public Query transformQuery( Query query );
     
 }

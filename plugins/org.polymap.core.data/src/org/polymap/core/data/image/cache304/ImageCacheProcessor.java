@@ -72,12 +72,15 @@ public class ImageCacheProcessor
 
     private ILayer                  layer;
     
+    private Properties              props;
+    
     private LayerListener           layerListener;
     
     private boolean                 active = true;
     
     
-    public void init( Properties props ) {
+    public void init( Properties _props ) {
+        props = _props;
         layer = (ILayer)props.get( "layer" );
         assert layer != null;
         
@@ -132,7 +135,7 @@ public class ImageCacheProcessor
     throws Exception {
         
         Timer timer = new Timer();
-        CachedTile cachedTile = Cache304.instance().get( request, context.getLayers() );
+        CachedTile cachedTile = Cache304.instance().get( request, context.getLayers(), props );
         log.debug( "query time: " + timer.elapsedTime() + "ms" );
         
         if (cachedTile != null) {
@@ -151,6 +154,7 @@ public class ImageCacheProcessor
                 log.debug( "### Cache: Hit. (" + data.length + " bytes)" );
                 EncodedImageResponse response = new EncodedImageResponse( data, data.length );
                 response.setLastModified( cachedTile.lastModified.get() );
+                response.setExpires( cachedTile.expires.get() );
                 context.sendResponse( response );
                 context.sendResponse( ProcessorResponse.EOP );
             }
@@ -191,7 +195,7 @@ public class ImageCacheProcessor
             GetMapRequest request = (GetMapRequest)context.get( "request" );
             CachedTile cachedTile = Cache304.instance().put( 
                     request, context.getLayers(), cacheBuf.toByteArray(),
-                    (Long)context.get( "created" ) );
+                    (Long)context.get( "created" ), props );
 
             context.sendResponse( ProcessorResponse.EOP );
             //log.debug( "...all data sent." );
@@ -224,55 +228,49 @@ public class ImageCacheProcessor
             this.procRef = new WeakReference( processor );
             
             // feature modifications
-            FeatureEventManager.instance().addFeatureChangeListener( 
-                    new FeatureChangeListener() {
-                        public void featureChange( FeatureChangeEvent ev ) {
-                            ImageCacheProcessor proc = procRef.get();
-                            if (proc != null) {
-                                // just activate cache if modifications have been dropped
-                                if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
-                                    proc.updateAndActivate( false );
-                                }
-                                // deactivate cache when features have been modified
-                                else {
-                                    if (ev.getSource().equals( LayerListener.this.layer )) {
-                                        proc.deactivate();
-                                    }
-                                }
-                            }
-                            else {
-                                FeatureEventManager.instance().removeFeatureChangeListener( this );
-                                LayerListener.this.layer = null;
-                            }
-                        }                        
-                    }, 
-                    new IEventFilter() {
-                        public boolean accept( EventObject ev ) {
-                            return true;
+            FeatureEventManager.instance().addFeatureChangeListener( new FeatureChangeListener() {
+                public void featureChange( FeatureChangeEvent ev ) {
+                    ImageCacheProcessor proc = procRef.get();
+                    if (proc == null) {
+                        FeatureEventManager.instance().removeFeatureChangeListener( this );
+                        LayerListener.this.layer = null;
+                    }
+                    else if (ev.getSource() == LayerListener.this.layer) {
+                        // just activate update if changes have been dropped
+                        if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
+                            proc.updateAndActivate( false );
+                        }
+                        // deactivate cache when features have been modified
+                        else {
+                            proc.deactivate();
                         }
                     }
-            );
+                }                        
+            }, 
+            new IEventFilter() {
+                public boolean accept( EventObject ev ) {
+                    return true;
+                }
+            });
             
             // feature stored
-            FeatureChangeTracker.instance().addFeatureListener( 
-                    new FeatureStoreListener() {
-                        public void featureChange( FeatureStoreEvent ev ) {
-                            if (!ev.isMySession()) {
-                                return;
-                            }
-                            ImageCacheProcessor proc = procRef.get();
-                            if (proc != null) {
-                                if (ev.getSource() == LayerListener.this.layer) {
-                                    proc.updateAndActivate( true );
-                                }
-                            }
-                            else {
-                                FeatureChangeTracker.instance().removeFeatureListener( this ); 
-                                LayerListener.this.layer = null;                                
-                            }
+            FeatureChangeTracker.instance().addFeatureListener( new FeatureStoreListener() {
+                public void featureChange( FeatureStoreEvent ev ) {
+                    if (!ev.isMySession()) {
+                        return;
+                    }
+                    ImageCacheProcessor proc = procRef.get();
+                    if (proc != null) {
+                        if (ev.getSource() == LayerListener.this.layer) {
+                            proc.updateAndActivate( true );
                         }
                     }
-            );
+                    else {
+                        FeatureChangeTracker.instance().removeFeatureListener( this ); 
+                        LayerListener.this.layer = null;                                
+                    }
+                }
+            });
         }
         
     }

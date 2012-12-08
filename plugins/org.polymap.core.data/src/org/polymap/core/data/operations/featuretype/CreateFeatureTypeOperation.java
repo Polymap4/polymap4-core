@@ -81,6 +81,7 @@ import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.WeakListener;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -140,6 +141,7 @@ public class CreateFeatureTypeOperation
                     Messages.get( "CreateFeatureTypeOperation_ChooseLayerPage_description" ),
                     false );
             wizard.addPage( chooseLayerPage );
+            
             final FeatureEditorPage featureEditorPage = new FeatureEditorPage();
             wizard.addPage( featureEditorPage );
 
@@ -191,9 +193,9 @@ public class CreateFeatureTypeOperation
                 ds.createSchema( schema );
                 
                 // wait for the new type to appear
-                long start=System.currentTimeMillis();
+                Timer timer = new Timer();
                 while (!ArrayUtils.contains( ds.getTypeNames(), schema.getName().getLocalPart() ) 
-                        && start+5000 > System.currentTimeMillis()) {
+                        && timer.elapsedTime() < 5000) {
                     Thread.sleep( 300 );
                 }
 
@@ -362,8 +364,8 @@ public class CreateFeatureTypeOperation
 
                 // CreateAttributeAction
                 final CreateAttributeAction createAction = new CreateAttributeAction( editor );
-                final Button createBtn = new Button( contents, SWT.PUSH | SWT.BORDER );
-                createBtn.setLayoutData( new SimpleFormData().top( nameText, 5 ).left( editor.getControl() ).right( 100 ).create() );
+                final Button createBtn = new Button( contents, SWT.PUSH /*| SWT.BORDER*/ );
+                createBtn.setLayoutData( new SimpleFormData().top( nameText, 5 ).left( editor.getControl() ).right( 100 ).height( 28 ).create() );
                 createBtn.setToolTipText( createAction.getToolTipText() );
                 createBtn.setImage( DataPlugin.getDefault().imageForDescriptor( createAction.getImageDescriptor(), createAction.getId() ) );
 
@@ -375,8 +377,8 @@ public class CreateFeatureTypeOperation
 
                 // DeleteAttributeAction
                 final DeleteAttributeAction delAction = new DeleteAttributeAction( editor );
-                final Button delBtn = new Button( contents, SWT.PUSH | SWT.BORDER );
-                delBtn.setLayoutData( new SimpleFormData().top( createBtn ).left( editor.getControl() ).right( 100 ).create() );
+                final Button delBtn = new Button( contents, SWT.PUSH /*| SWT.BORDER*/ );
+                delBtn.setLayoutData( new SimpleFormData().top( createBtn ).left( editor.getControl() ).right( 100 ).height( 28 ).create() );
                 delBtn.setToolTipText( delAction.getToolTipText() );
                 delBtn.setImage( DataPlugin.getDefault().imageForDescriptor( delAction.getImageDescriptor(), delAction.getId() ) );
 

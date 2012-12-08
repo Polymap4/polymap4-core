@@ -34,7 +34,7 @@ import org.polymap.core.model.EntityType;
 
 /**
  * Used to display {@link Entity} collections as result of a {@link Query}, or the
- * contents of a collection properties that contains {@link Composite} instances (
+ * contents of a collection property that contains {@link Composite} instances (
  * {@link ValueComposite}).
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -62,6 +62,7 @@ public class CompositesFeatureContentProvider
 
 
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
+        this.composites = (Iterable<? extends Composite>)newInput;
     }
 
 
@@ -74,7 +75,7 @@ public class CompositesFeatureContentProvider
         return result.toArray();
     }
 
-
+    
     public void dispose() {
     }
 
@@ -82,7 +83,7 @@ public class CompositesFeatureContentProvider
     /**
      *
      */
-    protected class FeatureTableElement
+    public class FeatureTableElement
             implements IFeatureTableElement {
 
         private Composite       composite;
@@ -91,11 +92,23 @@ public class CompositesFeatureContentProvider
         protected FeatureTableElement( Composite composite ) {
             this.composite = composite;
         }
+        
+        public Composite getComposite() {
+            return composite;
+        }
 
         public Object getValue( String name ) {
             try {
-                log.debug( "getValue(): name=" + name );
                 return compositeType.getProperty( name ).getValue( composite );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }
+
+        public void setValue( String name, Object value ) {
+            try {
+                compositeType.getProperty( name ).setValue( composite, value );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

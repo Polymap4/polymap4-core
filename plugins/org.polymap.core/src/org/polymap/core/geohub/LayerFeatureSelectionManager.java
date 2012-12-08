@@ -209,11 +209,11 @@ public class LayerFeatureSelectionManager {
         }
     }
     
-    public boolean addChangeListener( PropertyChangeListener l ) {
+    public boolean addSelectionChangeListener( PropertyChangeListener l ) {
         return listeners.add( l );
     }
 
-    public boolean removeChangeListener( PropertyChangeListener l ) {
+    public boolean removeSelectionChangeListener( PropertyChangeListener l ) {
         return listeners.remove( l );
     }
 

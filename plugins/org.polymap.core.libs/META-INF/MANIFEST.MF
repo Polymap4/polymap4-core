@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Core Libs
+Bundle-Name: Core Libraries
 Bundle-SymbolicName: org.polymap.core.libs;singleton:=true
 Bundle-Version: 3.1.0
 Bundle-Activator: org.polymap.core.libs.CoreLibsPlugin
@@ -10,8 +10,16 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: .,
  cache,
+ com.google.common.annotations,
  com.google.common.base,
+ com.google.common.base.internal,
+ com.google.common.cache,
  com.google.common.collect,
+ com.google.common.eventbus,
+ com.google.common.io,
+ com.google.common.net,
+ com.google.common.primitives,
+ com.google.common.util.concurrent,
  com.mysql.jdbc,
  com.mysql.jdbc.configs,
  com.mysql.jdbc.exceptions,
@@ -385,6 +393,27 @@ Export-Package: .,
  org.apache.lucene.index,
  org.apache.lucene.messages,
  org.apache.lucene.queryParser,
+ org.apache.lucene.queryParser.analyzing,
+ org.apache.lucene.queryParser.complexPhrase,
+ org.apache.lucene.queryParser.core,
+ org.apache.lucene.queryParser.core.builders,
+ org.apache.lucene.queryParser.core.config,
+ org.apache.lucene.queryParser.core.messages,
+ org.apache.lucene.queryParser.core.nodes,
+ org.apache.lucene.queryParser.core.parser,
+ org.apache.lucene.queryParser.core.processors,
+ org.apache.lucene.queryParser.core.util,
+ org.apache.lucene.queryParser.ext,
+ org.apache.lucene.queryParser.precedence,
+ org.apache.lucene.queryParser.precedence.processors,
+ org.apache.lucene.queryParser.standard,
+ org.apache.lucene.queryParser.standard.builders,
+ org.apache.lucene.queryParser.standard.config,
+ org.apache.lucene.queryParser.standard.nodes,
+ org.apache.lucene.queryParser.standard.parser,
+ org.apache.lucene.queryParser.standard.processors,
+ org.apache.lucene.queryParser.surround.parser,
+ org.apache.lucene.queryParser.surround.query,
  org.apache.lucene.search,
  org.apache.lucene.search.function,
  org.apache.lucene.search.payloads,
@@ -2129,7 +2158,6 @@ Bundle-ClassPath: .,
  lib/geoapi-2.3-M1.jar,
  lib/geoapi-pending-2.3-M1.jar,
  lib/geodb-0.3.jar,
- lib/google-collections-0.8.jar,
  lib/gt-api-2.6.4.jar,
  lib/gt-brewer-2.6.4.jar,
  lib/gt-coverage-2.6.4.jar,
@@ -2217,7 +2245,9 @@ Bundle-ClassPath: .,
  lib/ant-1.8.0.jar,
  lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar,
  lib/xercesImpl-2.7.1.jar,
- lib/lucene-core-3.4.0.jar
+ lib/lucene-core-3.4.0.jar,
+ lib/lucene-queryparser-3.4.0.jar,
+ lib/guava-10.0.1.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
 Bundle-Vendor: polymap.org

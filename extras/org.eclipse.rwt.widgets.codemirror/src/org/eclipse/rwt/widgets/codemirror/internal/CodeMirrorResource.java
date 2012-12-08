@@ -35,7 +35,7 @@ public class CodeMirrorResource
 	}
 
 	public RegisterOptions getOptions() {
-		return RegisterOptions.VERSION_AND_COMPRESS;
+		return RegisterOptions.VERSION;
 	}
 
 	public String getLocation() {

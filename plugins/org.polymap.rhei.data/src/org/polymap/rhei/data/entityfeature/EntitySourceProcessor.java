@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2010, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2010, 2012 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,8 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * $Id: $
  */
 package org.polymap.rhei.data.entityfeature;
 
@@ -48,8 +45,10 @@ import org.apache.commons.logging.LogFactory;
 import org.qi4j.api.query.grammar.BooleanExpression;
 import org.qi4j.api.value.ValueComposite;
 
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
@@ -60,6 +59,7 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
@@ -70,6 +70,8 @@ import org.polymap.core.model.EntityType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.qi4j.QiModule.EntityCreator;
+
+import org.polymap.rhei.data.entityfeature.EntityProvider.FidsQueryExpression;
 import org.polymap.rhei.data.entityfeature.catalog.EntityGeoResourceImpl;
 import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
 
@@ -83,7 +85,6 @@ import org.polymap.rhei.data.entityfeature.catalog.EntityServiceImpl;
  * may provide an {@link EntityProvider2} in order to control this process.
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version ($Revision$)
  */
 public class EntitySourceProcessor
         implements ITerminalPipelineProcessor {
@@ -133,11 +134,13 @@ public class EntitySourceProcessor
 
     private Feature2EntityFilterConverter filterConverter;
 
+    private ILayer                  layer;
+    
 
     public void init( Properties props ) {
         try {
             // init schema
-            ILayer layer = (ILayer)props.get( "layer" );
+            layer = (ILayer)props.get( "layer" );
             EntityGeoResourceImpl geores = (EntityGeoResourceImpl)layer.getGeoResource();
             entityProvider = geores.resolve( EntityProvider.class, null );
             filterConverter = new Feature2EntityFilterConverter( entityProvider.getEntityType() );
@@ -200,20 +203,23 @@ public class EntitySourceProcessor
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
-            List<FeatureId> result = addFeatures( request.getFeatures() );
-            context.sendResponse( new ModifyFeaturesResponse( result ) );
+            List<FeatureId> fids = addFeatures( request.getFeatures() );
+            fireFeatureChangeEvent( fids, FeatureChangeEvent.Type.ADDED );
+            context.sendResponse( new ModifyFeaturesResponse( fids ) );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // RemoveFeatures
         else if (r instanceof RemoveFeaturesRequest) {
             RemoveFeaturesRequest request = (RemoveFeaturesRequest)r;
-            removeFeatures( request.getFilter() );
+            List<FeatureId> fids = removeFeatures( request.getFilter() );
+            fireFeatureChangeEvent( fids, FeatureChangeEvent.Type.REMOVED );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // ModifyFeatures
         else if (r instanceof ModifyFeaturesRequest) {
             ModifyFeaturesRequest request = (ModifyFeaturesRequest)r;
-            modifyFeatures( request.getType(), request.getValue(), request.getFilter() );
+            List<FeatureId> fids = modifyFeatures( request.getType(), request.getValue(), request.getFilter() );
+            fireFeatureChangeEvent( fids, FeatureChangeEvent.Type.MODIFIED );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // GetFeatures
@@ -237,31 +243,47 @@ public class EntitySourceProcessor
 
     protected int getFeaturesSize( Query query )
     throws IOException {
-        // build entity query
-        BooleanExpression entityQuery = filterConverter.convert( query.getFilter() );
+        try {
+            BooleanExpression entityQuery = entityQuery( query );
 
-        if (entityQuery != null) {
             int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0;
             int maxResults = query.getMaxFeatures() > 0 ? query.getMaxFeatures() : Integer.MAX_VALUE;
 
-            return entityProvider.entitiesSize( entityQuery, firstResult, maxResults );
-        }
-        else {
-            // 1 pass: query entities
-            Iterable<Entity> entities = entityProvider.entities( null,
-                    0, Integer.MAX_VALUE );
-
-            // 2 pass: filter features
-            int count = 0;
-            for (Entity entity : entities) {
-                Feature feature = buildFeature( entity );
-                if (filterFeature( feature, query.getFilter() ) != null) {
-                    count++;
+            if (entityQuery instanceof FidsQueryExpression) {
+                FidsQueryExpression fidsQuery = (FidsQueryExpression)entityQuery;
+                if (!fidsQuery.notQueryable().isEmpty()) {
+                    throw new RuntimeException( "Deferred filtering not implemented yet." );
                 }
             }
-            log.debug( "            Features size: " + count );
-            return count;
+
+            return entityProvider.entitiesSize( entityQuery, firstResult, maxResults );
         }
+        catch (IOException e) {
+            throw e;
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IOException( e );
+        }
+        
+//        else {
+//            // 1 pass: query entities
+//            Iterable<Entity> entities = entityProvider.entities( null,
+//                    0, Integer.MAX_VALUE );
+//
+//            // 2 pass: filter features
+//            int count = 0;
+//            for (Entity entity : entities) {
+//                Feature feature = buildFeature( entity );
+//                if (filterFeature( feature, query.getFilter() ) != null) {
+//                    count++;
+//                }
+//            }
+//            log.debug( "            Features size: " + count );
+//            return count;
+//        }
     }
 
 
@@ -274,17 +296,10 @@ public class EntitySourceProcessor
         int firstResult = query.getStartIndex() != null ? query.getStartIndex() : 0;
         int maxResults = query.getMaxFeatures() > 0 ? query.getMaxFeatures() : Integer.MAX_VALUE;
 
-        // build entity query
-        BooleanExpression entityQuery = filterConverter.convert( query.getFilter() );
-
-        if (entityQuery == null) {
-            log.warn( "*** No query tranlation geotools->Qi4j... fetching ALL entities! ***" );
-        }
+        BooleanExpression entityQuery = entityQuery( query );
 
         // 1 pass: query entities
-        Iterable<Entity> entities = entityQuery != null
-                ? entityProvider.entities( entityQuery, firstResult, maxResults )
-                : entityProvider.entities( null, 0, Integer.MAX_VALUE );
+        Iterable<Entity> entities = entityProvider.entities( entityQuery, firstResult, maxResults );
 
         // 2 pass: filter features
         int count = 0;
@@ -294,11 +309,11 @@ public class EntitySourceProcessor
             Feature feature = null;
             // XXX synchronized because qi4j seem to have issues when loading entities
             // from several threads
-            synchronized (entityProvider) {
+//            synchronized (entityProvider) {
                 feature = buildFeature( entity );
-            }
-            feature = entityQuery == null
-                    ? filterFeature( feature, query.getFilter() )
+//            }
+            feature = entityQuery instanceof FidsQueryExpression
+                    ? ((FidsQueryExpression)entityQuery).deferredFilterFeature( feature )
                     : feature;
 
             if (feature != null) {
@@ -319,10 +334,44 @@ public class EntitySourceProcessor
             //log.debug( "                sending chunk: " + chunk.size() );
             context.sendResponse( new GetFeaturesResponse( chunk ) );
         }
+        
+        // changed/added entities
+        chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
+        LayerEntityBufferManager buffer = LayerEntityBufferManager.forLayer( layer, entityProvider );
+        for (FeatureId fid : buffer.added()) {
+            Entity entity = entityProvider.findEntity( fid.getID() );
+            Feature feature = buildFeature( entity );
+            if (query.getFilter().evaluate( feature )) {
+                chunk.add( feature );
+            }
+        }
+        if (!chunk.isEmpty()) {
+            chunk.trimToSize();
+            //log.debug( "                sending chunk: " + chunk.size() );
+            context.sendResponse( new GetFeaturesResponse( chunk ) );
+        }
+
         log.debug( "    getFeatures(): " + (System.currentTimeMillis()-start) + "ms" );
     }
 
+    
+    private BooleanExpression entityQuery( Query query ) 
+    throws Exception {
+        if (entityProvider instanceof EntityProvider2) {
+            query = ((EntityProvider2)entityProvider).transformQuery( query );
+        }
+        // try OGC -> native query (Lucene)
+        if (entityProvider.getQueryProvider() != null) {
+            return entityProvider.getQueryProvider().convert( query, schema, entityProvider.getEntityType() );
+        }
+        // try OGC -> Qi4j
+        if (filterConverter != null) {
+            return filterConverter.convert( query.getFilter() );
+        }
+        throw new RuntimeException( "No entityQuery! This is no longer supported." );
+    }
 
+    
     private Feature buildFeature( Entity entity ) {
         if (entityProvider instanceof EntityProvider2) {
             return ((EntityProvider2)entityProvider).buildFeature( entity, schema );
@@ -350,20 +399,20 @@ public class EntitySourceProcessor
     }
 
 
-    /**
-     * Filter the given features with the given query.
-     * <p>
-     * XXX Currently it seems simpler to fetch all features and apply the filter
-     * than converting the geospatial filter to a Qi4j filter. But this can be
-     * memory consuming and might be revised later.
-     *
-     * @param features
-     * @param query
-     * @return
-     */
-    private Feature filterFeature( Feature feature, Filter filter ) {
-        return filter.evaluate( feature ) ? feature : null;
-    }
+//    /**
+//     * Filter the given features with the given query.
+//     * <p>
+//     * XXX Currently it seems simpler to fetch all features and apply the filter
+//     * than converting the geospatial filter to a Qi4j filter. But this can be
+//     * memory consuming and might be revised later.
+//     *
+//     * @param features
+//     * @param query
+//     * @return
+//     */
+//    private Feature filterFeature( Feature feature, Filter filter ) {
+//        return filter.evaluate( feature ) ? feature : null;
+//    }
 
 
     protected List<FeatureId> addFeatures( Collection<Feature> features )
@@ -396,22 +445,25 @@ public class EntitySourceProcessor
     }
 
 
-    protected void removeFeatures( Filter filter )
+    protected List<FeatureId> removeFeatures( Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
         throw new RuntimeException( "not yet implemented." );
     }
 
 
-    protected void modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
+    protected List<FeatureId> modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
     throws IOException {
         log.debug( "            Filter: " + filter );
 
-        // filter entities
+        List<FeatureId> ids = Lists.newArrayList(); 
+            
+        // filter -> entities
         List<Entity> entities = new ArrayList();
         if (filter instanceof Id) {
             for (Identifier id : ((Id)filter).getIdentifiers()) {
                 entities.add( entityProvider.findEntity( (String)id.getID() ) );
+                ids.add( (FeatureId)id );
             }
         }
         else {
@@ -437,9 +489,35 @@ public class EntitySourceProcessor
                 }
             }
         }
+        return ids;
     }
 
+    
+    // feature events *************************************
+    
+    /**
+     * Fires a {@link FeatureChangeEvent} for the layer of the given context.
+     * <p/>
+     * For other layers this is done by the {@link LayerFeatureBufferManager}. As
+     * the LFBM does not handle entity feature sources the event has to be fired
+     * here explicitly. 
+     *
+     * @param context
+     * @param features
+     * @param eventType
+     */
+    private void fireFeatureChangeEvent( List<FeatureId> fids, FeatureChangeEvent.Type eventType ) {
+        List<Feature> features = new ArrayList( fids.size() );
+        for (FeatureId fid : fids) {
+            Entity entity = entityProvider.findEntity( fid.getID() );
+            Feature feature = buildFeature( entity );
+            features.add( feature );
+        }
+        LayerEntityBufferManager buffer = LayerEntityBufferManager.forLayer( layer, entityProvider );
+        buffer.fireFeatureChangeEvent( features, eventType );
+    }
 
+    
     public void processResponse( ProcessorResponse reponse, ProcessorContext context )
     throws Exception {
         throw new RuntimeException( "This is a terminal processor." );

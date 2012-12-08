@@ -55,6 +55,7 @@ import org.geotools.referencing.CRS;
 import com.vividsolutions.jts.geom.MultiPolygon;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
@@ -169,7 +170,7 @@ public class FeatureTypeEditorProcessor
             context.sendRequest( new GetFeaturesSizeRequest( transformed ) );
         }
         else {
-            throw new IllegalArgumentException( "Unhandled request type: " + r );
+            throw new UnsupportedOperationException( Messages.get( "FeatureTypeEditorProcessor_unsupported", r.getClass().getSimpleName() ) );
         }
     }
 
@@ -250,7 +251,7 @@ public class FeatureTypeEditorProcessor
 
             List<Feature> result = new ArrayList( chunk.count() );
             for (Feature feature : chunk) {
-                result.add( transformFeature( (SimpleFeature)feature, builder ) );
+                result.add( transformFeature( (SimpleFeature)feature, builder, feature.getIdentifier().getID() ) );
             }
             log.debug( "       sending features: " + result.size() );
             context.sendResponse( new GetFeaturesResponse( result ) );
@@ -259,8 +260,17 @@ public class FeatureTypeEditorProcessor
         }
     }
 
-    
-    public SimpleFeature transformFeature( SimpleFeature feature, SimpleFeatureBuilder builder )
+
+    /**
+     * 
+     * @param feature The feature to be transformed.
+     * @param builder The builder to be used to create the result.
+     * @param fid The feature ID to be used to create the feature. Null specifies
+     *        that the original FID is to be used.
+     * @return The newly created feature.
+     * @throws Exception
+     */
+    public SimpleFeature transformFeature( SimpleFeature feature, SimpleFeatureBuilder builder, String fid )
     throws Exception {
         for (PropertyDescriptor prop : featureType.getDescriptors()) {
 
@@ -286,7 +296,7 @@ public class FeatureTypeEditorProcessor
                 log.warn( "No value found in mapping for: " + prop.getName() );
             }
         }
-        return builder.buildFeature( feature.getIdentifier().getID() );
+        return builder.buildFeature( fid );
     }
 
 

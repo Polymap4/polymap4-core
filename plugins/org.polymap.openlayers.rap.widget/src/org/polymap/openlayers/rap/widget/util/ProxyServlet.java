@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.mortbay.util.IO;
+import org.apache.commons.io.IOUtils;
 
 /**
  * For JavaScript security reasons ( cross domain ) we sometimes 
@@ -117,7 +117,7 @@ public class ProxyServlet extends HttpServlet {
 			if (client_accepts_gzip) {
 				response.setHeader("Content-Encoding", "gzip");
 				ByteArrayOutputStream output_to_tmp = new ByteArrayOutputStream();
-				IO.copy(url.openStream(), output_to_tmp);
+				IOUtils.copy(url.openStream(), output_to_tmp);
 		
 				OutputStream output_to_response = new GZIPOutputStream(response
 						.getOutputStream());
@@ -125,7 +125,7 @@ public class ProxyServlet extends HttpServlet {
 				output_to_response.close();
 
 			} else { // client will not accept gzip -> dont compress
-				IO.copy(url.openStream(), response.getOutputStream());
+				IOUtils.copy(url.openStream(), response.getOutputStream());
 			}
 			
 		} catch (IOException e) {

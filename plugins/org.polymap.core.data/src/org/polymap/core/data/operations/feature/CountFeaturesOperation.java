@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.Messages;
 import org.polymap.core.data.operation.DefaultFeatureOperation;
 import org.polymap.core.data.operation.IFeatureOperation;
 import org.polymap.core.runtime.Polymap;
@@ -46,7 +47,9 @@ public class CountFeaturesOperation
         Polymap.getSessionDisplay().asyncExec( new Runnable() {
             public void run() {
                 Shell shell = PolymapWorkbench.getShellToParentOn();
-                MessageDialog.openInformation( shell, "Ergebnis", "Anzahl der Features: " + result );
+                MessageDialog.openInformation( shell, 
+                        Messages.get( "CountFeaturesOperation_result_title" ),
+                        Messages.get( "CountFeaturesOperation_result_msg" , result ) );
             }
         });
         return Status.OK;

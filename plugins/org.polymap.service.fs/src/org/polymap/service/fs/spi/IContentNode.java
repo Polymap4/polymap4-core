@@ -18,9 +18,16 @@ import java.util.Date;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.runtime.cache.Cache;
+
 /**
  * 
- *
+ * <p/>
+ * Content nodes are stored in a {@link Cache}. So they are subject to be reclaimed
+ * by the GC. Implementations should carefully return its size in mory via
+ * {@link #getSizeInMemory()} in order to help the cache instead of doing their own
+ * cache stuff.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface IContentNode {
@@ -70,5 +77,13 @@ public interface IContentNode {
     public Object putData( String key, Object value );
     
     public Object getData( String key );
+
+    /**
+     * The approximate size of this node in memory. This value is used for cache
+     * management. This method is called right after the node is created.
+     */
+    public int getSizeInMemory();
+    
+    public void dispose();
     
 }

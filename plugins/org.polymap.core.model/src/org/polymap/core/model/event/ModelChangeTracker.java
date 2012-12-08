@@ -16,12 +16,19 @@ package org.polymap.core.model.event;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.MapMaker;
+
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 
@@ -29,14 +36,14 @@ import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Messages;
 import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.runtime.ConcurrentReferenceHashMap;
 import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
 
 /**
  * Provides information about modifications of a given entity or feature that might
- * have triggered by the session of the caller or another session within this JVM.
+ * have triggered by the session of the caller or another(!) session within this JVM.
  * <p/>
  * This class provides a general API and implementation to track the
  * version/timestamp of all kind of model entities, features, objects. It helps to
@@ -55,12 +62,13 @@ public class ModelChangeTracker
      * XXX access should be read/write locked; however, I don't seem to be able to release
      * locks in all cases; so I'm ignoring race cond between prepare and apply in Updater 
      */
-    private static Map<ModelHandle,Long>    stored = new ConcurrentHashMap( 1024, 0.75f, 4 );
+    private static Map<ModelHandle,Long>    stored = new MapMaker()
+            .concurrencyLevel( 8 ).initialCapacity( 1024 ).makeMap();
 
     private static EventJob                 lastJob;
     
-    private static Map<ModelChangeTracker,Object> instances = 
-            new ConcurrentReferenceHashMap( 32, 0.75f, 4 );
+    private static Map<ModelChangeTracker,Object> instances = new MapMaker()
+            .concurrencyLevel( 4 ).initialCapacity( 32 ).weakKeys().makeMap();
 
 
     public static ModelChangeTracker instance() {
@@ -70,10 +78,11 @@ public class ModelChangeTracker
     
     // instance *******************************************
     
-    private ListenerList<IModelStoreListener>   listeners = new ListenerList();
+    private ListenerList<SessionListener>   listeners = new ListenerList( ListenerList.EQUALITY );
 
     /** The tracked timestamps of this session. */
-    private ConcurrentHashMap<ModelHandle,Long> tracked = new ConcurrentHashMap( 1024, 0.75f, 4 );
+    private ConcurrentMap<ModelHandle,Long>     tracked = new MapMaker()
+            .concurrencyLevel( 8 ).initialCapacity( 1024 ).makeMap();
 
     
     public ModelChangeTracker() {
@@ -83,15 +92,19 @@ public class ModelChangeTracker
 
     protected void finalize() throws Throwable {
         log.info( "FINALIZED." );
+        listeners.clear();
+        tracked.clear();
     }
 
 
     public boolean addListener( IModelStoreListener l ) {
-        return listeners.add( l );
+        SessionContext context = SessionContext.current();
+        assert context != null : "No context when registering ImodelStoreListener!";
+        return listeners.add( new SessionListener( l, context ) );
     }
 
     public boolean removeListener( IModelStoreListener l ) {
-        return listeners.remove( l );
+        return listeners.remove( new SessionListener( l, null ) );
     }
 
     
@@ -162,7 +175,6 @@ public class ModelChangeTracker
 
 
     /**
-     * Only one Updater at a given time. Otherwise this method blocks.
      * 
      * @return Newly created Updater.
      */
@@ -234,7 +246,8 @@ public class ModelChangeTracker
             }
             
             if (isConflicting( key, check )) {
-                throw new ConcurrentModificationException( "Objekt wurde von einem anderen Nutzer gleichzeitig verändert: " + key.id );
+                throw new ConcurrentModificationException( "Objekt wurde von einem anderen Nutzer gleichzeitig verändert: " + key.id +
+                        " (check=" + check + ", stored=" + stored.get( key ) + ")");
             }
             checked.put( key, set != null ? set : startTime );
             monitor.worked( 1 );
@@ -248,7 +261,7 @@ public class ModelChangeTracker
             stored.putAll( checked );
 
             ModelStoreEvent ev = new ModelStoreEvent( 
-                    ModelChangeTracker.this, eventSource, 
+                    SessionContext.current(), eventSource, 
                     checked.keySet(), EventType.COMMIT );
             new EventJob( ev ).schedule();
         }
@@ -260,12 +273,15 @@ public class ModelChangeTracker
         
     }
 
-    
+
     /**
-     * 
+     * Fire the given {@link ModelStoreEvent} from within a separate job/thread.
+     * <p/>
+     * This must not be an {@link UIJob} in order to have no {@link SessionContext}
+     * mapped to this thread.
      */
     static class EventJob
-            extends UIJob {
+            extends Job {
 
         /** Schedule many jobs but let run only one EventJob at a given time. */
         static final ISchedulingRule        exclusiv = new ISchedulingRule() {
@@ -290,26 +306,97 @@ public class ModelChangeTracker
         }
 
         
-        protected void runWithException( IProgressMonitor monitor )
-        throws Exception {
+        protected IStatus run( IProgressMonitor monitor ) {
             monitor.beginTask( Messages.get( "ModelChangeTracker_EventJob_title"), IProgressMonitor.UNKNOWN );
             log.info( "EventJob: started..." );
             for (ModelChangeTracker instance : instances.keySet()) {
-                for (IModelStoreListener listener : instance.listeners) {
-                    try {
-                        if (monitor.isCanceled()) {
-                            return;
-                        }
+                for (SessionListener listener : instance.listeners) {
+                    // canceled?
+                    if (monitor.isCanceled()) {
+                        return Status.CANCEL_STATUS;
+                    }
+                    // remove invalid listener
+                    else if (!listener.isValid()) {
+                        log.warn( "Removing invalid listener: " + listener );
+                        instance.listeners.remove( listener );
+                    }
+                    // call listener
+                    else {
                         listener.modelChanged( ev );
-                        monitor.worked( 1 );
                     }
-                    catch (Throwable e) {
-                        log.warn( "Error while processing ModelStoreEvent: " + ev, e );
-                    }
+                    monitor.worked( 1 );
                 }
+            }
+            return Status.OK_STATUS;
+        }
+
+    }
+
+
+    /**
+     * Holds a {@link IModelStoreListener} and the corresponding
+     * {@link SessionContext}.
+     */
+    class SessionListener
+            implements IModelStoreListener {
+        
+        private WeakReference<SessionContext>   contextRef;
+        
+        private IModelStoreListener             listener;
+
+        
+        public SessionListener( IModelStoreListener listener, SessionContext context ) {
+            this.listener = listener;
+            this.contextRef = context != null ? new WeakReference( context ) : null;
+        }
+
+        public boolean isValid() {
+            SessionContext context = null;
+            return contextRef != null 
+                    && (context = contextRef.get()) != null
+                    && !context.isDestroyed()
+                    && listener != null
+                    && listener.isValid();
+        }
+
+        public void modelChanged( final ModelStoreEvent ev ) {
+            SessionContext context = contextRef.get();
+            if (context != null ) {
+                if (context.isDestroyed()) {
+                    log.warn( "SessionContext was destroyed without removing the listener: " + listener );
+                    listener = null;
+                }
+                else {
+                    context.execute( new Runnable() {
+                        public void run() {
+                            try {
+                                listener.modelChanged( ev );
+                            }
+                            catch (Throwable e) {
+                                log.warn( "Error while processing ModelStoreEvent: " + ev, e );
+                            }
+                        }
+                    });
+                }
+            }
+            else {
+                log.warn( "Listener has no context: " + listener );
+                listener = null;
+            }
+        }
+
+        public boolean equals( Object obj ) {
+            if (obj == this) {
+                return true;
+            }
+            else if (obj instanceof SessionListener) {
+                return listener == ((SessionListener)obj).listener;
+            }
+            else {
+                throw new IllegalStateException( "obj is not an instance of SessionListener: " + obj);
             }
         }
         
     }
-
+    
 }

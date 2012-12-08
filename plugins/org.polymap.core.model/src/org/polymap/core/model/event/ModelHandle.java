@@ -34,6 +34,8 @@ public class ModelHandle {
 
     
     ModelHandle( String id, String type ) {
+        assert id != null : "id must not be null.";
+        assert type != null : "type must not be null.";
         this.id = id;
         this.type = type;
     }

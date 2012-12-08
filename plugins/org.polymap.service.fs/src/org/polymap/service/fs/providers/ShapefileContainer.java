@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,6 +15,7 @@
 package org.polymap.service.fs.providers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,12 +43,14 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
@@ -60,21 +63,21 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import edu.emory.mathcs.backport.java.util.Collections;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
 
-import org.polymap.core.data.FeatureStoreListener;
 import org.polymap.core.data.FeatureChangeTracker;
 import org.polymap.core.data.FeatureStoreEvent;
+import org.polymap.core.data.FeatureStoreListener;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.model.event.ModelChangeTracker;
 import org.polymap.core.model.event.ModelHandle;
 import org.polymap.core.model.event.ModelChangeTracker.Updater;
+import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
+
 import org.polymap.service.fs.spi.IContentSite;
 
 /**
@@ -129,16 +132,16 @@ class ShapefileContainer
 
     public void featureChange( FeatureStoreEvent ev ) {
         log.info( "ev= " + ev );
-        if (!ev.isMySession()) {
-            if (layer.id().equals( ev.getSource().id() )) {
-                log.info( "flushing..." );
-                flush();
-            }
+        if (ev.getEventType() == EventType.COMMIT
+                && !ev.isMySession()
+                && layer.id().equals( ev.getSource().id() )) {
+            flush();
         }
     }
 
 
     public void flush() {
+        log.info( "flushing: " + file );
         try {
             lock.writeLock().lock();
 
@@ -300,12 +303,18 @@ class ShapefileContainer
 
                 // find added, modified
                 final AtomicInteger newSize = new AtomicInteger( 0 );
+                updateException = null;
                 modifiedFs.getFeatures().accepts( new FeatureVisitor() {
                     public void visit( Feature candidate ) {
                         if (updateException != null) {
                             return;
                         }
                         newSize.incrementAndGet();
+                        
+                        // normalize attribute names
+                        SimpleFeatureType schema = origFs.getSchema();
+                        candidate = normalizeAttributeNames( candidate, schema );
+                        
                         try {
                             Id fid = ff.id( Collections.singleton( candidate.getIdentifier() ) );
                             Object[] orig = origFs.getFeatures( fid ).toArray();
@@ -348,7 +357,7 @@ class ShapefileContainer
                     }
                 }, null );
 
-                // throw exception from FeaatureVisitor
+                // throw exception from FeatureVisitor
                 if (updateException != null) {
                     throw updateException;
                 }
@@ -378,7 +387,6 @@ class ShapefileContainer
                 // write own modifications
                 Transaction tx = new DefaultTransaction( layer.getLabel() + "-write-back" );
                 try {
-
                     // added
                     if (!added.isEmpty()) {
                         FeatureCollection coll = FeatureCollections.newCollection();
@@ -421,7 +429,14 @@ class ShapefileContainer
                         layerFs.modifyFeatures( type, value, ff.id( Collections.singleton( ff.featureId( origFid ) ) ) );
                     }
                     tx.commit();
-                    
+
+                    // none of the features had concurrent modifications, so just upgrade
+                    // timestamp for the layer (no checking is needed and done)
+                    if (!modified.isEmpty() || !added.isEmpty() || !removed.isEmpty() ) {
+                        ModelHandle layerHandle = FeatureChangeTracker.layerHandle( layer );
+                        updater.checkSet( layerHandle, updater.getStartTime(), null );
+                    }
+
                     // apply timestamp updates
                     updater.apply( layer );
                     
@@ -466,11 +481,12 @@ class ShapefileContainer
 
         private boolean isFeatureModified( SimpleFeature feature, SimpleFeature original ) 
         throws IOException {
-            SimpleFeatureType schema = original.getType(); 
-            for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
+            //SimpleFeatureType schema = original.getType(); 
+            for (int i=0; i<original.getAttributeCount(); i++) {
                 
-                Object value1 = feature.getAttribute( attribute.getName() );
-                Object value2 = original.getAttribute( attribute.getName() );
+                // asuming that order has not changed (but names may have)
+                Object value1 = feature.getAttribute( i );
+                Object value2 = original.getAttribute( i );
                 
                 if (isPropertyModified( value1, value2 )) {
                     return true;
@@ -511,6 +527,19 @@ class ShapefileContainer
         throws ParseException {
             String value = (String)feature.getAttribute( ShapefileGenerator.TIMESTAMP_FIELD );
             return value != null ? ((Date)timestampFormat.parseObject( value )).getTime() : null;
+        }
+
+
+        /**
+         * Open/Libre Office changes attribute names into upper case :( This method
+         * creates a new {@link Feature} with the given shema and the candidate's values.
+         * 
+         * @return Newly created feature.
+         */
+        private Feature normalizeAttributeNames( Feature candidate, FeatureType schema ) {
+            return SimpleFeatureBuilder.build( (SimpleFeatureType)schema, 
+                    ((SimpleFeature)candidate).getAttributes(), 
+                    ((SimpleFeature)candidate).getID() );
         }
     }
     

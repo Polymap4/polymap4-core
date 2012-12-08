@@ -93,5 +93,7 @@ public abstract class SessionContext {
     public abstract void setAttribute( String key, Object value );
     
     public abstract Object getAttribute( String key );
+
+    public abstract boolean isDestroyed();
     
 }

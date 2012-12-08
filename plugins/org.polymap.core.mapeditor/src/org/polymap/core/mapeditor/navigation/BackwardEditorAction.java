@@ -28,6 +28,8 @@ import java.beans.PropertyChangeListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 
@@ -99,7 +101,11 @@ public class BackwardEditorAction
     public void setActiveEditor( IAction _action, IEditorPart _targetEditor ) {
         // disconnect old editor
         if (mapEditor != null) {
-            mapEditor.getMap().removePropertyChangeListener( this );
+            try {
+                mapEditor.getMap().removePropertyChangeListener( this );
+            }
+            catch (NoSuchEntityException e) {
+            }
         }
         
         action = _action;

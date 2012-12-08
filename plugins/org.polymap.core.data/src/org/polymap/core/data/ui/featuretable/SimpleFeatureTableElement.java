@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
+import java.util.Collections;
+
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -28,22 +30,22 @@ import org.opengis.filter.Id;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import edu.emory.mathcs.backport.java.util.Collections;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheLoader;
 
 /**
  * Default implementation for {@link SimpleFeature} features.
  * <p/>
- * The {@link #feature} is referenced by a weak/soft reference, so the GC
- * may reclaim the memory. The feature is then re-fetched from the underlying
- * FeatureSource in an {@link Job}.
- *
+ * The {@link #feature} is managed by the given cache, so the GC may reclaim the
+ * memory. The feature is then re-fetched from the underlying FeatureSource in an
+ * {@link Job}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class SimpleFeatureTableElement
@@ -53,18 +55,19 @@ public class SimpleFeatureTableElement
 
     private static final FilterFactory  ff = CommonFactoryFinder.getFilterFactory( null );
     
-    private Reference<SimpleFeature>    ref;
-    
     private String                      fid;
     
     private FeatureSource               fs;
     
+    private Cache<String,SimpleFeature> cache;
     
-    public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs ) {
+    
+    public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs, Cache<String,SimpleFeature> cache ) {
         super();
-        this.ref = newReference( feature );
         this.fs = fs;
         this.fid = feature.getID();
+        this.cache = cache;
+        this.cache.putIfAbsent( fid, feature );
     }
 
 
@@ -91,33 +94,64 @@ public class SimpleFeatureTableElement
 
 
     public Object getValue( String name ) {
-        return feature().getAttribute( name );
+        SimpleFeature feature = feature();
+        return feature != null ? feature.getAttribute( name ) : null;
     }
     
     
-    public SimpleFeature feature() {
-        SimpleFeature result = ref.get();
-        
-        if (result == null) {
-        
-            synchronized (this) {
-                while (result == null) {
-                    FetchJob fetcher = new FetchJob();
-                    fetcher.schedule();
+    public void setValue( String name, Object value ) {
+        throw new RuntimeException( "not yet implemented." );
+    }
 
-                    try {
-                        // XXX this may block forever; use PlatformJobs!?
-                        fetcher.join();
-                        result = (SimpleFeature)fetcher.result;
-                        ref = newReference( result );
-                    }
-                    catch (InterruptedException e) {
-                        log.warn( "", e );
-                    }
-                }
+
+    public SimpleFeature feature() {
+//        try {
+            if (cache.isDisposed()) {
+                return null;
             }
-        }
-        return result;
+            return cache.get( fid, new CacheLoader<String,SimpleFeature,RuntimeException>() {
+                public SimpleFeature load( String _fid ) throws RuntimeException {
+                    FetchJob fetcher = new FetchJob();
+                    //fetcher.schedule();
+
+                    // XXX this may block forever; use PlatformJobs!?
+                    //fetcher.join();
+                    fetcher.run( null );
+                    return (SimpleFeature)fetcher.result;
+                }
+                public int size() throws RuntimeException {
+                    return Cache.ELEMENT_SIZE_UNKNOW;
+                }
+            });
+//        }
+//        catch (RuntimeException e) {
+//            throw e;
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException( e );
+//        }
+        
+//        if (result == null) {
+//        
+//            synchronized (this) {
+//                while (result == null) {
+//                    FetchJob fetcher = new FetchJob();
+//                    fetcher.schedule();
+//
+//                    try {
+//                        // XXX this may block forever; use PlatformJobs!?
+//                        fetcher.join();
+//                        result = (SimpleFeature)fetcher.result;
+//                        cache.putIfAbsent( fid, result );
+////                        ref = newReference( result );
+//                    }
+//                    catch (InterruptedException e) {
+//                        log.warn( "", e );
+//                    }
+//                }
+//            }
+//        }
+//        return result;
     }
 
     

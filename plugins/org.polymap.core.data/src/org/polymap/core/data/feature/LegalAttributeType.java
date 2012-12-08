@@ -1,5 +1,6 @@
 package org.polymap.core.data.feature;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -10,8 +11,6 @@ import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 import org.polymap.core.data.Messages;
 
@@ -25,6 +24,8 @@ import org.polymap.core.data.Messages;
  */
 public class LegalAttributeType {
 
+    public static final int     DEFAULT_STRING_LENGTH = 255;
+    
     /**
      * Get the map of legal attribute types.
      * <p/>
@@ -33,7 +34,7 @@ public class LegalAttributeType {
      */
     public static List<LegalAttributeType> types() {
         return Arrays.asList( new LegalAttributeType[] {             
-                new LegalAttributeType( Messages.get( "LegalAttributeType_stringType" ), String.class ),
+                new LegalAttributeType( Messages.get( "LegalAttributeType_stringType" ), String.class, DEFAULT_STRING_LENGTH ),
                 new LegalAttributeType( Messages.get( "LegalAttributeType_bigStringType" ), String.class, 4096 ),
                 new LegalAttributeType( Messages.get( "LegalAttributeType_booleanType" ), Boolean.class ),
                 new LegalAttributeType( Messages.get( "LegalAttributeType_dateType" ), Date.class ),
