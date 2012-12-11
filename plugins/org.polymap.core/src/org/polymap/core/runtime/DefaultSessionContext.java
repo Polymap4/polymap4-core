@@ -88,7 +88,9 @@ public class DefaultSessionContext
 
 
     private void checkDestroyed() {
-        assert !isDestroyed() : "Session context is destroyed: " + sessionKey;
+        if (isDestroyed()) {
+            throw new IllegalStateException( "Session context is destroyed: " + sessionKey );
+        }
     }
     
     

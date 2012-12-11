@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,7 +41,13 @@ import org.polymap.core.runtime.Timer;
 public class EventManager {
 
     private static Log log = LogFactory.getLog( EventManager.class );
-    
+
+    /**
+     * The session that the currently dispatched event is published from. The
+     * {@link SessionEventDispatcher event dispatcher} sets this for every dispatched
+     * event. No {@link ThreadLocal} needed as there si just one thread dispatching
+     * events.
+     */
     private static SessionContext           threadPublishSession;
     
     private static final EventManager       instance = new EventManager();
@@ -82,9 +89,9 @@ public class EventManager {
      * 
      * @param ev The event to dispatch.
      */
-    public void publish( EventObject ev ) {
+    public void publish( EventObject ev, Object... omitHandlers ) {
         ListenerQueue listenerQueue = new ListenerQueue( manager );        
-        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher() );
+        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher( omitHandlers ) );
         listenerQueue.dispatchEventAsynchronous( 0, ev );
     }
 
@@ -99,9 +106,9 @@ public class EventManager {
      * @see #publish(Event)
      * @param ev The event to dispatch.
      */
-    public void syncPublish( EventObject ev ) {
+    public void syncPublish( EventObject ev, Object... omitHandlers ) {
         ListenerQueue listenerQueue = new ListenerQueue( manager );
-        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher() );
+        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher( omitHandlers ) );
         listenerQueue.dispatchEventSynchronous( 0, ev );
     }
 
@@ -203,9 +210,13 @@ public class EventManager {
         
         private SessionContext          publishSession;
         
-        SessionEventDispatcher() {
-            publishSession = SessionContext.current();
-            assert publishSession != null; 
+        private Object[]                omitHandlers;
+        
+        SessionEventDispatcher( Object[] omitHandlers ) {
+            this.publishSession = SessionContext.current();
+            this.omitHandlers = omitHandlers;
+            assert publishSession != null;
+            assert omitHandlers != null;
         }
     
         public void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
@@ -213,7 +224,9 @@ public class EventManager {
             threadPublishSession = publishSession;
             
             try {
-                ((EventListener)listener).handleEvent( (EventObject)event );
+                if (!ArrayUtils.contains( omitHandlers, listener )) {
+                    ((EventListener)listener).handleEvent( (EventObject)event );
+                }
             } 
             catch (Throwable e) {
                 log.warn( "Error during event dispatch: " + e );
@@ -231,7 +244,7 @@ public class EventManager {
                 }
                 long elapsed = statTimer.elapsedTime();
                 if (elapsed > 1000) {
-                    log.debug( "********************************************** STATISTICS: " + statCount + " events in " + elapsed + "ms" );
+                    log.debug( "********************************************** STATISTICS: " + statCount + " handlers/events in " + elapsed + "ms" );
                     statCount = 0;
                     statTimer = null;
                 }

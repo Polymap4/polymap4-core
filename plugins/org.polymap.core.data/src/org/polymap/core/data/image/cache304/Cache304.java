@@ -169,6 +169,7 @@ public class Cache304 {
             
             // search the store
             RecordQuery query = buildQuery( request, layers );
+            query.setMaxResults( 2 );
             ResultSet resultSet = store.find( query );
             if (resultSet.count() > 1) {
                 log.warn( "More than one tile for query: " + request ); 

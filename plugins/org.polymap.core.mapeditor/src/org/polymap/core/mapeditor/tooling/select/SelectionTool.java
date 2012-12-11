@@ -36,6 +36,7 @@ import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.mapeditor.tooling.edit.BaseLayerEditorTool;
 import org.polymap.core.mapeditor.tooling.edit.BaseVectorLayer;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
@@ -159,6 +160,7 @@ public class SelectionTool
      * Listen to feature selection changes from {@link LayerFeatureSelectionManager}.
      */
     @Override
+    @EventHandler
     public void propertyChange( PropertyChangeEvent ev ) {
         assert fsm == ev.getSource();
         

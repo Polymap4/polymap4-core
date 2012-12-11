@@ -73,7 +73,7 @@ ToolItem {
     margin: 2px;
 }
 ToolItem:selected {
-    border: 1px solid #b5b5b5;
+    border: 1px solid #b0b0b0;
     border-radius: 2px;
     background-color: #d0d0d0;
     background-image: gradient(
@@ -84,13 +84,13 @@ ToolItem:selected {
     padding: 0px 0px 0px 0px;
 }
 ToolItem:hover {
-    border: 1px solid #b5b5b5;
+    border: 1px solid #a0a0a0;
     border-radius: 2px;
     background-color: #DFDFF8;
     background-image: gradient(
       linear, left top, left bottom,
       from( #ffffff ),
-      to( #e0e0e0 )
+      to( #e8e8e8 )
     );
 /*    background-image: gradient(
       linear, left top, left bottom,
@@ -111,7 +111,7 @@ Button[PUSH] {
 }
 
 Button[PUSH]:hover {
-    border: 1px solid #989898;
+    border: 1px solid #909090;
     background-color: #ffffff;
     background-image: gradient(
       linear, left top, left bottom,
