@@ -177,7 +177,7 @@ public class SelectionTool
 
     
     @Override
-    public void process_event( OpenLayersObject obj, String name, HashMap<String, String> payload ) {
+    public void process_event( OpenLayersObject obj, String name, final HashMap<String, String> payload ) {
         log.debug( "process_event() event: " + name + ", from: " + obj );
         for (Map.Entry entry : payload.entrySet()) {
             Object key = entry.getKey();
@@ -187,24 +187,23 @@ public class SelectionTool
 
         // box selected
         if (name.equals( BoxControl.EVENT_BOX )) {
-            try {
-                JSONObject json = new JSONObject( payload.get( "bbox" ) );
-                vectorLayer.selectFeatures( new ReferencedEnvelope(
-                        json.getDouble( "left" ),
-                        json.getDouble( "right" ),
-                        json.getDouble( "bottom" ),
-                        json.getDouble( "top" ),
-                        getSite().getEditor().getMap().getCRS() ), true );
-            }
-            catch (final Exception e) {
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                    public void run() {                                
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {                                
+                    try {
+                        JSONObject json = new JSONObject( payload.get( "bbox" ) );
+                        vectorLayer.selectFeatures( new ReferencedEnvelope(
+                                json.getDouble( "left" ),
+                                json.getDouble( "right" ),
+                                json.getDouble( "bottom" ),
+                                json.getDouble( "top" ),
+                                getSite().getEditor().getMap().getCRS() ), true );
+                    }
+                    catch (final Exception e) {
                         MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(), 
                                 "Achtung", "Bitte markieren Sie immer ein gesamtes Rechteck.\nFehlerhafte Koordinaten: " + e.getLocalizedMessage() );
                     }
-                });
-                return;
-            }
+                };
+            });
         }
         
         // feature clicked

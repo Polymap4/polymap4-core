@@ -203,7 +203,8 @@ public class LayerFeatureSelectionManager {
     public boolean addSelectionChangeListener( final PropertyChangeListener l ) {
         EventManager.instance().subscribe( l, new EventFilter<PropertyChangeEvent>() {
             public boolean apply( PropertyChangeEvent ev ) {
-                return ev instanceof FeatureSelectionEvent /*&& ev.getSource() == this*/;
+                return ev instanceof FeatureSelectionEvent 
+                        && ev.getSource() == LayerFeatureSelectionManager.this;
             }
         });
         return true;

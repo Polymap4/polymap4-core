@@ -296,7 +296,7 @@ public abstract class BaseVectorLayer
             else {
                 // select features directly 
                 PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-                selectFeatures ( fs.getFeatures( filter ) );
+                selectFeatures (fs.getFeatures( filter ) );
             }
         }
         catch (final Exception e) {

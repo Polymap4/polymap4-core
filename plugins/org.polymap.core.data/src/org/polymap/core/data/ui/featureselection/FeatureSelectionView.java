@@ -452,9 +452,11 @@ public class FeatureSelectionView
             // hover
             else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
                 LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
-                viewer.removeSelectionChangedListener( FeatureSelectionView.this );
-                viewer.selectElement( fsm.getHovered(), true );
-                viewer.addSelectionChangedListener( FeatureSelectionView.this );
+                if (fsm.getHovered() != null) {
+                    viewer.removeSelectionChangedListener( FeatureSelectionView.this );
+                    viewer.selectElement( fsm.getHovered(), true );
+                    viewer.addSelectionChangedListener( FeatureSelectionView.this );
+                }
             }
         }
     }

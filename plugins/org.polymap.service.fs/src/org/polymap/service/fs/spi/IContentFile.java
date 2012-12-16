@@ -22,8 +22,15 @@ import java.io.OutputStream;
 import com.bradmcevoy.http.GetableResource;
 
 /**
+ * A content file with size and type.
+ * <p/>
+ * Content nodes are stored in a {@link Cache}. They are subject to be reclaimed by
+ * the GC. Therefore implementations do not need to and generally should avoid using
+ * soft references or any other caching mechanism to store the content they are
+ * providing as the entire node is cached and reclaimed when memory gets low.
+ * Implementations should carefully return its size in memory via
+ * {@link #getSizeInMemory()} in order to help the global content cache.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @author Javadoc is partially taken from {@link GetableResource}
  */

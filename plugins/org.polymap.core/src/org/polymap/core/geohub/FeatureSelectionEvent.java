@@ -24,8 +24,13 @@ import java.beans.PropertyChangeEvent;
 public class FeatureSelectionEvent
         extends PropertyChangeEvent {
 
-    public FeatureSelectionEvent( Object source, String propertyName, Object oldValue, Object newValue ) {
+    public FeatureSelectionEvent( LayerFeatureSelectionManager source, String propertyName, Object oldValue, Object newValue ) {
         super( source, propertyName, oldValue, newValue );
     }
 
+    @Override
+    public LayerFeatureSelectionManager getSource() {
+        return (LayerFeatureSelectionManager)super.getSource();
+    }
+    
 }

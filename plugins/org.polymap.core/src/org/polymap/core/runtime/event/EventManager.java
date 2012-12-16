@@ -14,19 +14,29 @@
  */
 package org.polymap.core.runtime.event;
 
+import static com.google.common.collect.Iterables.transform;
+
 import java.util.EventObject;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import static com.google.common.collect.Iterables.transform;
+
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.lifecycle.PhaseEvent;
+import org.eclipse.rwt.lifecycle.PhaseId;
+import org.eclipse.rwt.lifecycle.PhaseListener;
+import org.eclipse.rwt.lifecycle.UICallBack;
+import org.eclipse.rwt.service.ISessionStore;
+import org.eclipse.rwt.service.SessionStoreEvent;
+import org.eclipse.rwt.service.SessionStoreListener;
+
 import org.eclipse.osgi.framework.eventmgr.EventDispatcher;
 import org.eclipse.osgi.framework.eventmgr.ListenerQueue;
 
@@ -71,9 +81,33 @@ public class EventManager {
     
     private Timer                                   statTimer;
     
+    private volatile int                            pendingEvents;
     
+    /** The global {@link PhaseListener} installed by the {@link SessionEventDispatcher}. */
+    private UICallbackPhaseListener                 phaseListener;
+    
+
     protected EventManager() {
-        manager = new org.eclipse.osgi.framework.eventmgr.EventManager( "EventManager-Dispatcher" );
+        // always keep one listener in the list so that SessionEventDispatcher
+        // propery counts #pendingEvents
+        subscribe( this, new EventFilter<EventObject>() {
+            public boolean apply( EventObject input ) {
+                return false;
+            }
+        });
+        
+        ThreadGroup tg = new ThreadGroup( "EventManager" );
+        manager = new org.eclipse.osgi.framework.eventmgr.EventManager( "EventManager.Dispatcher", tg );
+
+//        // force the manager to create the thread
+//        publish( new EventObject( this ) );
+//        
+//        Thread[] threads = new Thread[1];
+//        tg.enumerate( threads );
+//        for (Thread t : threads) {
+//            t.setPriority( Thread.MAX_PRIORITY );
+//            log.info( "thread: " + t.getName() + ", prio: " + t.getPriority() );
+//        }
     }
 
     
@@ -82,6 +116,11 @@ public class EventManager {
     }
 
 
+    @EventHandler
+    protected void handleEvent( EventObject ev ) {
+    }
+
+    
     /**
      * Asynchronously publish the given event. An event dispatch thread maintained by
      * the associated EventManager is used to deliver the events. This method may
@@ -90,8 +129,11 @@ public class EventManager {
      * @param ev The event to dispatch.
      */
     public void publish( EventObject ev, Object... omitHandlers ) {
+        assert ev != null;
         ListenerQueue listenerQueue = new ListenerQueue( manager );        
-        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher( omitHandlers ) );
+        Set<Map.Entry> queueableListeners = queueableListeners();
+        listenerQueue.queueListeners( queueableListeners, 
+                new SessionEventDispatcher( queueableListeners.size(), omitHandlers ) );
         listenerQueue.dispatchEventAsynchronous( 0, ev );
     }
 
@@ -107,8 +149,11 @@ public class EventManager {
      * @param ev The event to dispatch.
      */
     public void syncPublish( EventObject ev, Object... omitHandlers ) {
+        assert ev != null;
         ListenerQueue listenerQueue = new ListenerQueue( manager );
-        listenerQueue.queueListeners( queueableListeners(), new SessionEventDispatcher( omitHandlers ) );
+        Set<Map.Entry> queueableListeners = queueableListeners();
+        listenerQueue.queueListeners( queueableListeners, 
+                new SessionEventDispatcher( queueableListeners.size(), omitHandlers ) );
         listenerQueue.dispatchEventSynchronous( 0, ev );
     }
 
@@ -201,22 +246,109 @@ public class EventManager {
         return listeners.remove( key );
     }
 
+
+    /**
+     * Checks if there are pending events after the render page of an request. If
+     * yes, then UICallback is activated - until there are no pending events after
+     * any subsequent request.
+     * <p/>
+     * XXX Currently #pendingEvents counts ALL events from all sessions! So a foreign
+     * session might force a UICallback even if we don't have anything to render.
+     */
+    private class UICallbackPhaseListener
+            implements PhaseListener, SessionStoreListener {
+
+        public PhaseId getPhaseId() {
+            return PhaseId.ANY;
+        }
+        
+        public void beforePhase( PhaseEvent ev ) {
+            //log.debug( "Before " + ev.getPhaseId() + ": pending=" + pendingEvents );
+        }
+        
+        public void afterPhase( PhaseEvent ev ) {
+            if (ev.getPhaseId() != PhaseId.PROCESS_ACTION) {
+                return;
+            }
+            ISessionStore session = RWT.getSessionStore();
+            boolean uiCallbackActive = session.getAttribute( "uiCallbackActive" ) != null;
+            
+            //log.debug( "After " + getPhaseId() + ": pending=" + pendingEvents + ", UICallbackActive=" + uiCallbackActive );
+            
+            if (pendingEvents > 0) {
+                if (pendingEvents > 0 && !uiCallbackActive) {
+                    log.debug( "UICallback: ON (pending: " + pendingEvents + ")" );
+                    UICallBack.activate( "EventManager.pendingEvents" );
+                    session.setAttribute( "uiCallbackActive", true );
+                }
+            }
+            else {
+                if (uiCallbackActive) {
+                    log.debug( "UICallback: OFF" );
+                    UICallBack.deactivate( "EventManager.pendingEvents" );
+                    session.removeAttribute( "uiCallbackActive" );
+                }
+            }
+        }
+
+        @Override
+        public void beforeDestroy( SessionStoreEvent ev ) {
+            RWT.getLifeCycle().removePhaseListener( this );
+            ev.getSessionStore().removeSessionStoreListener( this );
+        }
+        
+    }
     
+
     /**
      * 
      */
-    class SessionEventDispatcher
+    private class SessionEventDispatcher
             implements EventDispatcher {
         
-        private SessionContext          publishSession;
+        private SessionContext      publishSession;
         
-        private Object[]                omitHandlers;
+        private Object[]            omitHandlers;
         
-        SessionEventDispatcher( Object[] omitHandlers ) {
+        private final int           numOfListeners;
+        
+        private int                 dispatched;
+
+        
+        SessionEventDispatcher( int numOfListeners, Object[] omitHandlers ) {
+            this.numOfListeners = numOfListeners;
             this.publishSession = SessionContext.current();
             this.omitHandlers = omitHandlers;
             assert publishSession != null;
             assert omitHandlers != null;
+            
+            // XXX should never happen
+            if (pendingEvents < 0) {
+                log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
+                pendingEvents = 0;
+            }
+            pendingEvents ++;
+            
+            // install UICallbackPhaseListener
+            try {
+                // seems that a PhaseListener is installed just once for all sessions
+                if (phaseListener == null) {
+                    phaseListener = new UICallbackPhaseListener();
+                    RWT.getLifeCycle().addPhaseListener( phaseListener );
+                }
+//                ISessionStore session = RWT.getSessionStore();
+//                if (session.getAttribute( "EventManager.PhaseListener" ) == null) {
+//                    session.setAttribute( "EventManager.PhaseListener", true );
+//                    UICallbackPhaseListener rpl = new UICallbackPhaseListener();
+//                    RWT.getLifeCycle().addPhaseListener( rpl );
+//                    session.addSessionStoreListener( rpl );
+//                }
+            }
+            catch (IllegalStateException e) {
+                phaseListener = null;
+                // outside request lifecycle -> no UICallback handling
+                log.warn( e.toString() );
+            }
         }
     
         public void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
@@ -236,6 +368,11 @@ public class EventManager {
                 threadPublishSession = null;
             }
 
+            // decrement pendingEvents
+            if (++dispatched >= numOfListeners) {
+                pendingEvents --;
+            }
+            
             // statistics
             if (log.isDebugEnabled()) {
                 statCount++;
