@@ -1,4 +1,4 @@
-package org.polymap.catalog.h2;
+package org.polymap.core.data.feature.recordstore.catalog;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,8 +20,9 @@ import net.refractions.udig.catalog.IServiceInfo;
 import net.refractions.udig.ui.ErrorManager;
 import net.refractions.udig.ui.UDIGDisplaySafeLock;
 
-import org.geotools.data.h2.H2DialectBasic;
+import org.geotools.data.DataAccess;
 import org.geotools.jdbc.JDBCDataStore;
+import org.opengis.feature.type.Name;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -31,18 +32,19 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
-import org.polymap.catalog.h2.data.H2DataStoreFactory;
+import org.polymap.core.data.Messages;
+import org.polymap.core.data.feature.recordstore.RDataStore;
 
 /**
- * Provides an ISerivce so that H2 can show up in service lists.
+ * Provides an ISerivce so that {@link RDataStore} can show up in service lists.
  * 
  * @since 3.1
  */
-public class H2ServiceImpl 
+public class RServiceImpl 
         extends IService
         implements IDeletingSchemaService {
 
-    private static Log log = LogFactory.getLog( H2ServiceImpl.class );
+    private static Log log = LogFactory.getLog( RServiceImpl.class );
 
     private URL                       url;
 
@@ -50,16 +52,16 @@ public class H2ServiceImpl
 
     protected Lock                    rLock = new UDIGDisplaySafeLock();
 
-    private volatile List<H2GeoResource> members = null;
+    private volatile List<RGeoResource> members = null;
     
     private Throwable                 msg;
     
-    private volatile JDBCDataStore    ds;
+    private volatile RDataStore       ds;
     
     private Lock                      dsInstantiationLock = new UDIGDisplaySafeLock();
 
     
-    public H2ServiceImpl( URL url, Map<String, Serializable> params ) {
+    public RServiceImpl( URL url, Map<String, Serializable> params ) {
         assert url != null;
         this.url = url;
         this.params = params;
@@ -71,12 +73,12 @@ public class H2ServiceImpl
             monitor = new NullProgressMonitor();
         }
         if (adaptee == null) {
-            throw new NullPointerException("No adaptor specified");
+            throw new NullPointerException( "No adaptor specified" );
         }
-        if (adaptee.isAssignableFrom( JDBCDataStore.class )) {
+        if (adaptee.isAssignableFrom( DataAccess.class )) {
             return adaptee.cast( getDS() );
         }
-        return super.resolve(adaptee, monitor);
+        return super.resolve( adaptee, monitor );
     }
     
     
@@ -109,18 +111,18 @@ public class H2ServiceImpl
     }
 
 
-    public List<H2GeoResource> resources( IProgressMonitor monitor ) 
+    public List<RGeoResource> resources( IProgressMonitor monitor ) 
     throws IOException {
         @SuppressWarnings("hiding")
-        JDBCDataStore ds = getDS();
+        RDataStore ds = getDS();
         rLock.lock();
         try {
             if (members == null) {
-                members = new LinkedList<H2GeoResource>();
-                String[] typenames = ds.getTypeNames();
+                members = new LinkedList<RGeoResource>();
+                List<Name> typenames = ds.getNames();
                 if (typenames != null) {
-                    for (int i = 0; i < typenames.length; i++) {
-                        members.add( new H2GeoResource( this, typenames[i] ) );
+                    for (Name name : typenames) {
+                        members.add( new RGeoResource( this, name ) );
                     }
                 }
             }
@@ -132,14 +134,14 @@ public class H2ServiceImpl
     }
 
 
-    protected H2ServiceInfo createInfo( IProgressMonitor monitor ) throws IOException {
-        JDBCDataStore dataStore = getDS(); // load DataStore
+    protected RServiceInfo createInfo( IProgressMonitor monitor ) throws IOException {
+        RDataStore dataStore = getDS();
         if (dataStore == null) {
             return null; // could not connect to provide info
         }
         rLock.lock();
         try {
-            return new H2ServiceInfo(dataStore);
+            return new RServiceInfo( dataStore );
         } 
         finally {
             rLock.unlock();
@@ -152,21 +154,23 @@ public class H2ServiceImpl
     }
 
     
-    JDBCDataStore getDS() throws IOException {
+    protected RDataStore getDS() throws IOException {
         boolean changed = false;
         dsInstantiationLock.lock();
         try {
             if (ds == null) {
                 changed = true;
-                H2DataStoreFactory dsf = H2ServiceExtension.getFactory();
-                if (dsf.canProcess( params )) {
-                    try {
-                        ds = dsf.createDataStore( params );
-                    } 
-                    catch (IOException e) {
-                        msg = e;
-                        throw e;
-                    }
+                RDataStoreFactory factory = RServiceExtension.factory();
+                try {
+                    ds = factory.createDataStore( params );
+                } 
+                catch (IOException e) {
+                    msg = e;
+                    throw e;
+                }
+                catch (Exception e) {
+                    msg = e;
+                    throw new IOException( e );
                 }
             }
         } 
@@ -202,34 +206,33 @@ public class H2ServiceImpl
     public void deleteSchema( IGeoResource geores, IProgressMonitor monitor )
     throws IOException {
         if (geores.service( monitor ) != this) {
-            throw new IllegalStateException( "Geores is not H2" );
+            throw new IllegalStateException( "Geo resource is not RecordStore" );
         }
-        new JDBCHelper( getDS(), new H2DialectBasic( getDS() ) )
-                .deleteSchema( geores, monitor );
+        getDS().deleteSchema( geores, monitor );
     }
 
 
     /*
      * 
      */
-    private class H2ServiceInfo 
+    private class RServiceInfo 
             extends IServiceInfo {
 
-        H2ServiceInfo( JDBCDataStore resource ) {
-            String[] tns = new String[0];
-            try {
-                tns = resource.getTypeNames();
-            } 
-            catch (IOException e) {
-                log.warn( "Unable to read typenames", e ); //$NON-NLS-1$
-            }
-            keywords = new String[tns.length + 1];
+        RServiceInfo( RDataStore resource ) {
+//            List<Name> tns = Collections.EMPTY_LIST;
+//            try {
+//                tns = resource.getNames();
+//            } 
+//            catch (IOException e) {
+//                log.warn( "Unable to read typenames", e );
+//            }
+//            keywords = new String[tns.length + 1];
 
-            System.arraycopy( tns, 0, keywords, 1, tns.length );
-            keywords[0] = "h2";
+//            System.arraycopy( tns, 0, keywords, 1, tns.length );
+            keywords = new String[] {"RDataStore"};
 
             try {
-                schema = new URI("jdbc://h2/gml"); //$NON-NLS-1$
+                schema = new URI( "recordstore://lucene/gml" );
             } 
             catch (URISyntaxException e) {
                 log.warn( null, e );
@@ -249,17 +252,15 @@ public class H2ServiceImpl
             }
         }
 
-        public String getTitle() {
-            return ("H2 " + StringUtils.substringAfterLast( getIdentifier().toExternalForm(), ":" ) );
-            //return "MySQL " + getIdentifier(); //$NON-NLS-1$
-            //return "MySQL " + getIdentifier().getHost() + URLUtils.urlToFile(getIdentifier()).getAbsolutePath(); //$NON-NLS-1$
-        }
-
         @Override
         public String getShortTitle() {
-            return "H2";
+            return Messages.get( "RDataStoreFactory_displayName" );
         }
 
-        
+        public String getTitle() {
+            return StringUtils.substringAfterLast( getIdentifier().toExternalForm(), ":" );
+        }
+
     }
+    
 }

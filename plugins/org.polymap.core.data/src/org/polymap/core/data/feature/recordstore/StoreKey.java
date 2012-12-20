@@ -22,7 +22,7 @@ import org.polymap.core.runtime.recordstore.IRecordStore;
  * XPath expressions: <code>base/coll[1]/prop</code>.
  * <p/>
  * Impl. note: Not sure if the impl is good but to use this interface allows to
- * come up with a better one later without the need to change other code.
+ * improve later without the need to change other code.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

@@ -164,10 +164,8 @@ public class LuceneRecordQuery
             implements FieldSelector {
 
         public FieldSelectorResult accept( String fieldName ) {
-            return fieldName == LuceneRecordState.ID_FIELD 
-            || fieldName.equals( LuceneRecordState.ID_FIELD )
-
-            ? FieldSelectorResult.LOAD
+            return fieldName == LuceneRecordState.ID_FIELD || fieldName.equals( LuceneRecordState.ID_FIELD )
+                    ? FieldSelectorResult.LOAD
                     : FieldSelectorResult.NO_LOAD;
         }
 

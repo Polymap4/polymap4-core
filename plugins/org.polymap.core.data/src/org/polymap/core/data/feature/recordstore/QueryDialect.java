@@ -19,7 +19,6 @@ import java.io.IOException;
 import org.geotools.data.Query;
 import org.geotools.data.QueryCapabilities;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.ResultSet;
 

@@ -166,7 +166,8 @@ class JsonSchemaCoder {
 
         
         public FeatureType run() throws Exception {
-            namespace = input.getString( "namespace" );
+            namespace = input.optString( "namespace" );
+            namespace = namespace != null ? namespace : "";
             //CoordinateReferenceSystem crs = CRS.decode( input.optString( "srs",  );
             //json.put( "isIdentified", schema.isIdentified() );
             String defaultGeomName = input.getString( "defaultGeom" );

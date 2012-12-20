@@ -20,21 +20,29 @@ import java.util.List;
 import java.io.IOException;
 
 import org.geotools.data.DataStore;
+import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.data.QueryCapabilities;
 import org.geotools.data.Transaction;
+import org.geotools.data.Transaction.State;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.filter.expression.PropertyAccessor;
+import org.geotools.filter.expression.PropertyAccessors;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.Attribute;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
@@ -55,9 +63,16 @@ public class RFeatureStore
 
     private static Log log = LogFactory.getLog( RFeatureStore.class );
 
+    public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
+    
     protected RDataStore                ds;
     
     protected FeatureType               schema;
+    
+    protected Transaction               tx = Transaction.AUTO_COMMIT;
+    
+    /** The tranaction state if {@link #tx} == {@link Transaction#AUTO_COMMIT}. */
+    protected TransactionState          txState = new TransactionState();
     
 
     protected RFeatureStore( RDataStore ds, FeatureType schema ) {
@@ -93,7 +108,7 @@ public class RFeatureStore
     }
 
 
-    public FeatureCollection getFeatures( Query query )
+    public RFeatureCollection getFeatures( Query query )
     throws IOException {
         return new RFeatureCollection( this, schema, query, ds.queryDialect );
     }
@@ -117,7 +132,9 @@ public class RFeatureStore
      */
     public RFeature newFeature() {
         IRecordState state = ds.store.newRecord();
-        return new RFeature( state, schema );
+        return schema instanceof SimpleFeatureType
+                ? new RSimpleFeature( state, schema )
+                : new RFeature( state, schema );
     }
     
     
@@ -127,16 +144,15 @@ public class RFeatureStore
     throws IOException {
         final List<FeatureId> fids = new ArrayList();
 
-        // FIXME auto commit!?
-        final Updater tx = ds.getStore().prepareUpdate();
         try {
+            startModification();
             features.accepts( new FeatureVisitor() {
                 public void visit( Feature feature ) {
                     //assert feature instanceof RFeature : "Added features must be RFeatures. See RFeatureStore#newFeature().";
                     try {
                         // RFeature
                         if (feature instanceof RFeature) {
-                            tx.store( ((RFeature)feature).state );    
+                            txState.updater().store( ((RFeature)feature).state );    
                             fids.add( feature.getIdentifier() );
                         }
                         // SimpleFeature -> convert
@@ -145,7 +161,7 @@ public class RFeatureStore
                             for (Property prop : feature.getProperties()) {
                                 newFeature.getProperty( prop.getName() ).setValue( prop.getValue() );
                             }
-                            tx.store( newFeature.state );    
+                            txState.updater().store( newFeature.state );
                             fids.add( newFeature.getIdentifier() );
                         }
                         else {
@@ -157,14 +173,14 @@ public class RFeatureStore
                     }
                 }
             }, null );
-            tx.apply();
+            completeModification( true );
         }
         catch (IOException e) {
-            tx.discard();
+            completeModification( false );
             throw e;
         }
         catch (Throwable e) {
-            tx.discard();
+            completeModification( false );
             throw new RuntimeException( e );
         }
         return fids;
@@ -222,19 +238,50 @@ public class RFeatureStore
     
     
     @Override
-    public void modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
-            throws IOException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void modifyFeatures( AttributeDescriptor[] types, Object[] values, Filter filter )
+    throws IOException {
+        assert types != null && types.length > 0;
+        assert values != null && values.length > 0 && types.length == values.length;
+        
+        try {
+            startModification();
+            
+            RFeatureCollection features = getFeatures( new DefaultQuery( null, filter ) );
+            for (RFeature feature : features) {
+                for (int i=0; i<types.length; i++) {
+//                  PropertyName xpath = ff. property( types[i].getLocalName() );
+//                  Attribute attribute = xpath.evaluate( feature, Attribute.class );
+//                  attribute.setValue( values[i] );
+                    
+                    PropertyAccessor accessor = PropertyAccessors.findPropertyAccessor( feature, 
+                            types[i].getLocalName(), Attribute.class, null );
+                    accessor.set( feature, types[i].getLocalName(), values[i], null );
+                    
+                    txState.updater().store( feature.state );                    
+                }
+            }
+            
+            completeModification( true );
+        }
+        catch (IOException e) {
+            completeModification( false );
+            throw e;
+        }
+        catch (Throwable e) {
+            log.warn( "", e );
+            completeModification( false );
+            throw new RuntimeException( e );
+        }
     }
 
+    
     @Override
     public void modifyFeatures( AttributeDescriptor type, Object value, Filter filter )
-            throws IOException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    throws IOException {
+        modifyFeatures( new AttributeDescriptor[] {type}, new Object[] {value}, filter );
     }
 
+    
     @Override
     public void removeFeatures( Filter filter )
             throws IOException {
@@ -243,21 +290,84 @@ public class RFeatureStore
     }
 
     @Override
-    public void setFeatures( FeatureReader reader )
-            throws IOException {
+    public void setFeatures( FeatureReader reader ) throws IOException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
+
+    protected void startModification() {
+    }
+
+    
+    protected void completeModification( boolean success ) throws IOException {
+        if (tx == Transaction.AUTO_COMMIT) {
+            if (success) {
+                txState.commit();
+            } else {
+                txState.rollback();
+            }
+        }
+    }
+    
+    
     public Transaction getTransaction() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        return tx;
     }
 
 
-    public void setTransaction( Transaction transaction ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void setTransaction( Transaction tx ) {
+//        if (tx != this.tx) {
+//            this.tx.commit();
+//        }
+        this.tx = tx;
+        this.txState = new TransactionState();
+        if (tx != Transaction.AUTO_COMMIT) {
+            this.tx.putState( this, txState );
+        }
     }
 
+    
+    /**
+     * 
+     */
+    class TransactionState
+            implements State {
+
+        private Updater             updater;
+
+        public Updater updater() {
+            if (updater == null) {
+                updater = ds.getStore().prepareUpdate();
+            }
+            return updater;
+        }
+        
+        @Override
+        public void addAuthorization( String AuthID ) throws IOException {
+            throw new RuntimeException( "not yet implemented." );
+        }
+
+        @Override
+        public void commit() throws IOException {
+            if (updater != null) {
+                updater.apply();
+                updater = null;
+            }
+        }
+
+        @Override
+        public void rollback() throws IOException {
+            if (updater != null) {
+                updater.discard();
+                updater = null;
+            }            
+        }
+
+        @Override
+        public void setTransaction( Transaction tx ) {
+        }
+        
+    }
+    
 }

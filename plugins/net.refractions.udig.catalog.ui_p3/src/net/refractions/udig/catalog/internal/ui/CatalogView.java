@@ -4,8 +4,6 @@ import java.util.Iterator;
 
 import java.io.IOException;
 
-import org.osgi.service.prefs.BackingStoreException;
-
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
@@ -19,9 +17,12 @@ import net.refractions.udig.internal.ui.UiPlugin;
 import net.refractions.udig.ui.ProgressManager;
 import net.refractions.udig.ui.UDIGDragDropUtilities;
 
+import org.osgi.service.prefs.BackingStoreException;
+
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
@@ -160,13 +161,13 @@ public class CatalogView
 
             public void menuAboutToShow( IMenuManager mgr ) {
                 contextMenu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
-                contextMenu.add(new Separator());
+                contextMenu.add( new Separator() );
                 //contextMenu.add(removeAction);
                 IWorkbenchWindow window = getSite().getWorkbenchWindow();
-                IAction action = ActionFactory.IMPORT.create(window);
-                contextMenu.add(action);
-                contextMenu.add(new Separator());
-                contextMenu.add(UiPlugin.getDefault().getOperationMenuFactory().getContextMenu(treeviewer.getSelection()));
+                IAction importAction = ActionFactory.IMPORT.create( window );
+                contextMenu.add( importAction );
+                contextMenu.add( new Separator() );
+                contextMenu.add( UiPlugin.getDefault().getOperationMenuFactory().getContextMenu( treeviewer.getSelection() ) );
                 // XXX _p3: no export in catalog
                 //contextMenu.add(new Separator());
                 //contextMenu.add(ActionFactory.EXPORT.create(getSite().getWorkbenchWindow()));
@@ -364,11 +365,11 @@ public class CatalogView
         // mgr.add(addAction);
 
         IWorkbenchWindow window = getSite().getWorkbenchWindow();
-        IAction action = ActionFactory.IMPORT.create(window);
+        IAction importAction = ActionFactory.IMPORT.create(window);
+        importAction.setToolTipText( "Import data or services into the catalog" );
 
-        action.setImageDescriptor(Images
-                .getDescriptor(ImageConstants.PATH_ETOOL + "import_wiz.gif")); //$NON-NLS-1$
-        mgr.add(action);
+        importAction.setImageDescriptor( Images.getDescriptor(ImageConstants.PATH_ETOOL + "import_wiz.gif"));
+        mgr.add( importAction );
 
         //mgr.add(removeAction);
     }

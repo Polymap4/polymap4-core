@@ -28,6 +28,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.sort.SortBy;
@@ -52,7 +53,7 @@ import org.polymap.core.runtime.recordstore.ResultSet;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class RFeatureCollection
-        implements FeatureCollection {
+        implements FeatureCollection, Iterable<RFeature> {
 
     private static Log log = LogFactory.getLog( RFeatureCollection.class );
 
@@ -156,14 +157,21 @@ class RFeatureCollection
     public Iterator iterator() {
         try {
             final ResultSet results = queryDialect.getFeatureStates( fs, query );
+            
             Iterator<Feature> result = new Iterator<Feature>() {
+            
                 private Iterator<IRecordState>  delegate = results.iterator();
+                
                 public boolean hasNext() {
                     return delegate.hasNext(); 
                 }
+                
                 public Feature next() {
-                    return new RFeature( delegate.next(), schema );
+                    return schema instanceof SimpleFeatureType
+                            ? new RSimpleFeature( delegate.next(), schema )
+                            : new RFeature( delegate.next(), schema );
                 }
+                
                 public void remove() {
                     delegate.remove();
                 }

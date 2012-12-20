@@ -17,23 +17,17 @@ package org.polymap.core.runtime.recordstore.lucene;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.NumericField;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKBReader;
+import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
-import com.vividsolutions.jts.io.WKTWriter;
 
 import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.QueryExpression.BBox;
-import org.polymap.core.runtime.recordstore.QueryExpression.Equal;
 import org.polymap.core.runtime.recordstore.QueryExpression.Greater;
 import org.polymap.core.runtime.recordstore.QueryExpression.Less;
 
@@ -51,39 +45,62 @@ public final class GeometryValueCoder
     static final String                 FIELD_MINX = "_minx_";
     static final String                 FIELD_MINY = "_miny_";
     
+    /** Re-used readers per thread. */
+    static final ThreadLocal<WKBReader> wkbReaders = new ThreadLocal<WKBReader>() {
+        protected WKBReader initialValue() {
+            return new WKBReader();
+        }
+    };
+    /** Re-used readers per thread. */
+    static final ThreadLocal<WKTReader> wktReaders = new ThreadLocal<WKTReader>() {
+        protected WKTReader initialValue() {
+            return new WKTReader();
+        }
+    };
+    
     /** The coder used to handle bbox min/max values for queries. */
     private NumericValueCoder           numeric = new NumericValueCoder();
     
-    //private GeometryJSON                jsonCoder = new GeometryJSON( 8 );
     
-    
-    protected String encode( Geometry geom ) {
-        return new WKTWriter().write( geom );    
+    protected byte[] encode( Geometry geom ) {
+        return new WKBWriter().write( geom );    
     }
+
     
-    protected Geometry decode( String encoded ) {
-        try {
-            return new WKTReader().read( encoded );
+    public Object decode( Document doc, String key ) {
+        if (doc.getFieldable( key+FIELD_MAXX ) != null) {
+            Field field = (Field)doc.getFieldable( key );
+            try {
+                return wkbReaders.get().read( field.getBinaryValue() );
+            }
+            catch (Exception e) {
+                try {
+                    return wktReaders.get().read( field.stringValue() );
+                }
+                catch (Exception ee) {
+                    throw new RuntimeException( ee );
+                }
+            }
         }
-        catch (ParseException e) {
-            throw new RuntimeException( e );
+        else {
+            return null;
         }
     }
-    
-    
+
+
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         if (value instanceof Geometry) {
             Geometry geom = (Geometry)value;
 
             // store geom -> WKT, JSON, ...
-            String out = encode( geom );
+            byte[] out = encode( geom );
 
             Field field = (Field)doc.getFieldable( key );
             if (field != null) {
                 field.setValue( out );
             }
             else {
-                doc.add( new Field( key, out.toString(), Store.YES, Index.NO ) );
+                doc.add( new Field( key, out ) );
             }
 
             // store bbox
@@ -99,17 +116,6 @@ public final class GeometryValueCoder
         }
     }
     
-
-    public Object decode( Document doc, String key ) {
-        if (doc.getFieldable( key+FIELD_MAXX ) != null) {
-            Field field = (Field)doc.getFieldable( key );
-            return decode( field.stringValue() );
-        }
-        else {
-            return null;
-        }
-    }
-
 
     public Query searchQuery( QueryExpression exp ) {
         // BBOX
@@ -139,15 +145,15 @@ public final class GeometryValueCoder
                     new Less( bbox.key+FIELD_MINY, bbox.maxY ) ), BooleanClause.Occur.MUST );
             return result;
         }
-        // EQUALS
-        else if (exp instanceof QueryExpression.Equal) {
-            Equal equal = (QueryExpression.Equal)exp;
-            
-            if (equal.value instanceof Geometry) {
-                String encoded = encode( (Geometry)equal.value );
-                return new TermQuery( new Term( equal.key, encoded ) );
-            }
-        }
+//        // EQUALS
+//        else if (exp instanceof QueryExpression.Equal) {
+//            Equal equal = (QueryExpression.Equal)exp;
+//            
+//            if (equal.value instanceof Geometry) {
+//                String encoded = encode( (Geometry)equal.value );
+//                return new TermQuery( new Term( equal.key, encoded ) );
+//            }
+//        }
         return null;
     }
     

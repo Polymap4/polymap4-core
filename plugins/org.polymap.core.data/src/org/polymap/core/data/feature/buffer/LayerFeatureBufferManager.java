@@ -317,8 +317,12 @@ public class LayerFeatureBufferManager
             }
             monitor.worked( 1 );
         }
-        fs.addFeatures( added );
-        fs.removeFeatures( ff.id( removed ) );
+        if (!added.isEmpty()) {
+            fs.addFeatures( added );
+        }
+        if (!removed.isEmpty()) {
+            fs.removeFeatures( ff.id( removed ) );
+        }
         
         // none of the features had concurrent modifications, so just upgrade
         // timestamp for the layer (no checking is needed and done)

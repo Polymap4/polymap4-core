@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.catalog.model;
 
@@ -47,7 +39,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * A folder for all service of a type. 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 class ServiceTypeFolder 
@@ -123,9 +114,21 @@ class ServiceTypeFolder
             return "DXF";
         }
         else {
-            String result = StringUtils.remove( typeName, "Impl" );
-            result = StringUtils.remove( result, "Service" );
-            return result;
+            try {
+                IService service = (IService)services.get( 0 );
+                String result = service.getInfo( null ).getShortTitle();
+                if (result != null) {
+                    return result;
+                }
+                else {
+                    throw new Exception( "trying last resort..." );
+                }
+            }
+            catch (Exception e) {
+                String result = StringUtils.remove( typeName, "Impl" );
+                result = StringUtils.remove( result, "Service" );
+                return result;
+            }
         }
     }
 

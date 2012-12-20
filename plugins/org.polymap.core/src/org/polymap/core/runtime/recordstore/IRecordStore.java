@@ -110,7 +110,7 @@ public interface IRecordStore {
         void discard();
         
         /**
-         * Same as <code>apply(true)</code>.
+         * Same as {@link #apply(boolean)} <code>true</code>.
          */
         void apply();
 
