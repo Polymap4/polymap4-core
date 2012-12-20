@@ -283,12 +283,29 @@ public class RFeatureStore
 
     
     @Override
-    public void removeFeatures( Filter filter )
-            throws IOException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void removeFeatures( Filter filter ) throws IOException {
+        try {
+            startModification();
+            
+            RFeatureCollection features = getFeatures( new DefaultQuery( null, filter ) );
+            for (RFeature feature : features) {
+                txState.updater().remove( feature.state );                    
+            }
+            
+            completeModification( true );
+        }
+        catch (IOException e) {
+            completeModification( false );
+            throw e;
+        }
+        catch (Throwable e) {
+            log.warn( "", e );
+            completeModification( false );
+            throw new RuntimeException( e );
+        }
     }
 
+    
     @Override
     public void setFeatures( FeatureReader reader ) throws IOException {
         // XXX Auto-generated method stub

@@ -121,7 +121,13 @@ public class RDataStore
         }
     }
 
+    
+    @Override
+    protected void finalize() throws Throwable {
+        dispose();
+    }
 
+    
     protected IRecordStore getStore() {
         return store;
     }
