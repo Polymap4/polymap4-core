@@ -16,6 +16,7 @@ package org.polymap.core.data.feature.recordstore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import java.io.IOException;
 
@@ -383,6 +384,21 @@ public class RFeatureStore
 
         @Override
         public void setTransaction( Transaction tx ) {
+        }
+        
+    }
+
+    
+    /**
+     * 
+     */
+    class CommitJob
+            implements Callable {
+
+        @Override
+        public Object call() throws Exception {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
         }
         
     }

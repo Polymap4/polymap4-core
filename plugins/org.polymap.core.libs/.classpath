@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/lucene-core-3.6.0.jar" sourcepath="lib/sources/lucene-core-3.6.0-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/lucene-queryparser-3.6.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/lucene-queryparser-3.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/lucene-core-3.6.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava-10.0.1.jar" sourcepath="lib/sources/guava-10.0.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/xercesImpl-2.7.1.jar" sourcepath="/home/falko/.m2/repository/xerces/xercesImpl/2.7.1/xercesImpl-2.7.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar"/>
@@ -48,7 +48,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-svg-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-validation-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar" sourcepath="lib/sources/gt-wfs-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar" sourcepath="lib/sources/gt-xsd-core-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wms-2.6.4.jar" sourcepath="lib/sources/gt-wms-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wps-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-2.6.4.jar" sourcepath="lib/sources/gt-xml-2.6.4-sources.zip"/>
@@ -56,7 +56,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml2-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml3-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-kml-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-kml-2.6.4.jar" sourcepath="lib/sources/gt-xsd-kml-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-ows-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wfs-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wps-2.6.4.jar"/>

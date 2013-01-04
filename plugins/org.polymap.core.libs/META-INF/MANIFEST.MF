@@ -2247,7 +2247,9 @@ Bundle-ClassPath: .,
  lib/xercesImpl-2.7.1.jar,
  lib/guava-10.0.1.jar,
  lib/lucene-core-3.6.0.jar,
- lib/lucene-queryparser-3.6.0.jar
+ lib/lucene-queryparser-3.6.0.jar,
+ lib/lucene-core-3.6.1.jar,
+ lib/lucene-queryparser-3.6.1.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
 Bundle-Vendor: polymap.org

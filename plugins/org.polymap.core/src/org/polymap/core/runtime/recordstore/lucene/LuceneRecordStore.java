@@ -151,17 +151,24 @@ public final class LuceneRecordStore
         // use mmap on 32bit Linux of index size < xxxMB
         if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
                 && FileUtils.sizeOfDirectory( indexDir ) < 500 * 1024 * 1024) {
-            directory = new MMapDirectory( indexDir, null );
+            try {
+                directory = new MMapDirectory( indexDir, null );
+                open( clean );
+            }
+            catch (OutOfMemoryError e) {
+                log.info( "Unable to mmap index: falling back to default.");
+            }
         }
-        else {
+        
+        if (searcher == null) {
             directory = FSDirectory.open( indexDir );
+            open( clean );
         }
 
         log.info( "Database: " + indexDir.getAbsolutePath()
                 + "\n    size: " + FileUtils.sizeOfDirectory( indexDir )
                 + "\n    using: " + directory.getClass().getSimpleName()
                 + "\n    files in directry: " + Arrays.asList( directory.listAll() ) );
-        open( clean );
     }
 
 
@@ -218,6 +225,12 @@ public final class LuceneRecordStore
     }
     
     
+    @Override
+    protected void finalize() throws Throwable {
+        close();
+    }
+
+
     public IndexSearcher getIndexSearcher() {
         return searcher;
     }
