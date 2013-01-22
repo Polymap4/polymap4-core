@@ -31,16 +31,16 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IModelHandleable;
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelStoreEvent;
-import org.polymap.core.model.event.ModelStoreEvent.EventType;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.entity.IEntityStateListener;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 
 /**
  * Wraps a session context of a service ({@link IProvidedService}). Besides providing
@@ -50,7 +50,7 @@ import org.polymap.core.runtime.SessionContext;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ServiceContext
-        implements IModelStoreListener, IPropertyChangeListener {
+        implements IEntityStateListener, IPropertyChangeListener {
 
     private static Log log = LogFactory.getLog( ServiceContext.class );
     
@@ -136,7 +136,7 @@ public class ServiceContext
             }
             
             // listen to global change events of the map and layers (in the new context)
-            ModelChangeTracker.instance().addListener( this );
+            EntityStateTracker.instance().addListener( this );
 
             // listen to preference changes
             final ScopedPreferenceStore prefStore = new ScopedPreferenceStore( 
@@ -174,8 +174,7 @@ public class ServiceContext
             }
             // unregister listener
             try {
-                boolean removed = ModelChangeTracker.instance().removeListener( this );
-//            assert removed;
+                EntityStateTracker.instance().removeListener( this );
             }
             catch (Throwable e) {
                 // FIXME hack to 
@@ -192,7 +191,7 @@ public class ServiceContext
     
     // event handling *************************************
 
-    public void modelChanged( final ModelStoreEvent ev ) {
+    public void modelChanged( final EntityStateEvent ev ) {
         if (ev.getEventType() == EventType.COMMIT) {
             
             // the event comes within a Job but with RAP session context (in most cases)
@@ -213,15 +212,15 @@ public class ServiceContext
                         IProvidedService service = findService();
                         IMap map = service.getMap();
                         
-                        if (ev.hasChanged( (IModelHandleable)service )) {
+                        if (ev.hasChanged( (IEntityHandleable)service )) {
                             needsRestart = true;
                         }
-                        else if (ev.hasChanged( (IModelHandleable)map )) {
+                        else if (ev.hasChanged( (IEntityHandleable)map )) {
                             needsRestart = true;
                         }
                         else {
                             for (ILayer layer : map.getLayers()) {
-                                if (ev.hasChanged( (IModelHandleable)layer )) {
+                                if (ev.hasChanged( (IEntityHandleable)layer )) {
                                     needsRestart = true;
                                 }
                             }

@@ -41,10 +41,29 @@ public class DefaultSessionContext
 
 
     public DefaultSessionContext( String sessionKey ) {
+        assert sessionKey != null;
         this.sessionKey = sessionKey;
     }
 
     
+    @Override
+    public int hashCode() {
+        return sessionKey.hashCode();
+    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultSessionContext) {
+            DefaultSessionContext other = (DefaultSessionContext)obj;
+            return sessionKey.equals( other.sessionKey );
+        }
+        return false;
+    }
+
+
     protected void destroy() {
         log.debug( "destroy(): ..." );
         checkDestroyed();
@@ -56,9 +75,7 @@ public class DefaultSessionContext
                 log.warn( "", e );
             }
         }
-        listeners.clear();
         listeners = null;
-        attributes.clear();
         attributes = null;
         // keep sessionKey for debugging/logging
         //sessionKey = null;
@@ -116,7 +133,8 @@ public class DefaultSessionContext
         SessionContext current = DefaultSessionContextProvider.currentContext.get();
         if (current != null) {
             if (current.getSessionKey().equals( sessionKey )) {
-                throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
+                return task.call();
+               // throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
             }
             else {
                 throw new IllegalStateException( "Another context is mapped to this thread: " + current.getSessionKey() );                

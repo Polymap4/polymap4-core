@@ -107,7 +107,7 @@ class MemoryFeatureBuffer
 
     public List<FeatureId> markAdded( Collection<Feature> features )
     throws Exception {
-        List<FeatureId> result = new ArrayList();
+        List<FeatureId> result = new ArrayList( 1024 );
 
         for (Feature feature : features) {
             FeatureId identifier = feature.getIdentifier();

@@ -39,28 +39,6 @@
             id="org.polymap.core.project.LayerNavigatorContribution"
             targetID="org.polymap.core.project.LayerNavigator">
          <action
-               class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
-               enablesFor="1"
-               icon="icons/etool16/layer_editable.gif"
-               id="org.polymap.rhei.action3"
-               label="%actions_layerEditableStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_layerEditableStatusTip">
-         </action>
-         <action
-               class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"
-               enablesFor="+"
-               icon="icons/etool16/layer_selectable.gif"
-               id="org.polymap.rhei.action2"
-               label="%actions_layerSelectableStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_layerSelectableStatusTip">
-         </action>
-         <action
                class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
                enablesFor="+"
                icon="icons/elcl16/eye.png"
@@ -187,26 +165,6 @@
                label="%actions_deleteLayer"
                style="push"
                tooltip="%actions_deleteLayer">
-         </action>
-         <action
-               class="org.polymap.core.project.ui.layer.LayerSelectableStatusAction"
-               enablesFor="+"
-               icon="icons/etool16/layer_selectable.gif"
-               id="org.polymap.core.project.LayerSelectableStatusAction"
-               label="%actions_layerSelectableStatus"
-               state="false"
-               style="toggle"
-               tooltip="%actions_layerSelectableStatusTip">
-         </action>
-         <action
-               class="org.polymap.core.project.ui.layer.LayerEditableStatusAction"
-               enablesFor="1"
-               icon="icons/etool16/layer_editable.gif"
-               id="org.polymap.core.project.LayerEditableStatusAction"
-               label="%actions_layerEditableStatus"
-               state="false"
-               style="toggle"
-               tooltip="%actions_layerEditableStatus">
          </action>
          <action
                class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"

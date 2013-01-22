@@ -130,11 +130,11 @@ public abstract class ContextMenuSite {
             
             
             try {
-                // the dispatch loop shows the menu, in current state; allow the job to finish
-                // within 250ms to avoid menu flickering to much
-                if (!done.get()) {
-                    synchronized (done) { done.wait( 250 ); }
-                }
+//                // the dispatch loop shows the menu, in current state; allow the job to finish
+//                // within 250ms to avoid menu flickering to much
+//                if (!done.get()) {
+//                    synchronized (done) { done.wait( 250 ); }
+//                }
                 job.joinAndDispatch( 5000 );
                 features = coveredFeatures.get( layer.id() );
             }

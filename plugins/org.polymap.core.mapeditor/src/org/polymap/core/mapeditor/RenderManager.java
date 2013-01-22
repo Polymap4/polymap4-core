@@ -16,17 +16,17 @@ package org.polymap.core.mapeditor;
 
 import java.util.EventObject;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.json.JSONObject;
+import org.osgi.service.http.NamespaceException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -49,10 +49,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureChangeListener;
-import org.polymap.core.data.FeatureEventManager;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.operation.OperationSupport;
@@ -64,6 +61,9 @@ import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.project.operations.OpenMapOperation;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.ServicesPlugin;
@@ -86,7 +86,7 @@ public class RenderManager {
     
     private MapEditor               mapEditor;
 
-    private MapHttpServer          wmsServer;
+    private MapHttpServer           wmsServer;
     
     private TreeMap<String,RenderLayerDescriptor> descriptors = new TreeMap();
     
@@ -104,8 +104,8 @@ public class RenderManager {
         this.mapEditor = mapEditor;
         
         // model listener
-        IEventFilter eventFilter = new IEventFilter() {
-            public boolean accept( EventObject ev ) {
+        EventFilter eventFilter = new EventFilter<EventObject>() {
+            public boolean apply( EventObject ev ) {
                 if (RenderManager.this.map == null || ev.getSource() == null) {
                     return false;
                 }
@@ -121,13 +121,12 @@ public class RenderManager {
             }
         };
         ProjectRepository module = ProjectRepository.instance();
-        module.addPropertyChangeListener( modelListener, eventFilter ); 
-        module.addModelChangeListener( modelListener, eventFilter );
+        module.addEntityListener( modelListener, eventFilter );
         
         // feature listener
-        FeatureEventManager fem = FeatureEventManager.instance();
-        fem.addFeatureChangeListener( featureListener, new IEventFilter<FeatureChangeEvent>() {
-            public boolean accept( FeatureChangeEvent ev ) {
+        EventManager em = EventManager.instance();
+        em.subscribe( featureListener, new EventFilter<FeatureChangeEvent>() {
+            public boolean apply( FeatureChangeEvent ev ) {
                 if (RenderManager.this.map == null || ev.getSource() == null) {
                     return false;
                 }
@@ -141,12 +140,11 @@ public class RenderManager {
         clearPipelines();
         if (modelListener != null && map != null) {
             ProjectRepository module = ProjectRepository.instance();
-            module.removePropertyChangeListener( modelListener );
-            module.removeModelChangeListener( modelListener );
+            module.removeEntityListener( modelListener );
             modelListener = null;
         }
         if (featureListener != null) {
-            FeatureEventManager.instance().removeFeatureChangeListener( featureListener );
+            EventManager.instance().unsubscribe( featureListener );
             featureListener = null;
         }
         if (wmsServer != null) {
@@ -222,7 +220,7 @@ public class RenderManager {
 
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
                             StringUtils.removeStart( wmsServer.getPathSpec(), "/" ), 
-                            layer.isEditable(), layer.getOrderKey(), layer.getOpacity() );
+                            false, layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
                     descriptors.put( descriptor.renderLayerKey(), descriptor );
                     
@@ -262,7 +260,14 @@ public class RenderManager {
             SimpleWmsServer result = new SimpleWmsServer();
             result.init( map );
 
-            CorePlugin.registerServlet( pathSpec, result, null );
+            try {
+                CorePlugin.registerServlet( pathSpec, result, null );
+            }
+            // session logged out without closing all services 
+            catch (NamespaceException e) {
+                CorePlugin.unregister( pathSpec );
+                CorePlugin.registerServlet( pathSpec, result, null );
+            }
 
             log.debug( "    URL: " + result.getPathSpec() );
             return result;
@@ -282,14 +287,19 @@ public class RenderManager {
     /**
      * 
      */
-    class FeatureListener
-            extends FeatureChangeListener {
+    class FeatureListener {
         
-        public void featureChange( FeatureChangeEvent ev ) {
-            RenderLayerDescriptor descriptor = findDescriptorForLayer( ev.getSource() );
-            if (descriptor != null) {
-                // XXX delay reload for subsequent changes?
-                mapEditor.reloadLayer( descriptor );
+        @EventHandler(delay=750, display=true)
+        public void featureChanges( List<FeatureChangeEvent> events ) {
+            Set<ILayer> dirty = new HashSet( events.size() );
+            for (FeatureChangeEvent ev : events) {
+                dirty.add( ev.getSource() );
+            }
+            for (ILayer layer : dirty) {
+                RenderLayerDescriptor descriptor = findDescriptorForLayer( layer );
+                if (descriptor != null) {
+                    mapEditor.reloadLayer( descriptor );
+                }
             }
         }
     }
@@ -299,7 +309,7 @@ public class RenderManager {
      * 
      */
     class MapDomainListener
-            implements IModelChangeListener, PropertyChangeListener {
+            implements IModelChangeListener {
 
         /**
          * Close the corresponding {@link MapEditor}. This call triggers {@link MapEditor#dispose()}
@@ -315,126 +325,114 @@ public class RenderManager {
         }
         
         public void modelChanged( ModelChangeEvent ev ) {
-            Display display = mapEditor.getEditorSite().getShell().getDisplay();
-            
             // check CRS changes after an operation has has finished and
             // extends are transformed in new CRS
-            Iterable<PropertyChangeEvent> crsEvents = ev.events( new IEventFilter<PropertyChangeEvent>() {
-                public boolean accept( PropertyChangeEvent iev ) {
+            Iterable<PropertyChangeEvent> crsEvents = ev.events( new EventFilter<PropertyChangeEvent>() {
+                public boolean apply( PropertyChangeEvent iev ) {
                     return iev.getSource() instanceof IMap 
                             && IMap.PROP_CRSCODE.equalsIgnoreCase( iev.getPropertyName() );
                 }
             });
             if (!Iterables.isEmpty( crsEvents )) {
-                display.asyncExec( new Runnable() {
-                    public void run() {
-                        try {
-                            // map is null after MapEditor closed and dispose()
-                            IMap savedMap = map;
-                            IWorkbenchPage page = closeMapEditor();
-                            
-                            // re-open editor
-                            OpenMapOperation op = new OpenMapOperation( savedMap, page );
-                            OperationSupport.instance().execute( op, true, true );
-                        }
-                        catch (Exception e) {
-                            PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
-                        }
+                try {
+                    // map is null after MapEditor closed and dispose()
+                    IMap savedMap = map;
+                    IWorkbenchPage page = closeMapEditor();
 
-//                        MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(),
-//                                Messages.get( "RenderManager_updateCrs_title" ),
-//                                Messages.get( "RenderManager_updateCrs_msg" ) );
-//                        //mapEditor.updateMapCRS();
-                    }
-                });
+                    // re-open editor
+                    OpenMapOperation op = new OpenMapOperation( savedMap, page );
+                    OperationSupport.instance().execute( op, true, true );
+                }
+                catch (Exception e) {
+                    PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "", e );
+                }
+
+                //                        MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(),
+                //                                Messages.get( "RenderManager_updateCrs_title" ),
+                //                                Messages.get( "RenderManager_updateCrs_msg" ) );
+                //                        //mapEditor.updateMapCRS();
             }
         }
 
-        public void propertyChange( PropertyChangeEvent ev ) {
-            Display display = mapEditor.getEditorSite().getShell().getDisplay();
+        @EventHandler(delay=500, display=true)
+        public void propertyChange( List<PropertyChangeEvent> events ) {
+            boolean updatePipelines = false;
+            
+            for (PropertyChangeEvent ev : events) {
+                // ILayer
+                if (ev.getSource() instanceof ILayer) {
+                    ILayer layer = (ILayer)ev.getSource();
+                    RenderLayerDescriptor descriptor = findDescriptorForLayer( layer );
 
-            // ILayer
-            if (ev.getSource() instanceof ILayer) {
-                ILayer layer = (ILayer)ev.getSource();
-                RenderLayerDescriptor descriptor = findDescriptorForLayer( layer );
-                
-                if ("visible".equals( ev.getPropertyName() )) {
-                    updatePipelines();
-                }
-                else if ("edit".equals( ev.getPropertyName() )) {
-                    updatePipelines();
-                }
-                else if (ILayer.PROP_OPACITY.equals( ev.getPropertyName() )) {
-                    if (descriptor != null && descriptor.layers.size() == 1) {
-                        mapEditor.setLayerOpacity( descriptor, layer.getOpacity() );
+                    if ("visible".equals( ev.getPropertyName() )) {
+                        updatePipelines = true;
                     }
-                    else {
-                        updatePipelines();
+                    else if ("edit".equals( ev.getPropertyName() )) {
+                        updatePipelines = true;
+                    }
+                    else if (ILayer.PROP_OPACITY.equals( ev.getPropertyName() )) {
+                        if (descriptor != null && descriptor.layers.size() == 1) {
+                            mapEditor.setLayerOpacity( descriptor, layer.getOpacity() );
+                        }
+                        else {
+                            updatePipelines = true;
+                        }
+                    }
+                    else if (ILayer.PROP_ORDERKEY.equals( ev.getPropertyName() )) {
+                        if (descriptor != null && descriptor.layers.size() == 1) {
+                            mapEditor.setLayerZPriority( descriptor, layer.getOrderKey() );
+                        }
+                        else {
+                            updatePipelines = true;
+                        }
+                    }
+                    else if (ILayer.PROP_STYLE.equals( ev.getPropertyName() )) {
+                        if (descriptor != null) {
+                            mapEditor.reloadLayer( descriptor );
+                        }
+                    }
+                    else if (PipelineHolder.PROP_PROCS.equals( ev.getPropertyName() )) {
+                        if (descriptor != null) {
+                            updatePipelines = true;
+                        }
                     }
                 }
-                else if (ILayer.PROP_ORDERKEY.equals( ev.getPropertyName() )) {
-                    if (descriptor != null && descriptor.layers.size() == 1) {
-                        mapEditor.setLayerZPriority( descriptor, layer.getOrderKey() );
+                // IMap
+                else if (ev.getSource() instanceof IMap) {
+                    // check if map was deleted
+                    if (PropertyChangeSupport.PROP_ENTITY_REMOVED .equals( ev.getPropertyName() )) {
+                        closeMapEditor();
                     }
-                    else {
-                        updatePipelines();
+                    else if (IMap.PROP_LAYERS.equals( ev.getPropertyName() )) {
+                        updatePipelines = true;
                     }
-                }
-                else if (ILayer.PROP_STYLE.equals( ev.getPropertyName() )) {
-                    if (descriptor != null) {
-                        mapEditor.reloadLayer( descriptor );
+                    else if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
+                        ReferencedEnvelope extent = (ReferencedEnvelope)ev.getNewValue();
+                        mapEditor.setMapExtent( extent );
+
+                        // XXX refactor this out to MapEditor so that it can be used elsewhere 
+                        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                        IWorkbenchPage page = window.getActivePage();
+                        if (page != null && mapEditor != null 
+                                && page.findEditor( mapEditor.getEditorInput() ) != null) {
+                            page.activate( mapEditor );
+                        }
                     }
-                }
-                else if (PipelineHolder.PROP_PROCS.equals( ev.getPropertyName() )) {
-                    if (descriptor != null) {
-                        updatePipelines();
+                    else if (IMap.PROP_MAXEXTENT.equals( ev.getPropertyName() )) {
+                        mapEditor.setMapExtent( map.getMaxExtent() );
+                        mapEditor.setMaxExtent( map.getMaxExtent() );
+                    }
+                    else if (IMap.PROP_CRSCODE.equalsIgnoreCase( ev.getPropertyName() )) {
+                        // stop listening to events as extents and CRS do not match any longer;
+                        // wait for ModelChangeEvent to reload
+                        ProjectRepository module = ProjectRepository.instance();
+                        // FIXME
+                        log.warn( "!!! commented out: module.removePropertyChangeListener( modelListener );" );
                     }
                 }
             }
-            // IMap
-            else if (ev.getSource() instanceof IMap) {
-                // check if map was deleted
-                if (PropertyChangeSupport.PROP_ENTITY_REMOVED .equals( ev.getPropertyName() )) {
-                    display.asyncExec( new Runnable() {
-                        public void run() {
-                            closeMapEditor();
-                            return;
-                        }
-                    });
-                }
-                else if (IMap.PROP_LAYERS.equals( ev.getPropertyName() )) {
-                    updatePipelines();                    
-                }
-                else if (IMap.PROP_EXTENT.equals( ev.getPropertyName() )) {
-                    ReferencedEnvelope extent = (ReferencedEnvelope)ev.getNewValue();
-                    mapEditor.setMapExtent( extent );
-                    
-                    // XXX refactor this out to MapEditor so that it can be used elsewhere 
-                    display.asyncExec( new Runnable() {
-                        public void run() {
-                            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                            IWorkbenchPage page = window.getActivePage();
-                            if (page != null && mapEditor != null 
-                                    && page.findEditor( mapEditor.getEditorInput() ) != null) {
-                                page.activate( mapEditor );
-                            }
-                        }
-                    });
-                }
-                else if (IMap.PROP_MAXEXTENT.equals( ev.getPropertyName() )) {
-                    display.syncExec( new Runnable() {
-                        public void run() {
-                            mapEditor.setMapExtent( map.getMaxExtent() );
-                            mapEditor.setMaxExtent( map.getMaxExtent() );
-                        }
-                    });
-                }
-                else if (IMap.PROP_CRSCODE.equalsIgnoreCase( ev.getPropertyName() )) {
-                    // stop listening to events as extents and CRS do not match an longer;
-                    // wait for ModelChangeEvent to reload
-                    ProjectRepository module = ProjectRepository.instance();
-                    module.removePropertyChangeListener( modelListener );
-                }
+            if (updatePipelines) {
+                updatePipelines();
             }
         }
     }

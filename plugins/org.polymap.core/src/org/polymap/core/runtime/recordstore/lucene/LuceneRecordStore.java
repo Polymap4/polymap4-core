@@ -15,9 +15,12 @@
 package org.polymap.core.runtime.recordstore.lucene;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +37,11 @@ import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -42,14 +49,16 @@ import org.apache.lucene.util.Version;
 
 import com.google.common.collect.MapMaker;
 
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.recordstore.BaseRecordStore;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
-import org.polymap.core.runtime.recordstore.RecordModel;
+import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.RecordQuery;
+import org.polymap.core.runtime.recordstore.ResultSet;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
 
 /**
@@ -67,12 +76,39 @@ public final class LuceneRecordStore
     private static Log log = LogFactory.getLog( LuceneRecordStore.class );
 
     private static final Version    VERSION = Version.LUCENE_34;
+
+    /**
+     * The {@link ExecutorService} used by the {@link #searcher}.
+     * <p/>
+     * XXX This is not the {@link Polymap#executorService()}, as this used Eclipse
+     * Jobs, which results in deadlocks.
+     */
+    private static ExecutorService  executor = Polymap.executorService();
+    
+//    static {
+//        int nThreads = Runtime.getRuntime().availableProcessors() * 8;
+//        ThreadFactory threadFactory = new ThreadFactory() {
+//            volatile int threadNumber = 0;
+//            public Thread newThread( Runnable r ) {
+//                String prefix = "LuceneRecordStore-searcher-";
+//                Thread t = new Thread( r, prefix + threadNumber++ );
+//                t.setDaemon( false );
+//                t.setPriority( Thread.NORM_PRIORITY - 1 );
+//                return t;
+//            }
+//        };
+//        executor = new ThreadPoolExecutor( nThreads, nThreads,
+//                60L, TimeUnit.SECONDS,
+//                new LinkedBlockingQueue<Runnable>(),
+//                threadFactory);
+//        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
+//    }
+    
+    // instance *******************************************
     
     private Directory               directory;
 
     private Analyzer                analyzer = new WhitespaceAnalyzer( VERSION );
-    
-    private ExecutorService         executor = null; //Polymap.executorService();
     
     private Cache<Object,Document>  cache = null;
     
@@ -88,8 +124,11 @@ public final class LuceneRecordStore
 
     IndexReader                     reader;
     
-    ValueCoders                     valueCoders = new ValueCoders( this );
+    /** Prevents {@link #reader} close/reopen by {@link LuceneUpdater} while in use. */
+    ReadWriteLock                   lock = new ReentrantReadWriteLock();
 
+    ValueCoders                     valueCoders = new ValueCoders( this );
+    
     
     /**
      * Creates a new store for the given filesystem directory. 
@@ -134,19 +173,23 @@ public final class LuceneRecordStore
             log.info( "    Index created." );
         }
 
-        reader = IndexReader.open( directory, true );
+        reader = IndexReader.open( directory );
         searcher = new IndexSearcher( reader, executor );
     }
     
     
     public void close() {
         try {
-            searcher.close();
-            searcher = null;
-            reader.close();
-            reader = null;
-            directory.close();
-            directory = null;
+            if (searcher != null) {
+                searcher.close();
+                searcher = null;
+            }
+            if (reader != null) {
+                reader.close();
+                reader = null;
+                directory.close();
+                directory = null;
+            }
             
             if (cache != null) {
                 cache.dispose();
@@ -160,7 +203,7 @@ public final class LuceneRecordStore
     
     
     public IndexSearcher getIndexSearcher() {
-        return searcher;    
+        return searcher;
     }
     
     
@@ -206,7 +249,7 @@ public final class LuceneRecordStore
                 ? cache.get( id, loader )
                 : loader.load( id );
                 
-        return new LuceneRecordState( LuceneRecordStore.this, doc, cache != null );
+        return doc != null ? new LuceneRecordState( LuceneRecordStore.this, doc, cache != null ) : null;
     }
 
 
@@ -226,10 +269,17 @@ public final class LuceneRecordStore
                 }
             }
         }
-         
-        Document doc = reader.document( docnum );
-        LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
         
+        Document doc = null;
+        try {
+            lock.readLock().lock();
+            doc = reader.document( docnum );
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+        
+        LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
         if (cache != null) {
             doc2id.put( docnum, result.id() );
             if (cache.putIfAbsent( result.id(), doc ) == null) {
@@ -247,17 +297,20 @@ public final class LuceneRecordStore
             implements CacheLoader<Object,Document,Exception> {
         
         public Document load( Object id ) throws Exception {
-            TermDocs termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
+            TermDocs termDocs = null;
             try {
+                log.trace( "LUCENE: termDocs: " + LuceneRecordState.ID_FIELD + " = " + id.toString() );
+                lock.readLock().lock();
+                termDocs = reader.termDocs( new Term( LuceneRecordState.ID_FIELD, id.toString() ) );
                 if (termDocs.next()) {
                     return reader.document( termDocs.doc() );
                 }
                 return null;
             }
             finally {
-                termDocs.close();
+                lock.readLock().unlock();
+                if (termDocs != null) { termDocs.close(); }
             }
-
         }
 
         public int size() throws Exception {
@@ -268,11 +321,30 @@ public final class LuceneRecordStore
     
     public ResultSet find( RecordQuery query )
     throws Exception {
+        // SimpleQuery
         if (query instanceof SimpleQuery) {
-            return new SimpleQueryResultSet( this, (SimpleQuery)query );
+            Query luceneQuery = null;
+            Collection<QueryExpression> expressions = ((SimpleQuery)query).expressions();
+            if (expressions.isEmpty()) {
+                luceneQuery = new MatchAllDocsQuery();
+            }
+            else {
+                luceneQuery = new BooleanQuery();
+                for (QueryExpression exp : expressions) {
+                    ((BooleanQuery)luceneQuery).add( 
+                            valueCoders.searchQuery( exp ), BooleanClause.Occur.MUST );
+                }
+            }
+            return new LuceneRecordQuery( this, luceneQuery )
+                    .setMaxResults( query.getMaxResults() )
+                    .setFirstResult( query.getFirstResult() )
+                    .sort( query.getSortKey(), query.getSortOrder(), query.getSortType() )
+                    .execute();
+
         }
+        // other
         else {
-            throw new IllegalArgumentException( "Unsupported query type: " + query.getClass() );
+            return query.execute();
         }
     }
 
@@ -293,9 +365,10 @@ public final class LuceneRecordStore
 
         LuceneUpdater() {
             try {
-                // IndexWriterConfig#DEFAULT_RAM_BUFFER_SIZE_MB == 16MB
-                // autCommit == false
-                // 8 concurrent thread
+                // Defauls:
+                //  - IndexWriterConfig#DEFAULT_RAM_BUFFER_SIZE_MB == 16MB
+                //  - autCommit == false
+                //  - 8 concurrent thread
                 IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
                         .setOpenMode( OpenMode.APPEND );
                 // limit segment size for lower pauses on interactive indexing
@@ -305,6 +378,9 @@ public final class LuceneRecordStore
                 writer = new IndexWriter( directory, config );
             }
             catch (Exception e) {
+                if (writer != null) {
+                    discard();
+                }
                 throw new RuntimeException( e );
             }
         }
@@ -316,13 +392,16 @@ public final class LuceneRecordStore
                     log.trace( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
                 }
             }
+
+            Document doc = ((LuceneRecordState)record).getDocument();
+            
             // add
             if (record.id() == null) {
                 ((LuceneRecordState)record).createId();
-                writer.addDocument( ((LuceneRecordState)record).getDocument() );
+                writer.addDocument( doc );
                 
                 if (cache != null) {
-                    cache.remove( record.id() );
+                    cache.putIfAbsent( record.id(), doc );
                 }
             }
             // update
@@ -360,13 +439,19 @@ public final class LuceneRecordStore
             try {
                 writer.commit();
                 if (optimizeIndex) {
-                    writer.expungeDeletes( true );
+                    //writer.expungeDeletes( true );
+                    writer.forceMergeDeletes( true );
                 }
                 writer.close();
                 writer = null;
                 
+                lock.writeLock().lock();
                 searcher.close();
-                reader = reader.reopen();
+                IndexReader newReader = IndexReader.openIfChanged( reader );
+                if (newReader != null) {
+                    reader.close();
+                    reader = newReader;
+                }
                 searcher = new IndexSearcher( reader, executor );
                 
                 if (doc2id != null) {
@@ -378,142 +463,28 @@ public final class LuceneRecordStore
             catch (Exception e) {
                 throw new RuntimeException( e );
             }
+            finally {
+                lock.writeLock().unlock();
+            }
         }
 
         
         public void discard() {
-            log.warn( "Updater is closed." );
-            assert writer != null : "Updater is closed.";
-            
+            if (writer == null) {
+                log.warn( "Updater is already closed." );
+                return;
+            }
             try {
                 writer.rollback();
                 writer.close();
                 writer = null;
             }
             catch (Exception e) {
-                throw new RuntimeException( e );
+                log.warn( "Error during discard()", e );
+                //throw new RuntimeException( e );
             }
         }
         
-    }
-    
-    
-    // test ***********************************************
-    
-    /*
-     * 
-     */
-    public static class TestRecord
-            extends RecordModel {
-        
-        public static final TestRecord  TYPE = type( TestRecord.class );
-        
-        public TestRecord( IRecordState state ) {
-            super( state );
-        }
-        
-        public Property<String>         type = new Property<String>( "type" );
-        
-        public Property<Integer>        count = new Property<Integer>( "count" );
-        
-        public Property<String>         payload = new Property<String>( "payload" );
-        
-    }
-    
-
-    public static void main( String[] args ) throws Exception {
-
-        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.alkis.recordstore.lucene", "debug" );
-        
-//        LuceneRecordStore store = new LuceneRecordStore( new File( "/tmp", "LuceneRecordStore" ), false );
-        LuceneRecordStore store = new LuceneRecordStore();
-//        store.setRecordCache( new HashMapRecordCache() );
-        
-        Updater updater = store.prepareUpdate();
-        try {
-            for (int i=0; i<100000; i++) {
-                TestRecord record = new TestRecord( store.newRecord() );
-                record.payload.put( "LuceneRecordStore store = new LuceneRecordStore( new File LuceneRecordStore store = new LuceneRecordStore( new File LuceneRecordStore store = new LuceneRecordStore( new File" );
-                record.type.put( "2" );
-                record.count.put( i /*Integer.valueOf( i )*/ );
-                updater.store( record.state() );
-            }
-            
-            updater.apply();
-        }
-        catch (Exception e) {
-            updater.discard();
-            throw e;
-        }
-        
-        final Timer timer = new Timer();
-        String dummy = null;
-        
-//        // ForEach loop
-//        List list = ForEach
-//                .in( new Producer<Integer>() {
-//                    int i = 0;
-//                    public Integer produce() {
-//                        if (i == 100000-1) {
-//                            log.info( "Time: " + timer.elapsedTime() + "ms -- " + dummy );
-//                        }
-//                        return i++;
-//                    }
-//                    public int size() {
-//                        return 100000;
-//                    }
-//                })
-//                .chunked( 10000 )
-//                .doFirst( new Parallel<Integer,Integer>() {
-//                    public Integer process( Integer i ) 
-//                    throws Exception {
-//                        SimpleQuery query = new SimpleQuery().setMaxResults( 1 );
-//                        TestRecord template = new TestRecord( query );
-//                        template.count.put( String.valueOf( i ) );
-//                        template.type.put( "2" );
-//                        
-//                        ResultSet result = store.find( query );
-//
-//                        if (result.count() == 0) {
-//                            throw new RuntimeException( "Query: " + query );
-//                        }
-//                        
-//                        TestRecord record = new TestRecord( result.get( 0 ) );
-//                        String dummy2 = record.type.get();
-//                        return i;
-//                    }
-//                }).asList();
-        
-        for (int i=0; i<100000; i++) {
-//            RecordQuery query = new SimpleQuery()
-//                    .eq( TestRecord.TYPE.count.name(), String.valueOf( i ) )
-//                    .eq( TestRecord.TYPE.type.name(), "2" )
-//                    .setMaxResults( 1 );
-            
-            SimpleQuery query = new SimpleQuery().setMaxResults( 1 );
-            TestRecord template = new TestRecord( query );
-            template.count.put( i );
-            template.type.put( "2" );
-            
-            ResultSet result = store.find( query );
-
-            if (result.count() == 0) {
-                throw new RuntimeException( "Query: " + query );
-            }
-            
-            TestRecord record = new TestRecord( result.get( 0 ) );
-            dummy = record.type.get();
-            
-//            for (IRecordState state : result) {
-//                TestRecord record = new TestRecord( state );
-//                dummy = record.count.get();
-//                log.debug( "Found: type=" + record.type.get() );
-//            }
-        }
-        log.info( "Time: " + timer.elapsedTime() + "ms -- " + dummy );
-        
-        store.close();
     }
     
 }

@@ -148,6 +148,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
@@ -163,7 +164,7 @@ public class CorePlugin
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.edit", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.tooling", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.operations.NewLayerOperation", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.impl.MapImpl", "debug" );
@@ -176,7 +177,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
@@ -185,7 +186,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
 	}
 
 	

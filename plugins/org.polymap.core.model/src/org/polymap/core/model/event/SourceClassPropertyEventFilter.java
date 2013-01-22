@@ -20,6 +20,8 @@ import java.util.EventObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.event.EventFilter;
+
 /**
  * Filter events that are fired by entities which class is assignable to the given
  * classes.
@@ -28,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
  * @since 3.1
  */
 public class SourceClassPropertyEventFilter
-        implements IEventFilter {
+        implements EventFilter<EventObject> {
 
     private static Log log = LogFactory.getLog( SourceClassPropertyEventFilter.class );
 
@@ -39,7 +41,7 @@ public class SourceClassPropertyEventFilter
         this.allowed = allowed;
     }
 
-    public boolean accept( EventObject ev ) {
+    public boolean apply( EventObject ev ) {
         Class<? extends Object> sourceClass = ev.getSource().getClass();
         for (Class cl : allowed) {
             if (!cl.isAssignableFrom( sourceClass )) {

@@ -65,7 +65,7 @@ public class StyleTree {
 		this.style_view=style_view;
 		context_menu=new StyleTreeContextMenu(this,style_view);
 	
-		tree = new Tree(parent_composite, SWT.BORDER | SWT.FILL);
+		tree = new Tree(parent_composite, SWT.FILL);
 		
 		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 		menuMgr.setRemoveAllWhenShown(true);

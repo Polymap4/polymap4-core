@@ -61,16 +61,28 @@ public class DownloadServiceHandler
 
     
     /**
-     * Register the given provider for downloading.
+     * Registers the given provider for downloading. An unique id of the newly
+     * registered download is build automatically.
+     * 
+     * @param provider
+     * @return The download URL for the given provider.
+     */
+    public static String registerContent( ContentProvider provider ) {
+        return registerContent( String.valueOf( provider.hashCode() ), provider );
+    }
+
+
+    /**
+     * Registers the given provider for downloading.
      * 
      * @param id
      * @param provider
      * @return The download URL for the given provider.
      */
-    public static String registerContent( ContentProvider provider ) {
-        String id = String.valueOf( provider.hashCode() );
-
-        providers.put( id, provider );
+    public static String registerContent( String id, ContentProvider provider ) {
+        if (providers.put( id, provider ) != null) {
+            log.warn( "ContetProvider already registered for id: " + id );
+        }
         
         // XXX code from RAP; its a bit confusing, don't like it but it works
         StringBuffer url = new StringBuffer();
@@ -107,7 +119,12 @@ public class DownloadServiceHandler
          */
         public InputStream getInputStream() throws Exception;
         
-        public void done( boolean success );
+        /**
+         *
+         * @param success True if the doenload was completed successfully, falso otherwise.
+         * @return True specifies that this provider is no longer used and disposed.
+         */
+        public boolean done( boolean success );
     }
     
     
@@ -123,7 +140,6 @@ public class DownloadServiceHandler
         HttpServletResponse response = RWT.getResponse();
         
         String pathInfo = request.getPathInfo();
-        log.info( "Request: " + pathInfo );
         
         try {
             // download.html
@@ -151,14 +167,27 @@ public class DownloadServiceHandler
             else {
                 String id = request.getParameter( ID_REQUEST_PARAM );
                 log.info( "Request: id=" + id );
+                if (id == null) {
+                    log.warn( "No 'id' param in request." );
+                    response.sendError( 404 );
+                    return;
+                }
 
-                ContentProvider provider = providers.remove( id );
+                ContentProvider provider = providers.get( id );
+                if (provider == null) {
+                    log.warn( "No content provider registered for id: " + id );
+                    response.sendError( 404 );
+                    return;
+                }
                 
                 String[] pathInfos = StringUtils.split( request.getPathInfo(), "/" );
-                String filename = provider.getFilename();
 
-                response.setContentType( provider.getContentType() );
-                response.setHeader( "Content-disposition", "attachment; filename=" + filename );
+                String contentType = provider.getContentType();
+                response.setContentType( contentType );
+                // display any HTML content in browser instead of downloading it
+                if (!contentType.toLowerCase().contains( "html" )) {
+                    response.setHeader( "Content-disposition", "attachment; filename=" + provider.getFilename() );
+                }
                 response.setHeader( "Pragma", "public" );
                 response.setHeader( "Cache-Control", "must-revalidate, post-check=0, pre-check=0" );
                 response.setHeader( "Cache-Control", "public" );
@@ -166,18 +195,23 @@ public class DownloadServiceHandler
                 
                 InputStream in = provider.getInputStream();
                 ServletOutputStream out = response.getOutputStream();
+                boolean providerDone = false;
                 try {
                     IOUtils.copy( in, out );
                     out.flush();
                     response.flushBuffer();
                     
-                    provider.done( true );
+                    providerDone = provider.done( true );
                 }
                 catch (Exception e) {
-                    provider.done( false );
+                    providerDone = provider.done( false );
                 }
                 finally {
                     IOUtils.closeQuietly( in );
+                }
+                
+                if (providerDone) {
+                    providers.remove( id );
                 }
             }
         }

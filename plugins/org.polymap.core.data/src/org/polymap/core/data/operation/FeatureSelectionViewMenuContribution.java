@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,8 +16,11 @@ package org.polymap.core.data.operation;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import java.io.IOException;
+
 import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureSource;
+import org.geotools.feature.DefaultFeatureCollections;
 import org.geotools.feature.FeatureCollection;
 
 import net.refractions.udig.catalog.IGeoResource;
@@ -28,6 +31,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
@@ -35,6 +39,7 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionItem;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import org.eclipse.ui.IViewReference;
@@ -43,9 +48,14 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operation.FeatureOperationFactory.IContextProvider;
 import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
+import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
+import org.polymap.core.data.ui.featuretable.SimpleFeatureTableElement;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Contributes feature operations to the {@link IGeoResource} context menu.
@@ -91,15 +101,12 @@ public class FeatureSelectionViewMenuContribution
                         }
 
                         menuItem.addSelectionListener( new SelectionListener() {
-
                             public void widgetSelected( SelectionEvent se ) {
                                 widgetDefaultSelected( se );
                             }
-
                             public void widgetDefaultSelected( SelectionEvent se ) {
                                 action.run();
                             }
-
                         });
                     }
                     menu.setVisible( true );
@@ -132,23 +139,64 @@ public class FeatureSelectionViewMenuContribution
             }
 
             final PipelineFeatureSource fs = view.get().getFeatureStore();
+            final Display display  = view.get().getViewSite().getShell().getDisplay();
 
-            // The context
+            /* 
+             * The context
+             */
             return new DefaultOperationContext() {
 
                 private FeatureCollection   fc;
 
+                public Object getAdapter( Class adapter ) {
+                    return adapter.equals( ILayer.class )
+                            ? view.get().getLayer()
+                            : super.getAdapter( adapter );
+                }
+
                 /**
                  * Lazily init.
                  */
-                private void checkInit() 
-                throws Exception {
+                private void checkInit() throws Exception {
                     if (fc == null) {
-                        DefaultQuery query = new DefaultQuery( fs.getSchema().getName().getLocalPart(),
-                                view.get().getFilter() );
-                        fc = fs.getFeatures( query );
+                        display.syncExec( new Runnable() {
+                            public void run() {
+                                try {
+                                    IFeatureTableElement[] sel = view.get().getSelectedElements();
+                                    // no selection -> use all features from view
+                                    if (sel.length == 0) {
+                                        String typeName = fs.getSchema().getName().getLocalPart();
+                                        DefaultQuery query = new DefaultQuery( typeName, view.get().getFilter() );
+                                        fc = fs.getFeatures( query );
+                                    }
+                                    // else ask
+                                    else {
+                                        // Yes -> use selection
+                                        if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(), 
+                                                Messages.get( "FeatureSelectionView_operationsDialog_title" ), 
+                                                Messages.get( "FeatureSelectionView_operationsDialog_msg", view.get().getTableElements().length, sel.length ) )) {
+                                            // we could also create a fids query here; using the element directly seems
+                                            // to be faster but the cast is bad
+                                            fc = DefaultFeatureCollections.newCollection();
+                                            for (IFeatureTableElement elm : sel) {
+                                                log.info( "SELECTION: " + elm );
+                                                fc.add( ((SimpleFeatureTableElement)elm).feature() );
+                                            }
+                                        }
+                                        // No -> use all
+                                        else {
+                                            String typeName = fs.getSchema().getName().getLocalPart();
+                                            DefaultQuery query = new DefaultQuery( typeName, view.get().getFilter() );
+                                            fc = fs.getFeatures( query );                                
+                                        }
+                                    }                                    
+                                }
+                                catch (IOException e) {
+                                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
+                                }
+                            }
+                        });
                     }
-
                 }
 
                 public FeatureCollection features() 
@@ -161,7 +209,6 @@ public class FeatureSelectionViewMenuContribution
                 throws Exception {
                     return fs;
                 }
-
             };
         }
         catch (Exception e) {

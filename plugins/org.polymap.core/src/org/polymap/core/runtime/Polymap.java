@@ -27,14 +27,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
@@ -149,8 +142,9 @@ public final class Polymap {
         return RWT.getLocale();
     }
 
+   // public static ExecutorService      executorService = new PolymapJobExecutor();
+    public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
     
-    private static ExecutorService      executorService;
 
     /**
      * Returns the {@link ExecutorService} for the calling session. This should be
@@ -161,31 +155,7 @@ public final class Polymap {
         return executorService;
     }
 
-    
-    static {
-        ThreadFactory threadFactory = new ThreadFactory() {
 
-            final AtomicInteger threadNumber = new AtomicInteger( 1 );
-
-            public Thread newThread( Runnable r ) {
-                String prefix = "polymap-pool-";
-                Thread t = new Thread( r, prefix + threadNumber.getAndIncrement() );
-                t.setDaemon( false );
-                t.setPriority( Thread.NORM_PRIORITY );
-                return t;
-            }
-        };
-
-        BlockingQueue queue = new SynchronousQueue();           
-
-        int procNum = Runtime.getRuntime().availableProcessors();
-        ThreadPoolExecutor pool = new ThreadPoolExecutor( procNum, 
-                100, 3, TimeUnit.MINUTES, queue );
-        pool.setThreadFactory( threadFactory );
-        executorService = pool;
-    }
-    
-    
     // instance *******************************************
 
     /** The session attributes. */

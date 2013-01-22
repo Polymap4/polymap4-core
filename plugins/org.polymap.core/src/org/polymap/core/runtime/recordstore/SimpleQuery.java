@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import java.io.IOException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,8 +30,8 @@ import org.apache.commons.logging.LogFactory;
  * EQUAL and wildcard MATCH expressions. All expressions are joined with logical AND.
  * If the property value is a list then CONTAINS semantic is assumed.
  * <p/>
- * The {@link #template()} method together with RecordModel allows type-safe query by
- * example.
+ * The {@link #template()} method together with {@link RecordModel} allows type-safe
+ * query-by-example.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -39,23 +41,8 @@ public final class SimpleQuery
 
     private static Log log = LogFactory.getLog( SimpleQuery.class );
 
-    public static final char            DEFAULT_ANY_WILDCARD = '*';
-    
-    public static final char            DEFAULT_ONE_WILDCARD = '?';
-    
-    /** Sort order: ascending */
-    public static final int             ASC = 0;
-    
-    public static final int             DESC = 1;
-    
     private List<QueryExpression>       expressions = new ArrayList();
     
-    private String                      sortKey;
-    
-    private int                         sortOrder;
-    
-    private Class                       sortType;
-
     public char                         anyWildcard = DEFAULT_ANY_WILDCARD; 
     
     public char                         oneWildcard = DEFAULT_ONE_WILDCARD;
@@ -63,12 +50,17 @@ public final class SimpleQuery
 
     /**
      * Creates a new query with default wildcards and max results defaults to
-     * {@link #DEFAULT_MAX_RESULTS}.
+     * {@link #DEFAULT_MAX_RESULTS}!
      */
     public SimpleQuery() {
     }
     
     
+    public ResultSet execute() throws IOException {
+        throw new RuntimeException( "Method must never be called. Stores have to provide specific logic." );
+    }
+
+
     /**
      * Creates a new query with the given wildcards and max results defaults to
      * {@link #DEFAULT_MAX_RESULTS}.
@@ -104,40 +96,10 @@ public final class SimpleQuery
         expressions.add( new QueryExpression.Match( key, value ) );
         return this;
     }
-
-    
-    /**
-     * Specify the sort order of the result.
-     * 
-     * @param key Key to sort by.
-     * @param order {@link #ASC} or {@link #DESC}
-     * @param type Optional type of the field to sort.
-     */
-    public SimpleQuery sort( String key, int order, Class type ) {
-        sortKey = key;
-        sortOrder = order;
-        sortType = type;
-        return this;
-    }
     
     
     public Collection<QueryExpression> expressions() {
         return expressions;
-    }
-
-
-    public String getSortKey() {
-        return sortKey;
-    }
-
-    
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    
-    public Class getSortType() {
-        return sortType;
     }
 
 

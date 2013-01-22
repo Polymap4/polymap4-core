@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, 2011 Falko Bräutigam. All rights reserved.
+ * Copyright 2009-2012 Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,8 +15,6 @@
 package org.polymap.core.mapeditor;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -43,10 +41,9 @@ import org.eclipse.ui.part.EditorPart;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ListenerList;
-
 import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
 import org.polymap.core.mapeditor.contextmenu.ContextMenuControl;
+import org.polymap.core.mapeditor.tooling.ToolingModel;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 
@@ -60,7 +57,6 @@ import org.polymap.openlayers.rap.widget.base_types.Size;
 import org.polymap.openlayers.rap.widget.controls.Control;
 import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
 import org.polymap.openlayers.rap.widget.controls.LoadingPanelControl;
-import org.polymap.openlayers.rap.widget.controls.MousePositionControl;
 import org.polymap.openlayers.rap.widget.controls.NavigationHistoryControl;
 import org.polymap.openlayers.rap.widget.controls.PanZoomBarControl;
 import org.polymap.openlayers.rap.widget.controls.ScaleControl;
@@ -94,14 +90,9 @@ public class MapEditor
     /** The currently displayed layers. */
     protected Map<RenderLayerDescriptor,Layer> layers = new HashMap();
     
-    /** The exclusivly activ edit support interface. */
-    private IMapEditorSupport       activeSupport;
-    
-    private List<IMapEditorSupport> supports = new LinkedList();
-    
-    private ListenerList            supportListeners = new ListenerList();
-
     private MapEditorOverview       overview;
+    
+    private NavigationHistory       naviHistory;
     
 
     public void init( IEditorSite _site, IEditorInput _input )
@@ -110,6 +101,10 @@ public class MapEditor
         setInput( _input );
         this.map = ((MapEditorInput)_input).getMap();
         setPartName( map.getLabel() );
+        naviHistory = new NavigationHistory( this );
+        
+        // initialize my ToolingModel so that at least navigation is enabled
+        ToolingModel.instance( this );
     }
 
 
@@ -127,7 +122,10 @@ public class MapEditor
             olwidget.dispose();
             olwidget = null;
         }
-        supportListeners.clear();
+        if (naviHistory != null) {
+            naviHistory.dispose();
+            naviHistory = null;
+        }
     }
 
 
@@ -190,7 +188,7 @@ public class MapEditor
         
 //        olmap.addControl( new LayerSwitcherControl() );
         olmap.addControl( new PanZoomBarControl() );
-        olmap.addControl( new MousePositionControl() );
+//        olmap.addControl( new MousePositionControl() );
         olmap.addControl( new NavigationHistoryControl() );
         olmap.addControl( new KeyboardDefaultsControl() );
 
@@ -481,79 +479,41 @@ public class MapEditor
     }
 
 
-    // support interfaces *********************************
+//    /**
+//     * Returns {@link #findSupport(Class)}.
+//     */
+//    public Object getAdapter( Class adapter ) {
+//        return findSupport( adapter );
+//    }
     
-    public void addSupport( IMapEditorSupport support ) {
-        supports.add( support );
-    }
-    
-    public void removeSupport( IMapEditorSupport support ) {
-        supports.remove( support );
 
-        if (support.equals( activeSupport )) {
-            fireSupportEvent( support, false );
-            activeSupport = null;
-        }
-    }
-    
     /**
-     * Returns the support instance of the given class.
+     * Sets the application defined property of the receiver with the specified name
+     * to the given value. See {@link Widget#setData(String,Object)} for more detail.
+     * <p/>
+     * Applications may associate arbitrary objects with the receiver in this
+     * fashion. If the objects stored in the properties need to be notified when the
+     * widget is disposed of, it is the application's responsibility to hook the
+     * Dispose event on the widget and do so.
      * 
-     * @param adapter
-     * @return Null, if there is no such support.
+     * @see Composite#setData(String,Object) 
+     * @see #getData(Class)
      */
-    public IMapEditorSupport findSupport( Class adapter ) {
-        for (IMapEditorSupport support : supports) {
-            if (adapter.isAssignableFrom( support.getClass() )) {
-                return support;
-            }
-        }
-        return null;
+    public void setData( Object value ) {
+        composite.setData( value.getClass().getName(), value );
     }
 
-    /**
-     * Returns {@link #findSupport(Class)}.
-     */
-    public Object getAdapter( Class adapter ) {
-        return findSupport( adapter );
+    public <T> T getData( Class<T> cl ) {
+        return (T)composite.getData( cl.getName() );
     }
     
-    /**
-     *
-     * @param support
-     * @param active
-     */
-    public void activateSupport( IMapEditorSupport support, boolean active ) {
-        if (support.equals( activeSupport ) && active) {
-            return;
-        }
-        if (activeSupport != null) {
-            IMapEditorSupport deactivate = activeSupport;
-            activeSupport = null;
-            fireSupportEvent( deactivate, false );
-        }
-        if (active) {
-            activeSupport = support;
-            fireSupportEvent( activeSupport, true );
-        }
-    }
-    
-    public boolean isActive( IMapEditorSupport support ) {
-        return support != null ? support.equals( activeSupport ) : false;
+    public void clearData( Class cl ) {
+        composite.setData( cl.getName(), null );
     }
 
-    public void addSupportListener( IMapEditorSupportListener listener ) {
-        supportListeners.add( listener );
-    }
-    
-    public void removeSupportListener( IMapEditorSupportListener listener ) {
-        supportListeners.remove( listener );
-    }
-    
-    private void fireSupportEvent( IMapEditorSupport support, boolean activated ) {
-        for (Object listener : supportListeners.getListeners()) {
-            ((IMapEditorSupportListener)listener).supportStateChanged( this, support, activated );
-        }
-    }
 
+    public NavigationHistory getNaviHistory() {
+        return naviHistory;
+    }
+    
 }

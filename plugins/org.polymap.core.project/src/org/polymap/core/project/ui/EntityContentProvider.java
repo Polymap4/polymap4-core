@@ -29,7 +29,6 @@ import org.eclipse.jface.viewers.Viewer;
 
 import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IEventFilter;
 import org.polymap.core.project.ProjectRepository;
 
 /**
@@ -53,7 +52,7 @@ public abstract class EntityContentProvider
     
     public void dispose() {
         if (input != null) {
-            ProjectRepository.instance().removeModelChangeListener( this );
+            ProjectRepository.instance().removeEntityListener( this );
         }
         input = null;
         viewer = null;
@@ -69,7 +68,7 @@ public abstract class EntityContentProvider
         dispose();
         this.input = newInput;
         if (input != null) {
-            ProjectRepository.instance().addModelChangeListener( this, IEventFilter.ALL );
+            ProjectRepository.instance().addEntityListener( this );
         }
         this.viewer = _viewer;
     }
@@ -79,17 +78,7 @@ public abstract class EntityContentProvider
         // XXX check if and which of our entities are affected
         childrenMap.clear();
         
-        viewer.getControl().getDisplay().asyncExec( new Runnable() {            
-            public void run() {
-                try {
-                    viewer.refresh();
-                }
-                // qi4j seems to not have QiEntity.equals() implemented correctly;
-                catch (Exception e) {
-                    log.warn( "unhandled:" + e, e );
-                }
-            }
-        });
+        viewer.refresh();
     }
     
     

@@ -32,13 +32,12 @@ import org.qi4j.spi.entity.EntityState;
 import org.qi4j.spi.entity.EntityStatus;
 import org.qi4j.spi.entitystore.ConcurrentEntityStateModificationException;
 
-import org.polymap.core.model.ConcurrentModificationException;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelEventManager;
-import org.polymap.core.model.event.ModelHandle;
-import org.polymap.core.model.event.IModelHandleable;
-import org.polymap.core.model.event.ModelChangeTracker.Updater;
 import org.polymap.core.qi4j.QiEntity;
+import org.polymap.core.runtime.entity.ConcurrentModificationException;
+import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateTracker.Updater;
 
 /**
  * ...
@@ -46,13 +45,13 @@ import org.polymap.core.qi4j.QiEntity;
  * Implements {@link UnitOfWorkCallback}. This seems to be the only way in Qi4j to
  * get informed about commit/rollback in the client code.
  * 
- * @see ModelChangeTracker
- * @see ModelEventManager
+ * @see EntityStateTracker
+ * @see EventManager
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
 public interface ModelChangeSupport
-        extends IModelHandleable, EntityComposite, QiEntity, UnitOfWorkCallback {
+        extends IEntityHandleable, EntityComposite, QiEntity, UnitOfWorkCallback {
 
     @Optional
     Property<Long>          _lastModified();
@@ -81,12 +80,12 @@ public interface ModelChangeSupport
         @This 
         private ModelChangeSupport          composite;
         
-        private ModelHandle                 handle;
+        private EntityHandle                 handle;
         
         
-        public ModelHandle handle() {
+        public EntityHandle handle() {
             if (handle == null) {
-                handle = ModelHandle.instance( id(), getEntityType().getName() );
+                handle = EntityHandle.instance( id(), getEntityType().getName() );
             }
             return handle;
         }
@@ -119,13 +118,13 @@ public interface ModelChangeSupport
 
                     Updater updater = threadUpdater.get();
                     if (updater == null) {
-                        updater = ModelChangeTracker.instance().newUpdater();
+                        updater = EntityStateTracker.instance().newUpdater();
                         threadUpdater.set( updater );
                     }
 
                     Long set = System.currentTimeMillis();
                     try {
-                        ModelHandle key = ModelHandle.instance( 
+                        EntityHandle key = EntityHandle.instance( 
                                 composite.id(), composite.getEntityType().getName() );
                         // older versions have Integer
                         Number lastModified = composite._lastModified().get();

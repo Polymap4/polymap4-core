@@ -20,9 +20,9 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.model.event.IModelHandleable;
-import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.data.FeatureStateTracker;
+import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.entity.EntityHandle;
 
 /**
  * A {@link Feature} facade that handles the buffer state of the feature.
@@ -34,7 +34,7 @@ import org.polymap.core.model.event.ModelHandle;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureBufferState
-        implements IModelHandleable {
+        implements IEntityHandleable {
 
     private static Log log = LogFactory.getLog( FeatureBufferState.class );
     
@@ -91,8 +91,8 @@ public class FeatureBufferState
         return timestamp;
     }
 
-    public ModelHandle handle() {
-        return FeatureChangeTracker.featureHandle( feature );
+    public EntityHandle handle() {
+        return FeatureStateTracker.featureHandle( feature );
     }
 
     

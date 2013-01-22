@@ -362,7 +362,7 @@ public class GeoSelectionView
     public void disconnectLayer() {
         if (page != null) {
             // domain listener
-            ProjectRepository.instance().removePropertyChangeListener( layerChangeListener );
+            ProjectRepository.instance().removeEntityListener( layerChangeListener );
 
             // part listener
             page.removePartListener( partListener );

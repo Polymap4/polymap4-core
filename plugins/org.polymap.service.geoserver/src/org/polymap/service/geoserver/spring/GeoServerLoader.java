@@ -142,7 +142,7 @@ public class GeoServerLoader
     public GeoServerLoader( GeoServerResourceLoader resourceLoader ) {
         this.resourceLoader = resourceLoader;
         this.pipelineIncubator = new DefaultPipelineIncubator();
-        this.pipelines = CacheManager.instance().newCache( new CacheConfig().setInitSize( 32 ) );
+        this.pipelines = CacheManager.instance().newCache( CacheConfig.DEFAULT.initSize( 32 ) );
     }
     
 

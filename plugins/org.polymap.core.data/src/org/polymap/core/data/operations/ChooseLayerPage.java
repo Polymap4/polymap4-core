@@ -18,7 +18,7 @@ import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.WeakListener;
 
 /**
- * Provides a wizard page that is used by operations to choose a layer from a
+ * A wizard page that is used by operations to choose a layer from a
  * tree of all current maps and layers.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

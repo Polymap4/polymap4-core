@@ -21,13 +21,18 @@ import java.beans.PropertyChangeEvent;
 
 import org.eclipse.core.commands.operations.IUndoableOperation;
 
+import org.polymap.core.runtime.event.Event;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
+
 /**
  * Receives events from all entities of all modules of the current session. A
  * {@link ModelChangeEvent} event is fired after an {@link IUndoableOperation} has
- * finished. The {@link ModelChangeEvent} collects all
- * {@link PropertyChangeEvent}s fired during the operation.
+ * finished. The {@link ModelChangeEvent} collects all {@link PropertyChangeEvent}s
+ * fired during the operation.
+ * <p/>
  * 
- * @see ModelEventManager
+ * @see EventManager
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
@@ -38,9 +43,12 @@ public interface IModelChangeListener
      * Fired after an {@link IUndoableOperation} has finished. The
      * {@link ModelChangeEvent} collects all {@link PropertyChangeEvent}s fired
      * during the operation.
+     * <p/>
+     * Annotation: @EventHandler(scope=Event.Scope.Session, delay=0, display=true)
      * 
      * @param ev
      */
+    @EventHandler(scope=Event.Scope.Session, delay=0, display=true)
     public void modelChanged( ModelChangeEvent ev );
     
 }

@@ -34,20 +34,17 @@ import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 import org.qi4j.api.unitofwork.UnitOfWorkException;
 import org.qi4j.api.value.ValueBuilder;
 
+import com.google.common.collect.ObjectArrays;
+
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.model.CompletionException;
 import org.polymap.core.model.Composite;
-import org.polymap.core.model.ConcurrentModificationException;
 import org.polymap.core.model.Entity;
 import org.polymap.core.model.EntityType;
 import org.polymap.core.model.Module;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelEventManager;
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IEventFilter;
+import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
@@ -57,6 +54,10 @@ import org.polymap.core.qi4j.Qi4jPlugin.Session;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.ISessionListener;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.entity.ConcurrentModificationException;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -119,30 +120,7 @@ public abstract class QiModule
         }
     }
 
-    /**
-     * @see {@link ModelEventManager#addPropertyChangeListener(PropertyChangeListener, IEventFilter)}
-     */
-    public void addPropertyChangeListener( final PropertyChangeListener l, final IEventFilter f ) {
-        ModelEventManager.instance().addPropertyChangeListener( l,
-            new IEventFilter() {
-                public boolean accept( EventObject ev ) {
-                    QiEntity entity = (QiEntity)ev.getSource();
-                    try {
-                        // check if entity is part of this module
-                        findEntity( entity.getCompositeType(), entity.id() );
-                        return f.accept( ev );
-                    }
-                    catch (UnitOfWorkException e) {
-                        return false;
-                    }
-                }
-            });
-    }
-
-    public void removePropertyChangeListener( PropertyChangeListener l ) {
-        ModelEventManager.instance().removePropertyChangeListener( l );
-    }
-
+    
     public void commitChanges()
     throws ConcurrentModificationException, CompletionException {
         try {
@@ -202,28 +180,28 @@ public abstract class QiModule
     // events ***
 
     /**
-     * Register the given listener for the current session.
-     * <p/>
-     * All listeners are disposed when the session is destroyed.
+     * 
      */
-    public void addModelStoreListener( IModelStoreListener l ) {
-        ModelChangeTracker.instance().addListener( l );
-    }
-
-    public void removeModelStoreListener( IModelStoreListener l ) {
-        ModelChangeTracker.instance().removeListener( l );
-    }
-
-    public void addModelChangeListener( IModelChangeListener l, final IEventFilter f ) {
-        ModelEventManager.instance().addModelChangeListener( l,
-            new IEventFilter() {
-                public boolean accept( EventObject ev ) {
-                    if (ev.getSource() instanceof QiEntity) {
+    public void addEntityListener( Object handler, EventFilter... filters ) {
+        EventManager.instance().subscribe( handler, ObjectArrays.concat(
+            new EventFilter<EventObject>() {
+                public boolean apply( EventObject ev ) {
+                    // ModelChangeEvent (dies not have entity as source)
+                    if (ev instanceof ModelChangeEvent) {
+                        return true;
+                    }
+                    //
+                    else if (ev instanceof EntityStateEvent) {
+                        // XXX is there a way to check if entity of this module are changed
+                        return true;
+                    }
+                    // PropertyChangeEvent
+                    else if (ev.getSource() instanceof QiEntity) {
                         QiEntity entity = (QiEntity)ev.getSource();
                         try {
                             // check if entity is part of this module
                             findEntity( entity.getCompositeType(), entity.id() );
-                            return f.accept( ev );
+                            return true;
                         }
                         catch (UnitOfWorkException e) {
                             return false;
@@ -231,13 +209,14 @@ public abstract class QiModule
                     }
                     return false;
                 }
-            });
+            }, filters ) );
     }
 
-    public void removeModelChangeListener( IModelChangeListener l ) {
-        ModelEventManager.instance().removeModelChangeListener( l );
+    public void removeEntityListener( Object handler ) {
+        EventManager.instance().unsubscribe( handler );
     }
 
+    
     protected boolean appliesTo( org.qi4j.api.structure.Module rhs ) {
         return assembler.getModule().equals( rhs );
     }

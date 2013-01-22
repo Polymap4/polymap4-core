@@ -16,10 +16,10 @@
 package org.polymap.core.project.ui.layer;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +37,9 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 
 import org.polymap.core.project.ILayer;
+import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
 
 /**
  * 
@@ -45,11 +48,11 @@ import org.polymap.core.project.ILayer;
  */
 public class LayerVisibleStatusAction
         //extends ActionDelegate
-        implements IObjectActionDelegate, IViewActionDelegate, PropertyChangeListener {
+        implements IObjectActionDelegate, IViewActionDelegate {
 
     private static Log log = LogFactory.getLog( LayerVisibleStatusAction.class );
 
-    private List<ILayer>        layers = new ArrayList();
+    private Set<ILayer>         layers = new HashSet();
     
     private IAction             action;
     
@@ -59,6 +62,13 @@ public class LayerVisibleStatusAction
 
 
     public void init( IViewPart view ) {
+        ProjectRepository.instance().addEntityListener( this, new EventFilter<PropertyChangeEvent>() {
+            public boolean apply( PropertyChangeEvent ev ) {
+                return ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
+                        && ev.getSource() instanceof ILayer
+                        && layers.contains( ev.getSource() );
+            }
+        });
     }
 
 
@@ -76,13 +86,6 @@ public class LayerVisibleStatusAction
 
 
     public void selectionChanged( IAction _action, ISelection _sel ) {
-        for (ILayer layer : layers) {
-            try {
-                layer.removePropertyChangeListener( this );
-            }
-            catch (NoSuchEntityException e) {
-            }            
-        }
         layers.clear();
         action = _action;
         
@@ -91,28 +94,27 @@ public class LayerVisibleStatusAction
             boolean allLayersVisible = true;
             for (Object elm : elms) {
                 if (elm instanceof ILayer) {
-                    
-                    layers.add( (ILayer)elm );
-                    
-                    ((ILayer)elm).addPropertyChangeListener( this );
-                    
-                    if (!((ILayer)elm).isVisible()) {
-                        allLayersVisible = false;
+                    try {
+                        if (!((ILayer)elm).isVisible()) {
+                            allLayersVisible = false;
+                        }
+                        layers.add( (ILayer)elm );
                     }
+                    catch (NoSuchEntityException e) {
+                        log.debug( "Layer is removed." );
+                    }                    
                 }
             }
             action.setEnabled( !layers.isEmpty() ); 
-            action.setChecked( layers.size() == 1 && layers.get( 0 ).isVisible()
+            action.setChecked( layers.size() == 1 && layers.iterator().next().isVisible()
                     || layers.size() > 1 && allLayersVisible );
         }
     }
 
     
+    @EventHandler(display=true)
     public void propertyChange( PropertyChangeEvent ev ) {
-        if (ev.getSource() instanceof ILayer
-                && ev.getPropertyName().equals( ILayer.PROP_VISIBLE )) {
-            selectionChanged( action, new StructuredSelection( layers ) );
-        }
+        selectionChanged( action, new StructuredSelection( layers ) );
     }
 
 }

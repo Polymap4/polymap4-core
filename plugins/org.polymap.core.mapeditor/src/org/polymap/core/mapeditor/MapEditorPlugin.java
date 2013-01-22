@@ -21,11 +21,21 @@
  */
 package org.polymap.core.mapeditor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.swt.graphics.Image;
+
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
 
 /**
  * 
@@ -69,6 +79,33 @@ public class MapEditorPlugin
 
     public static MapEditorPlugin getDefault() {
         return plugin;
+    }
+
+    /**
+     * Creates a {@link ImageDescriptor} from the given resource path.
+     *
+     * @param resource The path the the resource inside the bundle.
+     * @return Newly created or cached instance.
+     */
+    public static ImageDescriptor imageDescriptor( String resource ) {
+        ImageRegistry registry = getDefault().getImageRegistry();
+        synchronized (registry) {
+            ImageDescriptor result = registry.getDescriptor( resource );
+            if (result == null) {
+                Bundle bundle = getDefault().getBundle();
+                result = ImageDescriptor.createFromURL(
+                        FileLocator.find( bundle, new Path( resource ), null ) );
+                registry.put( resource, result );
+            }
+            return result;
+        }
+    }
+
+    
+    public static Image image( String resource ) {
+        // create and cache
+        imageDescriptor( resource );
+        return getDefault().getImageRegistry().get( resource );
     }
 
 }

@@ -128,7 +128,7 @@ class ShapefileGenerator {
                             fb.set( attrType.getName(), value );
                         }
                         fb.set( ORIG_FID_FIELD, feature.getID() );
-                        // FIXME this should be the proper global timestamp from FeatureChangeTracker;
+                        // FIXME this should be the proper global timestamp from FeatureStateTracker;
                         // otherwise each and every re-generate of the shapfile causes (wrong) exceptions
                         // on save; see ShapefileContainer for more info
                         fb.set( TIMESTAMP_FIELD, timestamp );

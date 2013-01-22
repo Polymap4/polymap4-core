@@ -171,7 +171,8 @@ public class CatalogImportDropListener
             zip = new ZipInputStream( ev.getInputStream() );
             ZipEntry entry = null;
             while ((entry = zip.getNextEntry()) != null) {
-                result.addAll( importFile( entry.getName(), zip, false ) );
+                String filename = FilenameUtils.getName( entry.getName() );
+                result.addAll( importFile( filename, zip, false ) );
             }
         }
         finally {

@@ -15,16 +15,15 @@
  */
 package org.polymap.core.model;
 
-import java.beans.PropertyChangeListener;
-
+import java.beans.PropertyChangeEvent;
 import org.qi4j.api.unitofwork.UnitOfWorkCompletionException;
 
-import org.eclipse.core.runtime.jobs.Job;
-
-import org.polymap.core.model.event.IModelStoreListener;
-import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.model.event.IEventFilter;
-import org.polymap.core.model.event.ModelEventManager;
+import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.runtime.entity.ConcurrentModificationException;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Provides the API of one module of the domain model. A {@link Module} instance
@@ -58,46 +57,30 @@ public interface Module {
 
 
     /**
-     * See
-     * {@link ModelEventManager#addPropertyChangeListener(PropertyChangeListener, IEventFilter)}
-     * for details.
+     * Adds the given event handler.Possible events are: {@link PropertyChangeEvent}
+     * ,{@link ModelChangeEvent} and {@link EntityStateEvent}.
      * 
-     * @param l The listener to add.
-     * @param f The filter to apply.
-     * @see ModelEventManager#addPropertyChangeListener(PropertyChangeListener,
-     *      IEventFilter)
+     * @see EventManager#subscribe(org.polymap.core.runtime.event.Event.Scope, Class,
+     *      org.polymap.core.runtime.event.EventListener, EventFilter...)
+     * @param handler The {@link EventHandler annotated} handler to add.
+     * @param filters The filters to apply.
      */
-    public void addPropertyChangeListener( PropertyChangeListener l, IEventFilter f );
-
-    public void removePropertyChangeListener( PropertyChangeListener l );
-
-
-    /**
-     * See
-     * {@link ModelEventManager#addModelChangeListener(IModelChangeListener, IEventFilter)}
-     * for details.
-     * 
-     * @param l The listener to add.
-     * @param f The filter to apply.
-     * @see ModelEventManager#addModelChangeListener(IModelChangeListener,
-     *      IEventFilter)
-     */
-    public void addModelChangeListener( IModelChangeListener l, IEventFilter f );
+    public void addEntityListener( Object handler, EventFilter... filters );
     
-    public void removeModelChangeListener( IModelChangeListener l );
+    public void removeEntityListener( Object handler );
 
 
-    /**
-     * Adds the given event listener. Has no effect if the same listener is
-     * already registerd. The given listener might be stored in a
-     * {@link WeakReference}, the caller has to make sure that a strong
-     * reference exists as long as the listener should receive events.
-     * <p>
-     * The listener is probably called from a {@link Job}. So proper
-     * synchronization with the UI has to be done.
-     */
-    public void addModelStoreListener( IModelStoreListener l );
-
-    public void removeModelStoreListener( IModelStoreListener l );
+//    /**
+//     * Adds the given event listener. Has no effect if the same listener is
+//     * already registerd. The given listener might be stored in a
+//     * {@link WeakReference}, the caller has to make sure that a strong
+//     * reference exists as long as the listener should receive events.
+//     * <p>
+//     * The listener is probably called from a {@link Job}. So proper
+//     * synchronization with the UI has to be done.
+//     */
+//    public void addModelStoreListener( IEntityStateListener l );
+//
+//    public void removeModelStoreListener( IEntityStateListener l );
 
 }

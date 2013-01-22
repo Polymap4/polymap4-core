@@ -17,8 +17,8 @@ package org.polymap.core.qi4j.event;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelHandle;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityHandle;
 
 /**
  * Uniform API to access the modification status of an entity.
@@ -56,13 +56,13 @@ public class EntityChangeStatus {
     
     
     public boolean isConcurrentlyDirty() {
-        ModelHandle key = ModelHandle.instance( entity.id(), entity.getEntityType().getName() );
-        return ModelChangeTracker.instance().isConcurrentlyTracked( key );            
+        EntityHandle key = EntityHandle.instance( entity.id(), entity.getEntityType().getName() );
+        return EntityStateTracker.instance().isConcurrentlyTracked( key );            
     }
     
     
     public boolean isConflicting() {
-        ModelHandle key = ModelHandle.instance( entity.id(), entity.getEntityType().getName() );
+        EntityHandle key = EntityHandle.instance( entity.id(), entity.getEntityType().getName() );
         // older versions have Integer
         Number lastModified = entity._lastModified().get();
         Long timestamp = lastModified != null
@@ -73,7 +73,7 @@ public class EntityChangeStatus {
             return false;
         }
         
-        return ModelChangeTracker.instance().isConflicting( key, timestamp );            
+        return EntityStateTracker.instance().isConflicting( key, timestamp );            
     }
 
 }

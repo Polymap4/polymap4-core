@@ -90,8 +90,9 @@ public class CsvExportFeatureOperation
                         return new BufferedInputStream( new FileInputStream( f ) );
                     }
 
-                    public void done( boolean success ) {
+                    public boolean done( boolean success ) {
                         f.delete();
+                        return true;
                     }
                     
                 });

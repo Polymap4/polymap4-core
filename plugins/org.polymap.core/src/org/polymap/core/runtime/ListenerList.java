@@ -17,17 +17,21 @@ package org.polymap.core.runtime;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.Future;
 
 import java.lang.ref.WeakReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 /**
  * Thread-safe implementation of a listener list.
  * <p/>
  * This listener list supports adjustable listener comparators. A listener comparator
- * decides of any two listeners are "dublicates". Dublicates are not added to the list.
+ * decides if any two listeners are "dublicates". Dublicates are not added to the list.
  * There are {@link #EQUALITY} and {@link #IDENTITY} as default comparators.
  * <p/>
  * This listener list support different kinds of listener references. There are the
@@ -241,12 +245,14 @@ public class ListenerList<T>
                 newList.add( elm );
             }
         }
-        //atomic assignment
-        this.list = (T[])(newList.isEmpty() ? EMPTY : newList.toArray());
-
         if (!found) {
-            log.warn( "!!! Listener not found to remove !!!" );
+            log.warn( "!!! Listener not found to remove: " + listener );
         }
+        else {
+            //atomic assignment
+            this.list = (T[])(newList.isEmpty() ? EMPTY : newList.toArray());
+        }
+
         return found;
     }
 
@@ -261,6 +267,57 @@ public class ListenerList<T>
     }
 
 
+    /**
+     * Experimental method that executes the given task in separate threads for each
+     * listener. The {@link Polymap#executorService()} is used.
+     * 
+     * @param task
+     * @return List of execution results. The execution states of threads is not
+     *         guaranted. Call {@link Future#get()} to wait/join for threads to
+     *         complete.
+     */
+    public List<Future> forEach( final Callable<T> task ) {
+        List<Future> results = new ArrayList( size() );
+        
+        // execute task for each listener
+        for (final T listener : this) {
+            UIJob job = new UIJob( "ListenerExecutor" ) {
+                protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                    try {
+                        task.call( listener );
+                    }
+                    catch (Throwable e) {
+                        log.warn( "", e );
+                    }
+                }
+            };
+            results.add( new FutureJobAdapter( job ) );
+            job.schedule();
+        }
+        
+//        // wait for threads to complete
+//        for (Future future : result) {
+//            try {
+//                future.get();
+//            }
+//            catch (Exception e) {
+//                log.warn( "", e );
+//            }
+//        }
+        return results;
+    }
+
+    
+    /**
+     * 
+     */
+    public static interface Callable<L> {
+        
+        public void call( L listener );
+        
+    }
+    
+    
     /**
      * An Iterator is needed when {@link WeakReference}s are used to check if an
      * entry is still valid when it is requested.

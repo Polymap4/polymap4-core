@@ -21,8 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.recordstore.IRecordState;
+import org.polymap.core.runtime.recordstore.ResultSet;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
-import org.polymap.core.runtime.recordstore.IRecordStore.ResultSet;
 
 /**
  * 

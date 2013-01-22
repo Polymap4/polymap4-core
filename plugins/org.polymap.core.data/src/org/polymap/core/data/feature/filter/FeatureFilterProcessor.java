@@ -139,8 +139,14 @@ public class FeatureFilterProcessor
         // new query
         DefaultQuery result = new DefaultQuery( query );
 
-        // transform filter
-        result.setFilter( ff.and( filter, query.getFilter() ) );
+        // transform filter: avoid the enclosing AND(...) as this causes problems in Atlas
+        // POI indexing for WFS resources
+        if (query.getFilter().equals( Filter.INCLUDE )) {
+            result.setFilter( filter );
+        }
+        else {
+            result.setFilter( ff.and( filter, query.getFilter() ) );
+        }
         return result;
     }
 

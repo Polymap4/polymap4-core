@@ -16,7 +16,7 @@ package org.polymap.core.runtime.cache;
 
 /**
  * 
- *
+ * @deprecated
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface CacheEvictionListener<K,V> {

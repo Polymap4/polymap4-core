@@ -29,10 +29,10 @@ public interface Cache<K,V> {
     
     public String getName();
 
-    
+
     /**
-     * Get the element for the given key. If the given key is not yet in the cache then
-     * call the given loader to get the element value.
+     * Get the element for the given key. If the given key is not yet in the cache
+     * then call the given loader to get the element value.
      * <p/>
      * This is the default way to add new elements to the cache. This method does
      * both: check for a given key <b>and</b> add if not yet registered. It prevents
@@ -40,6 +40,11 @@ public interface Cache<K,V> {
      * check would be done in the client code. The given loader should 'create' the
      * cache element right in the {@link CacheLoader#load(Object)} method and not
      * beforehand.
+     * <p/>
+     * This API allows to create the <b>CacheLoader as inner class</b> right within
+     * the call. However, consider re-using an existing CacheLoader in order to avoid
+     * the overhead of object creation - even if this may lead to slightly more
+     * uncommon code.
      * 
      * @param key
      * @param loader
@@ -67,11 +72,13 @@ public interface Cache<K,V> {
      * <p/>
      * Consider using {@link #get(Object, CacheLoader)} instead.
      * 
+     * @see EvictionAware
      * @see #putIfAbsent(Object, Object, int)
      * @return The element for the given key, or null if the key was <b>not</b> yet
      *         in the cache.
      */
     public V putIfAbsent( K key, V value ) throws CacheException;
+
     
     /**
      * Add the given element to cache, if it is <b>not</b> yet in the cache.
@@ -98,8 +105,8 @@ public interface Cache<K,V> {
 
     public Iterable<V> values();
 
-    public boolean addEvictionListener( CacheEvictionListener listener );
-
-    public boolean removeEvictionListener( CacheEvictionListener listener );
+//    public boolean addEvictionListener( CacheEvictionListener listener );
+//
+//    public boolean removeEvictionListener( CacheEvictionListener listener );
     
 }

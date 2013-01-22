@@ -211,7 +211,12 @@ public class WebDavServer
         sessionContext.addSessionListener( new ISessionListener() {
             public void beforeDestroy() {
                 log.info( "SessionContext is destroyed -> invalidating HTTP session" );
-                session.invalidate();
+                try {
+                    session.invalidate();
+                }
+                catch (Exception e) {
+                    log.warn( "HTTP session already invalidated: " + e );
+                }
             }
         });
         // session destroy listener
@@ -225,10 +230,13 @@ public class WebDavServer
                         ContentManager.releaseSession( user.getName() );
                     }
                 });
-                //
-                FsPlugin.getDefault().sessionContextProvider.destroyContext(
-                        sessionContext.getSessionKey() );
-                log.info( "HTTP Session destroyed: " + session.getId() + ", user: " + user );
+                // prevent life-lock
+                if (!sessionContext.isDestroyed() && sessionContext.getAttribute( "destroying" ) == null) {
+                    sessionContext.setAttribute( "destroying", true );
+                    FsPlugin.getDefault().sessionContextProvider.destroyContext(
+                            sessionContext.getSessionKey() );
+                    log.info( "HTTP Session destroyed: " + session.getId() + ", user: " + user );
+                }
             }
         });
         log.info( "New HTTP session: " + session.getId() + ", user: " + user );

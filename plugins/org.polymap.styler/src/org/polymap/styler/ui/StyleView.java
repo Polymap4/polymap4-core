@@ -292,7 +292,7 @@ public class StyleView extends ViewPart implements ISelectionProvider
 
 
 		
-		editor_outer_composite = new Composite(sf1, SWT.BORDER);
+		editor_outer_composite = new Composite(sf1, SWT.NONE);
 		FillLayout fill_layout = new FillLayout();
 		editor_outer_composite.setLayout(fill_layout);
 

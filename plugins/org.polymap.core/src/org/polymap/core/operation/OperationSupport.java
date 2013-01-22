@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,16 +11,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.operation;
-
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,11 +28,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
+import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
-
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * The API and implementation of the operations system.
@@ -58,14 +52,47 @@ public class OperationSupport
 
     private static Log log = LogFactory.getLog( OperationSupport.class );
 
+    /**
+     * Scheduling rule that allows just the associated (save) Job to be executed.
+     * Used for the the {@link OperationSupport#saveChanges()} job.
+     */
+    class OneSaver 
+            implements ISchedulingRule {
+        
+        public boolean isConflicting( ISchedulingRule rule ) {
+            return rule == this || rule instanceof OneSaver || rule instanceof MultipleOperations;
+        }
+        public boolean contains( ISchedulingRule rule ) {
+            return rule == this;
+        }
+    }
+
+    /**
+     * Scheduling rule that allows multiple worker jobs to be executed but conflicts
+     * with {@link OneSaver} jobs.
+     */
+    class MultipleOperations 
+            implements ISchedulingRule {
+        
+        public boolean isConflicting( ISchedulingRule rule ) {
+            return rule == this || rule instanceof OneSaver;
+        }
+        public boolean contains( ISchedulingRule rule ) {
+            return rule instanceof MultipleOperations;
+        }
+    }
+
+    
+    // instance *******************************************
+    
     private IUndoContext                context;
 
     private DefaultOperationHistory     history;
 
-//    private AdvancedValidationUserApprover approver;
+   // private AdvancedValidationUserApprover approver;
     
     private ListenerList                saveListeners = new ListenerList( ListenerList.IDENTITY );
-        
+    
     
     /**
      *
@@ -79,12 +106,10 @@ public class OperationSupport
     
     protected OperationSupport() {
         // context
-        context = new ObjectUndoContext( this, "Workbench Context" ); //$NON-NLS-1$
+        context = new ObjectUndoContext( this, "Workbench Context" );
 
         // history
         history = new DefaultOperationHistory();
-//        approver = new AdvancedValidationUserApprover( context );
-//        history.addOperationApprover( approver );
         history.setLimit( context, 25 );
     }
 
@@ -93,7 +118,6 @@ public class OperationSupport
      * Disposes of anything created by the operation support.
      */
     public void dispose() {
-//        history.removeOperationApprover( approver );
         history.dispose( context, true, true, true );
     }
 
@@ -152,7 +176,8 @@ public class OperationSupport
         
         OperationJob job = new OperationJob( op ) {
             protected void run() throws Exception {
-                monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                // try to preset task name without beginTask()
+                monitor.setTaskName( op.getLabel() );
                 history.undo( context, monitor, null );
             }
         };
@@ -167,7 +192,8 @@ public class OperationSupport
         
         OperationJob job = new OperationJob( op ) {
             protected void run() throws Exception {
-                monitor.beginTask( op.getLabel(), IProgressMonitor.UNKNOWN );
+                // try to preset task name without beginTask()
+                monitor.setTaskName( op.getLabel() );
                 history.redo( context, monitor, null );
             }
         };
@@ -238,6 +264,7 @@ public class OperationSupport
         job.schedule();
         
         if (!async) {
+            log.info( "Waiting for operation job to finish..." );
             job.joinAndDispatch( 3 * 60 * 1000 );
         }
     }
@@ -257,6 +284,8 @@ public class OperationSupport
         public OperationJob( IUndoableOperation op ) {
             super( op.getLabel() );
             this.op = op;
+            setPriority( LONG );
+            setRule( new MultipleOperations() );
         }
 
         @SuppressWarnings("hiding")
@@ -293,8 +322,7 @@ public class OperationSupport
     throws Exception {
         UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
             
-            protected void runWithException( IProgressMonitor monitor )
-            throws Exception {
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
             
                 Object[] listeners = saveListeners.getListeners();
 
@@ -317,41 +345,26 @@ public class OperationSupport
                     }
                     history.dispose( context, true, true, false );
                 }
-                catch (Throwable e) {
+                catch (final Throwable e) {
                     // rollback
                     for (Object listener : listeners) {
                         SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Rolling back" );
                         ((IOperationSaveListener)listener).rollback( OperationSupport.this, subMon );
                         subMon.done();
                     }
-                    if (e instanceof Exception) {
-                        throw (Exception)e;
-                    }
-                    else if (e instanceof Error) {
-                        throw (Error)e;
-                    }
+                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                        public void run() {
+                            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+                        }
+                    });
                 }
             }
         };
-
+        // don't block the UI thread but use rules to prevent other
+        // operations to change things during save
+        job.setRule( new OneSaver() );
         job.setShowProgressDialog( null, true );
         job.schedule();
-        
-        job.joinAndDispatch( Long.MAX_VALUE );
-        
-        Throwable e = job.getResult().getException();
-        if (e == null) {
-            return;
-        }
-        else if (e instanceof RuntimeException) {
-            throw (RuntimeException)e;
-        }
-        else if (e instanceof Error) {
-            throw (Error)e;
-        }
-        else {
-            throw (Exception)e;
-        }
     }
 
 
@@ -376,7 +389,7 @@ public class OperationSupport
                 history.dispose( context, true, true, true );
             }
         };
-
+        job.setRule( new OneSaver() );
         job.setShowProgressDialog( null, true );
         job.schedule();
     }

@@ -85,7 +85,13 @@ public class FsPlugin
     
     public void invalidateSession( SessionContext sessionContext ) {
         assert sessionContext != null;
-        sessionContextProvider.destroyContext( sessionContext.getSessionKey() );    
+        try {
+            sessionContextProvider.destroyContext( sessionContext.getSessionKey() );
+        }
+        catch (Exception e) {
+            log.warn( "Error during invalidateSession(): " + e );
+            log.debug( "", e );
+        } 
     }
     
     

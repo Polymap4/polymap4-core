@@ -16,7 +16,6 @@
 package org.polymap.core.model.event;
 
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +30,9 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import org.polymap.core.runtime.event.Event;
+import org.polymap.core.runtime.event.EventFilter;
+
 /**
  * Collection of {@link PropertyChangeEvent}s collected while execution of an
  * operation.
@@ -39,7 +41,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  * @since 3.0
  */
 public class ModelChangeEvent
-        extends EventObject
+        extends Event
         implements PropertyChangeListener {
 
     private static Log log = LogFactory.getLog( ModelChangeEvent.class );
@@ -70,7 +72,7 @@ public class ModelChangeEvent
         return events;
     }
 
-    public Iterable<PropertyChangeEvent> events( final IEventFilter f ) {
+    public Iterable<PropertyChangeEvent> events( final EventFilter f ) {
         return new Iterable<PropertyChangeEvent>() {
             
             public Iterator<PropertyChangeEvent> iterator() {
@@ -87,7 +89,7 @@ public class ModelChangeEvent
                         }
                         while (next == null && delegate.hasNext()) {
                             PropertyChangeEvent candidate = delegate.next();
-                            if (f.accept( candidate )) {
+                            if (f.apply( candidate )) {
                                 next = candidate;
                             }
                         }

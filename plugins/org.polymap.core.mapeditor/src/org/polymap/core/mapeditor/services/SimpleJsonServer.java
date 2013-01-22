@@ -56,7 +56,7 @@ public class SimpleJsonServer
 
     private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
 
-    public static final int             DEFAULT_MAX_BYTES = 1*1024*1024;
+    public static final int             DEFAULT_MAX_BYTES = 512*1024;
     
     
     // static factory *************************************
@@ -178,7 +178,7 @@ public class SimpleJsonServer
             response.setHeader( "Content-Encoding", "gzip" );
             //response.setHeader( "Content-Type", "text/javascript" );
             cout2 = new CountingOutputStream( debugOut );
-            out = new CountingOutputStream( new GZIPOutputStream( cout2, true ) );
+            out = new CountingOutputStream( new GZIPOutputStream( cout2 ) );
         }
         else {
             out = new CountingOutputStream( debugOut );
@@ -190,7 +190,7 @@ public class SimpleJsonServer
             layer = layers.get( layerName );
         }
         layer.encode( out, response.getCharacterEncoding() );
-        out.flush();
+        out.close();
         
         log.info( "    JSON bytes: " + out.getCount() + " (" + timer.elapsedTime() + "ms)" );
         if (cout2 != null) {

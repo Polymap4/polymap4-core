@@ -49,6 +49,7 @@ import org.polymap.core.Messages;
  * <ul>
  * <li>implicite handling of (RWT) {@link SessionContext}</li>
  * <li>support for progress dialog</li>
+ * <li>wrapping monitor into {@link OffThreadProgressMonitor}</li>
  * <li>simplified exception handling</li>
  * <li>access to the {@link #forThread() job of the current thread} and its monitor and status</li>
  * <li>{@link #joinAndDispatch(int)}</li>
@@ -63,6 +64,9 @@ public abstract class UIJob
         extends Job {
 
     private static Log log = LogFactory.getLog( UIJob.class );
+    
+    /** The default priority for newly created jobs. */
+    public static int                       DEFAULT_PRIORITY = Job.SHORT;
     
     private static final ThreadLocal<UIJob> threadJob = new ThreadLocal();
     
@@ -111,6 +115,7 @@ public abstract class UIJob
 //        assert display != null : "Unable to determine current session/display.";
 
         setSystem( false );
+        setPriority( DEFAULT_PRIORITY );
     }
 
 
@@ -139,7 +144,10 @@ public abstract class UIJob
             public void run() {
                 if (display == null || !PlatformUI.getWorkbench().isClosing()) {
                     try {
-                        executionMonitor = monitor;
+                        executionMonitor = progressDialog != null
+                                ? progressDialog.getProgressMonitor() 
+                                : monitor;  //new OffThreadProgressMonitor( monitor, display );
+                                
                         threadJob.set( UIJob.this );
 
 //                        if (showProgress && display != null) {
@@ -152,12 +160,9 @@ public abstract class UIJob
 //                            }
 //                        }
 
-                        IProgressMonitor mon = progressDialog != null
-                                ? progressDialog.getProgressMonitor() : monitor;
+                        runWithException( executionMonitor );
                         
-                        runWithException( mon );
-                        
-                        resultStatus = Status.OK_STATUS;
+                        resultStatus = executionMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
                     }
                     // ThreadDeath is a normal error when the thread is dying.
                     // We must propagate it in order for it to properly terminate.

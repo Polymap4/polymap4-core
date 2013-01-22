@@ -83,7 +83,7 @@ class FeatureOperationFactory {
             if (context != null && op.init( context )) {
                 result.add( op );
                 
-                // adapt to FeatureOperatioNExtension
+                // adapt to FeatureOperationExtension
                 context.addAdapter( new IAdaptable() {
                     public Object getAdapter( Class adapter ) {
                         if (adapter.equals( FeatureOperationExtension.class )) {

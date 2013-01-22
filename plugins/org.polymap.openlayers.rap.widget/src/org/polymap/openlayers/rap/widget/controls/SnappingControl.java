@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,14 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
-
 package org.polymap.openlayers.rap.widget.controls;
 
 import org.polymap.openlayers.rap.widget.layers.VectorLayer;
@@ -28,6 +20,7 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
  * Acts as a snapping agent while editing vector features.
  * 
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class SnappingControl extends Control {
 
@@ -72,16 +65,20 @@ public class SnappingControl extends Control {
      *        <defaults> property will apply. The editable layer itself may be a
      *        target
      * @param greedy
+     * @param tolerance Snapping tolerance in pixels. Default: 10.
      */
 	public SnappingControl(VectorLayer layer, VectorLayer[] targets,
-			Boolean greedy) {
-		String targets_code = "";
+			boolean greedy, int tolerance) {
+	    assert tolerance >= 0 && tolerance <= 50 : "Invalid tolerance value: " + tolerance;
+		StringBuilder targetsCode = new StringBuilder( 256 );
 		for (VectorLayer target : targets) {
-			if (!targets_code.equals(""))
-				targets_code += ",";
-			targets_code += target.getJSObjRef();
+		    targetsCode.append( targetsCode.length() != 0 ? "," : "" );
+            targetsCode.append( "{" );
+            targetsCode.append( "layer:" ).append( target.getJSObjRef() ).append( ',' );
+            targetsCode.append( "tolerance:" ).append( tolerance );
+            targetsCode.append( "}" );
 		}
-		_create(layer, targets_code, greedy);
+		_create(layer, targetsCode.toString(), greedy);
 	}
 
 	private void _create(VectorLayer layer, String target_code, Boolean greedy) {

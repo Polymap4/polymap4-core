@@ -62,16 +62,18 @@ public class FeatureAllSelectionAction
                 try {
                     // ensure that the view is shown
                     FeatureSelectionView view = FeatureSelectionView.open( selectedLayer );
+                    if (view != null) {
 
-                    PipelineFeatureSource fs = view.getFeatureStore();
-                    if (fs != null) {
-                        int featureCount = fs.getCount( new DefaultQuery( null, /*view.getFilter()*/Filter.INCLUDE ) );
-                        if (featureCount < 1000
-                                || MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
-                                        Messages.get( "FeatureAllSelectionAction_confirm_title" ),
-                                        Messages.get( "FeatureAllSelectionAction_confirm_msg", featureCount ) )) {
+                        PipelineFeatureSource fs = view.getFeatureStore();
+                        if (fs != null) {
+                            int featureCount = fs.getCount( new DefaultQuery( null, /*view.getFilter()*/Filter.INCLUDE ) );
+                            if (featureCount < 1000
+                                    || MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                                            Messages.get( "FeatureAllSelectionAction_confirm_title" ),
+                                            Messages.get( "FeatureAllSelectionAction_confirm_msg", featureCount ) )) {
 
-                            view.loadTable( Filter.INCLUDE );
+                                view.loadTable( Filter.INCLUDE );
+                            }
                         }
                     }
                 }

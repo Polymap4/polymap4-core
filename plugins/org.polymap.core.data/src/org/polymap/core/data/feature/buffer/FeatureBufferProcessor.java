@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.feature.buffer;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -25,7 +26,7 @@ import org.geotools.data.DefaultQuery;
 import org.opengis.feature.Feature;
 import org.opengis.filter.identity.FeatureId;
 
-import org.polymap.core.data.FeatureChangeTracker;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
@@ -47,7 +48,7 @@ import org.polymap.core.project.LayerUseCase;
  *
  * <p/>
  * This processor presets the {@link FeatureBufferState#TIMESTAMP_KEY} in the features. This
- * helps {@link LayerFeatureBufferManager} together with {@link FeatureChangeTracker} to find
+ * helps {@link LayerFeatureBufferManager} together with {@link FeatureStateTracker} to find
  * concurrent changes between feature rad and {@link IFeatureBuffer#registerFeatures(Collection)}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
@@ -136,8 +137,14 @@ public class FeatureBufferProcessor
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
-            buffer.registerFeatures( request.getFeatures() );
-            List<FeatureId> result = buffer.markAdded( request.getFeatures() );
+            List<FeatureId> result = new ArrayList( 1024 );
+            
+            // features are send in a Collection backed by the real source
+            // (see PipelineFeatureSource#addFeatures()) 
+            // XXX load features once - but hold them all in memory
+            List<Feature> features = new ArrayList( request.getFeatures() );
+            buffer.registerFeatures( features );
+            result.addAll( buffer.markAdded( features ) );
             
             context.sendResponse( new ModifyFeaturesResponse( result ) );
             context.sendResponse( ProcessorResponse.EOP );

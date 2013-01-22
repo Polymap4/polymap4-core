@@ -31,6 +31,25 @@ public class SimpleFormData {
 
     private static Log log = LogFactory.getLog( SimpleFormData.class );
 
+    // static factories ***********************************
+    
+    /**
+     * Equivalent of calling <code>new SimpleFormData().fill()</code>
+     */
+    public static SimpleFormData filled() {
+        return new SimpleFormData().fill();
+    }
+    
+    /**
+     * Equivalent of calling <code>new SimpleFormData(defaultOffset)</code>
+     */
+    public static SimpleFormData offset( int defaultOffset) {
+        return new SimpleFormData( defaultOffset );
+    }
+    
+    
+    // instance *******************************************
+    
     private FormData        formData;
 
     private int             defaultOffset;
@@ -108,7 +127,7 @@ public class SimpleFormData {
     }
 
     public SimpleFormData right( int num, int offset ) {
-        formData.right = new FormAttachment( num, offset );
+        formData.right = num > -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
@@ -150,7 +169,7 @@ public class SimpleFormData {
     }
 
     public SimpleFormData bottom( int num, int offset ) {
-        formData.bottom = new FormAttachment( num, offset );
+        formData.bottom = num != -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 

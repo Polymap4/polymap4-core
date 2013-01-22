@@ -55,19 +55,19 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureChangeTracker;
-import org.polymap.core.data.FeatureEventManager;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.FeatureChangeEvent.Type;
 import org.polymap.core.data.feature.DataSourceProcessor;
-import org.polymap.core.model.ConcurrentModificationException;
-import org.polymap.core.model.event.ModelChangeTracker;
-import org.polymap.core.model.event.ModelHandle;
-import org.polymap.core.model.event.ModelChangeTracker.Updater;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.runtime.entity.ConcurrentModificationException;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateTracker.Updater;
+import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -93,7 +93,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * <b>lost updates</b> if the feature has changed meanwhile. In order to detect
  * <b>every</b> modification the {@link FeatureBufferProcessor} presets the timestamp
  * in the feature and {@link FeatureBufferState#timestamp()} recognizes this.
- * {@link FeatureChangeTracker} should be able to detect concurrent modufication now.
+ * {@link FeatureStateTracker} should be able to detect concurrent modufication now.
  * Not fully tested.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -183,7 +183,7 @@ public class LayerFeatureBufferManager
     
     protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
         FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, features );
-        FeatureEventManager.instance().fireEvent( ev );
+        EventManager.instance().publish( ev );
     }
     
     
@@ -280,10 +280,13 @@ public class LayerFeatureBufferManager
         // the first processor after the DataStoreProcessor
         IGeoResource geores = layer.getGeoResource();
         FeatureStore fs = geores.resolve( FeatureStore.class, null );
-  
+
+        if (fs == null) {
+            throw new IOException( "Unable to write to the data source of layer: " + layer.getLabel() );
+        }
         fs.setTransaction( tx );
 
-        updater = ModelChangeTracker.instance().newUpdater();
+        updater = EntityStateTracker.instance().newUpdater();
         FeatureCollection added = FeatureCollections.newCollection();
         Set<Identifier> removed = new HashSet();
 
@@ -320,7 +323,7 @@ public class LayerFeatureBufferManager
         // none of the features had concurrent modifications, so just upgrade
         // timestamp for the layer (no checking is needed and done)
         if (count > 0) {
-            ModelHandle layerHandle = FeatureChangeTracker.layerHandle( layer );
+            EntityHandle layerHandle = FeatureStateTracker.layerHandle( layer );
             updater.checkSet( layerHandle, updater.getStartTime(), null );
         }
         monitor.done();

@@ -47,6 +47,7 @@ public class RapSessionContextProvider
     public SessionContext currentContext() {
         if (ContextProvider.hasContext()) {
             ServiceContext serviceContext = ContextProvider.getContext();
+            // FIXME always returning new instances raises issues
             return new RapSessionContext( serviceContext );
         }
         return null;
@@ -70,13 +71,30 @@ public class RapSessionContextProvider
         }
 
 
+        @Override
+        public int hashCode() {
+            return display.hashCode();
+        }
+
+        @Override
+        public boolean equals( Object obj ) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof RapSessionContext) {
+                return display == ((RapSessionContext)obj).display;
+            }
+            return false;
+        }
+
+
         public void destroy() {
             serviceContext = null;
         }
 
 
         public boolean isDestroyed() {
-            return serviceContext != null;
+            return serviceContext == null || display.isDisposed();
         }
 
 
@@ -144,6 +162,11 @@ public class RapSessionContextProvider
         public void setAttribute( String key, Object value ) {
             // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );
+        }
+
+
+        private RapSessionContextProvider getOuterType() {
+            return RapSessionContextProvider.this;
         }
         
     }

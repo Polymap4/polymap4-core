@@ -32,9 +32,11 @@ import org.eclipse.core.runtime.IPath;
 
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentNode;
+import org.polymap.service.fs.spi.IContentDeletable;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentMoveable;
 import org.polymap.service.fs.spi.IContentProvider;
+import org.polymap.service.fs.spi.NotAuthorizedException;
 import org.polymap.service.fs.spi.Range;
 
 /**
@@ -44,7 +46,7 @@ import org.polymap.service.fs.spi.Range;
  */
 class FsFile
         extends DefaultContentNode
-        implements IContentFile, IContentMoveable {
+        implements IContentFile, IContentMoveable, IContentDeletable {
 
     private static Log log = LogFactory.getLog( FsFile.class );
 
@@ -133,6 +135,12 @@ class FsFile
     public void moveTo( IPath dest, String newName )
     throws IOException, BadRequestException {
         getProvider().moveTo( this, dest, newName );
+    }
+
+    public void delete()
+    throws BadRequestException, NotAuthorizedException {
+        getFile().delete();
+        getSite().invalidateFolder( getSite().getFolder( getParentPath() ) );
     }
 
     public Long getMaxAgeSeconds() {

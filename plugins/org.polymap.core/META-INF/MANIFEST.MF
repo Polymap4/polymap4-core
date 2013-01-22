@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: org.polymap.core Plug-in
+Bundle-Name: org.polymap.core
 Bundle-SymbolicName: org.polymap.core;singleton:=true
-Bundle-Version: 3.1.0.qualifier
+Bundle-Version: 3.2.0.qualifier
 Bundle-Activator: org.polymap.core.CorePlugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.jface;visibility:=reexport,
@@ -10,7 +10,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.ui;visibility:=reexport,
  org.eclipse.rap.ui.views;visibility:=reexport,
  org.eclipse.rap.ui.workbench;visibility:=reexport,
- org.eclipse.rap.ui.cheatsheets;bundle-version="1.3.2";visibility:=reexport,
+ org.eclipse.rap.ui.cheatsheets;bundle-version="1.3.2";resolution:=optional;visibility:=reexport,
  org.eclipse.help;bundle-version="3.5.0",
  org.eclipse.core.resources,
  net.refractions.udig.ui,
@@ -24,9 +24,17 @@ Export-Package: org.polymap.core,
  org.polymap.core.geohub,
  org.polymap.core.geohub.event,
  org.polymap.core.http;uses:="javax.servlet.http",
+ org.polymap.core.model2,
+ org.polymap.core.model2.engine,
+ org.polymap.core.model2.runtime,
+ org.polymap.core.model2.store,
+ org.polymap.core.model2.store.feature,
+ org.polymap.core.model2.store.recordstore,
  org.polymap.core.operation,
  org.polymap.core.runtime,
  org.polymap.core.runtime.cache,
+ org.polymap.core.runtime.entity,
+ org.polymap.core.runtime.event,
  org.polymap.core.runtime.mp,
  org.polymap.core.runtime.recordstore,
  org.polymap.core.runtime.recordstore.lucene,

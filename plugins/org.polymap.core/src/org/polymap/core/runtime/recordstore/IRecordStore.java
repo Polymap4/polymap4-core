@@ -15,9 +15,22 @@
 package org.polymap.core.runtime.recordstore;
 
 /**
- * The record store API and SPI. A record store stores records of key/value pairs
- * and it provides search capabilities. 
- *
+ * Provides the API (and SPI) of a record store.
+ * <p/>
+ * The basic idea of record store system is to provide a <b>schema-less</b> store for
+ * structured data which exposes a <b>simple</b>, <b>JSON-like</b> API. Neither
+ * (domain) modelling nor entity/session support is provided. The record store is
+ * meant as a easy to use API (and easy to implement SPI) to build backends for
+ * higher level data/domain modelling solutions, such as OGC GeoAPI and Qi4J.
+ * <p/>
+ * <b>Lucene</b> is used as the backend store. While it should be as easy as possible
+ * to use other backend solutions as well.
+ * <p/>
+ * <b>Records</b> are represented by {@link IRecordState}. This interface provides a
+ * schema-less, JSON-like API to access the data in the store. Updates are done via
+ * an {@link Updater} which provides a 2-phase commit protocol. There is support for
+ * external transaction monitors currently.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
@@ -48,7 +61,7 @@ public interface IRecordStore {
     public IRecordState newRecord();
 
     /**
-     * 
+     * Finds the record for the given ID.
      *
      * @param id The ID of the record to find.
      * @return The found record, or null if no such record exists.
@@ -62,24 +75,11 @@ public interface IRecordStore {
 
     
     /**
-     * 
-     */
-    public interface ResultSet
-            extends Iterable<IRecordState> {
-
-        public IRecordState get( int index ) throws Exception;
-        
-        public int count();
-        
-    }
-
-    
-    /**
      * Starts an update of the store. The returned {@link Updater} is used to
-     * add/update/delete record.
+     * add/update/delete records.
      * 
      * @return The newly created Updater. The caller is responsible of properly
-     *         applying or discarding the Updater if done.
+     *         applying or discarding the Updater when done.
      */
     public Updater prepareUpdate();
     
@@ -98,8 +98,8 @@ public interface IRecordStore {
     public interface Updater {
 
         /**
-         * Stores the given record. If the given record is already stores then its
-         * content is updated in the store.
+         * Stores the given record. If the given record is already stored then its
+         * content is updated.
          * 
          * @param record
          */

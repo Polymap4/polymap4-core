@@ -84,27 +84,31 @@ public class MySqlLookUpSchemaRunnable implements LookUpSchemaRunnable {
         try {
 
             Statement statement = connection.createStatement();
-            if (statement
-                    .execute("SHOW TABLES;")) { //$NON-NLS-1$
+            if (statement.execute("SHOW TABLES;")) { //$NON-NLS-1$
                 ResultSet resultSet = statement.getResultSet();
                 while( resultSet.next() ) {
-                    
-                    String table = resultSet.getString("Tables_in_"+database); //$NON-NLS-1$
-                    Pair<String, Pair<String, String>> results =  lookupGeometryColumn(table,
-                             connection);
-                    if (results != null) {
-                        String geometryColumn = results.getLeft();
-                        String geometryType = results.getRight().getLeft();
-                        System.out.println( "geometryType: " + geometryType );
-                        String srid = results.getRight().getRight();
-                        tables.add(new TableDescriptor(table, /*dialect.toGeomClass(*/geometryType, database,
-                                geometryColumn, srid,false));
+                    try {
+                        String table = resultSet.getString("Tables_in_"+database); //$NON-NLS-1$
+                        Pair<String, Pair<String, String>> results =  lookupGeometryColumn(table,
+                                connection);
+                        if (results != null) {
+                            String geometryColumn = results.getLeft();
+                            String geometryType = results.getRight().getLeft();
+                            System.out.println( "geometryType: " + geometryType );
+                            String srid = results.getRight().getRight();
+                            tables.add(new TableDescriptor(table, /*dialect.toGeomClass(*/geometryType, database,
+                                    geometryColumn, srid, false));
+                        }
                     }
-
+                    // _p3: don't fail if one geom column fails
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             statement.close();
         } catch (SQLException e) {
+            e.printStackTrace();
             error = "An error occurred when querying the database about the data it contains. Please talk to the administrator: "
                     + e.getMessage();
         } finally {

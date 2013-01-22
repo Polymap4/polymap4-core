@@ -14,8 +14,10 @@
  */
 package org.polymap.core.data;
 
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -35,6 +37,7 @@ import org.opengis.util.ProgressListener;
 
 import org.geotools.data.AbstractFeatureSource;
 import org.geotools.data.DataStore;
+import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.FeatureSource;
@@ -51,7 +54,6 @@ import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
 import org.polymap.core.data.feature.AddFeaturesRequest;
-import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
@@ -215,6 +217,12 @@ public class PipelineFeatureSource
     public FeatureCollection<SimpleFeatureType, SimpleFeature> getFeatures( Query query )
     throws IOException {
         log.debug( "query= " + query );
+        //assert query.getFilter() != null : "No filter in query.";
+        if (query.getFilter() == null) {
+            log.warn( "Filter is NULL -> changing to EXCLUDE to prevent unwanted loading of all features! Use INCLUDE to get all." );
+            query = new DefaultQuery( query );
+            ((DefaultQuery)query).setFilter( Filter.EXCLUDE );
+        }
         return new AsyncPipelineFeatureCollection( this, query, sessionContext );
     }
 
@@ -306,38 +314,65 @@ public class PipelineFeatureSource
     }
 
 
-    public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType, SimpleFeature> features,
-            ProgressListener monitor )
+    public List<FeatureId> addFeatures( final FeatureCollection<SimpleFeatureType, SimpleFeature> features,
+            final ProgressListener monitor )
             throws IOException {
         monitor.started();
-        int chunkSize = DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
         FeatureType type = features.getSchema();
-        FeatureIterator it = features.features();
-        int count = 0;
         try {
-            final List<FeatureId> fids = new ArrayList( 1024 );
-            while (it.hasNext() && !monitor.isCanceled()) {
-                // chunk
-                Collection<Feature> chunk = new ArrayList( chunkSize );
-                for (int i=0; i<chunkSize && it.hasNext(); i++) {
-                    chunk.add( it.next() );
-                    count++;
+            // build a Collection that pipes the features through it Iterator; so
+            // the features don't need to be loaded in memory al together; and no
+            // chunks are needed; and events are sent correctly
+            Collection coll = new AbstractCollection() {
+                private int size = -1;
+                public int size() {
+                    return size < 0 ? size = features.size() : size;
                 }
-                log.debug( "chunk red from source: " + chunk.size() );
-                // request
-                AddFeaturesRequest request = new AddFeaturesRequest( type, chunk );
-                pipeline.process( request, new ResponseHandler() {
-                    public void handle( ProcessorResponse r )
-                    throws Exception {
-                        fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() );
-                    }
-                });
-                log.debug( "chunk sent down the pipe: " + chunk.size() );
-                monitor.setTask( new SimpleInternationalString( "" + count ) );
-                monitor.progress( chunk.size() );
-//                Thread.sleep( 50 );
-            }
+                public Iterator iterator() {
+                    return new Iterator() {
+                        private FeatureIterator it = features.features();
+                        private int count = 0;
+                        public boolean hasNext() {
+                            if (it != null && !it.hasNext()) {
+                                it.close();
+                                it = null;
+                                return false;
+                            }
+                            else {
+                                return true;
+                            }
+                        }
+                        public Object next() {
+                            if ((++count % 100) == 0) {
+                                monitor.setTask( new SimpleInternationalString( "" + count ) );
+                                monitor.progress( 100 );
+                            }
+                            return it.next();
+                        }
+                        public void remove() {
+                            throw new UnsupportedOperationException();
+                        }
+                        protected void finalize() throws Throwable {
+                            if (it != null) {
+                                it.close();
+                                it = null;
+                            }
+                        }
+                    };
+                }
+            };
+
+            final List<FeatureId> fids = new ArrayList( 1024 );
+
+            // request
+            AddFeaturesRequest request = new AddFeaturesRequest( type, coll );
+            pipeline.process( request, new ResponseHandler() {
+                public void handle( ProcessorResponse r )
+                throws Exception {
+                    fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() );
+                }
+            });
 
             // fire event
             store.listeners.fireFeaturesAdded( getSchema().getTypeName(), tx, null, false );
@@ -355,7 +390,7 @@ public class PipelineFeatureSource
             throw new RuntimeException( e );
         }
         finally {
-            it.close();
+//            it.close();
         }
     }
 
@@ -390,7 +425,7 @@ public class PipelineFeatureSource
 
     public void modifyFeatures( AttributeDescriptor type, Object value, Filter filter )
     throws IOException {
-        modifyFeatures( new AttributeDescriptor[] { type, }, new Object[] { value, }, filter );
+        modifyFeatures( new AttributeDescriptor[] { type }, new Object[] { value }, filter );
     }
 
 
@@ -407,7 +442,7 @@ public class PipelineFeatureSource
                 }
             });
             // fire event
-            log.info( "Event: type=" + getName().getLocalPart() );
+            log.debug( "Event: type=" + getName().getLocalPart() );
             store.listeners.fireFeaturesChanged( getName().getLocalPart(), tx, null, false );
 //            store.listeners.fireEvent( getName().getLocalPart(), tx,
 //                    new FeatureEvent( this, FeatureEvent.Type.CHANGED, null, filter ) );
