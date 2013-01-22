@@ -95,7 +95,7 @@ public class EntityStateTracker
         SessionContext context = SessionContext.current();
         assert context != null : "No context when registering IEntityStateListener!";
 
-        // if impl changes then check QiModule#addListener too
+        // if impl changes then check QiModule#addListener too!
         EventManager.instance().subscribe( handler, filters );
     }
 

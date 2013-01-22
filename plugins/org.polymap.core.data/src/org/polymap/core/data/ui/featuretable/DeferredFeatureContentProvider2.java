@@ -199,6 +199,9 @@ class DeferredFeatureContentProvider2
             int c;
 
             try {
+                if (fs == null) {
+                    return;
+                }
                 coll = fs.getFeatures( filter );
                 monitor.beginTask( getName(), coll.size() );
                 if (viewer != null) { viewer.markTableLoading( true ); }

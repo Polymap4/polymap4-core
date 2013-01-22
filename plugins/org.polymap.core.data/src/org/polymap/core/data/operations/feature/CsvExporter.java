@@ -40,8 +40,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.WKTWriter;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 
@@ -165,13 +163,13 @@ public class CsvExporter {
                                 || String.class.isAssignableFrom( binding )) {
                             header.add( prop.getName().getLocalPart() );
                         }
-                        else if (Point.class.isAssignableFrom( binding )) {
+                        else if (Geometry.class.isAssignableFrom( binding )) {
                             header.add( "X" );
                             header.add( "Y" );
                         }
-                        else if (Geometry.class.isAssignableFrom( binding )) {
-                            header.add( "Geometry" );
-                        }
+//                        else if (Geometry.class.isAssignableFrom( binding )) {
+//                            header.add( "Geometry" );
+//                        }
                     }
                     csvWriter.writeHeader( header.toArray(new String[header.size()]) );
                     noHeaderYet = false;
@@ -183,51 +181,55 @@ public class CsvExporter {
                     Class binding = prop.getType().getBinding();
                     Object value = prop.getValue();
 
-                    // Point
-                    if (Point.class.isAssignableFrom( binding )) {
-                        Point point = (Point)value;
-                        line.add( value != null ? nf.format( point.getX() ) : "" );
-                        line.add( value != null ? nf.format( point.getY() ) : "" );
+                    // Geometry/Point
+                    if (Geometry.class.isAssignableFrom( binding )) {
+                        Point point = value != null ? ((Geometry)value).getCentroid() : null;
+                        log.debug( "Point: " + point );
+                        line.add( point != null ? nf.format( point.getX() ) : "" );
+                        line.add( point != null ? nf.format( point.getY() ) : "" );
                     }
-                    // other Geometry
-                    else if (Geometry.class.isAssignableFrom( binding )) {
-                        if (value != null) {
-                            WKTWriter wkt = new WKTWriter();
-                            wkt.setFormatted( false );
-                            line.add( wkt.write( (Geometry)value ) );
-                        }
-                        else {
-                            line.add( "" );
-                        }
+//                    // other Geometry
+//                    else if (Geometry.class.isAssignableFrom( binding )) {
+//                        if (value != null) {
+//                            WKTWriter wkt = new WKTWriter();
+//                            wkt.setFormatted( false );
+//                            line.add( wkt.write( (Geometry)value ) );
+//                        }
+//                        else {
+//                            line.add( "" );
+//                        }
+//                    }
+                    // null
+                    else if (value == null) {
+                        line.add( "" );
                     }
                     // Float
                     else if (Float.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? nf.format( ((Float)value).doubleValue() ) : "" );
+                        line.add( nf.format( ((Float)value).doubleValue() ) );
                     }
                     // Double
                     else if (Double.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? nf.format( ((Double)value).doubleValue() ) : "" );
+                        line.add( nf.format( ((Double)value).doubleValue() ) );
                     }
                     // Integer
                     else if (Integer.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? nf.format( ((Integer)value).longValue() ) : "" );
+                        line.add( nf.format( ((Integer)value).longValue() ) );
                     }
                     // Integer
                     else if (Integer.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? nf.format( ((Integer)value).longValue() ) : "" );
+                        line.add( nf.format( ((Integer)value).longValue() ) );
                     }
                     // Number
                     else if (Number.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? nf.format( ((Number)value).doubleValue() ) : "" );
+                        line.add( nf.format( ((Number)value).doubleValue() ) );
                     }
                     // Boolean
                     else if (Boolean.class.isAssignableFrom( binding )) {
-                        line.add( value == null ? "" :
-                            ((Boolean)value).booleanValue() ? "ja" : "nein");
+                        line.add( ((Boolean)value).booleanValue() ? "ja" : "nein");
                     }
                     // Date
                     else if (Date.class.isAssignableFrom( binding )) {
-                        line.add( value != null ? df.format( (Date)value ) : "" );
+                        line.add( df.format( (Date)value ) );
                     }
                     // String
                     else if (String.class.isAssignableFrom( binding )) {

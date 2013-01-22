@@ -36,6 +36,7 @@ import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.mapeditor.tooling.edit.BaseLayerEditorTool;
 import org.polymap.core.mapeditor.tooling.edit.BaseVectorLayer;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
@@ -159,6 +160,7 @@ public class SelectionTool
      * Listen to feature selection changes from {@link LayerFeatureSelectionManager}.
      */
     @Override
+    @EventHandler
     public void propertyChange( PropertyChangeEvent ev ) {
         assert fsm == ev.getSource();
         
@@ -175,7 +177,7 @@ public class SelectionTool
 
     
     @Override
-    public void process_event( OpenLayersObject obj, String name, HashMap<String, String> payload ) {
+    public void process_event( OpenLayersObject obj, String name, final HashMap<String, String> payload ) {
         log.debug( "process_event() event: " + name + ", from: " + obj );
         for (Map.Entry entry : payload.entrySet()) {
             Object key = entry.getKey();
@@ -185,24 +187,23 @@ public class SelectionTool
 
         // box selected
         if (name.equals( BoxControl.EVENT_BOX )) {
-            try {
-                JSONObject json = new JSONObject( payload.get( "bbox" ) );
-                vectorLayer.selectFeatures( new ReferencedEnvelope(
-                        json.getDouble( "left" ),
-                        json.getDouble( "right" ),
-                        json.getDouble( "bottom" ),
-                        json.getDouble( "top" ),
-                        getSite().getEditor().getMap().getCRS() ), true );
-            }
-            catch (final Exception e) {
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                    public void run() {                                
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {                                
+                    try {
+                        JSONObject json = new JSONObject( payload.get( "bbox" ) );
+                        vectorLayer.selectFeatures( new ReferencedEnvelope(
+                                json.getDouble( "left" ),
+                                json.getDouble( "right" ),
+                                json.getDouble( "bottom" ),
+                                json.getDouble( "top" ),
+                                getSite().getEditor().getMap().getCRS() ), true );
+                    }
+                    catch (final Exception e) {
                         MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(), 
                                 "Achtung", "Bitte markieren Sie immer ein gesamtes Rechteck.\nFehlerhafte Koordinaten: " + e.getLocalizedMessage() );
                     }
-                });
-                return;
-            }
+                };
+            });
         }
         
         // feature clicked

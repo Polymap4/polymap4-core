@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
@@ -44,7 +45,9 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Constants;
 import org.apache.lucene.util.Version;
 
 import com.google.common.collect.MapMaker;
@@ -75,7 +78,7 @@ public final class LuceneRecordStore
 
     private static Log log = LogFactory.getLog( LuceneRecordStore.class );
 
-    private static final Version    VERSION = Version.LUCENE_34;
+    private static final Version    VERSION = Version.LUCENE_36;
 
     /**
      * The {@link ExecutorService} used by the {@link #searcher}.
@@ -103,6 +106,7 @@ public final class LuceneRecordStore
 //                threadFactory);
 //        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
 //    }
+    
     
     // instance *******************************************
     
@@ -143,9 +147,28 @@ public final class LuceneRecordStore
             indexDir.mkdirs();
         }
         
-        directory = FSDirectory.open( indexDir );
-        log.info( "    Files in directry: " + Arrays.asList( directory.listAll() ) );
-        open( clean );
+        directory = null;
+        // use mmap on 32bit Linux of index size < xxxMB
+        if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
+                && FileUtils.sizeOfDirectory( indexDir ) < 500 * 1024 * 1024) {
+            try {
+                directory = new MMapDirectory( indexDir, null );
+                open( clean );
+            }
+            catch (OutOfMemoryError e) {
+                log.info( "Unable to mmap index: falling back to default.");
+            }
+        }
+        
+        if (searcher == null) {
+            directory = FSDirectory.open( indexDir );
+            open( clean );
+        }
+
+        log.info( "Database: " + indexDir.getAbsolutePath()
+                + "\n    size: " + FileUtils.sizeOfDirectory( indexDir )
+                + "\n    using: " + directory.getClass().getSimpleName()
+                + "\n    files in directry: " + Arrays.asList( directory.listAll() ) );
     }
 
 
@@ -202,6 +225,12 @@ public final class LuceneRecordStore
     }
     
     
+    @Override
+    protected void finalize() throws Throwable {
+        close();
+    }
+
+
     public IndexSearcher getIndexSearcher() {
         return searcher;
     }
@@ -438,9 +467,12 @@ public final class LuceneRecordStore
             Timer timer = new Timer();
             try {
                 writer.commit();
+                log.debug( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
+                
                 if (optimizeIndex) {
                     //writer.expungeDeletes( true );
                     writer.forceMergeDeletes( true );
+                    log.debug( "Writer optimization done. (" + timer.elapsedTime() + "ms)"  );
                 }
                 writer.close();
                 writer = null;

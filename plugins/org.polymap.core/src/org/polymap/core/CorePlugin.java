@@ -147,8 +147,8 @@ public class CorePlugin
         // horrible log configuration system...
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
 
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
@@ -164,7 +164,7 @@ public class CorePlugin
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.tooling", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.tooling", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.operations.NewLayerOperation", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.project.impl.MapImpl", "debug" );
@@ -172,15 +172,14 @@ public class CorePlugin
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.qi4j.entitystore.lucene.LuceneQueryParserImpl", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
         
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
-        
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.buffer", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.recordstore", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );

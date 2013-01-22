@@ -356,7 +356,7 @@ public class FeatureSelectionView
         // check fs -> error message
         if (fs == null) {
             Label msg = new Label( parent, SWT.NONE );
-            msg.setText( "No feature pipeline for layer: " + layer.getLabel() );
+            msg.setText( "No feature pipeline for layer: " + layer != null ? layer.getLabel() : "???" );
             return;
         }
 
@@ -443,23 +443,21 @@ public class FeatureSelectionView
         /**
          * Other party has changed feature selection.
          */
+        @EventHandler(display=true)
         public void propertyChange( final PropertyChangeEvent ev ) {
-
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    // select
-                    if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
-                        loadTable( (Filter)ev.getNewValue() );
-                    }
-                    // hover
-                    else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
-                        LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
-                        viewer.removeSelectionChangedListener( FeatureSelectionView.this );
-                        viewer.selectElement( fsm.getHovered(), true );
-                        viewer.addSelectionChangedListener( FeatureSelectionView.this );
-                    }
+            // select
+            if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
+                loadTable( (Filter)ev.getNewValue() );
+            }
+            // hover
+            else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+                LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
+                if (fsm.getHovered() != null) {
+                    viewer.removeSelectionChangedListener( FeatureSelectionView.this );
+                    viewer.selectElement( fsm.getHovered(), true );
+                    viewer.addSelectionChangedListener( FeatureSelectionView.this );
                 }
-            });
+            }
         }
     }
     

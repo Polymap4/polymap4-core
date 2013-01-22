@@ -30,6 +30,7 @@ import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IResolveFolder;
 import net.refractions.udig.catalog.IService;
 
+import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureSource;
@@ -40,7 +41,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -179,7 +179,7 @@ public class CreateFeatureTypeOperation
         try {
             monitor.subTask( Messages.get( "CreateFeatureTypeOperation_subTaskCreate" ) );
 
-            final DataStore ds = service.resolve( DataStore.class, monitor );
+            final DataAccess ds = service.resolve( DataAccess.class, monitor );
             if (ds == null) {
                 throw new ExecutionException( "No DataStore found for service: " + service );
             }
@@ -194,7 +194,7 @@ public class CreateFeatureTypeOperation
                 
                 // wait for the new type to appear
                 Timer timer = new Timer();
-                while (!ArrayUtils.contains( ds.getTypeNames(), schema.getName().getLocalPart() ) 
+                while (!ds.getNames().contains( schema.getName() ) 
                         && timer.elapsedTime() < 5000) {
                     Thread.sleep( 300 );
                 }

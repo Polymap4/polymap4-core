@@ -40,6 +40,8 @@ import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.property.Property;
 import org.qi4j.runtime.entity.EntityInstance;
 
+import com.google.common.collect.ObjectArrays;
+
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.model.TransientProperty;
 import org.polymap.core.qi4j.Qi4jPlugin;
@@ -119,16 +121,18 @@ public interface PropertyChangeSupport
 
         
         public void addPropertyChangeListener( Object handler, EventFilter... filters ) {
-            EventManager.instance().subscribe( handler, new EventFilter<PropertyChangeEvent>() {
+            EventFilter<PropertyChangeEvent> layerFilter = new EventFilter<PropertyChangeEvent>() {
                 public boolean apply( PropertyChangeEvent ev ) {
                     return ev.getSource() == composite;
                 }
                 public String toString() {
                     return "PropertyChangeSupport.Filter [composite=" + composite + "]";
                 }
-            });
+            };
+            EventManager.instance().subscribe( handler, ObjectArrays.concat( layerFilter, filters ));
         }
 
+        
         public boolean removePropertyChangeListener( Object handler ) {
             return EventManager.instance().unsubscribe( handler );
         }

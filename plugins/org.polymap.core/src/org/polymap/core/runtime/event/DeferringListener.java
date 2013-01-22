@@ -44,7 +44,7 @@ class DeferringListener
     private static Log log = LogFactory.getLog( DeferringListener.class );
 
     /**
-     * 
+     * Counter for pending events.
      */
     static class SessionUICallbackCounter
             extends SessionSingleton {
@@ -55,28 +55,30 @@ class DeferringListener
         
         private volatile int        jobCount = 0;
         
-        private int                 maxJobCount = 0;
+        private volatile int        maxJobCount = 0;
         
         public synchronized void jobStarted() {
-            maxJobCount ++;
+            maxJobCount++;
+            log.debug( "UICallback: counter=" + jobCount );
             if (jobCount++ == 0) {
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.activate( "DeferredEvents" );
-                        log.debug( "UI Callback activated." );
+                        log.debug( "UICallback: ON (counter=" + jobCount + ")" );
                     }
                 });
             }
         }
         
         public synchronized void jobFinished() {
+            log.debug( "UICallback: counter=" + jobCount );
             if (--jobCount == 0) {
                 final int temp = maxJobCount;
                 maxJobCount = 0;
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.deactivate( "DeferredEvents" );
-                        log.debug( "UI Callback deactivated. (maxJobCount=" + temp + ")" );
+                        log.debug( "UICallback: OFF (counter=" + jobCount + ", max=" + temp + ")" );
                     }
                 });
             }
@@ -91,7 +93,7 @@ class DeferringListener
     
     private Job                     job;
     
-    private List<EventObject>       events = new ArrayList( 128 );
+    private List<EventObject>       events;
     
 
     public DeferringListener( EventListener delegate, int delay, int maxEvents ) {
@@ -102,23 +104,27 @@ class DeferringListener
 
     @Override
     public void handleEvent( EventObject ev ) throws Exception {
+        if (events == null) {
+            events = new ArrayList( 128 );
+        }
         events.add( ev );
         
         if (job == null) {
+            SessionUICallbackCounter.instance().jobStarted();
+            
             job = new UIJob( Messages.get( "DeferringListener_jobTitle" ) ) {
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     job = null;
 
                     final DeferredEvent dev = new DeferredEvent( DeferringListener.this, events );
-                    events = new ArrayList( 128 );
-
+                    events = null;
                     delegate.handleEvent( dev );
+                    
                     SessionUICallbackCounter.instance().jobFinished();
                 }
             };
             job.setSystem( true );
             job.schedule( delay );
-            SessionUICallbackCounter.instance().jobStarted();
         }
         else {
             job.cancel();

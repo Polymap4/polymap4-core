@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Core Libraries
 Bundle-SymbolicName: org.polymap.core.libs;singleton:=true
-Bundle-Version: 3.1.0
+Bundle-Version: 3.2.0
 Bundle-Activator: org.polymap.core.libs.CoreLibsPlugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.ui;bundle-version="1.2.0"
@@ -2104,7 +2104,6 @@ Export-Package: .,
  org.picocontainer.alternatives,
  org.picocontainer.defaults,
  org.picocontainer.monitors,
- org.polymap.core.libs,
  org.postgresql,
  org.postgresql.copy,
  org.postgresql.core,
@@ -2246,8 +2245,8 @@ Bundle-ClassPath: .,
  lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar,
  lib/xercesImpl-2.7.1.jar,
  lib/guava-10.0.1.jar,
- lib/lucene-core-3.4.0.jar,
- lib/lucene-queryparser-3.4.0.jar
+ lib/lucene-core-3.6.1.jar,
+ lib/lucene-queryparser-3.6.1.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
 Bundle-Vendor: polymap.org

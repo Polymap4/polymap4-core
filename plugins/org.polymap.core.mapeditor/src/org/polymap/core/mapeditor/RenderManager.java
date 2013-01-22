@@ -75,7 +75,6 @@ import org.polymap.service.http.MapHttpServer;
  * its map and changes its {@link #mapEditor} as needed.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class RenderManager {
@@ -127,10 +126,9 @@ public class RenderManager {
         EventManager em = EventManager.instance();
         em.subscribe( featureListener, new EventFilter<FeatureChangeEvent>() {
             public boolean apply( FeatureChangeEvent ev ) {
-                if (RenderManager.this.map == null || ev.getSource() == null) {
-                    return false;
-                }
-                return RenderManager.this.map.equals( ev.getSource().getMap() );
+                return RenderManager.this.map != null 
+                        && ev.getSource() != null
+                        && RenderManager.this.map.equals( ev.getSource().getMap() );
             }
         });
     }

@@ -72,9 +72,12 @@ public class LayerFeatureSelectionOperation
 
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
+        monitor.beginTask( getLabel(), 100 );
+        monitor.worked( 10 );
         LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
         undoFilter = fsm.getFilter();
         fsm.changeSelection( newFilter, modeHint, ommit );
+        monitor.done();
         return Status.OK_STATUS;
     }
 

@@ -31,9 +31,8 @@
                icon="icons/etool16/new_h2_db.png"
                id="org.polymap.catalog.h2.CreateH2Action"
                label="H2"
-               menubarPath="h2"
+               menubarPath="data"
                style="push"
-               toolbarPath="h2"
                tooltip="Eine neue, persönliche H2-Datenbank anlegen.">
          </action>
       </viewContribution>

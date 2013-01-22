@@ -43,7 +43,7 @@ import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 
-import org.geotools.data.DataStore;
+import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
@@ -104,10 +104,7 @@ public class DataSourceProcessor
         // WFS, Memory, ...
         else {
             try {
-                DataStore dataStore = service.resolve( DataStore.class, null );
-                if (dataStore != null) {
-                    return true;
-                }
+                return service.resolve( DataAccess.class, null ) != null;
             }
             catch (IOException e) {
                 log.warn( e.getMessage() );

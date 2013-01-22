@@ -44,6 +44,8 @@ class AnnotatedEventListener
     
     private WeakReference<Object>   handlerRef;
     
+    private Class                   handlerClass;
+    
     private Integer                 mapKey;
     
     private List<EventListener>     methods = new ArrayList( 2 );
@@ -56,6 +58,7 @@ class AnnotatedEventListener
         assert handler != null;
         assert filters != null;
         this.handlerRef = new WeakReference( handler );
+        this.handlerClass = handler.getClass();
         this.mapKey = System.identityHashCode( handler );
         
         // find annotated methods
@@ -83,9 +86,18 @@ class AnnotatedEventListener
                     if (annotation.display()) {
                         listener = new DisplayingListener( listener );
                     }
+                    
                     // deferred
-                    if (annotation.delay() > 0) {
-                        listener = new DeferringListener( listener, annotation.delay(), 10000 );
+                    // XXX There is a race cond. between the UIThread and the event thread; if the UIThread
+                    // completes the current request before all display events are handled then the UI
+                    // is not updated until next user request; DeferringListener handles this by activating
+                    // UICallBack, improving behaviour - but not really solving in all cases; after 500ms we
+                    // are quite sure that no more events are pending and UI callback can turned off
+                    
+                    // currenty COMMENTED OUT! see EventManger#SessionEventDispatcher
+                    if (annotation.delay() > 0 /*|| annotation.display()*/) {
+                        int delay = annotation.delay() > 0 ? annotation.delay() : 500;
+                        listener = new DeferringListener( listener, delay, 10000 );
                     }
                     // filters
                     listener = new FilteringListener( listener, 
@@ -113,10 +125,11 @@ class AnnotatedEventListener
                 }
             }
             else {
+                log.info( "Removing reclaimed handler: " + handlerClass );
                 handlerRef = null;
                 EventListener removed = EventManager.instance().removeKey( mapKey );
                 if (removed == null) {
-                    log.warn( "Unable to remove reclaimed listener for key: " + mapKey );
+                    log.warn( "Unable to remove reclaimed handler for key: " + mapKey );
                 }
             }
         }
@@ -159,7 +172,21 @@ class AnnotatedEventListener
         
         @Override
         public void handleEvent( final EventObject ev ) throws Exception {
-            handlerMethod.invoke( handlerRef.get(), new Object[] { ev } );
+            // when DisplayingListener is used then handlerRef might got reclaimed
+            // between #handleEvent() and here
+            Object handler = handlerRef != null  ? handlerRef.get() : null;
+            
+            if (handler != null) {
+                // display events are always wrapped into DeferredListener (see above)
+                if (ev instanceof DeferredEvent) {
+                    for (EventObject ev2 : ((DeferredEvent)ev).events()) {
+                        handlerMethod.invoke( handler, new Object[] { ev2 } );
+                    }
+                }
+                else {
+                    handlerMethod.invoke( handler, new Object[] { ev } );
+                }
+            }
         }
     }
     

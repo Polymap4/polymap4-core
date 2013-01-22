@@ -32,7 +32,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.rwt.SessionSingletonBase;
 
-import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.event.EventFilter;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Provides a central manager to hold and manage the feature selected in a
@@ -101,8 +102,6 @@ public class LayerFeatureSelectionManager {
     
     private String                  hovered;
     
-    private ListenerList<PropertyChangeListener> listeners = new ListenerList( ListenerList.EQUALITY );
-    
     
     protected LayerFeatureSelectionManager( Object layer ) {
         this.layer = layer;
@@ -110,10 +109,6 @@ public class LayerFeatureSelectionManager {
 
     
     public void dispose() {
-//        if (listeners != null) {
-//            listeners.clear();
-//            listeners = null;
-//        }
     }
     
     public MODE getMode() {
@@ -201,20 +196,22 @@ public class LayerFeatureSelectionManager {
     // events
     
     protected void fireEvent( String prop, Object oldValue, Object newValue, PropertyChangeListener ommit ) {
-        PropertyChangeEvent ev = new PropertyChangeEvent( this, prop, oldValue, newValue );
-        for (PropertyChangeListener l : listeners.getListeners()) {
-            if (ommit == null || !l.equals( ommit )) {
-                l.propertyChange( ev );
-            }
-        }
+        PropertyChangeEvent ev = new FeatureSelectionEvent( this, prop, oldValue, newValue );
+        EventManager.instance().publish( ev, ommit );
     }
     
-    public boolean addSelectionChangeListener( PropertyChangeListener l ) {
-        return listeners.add( l );
+    public boolean addSelectionChangeListener( final PropertyChangeListener l ) {
+        EventManager.instance().subscribe( l, new EventFilter<PropertyChangeEvent>() {
+            public boolean apply( PropertyChangeEvent ev ) {
+                return ev instanceof FeatureSelectionEvent 
+                        && ev.getSource() == LayerFeatureSelectionManager.this;
+            }
+        });
+        return true;
     }
 
     public boolean removeSelectionChangeListener( PropertyChangeListener l ) {
-        return listeners.remove( l );
+        return EventManager.instance().unsubscribe( l );
     }
 
 }

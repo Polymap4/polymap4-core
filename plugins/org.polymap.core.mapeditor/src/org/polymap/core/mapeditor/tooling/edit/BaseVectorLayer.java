@@ -53,6 +53,7 @@ import org.polymap.core.mapeditor.services.SimpleJsonServer;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.openlayers.rap.widget.base_types.StyleMap;
@@ -218,6 +219,7 @@ public abstract class BaseVectorLayer
      * Listen to feature selection changes from {@link LayerFeatureSelectionManager}.
      */
     @Override
+    @EventHandler
     public void propertyChange( PropertyChangeEvent ev ) {
         assert fsm == ev.getSource();
         
@@ -294,7 +296,7 @@ public abstract class BaseVectorLayer
             else {
                 // select features directly 
                 PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-                selectFeatures ( fs.getFeatures( filter ) );
+                selectFeatures (fs.getFeatures( filter ) );
             }
         }
         catch (final Exception e) {

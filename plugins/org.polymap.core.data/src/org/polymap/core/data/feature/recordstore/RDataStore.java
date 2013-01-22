@@ -24,17 +24,24 @@ import java.util.Set;
 import java.io.IOException;
 import java.net.URI;
 
+import net.refractions.udig.catalog.IGeoResource;
+
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureListenerManager;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.ServiceInfo;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.Name;
+import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.FilterFactory2;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
@@ -83,7 +90,24 @@ public class RDataStore
         schemas = new HashMap( resultSet.count()*2 );
         for (IRecordState entry : resultSet) {
             FeatureType schema = schemaCoder.decode( (String)entry.get( "content" ) );
-            schemas.put( schema.getName(), schema );
+            log.debug( "Decoded schema: " + schema );
+            
+            // check if schema is simple; build SimpleFeatureType for compatibility
+            // This is needed as long as pipeline does not fully support complex types
+            SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
+            ftb.setName( schema.getName() );
+            for (PropertyDescriptor prop : schema.getDescriptors()) {
+                if (prop instanceof GeometryDescriptor) {
+                    ftb.add( prop.getName().getLocalPart(), prop.getType().getBinding(),
+                            ((GeometryDescriptor)prop).getCoordinateReferenceSystem() );                    
+                }
+                else {
+                    ftb.add( prop.getName().getLocalPart(), prop.getType().getBinding() );
+                }
+            }
+            schemas.put( schema.getName(), ftb.buildFeatureType() );
+            
+            //schemas.put( schema.getName(), schema );
         }
     }
 
@@ -97,13 +121,19 @@ public class RDataStore
         }
     }
 
+    
+    @Override
+    protected void finalize() throws Throwable {
+        dispose();
+    }
 
+    
     protected IRecordStore getStore() {
         return store;
     }
 
 
-    public List getNames() throws IOException {
+    public List<Name> getNames() throws IOException {
         return new ArrayList( schemas.keySet() );
     }
 
@@ -128,6 +158,7 @@ public class RDataStore
                     .put( "type", "FeatureType" )
                     .put( "content", schemaCoder.encode( schema ) ) );
             tx.apply();
+            
             schemas.put( schema.getName(), schema );
         }
         catch (Exception e) {
@@ -145,6 +176,12 @@ public class RDataStore
 
     public void updateSchema( Name typeName, FeatureType featureType )
     throws IOException {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    public void deleteSchema( IGeoResource geores, IProgressMonitor monitor ) {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
@@ -190,5 +227,5 @@ public class RDataStore
         }
         return info;
     }
-
+    
 }
