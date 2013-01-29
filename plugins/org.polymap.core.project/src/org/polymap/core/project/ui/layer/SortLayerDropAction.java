@@ -31,7 +31,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectPlugin;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -139,7 +138,7 @@ public class SortLayerDropAction
         }
         
         try {
-            SetPropertyOperation op = ProjectRepository.instance().newOperation( SetPropertyOperation.class ); 
+            SetPropertyOperation op = new SetPropertyOperation(); 
             op.init( ILayer.class, layer, ILayer.PROP_ORDERKEY, Integer.valueOf( order ) );
             // XXX JobMonitors
             OperationSupport.instance().execute( op, false, false );

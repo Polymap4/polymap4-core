@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project;
 
 import java.beans.PropertyChangeEvent;
@@ -34,19 +25,23 @@ import org.eclipse.rwt.SessionSingletonBase;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.ListenerList;
+
+import org.polymap.core.project.ui.PartListenerAdapter;
 
 /**
  * The session dependent part of the {@link MapEditorPlugin} API and
  * implementation.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class ProjectPluginSession
@@ -74,8 +69,9 @@ public class ProjectPluginSession
 
 
     protected ProjectPluginSession() {
-        // selection listener
         IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+        // selection listener
         page.addSelectionListener( new ISelectionListener() {
             public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
                 log.debug( "selection: " + sel );
@@ -84,19 +80,38 @@ public class ProjectPluginSession
                     Object elm = ((IStructuredSelection)sel).getFirstElement();
                     if (elm != null && elm instanceof IMap) {
                         selectedMap = (IMap)elm;
-                    } else {
-                        //selectedMap = null;
                     }
-                    // fire event
-                    PropertyChangeEvent ev = new PropertyChangeEvent( part, "selectedMap", null, selectedMap );
-                    for (Object listener : mapSelectionListeners.getListeners()) {
-                        ((PropertyChangeListener)listener).propertyChange( ev );
+                    fireEvent( part );
+                }
+            }
+        });
+        
+        // part listener
+        page.addPartListener( new PartListenerAdapter() {
+            public void partActivated( IWorkbenchPart part ) {
+                if (part instanceof IEditorPart) {
+                    IEditorInput input = ((IEditorPart)part).getEditorInput();
+                    if (input instanceof IAdaptable) {
+                        selectedMap = (IMap)((IAdaptable)input).getAdapter( IMap.class );
+                        fireEvent( part );
                     }
                 }
+            }
+            public void partOpened( IWorkbenchPart part ) {
+                partActivated( part );
             }
         });
     }
 
+    
+    protected void fireEvent( IWorkbenchPart part) {
+        // fire event
+        PropertyChangeEvent ev = new PropertyChangeEvent( part, "selectedMap", null, selectedMap );
+        for (Object listener : mapSelectionListeners.getListeners()) {
+            ((PropertyChangeListener)listener).propertyChange( ev );
+        }
+    }
+    
     
     public IMap getSelectedMap() {
         return selectedMap;

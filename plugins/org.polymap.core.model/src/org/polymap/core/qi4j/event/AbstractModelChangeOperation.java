@@ -110,6 +110,9 @@ public abstract class AbstractModelChangeOperation
     }
 
 
+    /**
+     * This default implementation always returnes <code>false</code>.
+     */
     public boolean canUndo() {
         // the current implementation is way to weak to enable by default
         return false;

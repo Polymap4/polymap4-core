@@ -54,7 +54,6 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.core.commands.ExecutionException;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.style.IStyle;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -155,7 +154,7 @@ public class StyleView extends ViewPart implements ISelectionProvider
 	
 
 	public void commit_changes() throws ExecutionException, UnsupportedOperationException, IOException {
-	    SetPropertyOperation op = ProjectRepository.instance().newOperation( SetPropertyOperation.class );
+	    SetPropertyOperation op = new SetPropertyOperation();
 	    op.init( ILayer.class, act_layer, ILayer.PROP_STYLE, act_layer.getStyle() );
 	    OperationSupport.instance().execute( op, false, false );
 		

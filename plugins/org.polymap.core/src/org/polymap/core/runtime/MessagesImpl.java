@@ -114,7 +114,7 @@ public class MessagesImpl {
 
 
     public String get( Object caller, String keySuffix, Object... args ) {
-        String key = new StringBuffer( 64 )
+        String key = new StringBuilder( 64 )
                 .append( caller.getClass().getSimpleName() )
                 .append( SEPARATOR )
                 .append( keySuffix ).toString();

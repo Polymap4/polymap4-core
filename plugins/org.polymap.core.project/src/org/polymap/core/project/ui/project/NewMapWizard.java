@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.project.ui.project;
 
@@ -57,7 +49,6 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * Creates a new {@link IMap} by executing the {@link NewMapOperation}. 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class NewMapWizard
@@ -102,7 +93,7 @@ public class NewMapWizard
                 String name = mapPage.nameText.getText();
                 IMap parent = ProjectRepository.instance().getRootMap();
 
-                NewMapOperation op = ProjectRepository.instance().newOperation( NewMapOperation.class );
+                NewMapOperation op = new NewMapOperation();
                 op.init( parent, name, crs );
                 OperationSupport.instance().execute( op, false, false );
                 return true;
@@ -119,7 +110,6 @@ public class NewMapWizard
      * 
      *
      * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
      * @since 3.0
      */
     class MapWizardPage

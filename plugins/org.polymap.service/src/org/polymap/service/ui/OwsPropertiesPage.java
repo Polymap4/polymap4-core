@@ -172,7 +172,7 @@ public class OwsPropertiesPage
             if (!store.isDefault( "WMS" )) {
                 Boolean value = store.getBoolean( "WMS" );
                 log.info( "    value: " + value );
-                SetPropertyOperation op = ServiceRepository.instance().newOperation( SetPropertyOperation.class );
+                SetPropertyOperation op = new SetPropertyOperation();
                 op.init( IProvidedService.class, providedService, IProvidedService.PROP_ENABLED, value );
                 OperationSupport.instance().execute( op, false, false );
             }
@@ -180,7 +180,7 @@ public class OwsPropertiesPage
             if (!store.isDefault( IProvidedService.PROP_PATHSPEC )) {
                 String value = store.getString( IProvidedService.PROP_PATHSPEC );
                 log.info( "    value: " + value );
-                SetPropertyOperation op = ServiceRepository.instance().newOperation( SetPropertyOperation.class );
+                SetPropertyOperation op = new SetPropertyOperation();
                 op.init( IProvidedService.class, providedService, IProvidedService.PROP_PATHSPEC, value );
                 OperationSupport.instance().execute( op, false, false );
             }
@@ -189,7 +189,7 @@ public class OwsPropertiesPage
                 String value = store.getString( IProvidedService.PROP_SRS );
                 log.info( "    value: " + value );
                 List<String> srs = Arrays.asList( StringUtils.split( value, ", " ) ); 
-                SetPropertyOperation op = ServiceRepository.instance().newOperation( SetPropertyOperation.class );
+                SetPropertyOperation op = new SetPropertyOperation();
                 op.init( IProvidedService.class, providedService, IProvidedService.PROP_SRS, srs );
                 OperationSupport.instance().execute( op, false, false );
             }

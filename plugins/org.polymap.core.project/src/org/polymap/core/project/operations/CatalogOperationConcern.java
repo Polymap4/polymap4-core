@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -60,7 +60,6 @@ public class CatalogOperationConcern
      *
      * @param op
      * @param info
-     * @return
      */
     public IUndoableOperation newInstance2( IUndoableOperation op, final OperationInfo info ) {
         log.info( "Operation: " + op.getClass() + ", info: " + info );
@@ -84,7 +83,7 @@ public class CatalogOperationConcern
                             if (yes) {
                                 try {
                                     ProjectRepository repo = ProjectRepository.instance();
-                                    NewMapOperation newMap = repo.newOperation( NewMapOperation.class );
+                                    NewMapOperation newMap = new NewMapOperation();
                                     
                                     IService service = (IService)((IAdaptable)info.next()).getAdapter( IService.class );
                                     IServiceInfo serviceInfo = service.getInfo( monitor );

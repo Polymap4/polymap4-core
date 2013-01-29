@@ -35,7 +35,6 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectPlugin;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.NewLayerOperation;
 import org.polymap.core.project.ui.layer.LayerNavigator;
 import org.polymap.core.project.ui.project.ProjectView;
@@ -154,7 +153,7 @@ public class AddLayerToMapDropAction
         
         // execute operation
         try {
-            NewLayerOperation op = ProjectRepository.instance().newOperation( NewLayerOperation.class ); 
+            NewLayerOperation op = new NewLayerOperation(); 
             op.init( map, geores ); 
             OperationSupport.instance().execute( op, true, true );
         }
