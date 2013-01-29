@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project;
 
 import java.io.File;
@@ -41,12 +32,6 @@ import org.qi4j.bootstrap.ModuleAssembly;
 import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.project.model.MapComposite;
-import org.polymap.core.project.operations.NewLayerOperation;
-import org.polymap.core.project.operations.NewMapOperation;
-import org.polymap.core.project.operations.RemoveLayerOperation;
-import org.polymap.core.project.operations.RemoveMapOperation;
-import org.polymap.core.project.operations.SetProcessorConfigurationsOperation;
-import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;
@@ -59,7 +44,6 @@ import org.polymap.core.security.Authentication;
  * 
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class ProjectRepositoryAssembler
@@ -105,12 +89,6 @@ public class ProjectRepositoryAssembler
                 LayerComposite.class 
         );
         domainModule.addTransients( 
-                NewMapOperation.class, 
-                RemoveMapOperation.class, 
-                NewLayerOperation.class, 
-                SetPropertyOperation.class,
-                SetProcessorConfigurationsOperation.class,
-                RemoveLayerOperation.class
 //                TempLayerComposite.class
         );
 

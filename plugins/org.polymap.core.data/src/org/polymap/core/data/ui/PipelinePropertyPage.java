@@ -68,7 +68,6 @@ import org.polymap.core.data.pipeline.ProcessorExtension.ProcessorPropertyPage;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.PipelineProcessorConfiguration;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetProcessorConfigurationsOperation;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -195,8 +194,7 @@ public class PipelinePropertyPage
             List<PipelineProcessorConfiguration> content = result.getContent();
             PipelineProcessorConfiguration[] array = content.toArray(new PipelineProcessorConfiguration[content.size()]);
             
-            SetProcessorConfigurationsOperation op = ProjectRepository.instance().newOperation( 
-                    SetProcessorConfigurationsOperation.class );
+            SetProcessorConfigurationsOperation op = new SetProcessorConfigurationsOperation();
             op.init( (PipelineHolder)getElement(), array );
             OperationSupport.instance().execute( op, false, false );
             return true;

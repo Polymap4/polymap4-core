@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,25 +11,13 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project.operations;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.qi4j.api.composite.TransientComposite;
-import org.qi4j.api.mixin.Mixins;
-
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -45,12 +32,24 @@ import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
  * method is specified via the {@link ModelProperty} annotation.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-@Mixins( SetPropertyOperation.Mixin.class )
-public interface SetPropertyOperation
-        extends IUndoableOperation, TransientComposite {
+public class SetPropertyOperation
+        extends AbstractModelChangeOperation {
+
+    private Object                  obj;
+
+    private String                  propName;
+
+    private Object                  newValue;
+
+    private Class                   type;
+
+
+    public SetPropertyOperation() {
+        super( "[undefined]" );
+    }
+
 
     /**
      * 
@@ -60,93 +59,62 @@ public interface SetPropertyOperation
      *        {@link ModelProperty} of the setter of that property.
      * @param newValue The new value of the property.
      */
-    public void init( Class type, Object obj, /*@NotEmpty*/ String propName, Object newValue );
-    
-    /** Implementation is provided bei {@link AbstractOperation} */ 
-    public boolean equals( Object obj );
-    
-    public int hashCode();
-    
+    public void init( Class _type, Object _obj, String _propName, Object _newValue ) {
+        this.type = _type;
+        this.obj = _obj;
+        this.propName = _propName;
+        this.newValue = _newValue;
+        setLabel( "Eigenschaft ändern: " + _newValue.toString() );
+    }
 
-    /**
-     * Implementation. 
-     */
-    public static abstract class Mixin
-            extends AbstractModelChangeOperation
-            implements SetPropertyOperation {
+    //        public final IStatus execute( IProgressMonitor monitor, IAdaptable info )
+    //        throws ExecutionException {
+    //            return super.execute( monitor, info );
+    //        }
 
-        private Object                  obj;
-        
-        private String                  propName;
-        
-        private Object                  newValue;
-        
-        private Class                   type;
-        
-        
-        public Mixin() {
-            super( "[undefined]" );
-        }
+    public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        try {
+            ProjectRepository rep = ProjectRepository.instance();
+            Method[] methods = type.getMethods();
+            boolean found = false;
+            for (Method m : methods) {
+                ModelProperty a = m.getAnnotation( ModelProperty.class );
+                // FIXME fix the set+name hack; 
+                // no way to get the proper annotation; getAnnotation() alway returns null :(
+                if ((a != null && a.value().equals( propName ))
+                        || m.getName().equalsIgnoreCase( "set" + propName )) {
+                    found = true;
 
-
-        public void init( Class _type, Object _obj, String _propName, Object _newValue ) {
-            this.type = _type;
-            this.obj = _obj;
-            this.propName = _propName;
-            this.newValue = _newValue;
-            setLabel( "Eigenschaft ändern: " + _newValue.toString() );
-        }
-
-//        public final IStatus execute( IProgressMonitor monitor, IAdaptable info )
-//        throws ExecutionException {
-//            return super.execute( monitor, info );
-//        }
-
-        public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
-        throws ExecutionException {
-            try {
-                ProjectRepository rep = ProjectRepository.instance();
-                Method[] methods = type.getMethods();
-                boolean found = false;
-                for (Method m : methods) {
-                    ModelProperty a = m.getAnnotation( ModelProperty.class );
-                    // FIXME fix the set+name hack; 
-                    // no way to get the proper annotation; getAnnotation() alway returns null :(
-                    if ((a != null && a.value().equals( propName ))
-                            || m.getName().equalsIgnoreCase( "set" + propName )) {
-                        found = true;
-                        
-                        // invoke and break
-                        try {
-                            m.invoke( obj, new Object[] {newValue} );
-                            break;
-                        }
-                        catch (InvocationTargetException e) {
-                            throw e.getTargetException();
-                        }
+                    // invoke and break
+                    try {
+                        m.invoke( obj, new Object[] {newValue} );
+                        break;
+                    }
+                    catch (InvocationTargetException e) {
+                        throw e.getTargetException();
                     }
                 }
-                if (!found) {
-                    throw new IllegalArgumentException( "No such property:" + propName);
-                }
             }
-            catch (Throwable e) {
-                if (e instanceof ExecutionException) {
-                    throw (ExecutionException)e;
-                } 
-                else {
-                    throw new ExecutionException( e.getMessage(), e );
-                }
+            if (!found) {
+                throw new IllegalArgumentException( "No such property:" + propName);
             }
-            return Status.OK_STATUS;
         }
-
-
-        public boolean canUndo() {
-            // use implementation from AbstractModelChangeOperation
-            return true;
+        catch (Throwable e) {
+            if (e instanceof ExecutionException) {
+                throw (ExecutionException)e;
+            } 
+            else {
+                throw new ExecutionException( e.getMessage(), e );
+            }
         }
+        return Status.OK_STATUS;
+    }
 
+
+    public boolean canUndo() {
+        // use implementation from AbstractModelChangeOperation
+        return true;
     }
 
 }

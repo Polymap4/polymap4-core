@@ -340,17 +340,17 @@ public abstract class QiModule
         return query;
     }
 
-    /**
-     * Creates a new operation of the given type.
-     * <p>
-     * The caller must ensure to initialize the operation properly.
-     *
-     * @param type Class that extends {@link IUndoableOperation}.
-     */
-    public <T> T newOperation( Class<T> type ) {
-        T result = assembler.getModule().transientBuilderFactory().newTransient( type );
-        return result;
-    }
+//    /**
+//     * Creates a new operation of the given type.
+//     * <p>
+//     * The caller must ensure to initialize the operation properly.
+//     *
+//     * @param type Class that extends {@link IUndoableOperation}.
+//     */
+//    public <T> T newOperation( Class<T> type ) {
+//        T result = assembler.getModule().transientBuilderFactory().newTransient( type );
+//        return result;
+//    }
 
     /**
      * Creates a new {@link EntityType} instance for the given {@link Entity}

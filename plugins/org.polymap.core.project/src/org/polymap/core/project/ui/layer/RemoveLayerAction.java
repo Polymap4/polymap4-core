@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-20122, Polymap GmbH, and individual contributors
- * as indicated by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,14 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
-
 package org.polymap.core.project.ui.layer;
 
 import java.util.ArrayList;
@@ -49,7 +41,6 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.RemoveLayerOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -79,7 +70,7 @@ public class RemoveLayerAction
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            RemoveLayerOperation op = ProjectRepository.instance().newOperation( RemoveLayerOperation.class );
+            RemoveLayerOperation op = new RemoveLayerOperation();
             op.init( selectedLayers );
             OperationSupport.instance().execute( op, true, true );
         }

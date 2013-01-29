@@ -35,7 +35,6 @@ import org.qi4j.bootstrap.ApplicationAssembly;
 import org.qi4j.bootstrap.LayerAssembly;
 import org.qi4j.bootstrap.ModuleAssembly;
 import org.polymap.core.project.model.MapComposite;
-import org.polymap.core.project.operations.SetPropertyOperation;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
 import org.polymap.core.qi4j.entitystore.json.JsonEntityStoreInfo;
@@ -99,8 +98,7 @@ public class ServiceRepositoryAssembler
         );
         domainModule.addTransients( 
                 NewServiceOperation.class,
-                RemoveServiceOperation.class,
-                SetPropertyOperation.class
+                RemoveServiceOperation.class
         );
 
         // persistence: workspace/JSON

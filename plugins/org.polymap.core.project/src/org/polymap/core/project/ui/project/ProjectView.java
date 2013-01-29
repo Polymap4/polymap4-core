@@ -247,7 +247,7 @@ public class ProjectView
                     
                     if (dialog.getReturnCode() == InputDialog.OK) {
                         try {
-                            SetPropertyOperation op = ProjectRepository.instance().newOperation( SetPropertyOperation.class );
+                            SetPropertyOperation op = new SetPropertyOperation();
                             op.init( IMap.class, map, IMap.PROP_LABEL, dialog.getValue() );
                             OperationSupport.instance().execute( op, false, false );
                         }

@@ -28,7 +28,6 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetPropertyOperation;
 
 /**
@@ -162,7 +161,7 @@ public class LayerPropertySource
     
     public void setPropertyValue( Object id, Object value ) {
         try {
-            SetPropertyOperation op = ProjectRepository.instance().newOperation( SetPropertyOperation.class );
+            SetPropertyOperation op = new SetPropertyOperation();
             
             if (id.equals( ILayer.PROP_LABEL )) {
                 op.init( ILayer.class, layer, ILayer.PROP_LABEL, value );

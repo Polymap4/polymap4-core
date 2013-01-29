@@ -34,7 +34,6 @@ import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.PipelineProcessorConfiguration;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetProcessorConfigurationsOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -73,8 +72,7 @@ public class AddFilterProcessorAction
             configs.add( newConfig );
 
             // operation
-            SetProcessorConfigurationsOperation op = ProjectRepository.instance().newOperation( 
-                    SetProcessorConfigurationsOperation.class );
+            SetProcessorConfigurationsOperation op = new SetProcessorConfigurationsOperation();
             op.init( layer, configs.toArray(new PipelineProcessorConfiguration[configs.size()]) );
             OperationSupport.instance().execute( op, false, false );
         }
