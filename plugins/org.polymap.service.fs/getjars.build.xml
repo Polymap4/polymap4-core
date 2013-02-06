@@ -42,8 +42,8 @@
 			<!-- Milton -->
             <dependency groupId="com.ettrema" artifactId="milton-api" version="${milton.version}"/>
             <dependency groupId="com.ettrema" artifactId="milton-servlet" version="${milton.version}"/>
-            <dependency groupId="com.ettrema" artifactId="milton-json" version="${milton.version}"/>
-            <dependency groupId="com.ettrema" artifactId="milton-filesystem" version="${milton.version}"/>
+            <!--dependency groupId="com.ettrema" artifactId="milton-json" version="${milton.version}"/-->
+            <!--dependency groupId="com.ettrema" artifactId="milton-filesystem" version="${milton.version}"/-->
 			
             <dependency groupId="commons-fileupload" artifactId="commons-fileupload" version="1.2.1" />
             
