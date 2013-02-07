@@ -32,7 +32,7 @@
 
 	<target name="load_m2_deps" unless="already_downloaded">
 		
-        <!--setproxy proxyhost="46.4.28.8" proxyport="3128"/-->
+        <setproxy proxyhost="46.4.28.8" proxyport="3128"/>
 		
 		<!-- we can probably replace this with a reference to a pom.xml file -->
 		<!-- Use http://mvnrepository.com/ to look stuff up -->
@@ -101,6 +101,7 @@
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-sqlserver" version="${geotools.version}" /-->
             <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" />
             <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-h2" version="${geotools.version}" />
+            <dependency groupId="net.sourceforge.hatbox" artifactId="hatbox" version="1.0.b7" />
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-oracle" version="${geotools.version}" /-->
 
 			<dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />

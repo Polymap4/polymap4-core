@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Core Libraries
+Bundle-Name: External Libraries
 Bundle-SymbolicName: org.polymap.core.libs;singleton:=true
 Bundle-Version: 3.1.0
 Bundle-Activator: org.polymap.core.libs.CoreLibsPlugin
@@ -2245,7 +2245,8 @@ Bundle-ClassPath: .,
  lib/lucene-core-3.6.0.jar,
  lib/lucene-queryparser-3.6.0.jar,
  lib/lucene-core-3.6.1.jar,
- lib/lucene-queryparser-3.6.1.jar
+ lib/lucene-queryparser-3.6.1.jar,
+ lib/hatbox-1.0.b7.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
 Bundle-Vendor: polymap.org

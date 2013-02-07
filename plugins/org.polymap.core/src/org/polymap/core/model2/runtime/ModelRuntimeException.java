@@ -26,11 +26,6 @@ public class ModelRuntimeException
         super();
     }
 
-    public ModelRuntimeException( String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace ) {
-        super( message, cause, enableSuppression, writableStackTrace );
-    }
-
     public ModelRuntimeException( String message, Throwable cause ) {
         super( message, cause );
     }
