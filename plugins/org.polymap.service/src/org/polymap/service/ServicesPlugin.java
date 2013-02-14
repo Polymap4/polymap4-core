@@ -198,7 +198,8 @@ public class ServicesPlugin
                             initServices();
                             return Status.OK_STATUS;
                         }
-                    }.schedule( 2000 );
+                    // after Atlas but *before* Rhei-IDE
+                    }.schedule( 6000 );
                 }
                 return httpService;
             }
