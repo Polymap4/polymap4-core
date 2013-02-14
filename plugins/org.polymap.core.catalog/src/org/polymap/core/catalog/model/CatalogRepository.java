@@ -101,20 +101,6 @@ public class CatalogRepository
     }
     
     
-    public <T> T newOperation( Class<T> type ) {
-        T result = assembler.getModule().transientBuilderFactory().newTransient( type );
-        return result;
-    }
-
-//    public void fireModelChangedEvent( Object source, String propName, Object oldValue, Object newValue) {
-//        PropertyChangeEvent event = new PropertyChangeEvent( source, propName, oldValue, newValue ); 
-//        for (Object l : propChangeListeners.getListeners()) {
-//            ((PropertyChangeListener)l).propertyChange( event );
-//        }
-//    }
-    
-    
-    
     /**
      * 
      *
