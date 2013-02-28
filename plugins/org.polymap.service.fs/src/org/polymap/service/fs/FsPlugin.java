@@ -28,6 +28,8 @@ import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 
+import org.polymap.service.fs.providers.WorkbenchState;
+
 /**
  * 
  *
@@ -70,6 +72,10 @@ public class FsPlugin
         // register session context provider
         this.sessionContextProvider = new DefaultSessionContextProvider();
         SessionContext.addProvider( sessionContextProvider );
+        
+        // start WorkbenchState listener
+        log.info( "Starting " + WorkbenchState.class.getSimpleName() + " listener ..." );
+        WorkbenchState.startup();
     }
 
     

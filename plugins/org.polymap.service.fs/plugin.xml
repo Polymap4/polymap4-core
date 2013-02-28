@@ -40,7 +40,12 @@
       <contentProvider
             class="org.polymap.service.fs.providers.FsContentProvider"
             id="org.polymap.service.fs.FsContentProvider"
-            name="org.polymap.service.fs.FsContentProvider">
+            name="Disk">
+      </contentProvider>
+      <contentProvider
+            class="org.polymap.service.fs.providers.WorkbenchContentProvider"
+            id="org.polymap.service.fs.WorkbenchContentProvider"
+            name="Workbench">
       </contentProvider>
    </extension>
 

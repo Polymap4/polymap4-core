@@ -26,7 +26,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/geodb-0.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-api-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar" sourcepath="lib/sources/gt-coverage-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-data-2.6.4.jar" sourcepath="lib/sources/gt-data-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-2.6.4.jar"/>

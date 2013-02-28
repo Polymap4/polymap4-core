@@ -28,6 +28,7 @@ import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
 import org.eclipse.rwt.internal.service.ContextProvider;
 import org.eclipse.rwt.internal.service.ServiceContext;
 import org.eclipse.rwt.lifecycle.UICallBack;
+import org.eclipse.rwt.service.ISessionStore;
 import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
 
@@ -54,20 +55,25 @@ public class RapSessionContextProvider
     }
     
     
-    /*
+    /**
      * 
      */
     class RapSessionContext
             extends SessionContext {
 
-        private ServiceContext      serviceContext;
+        private ServiceContext              serviceContext;
         
-        private Display             display;
+        private Display                     display;
+
+        private ISessionStore               sessionStore;
 
 
         RapSessionContext( ServiceContext serviceContext ) {
+            assert !serviceContext.isDisposed();
             this.serviceContext = serviceContext;
             this.display = RWTLifeCycle.getSessionDisplay();
+            this.sessionStore = serviceContext.getSessionStore();
+            assert this.sessionStore != null;
         }
 
 
@@ -94,7 +100,7 @@ public class RapSessionContextProvider
 
 
         public boolean isDestroyed() {
-            return serviceContext == null || display.isDisposed();
+            return serviceContext == null /*|| serviceContext.isDisposed()*/ || display.isDisposed();
         }
 
 
@@ -109,12 +115,14 @@ public class RapSessionContextProvider
 
 
         public void execute( Runnable task ) {
+//            assert !isDestroyed();
             UICallBack.runNonUIThreadWithFakeContext( display, task );
         }
 
 
         public <T> T execute( final Callable<T> task ) 
         throws Exception {
+//            assert !isDestroyed();
             final AtomicReference<Exception> ee = new AtomicReference();
             final AtomicReference<T> result = new AtomicReference();
             
@@ -154,21 +162,26 @@ public class RapSessionContextProvider
 
 
         public Object getAttribute( String key ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+//            assert !isDestroyed();
+            return sessionStore.getAttribute( key );
         }
 
 
         public void setAttribute( String key, Object value ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+//            assert !isDestroyed();
+            sessionStore.setAttribute( key, value );
         }
 
 
         private RapSessionContextProvider getOuterType() {
             return RapSessionContextProvider.this;
         }
-        
+     
+        @Override
+        public String toString() {
+            return "RapSessionContext[serviceContext=" + serviceContext + ", attributes=" + serviceContext.getSessionStore() + "]";
+        }
+
     }
     
 }

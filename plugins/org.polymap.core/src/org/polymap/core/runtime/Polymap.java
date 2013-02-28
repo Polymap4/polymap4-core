@@ -229,6 +229,9 @@ public final class Polymap {
                     throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
                 }
                 
+                // allow to access the instance directly via current session (find user for example)
+                SessionContext.current().setAttribute( "user", user );
+                
                 loggedIn = true;
             } 
             catch (LoginException e) {
@@ -272,6 +275,9 @@ public final class Polymap {
         if (user == null) {
             throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
         }
+
+        // allow to access the instance directly via current session (find user for example)
+        SessionContext.current().setAttribute( "user", user );
     }
 
     

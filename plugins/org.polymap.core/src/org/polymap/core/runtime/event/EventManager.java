@@ -44,8 +44,12 @@ import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
 
 /**
+ * Provides the central API and implementation of the event system. Classes
+ * interested in receiving events should use {@link EventHandler} to annotated the
+ * handler methods. Event handler classes can then be
+ * {@link #subscribe(Object, EventFilter...) subscribed} to the manager.
  * 
- *
+ * @see EventHandler
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class EventManager {
@@ -66,7 +70,14 @@ public class EventManager {
        return instance;    
     }
     
-    static SessionContext publishSession() {
+    /**
+     * This method can be called from within an event handler or filter method to
+     * retrieve the session the current event was published from.
+     * 
+     * @throws AssertionError If the method was called from outside an event handler
+     *         or filter method.
+     */
+    public static SessionContext publishSession() {
         assert threadPublishSession != null;
         return threadPublishSession; 
     }
@@ -213,12 +224,18 @@ public class EventManager {
     /**
      * Registeres the given {@link EventHandler annotated} handler as event listener.
      * <p/>
-     * Listeners are weakly referenced by the EventManager. A listener is reclaimed
-     * by the GC and removed from the EventManager as soon as there is no strong
-     * reference to it. An anonymous inner class can not be used as event listener.
+     * Listeners are <b>weakly</b> referenced by the EventManager. A listener is
+     * reclaimed by the GC and removed from the EventManager as soon as there is no
+     * strong reference to it. An anonymous inner class can not be used as event
+     * listener.
+     * <p/>
+     * The given handler is called with the current {@link SessionContext}. If the
+     * current method call is done outside a session, then the handler is called
+     * without a session. A handler can use {@link EventManager#threadPublishSession}
+     * to retrieve the session the event was fired from.
      * 
      * @see EventHandler
-     * @param annotated
+     * @param annotated The {@link EventHandler annotated} event handler.
      * @throws IllegalStateException If the handler is subscribed already.
      */
     public void subscribe( Object annotated, EventFilter... filters ) {
