@@ -15,7 +15,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
  net.refractions.udig.ui,
  net.refractions.udig.core,
- org.polymap.core.libs;bundle-version="3.0.0";visibility:=reexport,
+ org.polymap.core.libs;bundle-version="3.1.0";visibility:=reexport,
  javax.servlet;bundle-version="2.5.0";visibility:=reexport,
  org.eclipse.equinox.security;bundle-version="1.0.200"
 Eclipse-LazyStart: true

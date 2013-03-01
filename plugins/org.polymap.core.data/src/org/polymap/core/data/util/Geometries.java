@@ -141,15 +141,15 @@ public class Geometries {
     }
     
     
-    public static Geometry transform( Geometry geom, CoordinateReferenceSystem source, CoordinateReferenceSystem target ) 
+    public static <T extends Geometry> T transform( T geom, CoordinateReferenceSystem source, CoordinateReferenceSystem target ) 
     throws MismatchedDimensionException, TransformException, Exception {
-        return JTS.transform( geom, transform( source, target ) );
+        return (T)JTS.transform( geom, transform( source, target ) );
     }
     
     
-    public static Geometry transform( Geometry geom, String sourceCode, String targetCode ) 
+    public static <T extends Geometry> T transform( T geom, String sourceCode, String targetCode ) 
     throws MismatchedDimensionException, TransformException, Exception {
-        return JTS.transform( geom, transform( sourceCode, targetCode ) );
+        return (T)JTS.transform( geom, transform( sourceCode, targetCode ) );
     }
 
 
