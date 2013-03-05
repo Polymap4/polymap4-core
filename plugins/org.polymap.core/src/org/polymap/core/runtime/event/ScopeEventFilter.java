@@ -61,12 +61,11 @@ abstract class ScopeEventFilter
         
         protected SessionScope() {
             session = SessionContext.current();
-            assert session != null;
         }
         
         @Override
         public boolean apply( EventObject ev ) {
-            return session.equals( EventManager.publishSession() );
+            return session != null && session.equals( EventManager.publishSession() );
         }
 
         public String toString() {
