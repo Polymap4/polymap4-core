@@ -45,7 +45,8 @@
 			<!-- remoteRepository refid="udig.snapshot.repository" /-->
 
 			<remoteRepository refid="geotools.repository" />
-			<!-- remoteRepository refid="geotools.repository.snapshot" /-->
+            <!-- hatbox needs this repo -->
+			<remoteRepository refid="geotools.repository.snapshot" />
 			<remoteRepository refid="central.repository" />
 			<remoteRepository refid="jaitoolsmaven.repository" />
 			<!-- remoteRepository refid="geosolutionsmaven.repository" /-->
