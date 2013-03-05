@@ -110,7 +110,7 @@ public class RServiceExtension
         if (url == null) {
             return false;
         }
-        else if (url.getProtocol().toLowerCase().equals( RDataStoreFactory.DBTYPE.sample )) {
+        else if (!url.getProtocol().equalsIgnoreCase( RDataStoreFactory.DBTYPE.sample.toString() )) {
             return false;
         }
         else if (url.getPath().length() == 0) {
