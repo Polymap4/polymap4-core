@@ -15,6 +15,9 @@
  */
 package org.polymap.core.data.operations.featuretype;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.refractions.udig.catalog.IDeletingSchemaService;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
@@ -38,6 +41,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.data.Messages;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
@@ -56,53 +60,65 @@ public class DeleteFeatureTypeAction
 
     private static Log log = LogFactory.getLog( DeleteFeatureTypeAction.class );
 
-    private IGeoResource            geores;
+    private List<IGeoResource>              geores = new ArrayList();
 
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            DeleteFeatureTypeOperation op = new DeleteFeatureTypeOperation( geores );
-            OperationSupport.instance().execute( op, true, true );
+            for (IGeoResource elm : geores) {
+                DeleteFeatureTypeOperation op = new DeleteFeatureTypeOperation( elm );
+                OperationSupport.instance().execute( op, false, true );
+            }
         }
         catch (ExecutionException e) {
-            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
+            PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
     }
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
-        geores = null;
+        geores.clear();
         action.setEnabled( false );
 
         if (sel instanceof IStructuredSelection) {
-            Object elm = ((IStructuredSelection)sel).getFirstElement();
-            if (elm instanceof IGeoResource) {
-                try {
-                    geores = (IGeoResource)elm;
-                    IService service = geores.service( new NullProgressMonitor() );
-                    boolean enabled = service instanceof IDeletingSchemaService;
+            for (Object elm : ((IStructuredSelection)sel).toList()) {
+                if (elm instanceof IGeoResource) {
+                    try {
+                        geores.add( (IGeoResource)elm );                        
+                        IService service = ((IGeoResource)elm).service( new NullProgressMonitor() );
+                        boolean enabled = service instanceof IDeletingSchemaService;
 
-                    // check ACL permission
-                    if (service != null && service instanceof IAdaptable) {
-                        ACL acl = (ACL)((IAdaptable)service).getAdapter( ACL.class );
-                        if (acl != null) {
-                            boolean deletePermitted = ACLUtils.checkPermission( acl, AclPermission.DELETE, false );
-                            log.info( "delete permitted: " + deletePermitted + " on service: " + acl );
-                            enabled &= deletePermitted;
+                        // check ACL permission
+                        if (service != null && service instanceof IAdaptable) {
+                            ACL acl = (ACL)((IAdaptable)service).getAdapter( ACL.class );
+                            if (acl != null) {
+                                boolean deletePermitted = ACLUtils.checkPermission( acl, AclPermission.DELETE, false );
+                                log.info( "delete permitted: " + deletePermitted + " on service: " + acl );
+                                enabled &= deletePermitted;
+                            }
+                        }
+                        
+                        if (!enabled) {
+                            return;
                         }
                     }
-                    action.setEnabled( enabled );
-                }
-                catch (Exception e) {
-                    log.warn( "" );
-                    log.debug( "", e );
+                    catch (Exception e) {
+                        log.warn( "" );
+                        log.debug( "", e );
+                    }
                 }
             }
+            action.setEnabled( true );
         }
     }
 
 
     public void setActivePart( IAction action, IWorkbenchPart targetPart ) {
+    }
+
+
+    protected static String i18n( String key, Object... args) {
+        return Messages.get( "DeleteFeatureTypeAction_" + key, args );
     }
 
 }

@@ -156,7 +156,8 @@
          </action-->
          <action
                class="org.polymap.core.data.operations.featuretype.DeleteFeatureTypeAction"
-               icon="icons/etool16/delete.gif"
+               enablesFor="+"
+               icon="icons/etool16/delete_edit.gif"
                id="org.polymap.core.data.DeleteFeatureTypeAction"
                label="%actions_deleteFeatureType"
                tooltip="%actions_deleteFeatureTypeTip">

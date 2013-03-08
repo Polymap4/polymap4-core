@@ -86,7 +86,7 @@ public class DeleteFeatureTypeOperation
 
         try {
             IService service = geores.service( monitor );
-            final String title = service.getInfo( monitor ).getTitle();
+            final String title = geores.getTitle();
 
             if (!(service instanceof IDeletingSchemaService)) {
                 throw new ExecutionException( i18n( "unsupportedDataStore", title ) );
@@ -124,7 +124,7 @@ public class DeleteFeatureTypeOperation
             throw e;
         }
         catch (Exception e) {
-            throw new ExecutionException( e.getLocalizedMessage(), e );
+            throw new ExecutionException( i18n( "errorMsg" ), e );
         }
     }
 
