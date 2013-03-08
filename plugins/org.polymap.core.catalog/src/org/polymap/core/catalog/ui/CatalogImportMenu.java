@@ -16,6 +16,8 @@ package org.polymap.core.catalog.ui;
 
 import java.util.List;
 
+import net.refractions.udig.catalog.ICatalog;
+import net.refractions.udig.catalog.internal.ui.CatalogView;
 import net.refractions.udig.catalog.ui.ConnectionFactoryManager;
 import net.refractions.udig.catalog.ui.UDIGConnectionFactoryDescriptor;
 
@@ -33,6 +35,12 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
 import org.polymap.core.catalog.CatalogPlugin;
 import org.polymap.core.catalog.Messages;
@@ -46,6 +54,29 @@ public class CatalogImportMenu
         extends ContributionItem {
 
     private static Log log = LogFactory.getLog( CatalogImportMenu.class );
+
+
+    @Override
+    public void fill( final Menu parent, int index ) {
+        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        IWorkbenchPage page = window.getActivePage();
+        ISelection sel = page.getSelection( CatalogView.VIEW_ID );
+
+        // check current selection
+        if (sel instanceof IStructuredSelection
+                && ((IStructuredSelection)sel).getFirstElement() instanceof ICatalog) {
+        
+            final MenuItem item = new MenuItem( parent, SWT.CASCADE, index );
+            Image icon = CatalogPlugin.getDefault().imageForName( "icons/etool16/add.gif" );
+            item.setImage( icon );
+            item.setText( i18n( "title" ) );
+
+            Menu submenu = new Menu( parent );
+            submenu.setVisible( true );
+            fillSubMenu( submenu );
+            item.setMenu( submenu );
+        }
+    }
 
 
     @Override

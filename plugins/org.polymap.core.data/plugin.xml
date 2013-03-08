@@ -165,7 +165,7 @@
       </objectContribution>
       <objectContribution
             adaptable="true"
-            id="org.polymap.core.data.resolveContribution"
+            id="org.polymap.core.data.resolveContribution1"
             objectClass="net.refractions.udig.catalog.IService">
          <action
                class="org.polymap.core.data.operations.featuretype.CreateFeatureTypeAction"
@@ -179,7 +179,7 @@
       </objectContribution>
       <objectContribution
             adaptable="true"
-            id="org.polymap.core.data.resolveContribution"
+            id="org.polymap.core.data.resolveContribution2"
             objectClass="net.refractions.udig.catalog.IResolveFolder">
          <action
                class="org.polymap.core.data.operations.featuretype.CreateFeatureTypeAction"

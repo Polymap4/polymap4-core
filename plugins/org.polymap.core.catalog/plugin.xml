@@ -79,6 +79,16 @@
             </visibleWhen>
          </dynamic>
       </menuContribution>
+      <menuContribution
+            locationURI="popup:net.refractions.udig.catalog.ui.CatalogView">
+         <dynamic
+               class="org.polymap.core.catalog.ui.CatalogImportMenu"
+               id="org.polymap.core.catalog.CatalogImportMenu2">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </dynamic>
+      </menuContribution>
    </extension>
    <!--extension
          point="net.refractions.udig.catalog.resolvers">
