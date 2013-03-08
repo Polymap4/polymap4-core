@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,20 +11,20 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.catalog;
+
+import java.net.URL;
 
 import org.osgi.framework.BundleContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.swt.graphics.Image;
+
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
@@ -34,8 +33,7 @@ import org.polymap.core.catalog.model.CatalogRepository;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class CatalogPlugin
@@ -43,10 +41,8 @@ public class CatalogPlugin
 
     private static Log log = LogFactory.getLog( CatalogPlugin.class );
 
-    // The plug-in ID
     public static final String      PLUGIN_ID = "org.polymap.core.catalog";
 
-    // The shared instance
     private static CatalogPlugin    plugin;
     
     private static boolean          started = false;
@@ -58,15 +54,13 @@ public class CatalogPlugin
     }
 
 
-    public void start( final BundleContext context )
-            throws Exception {
+    public void start( final BundleContext context ) throws Exception {
         super.start( context );
         plugin = this;
     }
 
 
-    public void stop( BundleContext context )
-            throws Exception {
+    public void stop( BundleContext context ) throws Exception {
         plugin = null;
         super.stop( context );
     }
@@ -75,5 +69,29 @@ public class CatalogPlugin
     public static CatalogPlugin getDefault() {
         return plugin;
     }
+
     
+    public Image imageForName( String resName ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( resName );
+        if (image == null || image.isDisposed()) {
+            URL res = getBundle().getResource( resName );
+            assert res != null : "Image resource not found: " + resName;
+            images.put( resName, ImageDescriptor.createFromURL( res ) );
+            image = images.get( resName );
+        }
+        return image;
+    }
+
+
+    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( key );
+        if (image == null || image.isDisposed()) {
+            images.put( key, imageDescriptor );
+            image = images.get( key );
+        }
+        return image;
+    }
+
 }

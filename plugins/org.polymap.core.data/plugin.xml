@@ -354,7 +354,7 @@
                path="selection">
          </menu>
       </viewContribution>
-      <viewContribution
+      <!--viewContribution
             id="org.polymap.core.data.catalogContribution"
             targetID="net.refractions.udig.catalog.ui.CatalogView">
          <action
@@ -367,7 +367,7 @@
                toolbarPath="data"
                tooltip="%actions_createRDataStoreTip">
          </action>
-      </viewContribution>
+      </viewContribution-->
    </extension>
    <extension
          point="org.polymap.core.operation.concerns">
@@ -500,6 +500,20 @@
             id="org.polymap.core.data.RecordStoreServiceExtension"
             name="%RServiceExtension_label">
       </service>
+   </extension>
+   <extension
+         point="net.refractions.udig.catalog.ui.connectionFactory">
+      <factory
+            class="org.polymap.core.data.feature.recordstore.catalog.RConnectionFactory"
+            id="org.polymap.core.data.RConnectionFactory">
+      </factory>
+      <wizardPage
+            class="org.polymap.core.data.feature.recordstore.catalog.RConnectionPage"
+            description="%RConnectionPage_description"
+            icon="icons/etool16/add_database.gif"
+            id="org.polymap.core.data.RConnectionFactory"
+            name="%RConnectionPage_title">
+      </wizardPage>
    </extension>
    <!--extension
          point="net.refractions.udig.catalog.ServiceExtension">

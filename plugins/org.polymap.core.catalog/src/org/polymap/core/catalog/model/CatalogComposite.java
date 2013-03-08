@@ -307,7 +307,7 @@ public interface CatalogComposite
                 //OperationSupport.instance().execute( op, false, false );
             }
             catch (ExecutionException e) {
-                throw new RuntimeException( e );
+                throw new RuntimeException( e.getLocalizedMessage(), e );
             }
         }
 

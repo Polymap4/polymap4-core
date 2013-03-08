@@ -25,7 +25,6 @@ import org.eclipse.swt.widgets.Menu;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -164,8 +163,12 @@ public class CatalogView
                 contextMenu.add( new Separator() );
                 //contextMenu.add(removeAction);
                 IWorkbenchWindow window = getSite().getWorkbenchWindow();
-                IAction importAction = ActionFactory.IMPORT.create( window );
-                contextMenu.add( importAction );
+                
+                // _p3: import removed in favour of org.polymap.core.catalog.ui.CatalogImportMenu
+                // see #121: Katalog - Importoptionen (http://polymap.org/polymap3/ticket/121)
+                //IAction importAction = ActionFactory.IMPORT.create( window );
+                //contextMenu.add( importAction );
+                
                 contextMenu.add( new Separator() );
                 contextMenu.add( UiPlugin.getDefault().getOperationMenuFactory().getContextMenu( treeviewer.getSelection() ) );
                 // XXX _p3: no export in catalog
@@ -364,12 +367,14 @@ public class CatalogView
         IToolBarManager mgr = getViewSite().getActionBars().getToolBarManager();
         // mgr.add(addAction);
 
-        IWorkbenchWindow window = getSite().getWorkbenchWindow();
-        IAction importAction = ActionFactory.IMPORT.create(window);
-        importAction.setToolTipText( "Import data or services into the catalog" );
-
-        importAction.setImageDescriptor( Images.getDescriptor(ImageConstants.PATH_ETOOL + "import_wiz.gif"));
-        mgr.add( importAction );
+        // _p3: import removed in favour of org.polymap.core.catalog.ui.CatalogImportMenu
+        // see #121: Katalog - Importoptionen (http://polymap.org/polymap3/ticket/121)
+//        IWorkbenchWindow window = getSite().getWorkbenchWindow();
+//        IAction importAction = ActionFactory.IMPORT.create(window);
+//        importAction.setToolTipText( "Import data or services into the catalog" );
+//
+//        importAction.setImageDescriptor( Images.getDescriptor(ImageConstants.PATH_ETOOL + "import_wiz.gif"));
+//        mgr.add( importAction );
 
         //mgr.add(removeAction);
     }

@@ -21,7 +21,7 @@
             name="H2">
       </wizardPage>
    </extension-->
-   <extension
+   <!--extension
          point="org.eclipse.ui.viewActions">
       <viewContribution
             id="org.polymap.catalog.h2.CatalogViewContribution"
@@ -36,6 +36,6 @@
                tooltip="Eine neue, persönliche H2-Datenbank anlegen.">
          </action>
       </viewContribution>
-   </extension>
+   </extension-->
 
 </plugin>
