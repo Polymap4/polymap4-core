@@ -165,7 +165,21 @@
       <objectContribution
             adaptable="true"
             id="org.polymap.core.data.resolveContribution"
-            objectClass="net.refractions.udig.catalog.IResolve">
+            objectClass="net.refractions.udig.catalog.IService">
+         <action
+               class="org.polymap.core.data.operations.featuretype.CreateFeatureTypeAction"
+               enablesFor="1"
+               icon="icons/etool16/add_featuretype.gif"
+               id="org.polymap.core.data.CreateFeatureTypeAction"
+               label="%actions_createFeatureType"
+               style="push"
+               tooltip="%actions_createFeatureTypeTip">
+         </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="org.polymap.core.data.resolveContribution"
+            objectClass="net.refractions.udig.catalog.IResolveFolder">
          <action
                class="org.polymap.core.data.operations.featuretype.CreateFeatureTypeAction"
                enablesFor="1"
