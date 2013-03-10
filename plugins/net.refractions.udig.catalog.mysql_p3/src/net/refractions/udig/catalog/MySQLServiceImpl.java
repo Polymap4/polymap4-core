@@ -22,6 +22,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
+
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +70,19 @@ public class MySQLServiceImpl
         params = arg2;
     }
 
+    public String toString() {
+        try {
+            HashMap temp = new HashMap( params );
+            temp.put( MySQLDataStoreFactory.USER.key, "xxx" ); 
+            temp.put( MySQLDataStoreFactory.PASSWD.key, "xxx" );
+
+            return "MySQL Service: " + MySQLServiceExtension.toURL( temp );
+        }
+        catch (Exception e) {
+            return "MySQL Service";
+        }
+    }
+
     /*
      * Required adaptations: <ul> <li>IServiceInfo.class <li>List.class <IGeoResource> </ul>
      * @see net.refractions.udig.catalog.IService#resolve(java.lang.Class,
@@ -90,6 +105,7 @@ public class MySQLServiceImpl
          */
         return super.resolve(adaptee, monitor);
     }
+    
     /*
      * @see net.refractions.udig.catalog.IResolve#canResolve(java.lang.Class)
      */

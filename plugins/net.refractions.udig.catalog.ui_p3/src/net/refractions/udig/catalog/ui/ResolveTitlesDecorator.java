@@ -393,7 +393,7 @@ public class ResolveTitlesDecorator implements ILabelDecorator, IColorDecorator,
                         continue;
                     
                     URL identifier = element.getIdentifier();
-                    monitor.beginTask(Messages.ResolveTitlesDecorator_0 + identifier.getFile(),
+                    monitor.beginTask(Messages.get("ResolveTitlesDecorator_0") + identifier.getFile(),
                             IProgressMonitor.UNKNOWN);
                     if( monitor.isCanceled() ){
                         return Status.OK_STATUS;

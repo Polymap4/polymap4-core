@@ -56,12 +56,12 @@ public class  ConnectionFailurePage extends WorkflowWizardPage implements ILabel
 
     private TreeViewer viewer;
     private Text details;
-    private static String canProcess=Messages.ConnectionFailurePage_canProcess;
+    private static String canProcess=Messages.get("ConnectionFailurePage_canProcess");
 
     public ConnectionFailurePage(  ) {
-        super(Messages.ConnectionFailurePage_title);
-        setTitle(Messages.ConnectionFailurePage_displayedTitle);
-        setMessage(Messages.ConnectionFailurePage_message);
+        super(Messages.get("ConnectionFailurePage_title"));
+        setTitle(Messages.get("ConnectionFailurePage_displayedTitle"));
+        setMessage(Messages.get("ConnectionFailurePage_message"));
     }
 
     public void createControl( Composite parent ) {
@@ -114,7 +114,7 @@ public class  ConnectionFailurePage extends WorkflowWizardPage implements ILabel
                 string = canProcess;
             details.setText(string);
         }else{
-            details.setText(Messages.ConnectionFailurePage_selectChild);
+            details.setText(Messages.get("ConnectionFailurePage_selectChild"));
         }
     }
     

@@ -177,11 +177,11 @@ public abstract class AbstractProprietaryJarPreferencePage extends PreferencePag
             public void modifyText( org.eclipse.swt.events.ModifyEvent e ) {
                 File srcDriver = new File(ui.input.getText());
                 if (installed() )
-                    acceptance(Messages.DependencyQueryPreferencePage_fileExists, ui.input); 
+                    acceptance(Messages.get("DependencyQueryPreferencePage_fileExists"), ui.input); 
                 else if (!srcDriver.exists() )
-                	error(Messages.DependencyQueryPreferencePage_fileNotFound, ui.input); 
+                	error(Messages.get("DependencyQueryPreferencePage_fileNotFound"), ui.input); 
                 else
-                	error(Messages.DependencyQueryPreferencePage_notValid, ui.input); 
+                	error(Messages.get("DependencyQueryPreferencePage_notValid"), ui.input); 
     
             };
         });
@@ -194,7 +194,7 @@ public abstract class AbstractProprietaryJarPreferencePage extends PreferencePag
         ui.input.setLayoutData(layoutData);
     
         ui.browse = new Button(comp, SWT.PUSH);
-        ui.browse.setText(Messages.DependencyQueryPreferencePage_browse); 
+        ui.browse.setText(Messages.get("DependencyQueryPreferencePage_browse")); 
     
         ui.browse.addSelectionListener(new SelectionListener(){
     
@@ -206,7 +206,7 @@ public abstract class AbstractProprietaryJarPreferencePage extends PreferencePag
                 System.out.println( "XXX _p3: upload field/dialog here." );
 //                FileDialog fileDialog = new FileDialog(comp.getShell(), SWT.OPEN);
 //                fileDialog.setFilterExtensions(new String[]{"*.jar"}); //$NON-NLS-1$
-//                fileDialog.setFilterNames(new String[]{Messages.DependencyQueryPreferencePage_archive}); 
+//                fileDialog.setFilterNames(new String[]{Messages.get("DependencyQueryPreferencePage_archive")}); 
 //                String result = fileDialog.open();
 //                if (result != null)
 //                    ui.input.setText(result);
@@ -240,11 +240,11 @@ public abstract class AbstractProprietaryJarPreferencePage extends PreferencePag
                     if (!srcDriver.exists()) {
                         if (current.input.getText().equals(current.jar_name))
                             return true;
-                        error(Messages.DependencyQueryPreferencePage_fileNotFound, current.input);
+                        error(Messages.get("DependencyQueryPreferencePage_fileNotFound"), current.input);
                         return false;
                     }
                 } catch (Exception e) {
-                    error(Messages.DependencyQueryPreferencePage_copyError, current.input);
+                    error(Messages.get("DependencyQueryPreferencePage_copyError"), current.input);
                     return false;
                 }
                 try {
@@ -255,7 +255,7 @@ public abstract class AbstractProprietaryJarPreferencePage extends PreferencePag
                         copyfile(srcDriver, destDriver);
                     }
                 } catch (Exception e) {
-                    error(Messages.DependencyQueryPreferencePage_copyError, current.input);
+                    error(Messages.get("DependencyQueryPreferencePage_copyError"), current.input);
                     return false;
                 }
                 getPreferenceStore().putValue(current.jar_name, current.input.getText());
@@ -266,8 +266,8 @@ public abstract class AbstractProprietaryJarPreferencePage extends PreferencePag
             listener.handleEvent(null);
     
         boolean restart = MessageDialog.openQuestion(getShell(),
-                Messages.DependencyQueryPreferencePage_restartTitle, Messages.DependencyQueryPreferencePage_restartNeeded
-                        + Messages.DependencyQueryPreferencePage_restartQuestion);
+                Messages.get("DependencyQueryPreferencePage_restartTitle"), Messages.get("DependencyQueryPreferencePage_restartNeeded")
+                        + Messages.get("DependencyQueryPreferencePage_restartQuestion"));
         if (restart) {
             throw new RuntimeException( "FIXME _p3: restart not available" );
             //PlatformUI.getWorkbench().restart();

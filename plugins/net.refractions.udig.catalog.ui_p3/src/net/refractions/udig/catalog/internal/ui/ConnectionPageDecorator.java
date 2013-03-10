@@ -210,16 +210,16 @@ public class ConnectionPageDecorator extends WorkflowWizardPage
 
     private String formatException( IService key, Throwable t ) {
         if (t instanceof UnknownHostException) {
-            return key.getIdentifier().getHost() + Messages.ConnectionPage_illegalHost;
+            return key.getIdentifier().getHost() + Messages.get("ConnectionPage_illegalHost");
         }
         if (t instanceof DataSourceException) {
             String message = t.getMessage();
             if (message.contains("user") && message.contains("does not exist")) //$NON-NLS-1$ //$NON-NLS-2$
-                return Messages.ConnectionPage_badUsername;
+                return Messages.get("ConnectionPage_badUsername");
             if (message.contains("password")) //$NON-NLS-1$
-                return Messages.ConnectionPage_badPassword;
+                return Messages.get("ConnectionPage_badPassword");
         }
-        return Messages.ConnectionPage_genericError;
+        return Messages.get("ConnectionPage_genericError");
     }
 
     public void started( State first ) {

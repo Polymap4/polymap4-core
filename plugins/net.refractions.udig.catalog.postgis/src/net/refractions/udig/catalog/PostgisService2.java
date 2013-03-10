@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.net.URL;
 
 import org.geotools.data.postgis.PostGISDialect;
+import org.geotools.data.postgis.PostgisNGDataStoreFactory;
 import org.geotools.jdbc.JDBCDataStore;
 
 import java.util.ArrayList;
@@ -71,6 +72,19 @@ public class PostgisService2
         status = Status.NOTCONNECTED;
     }
     
+    public String toString() {
+        try {
+            HashMap temp = new HashMap( params );
+            temp.put( PostgisNGDataStoreFactory.USER.key, "xxx" ); 
+            temp.put( PostgisNGDataStoreFactory.PASSWD.key, "xxx" );
+
+            return "PostGIS Service: " + temp;
+        }
+        catch (Exception e) {
+            return "PostGIS Service";
+        }
+    }
+
     @Override
     protected void finalize() throws Throwable {
         super.finalize();

@@ -217,7 +217,7 @@ public class CatalogView
 //            }
 //        };
 //        
-//        Messages.initAction(removeAction, "action_remove"); //$NON-NLS-1$
+//        Messages.get("initAction")(removeAction, "action_remove"); //$NON-NLS-1$
 //        removeAction.setEnabled(false);
 //        removeAction.setImageDescriptor(Images.getDescriptor(ImageConstants.REMOVE_CO));
 //        removeAction.setActionDefinitionId("org.eclipse.ui.edit.delete"); //$NON-NLS-1$
@@ -229,7 +229,7 @@ public class CatalogView
 //        PlatformUI.getWorkbench().getHelpSystem().setHelp(removeAction,
 //                IHelpContextIds.REMOVE_SERVICE_ACTION);
 
-        saveAction = new Action(Messages.CatalogView_save_label){ 
+        saveAction = new Action(Messages.get("CatalogView_save_label")){ 
             public void run() {
                 try {
                     CatalogPlugin.getDefault().storeToPreferences( 
@@ -246,7 +246,7 @@ public class CatalogView
             }
         };
 
-        loadAction = new Action(Messages.CatalogView_load_label){ 
+        loadAction = new Action(Messages.get("CatalogView_load_label")){ 
             public void run() {
                 try {
                     System.out.println( "loadAction: ..." );

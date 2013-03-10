@@ -90,7 +90,7 @@ abstract class AbstractGeometryTransformingFeatureCollection extends AdaptorFeat
 	                    try {
 	                        geometry = JTS.transform(geometry, mt);
 	                    } catch (TransformException e) {
-	                        throw (RuntimeException) new RuntimeException( Messages.ReprojectingFeatureCollection_transformationError+next.getID()).initCause( e );
+	                        throw (RuntimeException) new RuntimeException( Messages.get("ReprojectingFeatureCollection_transformationError")+next.getID()).initCause( e );
 	                    }
                     }
                     feature = new FeatureWrapper(next, schema, new Geometry[]{geometry}, 

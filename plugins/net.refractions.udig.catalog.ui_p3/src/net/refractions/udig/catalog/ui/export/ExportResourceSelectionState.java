@@ -143,7 +143,7 @@ public class ExportResourceSelectionState extends State {
 
 	@Override
 	public String getName() {
-		return Messages.CatalogExport_exportLayersTask; 
+		return Messages.get("CatalogExport_exportLayersTask"); 
 	}
 
 	public String getExportDir() {

@@ -56,7 +56,7 @@ public class ConnectionFailureState extends State {
 
     @Override
     public String getName() {
-        return Messages.ConnectionFailureState_name;
+        return Messages.get("ConnectionFailureState_name");
     }
 
     public Map<String, Serializable> getParams() {

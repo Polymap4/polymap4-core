@@ -54,7 +54,7 @@ public class WorkflowWizard extends Wizard {
         // are actually created
         State[] states = workflow.getStates();
         if (states == null || states.length == 0)
-            throw new IllegalStateException(Messages.WorkflowWizard_noStates); 
+            throw new IllegalStateException(Messages.get("WorkflowWizard_noStates")); 
 
         for( int i = 0; i < states.length; i++ ) {
             State state = states[i];
@@ -63,7 +63,7 @@ public class WorkflowWizard extends Wizard {
             init(page);
 
             if (page == null) {
-                String msg = Messages.WorkflowWizard_noPage; 
+                String msg = Messages.get("WorkflowWizard_noPage"); 
                 throw new IllegalStateException(msg);
             }
             page.setState(state);
@@ -89,7 +89,7 @@ public class WorkflowWizard extends Wizard {
         WorkflowWizardPage next = getPage(state);
 
         if (next == null) {
-            String msg = Messages.WorkflowWizard_noPage; 
+            String msg = Messages.get("WorkflowWizard_noPage"); 
             throw new IllegalStateException(msg);
         }
 

@@ -126,7 +126,7 @@ public class Identifier {
      */
     final static public String labelResource( URL url ) {
         if (url == null)
-            return Messages.ResolveLabelProvider_missingText; 
+            return Messages.get("ResolveLabelProvider_missingText"); 
 
         String HOST = url.getHost();
         String QUERY = url.getQuery();
@@ -220,7 +220,7 @@ public class Identifier {
      */
     final static public String labelServer( URL url ) {
         if (url == null)
-            return Messages.ResolveLabelProvider_missingText; 
+            return Messages.get("ResolveLabelProvider_missingText"); 
 
         String HOST = url.getHost();
         int PORT = url.getPort();

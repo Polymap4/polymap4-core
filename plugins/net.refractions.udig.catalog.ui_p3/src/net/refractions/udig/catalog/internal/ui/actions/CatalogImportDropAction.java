@@ -333,7 +333,7 @@ public class CatalogImportDropAction extends IDropAction {
     // page.select(ids);
     //            
     // ResourceSelectionPage rpage = new ResourceSelectionPage(
-    // Messages.AddLayersWizard_layerSelection
+    // Messages.get("AddLayersWizard_layerSelection")
     // );
     //          
     // return new WizardPage[] { page, rpage };

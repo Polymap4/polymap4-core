@@ -54,7 +54,7 @@ public class NewServiceConnectionFactory extends UDIGConnectionFactory {
             build.setName(typename+i);
             build.setNamespaceURI( "http://udig.refractions.net");
             build.setAbstract(false);
-            build.add(Messages.NewServiceConnectionFactory_defaultGeom,com.vividsolutions.jts.geom.Geometry.class);
+            build.add(Messages.get("NewServiceConnectionFactory_defaultGeom"),com.vividsolutions.jts.geom.Geometry.class);
             
             SimpleFeatureType schema = build.buildFeatureType(); 
             

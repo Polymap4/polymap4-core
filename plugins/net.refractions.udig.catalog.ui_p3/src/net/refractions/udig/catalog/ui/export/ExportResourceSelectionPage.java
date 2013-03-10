@@ -71,7 +71,7 @@ public class ExportResourceSelectionPage extends WorkflowWizardPage implements I
 
     public ExportResourceSelectionPage( String pageName, String title, ImageDescriptor banner ) {
         super(pageName, title, banner );
-        setMessage(Messages.LayerSelectionPage_message);
+        setMessage(Messages.get("LayerSelectionPage_message"));
     }
 
     public List<Data> getCheckedElements() {

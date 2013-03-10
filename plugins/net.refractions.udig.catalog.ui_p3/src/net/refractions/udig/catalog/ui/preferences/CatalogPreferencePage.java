@@ -30,7 +30,7 @@ public class CatalogPreferencePage
 	public CatalogPreferencePage() {
 		super(GRID);
 		setPreferenceStore(CatalogPlugin.getDefault().getPreferenceStore());
-		setDescription(Messages.CatalogPreferencePage_description); 
+		setDescription(Messages.get("CatalogPreferencePage_description")); 
 	}
 	
 	/**
@@ -43,7 +43,7 @@ public class CatalogPreferencePage
 		addField(
 			new BooleanFieldEditor(
 				PreferenceConstants.P_TEMP_FT,
-				Messages.CatalogPreferencePage_fieldName, 
+				Messages.get("CatalogPreferencePage_fieldName"), 
 				getFieldEditorParent()));
 	}
 

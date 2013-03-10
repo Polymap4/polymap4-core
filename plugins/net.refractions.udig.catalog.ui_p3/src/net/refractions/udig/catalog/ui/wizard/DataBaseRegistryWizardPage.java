@@ -579,15 +579,15 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
         if (storedDBCIList.size() > 0) {
             // create the combo
             lbl = new Label(topComp, SWT.NONE);
-            lbl.setText(Messages.DataBaseRegistryWizardPage_label_recent_text);
-            lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_recent_tooltip);
+            lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_recent_text"));
+            lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_recent_tooltip"));
             fd = new FormData();
             fd.top = new FormAttachment(0, 10);
             fd.left = new FormAttachment(0, 24);
             lbl.setLayoutData(fd);
             rcntComboWgt = new Combo(topComp, SWT.NULL | SWT.READ_ONLY);
             rcntComboWgt.select(0);
-            rcntComboWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_recent_tooltip);
+            rcntComboWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_recent_tooltip"));
             fd = new FormData();
             fd.top = new FormAttachment(0, 10);
             fd.left = new FormAttachment(lbl, 5);
@@ -610,14 +610,14 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Host
         lbl = new Label(paramComp, SWT.NULL);
-        lbl.setText(Messages.DataBaseRegistryWizardPage_label_host_text);
-        lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_host_tooltip);
+        lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_host_text"));
+        lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_host_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(rcntComboWgt, 15);
         fd.left = new FormAttachment(0, 5);
         lbl.setLayoutData(fd);
         hostTextWgt = new Text(paramComp, SWT.BORDER);
-        hostTextWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_host_tooltip);
+        hostTextWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_host_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(rcntComboWgt, 15);
         fd.left = new FormAttachment(0, WIZARD_PARAM_INDENT);
@@ -626,14 +626,14 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Port
         lbl = new Label(paramComp, SWT.NULL);
-        lbl.setText(Messages.DataBaseRegistryWizardPage_label_port_text);
-        lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_port_tooltip);
+        lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_port_text"));
+        lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_port_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(hostTextWgt, 5);
         fd.left = new FormAttachment(0, 5);
         lbl.setLayoutData(fd);
         portTextWgt = new Text(paramComp, SWT.BORDER);
-        portTextWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_port_tooltip);
+        portTextWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_port_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(hostTextWgt, 5);
         fd.left = new FormAttachment(0, WIZARD_PARAM_INDENT);
@@ -643,14 +643,14 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // User
         lbl = new Label(paramComp, SWT.NULL);
-        lbl.setText(Messages.DataBaseRegistryWizardPage_label_username_text);
-        lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_username_tooltip);
+        lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_username_text"));
+        lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_username_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(portTextWgt, 5);
         fd.left = new FormAttachment(0, 5);
         lbl.setLayoutData(fd);
         userTextWgt = new Text(paramComp, SWT.BORDER);
-        userTextWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_username_tooltip);
+        userTextWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_username_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(portTextWgt, 5);
         fd.left = new FormAttachment(0, WIZARD_PARAM_INDENT);
@@ -659,8 +659,8 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Password
         lbl = new Label(paramComp, SWT.NULL);
-        lbl.setText(Messages.DataBaseRegistryWizardPage_label_password_text);
-        lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_password_tooltip);
+        lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_password_text"));
+        lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_password_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(userTextWgt, 5);
         fd.left = new FormAttachment(0, 5);
@@ -668,7 +668,7 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
         passTextWgt = new Text(paramComp, SWT.BORDER);
 // XXX _p3: no such method
 //        passTextWgt.setEchoChar(("\u2022").toCharArray()[0]); //$NON-NLS-1$
-        passTextWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_password_tooltip);
+        passTextWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_password_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(userTextWgt, 5);
         fd.left = new FormAttachment(0, WIZARD_PARAM_INDENT);
@@ -677,8 +677,8 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Lookup Button
         lookupBtnWgt = new Button(paramComp, SWT.PUSH);
-        lookupBtnWgt.setText(Messages.DataBaseRegistryWizardPage_button_lookup_text);
-        lookupBtnWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_button_lookup_tooltip);
+        lookupBtnWgt.setText(Messages.get("DataBaseRegistryWizardPage_button_lookup_text"));
+        lookupBtnWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_button_lookup_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(passTextWgt, 20);
         fd.right = new FormAttachment(100, -5);
@@ -686,14 +686,14 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Database
         lbl = new Label(paramComp, SWT.NULL);
-        lbl.setText(Messages.DataBaseRegistryWizardPage_label_database_text);
-        lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_database_tooltip);
+        lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_database_text"));
+        lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_database_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(passTextWgt, 5);
         fd.left = new FormAttachment(0, 5);
         lbl.setLayoutData(fd);
         dbComboWgt = new Combo(paramComp, SWT.BORDER);
-        dbComboWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_database_tooltip);
+        dbComboWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_database_tooltip"));
         fd = new FormData();
         fd.left = new FormAttachment(0, WIZARD_PARAM_INDENT);
         fd.top = new FormAttachment(passTextWgt, 5);
@@ -702,14 +702,14 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Schema
         lbl = new Label(paramComp, SWT.NULL);
-        lbl.setText(Messages.DataBaseRegistryWizardPage_label_schema_text);
-        lbl.setToolTipText(Messages.DataBaseRegistryWizardPage_schema_tooltip);
+        lbl.setText(Messages.get("DataBaseRegistryWizardPage_label_schema_text"));
+        lbl.setToolTipText(Messages.get("DataBaseRegistryWizardPage_schema_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(dbComboWgt, 5);
         fd.left = new FormAttachment(0, 5);
         lbl.setLayoutData(fd);
         schemaComboWgt = new Combo(paramComp, SWT.BORDER);
-        schemaComboWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_schema_tooltip);
+        schemaComboWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_schema_tooltip"));
         fd = new FormData();
         fd.top = new FormAttachment(dbComboWgt, 5);
         fd.left = new FormAttachment(0, WIZARD_PARAM_INDENT);
@@ -729,9 +729,9 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
         if (null != advancedGrp) {
             // Add the Check Button
             advancedBtnWgt = new Button(paramComp, SWT.CHECK);
-            advancedBtnWgt.setText(Messages.DataBaseRegistryWizardPage_label_advanced_text);
+            advancedBtnWgt.setText(Messages.get("DataBaseRegistryWizardPage_label_advanced_text"));
             advancedBtnWgt
-                    .setToolTipText(Messages.DataBaseRegistryWizardPage_label_advanced_tooltip);
+                    .setToolTipText(Messages.get("DataBaseRegistryWizardPage_label_advanced_tooltip"));
             fd = new FormData();
             fd.top = new FormAttachment(dbComboWgt, 45);
             fd.left = new FormAttachment(0, 5);
@@ -753,8 +753,8 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
 
         // Connection Button:
         connectBtnWgt = new Button(topComp, SWT.PUSH);
-        connectBtnWgt.setText(Messages.DataBaseRegistryWizardPage_button_connect_text);
-        connectBtnWgt.setToolTipText(Messages.DataBaseRegistryWizardPage_button_connect_tooltip);
+        connectBtnWgt.setText(Messages.get("DataBaseRegistryWizardPage_button_connect_text"));
+        connectBtnWgt.setToolTipText(Messages.get("DataBaseRegistryWizardPage_button_connect_tooltip"));
         fd = new FormData();
         fd.left = new FormAttachment(paramComp, 10);
         // fd.right = new FormAttachment(100,-130);
@@ -924,7 +924,7 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
             }
             return dbList.toArray( new String[dbList.size()] );
         } catch (SQLException e) {
-            setMessage(Messages.DataBaseRegistryWizardPage_databaseMessage);
+            setMessage(Messages.get("DataBaseRegistryWizardPage_databaseMessage"));
             setErrorMessage(e.getLocalizedMessage());
             return null;
         }
@@ -979,7 +979,7 @@ public abstract class DataBaseRegistryWizardPage extends DataStoreWizardPage
             }
             return schemaList.toArray(new String[schemaList.size()]);
         } catch (SQLException e) {
-            setMessage(Messages.DataBaseRegistryWizardPage_schemaMessage);
+            setMessage(Messages.get("DataBaseRegistryWizardPage_schemaMessage"));
             setErrorMessage(e.getLocalizedMessage());
             return null;
         } finally {

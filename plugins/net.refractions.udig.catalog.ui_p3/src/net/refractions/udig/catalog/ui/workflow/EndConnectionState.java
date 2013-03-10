@@ -94,7 +94,7 @@ public class EndConnectionState extends State {
         if( !services.isEmpty() ){
             return true;
         }
-        monitor.beginTask(Messages.ConnectionState_task, IProgressMonitor.UNKNOWN);
+        monitor.beginTask(Messages.get("ConnectionState_task"), IProgressMonitor.UNKNOWN);
         errors = null;
         try {
                 // use the context object to try to build connection info
@@ -134,7 +134,7 @@ public class EndConnectionState extends State {
                 IService service = itr.next();
                 try {
                     SubProgressMonitor membersMonitor = new SubProgressMonitor(monitor, 2);
-                    monitor.setTaskName(MessageFormat.format(Messages.ConnectionState_findLayers,
+                    monitor.setTaskName(MessageFormat.format(Messages.get("ConnectionState_findLayers"),
                             new Object[]{formatServiceID(service)}));
                     List< ? extends IGeoResource> resources = service.resources(membersMonitor);
 
@@ -146,7 +146,7 @@ public class EndConnectionState extends State {
 //                            for( IGeoResource resource : resources ) {
 //                                try {
 //                                    monitor.setTaskName(MessageFormat.format(
-//                                            Messages.ConnectionState_loadingLayer,
+//                                            Messages.get("ConnectionState_loadingLayer"),
 //                                            new Object[]{resource.getIdentifier().getRef()}));
 //                                    resource.getInfo(infoMonitor);
 //                                } catch (Exception e) {
@@ -214,7 +214,7 @@ public class EndConnectionState extends State {
 
         // use the parameters/url to acquire a set of services
         IServiceFactory sFactory = CatalogPlugin.getDefault().getServiceFactory();
-        monitor.setTaskName(Messages.ConnectionState_task);
+        monitor.setTaskName(Messages.get("ConnectionState_task"));
 
         Collection<IService> services = new HashSet<IService>();
         if (urls != null) {
@@ -313,7 +313,7 @@ public class EndConnectionState extends State {
 
     @Override
     public String getName() {
-        return Messages.ConnectionState_name;
+        return Messages.get("ConnectionState_name");
     }
 
     public boolean isValidateState() {

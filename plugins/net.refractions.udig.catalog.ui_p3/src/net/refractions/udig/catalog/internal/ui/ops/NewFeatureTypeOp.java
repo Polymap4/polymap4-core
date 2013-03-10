@@ -76,8 +76,8 @@ public class NewFeatureTypeOp implements IOp {
                         public void run() {
                             MessageDialog
                                     .openInformation(display.getActiveShell(),
-                                            Messages.NewFeatureTypeOp_title, 
-                                            Messages.NewFeatureTypeOp_message); 
+                                            Messages.get("NewFeatureTypeOp_title"), 
+                                            Messages.get("NewFeatureTypeOp_message")); 
                         }
                     });
                     return;
@@ -134,9 +134,9 @@ public class NewFeatureTypeOp implements IOp {
             CatalogUIPlugin.log("Error creating feature type in datastore: "+ds.getClass(), e); //$NON-NLS-1$
             display.asyncExec(new Runnable(){
                 public void run() {
-                    MessageDialog.openError(display.getActiveShell(), Messages.NewFeatureTypeOp_0, 
-                            Messages.NewFeatureTypeOp_1 + 
-                            Messages.NewFeatureTypeOp_2+ds.getClass().getSimpleName());  
+                    MessageDialog.openError(display.getActiveShell(), Messages.get("NewFeatureTypeOp_0"), 
+                            Messages.get("NewFeatureTypeOp_1") + 
+                            Messages.get("NewFeatureTypeOp_2")+ds.getClass().getSimpleName());  
                 }
             });
             return;
@@ -160,8 +160,8 @@ public class NewFeatureTypeOp implements IOp {
                 display.asyncExec(new Runnable(){
                     public void run() {
                         MessageDialog.openInformation(display.getActiveShell(),
-                                Messages.NewFeatureTypeOp_shpTitle, 
-                                Messages.NewFeatureTypeOp_shpMessage + f.toString());
+                                Messages.get("NewFeatureTypeOp_shpTitle"), 
+                                Messages.get("NewFeatureTypeOp_shpMessage") + f.toString());
                     }
                 });
             }

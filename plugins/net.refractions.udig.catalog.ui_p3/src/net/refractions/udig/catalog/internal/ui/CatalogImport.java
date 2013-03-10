@@ -116,7 +116,7 @@ public class CatalogImport {
 	        initDialog();
 	    }
 		dialog.getWorkflowWizard().getWorkflow().setContext(context);
-        String bind = MessageFormat.format(Messages.CatalogImport_monitor_task, new Object[] {format(context)});
+        String bind = MessageFormat.format(Messages.get("CatalogImport_monitor_task"), new Object[] {format(context)});
         monitor.beginTask(bind, IProgressMonitor.UNKNOWN); 
         monitor.setTaskName(bind);
 		try{

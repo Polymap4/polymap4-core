@@ -78,9 +78,9 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
 
     public ResourceSelectionPage( String pageName ) {
         super(pageName);
-        setTitle(Messages.ResourceSelectionPage_title); 
-        setMessage(Messages.ResourceSelectionPage_message);
-        setDescription(Messages.ResourceSelectionPage_description);
+        setTitle(Messages.get("ResourceSelectionPage_title")); 
+        setMessage(Messages.get("ResourceSelectionPage_message"));
+        setDescription(Messages.get("ResourceSelectionPage_description"));
         setImageDescriptor(Images.getDescriptor(ImageConstants.CHOOSE_LAYER_WIZARD));
         schemaSelected = null;
     }
@@ -112,7 +112,7 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
 
                     @SuppressWarnings("unchecked")
                     public void run( IProgressMonitor monitor ) {
-                        monitor.beginTask(Messages.ResourceSelectionPage_searching,
+                        monitor.beginTask(Messages.get("ResourceSelectionPage_searching"),
                                 IProgressMonitor.UNKNOWN);
                         try {
                             List<IResolve> members = resolve.members(monitor);
@@ -193,7 +193,7 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
 
         label = new Label(composite, SWT.NONE);
         label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        label.setText(MessageFormat.format(Messages.ResourceSelectionPage_NumLayersSelected,0));        
+        label.setText(MessageFormat.format(Messages.get("ResourceSelectionPage_NumLayersSelected"),0));        
         
         setInput(state);
 
@@ -223,7 +223,7 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
             for( IGeoResource geoResource : resources ) {
                 map.put(geoResource, geoResource.service(new NullProgressMonitor()));
             }
-            label.setText(MessageFormat.format(Messages.ResourceSelectionPage_NumLayersSelected,map.size()));
+            label.setText(MessageFormat.format(Messages.get("ResourceSelectionPage_NumLayersSelected"),map.size()));
             ((ResourceSelectionState) getState()).setResources(map);
         } catch (IOException e) {
             CatalogUIPlugin.log(e.getLocalizedMessage(), e);
@@ -287,7 +287,7 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
         }
         viewer.setGrayedElements(grayedElements.toArray());
     
-        label.setText(MessageFormat.format(Messages.ResourceSelectionPage_NumLayersSelected,checked));
+        label.setText(MessageFormat.format(Messages.get("ResourceSelectionPage_NumLayersSelected"),checked));
     }
 
     Button findButton( Control[] children, int id ) {
@@ -400,22 +400,22 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
                         grayedElements.add(service);
                         if( service.getStatus()==Status.BROKEN ){
                             if( service.getMessage()!=null ) {
-                                String string = Messages.ResourceSelectionPage_brokenReportError+service.getMessage().getLocalizedMessage();
+                                String string = Messages.get("ResourceSelectionPage_brokenReportError")+service.getMessage().getLocalizedMessage();
                                 grayedElements.add(string);
                                 return new String[]{string};
                             } else{
-                                String string = Messages.ResourceSelectionPage_brokenUnknown;
+                                String string = Messages.get("ResourceSelectionPage_brokenUnknown");
                                 grayedElements.add(string);
                                 return new String[]{string};
                             }
                         }
                         if( service.getStatus()==Status.RESTRICTED_ACCESS ){
-                            String string = Messages.ResourceSelectionPage_noPermission;
+                            String string = Messages.get("ResourceSelectionPage_noPermission");
                             grayedElements.add(string);
                             return new String[]{string};
                         }
                         if( service.getStatus()==Status.CONNECTED ){
-                            String string = Messages.ResourceSelectionPage_connectedButNoResources;
+                            String string = Messages.get("ResourceSelectionPage_connectedButNoResources");
                             grayedElements.add(string);
                             return new String[]{string};
                         }
@@ -429,7 +429,7 @@ public class ResourceSelectionPage extends WorkflowWizardPage implements IPageCh
         }
 
         private Object[] reasons() {
-            return new String[]{Messages.ResourceSelectionPage_noServices};
+            return new String[]{Messages.get("ResourceSelectionPage_noServices")};
         }
 
         public Object getParent( Object element ) {

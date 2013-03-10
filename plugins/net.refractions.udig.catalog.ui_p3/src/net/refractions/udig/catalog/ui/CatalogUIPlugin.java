@@ -583,7 +583,7 @@ class HandleLifecycle /*implements Startable, Disposable */ {
      *
     protected MutablePicoContainer makeChildContainer() {
         if (container != null) {
-            throw new IllegalStateException(Messages.CatalogUIPlugin_childContainerException); 
+            throw new IllegalStateException(Messages.get("CatalogUIPlugin_childContainerException")); 
         }
         return CatalogUIPlugin.getContainer().makeChildContainer();
     }
