@@ -28,7 +28,6 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 import org.eclipse.ui.IObjectActionDelegate;
@@ -76,9 +75,9 @@ public class LayerVisibleStatusAction
     public void run( IAction _action ) {
         boolean visible = _action.isChecked(); 
         for (ILayer layer : new ArrayList<ILayer>( layers )) {
+            // force propertyChange()
             layer.setVisible( visible );
         }
-        selectionChanged( _action, new StructuredSelection( layers ) );
     }
 
 
@@ -90,29 +89,27 @@ public class LayerVisibleStatusAction
         layers.clear();
         action = _action;
         
-        if (_sel instanceof IStructuredSelection) {
-            boolean allLayersVisible = true;
-            for (ILayer layer : new SelectionAdapter<ILayer>( _sel )) {
-                try {
-                    if (!layer.isVisible()) {
-                        allLayersVisible = false;
-                    }
-                    layers.add( layer );
+        boolean allLayersVisible = true;
+        for (ILayer layer : new SelectionAdapter( _sel ).elementsOfType( ILayer.class )) {
+            try {
+                if (!layer.isVisible()) {
+                    allLayersVisible = false;
                 }
-                catch (NoSuchEntityException e) {
-                    log.debug( "Layer is removed." );
-                }                    
+                layers.add( layer );
             }
-            action.setEnabled( !layers.isEmpty() ); 
-            action.setChecked( layers.size() == 1 && layers.iterator().next().isVisible()
-                    || layers.size() > 1 && allLayersVisible );
+            catch (NoSuchEntityException e) {
+                log.debug( "Layer is removed." );
+            }                    
         }
+        action.setEnabled( !layers.isEmpty() ); 
+        action.setChecked( layers.size() == 1 && layers.iterator().next().isVisible()
+                || layers.size() > 1 && allLayersVisible );
     }
 
     
     @EventHandler(display=true)
     public void propertyChange( PropertyChangeEvent ev ) {
-        selectionChanged( action, new StructuredSelection( layers ) );
+        selectionChanged( action, new StructuredSelection( layers.toArray() ) );
     }
 
 }

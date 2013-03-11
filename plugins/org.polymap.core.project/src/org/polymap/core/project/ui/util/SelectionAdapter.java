@@ -14,9 +14,10 @@
  */
 package org.polymap.core.project.ui.util;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -28,8 +29,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class SelectionAdapter<T>
-        implements Iterable<T> {
+public class SelectionAdapter
+        implements Iterable {
 
     private IStructuredSelection    delegate;
     
@@ -40,21 +41,25 @@ public class SelectionAdapter<T>
     }
 
     @Override
-    public Iterator<T> iterator() {
-        List<T> result = new ArrayList( delegate.size() );
-        for (Object elm : delegate.toList()) {
-            try {
-                result.add( (T)elm );
-            }
-            catch (ClassCastException e) {
-                // skip wrong type
-            }
-        }
-        return result.iterator();
+    public Iterator iterator() {
+        return delegate.toList().iterator();
+    }
+
+    public Object first() {
+        Iterator it = iterator();
+        return it.hasNext() ? it.next() : null;
     }
     
-    public T first() {
-        Iterator<T> it = iterator();
+    public <T> Iterator<T> iterator( Class<T> type ) {
+        return Iterators.filter( iterator(), type );
+    }
+    
+    public <T> Iterable<T> elementsOfType( Class<T> type ) {
+        return Iterables.filter( this, type );
+    }
+    
+    public <T> T first( Class<T> type ) {
+        Iterator<T> it = iterator( type );
         return it.hasNext() ? it.next() : null;
     }
     
