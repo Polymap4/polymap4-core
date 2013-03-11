@@ -39,7 +39,6 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
-import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.ViewPart;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -74,7 +73,7 @@ public class ProjectView
 
     private ProjectTreeViewer  viewer;
 
-    private DrillDownAdapter   drillDownAdapter;
+//    private DrillDownAdapter   drillDownAdapter;
     
     private LayerStatusLineAdapter  statusLineAdapter;
     
@@ -113,7 +112,7 @@ public class ProjectView
         viewer.setRootMap( root );
 
         // XXX the drilldownadapter needs to get informed of real input changes 
-        drillDownAdapter = new DrillDownAdapter( viewer );
+//        drillDownAdapter = new DrillDownAdapter( viewer );
                 
         getSite().getPage().addSelectionListener( new ISelectionListener() {
             public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
@@ -184,7 +183,7 @@ public class ProjectView
         
         contextMenu.addMenuListener( new IMenuListener() {
             public void menuAboutToShow( IMenuManager manager ) {
-                manager.add( newWizardAction );
+//                manager.add( newWizardAction );
                 
                 // Other plug-ins can contribute there actions here
                 manager.add( new Separator( IWorkbenchActionConstants.MB_ADDITIONS ) );
@@ -211,7 +210,7 @@ public class ProjectView
     private void fillContextMenu( IMenuManager manager ) {
         manager.add( renameAction );
         manager.add( new Separator() );
-        drillDownAdapter.addNavigationActions( manager );
+//        drillDownAdapter.addNavigationActions( manager );
     }
 
 

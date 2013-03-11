@@ -38,6 +38,7 @@ import org.eclipse.ui.IWorkbenchPart;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 
@@ -90,20 +91,17 @@ public class LayerVisibleStatusAction
         action = _action;
         
         if (_sel instanceof IStructuredSelection) {
-            Object[] elms = ((IStructuredSelection)_sel).toArray();
             boolean allLayersVisible = true;
-            for (Object elm : elms) {
-                if (elm instanceof ILayer) {
-                    try {
-                        if (!((ILayer)elm).isVisible()) {
-                            allLayersVisible = false;
-                        }
-                        layers.add( (ILayer)elm );
+            for (ILayer layer : new SelectionAdapter<ILayer>( _sel )) {
+                try {
+                    if (!layer.isVisible()) {
+                        allLayersVisible = false;
                     }
-                    catch (NoSuchEntityException e) {
-                        log.debug( "Layer is removed." );
-                    }                    
+                    layers.add( layer );
                 }
+                catch (NoSuchEntityException e) {
+                    log.debug( "Layer is removed." );
+                }                    
             }
             action.setEnabled( !layers.isEmpty() ); 
             action.setChecked( layers.size() == 1 && layers.iterator().next().isVisible()

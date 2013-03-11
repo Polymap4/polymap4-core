@@ -14,18 +14,18 @@
  */
 package org.polymap.core.project.ui.util;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
+import java.util.List;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 /**
- * Helps to handle {@link IStructuredSelection}. 
- *
+ * Helps to handle {@link IStructuredSelection}. This adapter filters the given
+ * {@link IStructuredSelection} for elements with the given type <code>T</code>.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class SelectionAdapter<T>
@@ -41,15 +41,21 @@ public class SelectionAdapter<T>
 
     @Override
     public Iterator<T> iterator() {
-        return Iterators.transform( delegate.iterator(), new Function<Object,T>() {
-            public T apply( Object input ) {
-                return (T)input;
+        List<T> result = new ArrayList( delegate.size() );
+        for (Object elm : delegate.toList()) {
+            try {
+                result.add( (T)elm );
             }
-        });
+            catch (ClassCastException e) {
+                // skip wrong type
+            }
+        }
+        return result.iterator();
     }
     
     public T first() {
-        return (T)delegate.getFirstElement();
+        Iterator<T> it = iterator();
+        return it.hasNext() ? it.next() : null;
     }
     
 }
