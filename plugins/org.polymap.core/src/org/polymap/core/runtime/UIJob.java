@@ -77,6 +77,13 @@ public abstract class UIJob
         return threadJob.get();
     }
 
+    
+    public static void joinJobs( Iterable<UIJob> jobs ) throws InterruptedException {
+        for (UIJob job : jobs) {
+            job.join();
+        }
+    }
+
 
     /**
      * Returns the progress monitor of the job of the current thread a

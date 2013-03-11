@@ -68,8 +68,8 @@
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
-            id="org.polymap.core.operations.actions.undoRedo"
-            label="%actionsets_undoRedo"
+            id="org.polymap.core.operations.actions.saveRevert"
+            label="%actionsets_saveRevert"
             visible="true">
          <action
                class="org.polymap.core.operation.actions.RedoAction"
@@ -91,11 +91,6 @@
                toolbarPath="undo"
                tooltip="%actions_undoTip">
          </action>
-      </actionSet>
-      <actionSet
-            id="org.polymap.core.operations.actions.saveRevert"
-            label="%actionsets_saveRevert"
-            visible="true">
          <action
                class="org.polymap.core.operation.actions.RevertChangesAction"
                icon="icons/elcl16/trash.gif"

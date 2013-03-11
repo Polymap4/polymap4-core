@@ -232,7 +232,7 @@
       <view
             allowMultiple="false"
             class="org.polymap.core.mapeditor.tooling.ToolingView"
-            icon="icons/eview16/tooling2.gif"
+            icon="icons/etool16/layer_selectable.gif"
             id="org.polymap.core.mapeditor.ToolingView"
             name="%views_tooling"
             restorable="true">

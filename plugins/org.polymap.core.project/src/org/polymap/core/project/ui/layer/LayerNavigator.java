@@ -14,6 +14,8 @@
  */
 package org.polymap.core.project.ui.layer;
 
+import java.util.Arrays;
+
 import net.refractions.udig.internal.ui.IDropTargetProvider;
 import net.refractions.udig.internal.ui.UDIGViewerDropAdapter;
 import net.refractions.udig.ui.IDropAction;
@@ -25,20 +27,26 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
+
+import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.actions.ActionGroup;
+import org.eclipse.ui.internal.ViewSite;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.ModelChangeEvent;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.LayerStatusLineAdapter;
 import org.polymap.core.project.ui.PartListenerAdapter;
+import org.polymap.core.project.ui.util.SelectionAdapter;
 
 /**
  * Spreading the Rhei while listening to Charlotte McKinnon... :) 
@@ -112,13 +120,6 @@ public class LayerNavigator
 //                log.info( "Mouse up, at: " + ev.x + ", " + ev.y );
 //            }
 //        });
-//        getCommonViewer().addDoubleClickListener( new IDoubleClickListener() {
-//            public void doubleClick( DoubleClickEvent ev ) {
-//                log.info( "Double clicked: " + ev );
-//                String[] menuIds = ((ViewSite)getSite()).getContextMenuIds();
-//                log.info( "Context menus: " + Arrays.asList( menuIds ) );
-//            }
-//        });
 
         getSite().setSelectionProvider( getCommonViewer() );
 
@@ -174,6 +175,31 @@ public class LayerNavigator
     }
 
     
+    @Override
+    protected void handleDoubleClick( DoubleClickEvent ev ) {
+        log.info( "Double clicked: " + ev );
+        String[] menuIds = ((ViewSite)getSite()).getContextMenuIds();
+        log.info( "Context menus: " + Arrays.asList( menuIds ) );
+        
+        Object selected = new SelectionAdapter( ev.getSelection() ).first();
+        if (selected instanceof ILayer) {
+            ILayer layer = (ILayer)selected;
+            layer.setVisible( !layer.isVisible() );
+        }
+        else {
+            super.handleDoubleClick( ev );
+        }
+    }
+
+
+    @Override
+    protected ActionGroup createCommonActionGroup() {
+        // no actions at all
+        return new ActionGroup() {
+        };
+    }
+
+
     public IMap getInputMap() {
         return (IMap)getCommonViewer().getInput();
     }

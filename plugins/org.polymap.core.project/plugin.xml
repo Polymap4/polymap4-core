@@ -160,7 +160,7 @@
          <action
                class="org.polymap.core.project.ui.layer.RemoveLayerAction"
                enablesFor="+"
-               icon="icons/etool16/delete.gif"
+               icon="icons/etool16/delete_edit.gif"
                id="org.polymap.core.project.action.removeLayer"
                label="%actions_deleteLayer"
                style="push"

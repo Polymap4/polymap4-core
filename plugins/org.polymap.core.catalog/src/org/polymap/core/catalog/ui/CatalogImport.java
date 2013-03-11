@@ -1,7 +1,6 @@
 package org.polymap.core.catalog.ui;
 
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +11,6 @@ import net.refractions.udig.catalog.internal.ui.ReflectionWorkflowWizardPageProv
 import net.refractions.udig.catalog.ui.ConnectionErrorPage;
 import net.refractions.udig.catalog.ui.DataSourceSelectionPage;
 import net.refractions.udig.catalog.ui.UDIGConnectionFactoryDescriptor;
-import net.refractions.udig.catalog.ui.internal.Messages;
 import net.refractions.udig.catalog.ui.workflow.ConnectionErrorState;
 import net.refractions.udig.catalog.ui.workflow.ConnectionFailurePage;
 import net.refractions.udig.catalog.ui.workflow.ConnectionFailureState;
@@ -22,6 +20,7 @@ import net.refractions.udig.catalog.ui.workflow.IntermediateState;
 import net.refractions.udig.catalog.ui.workflow.State;
 import net.refractions.udig.catalog.ui.workflow.Workflow;
 import net.refractions.udig.catalog.ui.workflow.WorkflowWizard;
+import net.refractions.udig.catalog.ui.workflow.WorkflowWizardAdapter;
 import net.refractions.udig.catalog.ui.workflow.WorkflowWizardDialog;
 import net.refractions.udig.catalog.ui.workflow.WorkflowWizardPage;
 import net.refractions.udig.catalog.ui.workflow.WorkflowWizardPageProvider;
@@ -34,6 +33,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Shell;
+
+import org.eclipse.ui.INewWizard;
 
 /**
  * 
@@ -110,8 +111,8 @@ public class CatalogImport {
     public boolean run( IProgressMonitor monitor, Object context ) {
         dialog = getOrCreateDialog();
         dialog.getWorkflowWizard().getWorkflow().setContext( context );
-        String bind = MessageFormat.format( Messages.CatalogImport_monitor_task,
-                new Object[] { format( context ) } );
+        String bind = "CatalogImport";  /*MessageFormat.format( Messages.CatalogImport_monitor_task,
+                new Object[] { format( context ) } );*/
         monitor.beginTask( bind, IProgressMonitor.UNKNOWN );
         monitor.setTaskName( bind );
         try {
@@ -170,17 +171,21 @@ public class CatalogImport {
     }
 
 	
-//	/**
-//	 * Extends {@link WorkflowWizardAdapter} by passing the CatalogImport wizard to the constructor.
-//	 * @author jesse
-//	 * @since 1.1.0
-//	 */
-//	public static class CatalogImportAdapter extends WorkflowWizardAdapter implements IImportWizard {
-//
-//	    public CatalogImportAdapter() {
-//	        super(new CatalogImport().wizard);
-//	    }
-//	}
+    /**
+     * Extends {@link WorkflowWizardAdapter} by passing the CatalogImport wizard to
+     * the constructor.
+     * 
+     * @author jesse
+     * @since 1.1.0
+     */
+    public static class CatalogNewWizardAdapter
+            extends WorkflowWizardAdapter
+            implements INewWizard {
+
+        public CatalogNewWizardAdapter() {
+            super( new CatalogImport().wizard );
+        }
+    }
 
 }
 

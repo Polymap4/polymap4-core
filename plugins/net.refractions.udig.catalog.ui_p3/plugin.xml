@@ -202,7 +202,7 @@
       <view
             name="%Catalog"
             allowMultiple="true"
-            icon="icons/eview16/catalog_view.gif"
+            icon="icons/obj16/datastore_obj.gif"
             category="catalog"
             class="net.refractions.udig.catalog.internal.ui.CatalogView"
             id="net.refractions.udig.catalog.ui.CatalogView">
@@ -298,7 +298,7 @@
         </description>
      </wizard>
    </extension-->
-   <extension
+   <!--extension
          point="org.eclipse.ui.importWizards">
       <wizard
             category="net.refractions.udig.catalog.ui_p3.dataImportCategory"
@@ -312,7 +312,7 @@
             id="net.refractions.udig.catalog.ui_p3.dataImportCategory"
             name="%dataImportCategory.name">
       </category>
-   </extension>
+   </extension-->
 
  	<!--extension
          point="org.eclipse.ui.popupMenus">

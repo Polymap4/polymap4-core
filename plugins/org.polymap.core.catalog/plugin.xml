@@ -90,6 +90,34 @@
          </dynamic>
       </menuContribution>
    </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.polymap.core.catalog.CatalogNewCategory"
+            class="org.polymap.core.catalog.ui.CatalogImport$CatalogNewWizardAdapter"
+            finalPerspective="org.polymap.core.project.dataPerspective"
+            icon="icons/obj16/datastore_obj.gif"
+            id="org.polymap.core.catalog.CatalogNewWizardAdapter"
+            name="%CatalogNewWizard_title"
+            project="false">
+      </wizard>
+      <category
+            id="org.polymap.core.catalog.CatalogNewCategory"
+            name="%CatalogNewWizard_category">
+      </category>
+      <primaryWizard
+            id="org.polymap.core.catalog.CatalogNewWizardAdapter">
+      </primaryWizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.polymap.core.project.dataPerspective">
+         <newWizardShortcut
+               id="org.polymap.core.catalog.CatalogNewWizardAdapter">
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
    <!--extension
          point="net.refractions.udig.catalog.resolvers">
       <factory

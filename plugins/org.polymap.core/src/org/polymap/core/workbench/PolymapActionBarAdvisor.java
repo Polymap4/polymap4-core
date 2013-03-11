@@ -94,6 +94,10 @@ public class PolymapActionBarAdvisor
 
     private IWorkbenchAction helpContentsAction, helpSearchAction;
 
+    private IContributionItem showViewMenu;
+
+    private IWorkbenchAction showViewAction;
+
     private static int       browserIndex;
 
 
@@ -119,13 +123,16 @@ public class PolymapActionBarAdvisor
 
         newAction = ActionFactory.NEW.create( window );
         newAction.setText( Messages.get( "PolymapActionBarAdvisor_new" ) );
+        newAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
         register( newAction );
 
         new2Action = ActionFactory.NEW_WIZARD_DROP_DOWN.create( window );
         new2Action.setText( Messages.get( "PolymapActionBarAdvisor_newDropDown" ) );
+        new2Action.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
         register( new2Action );
 
         importAction = ActionFactory.IMPORT.create( window );
+        importAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/import3.gif" ) );
         register( importAction );
 
         exportAction = ActionFactory.EXPORT.create( window );
@@ -138,6 +145,7 @@ public class PolymapActionBarAdvisor
         register( saveAllAction );
 
         preferencesAction = ActionFactory.PREFERENCES.create( window );
+        preferencesAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_prefs.gif" ) );
         register( preferencesAction );
 
         resetPerspectiveAction = ActionFactory.RESET_PERSPECTIVE.create( window );
@@ -187,8 +195,9 @@ public class PolymapActionBarAdvisor
             }
         };
         aboutAction.setText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
+        aboutAction.setToolTipText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
         aboutAction.setId( "org.eclipse.rap.demo.about" ); //$NON-NLS-1$
-        aboutAction.setImageDescriptor( helpActionImage );
+        aboutAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/info_tsk.gif" ) );
         register( aboutAction );
         
         polymapWebSiteAction = new Action() {
@@ -211,9 +220,15 @@ public class PolymapActionBarAdvisor
         polymapWebSiteAction.setImageDescriptor( rapWebSiteActionImage );
         register( polymapWebSiteAction );
         
-//        showViewMenuMgr = new MenuManager( "Show View", "showView" );
-//        IContributionItem showViewMenu = ContributionItemFactory.VIEWS_SHORTLIST.create( window );
-//        showViewMenuMgr.add( showViewMenu );
+        showViewMenuMgr = new MenuManager( Messages.get().PolymapActionBarAdvisor_showView,
+                ContributionItemFactory.VIEWS_SHORTLIST.getId() );
+        showViewMenu = ContributionItemFactory.VIEWS_SHORTLIST.create( window );
+        showViewMenuMgr.add( showViewMenu );
+
+        showViewAction = ActionFactory.SHOW_VIEW_MENU.create( window );
+        showViewAction.setToolTipText( Messages.get().PolymapActionBarAdvisor_showView );
+        showViewAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_view.gif" ) );
+        showViewAction.setEnabled( true );
         
 //        wizardAction = new Action() {
 //            public void run() {
@@ -357,22 +372,21 @@ public class PolymapActionBarAdvisor
     
 
     protected void fillCoolBar( final ICoolBarManager coolBar ) {
-        createToolBar( coolBar, "main" );
-//        createToolBar( coolBar, "editor" );
-    }
-
-
-    private void createToolBar( final ICoolBarManager coolBar, final String name ) {
         IToolBarManager toolbar = new ToolBarManager( SWT.FLAT | SWT.RIGHT );
-        coolBar.add( new ToolBarContributionItem( toolbar, name ) );
-        if (name == "main") { 
-            toolbar.add( new2Action );
-        }
+        coolBar.add( new ToolBarContributionItem( toolbar, "main" ) );
+        
+        toolbar.add( newAction );
+        toolbar.add( importAction );
+       // toolbar.add( showViewAction );
+        toolbar.add( preferencesAction );
+        
+//        createToolBar( coolBar, "editor" );
     }
 
 
     protected void fillStatusLine( final IStatusLineManager statusLine ) {
         statusLine.add( aboutAction );
         statusLine.add( helpContentsAction );
+        statusLine.add( showViewAction );
     }
 }

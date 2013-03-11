@@ -224,7 +224,7 @@ public class ProjectView
 //        manager.add( renameAction );
 //        manager.add( new Separator() );
 //        manager.add( collapsAllAction );
-        drillDownAdapter.addNavigationActions( manager );
+//        drillDownAdapter.addNavigationActions( manager );
     }
 
 

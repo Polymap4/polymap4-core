@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,18 +11,12 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.project;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import java.net.URL;
 
@@ -37,16 +30,18 @@ import net.refractions.udig.core.internal.CorePlugin;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Supplier;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.runtime.Callback;
 import org.polymap.core.runtime.UIJob;
 
 /**
  * Provides the default implementation that finds geo resources in the
  * {@link CatalogPlugin}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class DefaultGeoResourceResolver
@@ -54,7 +49,43 @@ public class DefaultGeoResourceResolver
 
     private static Log log = LogFactory.getLog( DefaultGeoResourceResolver.class );
 
+
+    @Override
+    public void resolve( final String identifier, final Callback<List<IGeoResource>> handler )
+    throws Exception {
+        log.debug( "resolving: " + identifier );
+        UIJob job = new UIJob( Messages.get( "GeoResResolver_jobTitle" ) ) {
+            public void runWithException( IProgressMonitor monitor ) 
+            throws Exception {
+                monitor.beginTask( Messages.get( "GeoResResolver_beginTask" ) + identifier, 5 );
+                monitor.worked( 1 );
+                
+                final List<IGeoResource> results = new ArrayList<IGeoResource>();
+                final ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
+
+                URL url  = new URL( null, identifier, CorePlugin.RELAXED_HANDLER );
+                List<IResolve> canditates = catalog.find( url, monitor );
+                for (IResolve resolve : canditates) {
+                    monitor.worked( 1 );
+                    if (resolve.getStatus() == Status.BROKEN) {
+                        continue;
+                    }
+                    if (resolve instanceof IGeoResource) {
+                        results.add( (IGeoResource)resolve );
+                    }
+                }
+                monitor.done();
+             
+                // callback
+                handler.handle( results );
+            }
+        };
+        job.setShowProgressDialog( null, true );
+        job.schedule();
+    }
+
     
+    @Override
     public List<IGeoResource> resolve( final String identifier )
     throws Exception {
         log.debug( "resolving: " + identifier );
@@ -94,7 +125,7 @@ public class DefaultGeoResourceResolver
         return results;
     }
 
-
+    
     public String createIdentifier( IGeoResource geores ) {
         // XXX check if geores exists
         return geores.getIdentifier().toExternalForm();

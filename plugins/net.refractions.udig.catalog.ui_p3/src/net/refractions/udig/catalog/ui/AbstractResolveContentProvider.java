@@ -285,14 +285,13 @@ public class AbstractResolveContentProvider
                             }
                         }
                     };
-                    infoJob.schedule();
                     infoJobs.add( infoJob );
+                    infoJob.schedule();
                 }
                 
                 // wait for infoJobs
-                for (UIJob infoJob : infoJobs) {
-                    infoJob.join();
-                }
+                UIJob.joinJobs( infoJobs );
+                
                 structure.put( resolve, children );
             } 
             catch (Exception e) {

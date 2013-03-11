@@ -106,6 +106,7 @@ public class NewLayerOperation
             layer.setOrderKey( 100 );
             layer.setOpacity( 100 );
             layer.setGeoResource( geores );
+            layer.setVisible( true );
 
             map.addLayer( layer );
 
