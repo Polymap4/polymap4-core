@@ -42,12 +42,27 @@
                class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
                enablesFor="+"
                icon="icons/elcl16/eye.png"
-               id="org.polymap.rhei.action1"
+               id="org.polymap.core.project.LayerVisibleStatusAction"
                label="%actions_layerVisibleStatus"
                state="false"
                style="toggle"
                toolbarPath="xlayer"
                tooltip="%actions_layerVisibleStatusTip">
+         </action>
+      </viewContribution>
+      <viewContribution
+            id="org.polymap.core.project.ProjectViewContribution"
+            targetID="org.polymap.core.project.ProjectView">
+         <action
+               class="org.polymap.core.project.ui.project.MapVisibleStatusAction"
+               enablesFor="+"
+               icon="icons/elcl16/eye.png"
+               id="org.polymap.core.project.MapVisibleStatusAction"
+               label="%actions_mapVisibleStatus"
+               state="false"
+               style="toggle"
+               toolbarPath="xlayer"
+               tooltip="%actions_mapVisibleStatusTip">
          </action>
       </viewContribution>
    </extension>
@@ -207,12 +222,12 @@
                tooltip="%actions_deleteMap">
          </action>
          <action
-               class="org.polymap.core.project.ui.project.OpenMapAction"
+               class="org.polymap.core.project.ui.project.MapVisibleStatusAction"
                enablesFor="+"
-               icon="icons/obj16/mapfolder_obj.gif"
+               icon="icons/etool16/layer_visible.png"
                id="org.polymap.core.project.openMapAction"
                label="%actions_openMap"
-               style="push"
+               style="toggle"
                tooltip="%actions_openMapTip">
          </action>
       </objectContribution>

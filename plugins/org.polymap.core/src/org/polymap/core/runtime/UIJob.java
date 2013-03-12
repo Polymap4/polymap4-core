@@ -111,7 +111,8 @@ public abstract class UIJob
 
 
     /**
-     * Construct a new job with the given name and default priority {@link Job#LONG}.
+     * Construct a new job with the given name and default priority {@link Job#LONG}
+     * and {@link #isShowProgressDialog()} set to false.
      * 
      * @param name The name of the job. Must not be null.
      */

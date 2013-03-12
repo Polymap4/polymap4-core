@@ -114,12 +114,6 @@ public interface LayerState
         
         private RenderStatus                    renderStatus = RenderStatus.STATUS_OK;
         
-        private boolean                         visible = false;
-        
-        private boolean                         editable = false;
-        
-        private boolean                         selectable = false;
-        
         
         /**
          * Not used, see {@link ILayer}. 
@@ -155,41 +149,6 @@ public interface LayerState
             throw new RuntimeException( "not yet implemented." );
         }
 
-        public boolean isVisible() {
-            return visible;
-        }
-
-        public void setVisible( boolean visible ) {
-            log.info( "this.visible=" + this.visible + ", new= " + visible );
-            if (this.visible != visible) {
-                boolean old = this.visible;
-                this.visible = visible;
-            }
-        }
-
-        public boolean isEditable() {
-            return editable;
-        }
-
-        public void setEditable( boolean editable ) {
-            log.info( "this.editable=" + this.editable + ", new= " + editable );
-            if (this.editable != editable) {
-                boolean old = this.editable;
-                this.editable = editable;
-            }
-        }
-
-        public boolean isSelectable() {
-            return selectable;
-        }
-
-        public void setSelectable( boolean selectable ) {
-            log.info( "this.selectable=" + this.selectable + ", new= " + selectable );
-            if (this.selectable != selectable) {
-                boolean old = this.selectable;
-                this.selectable = selectable;
-            }
-        }
 
         public String toString() {
             return "LayerImpl[label=" + getLabel() +"]";

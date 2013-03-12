@@ -45,22 +45,29 @@ public class SelectionAdapter
         return delegate.toList().iterator();
     }
 
+    public <T> Iterator<T> iterator( Class<T> type ) {
+        return Iterators.filter( iterator(), type );
+    }
+
     public Object first() {
         Iterator it = iterator();
         return it.hasNext() ? it.next() : null;
     }
-    
-    public <T> Iterator<T> iterator( Class<T> type ) {
-        return Iterators.filter( iterator(), type );
-    }
-    
-    public <T> Iterable<T> elementsOfType( Class<T> type ) {
-        return Iterables.filter( this, type );
-    }
-    
+
     public <T> T first( Class<T> type ) {
         Iterator<T> it = iterator( type );
         return it.hasNext() ? it.next() : null;
     }
+
+    public int size() {
+        return delegate.size();    
+    }
     
+    public <T> int size( Class<T> type ) {
+        return Iterables.size( elementsOfType( type ) );    
+    }
+
+    public <T> Iterable<T> elementsOfType( Class<T> type ) {
+        return Iterables.filter( this, type );
+    }
 }

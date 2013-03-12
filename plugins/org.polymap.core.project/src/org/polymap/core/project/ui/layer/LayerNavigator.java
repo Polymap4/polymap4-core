@@ -44,7 +44,6 @@ import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.LayerStatusLineAdapter;
 import org.polymap.core.project.ui.PartListenerAdapter;
 import org.polymap.core.project.ui.util.SelectionAdapter;
 

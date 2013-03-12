@@ -49,6 +49,7 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
 @Mixins( {
         MapState.Mixin.class, 
         Labeled.Mixin.class, 
+        Visible.Mixin.class, 
         ACL.Mixin.class, 
         ParentMap.Mixin.class,
         PropertyChangeSupport.Mixin.class,
@@ -56,7 +57,7 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
         QiEntity.Mixin.class
 } )
 public interface MapComposite
-        extends QiEntity, IMap, MapState, Labeled, ACL, ParentMap, 
+        extends QiEntity, IMap, MapState, Labeled, Visible, ACL, ParentMap, 
                 PropertyChangeSupport, ModelChangeSupport, EntityComposite {
 
 }

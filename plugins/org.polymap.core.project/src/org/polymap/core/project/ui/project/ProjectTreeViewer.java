@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright 2011-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -17,22 +16,25 @@ package org.polymap.core.project.ui.project;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.rwt.lifecycle.WidgetUtil;
 
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 
 import org.eclipse.ui.PlatformUI;
@@ -42,7 +44,6 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ui.EntityContentProvider;
 import org.polymap.core.project.ui.LabeledLabelProvider;
-
 
 /**
  * 
@@ -55,18 +56,24 @@ public class ProjectTreeViewer
 
     private static Log log = LogFactory.getLog( ProjectTreeViewer.class );
     
+    private ProjectContentProvider      contentProvider;
+
+    private Predicate                   contentFilter = Predicates.alwaysTrue();
+    
     
     public ProjectTreeViewer( Composite parent, int style ) {
         super( parent, style );
         setData( WidgetUtil.CUSTOM_WIDGET_ID, "projectViewer" );
 
-        setContentProvider( new ProjectContentProvider() );
+        contentProvider = new ProjectContentProvider();
+        setContentProvider( contentProvider );
         
         ILabelProvider lp = new ProjectLabelProvider();
         ILabelDecorator decorator = PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator();
         setLabelProvider( new DecoratingLabelProvider( lp, decorator ) );
+        
         setSorter( new NameSorter() );
-        getColorAndFontCollector().setFont( JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ) );
+//        getColorAndFontCollector().setFont( JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ) );
     }
 
     
@@ -76,6 +83,11 @@ public class ProjectTreeViewer
     }
 
     
+    public void setContentFilter( Predicate filter ) {
+        this.contentFilter = filter != null ? filter : Predicates.alwaysTrue();
+    }
+    
+    
     /**
      * 
      */
@@ -83,23 +95,20 @@ public class ProjectTreeViewer
             extends EntityContentProvider {
 
         protected Collection _getChildren( Object parent ) {
-            log.debug( "parent: " + parent );
+            List result = new ArrayList();
+
             if (parent instanceof IMap) {
                 IMap map = (IMap)parent;
-                List result = new ArrayList();
                 result.addAll( map.getMaps() );
                 result.addAll( map.getLayers() );
-                return result;
             }
-//            else if (parent instanceof ILayer) {
-//                return ((ILayer)parent).getLayers();
+//            else {
+//                log.warn( "unhandled parent type: " + parent );
+//                result = Collections.EMPTY_LIST;
 //            }
-            else {
-                log.warn( "unhandled parent type: " + parent );
-                return Collections.EMPTY_LIST;
-            }
+            
+            return Collections2.filter( result, contentFilter );
         }
-
     }
     
     
@@ -107,12 +116,11 @@ public class ProjectTreeViewer
      * 
      */
     class ProjectLabelProvider
-            extends LabeledLabelProvider
-         {
+            extends LabeledLabelProvider {
 
         public Image getImage( Object elm ) {
             if (elm instanceof IMap) {
-                return ProjectPlugin.getDefault().imageForName( "icons/obj16/map_obj.gif" );
+                return ProjectPlugin.getDefault().imageForName( "icons/obj16/map_disabled_obj.gif" );
             }
             else if (elm instanceof ILayer) {
                 return ProjectPlugin.getDefault().imageForName( "icons/obj16/layer_obj.gif" );
@@ -128,6 +136,20 @@ public class ProjectTreeViewer
     class NameSorter
             extends ViewerSorter {
 
+        @Override
+        public int compare( Viewer viewer, Object elm1, Object elm2 ) {
+            ILabelProvider prov = (ILabelProvider)((ProjectTreeViewer)viewer).getLabelProvider();
+            String name1 = prov.getText( elm1 );
+            String name2 = prov.getText( elm2 );
+            if (name1 == null) {
+                name1 = "";
+            }
+            if (name2 == null) {
+                name2 = "";
+            }
+            return name1.compareToIgnoreCase( name2 ); 
+        }
+
         public int category( Object elm ) {
             if (elm instanceof IMap) {
                 return 0;
@@ -139,9 +161,6 @@ public class ProjectTreeViewer
                 return 10;
             }
         }
-        
     }
-
-
 
 }

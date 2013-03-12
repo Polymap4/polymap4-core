@@ -38,7 +38,7 @@ import org.polymap.core.qi4j.event.PropertyChangeSupport;
  * @since 3.0
  */
 public interface IMap
-        extends Entity, Labeled, ACL, ParentMap, IAdaptable, PropertyChangeSupport { 
+        extends Entity, Labeled, Visible, ACL, ParentMap, IAdaptable, PropertyChangeSupport { 
 
     public static final String      PROP_MAPS = "maps";
     public static final String      PROP_LAYERS = "layers";

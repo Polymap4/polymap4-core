@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rigths reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.project.model;
 
@@ -47,7 +39,8 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
 })
 @Mixins( {
         LayerState.Mixin.class, 
-        Labeled.Mixin.class, 
+        Labeled.Mixin.class,
+        Visible.Mixin.class,
         ACL.Mixin.class, 
         ParentMap.Mixin.class,
         PipelineHolder.Mixin.class,
@@ -56,7 +49,7 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
         QiEntity.Mixin.class
 } )
 public interface LayerComposite
-        extends QiEntity, ILayer, LayerState, Labeled, ACL, ParentMap, PipelineHolder,
+        extends QiEntity, ILayer, LayerState, Labeled, Visible, ACL, ParentMap, PipelineHolder,
                 PropertyChangeSupport, ModelChangeSupport, EntityComposite {
 
 }

@@ -41,6 +41,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 /**
  * Triggers the {@link OpenMapOperation}.
  *
+ * @deprecated See {@link MapVisibleStatusAction}
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.1
  */

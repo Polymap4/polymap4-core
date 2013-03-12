@@ -69,6 +69,7 @@ public class NavigationHistory {
             public boolean apply( PropertyChangeEvent ev ) {
                 String name = ev.getPropertyName();
                 return !ignoreEvents
+                        && NavigationHistory.this.mapEditor != null
                         && NavigationHistory.this.mapEditor.getMap().equals( ev.getSource() )
                         
                         // XXX the extent events are often followed by an update

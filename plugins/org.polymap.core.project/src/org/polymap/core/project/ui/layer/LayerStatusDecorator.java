@@ -44,6 +44,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
+import org.polymap.core.project.Visible;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
@@ -92,9 +93,7 @@ public class LayerStatusDecorator
                 try {
                     return ev.getSource() instanceof ILayer 
                             && decorated.containsKey( ((ILayer)ev.getSource()).id() )
-                            && (ev.getPropertyName().equals( ILayer.PROP_VISIBLE )
-                            //|| ev.getPropertyName().equals( ILayer.PROP_SELECTABLE )
-                            || ev.getPropertyName().equals( ILayer.PROP_EDITABLE )
+                            && (ev.getPropertyName().equals( Visible.PROP_VISIBLE )
                             || ev.getPropertyName().equals( ILayer.PROP_LAYERSTATUS ) );
                 }
                 catch (NoSuchEntityException e) {
@@ -112,7 +111,7 @@ public class LayerStatusDecorator
     }
 
 
-    @EventHandler(delay=2000,display=true)
+    @EventHandler(delay=1000,display=true)
     public void propertyChange( List<PropertyChangeEvent> ev ) {
         fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
     }

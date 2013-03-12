@@ -32,15 +32,20 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IElementFactory;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IAdaptable;
 
+import org.polymap.core.mapeditor.operations.OpenMapConcern;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * 
@@ -63,10 +68,7 @@ public class MapEditorInput
     
     
     public MapEditorInput( IMap map ) {
-        super();
-        if (map == null) {
-            throw new IllegalArgumentException( "map is null!" );
-        }
+        assert map != null : "map is null!";
         this.map = map;
     }
 
@@ -119,6 +121,20 @@ public class MapEditorInput
                 final IMap _map = ProjectRepository.instance().findEntity( IMap.class, mapId );
                 if (_map != null) {
                     MapEditorInput result = new MapEditorInput( _map );
+                    
+                    // map visibility: we are going to create an editor for the map so
+                    // set visible true and register listener;
+                    // do it *after* this method returned and the editor was actually opened
+                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                        public void run() {
+                            _map.setVisible( true );
+                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                            IEditorPart editor = page.getActiveEditor();
+                            if (editor instanceof MapEditor) {
+                                new OpenMapConcern.MapVisibilityListener( page, (MapEditor)editor, _map  );
+                            }
+                        }
+                    });
 
                     // extent
                     String mapExtentJson = memento.getString( "mapExtent" );
@@ -230,7 +246,7 @@ public class MapEditorInput
     }
 
     public Object getAdapter( Class adapter ) {
-        if (adapter.isAssignableFrom( map.getClass() )) {
+        if (adapter.isAssignableFrom( IMap.class )) {
             return map;
         }
         return null;

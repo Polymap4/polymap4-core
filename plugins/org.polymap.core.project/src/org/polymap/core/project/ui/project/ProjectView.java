@@ -6,6 +6,8 @@ import net.refractions.udig.ui.UDIGDragDropUtilities;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicate;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
@@ -49,15 +51,13 @@ import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetPropertyOperation;
-import org.polymap.core.project.ui.LayerStatusLineAdapter;
 import org.polymap.core.project.ui.PartListenerAdapter;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * The maps tree view. 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class ProjectView
@@ -71,49 +71,43 @@ public class ProjectView
      */
     public static final String ID = "org.polymap.core.project.ProjectView";
 
-    private ProjectTreeViewer  viewer;
+    private ProjectTreeViewer        viewer;
 
-//    private DrillDownAdapter   drillDownAdapter;
-    
-    private LayerStatusLineAdapter  statusLineAdapter;
-    
-    private IMap               root;
-    
-    private Action             renameAction;
+    private ProjectStatusLineAdapter statusLineAdapter;
 
-    private IAction            newWizardAction;
-    
-    private Action             collapsAllAction = new CollapseAllAction();
+    private IMap                     root;
 
-    private Action             doubleClickAction;
+    private Action                   renameAction;
 
-    private IMap               selectedMap;
+    private IAction                  newWizardAction;
 
-    private IPartListener      partListener;
+    private Action                   collapsAllAction = new CollapseAllAction();
+
+    private Action                   doubleClickAction;
+
+    private IMap                     selectedMap;
+
+    private IPartListener            partListener;
     
 
     /**
-     * The constructor.
-     */
-    public ProjectView() {
-    }
-
-
-    /**
-     * This is a callback that will allow us to create the viewer and initialize
-     * it.
+     * This is a callback that will allow us to create the viewer and initialize it.
      */
     public void createPartControl( Composite parent ) {
         viewer = new ProjectTreeViewer( parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL );
         getSite().setSelectionProvider( viewer );        
         UDIGDragDropUtilities.addDragDropSupport( viewer, this );
 
+        // content filter -> only IMap
+        viewer.setContentFilter( new Predicate() {
+            public boolean apply( Object input ) {
+                return input instanceof IMap;
+            }
+        });
+
         root = ProjectRepository.instance().getRootMap();
         viewer.setRootMap( root );
-
-        // XXX the drilldownadapter needs to get informed of real input changes 
-//        drillDownAdapter = new DrillDownAdapter( viewer );
-                
+       
         getSite().getPage().addSelectionListener( new ISelectionListener() {
             public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
                 if (!sel.isEmpty() && sel instanceof StructuredSelection) {
@@ -145,7 +139,7 @@ public class ProjectView
         getSite().getPage().addPartListener( partListener );
         
         // statusLineAdapter
-        statusLineAdapter = new LayerStatusLineAdapter( this );
+        statusLineAdapter = new ProjectStatusLineAdapter( this );
         viewer.addSelectionChangedListener( statusLineAdapter );
         
         makeActions();
@@ -203,14 +197,12 @@ public class ProjectView
 
 
     private void fillLocalPullDown( IMenuManager manager ) {
-//        manager.add( renameAction );
     }
 
 
     private void fillContextMenu( IMenuManager manager ) {
         manager.add( renameAction );
         manager.add( new Separator() );
-//        drillDownAdapter.addNavigationActions( manager );
     }
 
 
@@ -218,12 +210,6 @@ public class ProjectView
         manager.add( new Separator( IWorkbenchActionConstants.MB_ADDITIONS ) );
         manager.add( new GroupMarker( IWorkbenchActionConstants.MB_ADDITIONS ) );
         manager.add( new Separator() );
-
-        System.out.println( "TOOLBAR Items: " + manager.getItems() );
-//        manager.add( renameAction );
-//        manager.add( new Separator() );
-//        manager.add( collapsAllAction );
-//        drillDownAdapter.addNavigationActions( manager );
     }
 
 
