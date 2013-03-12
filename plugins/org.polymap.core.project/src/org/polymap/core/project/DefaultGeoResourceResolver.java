@@ -16,8 +16,6 @@ package org.polymap.core.project;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-
 import java.net.URL;
 
 import net.refractions.udig.catalog.CatalogPlugin;
@@ -29,8 +27,6 @@ import net.refractions.udig.core.internal.CorePlugin;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.base.Supplier;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -80,7 +76,7 @@ public class DefaultGeoResourceResolver
                 handler.handle( results );
             }
         };
-        job.setShowProgressDialog( null, true );
+//        job.setShowProgressDialog( null, true );
         job.schedule();
     }
 

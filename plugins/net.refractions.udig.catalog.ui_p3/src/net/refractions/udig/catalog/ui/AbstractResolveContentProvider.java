@@ -248,7 +248,6 @@ public class AbstractResolveContentProvider
         Update( IResolve target ) {
             super( Messages.get( "ResolveContentProvider_connecting" ) + ": " + target );
             this.resolve = target;
-            setUser( true );
             schedule();
         }
         
