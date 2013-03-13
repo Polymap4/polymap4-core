@@ -40,10 +40,10 @@ import org.polymap.core.runtime.recordstore.QueryExpression.Less;
 public final class GeometryValueCoder
         implements LuceneValueCoder {
 
-    static final String                 FIELD_MAXX = "_maxx_";
-    static final String                 FIELD_MAXY = "_maxy_";
-    static final String                 FIELD_MINX = "_minx_";
-    static final String                 FIELD_MINY = "_miny_";
+    public static final String              FIELD_MAXX = "_maxx_";
+    public static final String              FIELD_MAXY = "_maxy_";
+    public static final String              FIELD_MINX = "_minx_";
+    public static final String              FIELD_MINY = "_miny_";
     
     /** Re-used readers per thread. */
     static final ThreadLocal<WKBReader> wkbReaders = new ThreadLocal<WKBReader>() {

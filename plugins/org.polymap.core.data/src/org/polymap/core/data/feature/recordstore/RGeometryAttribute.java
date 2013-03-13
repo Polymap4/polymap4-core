@@ -14,11 +14,14 @@
  */
 package org.polymap.core.data.feature.recordstore;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.GeometryType;
 import org.opengis.filter.identity.Identifier;
 import org.opengis.geometry.BoundingBox;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * 
@@ -50,8 +53,15 @@ class RGeometryAttribute
 
 
     public BoundingBox getBounds() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        Geometry geom = (Geometry)getValue();
+        ReferencedEnvelope result = new ReferencedEnvelope( getType().getCoordinateReferenceSystem() );
+        if (geom != null) {
+            result.expandToInclude( geom.getEnvelopeInternal() );
+        }
+        else {
+            result.setToNull();
+        }
+        return result;
     }
 
 

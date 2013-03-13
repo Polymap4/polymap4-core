@@ -124,8 +124,53 @@ public final class LuceneQueryDialect
 
     public ReferencedEnvelope getBounds( RFeatureStore fs, Query query )
     throws IOException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        Timer timer = new Timer();
+        FeatureType schema = fs.getSchema();
+        String typeName = schema.getName().getLocalPart();
+        String geomName = schema.getGeometryDescriptor().getLocalName();
+
+        // type/name query
+        RecordQuery rsQuery = transform( fs, query );
+        rsQuery.setMaxResults( 1 );
+
+        try {
+            // MinX
+            String fieldName = geomName+GeometryValueCoder.FIELD_MINX;
+            rsQuery.sort( fieldName, RecordQuery.ASC, Double.class );
+            ResultSet resultSet = fs.ds.getStore().find( rsQuery );
+            if (resultSet.count() == 0) {
+                return ReferencedEnvelope.EVERYTHING;
+            }
+            double minX = resultSet.get( 0 ).get( fieldName );
+
+            // MaxX
+            fieldName = geomName+GeometryValueCoder.FIELD_MAXX;
+            rsQuery.sort( fieldName, RecordQuery.DESC, Double.class );
+            resultSet = fs.ds.getStore().find( rsQuery );
+            double maxX = resultSet.get( 0 ).get( fieldName );
+
+            // MinY
+            fieldName = geomName+GeometryValueCoder.FIELD_MINY;
+            rsQuery.sort( fieldName, RecordQuery.ASC, Double.class );
+            resultSet = fs.ds.getStore().find( rsQuery );
+            double minY = resultSet.get( 0 ).get( fieldName );
+
+            // MaxX
+            fieldName = geomName+GeometryValueCoder.FIELD_MAXY;
+            rsQuery.sort( fieldName, RecordQuery.DESC, Double.class );
+            resultSet = fs.ds.getStore().find( rsQuery );
+            double maxY = resultSet.get( 0 ).get( fieldName );
+
+            log.debug( "Bounds: ... (" + timer.elapsedTime() + "ms)" );
+            
+            return new ReferencedEnvelope( minX, maxX, minY, maxY, schema.getCoordinateReferenceSystem() );
+        }
+        catch (IOException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IOException( e );
+        }        
     }
 
 

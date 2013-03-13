@@ -200,6 +200,7 @@ public final class LuceneRecordState
         return this;
     }
 
+    
     public Iterator<Entry<String, Object>> iterator() {
         return new Iterator<Entry<String, Object>>() {
 
