@@ -6,7 +6,7 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -71,26 +71,16 @@ public abstract class AbstractLoginDialog
                 open();
                 final Button okButton = getButton( IDialogConstants.OK_ID );
                 okButton.setText( "Login" );
-                okButton.addSelectionListener( new SelectionListener() {
-
+                okButton.addSelectionListener( new SelectionAdapter() {
                     public void widgetSelected( final SelectionEvent event ) {
                         processCallbacks = true;
-                    }
-
-                    public void widgetDefaultSelected( final SelectionEvent event ) {
-                        // nothing to do
                     }
                 } );
                 final Button cancel = getButton( IDialogConstants.CANCEL_ID );
-                cancel.addSelectionListener( new SelectionListener() {
-
+                cancel.addSelectionListener( new SelectionAdapter() {
                     public void widgetSelected( final SelectionEvent event ) {
                         isCancelled = true;
                         processCallbacks = true;
-                    }
-
-                    public void widgetDefaultSelected( final SelectionEvent event ) {
-                        // nothing to do
                     }
                 } );
             }
@@ -107,6 +97,7 @@ public abstract class AbstractLoginDialog
                     while (!processCallbacks) {
                         // XXX see http://polymap.org/svn-anta2/ticket/128; force restart session to
                         // prevent deadlock in UIThread
+                        // FIXME this produces zombie threads
                         if (start.elapsedTime() > 60000) {
                             System.out.println( "No login. Refreshing..." );
                             RWT.getSessionStore().getHttpSession().invalidate();

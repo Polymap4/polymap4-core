@@ -46,14 +46,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
 
-import org.eclipse.jface.dialogs.ErrorDialog;
-
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.equinox.security.auth.ILoginContext;
 import org.eclipse.equinox.security.auth.LoginContextFactory;
@@ -215,6 +211,7 @@ public final class Polymap {
         for (boolean loggedIn=false; !loggedIn; ) {
             try {
                 secureContext.login();
+                
                 subject = secureContext.getSubject();
                 principals = new HashSet( subject.getPrincipals() );
                 
@@ -235,10 +232,11 @@ public final class Polymap {
                 loggedIn = true;
             } 
             catch (LoginException e) {
-                //log.warn( "Login error: " + e, e );
-                IStatus status = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID,
-                        "Login fehlgeschlagen.", e );
-                ErrorDialog.openError( null, "Achtung", "Login fehlgeschlagen", status );
+                log.warn( "Login error:" + e.getLocalizedMessage() );
+//                // FIXME causes zombie threads?
+//                // XXX translation
+//                IStatus status = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, "Login fehlgeschlagen.", e );
+//                ErrorDialog.openError( null, "Achtung", "Login fehlgeschlagen", status );
             }
         }
     }
