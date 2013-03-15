@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
+ * Copyright 2009, 2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,11 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.feature.Feature;
-import org.opengis.feature.GeometryAttribute;
-import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.eclipse.swt.SWT;
@@ -37,14 +33,17 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.operations.SetLayerBoundsOperation;
 
 /**
  * Calculates the bounds of the given features and sets the extent of the given map.
- * The bounds will be reprojected into the crs provided. If the crs parameter is null
- * then the native envelope will be returned. If the native projection is not known
- * or if a transformation is not possible then the native envelope will be returned.
+ * The bounds will be reprojected into the crs provided.
+ * <p/>
+ * This works on the given {@link FeatureCollection} and uses its
+ * {@link FeatureCollection#getBounds()} method.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @see SetLayerBoundsOperation
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
 public class ZoomFeatureBoundsOperation
@@ -81,36 +80,7 @@ public class ZoomFeatureBoundsOperation
         monitor.beginTask( getLabel(), features.size() );
 
         // calculate bounds
-        result = new ReferencedEnvelope( crs );
-        FeatureIterator it = features.features();
-        int count = 0;
-        BoundingBox bounds = null; 
-        try {
-            while (it.hasNext()) {
-                Feature feature = it.next();
-                if (monitor.isCanceled()) {
-                    return Status.CANCEL_STATUS;
-                }
-                if ((++count % 100) == 0) {
-                    monitor.subTask( "Objekte: " + count );                
-                }
-                GeometryAttribute geomAttr = feature.getDefaultGeometryProperty();
-                if (bounds == null) {
-                    bounds = geomAttr.getBounds();
-                }
-                else {
-                    bounds.include( geomAttr.getBounds() );
-                }
-                monitor.worked( 1 );
-            }
-            result = new ReferencedEnvelope( bounds );
-        }
-        catch (Exception e) {
-            throw new ExecutionException( "Failure obtaining bounds", e );
-        }
-        finally {
-            it.close();
-        }
+        result = features.getBounds();
 
         // transform
         if (result != null && !result.isNull()) {
