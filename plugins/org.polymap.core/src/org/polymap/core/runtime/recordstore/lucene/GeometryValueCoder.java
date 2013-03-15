@@ -32,8 +32,12 @@ import org.polymap.core.runtime.recordstore.QueryExpression.Greater;
 import org.polymap.core.runtime.recordstore.QueryExpression.Less;
 
 /**
- * Encode/Decode {@link Geometry} values using {@link NumericField} build-in support of
- * Lucene.
+ * Encode/Decode {@link Geometry} values using {@link NumericField} build-in support
+ * of Lucene.
+ * <p/>
+ * <b>Note:</b> The results generated from {@link #searchQuery(QueryExpression)}
+ * should be post-processed to make sure that the geometry <b>actually</b> intersects
+ * the bbox. The search just checks that the bounds of the geometry intersect the bbox!
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

@@ -15,6 +15,7 @@
 package org.polymap.core.data.feature.recordstore;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ import org.geotools.data.Query;
 import org.geotools.data.QueryCapabilities;
 import org.geotools.filter.visitor.DefaultFilterVisitor;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.And;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -50,6 +52,7 @@ import org.opengis.filter.expression.Subtract;
 import org.opengis.filter.identity.Identifier;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.filter.spatial.Beyond;
+import org.opengis.filter.spatial.BinarySpatialOperator;
 import org.opengis.filter.spatial.Contains;
 import org.opengis.filter.spatial.Crosses;
 import org.opengis.filter.spatial.DWithin;
@@ -68,7 +71,11 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.TermQuery;
 
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.QueryExpression;
 import org.polymap.core.runtime.recordstore.RecordQuery;
@@ -79,7 +86,7 @@ import org.polymap.core.runtime.recordstore.lucene.LuceneRecordState;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**
- * 
+ * Transformation from GeoTools {@link Query} to {@link LuceneRecordQuery}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -108,7 +115,9 @@ public final class LuceneQueryDialect
 
     public int getCount( RFeatureStore fs, Query query )
     throws IOException {
-        RecordQuery rsQuery = transform( fs, query );
+        // XXX handle postProcess
+        Transformer transformer = new Transformer();
+        RecordQuery rsQuery = transformer.transform( fs, query );
         try {
             ResultSet resultSet = fs.ds.getStore().find( rsQuery );
             return resultSet.count();
@@ -130,7 +139,9 @@ public final class LuceneQueryDialect
         String geomName = schema.getGeometryDescriptor().getLocalName();
 
         // type/name query
-        RecordQuery rsQuery = transform( fs, query );
+        // XXX handle postProcess
+        Transformer transformer = new Transformer();
+        RecordQuery rsQuery = transformer.transform( fs, query );
         rsQuery.setMaxResults( 1 );
 
         try {
@@ -174,14 +185,37 @@ public final class LuceneQueryDialect
     }
 
 
-    public ResultSet getFeatureStates( RFeatureStore fs, Query query )
+    public PostProcessResultSet getFeatureStates( RFeatureStore fs, final Query query )
     throws IOException {
         try {
             Timer timer = new Timer();
-            RecordQuery rsQuery = transform( fs, query );
-            ResultSet result = fs.ds.getStore().find( rsQuery );
-            log.debug( "    results: " + result.count() + " ( " + timer.elapsedTime() + "ms)" );
-            return result;
+            
+            final Transformer transformer = new Transformer();
+            RecordQuery rsQuery = transformer.transform( fs, query );
+            
+            final ResultSet results = fs.ds.getStore().find( rsQuery );
+            log.debug( "    non-processed results: " + results.count() + " ( " + timer.elapsedTime() + "ms)" );
+            
+            return new PostProcessResultSet() {
+                private boolean     hasProcessing = !transformer.postProcess.isEmpty();
+                private Filter      filter = query.getFilter();
+                @Override
+                public Iterator<IRecordState> iterator() {
+                    return results.iterator();
+                }
+                @Override
+                public boolean hasPostProcessing() {
+                    return hasProcessing;
+                }
+                @Override
+                public boolean postProcess( Feature feature ) {
+                    return hasProcessing ? filter.evaluate( feature ) : true;
+                }
+                @Override
+                public int size() {
+                    return results.count();
+                }
+            };
         }
         catch (IOException e) {
             throw e;
@@ -190,238 +224,274 @@ public final class LuceneQueryDialect
             throw new IOException( e );
         }
     }
-    
-    
-    protected RecordQuery transform( RFeatureStore fs, final Query query ) {
-        String typeName = fs.getSchema().getName().getLocalPart();
-        
-        // transform filter
-        org.apache.lucene.search.Query filterQuery = processFilter( query.getFilter(), fs.getSchema() );
 
-        // add type/name query
-        TermQuery typeQuery = new TermQuery( new Term( RFeature.TYPE_KEY, typeName ) );
+    
+    /**
+     * 
+     */
+    protected class Transformer {
         
-        org.apache.lucene.search.Query luceneQuery = null;
-        if (! filterQuery.equals( ALL )) {
-            luceneQuery = new BooleanQuery();
-            ((BooleanQuery)luceneQuery).add( filterQuery, BooleanClause.Occur.MUST );
-            ((BooleanQuery)luceneQuery).add( typeQuery, BooleanClause.Occur.MUST );
-        }
-        else {
-            luceneQuery = typeQuery;
+        private List<Filter>        postProcess = new ArrayList();
+        
+        private FeatureType         schema;
+        
+        public RecordQuery transform( RFeatureStore fs, final Query query ) {
+            schema = fs.getSchema();
+            String typeName = fs.getSchema().getName().getLocalPart();
+
+            // transform filter
+            org.apache.lucene.search.Query filterQuery = processFilter( query.getFilter() );
+
+            // add type/name query
+            TermQuery typeQuery = new TermQuery( new Term( RFeature.TYPE_KEY, typeName ) );
+
+            org.apache.lucene.search.Query luceneQuery = null;
+            if (! filterQuery.equals( ALL )) {
+                luceneQuery = new BooleanQuery();
+                ((BooleanQuery)luceneQuery).add( filterQuery, BooleanClause.Occur.MUST );
+                ((BooleanQuery)luceneQuery).add( typeQuery, BooleanClause.Occur.MUST );
+            }
+            else {
+                luceneQuery = typeQuery;
+            }
+
+            // sort
+            if (query.getSortBy() != null && query.getSortBy().length > 0) {
+                throw new UnsupportedOperationException( "Not implemented yet: sortBy" );
+                //            for (SortBy sortby : query.getSortBy()) {
+                //                
+                //            }
+            }
+            log.debug( "LUCENE: " + luceneQuery );
+
+            RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)fs.ds.store, luceneQuery );
+            if (query.getStartIndex() != null) {
+                result.setFirstResult( query.getStartIndex() );
+            }
+            result.setMaxResults( query.getMaxFeatures() );
+            return result;
         }
 
-        // sort
-        if (query.getSortBy() != null && query.getSortBy().length > 0) {
-            throw new UnsupportedOperationException( "Not implemented yet: sortBy" );
-//            for (SortBy sortby : query.getSortBy()) {
-//                
+
+        protected org.apache.lucene.search.Query processFilter( Filter filter ) {
+            // start
+            if (filter == null || filter.equals( Filter.INCLUDE )) {
+                return ALL;
+            }
+            // AND
+            else if (filter instanceof And) {
+                BooleanQuery result = new BooleanQuery();
+                for (Filter child : ((And)filter).getChildren()) {
+                    if (child instanceof Not) {
+                        result.add( processFilter( ((Not)child).getFilter()), BooleanClause.Occur.MUST_NOT );                        
+                    }
+                    else {
+                        result.add( processFilter( child ), BooleanClause.Occur.MUST );
+                    }
+                }
+                return result;
+            }
+            // OR
+            else if (filter instanceof Or) {
+                BooleanQuery result = new BooleanQuery();
+                for (Filter child : ((Or)filter).getChildren()) {
+                    // XXX child == Not?
+                    result.add( processFilter( child ), BooleanClause.Occur.SHOULD );
+                }
+                return result;
+            }
+            // NOT
+            else if (filter instanceof Not) {
+                BooleanQuery result = new BooleanQuery();
+                Filter child = ((Not)filter).getFilter();
+                result.add( processFilter( child ), BooleanClause.Occur.MUST_NOT );
+                return result;
+            }
+            // INCLUDE
+            else if (filter instanceof IncludeFilter) {
+                return ALL;
+            }
+            // EXCLUDE
+            else if (filter instanceof ExcludeFilter) {
+                // XXX any better way to express?
+                return new TermQuery( new Term( "__does_not_exist__", "true") );
+            }
+            // BBOX
+            else if (filter instanceof BBOX) {
+                return processBBOX( (BBOX)filter );
+            }
+            else if (filter instanceof BinarySpatialOperator) {
+                return processBinarySpatial( (BinarySpatialOperator)filter );
+            }
+            // FID
+            else if (filter instanceof Id) {
+                Id fidFilter = (Id)filter;
+                if (fidFilter.getIdentifiers().size() > BooleanQuery.getMaxClauseCount()) {
+                    BooleanQuery.setMaxClauseCount( fidFilter.getIdentifiers().size() );
+                }
+                BooleanQuery result = new BooleanQuery();
+                for (Identifier fid : fidFilter.getIdentifiers()) {
+                    org.apache.lucene.search.Query fidQuery = store.getValueCoders().searchQuery( 
+                            new QueryExpression.Equal( LuceneRecordState.ID_FIELD, fid.getID() ) );
+                    result.add( fidQuery, BooleanClause.Occur.SHOULD );
+                }
+                return result;
+            }
+            // comparison
+            else if (filter instanceof BinaryComparisonOperator) {
+                return processComparison( (BinaryComparisonOperator)filter );
+            }
+            // isLike
+            else if (filter instanceof PropertyIsLike) {
+                return processIsLike( (PropertyIsLike)filter );
+            }
+            // isNull
+            else if (filter instanceof PropertyIsNull) {
+                throw new UnsupportedOperationException( "PropertyIsNull" );
+            }
+            // between
+            else if (filter instanceof PropertyIsBetween) {
+                throw new UnsupportedOperationException( "PropertyIsBetween" );
+            }
+            else {
+                throw new UnsupportedOperationException( "Unsupported filter type: " + filter.getClass() );
+            }
+        }
+
+
+        @SuppressWarnings("deprecation")
+        protected org.apache.lucene.search.Query processBBOX( final BBOX bbox ) {
+            String propName = bbox.getPropertyName();
+            //assert !propName.equals( "" ) : "Empty propName not supported for BBOX filter.";
+            final String fieldName = propName.equals( "" ) ? schema.getGeometryDescriptor().getLocalName() : propName;
+
+//            if (schema.getDescriptor( fieldName ).getType().getBinding() != Point.class) {
+//                postProcess.add( new Predicate<IRecordState>() {
+//                    public boolean apply( IRecordState input ) {
+//                        Geometry geom = input.get( fieldName );
+//                        Polygon bounds = JTS.toGeometry( new Envelope( bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY() ) );
+//                        return geom != null ? geom.intersects( bounds ) : false;
+//                    }
+//                });
 //            }
+
+            return store.getValueCoders().searchQuery( 
+                    new QueryExpression.BBox( fieldName, bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY() ) );
         }
-        log.debug( "LUCENE: " + luceneQuery );
-        
-        RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)fs.ds.store, luceneQuery );
-        if (query.getStartIndex() != null) {
-            result.setFirstResult( query.getStartIndex() );
-        }
-        result.setMaxResults( query.getMaxFeatures() );
-        return result;
-    }
 
 
-    protected org.apache.lucene.search.Query processFilter( Filter filter, FeatureType schema ) {
-        // start
-        if (filter == null || filter.equals( Filter.INCLUDE )) {
-            return ALL;
-        }
-        // AND
-        else if (filter instanceof And) {
-            BooleanQuery result = new BooleanQuery();
-            for (Filter child : ((And)filter).getChildren()) {
-                if (child instanceof Not) {
-                    result.add( processFilter( ((Not)child).getFilter(), schema ), BooleanClause.Occur.MUST_NOT );                        
-                }
-                else {
-                    result.add( processFilter( child, schema ), BooleanClause.Occur.MUST );
-                }
+        protected org.apache.lucene.search.Query processBinarySpatial( BinarySpatialOperator filter ) {
+            PropertyName prop = (PropertyName)filter.getExpression1();
+            Literal literal = (Literal)filter.getExpression2();
+            
+            // fieldName
+            final String fieldName = prop.getPropertyName().equals( "" ) 
+                    ? schema.getGeometryDescriptor().getLocalName() 
+                    : prop.getPropertyName();
+
+            // get bounds for bbox
+            Envelope bounds = null;
+            if (literal.getValue() instanceof Geometry) {
+                bounds = ((Geometry)literal.getValue()).getEnvelopeInternal();
             }
-            return result;
-        }
-        // OR
-        else if (filter instanceof Or) {
-            BooleanQuery result = new BooleanQuery();
-            for (Filter child : ((Or)filter).getChildren()) {
-                // XXX child == Not?
-                result.add( processFilter( child, schema ), BooleanClause.Occur.SHOULD );
+            else {
+                throw new IllegalArgumentException( "Geometry type not supported: " + literal.getValue() );
             }
-            return result;
+            
+            postProcess.add( filter );
+            return store.getValueCoders().searchQuery( 
+                    new QueryExpression.BBox( fieldName, bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY() ) );
         }
-        // NOT
-        else if (filter instanceof Not) {
-            BooleanQuery result = new BooleanQuery();
-            Filter child = ((Not)filter).getFilter();
-            result.add( processFilter( child, schema ), BooleanClause.Occur.MUST_NOT );
-            return result;
-        }
-        // INCLUDE
-        else if (filter instanceof IncludeFilter) {
-            return ALL;
-        }
-        // EXCLUDE
-        else if (filter instanceof ExcludeFilter) {
-            // XXX any better way to express?
-            return new TermQuery( new Term( "__does_not_exist__", "true") );
-        }
-        // BBOX
-        else if (filter instanceof BBOX) {
-            return processBBOX( (BBOX)filter, schema );
-        }
-        // FID
-        else if (filter instanceof Id) {
-            Id fidFilter = (Id)filter;
-            if (fidFilter.getIdentifiers().size() > BooleanQuery.getMaxClauseCount()) {
-                BooleanQuery.setMaxClauseCount( fidFilter.getIdentifiers().size() );
+
+
+        protected org.apache.lucene.search.Query processComparison( BinaryComparisonOperator predicate ) {
+            Expression expression1 = predicate.getExpression1();
+            Expression expression2 = predicate.getExpression2();
+
+            Literal literal = null;
+            PropertyName prop = null;
+
+            // expression1
+            if (expression1 instanceof Literal) {
+                literal = (Literal)expression1;
             }
-            BooleanQuery result = new BooleanQuery();
-            for (Identifier fid : fidFilter.getIdentifiers()) {
-                org.apache.lucene.search.Query fidQuery = store.getValueCoders().searchQuery( 
-                        new QueryExpression.Equal( LuceneRecordState.ID_FIELD, fid.getID() ) );
-                result.add( fidQuery, BooleanClause.Occur.SHOULD );
+            else if (expression1 instanceof PropertyName) {
+                prop = (PropertyName)expression1;
             }
-            return result;
+            else {
+                throw new RuntimeException( "Expression type not supported: " + expression1 );
+            }
+
+            // expression2
+            if (expression2 instanceof Literal) {
+                literal = (Literal)expression2;
+            }
+            else if (expression2 instanceof PropertyName) {
+                prop = (PropertyName)expression2;
+            }
+            else {
+                throw new RuntimeException( "Expression type not supported: " + expression2 );
+            }
+
+            if (literal == null || prop == null) {
+                throw new RuntimeException( "Comparison not supported: " + expression1 + " - " + expression2 );
+            }
+
+            String fieldname = prop.getPropertyName();
+
+            // equals
+            if (predicate instanceof PropertyIsEqualTo) {
+                return store.getValueCoders().searchQuery( 
+                        new QueryExpression.Equal( fieldname, literal.getValue() ) );
+            }
+            // not equals
+            if (predicate instanceof PropertyIsNotEqualTo) {
+                org.apache.lucene.search.Query arg = store.getValueCoders().searchQuery( 
+                        new QueryExpression.Equal( fieldname, literal.getValue() ) );
+                BooleanQuery result = new BooleanQuery();
+                result.add( arg, BooleanClause.Occur.MUST_NOT );
+                return result;
+            }
+            // ge
+            else if (predicate instanceof PropertyIsGreaterThanOrEqualTo) {
+                return store.getValueCoders().searchQuery( 
+                        new QueryExpression.GreaterOrEqual( fieldname, literal.getValue() ) );
+            }
+            // gt
+            else if (predicate instanceof PropertyIsGreaterThan) {
+                return store.getValueCoders().searchQuery( 
+                        new QueryExpression.Greater( fieldname, literal.getValue() ) );
+            }
+            // le
+            else if (predicate instanceof PropertyIsLessThanOrEqualTo) {
+                return store.getValueCoders().searchQuery( 
+                        new QueryExpression.LessOrEqual( fieldname, literal.getValue() ) );
+            }
+            // lt
+            else if (predicate instanceof PropertyIsLessThan) {
+                return store.getValueCoders().searchQuery( 
+                        new QueryExpression.Less( fieldname, literal.getValue() ) );
+            }
+            else {
+                throw new UnsupportedOperationException( "Predicate type not supported in comparison: " + predicate.getClass() );
+            }
         }
-        // comparison
-        else if (filter instanceof BinaryComparisonOperator) {
-            return processComparison( (BinaryComparisonOperator)filter );
-        }
-        // isLike
-        else if (filter instanceof PropertyIsLike) {
-            return processIsLike( (PropertyIsLike)filter );
-        }
-        // isNull
-        else if (filter instanceof PropertyIsNull) {
-            throw new UnsupportedOperationException( "PropertyIsNull" );
-        }
-        // between
-        else if (filter instanceof PropertyIsBetween) {
-            throw new UnsupportedOperationException( "PropertyIsBetween" );
-        }
-        //        // MANY Assoc
-        //        else if (filter instanceof ManyAssociationContainsPredicate) {
-        //            throw new UnsupportedOperationException( "ManyAssociationContainsPredicate" );
-        //        }
-        //        // Assoc
-        //        else if (filter instanceof AssociationNullPredicate) {
-        //            throw new UnsupportedOperationException( "AssociationNullPredicate" );
-        //        }
-        //        // contains
-        //        else if (filter instanceof ContainsPredicate) {
-        //            return processContainsPredicate( (ContainsPredicate)filter );
-        //        }
-        else {
-            throw new UnsupportedOperationException( "Unsupported filter type: " + filter.getClass() );
+
+
+        protected org.apache.lucene.search.Query processIsLike( PropertyIsLike predicate ) {
+            String value = predicate.getLiteral();
+            PropertyName prop = (PropertyName)predicate.getExpression();
+            String fieldname = prop.getPropertyName();
+
+            // assuming that QueryExpression.Match use *,?
+            value = StringUtils.replace( value, predicate.getWildCard(), "*" );
+            value = StringUtils.replace( value, predicate.getSingleChar(), "?" );
+
+            return store.getValueCoders().searchQuery( 
+                    new QueryExpression.Match( fieldname, value ) );
         }
     }
-
-
-    @SuppressWarnings("deprecation")
-    protected org.apache.lucene.search.Query processBBOX( BBOX bbox, FeatureType schema ) {
-        String propName = bbox.getPropertyName();
-        //assert !propName.equals( "" ) : "Empty propName not supported for BBOX filter.";
-        String fieldName = propName.equals( "" ) ? schema.getGeometryDescriptor().getLocalName() : propName;
-
-        return store.getValueCoders().searchQuery( 
-                new QueryExpression.BBox( fieldName, bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY() ) );
-    }
-
-
-    protected org.apache.lucene.search.Query processComparison( BinaryComparisonOperator predicate ) {
-        Expression expression1 = predicate.getExpression1();
-        Expression expression2 = predicate.getExpression2();
-
-        Literal literal = null;
-        PropertyName prop = null;
-
-        // expression1
-        if (expression1 instanceof Literal) {
-            literal = (Literal)expression1;
-        }
-        else if (expression1 instanceof PropertyName) {
-            prop = (PropertyName)expression1;
-        }
-        else {
-            throw new RuntimeException( "Expression type not supported: " + expression1 );
-        }
-
-        // expression2
-        if (expression2 instanceof Literal) {
-            literal = (Literal)expression2;
-        }
-        else if (expression2 instanceof PropertyName) {
-            prop = (PropertyName)expression2;
-        }
-        else {
-            throw new RuntimeException( "Expression type not supported: " + expression2 );
-        }
-
-        if (literal == null || prop == null) {
-            throw new RuntimeException( "Comparison not supported: " + expression1 + " - " + expression2 );
-        }
-
-        String fieldname = prop.getPropertyName();
-
-        // equals
-        if (predicate instanceof PropertyIsEqualTo) {
-            return store.getValueCoders().searchQuery( 
-                    new QueryExpression.Equal( fieldname, literal.getValue() ) );
-        }
-        // not equals
-        if (predicate instanceof PropertyIsNotEqualTo) {
-            org.apache.lucene.search.Query arg = store.getValueCoders().searchQuery( 
-                    new QueryExpression.Equal( fieldname, literal.getValue() ) );
-            BooleanQuery result = new BooleanQuery();
-            result.add( arg, BooleanClause.Occur.MUST_NOT );
-            return result;
-        }
-        // ge
-        else if (predicate instanceof PropertyIsGreaterThanOrEqualTo) {
-            return store.getValueCoders().searchQuery( 
-                    new QueryExpression.GreaterOrEqual( fieldname, literal.getValue() ) );
-        }
-        // gt
-        else if (predicate instanceof PropertyIsGreaterThan) {
-            return store.getValueCoders().searchQuery( 
-                    new QueryExpression.Greater( fieldname, literal.getValue() ) );
-        }
-        // le
-        else if (predicate instanceof PropertyIsLessThanOrEqualTo) {
-            return store.getValueCoders().searchQuery( 
-                    new QueryExpression.LessOrEqual( fieldname, literal.getValue() ) );
-        }
-        // lt
-        else if (predicate instanceof PropertyIsLessThan) {
-            return store.getValueCoders().searchQuery( 
-                    new QueryExpression.Less( fieldname, literal.getValue() ) );
-        }
-        else {
-            throw new UnsupportedOperationException( "Predicate type not supported in comparison: " + predicate.getClass() );
-        }
-    }
-
-
-    protected org.apache.lucene.search.Query processIsLike( PropertyIsLike predicate ) {
-        String value = predicate.getLiteral();
-        PropertyName prop = (PropertyName)predicate.getExpression();
-        String fieldname = prop.getPropertyName();
-
-        // assuming that QueryExpression.Match use *,?
-        value = StringUtils.replace( value, predicate.getWildCard(), "*" );
-        value = StringUtils.replace( value, predicate.getSingleChar(), "?" );
-
-        return store.getValueCoders().searchQuery( 
-                new QueryExpression.Match( fieldname, value ) );
-    }
-
+    
 
     public static boolean supports( Filter _filter ) {
         final List notSupported = new ArrayList();

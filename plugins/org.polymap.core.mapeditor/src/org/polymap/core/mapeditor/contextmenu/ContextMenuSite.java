@@ -22,15 +22,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.spatial.BBOX;
-
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Envelope;
 
 import org.eclipse.swt.graphics.Point;
 
@@ -55,7 +56,7 @@ public abstract class ContextMenuSite {
 
     private static Log log = LogFactory.getLog( ContextMenuSite.class );
 
-    public static final FilterFactory       ff = CommonFactoryFinder.getFilterFactory( null );
+    public static final FilterFactory2      ff = CommonFactoryFinder.getFilterFactory2( null );
     
     /** Maps layer id into already computed covered features for this layer. */
     private Map<String,List<Feature>>       coveredFeatures = new HashMap();
@@ -94,10 +95,10 @@ public abstract class ContextMenuSite {
                         ReferencedEnvelope transformed = bbox.transform( layer.getCRS(), true );
 
                         String propname = "";
-                        String srs = CRS.toSRS( layer.getCRS() );
 
-                        BBOX filter = ff.bbox( propname, transformed.getMinX(), transformed.getMinY(), 
-                                transformed.getMaxX(), transformed.getMaxY(), srs );
+                        Filter filter = ff.intersects( 
+                                ff.property( propname ),
+                                ff.literal( JTS.toGeometry( (Envelope)transformed ) ) );
 
                         PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
                         if (fs != null) { 
