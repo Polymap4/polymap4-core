@@ -299,7 +299,7 @@ class EntityTypeImpl<T extends Composite>
             super( m );
         }
 
-        public Object getValue( Entity entity )
+        public Object getValue( Composite entity )
         throws Exception {
             try {
                 org.qi4j.api.entity.association.Association assoc =
@@ -320,7 +320,7 @@ class EntityTypeImpl<T extends Composite>
             }
         }
 
-        public void setValue( Entity entity, Object value )
+        public void setValue( Composite entity, Object value )
         throws Exception {
             try {
                 org.qi4j.api.entity.association.Association assoc =
