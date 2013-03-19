@@ -124,6 +124,8 @@ public abstract class UIJob
 
         setSystem( false );
         setPriority( DEFAULT_PRIORITY );
+        
+//        sessionContext.addSessionListener( this );
     }
 
 

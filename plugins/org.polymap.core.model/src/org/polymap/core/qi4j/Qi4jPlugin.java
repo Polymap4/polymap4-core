@@ -39,12 +39,16 @@ import org.qi4j.bootstrap.AssemblyException;
 import org.qi4j.bootstrap.Energy4Java;
 import org.qi4j.spi.structure.ApplicationSPI;
 
+import com.google.common.base.Supplier;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
+import org.polymap.core.runtime.LazyInit;
+import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.SessionSingleton;
 
 /**
@@ -58,35 +62,80 @@ public class Qi4jPlugin
 
     private static Log log = LogFactory.getLog( Qi4jPlugin.class );
     
-	// The plug-in ID
-
     public static final String PLUGIN_ID = "org.polymap.core.model";
 
-	// The shared instance
 	private static Qi4jPlugin               plugin;
 	
-    private static Energy4Java              qi4j;
+    private static LazyInit<Energy4Java>    qi4j = 
+            new LockedLazyInit( new Supplier<Energy4Java>() {
+                public Energy4Java get() {
+                    return new Energy4Java();
+                }
+    });
     
-    private static ApplicationSPI           application;
+    private static LazyInit<List<QiModuleAssembler>> assemblers = 
+            new LockedLazyInit( new ApplicationLoader() );
 
-    private static List<QiModuleAssembler>  assemblers = new ArrayList();
     
-    private static boolean                  initialized = false;
+    /**
+     * 
+     */
+    static class ApplicationLoader 
+            implements Supplier<List<QiModuleAssembler>> {
+        
+        public List<QiModuleAssembler> get() {
+            try {
+                final List<QiModuleAssembler> result = new ArrayList();
+                
+                ApplicationSPI app = qi4j.get().newApplication( new ApplicationAssembler() {
+                    public ApplicationAssembly assemble( ApplicationAssemblyFactory applicationFactory )
+                    throws AssemblyException {
+                        ApplicationAssembly assembly = applicationFactory.newApplicationAssembly();
+
+                        // plugin extensions
+                        IExtensionRegistry reg = Platform.getExtensionRegistry();
+                        IConfigurationElement[] extensions = reg.getConfigurationElementsFor( "org.polymap.core.model.moduleAssemblers" );
+                        for (IConfigurationElement ext : extensions) {
+                            try {
+                                QiModuleAssembler assembler = (QiModuleAssembler)ext.createExecutableExtension( "class" );
+                                result.add( assembler );
+                                
+                                assembler.assemble( assembly );
+                            }
+                            catch (Exception e) {
+                                log.error( "Error while initializing module: " + ext.getName(), e );
+                            }
+                        }
+                        return assembly;
+                    }
+                } );
+                app.activate();
+                
+                //
+                for (QiModuleAssembler assembler : result) {
+                    assembler.setApp( app );
+                    assembler.createInitData();
+                }
+                return result;
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }        
+    }
     
     
     public Qi4jPlugin() {
 	}
 
 
-    public void start( BundleContext context )
-            throws Exception {
+    public void start( BundleContext context ) throws Exception {
         super.start( context );
         plugin = this;
     }
 
     
-    public void stop( BundleContext context )
-            throws Exception {
+    public void stop( BundleContext context ) throws Exception {
         plugin = null;
         super.stop( context );
     }
@@ -97,50 +146,8 @@ public class Qi4jPlugin
     }
 
 
-    private static synchronized void init()
-            throws Exception {
-        if (qi4j != null) {
-            return;
-        }
-        qi4j = new Energy4Java();
-        application = qi4j.newApplication( new ApplicationAssembler() {
-            
-            public ApplicationAssembly assemble( ApplicationAssemblyFactory applicationFactory )
-            throws AssemblyException {
-
-                ApplicationAssembly app = applicationFactory.newApplicationAssembly();
-
-                // plugin extensions
-                IExtensionRegistry reg = Platform.getExtensionRegistry();
-                IConfigurationElement[] extensions = reg.getConfigurationElementsFor( "org.polymap.core.model.moduleAssemblers" );
-                for (IConfigurationElement ext : extensions) {
-                    try {
-                        QiModuleAssembler assembler = (QiModuleAssembler)ext.createExecutableExtension( "class" );
-                        assemblers.add( assembler );
-                        
-                        assembler.assemble( app );
-                    }
-                    catch (Exception e) {
-                        log.error( "Error while initializing module: " + ext.getName(), e );
-                    }
-                }
-                return app;
-            }
-        } );
-        application.activate();
-        
-        //
-        for (QiModuleAssembler assembler : assemblers) {
-            assembler.setApp( application );
-            assembler.createInitData();
-        }
-        
-        initialized = true;
-    }
-
-    
     public static boolean isInitialized() {
-        return initialized;
+        return assemblers.isInitialized();
     }
 
     
@@ -162,18 +169,10 @@ public class Qi4jPlugin
 
 
 	    Session() {
-	    	// lazily init the plugin
-	        try {
-				init();
-			} 
-	    	catch (Exception e) {
-				throw new RuntimeException( e );
-			}
-	    	
 	    	// build the modules of the session
 	    	if (modules == null) {
 	    	    modules = new HashMap();
-	    	    for (QiModuleAssembler assembler : Qi4jPlugin.assemblers) {
+	    	    for (QiModuleAssembler assembler : assemblers.get()) {
 	    	        QiModule module = assembler.newModule();
 	    	        modules.put( module.getClass(), module );
 	    	    }

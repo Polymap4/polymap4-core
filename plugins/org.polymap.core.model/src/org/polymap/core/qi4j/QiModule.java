@@ -91,12 +91,13 @@ public abstract class QiModule
         this.assembler = assembler;
         this.uow = assembler.getModule().unitOfWorkFactory().newUnitOfWork();
 
-        SessionContext sessionContext = SessionContext.current();
+        final SessionContext sessionContext = SessionContext.current();
         if (sessionContext != null) {
             sessionContext.addSessionListener( new ISessionListener() {
                 public void beforeDestroy() {
+                    sessionContext.removeSessionListener( this );
                     log.info( "Session closed: removing module..."  );
-                    done();
+                    dispose();
                 }
             });
         }
@@ -113,11 +114,18 @@ public abstract class QiModule
     }
     
 
-    protected void done() {
+    @Override
+    protected void finalize() throws Throwable {
+        dispose();
+    }
+
+
+    protected void dispose() {
         if (uow != null) {
             uow.discard();
             uow = null;
         }
+        assembler = null;
     }
 
     

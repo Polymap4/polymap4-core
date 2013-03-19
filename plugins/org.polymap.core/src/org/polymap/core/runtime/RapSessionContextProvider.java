@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -22,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.SessionSingletonBase;
 import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
 import org.eclipse.rwt.internal.service.ContextProvider;
@@ -66,6 +67,8 @@ public class RapSessionContextProvider
         private Display                     display;
 
         private ISessionStore               sessionStore;
+        
+        private Map<ISessionListener,SessionStoreListener> listenerMap = new HashMap();
 
 
         RapSessionContext( ServiceContext serviceContext ) {
@@ -96,6 +99,7 @@ public class RapSessionContextProvider
 
         public void destroy() {
             serviceContext = null;
+            listenerMap = null;
         }
 
 
@@ -105,7 +109,7 @@ public class RapSessionContextProvider
 
 
         public String getSessionKey() {
-            return serviceContext.getSessionStore().getId();
+            return sessionStore.getId();
         }
 
         
@@ -146,18 +150,20 @@ public class RapSessionContextProvider
 
 
         public boolean addSessionListener( final ISessionListener l ) {
-            return RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
+            SessionStoreListener l2 = new SessionStoreListener() {
                 public void beforeDestroy( SessionStoreEvent event ) {
                     log.info( "beforeDestroy(): ..." );
                     l.beforeDestroy();
                 }
-            });
+            };
+            listenerMap.put( l, l2 );
+            return sessionStore.addSessionStoreListener( l2 );
         }
 
 
         public boolean removeSessionListener( ISessionListener l ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+            SessionStoreListener l2 = listenerMap.remove( l );
+            return sessionStore.removeSessionStoreListener( l2 );
         }
 
 

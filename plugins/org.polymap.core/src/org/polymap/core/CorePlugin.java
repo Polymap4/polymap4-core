@@ -198,7 +198,6 @@ public class CorePlugin
 
 	public CorePlugin() {
 		log.debug( "Hello from the first POLYMAP3 plugin! :)" );
-
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
         IWorkspaceRoot root = workspace.getRoot();
         IPath path = root.getLocation();

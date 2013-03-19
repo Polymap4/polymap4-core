@@ -378,7 +378,7 @@ public class EventManager {
                 }
             } 
             catch (Throwable e) {
-                log.warn( "Error during event dispatch: " + e );
+                log.warn( "Error during event dispatch: " + e, e );
                 log.debug( "", e );
             }
             finally {

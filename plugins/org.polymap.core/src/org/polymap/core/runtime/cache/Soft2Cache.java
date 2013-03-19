@@ -224,9 +224,9 @@ final class Soft2Cache<K,V>
         private Soft2Cache          cache;
         
         /** Use short instead of int, saving 2 bytes of memory. */
-        private short               sizeInKB = -1;
+//        private short               sizeInKB = -1;
         
-        private volatile int        accessed = accessCounter++;
+//        private volatile int        accessed = accessCounter++;
         
         
         CacheEntry( Soft2Cache cache, K key, V value, int elementSize, EvictionListener l ) {
@@ -244,12 +244,12 @@ final class Soft2Cache<K,V>
                 assert evictionListener == null;
                 evictionListener = l;
             }
-            this.sizeInKB = (short)(elementSize / 1024);
-            assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
+//            this.sizeInKB = (short)(elementSize / 1024);
+//            assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
         }
 
         void dispose() {
-            accessed = -1;
+//            accessed = -1;
         }
         
         void fireEvictionEvent() {
@@ -267,21 +267,22 @@ final class Soft2Cache<K,V>
         }
         
         public V value() {
-            accessed = accessCounter++;
-            if (accessed <= 0) {
-                throw new CacheException( "Access counter exceeded!" );
-            }
+            accessCounter++;
+//            accessed = accessCounter++;
+//            if (accessed <= 0) {
+//                throw new CacheException( "Access counter exceeded!" );
+//            }
             return get();
         }
 
-        public int accessed() {
-            return accessed;
-        }
+//        public int accessed() {
+//            return accessed;
+//        }
         
-        public int size() {
-            assert sizeInKB != -1;
-            return 1024*sizeInKB;
-        }
+//        public int size() {
+//            assert sizeInKB != -1;
+//            return 1024*sizeInKB;
+//        }
     }
 
 }

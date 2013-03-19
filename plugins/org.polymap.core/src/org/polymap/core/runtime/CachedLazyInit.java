@@ -84,11 +84,11 @@ public class CachedLazyInit<T>
     @SuppressWarnings("hiding")
     public T get( final Supplier<T> supplier ) {
         return (T)cache.get( cacheKey, new CacheLoader<Integer,Object,RuntimeException>() {
-
+            @Override
             public Object load( Integer key ) throws RuntimeException {
                 return supplier.get();
             }
-
+            @Override
             public int size() throws RuntimeException {
                 return elementSize;
             }
@@ -101,8 +101,22 @@ public class CachedLazyInit<T>
     }
 
     @Override
+    public boolean isInitialized() {
+        return cache.get( cacheKey ) != null;
+    }
+
+    @Override
     protected void finalize() throws Throwable {
         clear();
+    }
+    
+    
+    /**
+     * 
+     */
+    interface EvictionSupplier<T>
+            extends Supplier<T> {
+        
     }
     
 }

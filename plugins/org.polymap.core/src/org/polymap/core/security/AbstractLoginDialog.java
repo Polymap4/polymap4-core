@@ -11,8 +11,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import org.eclipse.rwt.RWT;
-
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -22,6 +20,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
@@ -97,10 +96,9 @@ public abstract class AbstractLoginDialog
                     while (!processCallbacks) {
                         // XXX see http://polymap.org/svn-anta2/ticket/128; force restart session to
                         // prevent deadlock in UIThread
-                        // FIXME this produces zombie threads
                         if (start.elapsedTime() > 60000) {
                             System.out.println( "No login. Refreshing..." );
-                            RWT.getSessionStore().getHttpSession().invalidate();
+                            new PolymapWorkbench.Terminator().schedule();
                             return;
                         }
                         try {

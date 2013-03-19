@@ -4,6 +4,7 @@ import java.util.Dictionary;
 
 import java.net.URL;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.factory.GeoTools;
@@ -11,6 +12,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.jface.action.Action;
@@ -41,10 +44,15 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.UIJob;
+import org.polymap.core.security.SecurityUtils;
 
 /**
  * 
@@ -388,5 +396,42 @@ public class PolymapActionBarAdvisor
         statusLine.add( aboutAction );
         statusLine.add( helpContentsAction );
         statusLine.add( showViewAction );
+        if (SecurityUtils.isAdmin( Polymap.instance().getUser() )) {
+            final Action action = new Action( "------" ) {
+                public void runWithEvent( Event ev ) {
+                    Runtime rt = Runtime.getRuntime();
+                    long free = rt.freeMemory();
+                    long max = rt.maxMemory();
+                    long total = rt.totalMemory();
+                    System.gc();
+                    MessageDialog.openInformation( 
+                            PolymapWorkbench.getShellToParentOn(), "Memory Information",
+                            "Free : " + FileUtils.byteCountToDisplaySize( rt.freeMemory() ) + " -- (" + FileUtils.byteCountToDisplaySize( free ) + ")\n" +
+                            "Alloc : " + FileUtils.byteCountToDisplaySize( rt.totalMemory() ) + " -- (" + FileUtils.byteCountToDisplaySize( total ) + ")\n" +
+                            "Total : " + FileUtils.byteCountToDisplaySize( rt.maxMemory() ) + " -- (" + FileUtils.byteCountToDisplaySize( max ) + ")\n"
+                            );
+                   // PlatformUI.getWorkbench().close();
+                }
+            };
+            action.setToolTipText( "Memory in use" );
+            statusLine.add( action );
+            
+            Job job = new UIJob( "MemoryDisplay" ) {
+                private Display display = Polymap.getSessionDisplay();
+                protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                    if (!display.isDisposed()) {
+                        Runtime rt = Runtime.getRuntime();
+                        long used = rt.totalMemory() - rt.freeMemory();
+                        action.setText( FileUtils.byteCountToDisplaySize( used ) );
+                        schedule( 1000 );
+                    }
+                    else {
+                        log.debug( "Exiting " + getName() );
+                    }
+                }
+            };
+            job.setSystem( true );
+            job.schedule( 1000 );
+        }
     }
 }

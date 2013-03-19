@@ -95,7 +95,7 @@ public class ServiceRepository
     }
     
     
-    protected void done() {
+    protected void dispose() {
         if (operationListener != null) {
             OperationSupport.instance().removeOperationSaveListener( operationListener );
             operationListener = null;
