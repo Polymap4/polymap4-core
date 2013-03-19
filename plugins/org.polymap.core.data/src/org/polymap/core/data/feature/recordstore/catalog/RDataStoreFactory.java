@@ -1,8 +1,6 @@
 package org.polymap.core.data.feature.recordstore.catalog;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-
 import java.io.File;
 import java.io.Serializable;
 
@@ -10,15 +8,12 @@ import org.geotools.data.DataAccessFactory.Param;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.document.Document;
-
-import com.google.common.collect.MapMaker;
-
 import org.polymap.core.Messages;
 import org.polymap.core.data.feature.recordstore.LuceneQueryDialect;
 import org.polymap.core.data.feature.recordstore.RDataStore;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
@@ -31,7 +26,8 @@ class RDataStoreFactory {
 
     private static Log log = LogFactory.getLog( RDataStoreFactory.class );
 
-    private static ConcurrentMap<File,RDataStore>   stores = new MapMaker().initialCapacity( 64 ).concurrencyLevel( 4 ).weakValues().makeMap();
+    private static Cache<File,RDataStore>   stores = CacheManager.instance().newCache(
+            CacheConfig.DEFAULT.initSize( 64 ) );
     
     /** parameter for database type */
     public static final Param       DBTYPE = new Param( "dbtype", String.class, "Type", true, "recordstore" );
@@ -105,23 +101,20 @@ class RDataStoreFactory {
     
     protected RDataStore createDataStore( File dir ) 
     throws Exception {
-        RDataStore result = stores.get( dir );
-        if (result == null) {
-            LuceneRecordStore store = new LuceneRecordStore( dir, false );
+        return stores.get( dir, new CacheLoader<File,RDataStore,Exception>() {
+            public RDataStore load( File key ) throws Exception {
+                LuceneRecordStore store = new LuceneRecordStore( key, false );
 
-            Cache<Object,Document> documentCache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
-            store.setDocumentCache( documentCache );
-            log.info( "### CACHE ACTIVATED! ###" );
+//                Cache<Object,Document> documentCache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
+//                store.setDocumentCache( documentCache );
+                log.info( "### NO CACHE ACTIVATED! ###" );
 
-            result = new RDataStore( store, new LuceneQueryDialect() );    
-
-            RDataStore old = stores.put( dir, result );
-            if (old != null) {
-                result.dispose();
-                result = old;
+                return new RDataStore( store, new LuceneQueryDialect() );    
             }
-        }
-        return result;
+            public int size() throws Exception {
+                return -1;
+            }
+        });
     }
     
     

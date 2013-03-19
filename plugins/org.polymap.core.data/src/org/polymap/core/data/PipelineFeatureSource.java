@@ -106,7 +106,7 @@ public class PipelineFeatureSource
      */
     public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional )
     throws PipelineIncubationException, IOException {
-        // find service for layer
+        assert layer != null;
         log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
 
         IGeoResource res = layer.getGeoResource();

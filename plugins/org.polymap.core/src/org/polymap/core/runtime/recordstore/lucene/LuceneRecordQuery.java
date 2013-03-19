@@ -26,6 +26,7 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 
+import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.RecordQuery;
 import org.polymap.core.runtime.recordstore.ResultSet;
@@ -38,6 +39,7 @@ import org.polymap.core.runtime.recordstore.ResultSet;
 public class LuceneRecordQuery
         extends RecordQuery {
 
+    /** Max size of a {@link ResultSet}. */
     public static final int     BIG_BUT_NOT_MAX_VALUE = 1000000;
     
     private LuceneRecordStore   store;
@@ -61,8 +63,7 @@ public class LuceneRecordQuery
     
     public RecordQuery setMaxResults( int maxResults ) {
         // Lucene does not like Integer.MAX_VALUE here
-        return super.setMaxResults( 
-                maxResults == Integer.MAX_VALUE ? BIG_BUT_NOT_MAX_VALUE : maxResults );
+        return super.setMaxResults( Math.min( BIG_BUT_NOT_MAX_VALUE, maxResults ) );
     }
 
 
@@ -98,38 +99,50 @@ public class LuceneRecordQuery
     /**
      * 
      */
-    class LuceneResultSet
+    protected class LuceneResultSet
             implements ResultSet {
 
         protected ScoreDoc[]          scoreDocs;
 
         protected FieldSelector       idFieldSelector = new IdFieldSelector();
+        
+        protected FieldSelector       fieldSelector;
 
 
         protected LuceneResultSet( ScoreDoc[] scoreDocs ) {
             this.scoreDocs = scoreDocs;
+            
+            // build fieldSelector
+            final IRecordFieldSelector sel = getFieldSelector();
+            if (getFieldSelector() != null && sel != IRecordFieldSelector.ALL) {
+                fieldSelector = new FieldSelector() {
+                    public FieldSelectorResult accept( String fieldName ) {
+                        if (fieldName.equals( LuceneRecordState.ID_FIELD )) {
+                            return FieldSelectorResult.LOAD;
+                        }
+                        else if (sel.accept( fieldName )) { 
+                            return FieldSelectorResult.LOAD;
+                        }
+                        return FieldSelectorResult.NO_LOAD;
+                    }
+                };
+            }
         }
-
 
         public void close() {
             scoreDocs = null;
         }
 
-
         public int count() {
             return scoreDocs.length;
         }
 
-
         public LuceneRecordState get( int index )
         throws Exception {
             assert index < scoreDocs.length;
-
             int doc = scoreDocs[index].doc;
-            return store.get( doc );
+            return store.get( doc, fieldSelector );
         }
-
-
 
         public Iterator<IRecordState> iterator() {
             return new Iterator<IRecordState>() {
@@ -157,10 +170,10 @@ public class LuceneRecordQuery
     }
 
     
-    /*
+    /**
      * 
      */
-    class IdFieldSelector
+    protected class IdFieldSelector
             implements FieldSelector {
 
         public FieldSelectorResult accept( String fieldName ) {

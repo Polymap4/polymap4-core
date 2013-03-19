@@ -161,6 +161,7 @@ class RFeatureCollection
     public Iterator iterator() {
         try {
             final PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
+            
             // build features
             Iterator<Feature> result = new Iterator<Feature>() {
                 private Iterator<IRecordState>  delegate = results.iterator();

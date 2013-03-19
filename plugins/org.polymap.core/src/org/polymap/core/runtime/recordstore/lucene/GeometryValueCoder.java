@@ -109,10 +109,10 @@ public final class GeometryValueCoder
 
             // store bbox
             Envelope envelop = geom.getEnvelopeInternal();
-            numeric.encode( doc, key+FIELD_MAXX, envelop.getMaxX(), true );
-            numeric.encode( doc, key+FIELD_MAXY, envelop.getMaxY(), true ); 
-            numeric.encode( doc, key+FIELD_MINX, envelop.getMinX(), true ); 
-            numeric.encode( doc, key+FIELD_MINY, envelop.getMinY(), true );
+            numeric.encode( doc, key+FIELD_MAXX, envelop.getMaxX(), true, true );
+            numeric.encode( doc, key+FIELD_MAXY, envelop.getMaxY(), true, false ); 
+            numeric.encode( doc, key+FIELD_MINX, envelop.getMinX(), true, false ); 
+            numeric.encode( doc, key+FIELD_MINY, envelop.getMinY(), true, false );
             return true;
         }
         else {

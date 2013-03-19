@@ -21,6 +21,7 @@ import net.refractions.udig.ui.ErrorManager;
 import net.refractions.udig.ui.UDIGDisplaySafeLock;
 
 import org.geotools.data.DataAccess;
+import org.geotools.data.FeatureSource;
 import org.geotools.jdbc.JDBCDataStore;
 import org.opengis.feature.type.Name;
 
@@ -177,7 +178,7 @@ public class RServiceImpl
         finally {
             dsInstantiationLock.unlock();
         }
-        // FIXME: cast gioes wrong because of different catalog impl
+        // FIXME: cast goes wrong because of different catalog impl
 //        if (changed) {
 //            IResolveDelta delta = new ResolveDelta(this, IResolveDelta.Kind.CHANGED);
 //            ((CatalogImpl) CatalogPlugin.getDefault().getLocalCatalog())
@@ -208,7 +209,8 @@ public class RServiceImpl
         if (geores.service( monitor ) != this) {
             throw new IllegalStateException( "Geo resource is not RecordStore" );
         }
-        getDS().deleteSchema( geores, monitor );
+        FeatureSource fs = geores.resolve( FeatureSource.class, monitor );
+        getDS().deleteSchema( fs.getSchema(), monitor );
     }
 
 

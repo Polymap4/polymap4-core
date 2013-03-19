@@ -110,7 +110,7 @@ public interface IRecordStore {
         void discard();
         
         /**
-         * Same as {@link #apply(boolean)} <code>true</code>.
+         * Same as {@link #apply(boolean)} <code>false</code>.
          */
         void apply();
 
@@ -120,7 +120,7 @@ public interface IRecordStore {
          *  
          * @param optimizeIndex True specifies that the underlying index or database
          *        should be optimized for memory usage. This includes expunge deleted
-         *        data and/or re-organizing indices. This might be somewhat time
+         *        data and/or re-organizing indices. This might be somewhat/horrible time
          *        consuming.
          */
         void apply( boolean optimizeIndex );

@@ -46,10 +46,15 @@ public final class NumericValueCoder
 
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
+        return encode( doc, key, value, indexed, true );
+    }
+    
+    
+    public boolean encode( Document doc, String key, Object value, boolean indexed, boolean stored ) {
         if (value instanceof Number) {
             NumericField field = (NumericField)doc.getFieldable( key );
             if (field == null) {
-                field = new NumericField( key, Store.YES, indexed );
+                field = new NumericField( key, stored ? Store.YES : Store.NO, indexed );
                 doc.add( field );
             }
             if (value instanceof Integer) {

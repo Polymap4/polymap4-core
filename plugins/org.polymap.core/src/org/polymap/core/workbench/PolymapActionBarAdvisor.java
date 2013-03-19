@@ -4,7 +4,6 @@ import java.util.Dictionary;
 
 import java.net.URL;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.factory.GeoTools;
@@ -406,9 +405,9 @@ public class PolymapActionBarAdvisor
                     System.gc();
                     MessageDialog.openInformation( 
                             PolymapWorkbench.getShellToParentOn(), "Memory Information",
-                            "Free : " + FileUtils.byteCountToDisplaySize( rt.freeMemory() ) + " -- (" + FileUtils.byteCountToDisplaySize( free ) + ")\n" +
-                            "Alloc : " + FileUtils.byteCountToDisplaySize( rt.totalMemory() ) + " -- (" + FileUtils.byteCountToDisplaySize( total ) + ")\n" +
-                            "Total : " + FileUtils.byteCountToDisplaySize( rt.maxMemory() ) + " -- (" + FileUtils.byteCountToDisplaySize( max ) + ")\n"
+                            "Free : " + memFormat( rt.freeMemory() ) + " -- (" + memFormat( free ) + ")\n" +
+                            "Alloc : " + memFormat( rt.totalMemory() ) + " -- (" + memFormat( total ) + ")\n" +
+                            "Total : " + memFormat( rt.maxMemory() ) + " -- (" + memFormat( max ) + ")\n"
                             );
                    // PlatformUI.getWorkbench().close();
                 }
@@ -421,8 +420,11 @@ public class PolymapActionBarAdvisor
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     if (!display.isDisposed()) {
                         Runtime rt = Runtime.getRuntime();
-                        long used = rt.totalMemory() - rt.freeMemory();
-                        action.setText( FileUtils.byteCountToDisplaySize( used ) );
+                        String used = memFormat( rt.totalMemory() - rt.freeMemory() );
+                        String alloc = memFormat( rt.totalMemory() );
+                        String max = memFormat( rt.maxMemory() );
+                        action.setText( used );
+                        action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
                         schedule( 1000 );
                     }
                     else {
@@ -433,5 +435,10 @@ public class PolymapActionBarAdvisor
             job.setSystem( true );
             job.schedule( 1000 );
         }
+    }
+    
+    protected String memFormat( long value ) {
+        //FileUtils.byteCountToDisplaySize(
+        return (int)(value / 1000000) + "M";
     }
 }

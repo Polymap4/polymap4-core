@@ -75,6 +75,7 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.QueryExpression;
@@ -190,8 +191,25 @@ public final class LuceneQueryDialect
         try {
             Timer timer = new Timer();
             
+            // transform query
             final Transformer transformer = new Transformer();
             RecordQuery rsQuery = transformer.transform( fs, query );
+            
+            // field selector
+            final String[] propNames = query.getPropertyNames();
+            if (propNames != null) {
+                rsQuery.setFieldSelector( new IRecordFieldSelector() {
+                    public boolean accept( String key ) {
+                        for (String propName : propNames) {
+                            // XXX real field names and additional fields are not known here
+                            if (key.startsWith( propName )) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                });
+            }
             
             final ResultSet results = fs.ds.getStore().find( rsQuery );
             log.debug( "    non-processed results: " + results.count() + " ( " + timer.elapsedTime() + "ms)" );
