@@ -21,11 +21,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import java.io.IOException;
-
 import net.refractions.udig.catalog.IGeoResource;
+
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
@@ -55,8 +56,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.FeatureChangeEvent.Type;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
@@ -64,8 +65,8 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.entity.ConcurrentModificationException;
-import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityStateTracker.Updater;
 import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -112,7 +113,7 @@ public class LayerFeatureBufferManager
     static class Session
             extends SessionSingleton { 
         
-        protected WeakHashMap<ILayer,LayerFeatureBufferManager> managers = new WeakHashMap();
+        protected ConcurrentMap<String,LayerFeatureBufferManager> managers = new ConcurrentHashMap();
         
         public static Session instance() {
             return instance( Session.class );
@@ -133,15 +134,15 @@ public class LayerFeatureBufferManager
     public static LayerFeatureBufferManager forLayer( ILayer layer, boolean create ) {
         assert layer != null;
         
-        WeakHashMap<ILayer, LayerFeatureBufferManager> managers = Session.instance().managers;
-        synchronized (managers) {
-            LayerFeatureBufferManager result = managers.get( layer );
-            if (result == null && create) {
-                result = new LayerFeatureBufferManager( layer );
-                managers.put( layer, result );
-            }
-            return result;
+        ConcurrentMap<String,LayerFeatureBufferManager> managers = Session.instance().managers;
+        LayerFeatureBufferManager result = managers.get( layer );
+        if (result == null && create) {
+            result = new LayerFeatureBufferManager( layer );
+            LayerFeatureBufferManager prev = managers.putIfAbsent( layer.id(), result );
+            result = prev != null ? prev : result;
+            assert result.getLayer() == layer;
         }
+        return result;
     }
     
    
@@ -162,7 +163,6 @@ public class LayerFeatureBufferManager
     
 
     protected LayerFeatureBufferManager( ILayer layer ) {
-        super();
         this.layer = layer;
         this.layerTimestamp = System.currentTimeMillis();
         
