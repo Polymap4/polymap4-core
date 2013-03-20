@@ -14,6 +14,9 @@
  */
 package org.polymap.core.workbench;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -187,7 +190,8 @@ public class PolymapWorkbench
             sessionStore.getHttpSession().invalidate();
 //            ((SessionStoreImpl)sessionStore).valueUnbound( null );
 
-            for (Object name : EnumerationUtils.toList( sessionStore.getAttributeNames() )) {
+            List names = new ArrayList( EnumerationUtils.toList( sessionStore.getAttributeNames() ) );
+            for (Object name : names) {
                 sessionStore.removeAttribute( (String)name );
             }
 //            ContextProvider.releaseContextHolder();
