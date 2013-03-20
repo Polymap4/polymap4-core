@@ -81,18 +81,21 @@ public class WorkbenchState {
                         // listener
                         mapListener = new Object() {
                             @EventHandler(scope=Event.Scope.JVM)
-                            protected void handleEvent( PropertyChangeEvent ev ) {
-                                SessionContext session = EventManager.publishSession();
-                                if (!session.isDestroyed()) {
-                                    WorkbenchState state = WorkbenchState.instance( session );
-                                    state.handleEvent( ev );
-                                }
+                            protected void handleEvent( final PropertyChangeEvent ev ) {
+                                final SessionContext session = EventManager.publishSession();
+                                session.execute( new Runnable() {
+                                    public void run() {
+                                        WorkbenchState state = WorkbenchState.instance( session );
+                                        state.handleEvent( ev );
+                                    }                                    
+                                });
                             }                            
                         }, 
                         // filter
                         new EventFilter<PropertyChangeEvent>() {
                             public boolean apply( PropertyChangeEvent ev ) {
-                                return ev.getSource() instanceof IMap;
+                                SessionContext session = EventManager.publishSession();
+                                return session != null && !session.isDestroyed() && ev.getSource() instanceof IMap;
                             }
                         }
                 );
@@ -101,15 +104,21 @@ public class WorkbenchState {
                         // listener
                         featureListener = new Object() {
                             @EventHandler(scope=Event.Scope.JVM)
-                            protected void handleEvent( FeatureSelectionEvent ev ) {
-                                WorkbenchState state = WorkbenchState.instance( EventManager.publishSession() );
-                                state.handleEvent( ev );
+                            protected void handleEvent( final FeatureSelectionEvent ev ) {
+                                final SessionContext session = EventManager.publishSession();
+                                session.execute( new Runnable() {
+                                    public void run() {
+                                        WorkbenchState state = WorkbenchState.instance( session );
+                                        state.handleEvent( ev );
+                                    }
+                                });
                             }                            
                         }, 
                         // filter
                         new EventFilter<FeatureSelectionEvent>() {
                             public boolean apply( FeatureSelectionEvent ev ) {
-                                return true;
+                                SessionContext session = EventManager.publishSession();
+                                return session != null && !session.isDestroyed();
                             }
                         }
                 );

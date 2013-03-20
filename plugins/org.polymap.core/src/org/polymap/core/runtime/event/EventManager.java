@@ -71,9 +71,12 @@ public class EventManager {
     }
     
     /**
+     * The session this event was published from.
+     * <p/>
      * This method can be called from within an event handler or filter method to
      * retrieve the session the current event was published from.
      * 
+     * @result The session, or null if published outside session.
      * @throws AssertionError If the method was called from outside an event handler
      *         or filter method.
      */
@@ -229,10 +232,11 @@ public class EventManager {
      * strong reference to it. An anonymous inner class can not be used as event
      * listener.
      * <p/>
-     * The given handler is called with the current {@link SessionContext}. If the
-     * current method call is done outside a session, then the handler is called
-     * without a session. A handler can use {@link EventManager#threadPublishSession}
-     * to retrieve the session the event was fired from.
+     * The given handler and filters are called within the <b>
+     * {@link SessionContext#current() current session}</b>. If the current method
+     * call is done outside a session, then the handler is called with no session
+     * set. A handler can use {@link EventManager#publishSession()} to retrieve the
+     * session the event was published from.
      * 
      * @see EventHandler
      * @param annotated The {@link EventHandler annotated} event handler.

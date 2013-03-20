@@ -143,6 +143,7 @@ class DeferringListener
         
         DeferredEvent( Object source, List<EventObject> events ) {
             super( source );
+            assert events != null;
             this.events = new ArrayList( events );
         }
         

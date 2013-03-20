@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * <p>
  * <b>Parameters:</b>
  * <ul>
- * <li><b>scope</b> : (defaults to Event.Scope.Session)</li>
+ * <li><b>scope</b> : (defaults to {@link Event.Scope#Session})</li>
  * <li><b>display</b> : (default to false)</li>
  * <li><b>delay</b> : (default to 0)</li>
  * </ul>
