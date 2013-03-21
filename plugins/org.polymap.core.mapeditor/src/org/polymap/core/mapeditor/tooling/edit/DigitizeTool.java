@@ -138,6 +138,7 @@ public class DigitizeTool
         super.onDeactivate();
         if (control != null) {
             getSite().getEditor().removeControl( control );
+            control.deactivate();
             control.destroy();
             control.dispose();
             control = null;

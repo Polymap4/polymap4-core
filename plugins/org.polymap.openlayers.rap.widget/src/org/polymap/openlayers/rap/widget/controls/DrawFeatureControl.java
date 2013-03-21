@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,12 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
 package org.polymap.openlayers.rap.widget.controls;
 
@@ -27,7 +20,6 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
 public class DrawFeatureControl 
@@ -50,9 +42,53 @@ public class DrawFeatureControl
      *        <code>HANDLER_XXX</code> constants.
      */
 	public DrawFeatureControl(VectorLayer layer, String handler) {
-		super.create( "new OpenLayers.Control.DrawFeature("
-				+ layer.getJSObjRef() + ", "
-				+ handler + ");");
+		super.create( "new OpenLayers.Control.DrawFeature(" + layer.getJSObjRef() + ", " + handler + ");" );
+		
+        addObjModCode( "OpenLayers.Util.extend(" + getJSObjRef() + ", {"
+                + "activate: function() {"
+                + "    OpenLayers.Control.DrawFeature.prototype.activate.apply(this, arguments);"
+                + "    if (!this.keyboardHandler) {"
+                + "        this.keyboardCallbacks = { keydown: this.handleKeyDown };"
+                + "        this.keyboardHandler = new OpenLayers.Handler.Keyboard(this, this.keyboardCallbacks, {});"
+                + "    }"
+                + "    this.keyboardHandler.activate();"
+                + "},"
+                + "deactivate: function() {"
+                + "    OpenLayers.Control.DrawFeature.prototype.deactivate.apply(this, arguments);"
+                + "    this.keyboardHandler.deactivate();"
+                + "},"
+                + "destroy: function() {"
+                + "    OpenLayers.Control.ModifyFeature.prototype.destroy.apply(this, arguments);"
+                + "    if (this.keyboardHandler) {"
+                + "        this.keyboardHandler.destroy();"
+                + "    }"
+                + "},"
+                + "handleKeyDown: function (evt) {"
+                + "    var handled = false;"
+                + "    switch (evt.keyCode) {"
+                + "    case 90:"  // z
+//                + "        if (evt.metaKey || evt.ctrlKey) {"
+                + "            this.undo();"
+                + "            handled = true;"
+//                + "        }"
+                + "        break;"
+                + "    case 89:"  // y
+//                + "        if (evt.metaKey || evt.ctrlKey) {"
+                + "            this.redo();"
+                + "            handled = true;"
+//                + "        }"
+                + "        break;"
+                + "    case 27:"  // esc
+                + "        this.cancel();"
+                + "        handled = true;"
+                + "        break;"
+                + "    }"
+                + "    if (handled) {"
+                + "        OpenLayers.Event.stop(evt);"
+                + "    }"
+                + "}"
+                + "});"
+        );
 	}
 
 //    public void addMode( int mode ) {

@@ -50,9 +50,67 @@ public class ModifyFeatureControl
 
 
 	public ModifyFeatureControl(VectorLayer layer) {
-		super.create("new OpenLayers.Control.ModifyFeature( "
-				+ layer.getJSObjRef() + "   );");
-	}
+		super.create("new OpenLayers.Control.ModifyFeature(" + layer.getJSObjRef() + ");");
+		
+        addObjModCode( "OpenLayers.Util.extend(" + getJSObjRef() + ", {"
+                + "activate: function() {"
+                + "    OpenLayers.Control.ModifyFeature.prototype.activate.apply(this, arguments);"
+                + "    if (!this.keyboardHandler) {"
+                + "        this.keyboardCallbacks = { keydown: this.handleKeyDown };"
+                + "        this.keyboardHandler = new OpenLayers.Handler.Keyboard(this, this.keyboardCallbacks, {});"
+                + "    }"
+                + "    this.keyboardHandler.activate();"
+                + "},"
+                + "deactivate: function() {"
+                + "    OpenLayers.Control.ModifyFeature.prototype.deactivate.apply(this, arguments);"
+                + "    this.keyboardHandler.deactivate();"
+                + "},"
+                + "destroy: function() {"
+                + "    OpenLayers.Control.ModifyFeature.prototype.destroy.apply(this, arguments);"
+                + "    if (this.keyboardHandler) {"
+                + "        this.keyboardHandler.destroy();"
+                + "    }"
+                + "},"
+                + "onModificationStart: function(feature) {"
+//                + "    OpenLayers.Control.ModifyFeature.prototype.selectFeature.apply(this, arguments);"
+                + "    this.origGeom = feature.geometry.clone();"
+//                + "    alert( 'feature: ' + this.origGeom );"
+                + "},"
+                + "handleKeyDown: function (evt) {"
+                + "    var handled = false;"
+                + "    switch (evt.keyCode) {"
+//                + "    case 90:"  // z
+////                + "        if (evt.metaKey || evt.ctrlKey) {"
+//                + "            this.undo();"
+//                + "            handled = true;"
+////                + "        }"
+//                + "        break;"
+//                + "    case 89:"  // y
+////                + "        if (evt.metaKey || evt.ctrlKey) {"
+//                + "            this.redo();"
+//                + "            handled = true;"
+////                + "        }"
+//                + "        break;"
+                + "    case 27:"  // esc
+////                + "        alert( 'feature: ' + this.origGeom );"
+//                + "        this.feature.geometry = this.origGeom; this.layer.redraw();"
+////                + "        this.activate();"
+////                + "        this.modified = false;"
+////                + "        this.resetVertices();"
+////                + "        this.unselectFeature( this.feature );"
+////                + "        this.onModification( this.feature );"
+////                + "        this.layer.events.triggerEvent( 'featuremodified', {feature: this.feature} );"
+//                + "        this.layer.drawFeature( this.feature, this.standalone ? undefined : 'select' );"
+//                + "        handled = true;"
+                + "        break;"
+                + "    }"
+                + "    if (handled) {"
+                + "        OpenLayers.Event.stop(evt);"
+                + "    }"
+                + "}"
+                + "});"
+        );
+    }
 
 	public void setDeleteKeyCodes(int[] codes) {
         String code = "obj.deleteCodes = [";

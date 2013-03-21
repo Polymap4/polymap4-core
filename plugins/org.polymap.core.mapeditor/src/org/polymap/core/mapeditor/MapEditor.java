@@ -155,7 +155,7 @@ public class MapEditor
 
     protected void createWidget() {
         // the widget (use internally provided OpenLayers lib)
-        olwidget = new OpenLayersWidget( composite, SWT.MULTI | SWT.WRAP, "openlayers/full/OpenLayers.js" );
+        olwidget = new OpenLayersWidget( composite, SWT.MULTI | SWT.WRAP, "openlayers/full/OpenLayers-2.12.js" );
         olwidget.setLayoutData( new GridData( GridData.FILL_BOTH ) );
 
         // projection

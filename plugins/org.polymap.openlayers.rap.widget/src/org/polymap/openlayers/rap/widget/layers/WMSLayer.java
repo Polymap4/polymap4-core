@@ -33,7 +33,7 @@ public class WMSLayer extends GridLayer {
 	public WMSLayer(String name, String wms_url, String wms_layers) {
 		super.setName(name);
 		super.create("new OpenLayers.Layer.WMS( '" + name + "','" + wms_url
-				+ "',{layers:'" + wms_layers + "'});");
+				+ "',{layers:'" + wms_layers + "'},{removeBackBufferDelay:0});");
 	}
 
     public WMSLayer(String name, String wms_url, String wms_layers, int buffer) {

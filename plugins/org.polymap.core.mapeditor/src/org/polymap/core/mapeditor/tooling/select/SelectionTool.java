@@ -149,12 +149,14 @@ public class SelectionTool
         super.onDeactivate();
         if (selectControl != null) {
             getSite().getEditor().removeControl( selectControl );
+            selectControl.deactivate();
             selectControl.destroy();
             selectControl.dispose();
             selectControl = null;
         }
         if (boxControl != null) {
             getSite().getEditor().removeControl( boxControl );
+            boxControl.deactivate();
             boxControl.destroy();
             boxControl.dispose();
             boxControl = null;
