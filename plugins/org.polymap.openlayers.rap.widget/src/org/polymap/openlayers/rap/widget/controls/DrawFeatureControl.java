@@ -19,7 +19,7 @@ import org.polymap.openlayers.rap.widget.layers.VectorLayer;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class DrawFeatureControl 
