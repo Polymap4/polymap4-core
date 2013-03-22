@@ -44,7 +44,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-2.6.4.jar" sourcepath="lib/sources/gt-metadata-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-process-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-property-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-2.6.4.jar" sourcepath="lib/sources/gt-referencing-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-2.6.4.jar" sourcepath="lib/sources/gt-render-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-svg-2.6.4.jar"/>

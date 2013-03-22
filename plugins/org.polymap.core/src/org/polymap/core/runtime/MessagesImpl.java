@@ -117,8 +117,8 @@ public class MessagesImpl
                 return bundle.getString( prefix + key );
             }
             else {
-                String msg = bundle.getString( key );
-                return MessageFormat.format( prefix + msg, args );
+                String msg = bundle.getString( prefix + key );
+                return MessageFormat.format( msg, args );
             }
         }
         catch (Exception e) {

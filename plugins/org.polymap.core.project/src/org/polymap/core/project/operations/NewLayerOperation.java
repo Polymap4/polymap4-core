@@ -160,10 +160,15 @@ public class NewLayerOperation
 
             // transformed layerBBox
             ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );
-            if (layerBBox != null && !layerBBox.isNull()) {
+            if (layerBBox != null && !layerBBox.isNull() && layerBBox.getMaxX() < Double.POSITIVE_INFINITY) {
                 monitor.subTask( Messages.get( "NewLayerOperation_transforming" ) );
                 if (!layerBBox.getCoordinateReferenceSystem().equals( map.getCRS() )) {
-                    layerBBox = layerBBox.transform( map.getCRS(), true );
+                    try {
+                        layerBBox = layerBBox.transform( map.getCRS(), true );
+                    }
+                    catch (Throwable e) {
+                        log.warn( "", e );
+                    }
                 }
                 log.debug( "transformed: " + layerBBox );
                 monitor.worked( 1 );
@@ -172,7 +177,7 @@ public class NewLayerOperation
             // no max extent -> set 
             monitor.subTask( Messages.get( "NewLayerOperation_checkingMaxExtent" ) );
             if (map.getMaxExtent() == null) {
-                if (layerBBox != null && !layerBBox.isNull()) {
+                if (layerBBox != null && !layerBBox.isNull() && !layerBBox.isEmpty()) {
                     log.info( "### Map: maxExtent= " + layerBBox );
                     map.setMaxExtent( layerBBox );
                     // XXX set map status
@@ -193,7 +198,8 @@ public class NewLayerOperation
             // check if max extent contains layer
             else {
                 try {
-                    if (!map.getMaxExtent().contains( (BoundingBox)layerBBox )) {
+                    if (!layerBBox.isNull() && layerBBox.getMaxX() < Double.POSITIVE_INFINITY
+                            && !map.getMaxExtent().contains( (BoundingBox)layerBBox )) {
                         ReferencedEnvelope bbox = new ReferencedEnvelope( layerBBox );
                         bbox.expandToInclude( map.getMaxExtent() );
                         final ReferencedEnvelope newMaxExtent = bbox;

@@ -232,7 +232,7 @@ public class CopyFeaturesOperation2
                     sourceSchema.getCoordinateReferenceSystem() )) {
                 setMessage( i18n.get( "FeatureEditorPage_errorCrs",
                         CRS.toSRS( schema.getCoordinateReferenceSystem() ),
-                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ), DialogPage.WARNING );
+                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ), DialogPage.INFORMATION );
             }
 
             // geometry attribute
@@ -302,11 +302,11 @@ public class CopyFeaturesOperation2
             final SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)processor.getFeatureType() );
             
             return new RetypingFeatureCollection( src, null ) {
-
+                @Override
                 public FeatureType getSchema() {
                     return processor.getFeatureType();
                 }
-
+                @Override
                 protected Feature retype( Feature feature ) {
                     try {
                         // make new FID to avoid problem when copying features of the same layer

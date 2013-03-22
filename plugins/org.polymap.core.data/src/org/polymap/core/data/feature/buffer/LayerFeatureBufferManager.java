@@ -135,7 +135,7 @@ public class LayerFeatureBufferManager
         assert layer != null;
         
         ConcurrentMap<String,LayerFeatureBufferManager> managers = Session.instance().managers;
-        LayerFeatureBufferManager result = managers.get( layer );
+        LayerFeatureBufferManager result = managers.get( layer.id() );
         if (result == null && create) {
             result = new LayerFeatureBufferManager( layer );
             LayerFeatureBufferManager prev = managers.putIfAbsent( layer.id(), result );

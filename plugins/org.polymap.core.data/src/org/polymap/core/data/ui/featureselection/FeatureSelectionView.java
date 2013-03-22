@@ -356,7 +356,7 @@ public class FeatureSelectionView
         // check fs -> error message
         if (fs == null) {
             Label msg = new Label( parent, SWT.NONE );
-            msg.setText( "No feature pipeline for layer: " + layer != null ? layer.getLabel() : "???" );
+            msg.setText( "No feature pipeline for layer: " + (layer != null ? layer.getLabel() : "???") );
             return;
         }
 

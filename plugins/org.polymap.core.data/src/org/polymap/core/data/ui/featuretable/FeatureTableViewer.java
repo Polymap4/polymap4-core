@@ -244,7 +244,6 @@ public class FeatureTableViewer
 
         Display display = getTable().getDisplay();
         display.asyncExec( new Runnable() {
-        
             public void run() {
                 if (getTable().isDisposed()) {
                     return;
