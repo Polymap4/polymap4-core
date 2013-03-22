@@ -73,6 +73,7 @@ public class FeatureSelectionViewMenuContribution
         final ToolItem item = new ToolItem( parent, SWT.DROP_DOWN, index );
         Image icon = DataPlugin.getDefault().imageForName( "icons/etool16/feature_ops.gif" );
         item.setImage( icon );
+        item.setToolTipText( Messages.get( "FeatureOperationMenu_title" ) );
         
         item.addSelectionListener( new SelectionListener() {
 
@@ -81,7 +82,12 @@ public class FeatureSelectionViewMenuContribution
             }
 
             public void widgetDefaultSelected( final SelectionEvent e ) {
-                if (e.detail == SWT.ARROW) {
+                if (e.detail != SWT.ARROW) {
+                    MessageDialog.openInformation( PolymapWorkbench.getShellToParentOn(),
+                            Messages.get( "FeatureOperationMenu_dialogTitle" ), 
+                            Messages.get( "FeatureOperationMenu_dialogMsg" ) );
+                }
+                else {
                     Menu menu = new Menu( parent );
                     menu.setLocation( parent.toDisplay( e.x, e.y ) );
 

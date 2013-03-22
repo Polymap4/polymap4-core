@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.IAdaptable;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class FeatureOperationFactory {
+public class FeatureOperationFactory {
 
     private static Log log = LogFactory.getLog( FeatureOperationFactory.class );
 

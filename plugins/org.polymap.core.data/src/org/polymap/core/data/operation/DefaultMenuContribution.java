@@ -21,6 +21,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -46,7 +47,7 @@ import org.polymap.core.data.operation.FeatureOperationFactory.IContextProvider;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-abstract class DefaultMenuContribution
+public abstract class DefaultMenuContribution
         extends CompoundContributionItem
         implements IExecutableExtension, IContextProvider {
 
@@ -62,7 +63,7 @@ abstract class DefaultMenuContribution
         super( id );
     }
 
-
+    @Override
     public void fill( Menu menu, int index ) {
         super.fill( menu, index );
         
@@ -74,9 +75,16 @@ abstract class DefaultMenuContribution
         }
     }
 
+    @Override
+    public void fill( ToolBar toolbar, int index ) {
+        super.fill( toolbar, index );
 
-    public void fill( ToolBar parent, int index ) {
-        super.fill( parent, index );
+        for (ToolItem item : toolbar.getItems()) {
+            if (item.getParent() != null
+                    && item.getText().equals( Messages.get( "FeatureOperationMenu_title" ) )) {
+                item.setImage( icon );
+            }
+        }
     }
 
 
@@ -91,6 +99,7 @@ abstract class DefaultMenuContribution
         return null;
     }
 
+    @Override
     protected IContributionItem[] getContributionItems() {
         DefaultOperationContext context = newContext();
 
@@ -111,7 +120,7 @@ abstract class DefaultMenuContribution
         return new IContributionItem[] { subMenu };
     }
 
-    
+    @Override
     public void setInitializationData( 
             IConfigurationElement config, String propertyName, Object data ) 
             throws CoreException {
