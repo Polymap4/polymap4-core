@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.operations.feature;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.geotools.data.store.ReprojectingFeatureCollection;
@@ -26,6 +27,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -94,7 +96,27 @@ public class CopyFeaturesOperation2
 
     private ILayer                      dest;
 
+    private FeatureCollection           features;
 
+    private PipelineFeatureSource destFs;
+
+    private List<FeatureId> createdFeatureIds;
+
+
+    /** The copied features. */    
+    public FeatureCollection getFeatures() {
+        return features;
+    }
+    
+    public PipelineFeatureSource getDestFs() {
+        return destFs;
+    }
+    
+    public List<FeatureId> getCreatedFeatureIds() {
+        return createdFeatureIds;
+    }
+
+    
     public Status execute( IProgressMonitor monitor )
     throws Exception {
         monitor.beginTask( context.adapt( FeatureOperationExtension.class ).getLabel(), 10 );
@@ -141,8 +163,8 @@ public class CopyFeaturesOperation2
             final IProgressMonitor copyMonitor = new SubProgressMonitor( monitor, 8,
                     SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK );
 
-            final PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
-            FeatureCollection features = context.features();
+            destFs = PipelineFeatureSource.forLayer( dest, true );
+            features = context.features();
             int featuresSize = features.size();
 
             copyMonitor.beginTask( i18n.get( "taskTitle", featuresSize ), featuresSize );
@@ -161,7 +183,7 @@ public class CopyFeaturesOperation2
             // tranform schema
             features = featureEditorPage.retyped( features );            
             
-            destFs.addFeatures( features, new ProgressListenerAdaptor( copyMonitor ) );
+            createdFeatureIds = destFs.addFeatures( features, new ProgressListenerAdaptor( copyMonitor ) );
 
             monitor.done();
             return Status.OK;

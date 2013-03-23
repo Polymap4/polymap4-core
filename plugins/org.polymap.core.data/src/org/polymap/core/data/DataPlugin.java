@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data;
 
@@ -30,8 +22,10 @@ import org.polymap.core.geohub.FeatureCollectionFactory;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
 import org.osgi.framework.BundleContext;
 
 import org.eclipse.swt.graphics.Image;
@@ -42,29 +36,24 @@ import org.eclipse.jface.resource.ImageRegistry;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class DataPlugin
         extends AbstractUIPlugin {
 
-    // The plug-in ID
     public static final String PLUGIN_ID = "org.polymap.core.data";
 
-    // The shared instance
+    /**
+     * Central filter factory that can and should be used by all
+     * code code depending on the data plugin.
+     */
+    public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
+    
     private static DataPlugin  plugin;
 
 
-    /**
-     * The constructor
-     */
-    public DataPlugin() {
-    }
-
-
-    public void start( BundleContext context )
-            throws Exception {
+    public void start( BundleContext context ) throws Exception {
         super.start( context );
         plugin = this;
         
@@ -83,8 +72,7 @@ public class DataPlugin
     }
 
 
-    public void stop( BundleContext context )
-            throws Exception {
+    public void stop( BundleContext context ) throws Exception {
         plugin = null;
         super.stop( context );
     }

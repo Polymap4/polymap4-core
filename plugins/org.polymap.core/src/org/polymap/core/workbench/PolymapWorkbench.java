@@ -133,7 +133,13 @@ public class PolymapWorkbench
     }
 
     
+    @Override
     public int createUI() {
+        return createUI( new PolymapWorkbenchAdvisor() );
+    }
+    
+    
+    protected int createUI( WorkbenchAdvisor advisor ) {
         ScopedPreferenceStore prefStore = (ScopedPreferenceStore)PrefUtil.getAPIPreferenceStore();
         String keyPresentationId = IWorkbenchPreferenceConstants.PRESENTATION_FACTORY_ID;
         String presentationId = prefStore.getString( keyPresentationId );
@@ -144,8 +150,7 @@ public class PolymapWorkbench
         // start workbench
         Display display = PlatformUI.createDisplay();
         try {
-            WorkbenchAdvisor worbenchAdvisor = new PolymapWorkbenchAdvisor();
-            int result = PlatformUI.createAndRunWorkbench( display, worbenchAdvisor );
+            int result = PlatformUI.createAndRunWorkbench( display, advisor );
             
             new Terminator().schedule( 1000 );
             return result;

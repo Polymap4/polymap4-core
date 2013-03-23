@@ -42,8 +42,10 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
 
@@ -56,18 +58,20 @@ public abstract class ContextMenuSite {
 
     private static Log log = LogFactory.getLog( ContextMenuSite.class );
 
-    public static final FilterFactory2      ff = CommonFactoryFinder.getFilterFactory2( null );
+    public static final IMessages       i18n = Messages.forPrefix( "ContextMenu" );
+    
+    public static final FilterFactory2  ff = CommonFactoryFinder.getFilterFactory2( null );
     
     /** Maps layer id into already computed covered features for this layer. */
-    private Map<String,List<Feature>>       coveredFeatures = new HashMap();
+    private Map<String,List<Feature>>   coveredFeatures = new HashMap();
     
-    private ReferencedEnvelope              mapExtent = getMap().getExtent();
+    private ReferencedEnvelope          mapExtent = getMap().getExtent();
     
-    private Point                           mapSize = getMapEditor().getWidget().getSize();
+    private Point                       mapSize = getMapEditor().getWidget().getSize();
     
-    private Point                           mousePos = Polymap.getSessionDisplay().getCursorLocation();
+    private Point                       mousePos = Polymap.getSessionDisplay().getCursorLocation();
     
-    private Point                           widgetMousePos = Polymap.getSessionDisplay().getCursorControl().toControl( mousePos );
+    private Point                       widgetMousePos = Polymap.getSessionDisplay().getCursorControl().toControl( mousePos );
     
     
     public abstract MapEditor getMapEditor();
@@ -87,7 +91,7 @@ public abstract class ContextMenuSite {
     public List<Feature> coveredFeatures( final ILayer layer ) {
         List<Feature> features = coveredFeatures.get( layer.id() );
         if (features == null) {
-            UIJob job = new UIJob( "Filtering covered features" ) {
+            UIJob job = new UIJob( i18n.get( "coverJob_title" ) ) {
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     try {
                         ReferencedEnvelope bbox = boundingBox();
@@ -118,7 +122,7 @@ public abstract class ContextMenuSite {
                     }
                 }
             };
-            job.setUser( true );
+            //job.setUser( true );
             //job.setShowProgressDialog( "Filtering covered features...", false );
             
             final AtomicBoolean done = new AtomicBoolean();

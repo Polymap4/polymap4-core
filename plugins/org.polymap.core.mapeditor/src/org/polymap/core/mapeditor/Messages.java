@@ -16,6 +16,7 @@ package org.polymap.core.mapeditor;
 
 import org.eclipse.rwt.RWT;
 
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.MessagesImpl;
 
 /**
@@ -33,6 +34,10 @@ public class Messages {
     
     private Messages() {
         // prevent instantiation
+    }
+
+    public static IMessages forPrefix( String prefix ) {
+        return instance.forPrefix( prefix );
     }
 
     public static String get( String key, Object... args ) {

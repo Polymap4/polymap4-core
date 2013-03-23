@@ -138,7 +138,11 @@ public class MessagesImpl
     
     @Override
     public IMessages forClass( final Class type ) {
-        return new MessagesImpl( bundleName, cl, type.getSimpleName() );
+        return forPrefix( type.getSimpleName() );
+    }
+
+    public IMessages forPrefix( String _prefix ) {
+        return new MessagesImpl( bundleName, cl, _prefix );
     }
     
 }

@@ -41,6 +41,7 @@ import org.eclipse.ui.PlatformUI;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.Labeled;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ui.EntityContentProvider;
 import org.polymap.core.project.ui.LabeledLabelProvider;
@@ -138,16 +139,11 @@ public class ProjectTreeViewer
 
         @Override
         public int compare( Viewer viewer, Object elm1, Object elm2 ) {
-            ILabelProvider prov = (ILabelProvider)((ProjectTreeViewer)viewer).getLabelProvider();
-            String name1 = prov.getText( elm1 );
-            String name2 = prov.getText( elm2 );
-            if (name1 == null) {
-                name1 = "";
+            if (elm1 instanceof Labeled
+                    && elm2 instanceof Labeled) {
+                return ((Labeled)elm1).getLabel().compareToIgnoreCase( ((Labeled)elm2).getLabel() );
             }
-            if (name2 == null) {
-                name2 = "";
-            }
-            return name1.compareToIgnoreCase( name2 ); 
+            return 0;
         }
 
         public int category( Object elm ) {

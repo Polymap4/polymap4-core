@@ -106,7 +106,7 @@ public class PipelineFeatureSource
      */
     public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional )
     throws PipelineIncubationException, IOException {
-        assert layer != null;
+        assert layer != null : "layer == null is not allowed";
         log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
 
         IGeoResource res = layer.getGeoResource();
