@@ -43,6 +43,7 @@ import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 
 import net.refractions.udig.catalog.IService;
+import net.refractions.udig.catalog.ITransientResolve;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -110,6 +111,10 @@ public class FeatureRenderProcessor2
         }
         // FIXME hack to get biotop working
         else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
+            return true;
+        }
+        // FIXME recognize EntityServiceImpl
+        else if (service.canResolve( ITransientResolve.class ) ) {
             return true;
         }
         return false;
