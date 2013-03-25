@@ -59,6 +59,13 @@ public interface IEditorToolSite {
 //    
 //    public boolean setEnabled( boolean enabled );
 
+    /**
+     * Applies the given predicate to all tools and returns a filtered set of tools.
+     * 
+     * @see EditorTools
+     * @param filters
+     * @return A filtered set of tools.
+     */
     public Iterable<IEditorTool> filterTools( Predicate<IEditorTool>... filters );
 
     /**

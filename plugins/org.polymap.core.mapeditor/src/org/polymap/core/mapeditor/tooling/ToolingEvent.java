@@ -26,7 +26,9 @@ public class ToolingEvent
 
     public enum EventType {
         TOOL_ACTIVATED,
-        TOOL_DEACTIVATED
+        TOOL_DEACTIVATED, 
+        TOOL_ACTIVATING, 
+        TOOL_DEACTIVATING
     }
     
     private EventType           type;

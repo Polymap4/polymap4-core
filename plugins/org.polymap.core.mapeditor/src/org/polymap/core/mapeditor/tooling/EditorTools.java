@@ -19,12 +19,24 @@ import com.google.common.base.Predicate;
 import org.eclipse.core.runtime.IPath;
 
 /**
- * Static methods that provides {@link Predicate} that filter EditorTools
- * via the {@link IEditorToolSite#filterTools(Predicate)} method.
+ * Static methods that provide {@link Predicate}s for
+ * {@link IEditorToolSite#filterTools(Predicate) filtering} editor tools.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class EditorTools {
+
+    /**
+     * The returned {@link Predicate} checks if the given {@link IPath}
+     * is equal to the toolPath of the checked {@link IEditorTool}.
+     */
+    public static Predicate<IEditorTool> isActive() {
+        return new Predicate<IEditorTool>() {
+            public boolean apply( IEditorTool input ) {
+                return input.isActive();
+            }
+        };
+    }
 
     /**
      * The returned {@link Predicate} checks if the given {@link IPath}

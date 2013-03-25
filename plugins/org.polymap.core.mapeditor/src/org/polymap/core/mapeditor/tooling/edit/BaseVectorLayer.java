@@ -133,24 +133,34 @@ public abstract class BaseVectorLayer
         };
         styleMap = styler.createStyleMap();
         
-        vectorLayer = new JsonVectorLayer( "selection", jsonServer, jsonEncoder, styleMap );
+        vectorLayer = new JsonVectorLayer( "JsonVectorLayer", jsonServer, jsonEncoder, styleMap );
         vectorLayer.setVisibility( true );
         vectorLayer.setIsBaseLayer( false );
         vectorLayer.setZIndex( 10000 );
 
         this.mapEditor.addLayer( vectorLayer );
-        
-        // hover control
-        hoverControl = new SelectFeatureControl( vectorLayer, SelectFeatureControl.FLAG_HOVER );
-        hoverControl.setHighlightOnly( true );
-        hoverControl.setRenderIntent( "temporary" );
-        mapEditor.addControl( hoverControl );
-        
+                
         // XXX try to chnage select tolerance
         vectorLayer.addObjModCode( "OpenLayers.Handler.Feature.prototype.clickTolerance = 10;" );
     }
 
     
+    public void enableHover() {
+        assert hoverControl == null;
+        hoverControl = new SelectFeatureControl( vectorLayer, SelectFeatureControl.FLAG_HOVER );
+        hoverControl.setHighlightOnly( true );
+        hoverControl.setRenderIntent( "temporary" );
+        mapEditor.addControl( hoverControl );
+    }
+    
+    
+    public void refresh() {
+        if (vectorLayer != null) {
+            vectorLayer.refresh();
+        }
+    }
+
+
     public void dispose() {
         if (fsm != null) {
             fsm.removeSelectionChangeListener( this );
@@ -195,7 +205,9 @@ public abstract class BaseVectorLayer
         }
         this.active = true;
         assert vectorLayer != null : "no vectorLayer";
-        hoverControl.activate();
+        if (hoverControl != null) {
+            hoverControl.activate();
+        }
         
         //selectFeatures( fsm.getFeatureCollection() );
     }
@@ -237,7 +249,9 @@ public abstract class BaseVectorLayer
     }
 
 
-    public void selectFeatures( FeatureCollection _features ) { 
+    public void selectFeatures( FeatureCollection _features ) {
+        List<Feature> previous = new ArrayList( features );
+        
         // copy features
         features.clear();
         final AtomicBoolean exceeded = new AtomicBoolean();
@@ -258,6 +272,7 @@ public abstract class BaseVectorLayer
         
         // still initializing?
         if (vectorLayer != null) {
+            // avoid subsequent refresh after several calls of this method
             vectorLayer.getJsonEncoder().setFeatures( features );
             vectorLayer.refresh();
         }

@@ -334,12 +334,30 @@ public class LayerFeatureBufferManager
     }
 
     
+    @Override
     public void revert( OperationSupport os, IProgressMonitor monitor ) {
-        try {
-            monitor.beginTask( layer.getLabel() , buffer.size() );
+        revert( Filter.INCLUDE, monitor );
+    }
 
-            buffer.clear();
-            fireFeatureChangeEvent( FeatureChangeEvent.Type.FLUSHED, null );
+
+    /**
+     *
+     * @param filter Specifies what features to revert. null for all features.
+     * @param monitor
+     */
+    public void revert( Filter filter, IProgressMonitor monitor ) {
+        assert filter != null;
+        try {
+            monitor.beginTask( layer.getLabel(), buffer.size() );
+
+            List<Feature> reverted = new ArrayList( buffer.size() );
+            for (FeatureBufferState buffered : buffer.content()) {
+                if (filter.evaluate( buffered.original() )) {
+                    buffer.unregisterFeatures( Collections.singletonList( buffered.feature() ) );
+                    reverted.add( buffered.feature() );
+                }
+            }
+            fireFeatureChangeEvent( FeatureChangeEvent.Type.FLUSHED, reverted );
             
             monitor.done();
         }

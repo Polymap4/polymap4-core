@@ -213,6 +213,8 @@ public abstract class BaseLayerEditorTool
      */
     @Override
     public void onActivate() {
+        super.onActivate();
+        
         // find best initial layer (if not called from changeLayer())
         if (selectedLayer == null) {
             List<ILayer> selectableLayers = selectableLayers();
@@ -242,6 +244,8 @@ public abstract class BaseLayerEditorTool
      */
     @Override
     public void onDeactivate() {
+        super.onDeactivate();
+        
         if (mapListener != null) {
             EventManager.instance().unsubscribe( mapListener );
             mapListener = null;

@@ -80,7 +80,7 @@ public class VectorLayerStyler {
      * Constructs a new instance with default style.
      */
     public VectorLayerStyler() {
-        standard.put( "strokeWidth", 2 );
+        standard.put( "strokeWidth", 1.6f );
         standard.put( "strokeColor", COLOR_STANDARD );
         standard.put( "strokeDashstyle", "solid" );
         standard.put( "strokeOpacity", 1 );
@@ -124,15 +124,15 @@ public class VectorLayerStyler {
         
         hover.put( "strokeColor", new RGB( c.getRed(), c.getGreen(), c.getBlue() ) );
         hover.put( "strokeDashstyle", "solid" );
-        int strokeWidth = (Integer)hover.get( "strokeWidth" );
-        hover.put( "strokeWidth", Math.max( strokeWidth, 1 ) );
+        Number strokeWidth = (Number)hover.get( "strokeWidth" );
+        hover.put( "strokeWidth", strokeWidth );
     
         select = Maps.newHashMap( standard );
         c = new Color( rgb.red, rgb.green, rgb.blue ).darker().darker();
         select.put( "strokeColor", new RGB( c.getRed(), c.getGreen(), c.getBlue() ) );
         select.put( "strokeDashstyle", "solid" );
-        strokeWidth = (Integer)select.get( "strokeWidth" );
-        select.put( "strokeWidth", Math.max( strokeWidth, 1 ) );
+        strokeWidth = (Number)select.get( "strokeWidth" );
+        select.put( "strokeWidth", strokeWidth );
     }
 
     
@@ -207,12 +207,13 @@ public class VectorLayerStyler {
 
         // lineWidth
         lineWidth = tool.getSite().getToolkit().createSpinner( parent );
-        lineWidth.setMaximum( 10 );
-        lineWidth.setMinimum( 1 );
+        lineWidth.setMaximum( 100 );
+        lineWidth.setMinimum( 10 );
+        lineWidth.setDigits( 1 );
         tool.layoutControl( i18n( "lineWidthLabel" ), lineWidth );
         lineWidth.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent event ) {
-                standard.put( "strokeWidth", lineWidth.getSelection() );
+                standard.put( "strokeWidth", ((float)lineWidth.getSelection()) / 10 );
                 calculateHoverSelectStyle();
                 styleChanged( createStyleMap() );
             }
@@ -239,7 +240,7 @@ public class VectorLayerStyler {
     protected void updatePanelControl() {
         if (lineColor != null) {
             lineColor.setColorValue( (RGB)standard.get( "strokeColor" ) );
-            lineWidth.setSelection( (Integer)standard.get( "strokeWidth" ) );
+            lineWidth.setSelection( (int)(((Number)standard.get( "strokeWidth" )).floatValue() * 10) );
         }
         if (dashList != null) {
             String dashstyle = (String)standard.get( "strokeDashstyle" );

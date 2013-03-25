@@ -25,13 +25,13 @@ import org.polymap.core.project.ILayer;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class EditVectorLayer
+public class SnapVectorLayer
         extends BaseVectorLayer {
 
-    private static Log log = LogFactory.getLog( EditVectorLayer.class );
+    private static Log log = LogFactory.getLog( SnapVectorLayer.class );
 
     
-    public EditVectorLayer( MapEditor mapEditor, ILayer layer ) {
+    public SnapVectorLayer( MapEditor mapEditor, ILayer layer ) {
         super( mapEditor, layer );
     }
 

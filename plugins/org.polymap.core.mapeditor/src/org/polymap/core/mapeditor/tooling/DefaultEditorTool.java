@@ -14,6 +14,9 @@
  */
 package org.polymap.core.mapeditor.tooling;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
@@ -25,16 +28,23 @@ import org.eclipse.swt.widgets.Label;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
+
 /**
  * Default implementation of the {@link IEditorTool} to be used for extensions of
  * extension point {@link EditorToolExtension#POINT_ID}. Extension property members
  * are directly set by {@link EditorToolExtension}. Provides handling of the
  * {@link IEditorToolSite} and tools to layout the panel control.
+ * <p/>
+ * Maintains its {@link #isActive()} state. This default implementation disables
+ * if any other tool becomes active.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class DefaultEditorTool
-        implements IEditorTool {
+        implements IEditorTool, ToolingListener {
+
+    private static Log log = LogFactory.getLog( DefaultEditorTool.class );
 
     /** Initialized by {@link EditorToolExtension}. */
     Image                       icon;
@@ -51,10 +61,15 @@ public abstract class DefaultEditorTool
 
     private Label               lastLabel;
     
+    private boolean             active;
     
     @Override
     public boolean init( @SuppressWarnings("hiding") IEditorToolSite site ) {
         this.site = site;
+        
+        // listen to other tools
+        getSite().addListener( this );
+        
         return true;
     }
 
@@ -62,6 +77,45 @@ public abstract class DefaultEditorTool
         return site;
     }
     
+    @Override
+    public boolean isActive() {
+        return active;    
+    }
+    
+    /**
+     * Sub-classes should call this method if overriden.
+     */
+    @Override
+    public void onActivate() {
+        log.trace( getClass().getSimpleName() + ".onActivate()" );
+        assert !active;
+        active = true;
+    }
+
+    /**
+     * Sub-classes should call this method if overriden.
+     */
+    @Override
+    public void onDeactivate() {
+        log.trace( getClass().getSimpleName() + ".onDeactivate()" );
+        assert active;
+        active = false;
+    }
+
+    /**
+     * Sub-classes should call this method if overriden.
+     */
+    @Override
+    public void toolingChanged( ToolingEvent ev ) {
+        // deactivate if any other on same level becomes active
+        if (ev.getType() == EventType.TOOL_ACTIVATING
+                && isActive()
+                && !this.equals( ev.getSource() )
+                && toolPath.removeLastSegments( 1 ).equals( ev.getSource().getToolPath().removeLastSegments( 1 ) )) {
+            getSite().triggerTool( getSite().getToolPath(), false );
+        }
+    }
+
     /**
      * 
      */

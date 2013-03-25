@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.Messages;
 
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -57,7 +58,7 @@ public class RevertBufferAction
             for (ILayer layer : layers) {
                 LayerFeatureBufferManager buffer = LayerFeatureBufferManager.forLayer( layer, false );
                 if (buffer != null) {
-                    buffer.revert( null, new NullProgressMonitor() );
+                    buffer.revert( (OperationSupport)null, new NullProgressMonitor() );
                 }
             }
         }

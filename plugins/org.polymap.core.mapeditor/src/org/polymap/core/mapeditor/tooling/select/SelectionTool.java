@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -34,6 +34,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
 import org.eclipse.swt.widgets.Composite;
+
 import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.data.util.Geometries;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
@@ -42,6 +43,7 @@ import org.polymap.core.mapeditor.tooling.edit.BaseLayerEditorTool;
 import org.polymap.core.mapeditor.tooling.edit.BaseVectorLayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.event.EventHandler;
+
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.BoxControl;
@@ -91,12 +93,9 @@ public class SelectionTool
         this.fsm.addSelectionChangeListener( this );
         
         vectorLayer = new SelectionVectorLayer( getSite().getEditor(), getSelectedLayer() );
+        vectorLayer.enableHover();
         vectorLayer.activate();
         vectorLayer.selectFeatures( fsm.getFeatureCollection() );
-
-        // XXX find an indirect way to signal that the layer has selected
-        // features; GeoHub? 
-        FeatureSelectionView.open( getSelectedLayer() );
 
 //        clickControl = new ClickControl();
 //        getSite().getEditor().addControl( clickControl );
@@ -200,34 +199,15 @@ public class SelectionTool
         for (Map.Entry entry : payload.entrySet()) {
             log.info( "    key: " + entry.getKey() + ", value: " + StringUtils.abbreviate( (String)entry.getValue(), 0, 60 ) );
         }
-
-//        // click: single or double
-//        if (name.equals( ClickControl.EVENT_CLICK )) {
-//            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-//                public void run() {                                
-//                    try {
-//                        JSONObject json = new JSONObject( payload.get( "pos" ) );
-//                        
-//                        CoordinateReferenceSystem crs = getSite().getEditor().getMap().getCRS();
-//                        GeometryFactory gf = new GeometryFactory();
-//
-//                        Point point = gf.createPoint( new Coordinate( json.getDouble( "lon" ), json.getDouble( "lat" ) ) );
-//                        Point norm = Geometries.transform( point, crs, Geometries.crs( "EPSG:3857" ) );
-//
-//                        double buffer = 50;
-//                        ReferencedEnvelope buffered = new ReferencedEnvelope(
-//                                norm.getX()-buffer, norm.getX()+buffer, norm.getY()-buffer, norm.getY()+buffer,
-//                                Geometries.crs( "EPSG:3857" ) );
-//                        
-//                        vectorLayer.selectFeatures( buffered.transform( crs, true ), true );
-//                    }
-//                    catch (final Exception e) {
-//                        log.warn( "", e );
-//                    }
-//                };
-//            });
-//        }
         
+        Polymap.getSessionDisplay().syncExec( new Runnable() {
+            public void run() {
+                // XXX find an indirect way to signal that the layer has selected
+                // features; GeoHub? 
+                FeatureSelectionView.open( getSelectedLayer() );
+            }            
+        });
+
         // box selected
         if (name.equals( BoxControl.EVENT_BOX )) {
             Polymap.getSessionDisplay().asyncExec( new Runnable() {

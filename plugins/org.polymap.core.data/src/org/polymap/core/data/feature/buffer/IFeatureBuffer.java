@@ -70,6 +70,12 @@ public interface IFeatureBuffer {
      */
     public void registerFeatures( Collection<Feature> collection );
 
+    /**
+     * Removes the given features from the buffer.
+     *
+     * @param features
+     */
+    public void unregisterFeatures( Collection<Feature> features );
 
     public boolean supports( Filter filter );
 

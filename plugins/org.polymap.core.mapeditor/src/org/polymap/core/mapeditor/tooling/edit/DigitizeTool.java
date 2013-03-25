@@ -53,12 +53,11 @@ public class DigitizeTool
 
     private EditVectorLayer         vectorLayer;
 
-    private DrawFeatureControl      control;
+    private DrawFeatureControl      drawControl;
     
 
     @Override
     public void dispose() {
-        log.debug( "dispose(): ..." );
         onDeactivate();
         super.dispose();
     }
@@ -72,8 +71,8 @@ public class DigitizeTool
 
     @Override
     public void onActivate() {
-        log.debug( "onActivate(): ..." );
         super.onActivate();
+        
         if (getSelectedLayer() == null) {
             return;
         }
@@ -82,7 +81,7 @@ public class DigitizeTool
         vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
         vectorLayer.activate();
 
-        // control
+        // drawControl
         try {
             // find geometry type
             PipelineFeatureSource fs = PipelineFeatureSource.forLayer( getSelectedLayer(), true );
@@ -109,9 +108,9 @@ public class DigitizeTool
                 handler = DrawFeatureControl.HANDLER_POLYGON;
                 throw new Exception( "Dieser Geometrietyp kann nicht bearbeitet werden: " + geom.getType().getName() );
             }
-            control = new DrawFeatureControl( vectorLayer.getVectorLayer(), handler );
-            getSite().getEditor().addControl( control );
-            control.activate();
+            drawControl = new DrawFeatureControl( vectorLayer.getVectorLayer(), handler );
+            getSite().getEditor().addControl( drawControl );
+            drawControl.activate();
 
             // register event handler
             Map<String, String> payload = new HashMap<String, String>();
@@ -134,14 +133,15 @@ public class DigitizeTool
 
     @Override
     public void onDeactivate() {
-        log.debug( "onDeactivate(): ..." );
         super.onDeactivate();
-        if (control != null) {
-            getSite().getEditor().removeControl( control );
-            control.deactivate();
-            control.destroy();
-            control.dispose();
-            control = null;
+        
+        if (drawControl != null) {
+            getSite().getEditor().removeControl( drawControl );
+            drawControl.deactivate();
+            // FIXME this crashes
+//            drawControl.destroy();
+            drawControl.dispose();
+            drawControl = null;
         }
         if (vectorLayer != null) {
             vectorLayer.dispose();

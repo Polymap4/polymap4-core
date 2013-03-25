@@ -58,12 +58,11 @@ public class EditTool
 
     private EditVectorLayer         vectorLayer;
 
-    private ModifyFeatureControl    mfc;
+    private ModifyFeatureControl    modifyControl;
     
 
     @Override
     public void dispose() {
-        log.debug( "dispose(): ..." );
         onDeactivate();
         super.dispose();
     }
@@ -76,13 +75,13 @@ public class EditTool
 
     @Override
     public void onActivate() {
-        log.debug( "onActivate(): ..." );
         super.onActivate();
         if (getSelectedLayer() == null) {
             return;
         }
         
         vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
+        vectorLayer.enableHover();
         vectorLayer.activate();
 
         ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
@@ -93,11 +92,12 @@ public class EditTool
         FeatureSelectionView.open( getSelectedLayer() );
 
         // control
-        mfc = new ModifyFeatureControl( vectorLayer.getVectorLayer() );
-        mfc.addMode( ModifyFeatureControl.RESHAPE );
-        mfc.addMode( ModifyFeatureControl.DRAG );
-        getSite().getEditor().addControl( mfc );
-        mfc.activate();
+        modifyControl = new ModifyFeatureControl( vectorLayer.getVectorLayer() );
+        getSite().getEditor().addControl( modifyControl );
+        //modifyControl.setObjAttr( "createVertices", false );
+        modifyControl.addMode( ModifyFeatureControl.RESHAPE );
+        modifyControl.addMode( ModifyFeatureControl.DRAG );
+        modifyControl.activate();
 
         // modification event
         Map<String, String> payload = new HashMap<String, String>();
@@ -143,13 +143,14 @@ public class EditTool
     
     @Override
     public void onDeactivate() {
-        log.debug( "onDeactivate(): ..." );
         super.onDeactivate();
-        if (mfc != null) {
-            getSite().getEditor().removeControl( mfc );
-            mfc.destroy();
-            mfc.dispose();
-            mfc = null;
+        
+        if (modifyControl != null) {
+            getSite().getEditor().removeControl( modifyControl );
+            modifyControl.deactivate();
+            modifyControl.destroy();
+            modifyControl.dispose();
+            modifyControl = null;
         }
         if (vectorLayer != null) {
             vectorLayer.dispose();
@@ -185,6 +186,10 @@ public class EditTool
                             // let RenderManager listeners update
 //                            WMSLayer olayer = (WMSLayer)getSite().getEditor().findLayer( getSelectedLayer() );
 //                            olayer.redraw( true );
+                            
+                            // XXX hack to remove 'duplicate" geometries introduces by OL 2.12
+                            ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
+                            vectorLayer.selectFeatures( bounds, false );
                         }
                     });
                 }

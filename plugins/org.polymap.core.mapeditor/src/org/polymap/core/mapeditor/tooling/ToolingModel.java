@@ -209,10 +209,12 @@ public class ToolingModel {
 
             // inform tools
             if (active) {
+                fireEvent( tool, EventType.TOOL_ACTIVATING, null );
                 tool.onActivate();
                 fireEvent( tool, EventType.TOOL_ACTIVATED, null );
             } 
             else {
+                fireEvent( tool, EventType.TOOL_DEACTIVATING, null );
                 tool.onDeactivate();
                 // deactivate all children
                 for (IEditorTool child : filter( tools.values(), hasStrictPrefix( toolPath ) )) {
@@ -256,9 +258,15 @@ public class ToolingModel {
     }
     
     public void fireEvent( IEditorTool src, EventType type, Object value ) {
+        assert src != null;
         final ToolingEvent ev = new ToolingEvent( src, type, value );
         for (ToolingListener l : listeners) {
-            l.toolingChanged( ev );
+            try {
+                l.toolingChanged( ev );
+            }
+            catch (Exception e) {
+                log.warn( "Error while fireEvent()", e );
+            }
         }
         
 //        listeners.forEach( new Callable<ToolingListener>() {

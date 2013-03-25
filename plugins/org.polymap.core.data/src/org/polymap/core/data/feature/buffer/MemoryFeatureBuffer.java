@@ -99,6 +99,14 @@ class MemoryFeatureBuffer
         }
     }
 
+    
+    public void unregisterFeatures( Collection<Feature> features ) {
+        for (Feature feature : features) {
+            String fid = feature.getIdentifier().getID();
+            buffer.remove( fid );
+        }
+    }
+
 
     public boolean supports( Filter filter ) {
         return true;

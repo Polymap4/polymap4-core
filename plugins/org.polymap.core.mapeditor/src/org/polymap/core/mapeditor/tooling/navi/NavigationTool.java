@@ -17,19 +17,21 @@ package org.polymap.core.mapeditor.tooling.navi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Iterables;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
+import org.eclipse.core.runtime.IPath;
+
 import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.mapeditor.tooling.DefaultEditorTool;
+import org.polymap.core.mapeditor.tooling.EditorTools;
 import org.polymap.core.mapeditor.tooling.IEditorTool;
 import org.polymap.core.mapeditor.tooling.IEditorToolSite;
 import org.polymap.core.mapeditor.tooling.ToolingEvent;
-import org.polymap.core.mapeditor.tooling.ToolingListener;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
-import org.polymap.core.mapeditor.tooling.edit.DigitizeTool;
-import org.polymap.core.mapeditor.tooling.select.SelectionTool;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.openlayers.rap.widget.controls.NavigationControl;
 
@@ -40,21 +42,16 @@ import org.polymap.openlayers.rap.widget.controls.NavigationControl;
  */
 public class NavigationTool
         extends DefaultEditorTool
-        implements IEditorTool, ToolingListener {
+        implements IEditorTool {
 
     private static Log log = LogFactory.getLog( NavigationTool.class );
 
     private NavigationControl           control;
     
-    private boolean                     active;
-
     
     @Override
     public boolean init( IEditorToolSite site ) {
         boolean result = super.init( site );
-        
-        // listen to other tools
-        getSite().addListener( this );
         
         // deferred activation
         Polymap.getSessionDisplay().asyncExec( new Runnable() {
@@ -77,10 +74,7 @@ public class NavigationTool
 
     @Override
     public void onActivate() {
-        log.debug( "onActivate(): ..." );
-        assert !active;
-        active = true;
-
+        super.onActivate();
         control = new NavigationControl();
         getSite().getEditor().addControl( control );
         control.activate();
@@ -100,10 +94,7 @@ public class NavigationTool
 
     @Override
     public void onDeactivate() {
-        log.debug( "onDeactivate(): ..." );
-        assert active;
-        active = false;
-
+        super.onDeactivate();
         if (control != null) {
             control.deactivate();
             getSite().getEditor().removeControl( control );
@@ -114,21 +105,10 @@ public class NavigationTool
     }
 
 
-    public boolean isActive() {
-        return active;
-    }
-
-
     @Override
     public void toolingChanged( ToolingEvent ev ) {
-        // deactivate when SelectionTool or DigitizeTool
-        if ((ev.getSource() instanceof SelectionTool 
-                || ev.getSource() instanceof DigitizeTool)
-                && ev.getType() == EventType.TOOL_ACTIVATED
-                && isActive()) {
-            
-            getSite().triggerTool( getSite().getToolPath(), false );
-        }
+        super.toolingChanged( ev );
+        
         // activate if no other is active
         if (ev.getSource() != this
                 && ev.getType() == EventType.TOOL_DEACTIVATED
@@ -136,7 +116,18 @@ public class NavigationTool
                 // on the same hierarchy level
                 && ev.getSource().getToolPath().segmentCount() == getToolPath().segmentCount()) {
             
-            getSite().triggerTool( getSite().getToolPath(), true );
+            // check if there is any tool active - after all events have been processed
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    IPath levelToolPath = getToolPath().removeLastSegments( 1 );
+                    if (Iterables.isEmpty( getSite().filterTools( 
+                            EditorTools.hasStrictPrefix( levelToolPath ),
+                            EditorTools.isActive() ) )) {
+
+                        getSite().triggerTool( getSite().getToolPath(), true );
+                    }
+                }
+            });
         }
     }
     
