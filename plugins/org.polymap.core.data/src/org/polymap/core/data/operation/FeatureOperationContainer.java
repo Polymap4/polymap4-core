@@ -79,6 +79,12 @@ public class FeatureOperationContainer
                     return Status.CANCEL_STATUS;
             }
         }
+        catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        }
+        catch (ExecutionException e) {
+            throw e;
+        }
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );
         }
@@ -100,6 +106,12 @@ public class FeatureOperationContainer
                     return Status.CANCEL_STATUS;
             }
         }
+        catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        }
+        catch (ExecutionException e) {
+            throw e;
+        }
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );
         }
@@ -120,6 +132,12 @@ public class FeatureOperationContainer
                 default:
                     return Status.CANCEL_STATUS;
             }
+        }
+        catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        }
+        catch (ExecutionException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );

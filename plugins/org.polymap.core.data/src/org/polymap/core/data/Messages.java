@@ -54,6 +54,10 @@ public class Messages {
         return instance.forClass( type );
     }
 
+    public static IMessages forPrefix( String prefix ) {
+        return instance.forPrefix( prefix );
+    }
+
 //    public static Messages get() {
 //        Class clazz = Messages.class;
 //        return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );

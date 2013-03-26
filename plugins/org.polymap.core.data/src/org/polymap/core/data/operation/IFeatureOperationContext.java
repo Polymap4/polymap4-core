@@ -30,13 +30,22 @@ import org.eclipse.core.runtime.IAdaptable;
 public interface IFeatureOperationContext
         extends IAdaptable {
     
-    public FeatureCollection features()
-    throws Exception;
+    /**
+     * 
+     *
+     * @return The features of this context
+     * @throws InterruptedException If operation was canceled.
+     */
+    public FeatureCollection features() throws Exception;
     
-    public FeatureSource featureSource()
-    throws Exception;
+    /**
+     * 
+     *
+     * @return The FeatureSource of the {@link #features()}
+     * @throws InterruptedException If operation was canceled.
+     */
+    public FeatureSource featureSource() throws Exception;
     
-
     /**
      * Returns an object which is an instance of the given class associated with this
      * object. An operation context at least adapts to:

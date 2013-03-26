@@ -129,6 +129,10 @@ public class SelectionTool
 
         boxControl.activate();
         selectControl.activate();    
+
+        // XXX find an indirect way to signal that the layer has selected
+        // features; GeoHub? 
+        FeatureSelectionView.open( getSelectedLayer() );
     }
 
 
@@ -200,14 +204,6 @@ public class SelectionTool
             log.info( "    key: " + entry.getKey() + ", value: " + StringUtils.abbreviate( (String)entry.getValue(), 0, 60 ) );
         }
         
-        Polymap.getSessionDisplay().syncExec( new Runnable() {
-            public void run() {
-                // XXX find an indirect way to signal that the layer has selected
-                // features; GeoHub? 
-                FeatureSelectionView.open( getSelectedLayer() );
-            }            
-        });
-
         // box selected
         if (name.equals( BoxControl.EVENT_BOX )) {
             Polymap.getSessionDisplay().asyncExec( new Runnable() {

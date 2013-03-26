@@ -17,6 +17,7 @@ package org.polymap.core.runtime.cache;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
@@ -37,7 +38,7 @@ final class Soft2Cache<K,V>
     
     private volatile static int         accessCounter = 0;
     
-    private volatile static int         cacheCounter = 0;
+    private static AtomicInteger        cacheCounter = new AtomicInteger();
     
     private String                      name;
     
@@ -50,7 +51,7 @@ final class Soft2Cache<K,V>
 
     Soft2Cache( Soft2CacheManager manager, String name, CacheConfig config ) {
         this.manager = manager;
-        this.name = name != null ? name : String.valueOf( cacheCounter++ );
+        this.name = name != null ? name : String.valueOf( cacheCounter.getAndIncrement() );
         this.config = config;
         
         this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );

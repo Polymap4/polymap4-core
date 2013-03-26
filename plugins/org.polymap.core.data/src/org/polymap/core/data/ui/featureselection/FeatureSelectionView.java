@@ -55,7 +55,6 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 import org.eclipse.ui.IActionDelegate;
@@ -79,6 +78,7 @@ import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
@@ -504,11 +504,12 @@ public class FeatureSelectionView
      * Element was selected in the table.
      */
     public void selectionChanged( SelectionChangedEvent ev ) {
-        IStructuredSelection sel = (IStructuredSelection)ev.getSelection();
-        IFeatureTableElement elm = (IFeatureTableElement)sel.getFirstElement();
-        
-        LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
-        fsm.setHovered( elm.fid() );
+        SelectionAdapter sel = new SelectionAdapter( ev.getSelection() );
+        IFeatureTableElement elm = sel.first( IFeatureTableElement.class );
+        if (elm != null) {
+            LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
+            fsm.setHovered( elm.fid() );
+        }
     }            
     
     

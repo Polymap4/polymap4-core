@@ -17,7 +17,6 @@ package org.polymap.core.data.ui.featuretable;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
@@ -28,6 +27,8 @@ import org.opengis.filter.Filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Iterables;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -41,7 +42,6 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
@@ -50,6 +50,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.ListenerList;
 
 /**
@@ -116,13 +117,7 @@ public class FeatureTableViewer
 
     
     public IFeatureTableElement[] getSelectedElements() {
-        IStructuredSelection sel = (IStructuredSelection)getSelection();
-        IFeatureTableElement[] result = new IFeatureTableElement[ sel.size() ];
-        int i = 0;
-        for (Iterator it=sel.iterator(); it.hasNext(); i++) {
-            result[i] = (IFeatureTableElement)it.next();
-        }
-        return result;
+        return Iterables.toArray( new SelectionAdapter( getSelection() ), IFeatureTableElement.class );
     }
 
     
