@@ -61,6 +61,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
@@ -197,13 +198,24 @@ public class FeatureSelectionView
                     if (layer != null) {
                         Configuration config = new org.geotools.filter.v1_1.OGCConfiguration();
                         Parser parser = new Parser( config );
-                        filter = (Filter)parser.parse( new ByteArrayInputStream( filterText.getBytes( "UTF8" ) ) );
+                        final Filter parsedFilter = (Filter)parser.parse( new ByteArrayInputStream( filterText.getBytes( "UTF8" ) ) );
                         
-                        // *after* createPartControl()
+                        // set selection *after* createPartControl()
                         Polymap.getSessionDisplay().asyncExec( new Runnable() {
                             public void run() {
-                                LayerFeatureSelectionManager.forLayer( layer ).changeSelection( filter );
-                                //loadTable( filter );
+                                LayerFeatureSelectionManager.forLayer( layer )
+                                        .changeSelection( parsedFilter, LayerFeatureSelectionManager.MODE.REPLACE, null );
+                                
+                                // XXX views loose their memento if not initialized in a session(?); afterwards,
+                                // without memento, they are not usable; besides, to much open feature tables
+                                // are anoying - so this closes all views but the one that was active
+                                IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                                for (IViewReference view : page.getViewReferences()) {
+                                    if (view.getId().equals( ID )
+                                            && !view.getSecondaryId().equals( layerId )) {
+                                        page.hideView( view );                                        
+                                    }
+                                }
                             }
                         });
                     }
@@ -215,6 +227,20 @@ public class FeatureSelectionView
                     log.warn( "Unable to restore state.", e );
                 }
             }
+            // no layer in memento
+            else {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                            page.hideView( FeatureSelectionView.this );
+                        }
+                        catch (Exception e) {
+                            log.warn( "", e );
+                        }
+                    }
+                });                
+            }
         }
     }
 
@@ -225,11 +251,10 @@ public class FeatureSelectionView
                 if (filter == null) {
                     filter = Filter.EXCLUDE;
                 }
-                if (filter instanceof Id) {
-                    // save max. 500 Fids
-                    if (((Id)filter).getIdentifiers().size() > 500) {
-                        return;
-                    }
+                // save max. 500 Fids
+                if (filter instanceof Id
+                        && ((Id)filter).getIdentifiers().size() > 500) {
+                    return;
                 }
                 OGCConfiguration config = new org.geotools.filter.v1_1.OGCConfiguration();
                 Encoder encoder = new Encoder( config );

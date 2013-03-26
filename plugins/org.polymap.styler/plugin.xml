@@ -10,7 +10,7 @@
             icon="icons/style_tsk.gif"
             id="org.polymap.styler.ui.StyleView"
             name="%STYLE"
-            restorable="true">
+            restorable="false">
       </view>
    </extension>
    <extension

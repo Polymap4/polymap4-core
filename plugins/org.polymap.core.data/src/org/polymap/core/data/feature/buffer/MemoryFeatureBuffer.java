@@ -67,7 +67,7 @@ class MemoryFeatureBuffer
     public void clear()
     throws Exception {
         buffer.clear();
-        site.fireFeatureChangeEvent( Type.FLUSHED, null );
+        //site.fireFeatureChangeEvent( Type.FLUSHED, null );
     }
 
 
