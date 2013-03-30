@@ -407,7 +407,7 @@ public final class LuceneQueryDialect
                     ? schema.getGeometryDescriptor().getLocalName() 
                     : prop.getPropertyName();
 
-            // get bounds for bbox
+            // query bbox
             Envelope bounds = null;
             if (literal.getValue() instanceof Geometry) {
                 bounds = ((Geometry)literal.getValue()).getEnvelopeInternal();
@@ -415,7 +415,7 @@ public final class LuceneQueryDialect
             else {
                 throw new IllegalArgumentException( "Geometry type not supported: " + literal.getValue() );
             }
-            
+            // and post-process
             postProcess.add( filter );
             return store.getValueCoders().searchQuery( 
                     new QueryExpression.BBox( fieldName, bounds.getMinX(), bounds.getMinY(), bounds.getMaxX(), bounds.getMaxY() ) );

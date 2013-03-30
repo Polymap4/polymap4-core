@@ -155,7 +155,7 @@ public class DataSourceProcessor
             AddFeaturesRequest request = (AddFeaturesRequest)r;
             FeatureStore fs = geores.resolve( FeatureStore.class, null );
             List<FeatureId> result = addFeatures( fs, request.getFeatures() );
-            context.sendResponse( new ModifyFeaturesResponse( result ) );
+            context.sendResponse( new ModifyFeaturesResponse( new FidSet( result ) ) );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // RemoveFeatures

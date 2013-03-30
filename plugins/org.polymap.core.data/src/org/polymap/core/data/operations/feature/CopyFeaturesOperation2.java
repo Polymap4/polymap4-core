@@ -17,9 +17,10 @@ package org.polymap.core.data.operations.feature;
 import java.util.List;
 import java.util.Properties;
 
-import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -29,12 +30,14 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -67,6 +70,7 @@ import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.data.ui.featuretypeeditor.ValueViewerColumn;
+import org.polymap.core.data.util.Geometries;
 import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.data.util.RetypingFeatureCollection;
 import org.polymap.core.operation.OperationWizard;
@@ -176,9 +180,30 @@ public class CopyFeaturesOperation2
             }
             // transform CRS
             CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
-            CoordinateReferenceSystem sourceCrs = source.getSchema().getCoordinateReferenceSystem();
+            SimpleFeatureType sourceSchema = source.getSchema();
+            CoordinateReferenceSystem sourceCrs = sourceSchema.getCoordinateReferenceSystem();
             if (destCrs != null && !destCrs.equals( sourceCrs )) {
-                features = new ReprojectingFeatureCollection( features, destCrs );
+               // features = new ReprojectingFeatureCollection( features, destCrs );
+                
+                final MathTransform transform = Geometries.transform( sourceCrs, destCrs );
+                final String geomName = sourceSchema.getGeometryDescriptor().getLocalName();
+                
+                // actually copy features; the above just sets attribute which is not supported by caching data sources
+                final SimpleFeatureType retypedSchema = SimpleFeatureTypeBuilder.retype( sourceSchema, destCrs );
+                features = new RetypingFeatureCollection( features, retypedSchema ) {
+                    protected Feature retype( Feature feature ) {
+                        try {
+                            SimpleFeatureBuilder fb = new SimpleFeatureBuilder( retypedSchema );
+                            fb.init( (SimpleFeature)feature );
+                            Geometry geom = (Geometry)feature.getProperty( geomName ).getValue();
+                            fb.set( geomName, JTS.transform( geom, transform ) );
+                            return fb.buildFeature( feature.getIdentifier().getID() );
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                };
             }
             // tranform schema
             features = featureEditorPage.retyped( features );            
@@ -322,7 +347,7 @@ public class CopyFeaturesOperation2
             final FeatureTypeEditorProcessor processor = new FeatureTypeEditorProcessor();
             processor.init( configPageProps );
             final SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)processor.getFeatureType() );
-            
+
             return new RetypingFeatureCollection( src, null ) {
                 @Override
                 public FeatureType getSchema() {

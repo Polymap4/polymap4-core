@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -17,8 +17,10 @@ package org.polymap.core.data.feature.buffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import org.geotools.data.Query;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -30,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.FeatureChangeEvent.Type;
+import org.polymap.core.data.feature.FidSet;
 
 /**
  * Provides a simple in-memory feature buffer backed by a {@link ConcurrentHashMap}.
@@ -113,9 +116,10 @@ class MemoryFeatureBuffer
     }
 
 
-    public List<FeatureId> markAdded( Collection<Feature> features )
+    @Override
+    public Set<FeatureId> markAdded( Collection<Feature> features )
     throws Exception {
-        List<FeatureId> result = new ArrayList( 1024 );
+        FidSet result = new FidSet( features.size() * 2 );
 
         for (Feature feature : features) {
             FeatureId identifier = feature.getIdentifier();
@@ -133,10 +137,11 @@ class MemoryFeatureBuffer
     }
 
 
-    public List<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
+    @Override
+    public Set<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
     throws Exception {
         List<Feature> features = new ArrayList( buffer.size() );
-        List<FeatureId> fids = new ArrayList( buffer.size() );
+        FidSet fids = new FidSet( buffer.size() );
 
         for (FeatureBufferState buffered : buffer.values()) {
 
@@ -154,10 +159,11 @@ class MemoryFeatureBuffer
     }
 
 
-    public List<FeatureId> markRemoved( Filter filter )
+    @Override
+    public Set<FeatureId> markRemoved( Filter filter )
     throws Exception {
         List<Feature> features = new ArrayList( buffer.size() );
-        List<FeatureId> fids = new ArrayList( buffer.size() );
+        FidSet fids = new FidSet( buffer.size() );
 
         for (FeatureBufferState buffered : buffer.values()) {
 
@@ -174,47 +180,43 @@ class MemoryFeatureBuffer
     }
 
 
-    public List<Feature> blendFeatures( Query query, Iterable<Feature> features )
+    @Override
+    public List<Feature> blendFeatures( Query query, List<Feature> features )
     throws Exception {
-        List<Feature> result = new ArrayList( buffer.size() );
-
-        // tweak upstream features
-        for (Feature feature : features) {
-            String fid = feature.getIdentifier().getID();
-            FeatureBufferState buffered = buffer.get( fid );
-
-            if (buffered == null) {
-                result.add( feature );
-            }
-            else if (buffered.isRemoved()) {
-                // skip removed feature
-            }
-            else if (buffered.isModified()) {
-                result.add( buffered.feature() );
-            }
-            else {
-                throw new IllegalStateException( "Wrong buffered feature state: " + buffered );
-            }
+        if (buffer.isEmpty()) {
+            return features;
         }
-        return result;
+        else {
+            List<Feature> result = new ArrayList( features.size() );
+            // just skip all modified features; added/modified features are
+            // sent already, removed features are skipped altogether
+            for (Feature feature : features) {
+                String fid = feature.getIdentifier().getID();
+                if (!buffer.containsKey( fid )) {
+                    result.add( feature );
+                }
+            }
+            return result;
+        }
     }
     
     
-    public List<Feature> addedFeatures( Filter filter )
-    throws Exception {
+    @Override
+    public List<Feature> modifiedFeatures( Filter filter ) throws Exception {
         List<Feature> result = new ArrayList( buffer.size() );
 
         for (FeatureBufferState buffered : buffer.values()) {
-            if (buffered.isAdded() && filter.evaluate( buffered.feature() )) {
-                result.add( buffered.feature() );
+            if (buffered.isAdded() || buffered.isModified()) {
+                if (filter.evaluate( buffered.feature() )) {
+                    result.add( buffered.feature() );
+                }
             }
         }
         return result;
     }
     
     
-    public int featureSizeDifference( Query query )
-    throws Exception {
+    public int featureSizeDifference( Query query ) throws Exception {
         int result = 0;
         for (FeatureBufferState buffered : buffer.values()) {
             if (query.getFilter().evaluate( buffered.feature() )) {

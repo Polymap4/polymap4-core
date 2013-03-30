@@ -23,7 +23,7 @@
 package org.polymap.core.data.feature;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import org.opengis.filter.identity.FeatureId;
 
@@ -40,10 +40,10 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 public class ModifyFeaturesResponse
         implements ProcessorResponse, Iterable<FeatureId> {
 
-    private List<FeatureId>       ids;
+    private Set<FeatureId>       ids;
 
 
-    public ModifyFeaturesResponse( List<FeatureId> ids ) {
+    public ModifyFeaturesResponse( Set<FeatureId> ids ) {
         this.ids = ids;
     }
 
@@ -51,7 +51,7 @@ public class ModifyFeaturesResponse
        return ids.size();    
     }
     
-    public List<FeatureId> getFeatureIds() {
+    public Set<FeatureId> getFeatureIds() {
         return ids;
     }
 

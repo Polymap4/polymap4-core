@@ -14,13 +14,9 @@
  */
 package org.polymap.core.data;
 
-import java.util.Collection;
 import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
-import org.opengis.feature.Feature;
 import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
@@ -47,38 +43,23 @@ public class FeatureChangeEvent
         FLUSHED
     }
 
-    private Map<FeatureId,Feature>  features;
+    private Set<FeatureId>          fids;
     
     private Type                    type;
     
     
-    public FeatureChangeEvent( Object source, Type type, Collection<Feature> features ) {
+    public FeatureChangeEvent( Object source, Type type, Set<FeatureId> fids ) {
         super( source );
         this.type = type;
-
-        this.features = new HashMap(); 
-        for (Feature feature : features) {
-            this.features.put( feature.getIdentifier(), feature );
-        }
-        //assert features != null;
+        this.fids = fids;
     }
 
     public ILayer getSource() {
         return (ILayer)super.getSource();
     }
 
-    /**
-     * 
-     */
-    public Collection<Feature> getFeatures() {
-        return features.values();
-    }
-
-    /**
-     * 
-     */
     public Set<FeatureId> getFids() {
-        return features.keySet();
+        return fids;
     }
     
     public Type getType() {

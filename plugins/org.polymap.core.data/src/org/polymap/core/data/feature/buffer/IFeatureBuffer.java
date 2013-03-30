@@ -14,6 +14,7 @@ package org.polymap.core.data.feature.buffer;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.geotools.data.Query;
 import org.opengis.feature.Feature;
@@ -80,15 +81,15 @@ public interface IFeatureBuffer {
     public boolean supports( Filter filter );
 
 
-    public List<FeatureId> markAdded( Collection<Feature> features )
+    public Set<FeatureId> markAdded( Collection<Feature> features )
     throws Exception;
     
     
-    public List<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
+    public Set<FeatureId> markModified( Filter filter, AttributeDescriptor[] type, Object[] value )
     throws Exception;
 
 
-    public List<FeatureId> markRemoved( Filter filter )
+    public Set<FeatureId> markRemoved( Filter filter )
     throws Exception;
 
 
@@ -101,11 +102,11 @@ public interface IFeatureBuffer {
      * @return The adapted features.
      * @throws Exception
      */
-    public List<Feature> blendFeatures( Query query, Iterable<Feature> features )
+    public List<Feature> blendFeatures( Query query, List<Feature> features )
     throws Exception;
 
     
-    public List<Feature> addedFeatures( Filter filter )
+    public List<Feature> modifiedFeatures( Filter filter )
     throws Exception;
 
     

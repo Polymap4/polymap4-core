@@ -59,6 +59,7 @@ import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeEvent.Type;
 import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.feature.FidSet;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
@@ -182,7 +183,11 @@ public class LayerFeatureBufferManager
 
     
     protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
-        FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, features );
+        FidSet fids = new FidSet( features.size() * 2 );
+        for (Feature feature : features) {
+            fids.add( feature.getIdentifier() );
+        }
+        FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, fids );
         EventManager.instance().publish( ev );
     }
     

@@ -110,8 +110,8 @@ public class EntityStateTracker
      * timestamp.
      * <p/>
      * This can be used by data sources that do not have the ability to track tracked
-     * of locally read/changed entities. On next session save the tracked tracked can
-     * be checked against global timestamp of the respective surrogate.
+     * of locally read/changed entities. On next session save the tracked can be
+     * checked against global timestamp of the respective surrogate.
      * <p/>
      * The semantics is copy-on-write ...
      * 
@@ -195,7 +195,7 @@ public class EntityStateTracker
         
         private long                    startTime;
         
-        private Map<EntityHandle,Long>   checked = new HashMap();
+        private Map<EntityHandle,Long>  checked = new HashMap();
         
         
         Updater( IProgressMonitor monitor ) {
