@@ -41,12 +41,10 @@ public interface IFeatureBuffer {
     throws Exception;
 
 
-    public boolean isEmpty()
-    throws Exception;
+    public boolean isEmpty();
 
 
-    public int size()
-    throws Exception;
+    public int size();
 
 
     public Iterable<FeatureBufferState> content();

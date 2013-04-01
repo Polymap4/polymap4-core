@@ -145,7 +145,12 @@ public abstract class QiModule
 
 
     public void revertChanges() {
-        throw new RuntimeException( "Not yet implemented." );
+        try {
+            uow.revert();
+        }
+        catch (UnitOfWorkCompletionException e) {
+            throw new RuntimeException( e );
+        }
 
         // where do we get the list of changed entities?
         // then we could create a new UoW and get the old state from;

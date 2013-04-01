@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, 2011 Polymap GmbH. All rights reserved.
+ * Copyright 2010-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,10 +23,13 @@ import java.util.Set;
 
 import org.geotools.data.DefaultQuery;
 import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.AddFeaturesRequest;
@@ -57,7 +60,7 @@ import org.polymap.core.project.LayerUseCase;
  * @since 3.1
  */
 public class FeatureBufferProcessor
-        implements PipelineProcessor {
+        implements PipelineProcessor, IFeatureBufferProcessor {
 
     private static final Log log = LogFactory.getLog( FeatureBufferProcessor.class );
 
@@ -81,10 +84,13 @@ public class FeatureBufferProcessor
      * and shared by all threads using this pipeline.
      */
     protected IFeatureBuffer            buffer;
+
+    private LayerFeatureBufferManager   manager;
     
     
-    public FeatureBufferProcessor( IFeatureBuffer buffer ) {
+    public FeatureBufferProcessor( LayerFeatureBufferManager manager, IFeatureBuffer buffer ) {
         this.buffer = buffer;
+        this.manager = manager;
     }
 
 
@@ -92,6 +98,13 @@ public class FeatureBufferProcessor
     }
 
     
+    @Override
+    public void revert( Filter filter, IProgressMonitor monitor ) {
+        // do not directly call buffer.clear() as this does not send events
+        manager.revert( filter, monitor );
+    }
+
+
     public void commitChanges() {
         throw new RuntimeException( "not yet implementd" );
         

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,24 +14,19 @@
  */
 package org.polymap.core.data.feature.buffer;
 
-import java.util.Collection;
-
-import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-
-import org.polymap.core.data.FeatureChangeEvent;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IFeatureBufferSite {
-
-    void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features );
+public interface IFeatureBufferProcessor {
 
     void revert( Filter filter, IProgressMonitor monitor );
+
+    //int bufferSize();
     
 }

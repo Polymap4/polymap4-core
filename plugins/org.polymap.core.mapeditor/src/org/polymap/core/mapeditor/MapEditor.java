@@ -55,7 +55,6 @@ import org.polymap.openlayers.rap.widget.base_types.OpenLayersMap;
 import org.polymap.openlayers.rap.widget.base_types.Projection;
 import org.polymap.openlayers.rap.widget.base_types.Size;
 import org.polymap.openlayers.rap.widget.controls.Control;
-import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
 import org.polymap.openlayers.rap.widget.controls.LoadingPanelControl;
 import org.polymap.openlayers.rap.widget.controls.MousePositionControl;
 import org.polymap.openlayers.rap.widget.controls.NavigationHistoryControl;
@@ -191,7 +190,8 @@ public class MapEditor
         olmap.addControl( new PanZoomBarControl() );
         olmap.addControl( new MousePositionControl() );
         olmap.addControl( new NavigationHistoryControl() );
-        olmap.addControl( new KeyboardDefaultsControl() );
+        // OL >= 2.12 seems to catch each and every keyboard event
+      // olmap.addControl( new KeyboardDefaultsControl() );
 
         olmap.addControl( new ScaleLineControl() );
         olmap.addControl( new ScaleControl() );

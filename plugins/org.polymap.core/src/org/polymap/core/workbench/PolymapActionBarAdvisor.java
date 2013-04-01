@@ -425,7 +425,7 @@ public class PolymapActionBarAdvisor
                         String max = memFormat( rt.maxMemory() );
                         action.setText( used );
                         action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
-                        schedule( 1000 );
+                        schedule( 5000 );
                     }
                     else {
                         log.debug( "Exiting " + getName() );
@@ -433,7 +433,7 @@ public class PolymapActionBarAdvisor
                 }
             };
             job.setSystem( true );
-            job.schedule( 1000 );
+            job.schedule( 5000 );
         }
     }
     

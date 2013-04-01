@@ -169,12 +169,17 @@ public class LayerFeatureBufferManager
         
         buffer = new MemoryFeatureBuffer();
         buffer.init( new IFeatureBufferSite() {
+            @Override
             public void fireFeatureChangeEvent( Type type, Collection<Feature> features ) {
                 LayerFeatureBufferManager.this.fireFeatureChangeEvent( type, features );
             }
+            @Override
+            public void revert( Filter filter, IProgressMonitor monitor ) {
+                LayerFeatureBufferManager.this.revert( filter, monitor );
+            }
         });
         
-        processor = new FeatureBufferProcessor( buffer );
+        processor = new FeatureBufferProcessor( this, buffer );
         
         if (Polymap.getSessionDisplay() != null) {
             OperationSupport.instance().addOperationSaveListener( this );
