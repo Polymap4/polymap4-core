@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH. All rights reserved.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,16 +14,10 @@
  */
 package org.polymap.core.data.operations;
 
-import java.util.HashSet;
-import java.util.List;
-
 import java.io.IOException;
 import java.io.StringReader;
 
-import net.refractions.udig.ui.OffThreadProgressMonitor;
-
 import org.geotools.data.FeatureStore;
-import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -35,15 +29,14 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
-import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
@@ -62,8 +55,9 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.feature.FidSet;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
-import org.polymap.core.operation.JobMonitors;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -71,19 +65,12 @@ import org.polymap.core.workbench.PolymapWorkbench;
 /**
  * Creates a new feature. This operation is triggered by
  * {@link DrawFeatureEditorAction} but might be used by other classes as well.
- * <p>
- * Creating/modifying features is done inside an operation in order to make it
- * undoable. However, currently feature are directly created inside the store.
- * Undo is not implemented since the only way to do it would be to delete the
- * feature again. The semantics for (qi4j) operation in turn is: do everything
- * in undoable operations, which are not visible outside this session, and save
- * all together when 'Save' is pressed.
- * <p>
- * To achieve this behaviour for features, this operation should work together
- * with an non-persistent cache (processor) and/or check if the backend store
- * can support operations out-of-the-box (like Rhei EntitySourceProcessor).
+ * <p/>
+ * Undo is implemented by simply removing the newly created feature. The
+ * {@link LayerFeatureBufferManager} is able to revert changes for one feature,
+ * however this would not work for features of an EntitySourceProcessor.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class NewFeatureOperation
@@ -99,7 +86,7 @@ public class NewFeatureOperation
     private String                  jsonParam; 
     
     /** The fids created on last execute() call. */
-    private List<FeatureId>         fids;
+    private FidSet                  fids;
     
 
     /**
@@ -112,7 +99,7 @@ public class NewFeatureOperation
      * @param jsonParam
      */
     public NewFeatureOperation( ILayer layer, FeatureStore fs, String json ) {
-        super( Messages.get( "NewFeatureOperation_labelPrefix" ) + layer.getLabel() );
+        super( Messages.get( "NewFeatureOperation_label", layer.getLabel() ) );
         this.layer = layer;
         this.jsonParam = json;
     }
@@ -128,7 +115,7 @@ public class NewFeatureOperation
      * @param jsonParam
      */
     public NewFeatureOperation( ILayer layer, FeatureStore fs ) {
-        super( Messages.get( "NewFeatureOperation_labelPrefix" ) + layer.getLabel() );
+        super( Messages.get( "NewFeatureOperation_label", layer.getLabel() ) );
         this.layer = layer;
     }
 
@@ -138,8 +125,7 @@ public class NewFeatureOperation
      */
     public Feature getCreatedFeature() 
     throws IOException {
-        FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
-        Id fidFilter = ff.id( new HashSet( fids ) );
+        Id fidFilter = DataPlugin.ff.id( fids );
         FeatureCollection coll = fs.getFeatures( fidFilter );
         return (Feature)coll.toArray( new Feature[1] )[0];
     }
@@ -153,14 +139,12 @@ public class NewFeatureOperation
     }
 
 
-    public IStatus execute( IProgressMonitor _monitor, IAdaptable info )
+    public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
         try {
             // display and monitor
             Display display = Polymap.getSessionDisplay();
             log.debug( "### Display: " + display );
-            OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor );
-            JobMonitors.set( monitor );
             monitor.subTask( getLabel() );
             
             // FeatureStore for layer
@@ -184,8 +168,8 @@ public class NewFeatureOperation
                     FeatureCollections.newCollection();
             features.add( newFeature );
             
-            fids = fs.addFeatures( features );
-            log.info( "### Feature created: " + fids.get( 0 ) );
+            fids = new FidSet( fs.addFeatures( features ) );
+            log.info( "### Feature created: " + fids );
 
             monitor.worked( 1 );
 
@@ -195,24 +179,18 @@ public class NewFeatureOperation
                     try {
                         // hover event
                         LayerFeatureSelectionManager fsm = LayerFeatureSelectionManager.forLayer( layer );
-                        fsm.setHovered( fids.get( 0 ).getID() );
-
-                        // XXX update map editor
+                        fsm.setHovered( Iterables.getFirst( fids, null ).getID() );
                     }
                     catch (Exception e) {
                         PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getMessage(), e );
                     }
                 }
             });
-
+            return Status.OK_STATUS;
         }
         catch (Exception e) {
             throw new ExecutionException( Messages.get( "NewFeatureOperation_errorMsg" ), e );
         }
-        finally {
-            JobMonitors.remove();
-        }
-        return Status.OK_STATUS;
     }
 
     
@@ -264,20 +242,29 @@ public class NewFeatureOperation
 
     
     public boolean canUndo() {
-        return false;
+        return true;
     }
 
-    public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
-        throw new RuntimeException( "not yet implemented." );
+    @Override
+    public IStatus undo( IProgressMonitor monitor, IAdaptable info )
+            throws ExecutionException {
+        try {
+            fs.removeFeatures( DataPlugin.ff.id( fids ) );
+            monitor.worked( 1 );
+            return Status.OK_STATUS;
+        }
+        catch (Exception e) {
+            throw new ExecutionException( Messages.get( "NewFeatureOperation_errorMsg" ), e );
+        }
     }
 
     public boolean canRedo() {
-        return false;
+        return true;
     }
 
     public IStatus redo( IProgressMonitor monitor, IAdaptable info )
             throws ExecutionException {
-        throw new RuntimeException( "not yet implemented." );
+        return execute( monitor, info );
     }
 
 }
