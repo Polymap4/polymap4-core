@@ -227,13 +227,13 @@ public class PolymapActionBarAdvisor
         polymapWebSiteAction.setImageDescriptor( rapWebSiteActionImage );
         register( polymapWebSiteAction );
         
-        showViewMenuMgr = new MenuManager( Messages.get().PolymapActionBarAdvisor_showView,
+        showViewMenuMgr = new MenuManager( Messages.get( "PolymapActionBarAdvisor_showView" ),
                 ContributionItemFactory.VIEWS_SHORTLIST.getId() );
         showViewMenu = ContributionItemFactory.VIEWS_SHORTLIST.create( window );
         showViewMenuMgr.add( showViewMenu );
 
         showViewAction = ActionFactory.SHOW_VIEW_MENU.create( window );
-        showViewAction.setToolTipText( Messages.get().PolymapActionBarAdvisor_showView );
+        showViewAction.setToolTipText( Messages.get( "PolymapActionBarAdvisor_showView" ) );
         showViewAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_view.gif" ) );
         showViewAction.setEnabled( true );
         
@@ -339,12 +339,12 @@ public class PolymapActionBarAdvisor
         windowMenu.add( new Separator() );
 
         IMenuManager perspectiveMenu = new MenuManager(
-                Messages.get().PolymapActionBarAdvisor_openPerspective,
+                Messages.get( "PolymapActionBarAdvisor_openPerspective" ),
                 ContributionItemFactory.PERSPECTIVES_SHORTLIST.getId() );
         perspectiveMenu.add( ContributionItemFactory.PERSPECTIVES_SHORTLIST.create( window ) );
         windowMenu.add( perspectiveMenu );
 
-        IMenuManager viewMenu = new MenuManager( Messages.get().PolymapActionBarAdvisor_showView,
+        IMenuManager viewMenu = new MenuManager( Messages.get( "PolymapActionBarAdvisor_showView" ),
                 ContributionItemFactory.VIEWS_SHORTLIST.getId() );
         viewMenu.add( ContributionItemFactory.VIEWS_SHORTLIST.create( window ) );
         windowMenu.add( viewMenu );
@@ -354,7 +354,7 @@ public class PolymapActionBarAdvisor
         windowMenu.add( closePerspectiveAction );
 
         IAction closeAllPerspectives = ActionFactory.CLOSE_ALL_PERSPECTIVES.create( window );
-        closeAllPerspectives.setText( Messages.get().PolymapActionBarAdvisor_closeAllPerspective );
+        closeAllPerspectives.setText( Messages.get( "PolymapActionBarAdvisor_closeAllPerspective" ) );
         windowMenu.add( closeAllPerspectives );
 
         IAction editActionSets = ActionFactory.EDIT_ACTION_SETS.create( window );

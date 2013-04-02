@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 
 import org.eclipse.ui.PlatformUI;
@@ -71,6 +72,8 @@ public abstract class UIJob
     private static final ThreadLocal<UIJob> threadJob = new ThreadLocal();
     
     private static final NullProgressMonitor nullMonitor = new NullProgressMonitor();
+    
+    private static IMessages                i18n = Messages.forClass( UIJob.class );
     
     
     public static UIJob forThread() {
@@ -179,9 +182,19 @@ public abstract class UIJob
                     catch (ThreadDeath e) {
                         throw e;
                     }
-                    catch (Throwable e) {
-                        log.warn( "Job exception: ", e );
-                        resultStatus = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID,
+                    catch (final Throwable e) {
+                        log.warn( "UIJob exception: ", e );
+
+                        display.syncExec( new Runnable() {
+                            public void run() {
+                                MessageDialog.openWarning( display.getActiveShell(),
+                                        i18n.get( "errorTitle", getName() ), 
+                                        i18n.get( "errorMsg", getName(), e.getLocalizedMessage() ) );
+                            }
+                        });
+                        
+                        // users don't read any further if they see an 'error' sign, so make a warning
+                        resultStatus = new Status( IStatus.WARNING, CorePlugin.PLUGIN_ID,
                                 e.getLocalizedMessage() /*Messages.get( "UIJob_errormsg" )*/, e );
                     }
                     finally {
