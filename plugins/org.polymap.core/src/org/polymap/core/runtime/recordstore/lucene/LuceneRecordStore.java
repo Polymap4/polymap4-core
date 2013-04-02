@@ -18,6 +18,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -34,10 +38,10 @@ import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
@@ -93,26 +97,26 @@ public final class LuceneRecordStore
      * XXX This is not the {@link Polymap#executorService()}, as this used Eclipse
      * Jobs, which results in deadlocks.
      */
-    private static ExecutorService  executor = Polymap.executorService();
+    private static ExecutorService  executor = null; //Polymap.executorService();
     
-//    static {
-//        int nThreads = Runtime.getRuntime().availableProcessors() * 8;
-//        ThreadFactory threadFactory = new ThreadFactory() {
-//            volatile int threadNumber = 0;
-//            public Thread newThread( Runnable r ) {
-//                String prefix = "LuceneRecordStore-searcher-";
-//                Thread t = new Thread( r, prefix + threadNumber++ );
-//                t.setDaemon( false );
-//                t.setPriority( Thread.NORM_PRIORITY - 1 );
-//                return t;
-//            }
-//        };
-//        executor = new ThreadPoolExecutor( nThreads, nThreads,
-//                60L, TimeUnit.SECONDS,
-//                new LinkedBlockingQueue<Runnable>(),
-//                threadFactory);
-//        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
-//    }
+    static {
+        int procs = Runtime.getRuntime().availableProcessors();
+        ThreadFactory threadFactory = new ThreadFactory() {
+            volatile int threadNumber = 0;
+            public Thread newThread( Runnable r ) {
+                String prefix = "Lucene-searcher-";
+                Thread t = new Thread( r, prefix + threadNumber++ );
+                t.setDaemon( false );
+                //t.setPriority( Thread.NORM_PRIORITY - 1 );
+                return t;
+            }
+        };
+        executor = new ThreadPoolExecutor( 0, 100,
+                60L, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>(),
+                threadFactory );
+        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
+    }
     
     
     // instance *******************************************

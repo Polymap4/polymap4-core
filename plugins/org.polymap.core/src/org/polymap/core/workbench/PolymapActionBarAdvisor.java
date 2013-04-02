@@ -15,6 +15,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.lifecycle.PhaseEvent;
+import org.eclipse.rwt.lifecycle.PhaseId;
+import org.eclipse.rwt.lifecycle.PhaseListener;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.GroupMarker;
@@ -43,14 +48,11 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.jobs.Job;
-
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.security.SecurityUtils;
 
 /**
@@ -395,6 +397,7 @@ public class PolymapActionBarAdvisor
         statusLine.add( aboutAction );
         statusLine.add( helpContentsAction );
         statusLine.add( showViewAction );
+        
         if (SecurityUtils.isAdmin( Polymap.instance().getUser() )) {
             final Action action = new Action( "------" ) {
                 public void runWithEvent( Event ev ) {
@@ -415,25 +418,57 @@ public class PolymapActionBarAdvisor
             action.setToolTipText( "Memory in use" );
             statusLine.add( action );
             
-            Job job = new UIJob( "MemoryDisplay" ) {
+            RWT.getLifeCycle().addPhaseListener( new PhaseListener() {
                 private Display display = Polymap.getSessionDisplay();
-                protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    if (!display.isDisposed()) {
-                        Runtime rt = Runtime.getRuntime();
-                        String used = memFormat( rt.totalMemory() - rt.freeMemory() );
-                        String alloc = memFormat( rt.totalMemory() );
-                        String max = memFormat( rt.maxMemory() );
-                        action.setText( used );
-                        action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
-                        schedule( 5000 );
-                    }
-                    else {
-                        log.debug( "Exiting " + getName() );
+                private Timer lastUpdate = new Timer();
+                @Override
+                public PhaseId getPhaseId() {
+                    return PhaseId.RENDER;
+                }
+                @Override
+                public void beforePhase( PhaseEvent event ) {
+                    if (display != null) {
+                        if (display.isDisposed()) {
+                            RWT.getLifeCycle().removePhaseListener( this );
+                            display = null;
+                        }
+                        else {
+                            if (lastUpdate.elapsedTime() > 3000) {
+                                Runtime rt = Runtime.getRuntime();
+                                String used = memFormat( rt.totalMemory() - rt.freeMemory() );
+                                String alloc = memFormat( rt.totalMemory() );
+                                String max = memFormat( rt.maxMemory() );
+                                action.setText( used );
+                                action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
+                                lastUpdate.start();
+                            }
+                        }
                     }
                 }
-            };
-            job.setSystem( true );
-            job.schedule( 5000 );
+                @Override
+                public void afterPhase( PhaseEvent event ) {
+                }
+            });
+            
+//            Job job = new UIJob( "MemoryDisplay" ) {
+//                private Display display = Polymap.getSessionDisplay();
+//                protected void runWithException( IProgressMonitor monitor ) throws Exception {
+//                    if (!display.isDisposed()) {
+//                        Runtime rt = Runtime.getRuntime();
+//                        String used = memFormat( rt.totalMemory() - rt.freeMemory() );
+//                        String alloc = memFormat( rt.totalMemory() );
+//                        String max = memFormat( rt.maxMemory() );
+//                        action.setText( used );
+//                        action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
+//                        schedule( 5000 );
+//                    }
+//                    else {
+//                        log.debug( "Exiting " + getName() );
+//                    }
+//                }
+//            };
+//            job.setSystem( true );
+//            job.schedule( 5000 );
         }
     }
     
