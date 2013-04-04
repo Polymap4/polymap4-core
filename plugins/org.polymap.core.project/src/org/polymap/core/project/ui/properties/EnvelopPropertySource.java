@@ -14,6 +14,8 @@
  */
 package org.polymap.core.project.ui.properties;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -40,11 +42,12 @@ public class EnvelopPropertySource
     
     private ReferencedEnvelope      envelop;
     
-    private boolean                 editable;
-
     private double                  minx, miny, maxx, maxy;
 
     protected final NumberFormat    nf;
+
+    /** True if editable. */
+    private PropertyChangeListener  listener;
     
 
     public EnvelopPropertySource( ReferencedEnvelope envelop ) {
@@ -55,21 +58,21 @@ public class EnvelopPropertySource
     }
 
     public boolean isEditable() {
-        return editable;
+        return listener != null;
     }
     
-    public EnvelopPropertySource setEditable( boolean editable ) {
-        this.editable = editable;
+    public EnvelopPropertySource setEditable( PropertyChangeListener listener ) {
+        this.listener = listener;
         return this;
     }
 
 
     public IPropertyDescriptor[] getPropertyDescriptors() {
         return new IPropertyDescriptor[] {
-                new NumberPropertyDescriptor( "minx", "MinX" ).setFormat( nf ).setEditable( editable ), 
-                new NumberPropertyDescriptor( "miny", "MinY" ).setFormat( nf ).setEditable( editable ), 
-                new NumberPropertyDescriptor( "maxx", "MaxX" ).setFormat( nf ).setEditable( editable ), 
-                new NumberPropertyDescriptor( "maxy", "MaxY" ).setFormat( nf ).setEditable( editable ) };
+                new NumberPropertyDescriptor( "minx", "MinX" ).setFormat( nf ).setEditable( isEditable() ), 
+                new NumberPropertyDescriptor( "miny", "MinY" ).setFormat( nf ).setEditable( isEditable() ), 
+                new NumberPropertyDescriptor( "maxx", "MaxX" ).setFormat( nf ).setEditable( isEditable() ), 
+                new NumberPropertyDescriptor( "maxy", "MaxY" ).setFormat( nf ).setEditable( isEditable() ) };
     }
 
 
@@ -116,6 +119,10 @@ public class EnvelopPropertySource
             maxy = ((Number)value).doubleValue();
         }
         envelop.init( minx, maxx, miny, maxy );
+        
+        if (listener != null) {
+            listener.propertyChange( new PropertyChangeEvent( this, "envelop", null, envelop ) );
+        }
     }
 
 

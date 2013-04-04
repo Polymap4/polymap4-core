@@ -1,7 +1,11 @@
 package org.polymap.core.project.ui.properties;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -65,7 +69,20 @@ public class MapPropertySource
                 return map.getCRS();
             }
             else if (id.equals( IMap.PROP_MAXEXTENT )) {
-                return new EnvelopPropertySource( map.getMaxExtent() ).setEditable( true );
+                EnvelopPropertySource result = new EnvelopPropertySource( map.getMaxExtent() );
+                result.setEditable( new PropertyChangeListener() {
+                    public void propertyChange( PropertyChangeEvent ev ) {
+                        try {
+                            SetPropertyOperation op = new SetPropertyOperation();
+                            op.init( IMap.class, map, IMap.PROP_MAXEXTENT, ev.getNewValue() );
+                            OperationSupport.instance().execute( op, false, false );
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "Unable to change extent of the map.", e );
+                        }
+                    }
+                });
+                return result;
             }
             else {
                 return i18n( "unknownValue" );
@@ -104,7 +121,7 @@ public class MapPropertySource
             }
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "Error while changing property: " + id, e );
+            PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, "Unable to change property: " + id, e );
         }
     }
     
