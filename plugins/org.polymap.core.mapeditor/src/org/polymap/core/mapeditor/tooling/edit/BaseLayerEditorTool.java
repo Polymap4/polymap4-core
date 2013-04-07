@@ -143,10 +143,20 @@ public abstract class BaseLayerEditorTool
     protected void fireEvent( BaseLayerEditorTool tool, String name, Object newValue ) {
         PropertyChangeEvent ev = new PropertyChangeEvent( tool, name, null, newValue );
         for (PropertyChangeListener l : listeners) {
-            l.propertyChange( ev );
+            try {
+                l.propertyChange( ev );
+            }
+            catch (Exception e) {
+                log.warn( e, e );
+            }
         }
         for (PropertyChangeListener l : sessionTools().listeners) {
-            l.propertyChange( ev );
+            try {
+                l.propertyChange( ev );
+            }
+            catch (Exception e) {
+                log.warn( e, e );
+            }
         }
     }
 

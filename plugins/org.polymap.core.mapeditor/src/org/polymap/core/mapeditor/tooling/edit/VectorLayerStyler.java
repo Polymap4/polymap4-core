@@ -119,16 +119,23 @@ public class VectorLayerStyler {
 //        Color c = new Color( rgb.red, rgb.green, rgb.blue ).brighter().brighter().brighter();
         
         // gray
-        int gray = (int)((0.299 * rgb.red) + (0.587 * rgb.green) + (0.114 * rgb.blue));
-        Color c = new Color( gray, gray, gray ).brighter();
+//        int gray = (int)((0.299 * rgb.red) + (0.587 * rgb.green) + (0.114 * rgb.blue));
+//        Color c = new Color( gray, gray, gray ).brighter();
         
+        HSLColor hsl = new HSLColor( new Color( rgb.red, rgb.green, rgb.blue ) );
+        Color c = hsl.adjustShade( 40 ).adjustSaturation( 100 ).toRGB();
+        
+        // hover
         hover.put( "strokeColor", new RGB( c.getRed(), c.getGreen(), c.getBlue() ) );
         hover.put( "strokeDashstyle", "solid" );
         Number strokeWidth = (Number)hover.get( "strokeWidth" );
         hover.put( "strokeWidth", strokeWidth );
     
+//        hsl = new HSLColor( new Color( rgb.red, rgb.green, rgb.blue ) );
+//        c = hsl.adjustHue( 180 ).adjustShade( 10 ).toRGB();
+
+        // select
         select = Maps.newHashMap( standard );
-        c = new Color( rgb.red, rgb.green, rgb.blue ).darker().darker();
         select.put( "strokeColor", new RGB( c.getRed(), c.getGreen(), c.getBlue() ) );
         select.put( "strokeDashstyle", "solid" );
         strokeWidth = (Number)select.get( "strokeWidth" );
