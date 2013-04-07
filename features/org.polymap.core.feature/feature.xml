@@ -491,13 +491,6 @@
          unpack="false"/>
 
    <plugin
-         id="org.polymap.alkis"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.polymap.geonetwork"
          download-size="0"
          install-size="0"

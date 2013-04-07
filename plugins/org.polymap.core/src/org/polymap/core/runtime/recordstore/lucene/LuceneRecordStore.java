@@ -84,8 +84,8 @@ public final class LuceneRecordStore
 
     public static final Version     VERSION = Version.LUCENE_36;
 
-    /** Default: 3% of HEAP; 16M seems to be the upper limit for 512M RAM for Lucene 3. */
-    public static final double      MAX_RAMBUFFER_SIZE = 3d / 100d * Runtime.getRuntime().maxMemory() / 1000000;
+    /** Default: 3% of HEAP; 32M is good for 512M RAM fand merge size 16MB (Lucene 3). */
+    public static final double      MAX_RAMBUFFER_SIZE = 10d / 100d * Runtime.getRuntime().maxMemory() / 1000000;
     
     public static final double      MAX_MERGE_SIZE = 16;
     
