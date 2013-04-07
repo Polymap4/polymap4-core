@@ -53,8 +53,8 @@
 
             <!-- used for runtime.recordstore, lka/Atlas and others -->
             <!-- http://mvnrepository.com/artifact/org.apache.lucene -->
-            <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.6.1" />
-            <dependency groupId="org.apache.lucene" artifactId="lucene-queryparser" version="3.6.1" />
+            <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.6.2" />
+            <dependency groupId="org.apache.lucene" artifactId="lucene-queryparser" version="3.6.2" />
 
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />
@@ -100,7 +100,7 @@
             <dependency groupId="org.geotools" artifactId="gt-postgis" version="${geotools.version}" scope="provided"/>
             <!-- dependency groupId="org.geotools" artifactId="gt-postgis-versioned" version="${geotools.version}" /-->
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-sqlserver" version="${geotools.version}" /-->
-            <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" />
+            <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" /-->
             <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-h2" version="${geotools.version}" />
             <dependency groupId="net.sourceforge.hatbox" artifactId="hatbox" version="1.0.b7" />
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-oracle" version="${geotools.version}" /-->

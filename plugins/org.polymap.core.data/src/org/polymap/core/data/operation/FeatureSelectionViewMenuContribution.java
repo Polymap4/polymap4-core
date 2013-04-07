@@ -174,6 +174,7 @@ public class FeatureSelectionViewMenuContribution
             this.view = _view;
             this.fs = view.getFeatureStore();
             this.display = view.getViewSite().getShell().getDisplay();
+            this.layer = view.getLayer();
         }
         
         protected void checkInit() throws Exception {
@@ -249,9 +250,10 @@ public class FeatureSelectionViewMenuContribution
         }
 
         public Object getAdapter( Class adapter ) {
-            return adapter.equals( ILayer.class )
-                    ? layer
-                    : super.getAdapter( adapter );
+            if (ILayer.class.isAssignableFrom( adapter )) {
+                return layer;
+            }
+            return super.getAdapter( adapter );
         }
     }
 

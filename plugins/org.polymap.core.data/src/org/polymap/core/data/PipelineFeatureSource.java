@@ -308,68 +308,75 @@ public class PipelineFeatureSource
     }
 
 
-    public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType, SimpleFeature> features )
+    public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType,SimpleFeature> features )
     throws IOException {
         return addFeatures( features, new NullProgressListener() );
     }
 
 
-    public List<FeatureId> addFeatures( final FeatureCollection<SimpleFeatureType, SimpleFeature> features,
+    public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType,SimpleFeature> features,
             final ProgressListener monitor )
             throws IOException {
         monitor.started();
 
-        FeatureType type = features.getSchema();
+//        FeatureType schema = getSchema();
+//        if (!schema.equals( features.getSchema() )) {
+//            log.warn( "addFeatures(): Given features have different schema - performing retype..." );
+//            features = new ReTypingFeatureCollection( features, (SimpleFeatureType)schema );
+//        }
+        final FeatureCollection fc = features;
+        // build a Collection that pipes the features through its Iterator; so
+        // the features don't need to be loaded in memory all together; and no
+        // chunks are needed; and events are sent correctly
+        Collection coll = new AbstractCollection() {
+            private volatile int size = -1;
+            public int size() {
+                return size < 0 ? size = fc.size() : size;
+            }
+            public Iterator iterator() {
+                return new Iterator() {
+                    private FeatureIterator it = fc.features();
+                    private int count = 0;
+                    @Override
+                    public boolean hasNext() {
+                        if (it != null && !it.hasNext()) {
+                            it.close();
+                            it = null;
+                            return false;
+                        }
+                        else {
+                            return true;
+                        }
+                    }
+                    @Override
+                    public Object next() {
+                        if ((++count % 100) == 0) {
+                            monitor.setTask( new SimpleInternationalString( "" + count ) );
+                            monitor.progress( 100 );
+                        }
+                        return it.next();
+                    }
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                    @Override
+                    protected void finalize() throws Throwable {
+                        if (it != null) {
+                            it.close();
+                            it = null;
+                        }
+                    }
+                };
+            }
+        };
+
         try {
-            // build a Collection that pipes the features through it Iterator; so
-            // the features don't need to be loaded in memory al together; and no
-            // chunks are needed; and events are sent correctly
-            Collection coll = new AbstractCollection() {
-                private int size = -1;
-                public int size() {
-                    return size < 0 ? size = features.size() : size;
-                }
-                public Iterator iterator() {
-                    return new Iterator() {
-                        private FeatureIterator it = features.features();
-                        private int count = 0;
-                        public boolean hasNext() {
-                            if (it != null && !it.hasNext()) {
-                                it.close();
-                                it = null;
-                                return false;
-                            }
-                            else {
-                                return true;
-                            }
-                        }
-                        public Object next() {
-                            if ((++count % 100) == 0) {
-                                monitor.setTask( new SimpleInternationalString( "" + count ) );
-                                monitor.progress( 100 );
-                            }
-                            return it.next();
-                        }
-                        public void remove() {
-                            throw new UnsupportedOperationException();
-                        }
-                        protected void finalize() throws Throwable {
-                            if (it != null) {
-                                it.close();
-                                it = null;
-                            }
-                        }
-                    };
-                }
-            };
-
             final List<FeatureId> fids = new ArrayList( 1024 );
-
             // request
-            AddFeaturesRequest request = new AddFeaturesRequest( type, coll );
+            AddFeaturesRequest request = new AddFeaturesRequest( features.getSchema(), coll );
             pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
+                public void handle( ProcessorResponse r ) throws Exception {
                     fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() );
                 }
             });
@@ -388,9 +395,6 @@ public class PipelineFeatureSource
         }
         catch (Exception e) {
             throw new RuntimeException( e );
-        }
-        finally {
-//            it.close();
         }
     }
 

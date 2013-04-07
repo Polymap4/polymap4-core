@@ -22,12 +22,15 @@ import java.util.concurrent.BlockingQueue;
 
 import java.io.IOException;
 
+import org.geotools.data.DefaultQuery;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.filter.Filter;
+
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,7 +54,7 @@ class AsyncPipelineFeatureCollection
 
     protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
     
-    protected static final int              DEFAULT_QUEUE_SIZE = 5000 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
+    protected static final int              DEFAULT_QUEUE_SIZE = 2500 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
     private static int                      fetcherCount = 0;
     
@@ -113,6 +116,14 @@ class AsyncPipelineFeatureCollection
 //            }, new NullProgressListener() );
         }
         return bounds;
+    }
+
+
+    @Override
+    public FeatureCollection<SimpleFeatureType,SimpleFeature> subCollection( Filter filter ) {
+        DefaultQuery subQuery = new DefaultQuery( query );
+        subQuery.setFilter( DataPlugin.ff.and( query.getFilter(), filter ) );
+        return new AsyncPipelineFeatureCollection( fs, subQuery, sessionContext ); 
     }
 
 

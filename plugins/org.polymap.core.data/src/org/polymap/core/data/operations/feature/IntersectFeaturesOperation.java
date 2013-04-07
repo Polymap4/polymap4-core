@@ -19,12 +19,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import java.io.IOException;
-
 import javax.measure.unit.Unit;
 
-import org.geotools.data.DefaultQuery;
-import org.geotools.data.FeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -33,6 +29,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
@@ -101,8 +98,11 @@ public class IntersectFeaturesOperation
 
     private ILayer                          layer;
     
-    private LayerFeatureSelectionOperation  delegate;
+    /** Initialized by teh ChooseLayerPage. */
+    private ILayer                          queryLayer;
     
+    private LayerFeatureSelectionOperation  delegate;
+
     
     @Override
     public boolean init( IFeatureOperationContext _context ) {
@@ -138,9 +138,11 @@ public class IntersectFeaturesOperation
             public boolean isPageComplete() {
                 if (super.isPageComplete()) {
                     try {
+                        queryLayer = getResult();
                         PipelineFeatureSource rfs = PipelineFeatureSource.forLayer( getResult(), false );
                         return rfs != null && rfs.getPipeline().length() > 0;
-                    } catch (Exception e) {
+                    } 
+                    catch (Exception e) {
                         return false;
                     }
                 }
@@ -151,6 +153,9 @@ public class IntersectFeaturesOperation
         // BufferInputPage
         BufferInputPage bufferInputPage = new BufferInputPage();
         wizard.addPage( bufferInputPage );
+        // ChooseTargetPage
+        ChooseTargetPage chooseTargetPage = new ChooseTargetPage();
+        wizard.addPage( chooseTargetPage );
         
         monitor.worked( 10 );
 
@@ -163,23 +168,36 @@ public class IntersectFeaturesOperation
 
             FeatureCollection features = context.features();
             CoordinateReferenceSystem crs = context.featureSource().getSchema().getCoordinateReferenceSystem();
+            if (crs == null) {
+                throw new Exception( i18n( "noCRS", context.featureSource().getSchema().getName().getLocalPart() ) );
+            }
 
             int featuresSize = features.size();
             submon.beginTask( i18n( "submonTitle", featuresSize ), featuresSize );
             submon.subTask( "Preparing..." );
 
-            // query layer
+            // choosen query layer
             ILayer queryLayer = chooseLayerPage.getResult();
             final PipelineFeatureSource queryFs = PipelineFeatureSource.forLayer( queryLayer, true );
             if (queryFs == null) {
                 throw new Exception( "Not a feature layer: " + queryLayer.getLabel() );
             }
+            if (queryFs.getSchema().getCoordinateReferenceSystem() == null) {
+                throw new Exception( i18n( "noCRS", queryFs.getSchema().getName().getLocalPart() ) );
+            }
+            
             // intersection mode
             final IntersectionMode mode = bufferInputPage.mode;
             
+            // choose target layer
+            boolean regular = chooseTargetPage.isRegular;
+            FeatureCollection targetFeatures = regular ? features : queryFs.getFeatures();
+            ILayer targetLayer = regular ? layer : queryLayer;
+            final FeatureCollection queryFeatures = regular ? queryFs.getFeatures() : features;
+            
             // intersect geometries
             final Set<FeatureId> fids = new HashSet();
-            features.accepts( new FeatureVisitor() {
+            targetFeatures.accepts( new FeatureVisitor() {
                 int count = 0;
                 public void visit( Feature feature ) {
                     if (!submon.isCanceled()) {
@@ -188,7 +206,7 @@ public class IntersectFeaturesOperation
                             submon.subTask( String.valueOf( count ) );
                         }
                         try {
-                            FeatureId fid = mode.perform( feature, queryFs );
+                            FeatureId fid = mode.perform( feature, queryFeatures );
                             if (fid != null) {
                                 fids.add( fid );
                             }
@@ -205,10 +223,10 @@ public class IntersectFeaturesOperation
             // change selection
             if (!submon.isCanceled()) {
                 // XXX find indirect way to open view
-                FeatureSelectionView.open( layer );
+                FeatureSelectionView.open( targetLayer );
                 
                 delegate = new LayerFeatureSelectionOperation();
-                delegate.init( layer, ff.id( fids ), null, null );
+                delegate.init( targetLayer, ff.id( fids ), null, null );
                 delegate.execute( monitor, context );
             }
             monitor.done();
@@ -273,15 +291,15 @@ public class IntersectFeaturesOperation
             this.distance = distance;
         }
 
-        public abstract FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public abstract FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception;
 
-        protected Geometry transformed( Feature feature, FeatureSource queryFs )
+        protected Geometry transformed( Feature feature, FeatureType querySchema )
         throws Exception {
             if (crs == null) {
                 crs = feature.getDefaultGeometryProperty().getDescriptor().getCoordinateReferenceSystem();
-                queryCrs = queryFs.getSchema().getCoordinateReferenceSystem();
-                queryGeomName = queryFs.getSchema().getGeometryDescriptor().getName();
+                queryCrs = querySchema.getCoordinateReferenceSystem();
+                queryGeomName = querySchema.getGeometryDescriptor().getName();
             }
 
             Geometry geom = (Geometry)feature.getDefaultGeometryProperty().getValue();
@@ -320,12 +338,12 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
             
             ReferencedEnvelope bbox = JTS.toEnvelope( geom );
-            FeatureCollection intersected = queryFs.getFeatures( ff.and(
+            FeatureCollection intersected = queryFeatures.subCollection( ff.and(
                     ff.bbox( ff.property( queryGeomName ), bbox ),
                     ff.intersects( ff.property( queryGeomName ), ff.literal( geom ) ) ) );
             
@@ -345,9 +363,9 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, final FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, final FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
 
             // build index
             if (index == null) {
@@ -355,15 +373,13 @@ public class IntersectFeaturesOperation
                 index = new STRtree();
                 
                 ReferencedEnvelope bbox = Geometries.transform( context.features().getBounds(), queryCrs );
-                FeatureCollection features = queryFs.getFeatures( 
-                        new DefaultQuery( null, 
-                                ff.bbox( ff.property( queryGeomName ), bbox ),
-                                new String[] { queryGeomName.getLocalPart() } ) );
+                FeatureCollection features = queryFeatures.subCollection( 
+                        ff.bbox( ff.property( queryGeomName ), bbox ) );
                 
                 features.accepts( new FeatureVisitor() {
                     public void visit( final Feature _feature ) {
                         Geometry _geom = (Geometry)_feature.getDefaultGeometryProperty().getValue();
-                        index.insert( _geom.getEnvelopeInternal(), new CachedFeatureRef( _feature, queryFs ) );
+                        index.insert( _geom.getEnvelopeInternal(), new CachedFeatureRef( _feature, queryFeatures ) );
                     }
                 }, new NullProgressListener() );
                 log.info( "    Building index: " + timer.elapsedTime() + "ms" );
@@ -390,16 +406,14 @@ public class IntersectFeaturesOperation
     private static class CachedFeatureRef
             extends CachedLazyInit<Feature> {
 
-        private String          fid;
+        private String              fid;
         
-        private FeatureSource   fs;
-        
-        private Supplier        supplier;
+        private FeatureCollection   coll;
 
-        public CachedFeatureRef( Feature feature, FeatureSource fs ) {
+        public CachedFeatureRef( Feature feature, FeatureCollection coll ) {
             super( feature, 1024, null );
             this.fid = feature.getIdentifier().getID();
-            this.fs = fs;
+            this.coll = coll;
         }
 
         public Feature get() {
@@ -409,12 +423,12 @@ public class IntersectFeaturesOperation
                     try {
                         //log.info( "Fetching " + fid + "..." );
                         Id filter = ff.id( Collections.singleton( ff.featureId( fid ) ) );
-                        it = fs.getFeatures( filter ).features();
+                        it = coll.subCollection( filter ).features();
                         return it.hasNext() ? it.next() : null;
                     }
-                    catch (IOException e) {
-                        throw new RuntimeException( e );
-                    }
+//                    catch (IOException e) {
+//                        throw new RuntimeException( e );
+//                    }
                     finally {
                         if (it != null) { it.close(); }
                     }
@@ -433,11 +447,11 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
             
-            FeatureCollection intersected = queryFs.getFeatures(
+            FeatureCollection intersected = queryFeatures.subCollection(
                     ff.crosses( ff.property( queryGeomName ), ff.literal( geom ) ) );
             
             return !intersected.isEmpty() ? feature.getIdentifier() : null;
@@ -454,16 +468,16 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
             
             // get the unit of measurement
-            CoordinateReferenceSystem crs = queryFs.getSchema().getCoordinateReferenceSystem();
+            CoordinateReferenceSystem crs = queryFeatures.getSchema().getCoordinateReferenceSystem();
             Unit<?> uom = crs.getCoordinateSystem().getAxis(0).getUnit();
             log.info( "UOM: " + uom.toString() );
             
-            FeatureCollection intersected = queryFs.getFeatures(
+            FeatureCollection intersected = queryFeatures.subCollection(
                     ff.dwithin( ff.property( queryGeomName ), ff.literal( geom ), distance, "m" /*uom.toString()*/ ) );
             
             return !intersected.isEmpty() ? feature.getIdentifier() : null;
@@ -480,11 +494,11 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
             
-            FeatureCollection intersected = queryFs.getFeatures(
+            FeatureCollection intersected = queryFeatures.subCollection(
                     ff.touches( ff.property( queryGeomName ), ff.literal( geom ) ) );
             
             return !intersected.isEmpty() ? feature.getIdentifier() : null;
@@ -501,11 +515,11 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
             
-            FeatureCollection intersected = queryFs.getFeatures(
+            FeatureCollection intersected = queryFeatures.subCollection(
                     ff.overlaps( ff.property( queryGeomName ), ff.literal( geom ) ) );
             
             return !intersected.isEmpty() ? feature.getIdentifier() : null;
@@ -522,11 +536,11 @@ public class IntersectFeaturesOperation
             super( distance );
         }
 
-        public FeatureId perform( Feature feature, FeatureSource queryFs ) 
+        public FeatureId perform( Feature feature, FeatureCollection queryFeatures ) 
         throws Exception {
-            Geometry geom = transformed( feature, queryFs );
+            Geometry geom = transformed( feature, queryFeatures.getSchema() );
             
-            FeatureCollection intersected = queryFs.getFeatures(
+            FeatureCollection intersected = queryFeatures.subCollection(
                     ff.contains( ff.property( queryGeomName ), ff.literal( geom ) ) );
             
             return !intersected.isEmpty() ? feature.getIdentifier() : null;
@@ -537,7 +551,7 @@ public class IntersectFeaturesOperation
 
 
     /**
-     * A wizard page that gets buffer distance and intersection mode from the user.
+     * Wizard page that gets buffer distance and intersection mode from the user.
      */
     public class BufferInputPage
             extends WizardPage {
@@ -666,6 +680,56 @@ public class IntersectFeaturesOperation
             return Messages.get( "IntersectFeaturesOperation_BufferInputPage_" + key, args );
         }
 
+    }
+    
+    
+    /**
+     * Wizard page that gets buffer distance and intersection mode from the user.
+     */
+    public class ChooseTargetPage
+            extends WizardPage {
+
+        public static final String  ID = "ChooseTargetPage";
+        
+        private boolean             isRegular = true;
+
+        public ChooseTargetPage() {
+            super( ID );
+            setTitle( i18n( "title" ) );
+            setDescription( i18n( "description" ) );
+        }
+
+        public void createControl( Composite parent ) {
+            Composite contents = new Composite( parent, SWT.NONE );
+            FormLayout layout = new FormLayout();
+            layout.spacing = 10;
+            layout.marginWidth = 8;
+            contents.setLayout( layout );
+            setControl( contents );
+
+            final Button regularBtn = new Button( contents, SWT.RADIO );
+            regularBtn.setText( i18n( "regular", layer.getLabel() ) );
+            regularBtn.setLayoutData( SimpleFormData.filled().bottom( -1 ).create() );
+            regularBtn.setSelection( true );
+            regularBtn.addSelectionListener( new SelectionAdapter() {
+                public void widgetSelected( SelectionEvent ev ) {
+                    isRegular = regularBtn.getSelection();
+                }
+            });
+
+            Button goofyBtn = new Button( contents, SWT.RADIO );
+            goofyBtn.setText( i18n( "goofy", layer.getLabel() ) );
+            goofyBtn.setLayoutData( SimpleFormData.filled().top( regularBtn ).bottom( -1 ).create() );
+        }
+        
+        public boolean isPageComplete() {
+            return true;
+        }
+
+        protected String i18n( String key, Object... args ) {
+            return Messages.get( "IntersectFeaturesOperation_ChooseTargetPage_" + key, args );
+        }
+        
     }
 
 }
