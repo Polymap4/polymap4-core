@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.ObjectArrays;
 
+import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.event.DeferringListener.DeferredEvent;
 
 /**
@@ -102,9 +103,13 @@ class AnnotatedEventListener
                     // filters
                     listener = new FilteringListener( listener, 
                             ObjectArrays.concat( am.filters, filters, EventFilter.class ) );
+                    
                     // session context; first in chain so that all listener/filters
                     // get the proper context
-                    listener = new SessioningListener( listener, mapKey );
+                    SessionContext session = SessionContext.current();
+                    if (session != null) {
+                        listener = new SessioningListener( listener, mapKey, session );
+                    }
                     methods.add( listener );
                 }
             }

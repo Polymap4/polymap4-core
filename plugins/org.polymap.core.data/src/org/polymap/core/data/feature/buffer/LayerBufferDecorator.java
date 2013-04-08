@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -17,6 +17,7 @@ package org.polymap.core.data.feature.buffer;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -34,11 +35,12 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.FeatureChangeEvent.Type;
 import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.entity.EntityHandle;
 import org.polymap.core.runtime.entity.EntityStateEvent;
-import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 import org.polymap.core.runtime.event.Event;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
@@ -69,9 +71,11 @@ public class LayerBufferDecorator
     /** The ids of the decorated layers. */
     private Map<String,ILayer>      decorated;
 
+    private Map<String,ILayer>      modified;
     
     public LayerBufferDecorator() {
         decorated = new MapMaker().weakValues().initialCapacity( 128 ).makeMap();
+        modified = new MapMaker().weakValues().initialCapacity( 128 ).makeMap();
         
         EventManager.instance().subscribe( this, new EventFilter<EventObject>() {
             public boolean apply( EventObject ev ) {
@@ -80,7 +84,7 @@ public class LayerBufferDecorator
                     return decorated.containsKey( fev.getSource().id() );
                 }
                 else if (ev instanceof EntityStateEvent) {
-                    return ev.getSource() instanceof ILayer;
+                    return ((EntityStateEvent)ev).getEventType() == EventType.COMMIT;
                 }
                 return false;
             }
@@ -92,17 +96,31 @@ public class LayerBufferDecorator
         EventManager.instance().unsubscribe( this );
         FeatureStateTracker.instance().removeFeatureListener( this );
         decorated.clear();
+        modified.clear();
     }
 
     
     @EventHandler(delay=2000,display=true)
     protected void featureChanges( List<FeatureChangeEvent> events ) {
+        for (FeatureChangeEvent ev : events) {
+            if (ev.getType() == Type.FLUSHED) {
+                modified.remove( ev.getSource().id() );
+            }
+            else {
+                modified.put( ev.getSource().id(), ev.getSource() );
+            }
+        }
         fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
     }
 
     
     @EventHandler(delay=2000,display=true,scope=Event.Scope.JVM)
     protected void featureStored( List<EntityStateEvent> events ) {
+        for (EntityStateEvent ev : events ) {
+            if (ev.isMySession()) {
+                modified.clear();
+            }
+        }
         fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
     }
 
@@ -119,17 +137,13 @@ public class LayerBufferDecorator
                 return;
             }
 
-            LayerFeatureBufferManager layerBuffer = LayerFeatureBufferManager.forLayer( layer, true );
-            if (layerBuffer == null) {
-                return;
-            }
-            
             try {
-                boolean outgoing = !layerBuffer.getBuffer().isEmpty();
+                boolean outgoing = modified.containsKey( layer.id() );
                 
                 EntityHandle layerHandle = FeatureStateTracker.layerHandle( layer );
-                boolean incoming = EntityStateTracker.instance().isConflicting( 
-                        layerHandle, layerBuffer.getLayerTimestamp() );
+                boolean incoming = false;
+//                boolean incoming = EntityStateTracker.instance().isConflicting( 
+//                        layerHandle, layerBuffer.getLayerTimestamp() );
                 
                 if (outgoing && incoming) {
                     decoration.addPrefix( "# " );                    

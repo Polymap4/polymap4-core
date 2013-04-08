@@ -35,7 +35,8 @@ import org.eclipse.rwt.internal.service.ContextProvider;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @SuppressWarnings("restriction")
-public class MessagesImpl {
+public class MessagesImpl
+        implements IMessages {
 
     private static Log log = LogFactory.getLog( MessagesImpl.class );
 
@@ -46,6 +47,8 @@ public class MessagesImpl {
     private ClassLoader         cl;
     
     private Locale              defaultLocale = Locale.GERMAN;
+    
+    private String              prefix;
 
 
     /**
@@ -55,14 +58,23 @@ public class MessagesImpl {
      * @param cl The {@link ClassLoader} to be used to load the resources.
      */
     public MessagesImpl( String bundleName, ClassLoader cl ) {
-        this.bundleName = bundleName;
-        this.cl = cl;
+        this( bundleName, cl, null );
     }
 
-//    public MessagesImpl( Bundle plugin, String resourceName ) {
-//        this( plugin.getBundleId() + resourceName, plugin.getClass().getClassLoader() );
-//    }
-    
+    /**
+     * 
+     * @param bundleName The name of the resource bundle. This is different from the
+     *        OSGi bundle name.For example: PLUGIN_ID + ".messages".
+     * @param cl The {@link ClassLoader} to be used to load the resources.
+     * @param prefix
+     */
+    public MessagesImpl( String bundleName, ClassLoader cl, String prefix ) {
+        this.bundleName = bundleName;
+        this.cl = cl;
+        this.prefix = prefix != null ? prefix + SEPARATOR : "";
+    }
+
+    @Override
     public Locale getDefaultLocale() {
         return defaultLocale;
     }
@@ -80,6 +92,7 @@ public class MessagesImpl {
      * @param args If not null, then the message is formatted via {@link MessageFormat}
      * @return The message for the given key.
      */
+    @Override
     public String get( String key, Object... args ) {
         Locale locale = ContextProvider.hasContext() ? RWT.getLocale() : defaultLocale;
         return get( locale, key, args );
@@ -95,15 +108,16 @@ public class MessagesImpl {
      * @param args If not null, then the message is formatted via {@link MessageFormat}
      * @return The message for the given key.
      */
+    @Override
     public String get( Locale locale, String key, Object... args ) {
         try {
             // getBundle() caches the bundles
             ResourceBundle bundle = ResourceBundle.getBundle( bundleName, locale, cl );
             if (args == null || args.length == 0) {
-                return bundle.getString( key );
+                return bundle.getString( prefix + key );
             }
             else {
-                String msg = bundle.getString( key );
+                String msg = bundle.getString( prefix + key );
                 return MessageFormat.format( msg, args );
             }
         }
@@ -121,4 +135,14 @@ public class MessagesImpl {
         return get( key, args );
     }
 
+    
+    @Override
+    public IMessages forClass( final Class type ) {
+        return forPrefix( type.getSimpleName() );
+    }
+
+    public IMessages forPrefix( String _prefix ) {
+        return new MessagesImpl( bundleName, cl, _prefix );
+    }
+    
 }

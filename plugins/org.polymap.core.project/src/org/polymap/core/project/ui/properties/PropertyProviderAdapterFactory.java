@@ -72,12 +72,12 @@ public class PropertyProviderAdapterFactory
             implements IPropertySourceProvider {
         
         public IPropertySource getPropertySource( Object obj ) {
-            log.info( "getPropertySource(): " + obj );
+            log.trace( "getPropertySource(): " + obj );
             if (obj instanceof IMap) {
                 return new MapPropertySource( (IMap)obj );
             }
             else if (obj instanceof ReferencedEnvelope) {
-                return new EnvelopPropertySource( (ReferencedEnvelope)obj ).setEditable( true );
+                return new EnvelopPropertySource( (ReferencedEnvelope)obj ); //.setEditable( true );
             }
             else if (obj instanceof IPropertySource) {
                 return (IPropertySource)obj;
@@ -95,12 +95,12 @@ public class PropertyProviderAdapterFactory
             implements IPropertySourceProvider {
         
         public IPropertySource getPropertySource( Object obj ) {
-            log.info( "getPropertySource(): " + obj.getClass().getName() );
+            log.trace( "getPropertySource(): " + obj.getClass().getName() );
             if (obj instanceof ILayer) {
                 return new LayerPropertySource( (ILayer)obj );
             }
             else if (obj instanceof ReferencedEnvelope) {
-                return new EnvelopPropertySource( (ReferencedEnvelope)obj ).setEditable( true );
+                return new EnvelopPropertySource( (ReferencedEnvelope)obj ); //.setEditable( true );
             }
             return null;
         }

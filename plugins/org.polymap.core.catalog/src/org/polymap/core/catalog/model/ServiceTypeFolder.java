@@ -87,6 +87,10 @@ class ServiceTypeFolder
         throw new RuntimeException( "not yet implemented." );
     }
 
+    public String toString() {
+        return getTitle();
+    }
+
     public String getTitle() {
         String typeName = type.getSimpleName();
         if (StringUtils.contains( typeName, "Post" )) {

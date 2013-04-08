@@ -308,11 +308,16 @@ public class ResolveTitlesDecorator implements ILabelDecorator, IColorDecorator,
         assert Display.getCurrent()!=null;
         disposed=true;
         toDecorate.clear();
-        textWorker.cancel();
+        
+        System.err.print( "SKIPPING WORKER SHUTDOWN." );
+        // XXX _p3: this sometimes causes shutdown to hang
+//        textWorker.cancel();
+        
         images.clear();
-        for( UpdateLabel updater : allImageWorkers ) {
-            updater.cancel();
-        }
+        // XXX _p3: this sometimes causes shutdown to hang
+//        for( UpdateLabel updater : allImageWorkers ) {
+//            updater.cancel();
+//        }
         // should clean up after hack
         decorated.clear();
         listeners.removeAll(instanceListeners);
@@ -392,7 +397,7 @@ public class ResolveTitlesDecorator implements ILabelDecorator, IColorDecorator,
                         continue;
                     
                     URL identifier = element.getIdentifier();
-                    monitor.beginTask(Messages.ResolveTitlesDecorator_0 + identifier.getFile(),
+                    monitor.beginTask(Messages.get("ResolveTitlesDecorator_0") + identifier.getFile(),
                             IProgressMonitor.UNKNOWN);
                     if( monitor.isCanceled() ){
                         return Status.OK_STATUS;

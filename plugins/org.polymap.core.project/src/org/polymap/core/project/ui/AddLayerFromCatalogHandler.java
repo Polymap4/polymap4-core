@@ -84,28 +84,20 @@ public class AddLayerFromCatalogHandler
         IWorkbench workbench = HandlerUtil.getActiveWorkbenchWindow( ev ).getWorkbench();
         
         OperationSupport.instance().execute( op, true, true );
-        
-//        IOperationHistory operationHistory = workbench.getOperationSupport().getOperationHistory();
-//        IUndoContext undoContext = workbench.getOperationSupport().getUndoContext();
-//        operation.addContext( undoContext );
-//        operationHistory.execute( operation, null, null );
-        
-        
-//        // FIXME using commands instead of setters
-//        ILayer layer = (ILayer)map.getDomain().createObject( ILayer.class );
-//        layer.setLabel( selectedGeoRes.getTitle() );
-//        layer.setGeoResource( selectedGeoRes );
-//        
-//        map.addLayer( layer );
         return null;
     }
 
 
     public boolean isEnabled() {
         log.debug( "currentMap= " + ProjectPlugin.getSelectedMap() );
-        boolean isEnabled = ProjectPlugin.getSelectedMap() != null;
-        enableListener( isEnabled );
+        boolean isEnabled = selectedGeoRes != null && ProjectPlugin.getSelectedMap() != null;
+//        enableListener( isEnabled );
         return isEnabled;
+    }
+
+
+    public boolean isHandled() {
+        return isEnabled();
     }
 
 
@@ -119,6 +111,7 @@ public class AddLayerFromCatalogHandler
                     if (selectionListener == null) {
                         selectionListener = new ISelectionListener() {
                             public void selectionChanged( IWorkbenchPart part, ISelection sel ) {
+                                selectedGeoRes = null;
                                 if (sel instanceof IStructuredSelection) {
                                     Object elm = ((IStructuredSelection)sel).getFirstElement();
                                     if (elm != null && elm instanceof IGeoResource) {
@@ -141,47 +134,5 @@ public class AddLayerFromCatalogHandler
         }
         log.debug( "handler status: enabled= " + (selectionListener != null) );
     }
-
-
-    public boolean isHandled() {
-        return true;
-    }
-
-
-//    public static void openMap( final MapEditorInput input, IWorkbenchPage page ) 
-//            throws PartInitException {
-//        log.debug( "        new editor: map= " + ((MapEditorInput)input).getMap().getId() );
-//
-//        // check current editors
-//        IEditorReference[] editors = page.getEditorReferences();
-//        for (IEditorReference reference : editors) {
-//            IEditorInput cursor = reference.getEditorInput();
-//            if (cursor instanceof MapEditorInput) {
-//                log.debug( "        editor: map= " + ((MapEditorInput)cursor).getMap().getId() );
-//            }
-//            if (cursor.equals( input )) {
-//                Object previous = page.getActiveEditor();
-//                page.activate( reference.getPart( true ) );
-//                return;
-//            }
-//        }
-//
-//        // not found -> open new editor
-//        IEditorPart part = page.openEditor( input, input.getEditorId(), true, IWorkbenchPage.MATCH_NONE );
-//        log.debug( "editor= " + part );
-//
-//        //            ProjectExplorer explorer = ProjectExplorer.getProjectExplorer();
-//        //            explorer.setSelection( Collections.singleton( input.getProjectElement() ), true );
-//
-//        //            if (part instanceof MapEditor) {
-//        //                MapEditor mapEditor = (MapEditor)part;
-//        //                while (!mapEditor.getComposite().isVisible()
-//        //                        || !mapEditor.getComposite().isEnabled()) {
-//        //                    if (!Display.getCurrent().readAndDispatch()) {
-//        //                        Thread.sleep( 300 );
-//        //                    }
-//        //                }
-//        //            }
-//    }
 
 }

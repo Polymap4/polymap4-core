@@ -70,7 +70,7 @@ public class ResolveContentProvider
             }
             else {
                 update( resolve ); // calculate
-                return new Object[] { Messages.ResolveContentProvider_searching };
+                return new Object[] { Messages.get("ResolveContentProvider_searching") };
             }
         }
         else {

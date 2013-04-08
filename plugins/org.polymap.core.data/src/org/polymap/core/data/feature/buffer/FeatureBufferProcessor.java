@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, 2011 Polymap GmbH. All rights reserved.
+ * Copyright 2010-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,15 +16,20 @@ package org.polymap.core.data.feature.buffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+
+import org.geotools.data.DefaultQuery;
+import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
+import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.geotools.data.DefaultQuery;
-import org.opengis.feature.Feature;
-import org.opengis.filter.identity.FeatureId;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.AddFeaturesRequest;
@@ -37,11 +42,11 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.project.LayerUseCase;
 
 /**
@@ -55,7 +60,7 @@ import org.polymap.core.project.LayerUseCase;
  * @since 3.1
  */
 public class FeatureBufferProcessor
-        implements PipelineProcessor {
+        implements PipelineProcessor, IFeatureBufferProcessor {
 
     private static final Log log = LogFactory.getLog( FeatureBufferProcessor.class );
 
@@ -79,10 +84,13 @@ public class FeatureBufferProcessor
      * and shared by all threads using this pipeline.
      */
     protected IFeatureBuffer            buffer;
+
+    private LayerFeatureBufferManager   manager;
     
     
-    public FeatureBufferProcessor( IFeatureBuffer buffer ) {
+    public FeatureBufferProcessor( LayerFeatureBufferManager manager, IFeatureBuffer buffer ) {
         this.buffer = buffer;
+        this.manager = manager;
     }
 
 
@@ -90,6 +98,13 @@ public class FeatureBufferProcessor
     }
 
     
+    @Override
+    public void revert( Filter filter, IProgressMonitor monitor ) {
+        // do not directly call buffer.clear() as this does not send events
+        manager.revert( filter, monitor );
+    }
+
+
     public void commitChanges() {
         throw new RuntimeException( "not yet implementd" );
         
@@ -122,7 +137,7 @@ public class FeatureBufferProcessor
             context.put( "request", r );
             GetFeaturesRequest request = (GetFeaturesRequest)r;
             // send added features first
-            List<Feature> added = buffer.addedFeatures( request.getQuery().getFilter() );
+            List<Feature> added = buffer.modifiedFeatures( request.getQuery().getFilter() );
             if (!added.isEmpty()) {
                 context.sendResponse( new GetFeaturesResponse( added ) );
             }
@@ -137,14 +152,15 @@ public class FeatureBufferProcessor
         // AddFeatures
         else if (r instanceof AddFeaturesRequest) {
             AddFeaturesRequest request = (AddFeaturesRequest)r;
-            List<FeatureId> result = new ArrayList( 1024 );
+            Set<FeatureId> result = new HashSet( 1024 );
             
             // features are send in a Collection backed by the real source
             // (see PipelineFeatureSource#addFeatures()) 
             // XXX load features once - but hold them all in memory
             List<Feature> features = new ArrayList( request.getFeatures() );
             buffer.registerFeatures( features );
-            result.addAll( buffer.markAdded( features ) );
+            boolean ok = result.addAll( buffer.markAdded( features ) );
+            assert ok;
             
             context.sendResponse( new ModifyFeaturesResponse( result ) );
             context.sendResponse( ProcessorResponse.EOP );
@@ -200,7 +216,7 @@ public class FeatureBufferProcessor
             // state: none
             else {
                 GetFeaturesRequest request = (GetFeaturesRequest)context.get( "request" );
-                Collection<Feature> features = buffer.blendFeatures( request.getQuery(), response.getFeatures() );
+                List<Feature> features = buffer.blendFeatures( request.getQuery(), response.getFeatures() );
                 
                 // check/set timestamps
                 // XXX need when in edit mode only
@@ -213,7 +229,7 @@ public class FeatureBufferProcessor
                         feature.getUserData().put( FeatureBufferState.TIMESTAMP_KEY, old );
                     }
                 }
-                context.sendResponse( new GetFeaturesResponse( (List<Feature>)features ) );
+                context.sendResponse( new GetFeaturesResponse( features ) );
             }
         }
         
@@ -225,17 +241,17 @@ public class FeatureBufferProcessor
             // state: modifying
             if ("modifying".equals( state )) {
                 ModifyFeaturesRequest request = (ModifyFeaturesRequest)context.get( "request" );
-                List<FeatureId> ids = buffer.markModified( 
+                Set<FeatureId> fids = buffer.markModified( 
                         request.getFilter(), request.getType(), request.getValue() );
   
-                context.sendResponse( new ModifyFeaturesResponse( ids ) );    
+                context.sendResponse( new ModifyFeaturesResponse( fids ) );    
             }
             // state: removing
             else if ("removing".equals( state )) {
                 RemoveFeaturesRequest request = (RemoveFeaturesRequest)context.get( "request" );
-                List<FeatureId> ids = buffer.markRemoved( request.getFilter() );
+                Set<FeatureId> fids = buffer.markRemoved( request.getFilter() );
   
-                context.sendResponse( new ModifyFeaturesResponse( ids ) );    
+                context.sendResponse( new ModifyFeaturesResponse( fids ) );    
             }
 
             context.sendResponse( r );

@@ -30,7 +30,7 @@ import org.eclipse.core.runtime.Status;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class FeatureOperationContainer
+public class FeatureOperationContainer
         extends AbstractOperation {
 
     private static Log log = LogFactory.getLog( FeatureOperationContainer.class );
@@ -55,6 +55,11 @@ class FeatureOperationContainer
     }
 
     
+    public IFeatureOperation getDelegate() {
+        return delegate;
+    }
+
+
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
         try {
@@ -73,6 +78,12 @@ class FeatureOperationContainer
                 default:
                     return Status.CANCEL_STATUS;
             }
+        }
+        catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        }
+        catch (ExecutionException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );
@@ -95,6 +106,12 @@ class FeatureOperationContainer
                     return Status.CANCEL_STATUS;
             }
         }
+        catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        }
+        catch (ExecutionException e) {
+            throw e;
+        }
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );
         }
@@ -115,6 +132,12 @@ class FeatureOperationContainer
                 default:
                     return Status.CANCEL_STATUS;
             }
+        }
+        catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        }
+        catch (ExecutionException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );

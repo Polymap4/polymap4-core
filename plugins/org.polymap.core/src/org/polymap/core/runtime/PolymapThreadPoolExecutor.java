@@ -40,11 +40,12 @@ public class PolymapThreadPoolExecutor
     
     public static PolymapThreadPoolExecutor newInstance() {
         // policy:
-        //   - first: spawn up to proc*8 threads (stopped when idle for 60s)
-        //   - then: queue 3times more jobs (for faster feeding workers
+        //   - first: spawn up to proc*6 threads (stopped when idle for 180s)
+        //   - then: queue 3 times more jobs (for faster feeding workers)
         //   - then: block until queue can take another job
+        //   - and/or: expand corePoolSize (via bounds checkecker thread)
         int procs = Runtime.getRuntime().availableProcessors();
-        final int nThreads = procs * 8;
+        final int nThreads = procs * 6;
         final int maxThreads = nThreads * 5;
         
         // Proper queue bound semantics but just half the task througput of
@@ -69,12 +70,23 @@ public class PolymapThreadPoolExecutor
                 while (queue != null) {
                     try {
                         Thread.sleep( 1000 );
-                        if (queue.size() > bound
+//                        log.info( "queued:" + queue.size() 
+//                                + " - pool:" + result.getCorePoolSize() 
+//                                + " - largest:" + result.getLargestPoolSize() 
+//                                + " - completed:" + result.getCompletedTaskCount() );
+                        // need more threads?
+                        if (queue.size() > bound 
                                 && result.getCorePoolSize() < maxThreads) {
-                            
                             int n = result.getCorePoolSize() + nThreads;
-                            log.info( "Queue remaining capacity == 0 -> increasing core pool size: " + n );
+                            log.info( "Thread Pool: increasing core pool size to: " + n );
                             result.setCorePoolSize( n );
+                        }
+                        // shrink down?
+                        if (queue.isEmpty()
+                                && result.getActiveCount() == 0
+                                && result.getCorePoolSize() > nThreads) {
+                            log.info( "Thread Pool: decreasing core pool size to: " + nThreads );
+                            result.setCorePoolSize( nThreads );
                         }
                     }
                     catch (Throwable e) {

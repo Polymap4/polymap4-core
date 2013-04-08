@@ -32,7 +32,7 @@
 
 	<target name="load_m2_deps" unless="already_downloaded">
 		
-        <setproxy proxyhost="46.4.28.8" proxyport="3128" />
+        <setproxy proxyhost="46.4.28.8" proxyport="3128"/>
 		
 		<!-- we can probably replace this with a reference to a pom.xml file -->
 		<!-- Use http://mvnrepository.com/ to look stuff up -->
@@ -45,15 +45,16 @@
 			<!-- remoteRepository refid="udig.snapshot.repository" /-->
 
 			<remoteRepository refid="geotools.repository" />
-			<!-- remoteRepository refid="geotools.repository.snapshot" /-->
+            <!-- hatbox needs this repo -->
+			<remoteRepository refid="geotools.repository.snapshot" />
 			<remoteRepository refid="central.repository" />
 			<remoteRepository refid="jaitoolsmaven.repository" />
 			<!-- remoteRepository refid="geosolutionsmaven.repository" /-->
 
             <!-- used for runtime.recordstore, lka/Atlas and others -->
             <!-- http://mvnrepository.com/artifact/org.apache.lucene -->
-            <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.6.1" />
-            <dependency groupId="org.apache.lucene" artifactId="lucene-queryparser" version="3.6.1" />
+            <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.6.2" />
+            <dependency groupId="org.apache.lucene" artifactId="lucene-queryparser" version="3.6.2" />
 
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />
@@ -99,8 +100,9 @@
             <dependency groupId="org.geotools" artifactId="gt-postgis" version="${geotools.version}" scope="provided"/>
             <!-- dependency groupId="org.geotools" artifactId="gt-postgis-versioned" version="${geotools.version}" /-->
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-sqlserver" version="${geotools.version}" /-->
-            <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" />
+            <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" /-->
             <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-h2" version="${geotools.version}" />
+            <dependency groupId="net.sourceforge.hatbox" artifactId="hatbox" version="1.0.b7" />
             <!-- dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-oracle" version="${geotools.version}" /-->
 
 			<dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />

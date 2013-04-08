@@ -62,7 +62,7 @@ public class CountDownProgressMonitor extends SubProgressMonitor{
     }
 
     private void setTaskName() {
-        setTaskName(Messages.CountDownProgressMonitor_taskNamePart1+name+","+Messages.CountDownProgressMonitor_taskNamePart2+remaining); //$NON-NLS-1$
+        setTaskName(Messages.get("CountDownProgressMonitor_taskNamePart1")+name+","+Messages.get("CountDownProgressMonitor_taskNamePart2")+remaining); //$NON-NLS-1$
         lastChange=System.currentTimeMillis();
     }
     

@@ -196,4 +196,10 @@ public class DefaultSessionContext
         attributes.put( key, value );
     }
 
+
+    @Override
+    public String toString() {
+        return "DefaultSessionContext[sessionKey=" + sessionKey + ", attributes=" + attributes + "]";
+    }
+    
 }

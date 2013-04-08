@@ -44,7 +44,7 @@ import org.polymap.core.style.IStyle;
  * @since 3.0
  */
 public interface ILayer
-        extends Entity, Labeled, ACL, ParentMap, PipelineHolder, IAdaptable,
+        extends Entity, Labeled, Visible, ACL, ParentMap, PipelineHolder, IAdaptable,
                 PropertyChangeSupport {
 
     public static final String      PROP_OPACITY = "opacity";
@@ -53,10 +53,6 @@ public interface ILayer
     public static final String      PROP_GEORESID = "georesid";
     public static final String      PROP_STYLE = "style";
     
-    public static final String      PROP_VISIBLE = "visible";
-    public static final String      PROP_EDITABLE = "editable";
-//    public static final String      PROP_SELECTABLE = "selectable";
-
     public static final String      PROP_LAYERSTATUS = "layerstatus";
 
     /** The layer type returned by {@link #getLayerType()}. */
@@ -149,34 +145,6 @@ public interface ILayer
     public int getLayerType();
     
     
-    /**
-     * True, if this layer is visible.
-     */
-    public boolean isVisible();
-    
-    @TransientProperty(PROP_VISIBLE)
-    public void setVisible( boolean visible );
-    
-    
-//    /**
-//     * True, if this layer is in edit mode.
-//     */
-//    public boolean isEditable();
-//    
-//    @TransientProperty(PROP_EDITABLE)
-//    public void setEditable( boolean editable );
-
-
-//    /**
-//     * True, if this layer is select mode. In select mode the objects/features
-//     * of this layer are 
-//     */
-//    public boolean isSelectable();
-//
-//    @TransientProperty(PROP_SELECTABLE)
-//    public void setSelectable( boolean selectable );
-
-
     /**
      * Indication of Layer status. This is used to provide feedback for a Layers
      * status, waiting or missing resource.

@@ -36,6 +36,8 @@ public interface IEditorTool {
     
     public boolean init( IEditorToolSite site );
 
+    public boolean isActive();
+
     /**
      * Informs this tool that is has been activated.
      */

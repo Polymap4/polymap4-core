@@ -256,7 +256,7 @@ public class WorkflowWizardDialog extends WizardDialog implements Listener {
         try {
             this.headless = true;
             int ticks = getWorkflowWizard().getWorkflow().getStates().length * 10;
-            monitor.beginTask(Messages.WorkflowWizardDialog_importTask, ticks); 
+            monitor.beginTask(Messages.get("WorkflowWizardDialog_importTask"), ticks); 
             // we must ensure that the contents of the dialog (shell) have been
             // creates, needed for wizard pages
             if (getShell() == null) {

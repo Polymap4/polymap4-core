@@ -43,6 +43,11 @@ public class RemoveMapOperation
     }
 
 
+    public IMap getMap() {
+        return map;
+    }
+
+
     public void init( IMap _map ) {
         this.map = _map;
         setLabel( '"' + map.getLabel() + "\" löschen" );

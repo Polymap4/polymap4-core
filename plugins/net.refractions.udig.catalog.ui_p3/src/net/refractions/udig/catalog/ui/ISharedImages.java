@@ -17,10 +17,12 @@
 package net.refractions.udig.catalog.ui;
 
 import static net.refractions.udig.core.internal.Icons.OBJECT;
+import static net.refractions.udig.core.internal.Icons.ETOOL;
 import static net.refractions.udig.core.internal.Icons.OVERLAY;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
+
 /**
  * A registry for common images which may be useful to other plug-ins.
  * <p>
@@ -40,6 +42,9 @@ import org.eclipse.swt.graphics.Image;
  * </p>
  */
 public interface ISharedImages {
+    
+    public final static String LOADING = ETOOL + "loading.gif";
+    
     /**
      * Graphic representing a all generated map graphics
      */

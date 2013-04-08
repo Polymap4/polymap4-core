@@ -22,15 +22,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.spatial.BBOX;
-
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Envelope;
 
 import org.eclipse.swt.graphics.Point;
 
@@ -41,8 +42,10 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
 
@@ -55,18 +58,20 @@ public abstract class ContextMenuSite {
 
     private static Log log = LogFactory.getLog( ContextMenuSite.class );
 
-    public static final FilterFactory       ff = CommonFactoryFinder.getFilterFactory( null );
+    public static final IMessages       i18n = Messages.forPrefix( "ContextMenu" );
+    
+    public static final FilterFactory2  ff = CommonFactoryFinder.getFilterFactory2( null );
     
     /** Maps layer id into already computed covered features for this layer. */
-    private Map<String,List<Feature>>       coveredFeatures = new HashMap();
+    private Map<String,List<Feature>>   coveredFeatures = new HashMap();
     
-    private ReferencedEnvelope              mapExtent = getMap().getExtent();
+    private ReferencedEnvelope          mapExtent = getMap().getExtent();
     
-    private Point                           mapSize = getMapEditor().getWidget().getSize();
+    private Point                       mapSize = getMapEditor().getWidget().getSize();
     
-    private Point                           mousePos = Polymap.getSessionDisplay().getCursorLocation();
+    private Point                       mousePos = Polymap.getSessionDisplay().getCursorLocation();
     
-    private Point                           widgetMousePos = Polymap.getSessionDisplay().getCursorControl().toControl( mousePos );
+    private Point                       widgetMousePos = Polymap.getSessionDisplay().getCursorControl().toControl( mousePos );
     
     
     public abstract MapEditor getMapEditor();
@@ -86,7 +91,7 @@ public abstract class ContextMenuSite {
     public List<Feature> coveredFeatures( final ILayer layer ) {
         List<Feature> features = coveredFeatures.get( layer.id() );
         if (features == null) {
-            UIJob job = new UIJob( "Filtering covered features" ) {
+            UIJob job = new UIJob( i18n.get( "coverJob_title" ) ) {
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     try {
                         ReferencedEnvelope bbox = boundingBox();
@@ -94,10 +99,10 @@ public abstract class ContextMenuSite {
                         ReferencedEnvelope transformed = bbox.transform( layer.getCRS(), true );
 
                         String propname = "";
-                        String srs = CRS.toSRS( layer.getCRS() );
 
-                        BBOX filter = ff.bbox( propname, transformed.getMinX(), transformed.getMinY(), 
-                                transformed.getMaxX(), transformed.getMaxY(), srs );
+                        Filter filter = ff.intersects( 
+                                ff.property( propname ),
+                                ff.literal( JTS.toGeometry( (Envelope)transformed ) ) );
 
                         PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
                         if (fs != null) { 
@@ -117,7 +122,7 @@ public abstract class ContextMenuSite {
                     }
                 }
             };
-            job.setUser( true );
+            //job.setUser( true );
             //job.setShowProgressDialog( "Filtering covered features...", false );
             
             final AtomicBoolean done = new AtomicBoolean();

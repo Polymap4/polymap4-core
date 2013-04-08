@@ -81,7 +81,7 @@ public class ReprojectingFeatureCollection extends ProgressFeatureCollection
 	                        geometry = JTS.transform(geometry, mt);
 	                    } catch (TransformException e) {
 	                        throw (RuntimeException) new RuntimeException(
-	                                Messages.ReprojectingFeatureCollection_transformationError + next.getID()).initCause(e);
+	                                Messages.get("ReprojectingFeatureCollection_transformationError") + next.getID()).initCause(e);
 	                    }
                     }
                     GeometryDescriptor defaultGeometry2 = featureType.getGeometryDescriptor();

@@ -19,6 +19,9 @@ import org.geotools.data.DataStore;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
+import net.refractions.udig.catalog.IResolveFolder;
+import net.refractions.udig.catalog.IService;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,6 +57,7 @@ public class CreateFeatureTypeAction
 
     private static Log log = LogFactory.getLog( CreateFeatureTypeAction.class );
 
+    /** {@link IService} or {@link IResolveFolder}. */
     private IResolve            service;
 
 
@@ -74,7 +78,8 @@ public class CreateFeatureTypeAction
 
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
-            if (elm instanceof IResolve) {
+            if (elm instanceof IResolve
+                    || elm instanceof IResolveFolder) {
                 service = (IResolve)elm;
                 action.setEnabled( service.canResolve( DataStore.class ) );
             }

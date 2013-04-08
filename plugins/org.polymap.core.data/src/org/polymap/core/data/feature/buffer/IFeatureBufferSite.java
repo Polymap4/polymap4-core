@@ -17,6 +17,9 @@ package org.polymap.core.data.feature.buffer;
 import java.util.Collection;
 
 import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.FeatureChangeEvent;
 
@@ -29,4 +32,6 @@ public interface IFeatureBufferSite {
 
     void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features );
 
+    void revert( Filter filter, IProgressMonitor monitor );
+    
 }

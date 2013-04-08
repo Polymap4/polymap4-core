@@ -21,11 +21,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import java.io.IOException;
-
 import net.refractions.udig.catalog.IGeoResource;
+
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
@@ -55,17 +56,18 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.FeatureChangeEvent.Type;
+import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.feature.FidSet;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.entity.ConcurrentModificationException;
-import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityStateTracker.Updater;
 import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -112,7 +114,7 @@ public class LayerFeatureBufferManager
     static class Session
             extends SessionSingleton { 
         
-        protected WeakHashMap<ILayer,LayerFeatureBufferManager> managers = new WeakHashMap();
+        protected ConcurrentMap<String,LayerFeatureBufferManager> managers = new ConcurrentHashMap();
         
         public static Session instance() {
             return instance( Session.class );
@@ -133,15 +135,15 @@ public class LayerFeatureBufferManager
     public static LayerFeatureBufferManager forLayer( ILayer layer, boolean create ) {
         assert layer != null;
         
-        WeakHashMap<ILayer, LayerFeatureBufferManager> managers = Session.instance().managers;
-        synchronized (managers) {
-            LayerFeatureBufferManager result = managers.get( layer );
-            if (result == null && create) {
-                result = new LayerFeatureBufferManager( layer );
-                managers.put( layer, result );
-            }
-            return result;
+        ConcurrentMap<String,LayerFeatureBufferManager> managers = Session.instance().managers;
+        LayerFeatureBufferManager result = managers.get( layer.id() );
+        if (result == null && create) {
+            result = new LayerFeatureBufferManager( layer );
+            LayerFeatureBufferManager prev = managers.putIfAbsent( layer.id(), result );
+            result = prev != null ? prev : result;
+            assert result.getLayer() == layer;
         }
+        return result;
     }
     
    
@@ -162,18 +164,22 @@ public class LayerFeatureBufferManager
     
 
     protected LayerFeatureBufferManager( ILayer layer ) {
-        super();
         this.layer = layer;
         this.layerTimestamp = System.currentTimeMillis();
         
         buffer = new MemoryFeatureBuffer();
         buffer.init( new IFeatureBufferSite() {
+            @Override
             public void fireFeatureChangeEvent( Type type, Collection<Feature> features ) {
                 LayerFeatureBufferManager.this.fireFeatureChangeEvent( type, features );
             }
+            @Override
+            public void revert( Filter filter, IProgressMonitor monitor ) {
+                LayerFeatureBufferManager.this.revert( filter, monitor );
+            }
         });
         
-        processor = new FeatureBufferProcessor( buffer );
+        processor = new FeatureBufferProcessor( this, buffer );
         
         if (Polymap.getSessionDisplay() != null) {
             OperationSupport.instance().addOperationSaveListener( this );
@@ -182,7 +188,11 @@ public class LayerFeatureBufferManager
 
     
     protected void fireFeatureChangeEvent( FeatureChangeEvent.Type type, Collection<Feature> features ) {
-        FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, features );
+        FidSet fids = new FidSet( features.size() * 2 );
+        for (Feature feature : features) {
+            fids.add( feature.getIdentifier() );
+        }
+        FeatureChangeEvent ev = new FeatureChangeEvent( layer, type, fids );
         EventManager.instance().publish( ev );
     }
     
@@ -334,12 +344,30 @@ public class LayerFeatureBufferManager
     }
 
     
+    @Override
     public void revert( OperationSupport os, IProgressMonitor monitor ) {
-        try {
-            monitor.beginTask( layer.getLabel() , buffer.size() );
+        revert( Filter.INCLUDE, monitor );
+    }
 
-            buffer.clear();
-            fireFeatureChangeEvent( FeatureChangeEvent.Type.FLUSHED, null );
+
+    /**
+     *
+     * @param filter Specifies what features to revert. null for all features.
+     * @param monitor
+     */
+    public void revert( Filter filter, IProgressMonitor monitor ) {
+        assert filter != null;
+        try {
+            monitor.beginTask( layer.getLabel(), buffer.size() );
+
+            List<Feature> reverted = new ArrayList( buffer.size() );
+            for (FeatureBufferState buffered : buffer.content()) {
+                if (filter.evaluate( buffered.original() )) {
+                    buffer.unregisterFeatures( Collections.singletonList( buffered.feature() ) );
+                    reverted.add( buffered.feature() );
+                }
+            }
+            fireFeatureChangeEvent( FeatureChangeEvent.Type.FLUSHED, reverted );
             
             monitor.done();
         }

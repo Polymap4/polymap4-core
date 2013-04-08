@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
+ * Copyright 2009-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -32,7 +32,6 @@ import org.eclipse.ui.PlatformUI;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IGeoResourceInfo;
-
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
 import org.eclipse.core.commands.operations.IUndoableOperation;
@@ -51,10 +50,12 @@ import org.polymap.core.runtime.Polymap;
  * be returned. If the native projection is not known or if a transformation is not
  * possible then the native envelope will be returned.
  * <p/>
- * Result: the envelope of the layer. If the native crs is not known or if a
- * transformation is not possible then the untransformed envelope will be returned.
+ * <b>This uses the bounds obtained from {@link IGeoResourceInfo} the layer (not the
+ * FeatureSource or FeatureCollection).
+ * </b>.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @see org.polymap.core.data.operations.ZoomFeatureBoundsOperation
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class SetLayerBoundsOperation
@@ -77,12 +78,17 @@ public class SetLayerBoundsOperation
      * @param crs the desired CRS for the returned envelope.
      */
     public SetLayerBoundsOperation( ILayer layer, CoordinateReferenceSystem crs ) {
-        super( Messages.get( "SetLayerBoundsOperation_titlePrefix" ) + layer.getLabel() );
+        super( i18n( "titlePrefix" ) + layer.getLabel() );
         this.layer = layer;
         this.crs = crs;
     }
 
+    
+    protected static String i18n( String key, Object... args) {
+        return Messages.get( "SetLayerBoundsOperation_" + key, args );
+    }
 
+    
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
     throws ExecutionException {
         // obtain bounds
@@ -115,21 +121,28 @@ public class SetLayerBoundsOperation
         
         // set map extent
         monitor.subTask( "Setting map extent" );
+
+        // check if outside map maxExtent
+        final AtomicInteger dialogResult = new AtomicInteger( SWT.OK );
+        ReferencedEnvelope mapMaxExtent = layer.getMap().getMaxExtent();
         
-        final AtomicInteger dialogResult = new AtomicInteger();
-        Polymap.getSessionDisplay().syncExec( new Runnable() {
-            public void run() {
-                MessageBox mbox = new MessageBox( 
-                        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-                        SWT.YES | SWT.NO | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL );
-                mbox.setMessage( "X : " + result.getMinX() + " - " + result.getMaxX() +
-                        "\nY : " + result.getMinY() + " - " + result.getMaxY() );
-                mbox.setText( getLabel() );
-                dialogResult.set( mbox.open() );
-            }
-        });
+        if (mapMaxExtent != null && !mapMaxExtent.covers( result )) {
+            Polymap.getSessionDisplay().syncExec( new Runnable() {
+                public void run() {
+                    MessageBox mbox = new MessageBox( 
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                            SWT.OK | SWT.CANCEL | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL );
+                    
+                    mbox.setMessage( i18n( "dialogMsg", 
+                            result.getMinX(), result.getMaxX(), result.getMinY(), result.getMaxY() ) );
+                    
+                    mbox.setText( getLabel() );
+                    dialogResult.set( mbox.open() );
+                }
+            });
+        }
         
-        if (dialogResult.get() == SWT.YES) {
+        if (dialogResult.get() == SWT.OK) {
             oldExtent = layer.getMap().getExtent();
             
             layer.getMap().setExtent( result );

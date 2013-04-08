@@ -59,8 +59,8 @@ public class DataSourceSelectionPage extends WorkflowWizardPage implements
 
 	public DataSourceSelectionPage() {
 		super("dataSourceWizardPage"); //$NON-NLS-1$
-		setTitle(Messages.DataSourceSelectionPage_pageTitle); 
-		setDescription(Messages.DataSourceSelectionPage_defaultMessage); 
+		setTitle(Messages.get("DataSourceSelectionPage_pageTitle")); 
+		setDescription(Messages.get("DataSourceSelectionPage_defaultMessage")); 
 	}
 
 	/**

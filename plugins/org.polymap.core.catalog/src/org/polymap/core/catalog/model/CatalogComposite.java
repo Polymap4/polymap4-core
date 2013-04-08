@@ -130,7 +130,7 @@ public interface CatalogComposite
     public void replace( ID id, IService replacement )
             throws UnsupportedOperationException;
     
-    public List<IResolve> find( URL resourceId, IProgressMonitor monitor );
+    public List<IResolve> find( @Optional URL resourceId, @Optional IProgressMonitor monitor );
 
     public URL getIdentifier();
 
@@ -307,7 +307,7 @@ public interface CatalogComposite
                 //OperationSupport.instance().execute( op, false, false );
             }
             catch (ExecutionException e) {
-                throw new RuntimeException( e );
+                throw new RuntimeException( e.getLocalizedMessage(), e );
             }
         }
 

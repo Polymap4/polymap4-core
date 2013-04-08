@@ -33,21 +33,21 @@ class SessioningListener
 
     private static Log log = LogFactory.getLog( SessioningListener.class );
     
-    private SessionContext                  session;
+    private SessionContext          session;
     
-    private Object                          mapKey;
-
+    private Object                  mapKey;
+    
     /**
      * 
      * @param delegate
      * @param mapKey
      */
-    public SessioningListener( EventListener delegate, Object mapKey ) {
+    public SessioningListener( EventListener delegate, Object mapKey, SessionContext session ) {
         super( delegate );
         assert mapKey != null;
-        this.session = SessionContext.current();
-        this.mapKey = mapKey;
         assert session != null;
+        this.session = session;
+        this.mapKey = mapKey;
     }
 
     @Override
@@ -62,7 +62,7 @@ class SessioningListener
                 });
             }
             else {
-                log.debug( "Removing event handler for destroyed session: " + session.getClass().getSimpleName() );
+                log.warn( "Removing event handler for destroyed session: " + session.getClass().getSimpleName() );
                 EventManager.instance().removeKey( mapKey );
                 session = null;
                 delegate = null;

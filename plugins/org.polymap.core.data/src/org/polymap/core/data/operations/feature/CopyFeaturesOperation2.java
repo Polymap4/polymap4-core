@@ -14,11 +14,13 @@
  */
 package org.polymap.core.data.operations.feature;
 
+import java.util.List;
 import java.util.Properties;
 
-import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -26,13 +28,22 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.vividsolutions.jts.geom.Geometry;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.jface.dialogs.DialogPage;
@@ -46,6 +57,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 
 import org.polymap.core.data.Messages;
 import org.polymap.core.data.PipelineFeatureSource;
+import org.polymap.core.data.feature.buffer.FeatureBufferProcessor;
 import org.polymap.core.data.feature.typeeditor.AttributeMapping;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessor;
 import org.polymap.core.data.feature.typeeditor.FeatureTypeEditorProcessorConfig;
@@ -55,14 +67,17 @@ import org.polymap.core.data.operation.FeatureOperationExtension;
 import org.polymap.core.data.operation.IFeatureOperation;
 import org.polymap.core.data.operations.ChooseLayerPage;
 import org.polymap.core.data.operations.NewFeatureOperation;
+import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.data.ui.featuretypeeditor.ValueViewerColumn;
+import org.polymap.core.data.util.Geometries;
 import org.polymap.core.data.util.ProgressListenerAdaptor;
 import org.polymap.core.data.util.RetypingFeatureCollection;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.WeakListener;
 
 /**
@@ -79,11 +94,33 @@ public class CopyFeaturesOperation2
 
     private static Log log = LogFactory.getLog( CopyFeaturesOperation2.class );
 
+    private static IMessages            i18n = Messages.forClass( CopyFeaturesOperation2.class );
+    
     private PipelineFeatureSource       source;
 
-    ILayer                              dest;
+    private ILayer                      dest;
+
+    private FeatureCollection           features;
+
+    private PipelineFeatureSource destFs;
+
+    private List<FeatureId> createdFeatureIds;
 
 
+    /** The copied features. */    
+    public FeatureCollection getFeatures() {
+        return features;
+    }
+    
+    public PipelineFeatureSource getDestFs() {
+        return destFs;
+    }
+    
+    public List<FeatureId> getCreatedFeatureIds() {
+        return createdFeatureIds;
+    }
+
+    
     public Status execute( IProgressMonitor monitor )
     throws Exception {
         monitor.beginTask( context.adapt( FeatureOperationExtension.class ).getLabel(), 10 );
@@ -91,7 +128,7 @@ public class CopyFeaturesOperation2
         source = (PipelineFeatureSource)context.featureSource();
         
         if (!(source.getSchema() instanceof SimpleFeatureType)) {
-            throw new Exception( Messages.get( "CopyFeaturesOperation_notSimpleType" ) );
+            throw new Exception( i18n.get( "notSimpleType" ) );
         }
 
         // open wizard dialog
@@ -105,12 +142,14 @@ public class CopyFeaturesOperation2
             }
         };
         final ChooseLayerPage chooseLayerPage = new ChooseLayerPage(
-                Messages.get( "CopyFeaturesOperation_ChooseLayerPage_title" ),
-                Messages.get( "CopyFeaturesOperation_ChooseLayerPage_description" ),
+                i18n.get( "ChooseLayerPage_title" ),
+                i18n.get( "ChooseLayerPage_description" ),
                 true );
         wizard.addPage( chooseLayerPage );
         final FeatureEditorPage2 featureEditorPage = new FeatureEditorPage2();
         wizard.addPage( featureEditorPage );
+        DirectCopyPage directCopyPage = new DirectCopyPage();
+        wizard.addPage( directCopyPage );
 
         // get/set chosen layer
         wizard.addPageChangedListener( new IPageChangedListener() {
@@ -128,21 +167,48 @@ public class CopyFeaturesOperation2
             final IProgressMonitor copyMonitor = new SubProgressMonitor( monitor, 8,
                     SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK );
 
-            final PipelineFeatureSource destFs = PipelineFeatureSource.forLayer( dest, true );
-            FeatureCollection features = context.features();
+            destFs = PipelineFeatureSource.forLayer( dest, true );
+            features = context.features();
             int featuresSize = features.size();
 
-            copyMonitor.beginTask( Messages.get( "CopyFeaturesOperation_taskTitle", featuresSize ), featuresSize );
+            copyMonitor.beginTask( i18n.get( "taskTitle", featuresSize ), featuresSize );
 
+            // direct copy?
+            if (directCopyPage.isDirectCopy()) {
+                Pipeline pipe = destFs.getPipeline();
+                Iterables.removeIf( pipe, Predicates.instanceOf( FeatureBufferProcessor.class ) );
+            }
             // transform CRS
             CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
-            if (destCrs != null) {
-                features = new ReprojectingFeatureCollection( features, destCrs );
+            SimpleFeatureType sourceSchema = source.getSchema();
+            CoordinateReferenceSystem sourceCrs = sourceSchema.getCoordinateReferenceSystem();
+            if (destCrs != null && !destCrs.equals( sourceCrs )) {
+               // features = new ReprojectingFeatureCollection( features, destCrs );
+                
+                final MathTransform transform = Geometries.transform( sourceCrs, destCrs );
+                final String geomName = sourceSchema.getGeometryDescriptor().getLocalName();
+                
+                // actually copy features; the above just sets attribute which is not supported by caching data sources
+                final SimpleFeatureType retypedSchema = SimpleFeatureTypeBuilder.retype( sourceSchema, destCrs );
+                features = new RetypingFeatureCollection( features, retypedSchema ) {
+                    protected Feature retype( Feature feature ) {
+                        try {
+                            SimpleFeatureBuilder fb = new SimpleFeatureBuilder( retypedSchema );
+                            fb.init( (SimpleFeature)feature );
+                            Geometry geom = (Geometry)feature.getProperty( geomName ).getValue();
+                            fb.set( geomName, JTS.transform( geom, transform ) );
+                            return fb.buildFeature( feature.getIdentifier().getID() );
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                };
             }
             // tranform schema
             features = featureEditorPage.retyped( features );            
             
-            destFs.addFeatures( features, new ProgressListenerAdaptor( copyMonitor ) );
+            createdFeatureIds = destFs.addFeatures( features, new ProgressListenerAdaptor( copyMonitor ) );
 
             monitor.done();
             return Status.OK;
@@ -159,7 +225,7 @@ public class CopyFeaturesOperation2
             implements IWizardPage, IPageChangedListener {
 
         public static final String          ID = "FeatureEditorPage2";
-
+        
         private Composite                   content;
 
         private Properties                  configPageProps = new Properties();
@@ -169,8 +235,8 @@ public class CopyFeaturesOperation2
 
         protected FeatureEditorPage2() {
             super( ID );
-            setTitle( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_title" ) );
-            setDescription( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_description" ) );
+            setTitle( i18n.get( "FeatureEditorPage_title" ) );
+            setDescription( i18n.get( "FeatureEditorPage_description" ) );
         }
 
         public void createControl( Composite parent ) {
@@ -203,7 +269,7 @@ public class CopyFeaturesOperation2
                 schema = fs.getSchema();
             }
             catch (Exception e) {
-                throw new RuntimeException( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorLayerSchema" ), e );
+                throw new RuntimeException( i18n.get( "FeatureEditorPage_errorLayerSchema" ), e );
             }
             
             SimpleFeatureType sourceSchema = source.getSchema();
@@ -211,9 +277,9 @@ public class CopyFeaturesOperation2
             // check CRSs
             if (!CRS.equalsIgnoreMetadata( schema.getCoordinateReferenceSystem(),
                     sourceSchema.getCoordinateReferenceSystem() )) {
-                setMessage( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorCrs",
+                setMessage( i18n.get( "FeatureEditorPage_errorCrs",
                         CRS.toSRS( schema.getCoordinateReferenceSystem() ),
-                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ), DialogPage.WARNING );
+                        CRS.toSRS( sourceSchema.getCoordinateReferenceSystem() ) ), DialogPage.INFORMATION );
             }
 
             // geometry attribute
@@ -228,7 +294,7 @@ public class CopyFeaturesOperation2
             Class destGeomType = destGeomAttr.getType().getBinding();
             Class sourceGeomType = sourceGeomAttr.getType().getBinding();
             if (!destGeomType.isAssignableFrom( sourceGeomType )) {
-                setMessage( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorGeom",
+                setMessage( i18n.get( "FeatureEditorPage_errorGeom",
                         destGeomType.getSimpleName(), sourceGeomType.getSimpleName() ),
                         DialogPage.WARNING );
             }
@@ -281,13 +347,13 @@ public class CopyFeaturesOperation2
             final FeatureTypeEditorProcessor processor = new FeatureTypeEditorProcessor();
             processor.init( configPageProps );
             final SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)processor.getFeatureType() );
-            
-            return new RetypingFeatureCollection( src, null ) {
 
+            return new RetypingFeatureCollection( src, null ) {
+                @Override
                 public FeatureType getSchema() {
                     return processor.getFeatureType();
                 }
-
+                @Override
                 protected Feature retype( Feature feature ) {
                     try {
                         // make new FID to avoid problem when copying features of the same layer
@@ -388,8 +454,8 @@ public class CopyFeaturesOperation2
 
         protected FeatureEditorPage() {
             super( ID );
-            setTitle( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_title" ) );
-            setDescription( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_description" ) );
+            setTitle( i18n.get( "FeatureEditorPage_title" ) );
+            setDescription( i18n.get( "FeatureEditorPage_description" ) );
         }
 
         public void createControl( Composite parent ) {
@@ -418,7 +484,7 @@ public class CopyFeaturesOperation2
                     contents.layout( true );
                 }
                 catch (Exception e) {
-                    throw new RuntimeException( Messages.get( "CopyFeaturesOperation_FeatureEditorPage_errorLayerSchema" ), e );
+                    throw new RuntimeException( i18n.get( "FeatureEditorPage_errorLayerSchema" ), e );
                 }
             }
         }
@@ -429,4 +495,50 @@ public class CopyFeaturesOperation2
 
     }
 
+    class DirectCopyPage
+            extends OperationWizardPage
+            implements IWizardPage, IPageChangedListener {
+
+        public static final String      ID = "DirectCopyPage";
+
+        private Composite               contents;
+
+        private boolean                 isDirectCopy;
+
+
+        protected DirectCopyPage() {
+            super( ID );
+            setTitle( i18n.get( "DirectCopyPage_title" ) );
+            setDescription( i18n.get( "DirectCopyPage_description" ) );
+        }
+        
+        public boolean isDirectCopy() {
+            return isDirectCopy;
+        }
+
+        public void createControl( Composite parent ) {
+            this.contents = new Composite( parent, SWT.NONE );
+            FormLayout layout = new FormLayout();
+            layout.spacing = 5;
+            layout.marginWidth = layout.marginHeight = 20;
+            contents.setLayout( layout );
+            setControl( contents );
+            getWizard().addPageChangedListener( WeakListener.forListener( this ) );
+            
+            final Button check = new Button( contents, SWT.CHECK );
+            check.setText( i18n.get( "DirectCopyPage_text" ) );
+            check.addSelectionListener( new SelectionAdapter() {
+                public void widgetSelected( SelectionEvent e ) {
+                    isDirectCopy = check.getSelection();
+                }
+            });
+        }
+
+        @Override
+        public void pageChanged( PageChangedEvent ev ) {
+            log.info( "ev: " + ev );
+        }
+        
+    }
+    
 }

@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Core Libraries
+Bundle-Name: External Libraries
 Bundle-SymbolicName: org.polymap.core.libs;singleton:=true
 Bundle-Version: 3.2.0
 Bundle-Activator: org.polymap.core.libs.CoreLibsPlugin
@@ -219,9 +219,6 @@ Export-Package: .,
  net.opengis.wps10,
  net.opengis.wps10.impl,
  net.opengis.wps10.util,
- net.sourceforge.hatbox,
- net.sourceforge.hatbox.jts,
- net.sourceforge.hatbox.tools,
  org.apache.commons.beanutils;uses:="org.apache.commons.collections.keyvalue,org.apache.commons.collections",
  org.apache.commons.beanutils.converters;uses:="org.apache.commons.beanutils",
  org.apache.commons.beanutils.locale;uses:="org.apache.commons.beanutils,org.apache.commons.collections",
@@ -1891,8 +1888,6 @@ Export-Package: .,
  org.hsqldb.store,
  org.hsqldb.types,
  org.hsqldb.util,
- org.ibex.nestedvm,
- org.ibex.nestedvm.util,
  org.jdom,
  org.jdom.adapters,
  org.jdom.filter,
@@ -2124,7 +2119,6 @@ Export-Package: .,
  org.postgresql.translation,
  org.postgresql.util,
  org.postgresql.xa,
- org.sqlite,
  org.w3.xlink,
  org.w3.xlink.impl,
  org.w3c.dom.html,
@@ -2195,7 +2189,6 @@ Bundle-ClassPath: .,
  lib/gt-xsd-wfs-2.6.4.jar,
  lib/gt-xsd-wps-2.6.4.jar,
  lib/h2-1.1.104.jar,
- lib/hatbox-1.0.b7.jar,
  lib/hsqldb-1.8.0.7.jar,
  lib/imageio-ext-customstreams-1.0.5.jar,
  lib/imageio-ext-gdal-bindings-1.4.5b.jar,
@@ -2242,11 +2235,11 @@ Bundle-ClassPath: .,
  lib/xsd-2.2.2.jar,
  lib/log4j-1.2.12.jar,
  lib/ant-1.8.0.jar,
- lib/sqlite-jdbc-3.6.19.1-SNAPSHOT.jar,
  lib/xercesImpl-2.7.1.jar,
- lib/guava-10.0.1.jar,
- lib/lucene-core-3.6.1.jar,
- lib/lucene-queryparser-3.6.1.jar
+ lib/hatbox-1.0.b7.jar,
+ lib/lucene-core-3.6.2.jar,
+ lib/lucene-queryparser-3.6.2.jar,
+ lib/guava-10.0.1.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
 Bundle-Vendor: polymap.org

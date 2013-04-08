@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rigths reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.operations;
 
@@ -41,8 +33,6 @@ import org.geotools.referencing.CRS;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 
-import net.refractions.udig.ui.OffThreadProgressMonitor;
-
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -55,6 +45,7 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
+import org.polymap.core.data.feature.buffer.LayerFeatureBufferManager;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
@@ -67,8 +58,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * ...
  * 
  * @see NewFeatureOperation
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class ModifyFeaturesOperation
@@ -95,7 +85,7 @@ public class ModifyFeaturesOperation
 
 
     public ModifyFeaturesOperation( ILayer layer, FeatureStore fs, String fid, String property, Object value ) {
-        super( Messages.get( "ModifyFeaturesOperation_labelPrefix" ) );
+        super( Messages.get( "ModifyFeaturesOperation_label", layer.getLabel(), fid, property ) );
         this.layer = layer;
         this.fid = fid;
         this.fs = fs;
@@ -120,9 +110,10 @@ public class ModifyFeaturesOperation
         this.values = new Object[] { value };
     }
 
-    public ModifyFeaturesOperation( FeatureStore fs, Filter filter,
+    public ModifyFeaturesOperation( ILayer layer, FeatureStore fs, Filter filter,
             AttributeDescriptor[] types, Object[] values ) {
-        super( Messages.get( "ModifyFeaturesOperation_labelPrefix" ) );
+        super( Messages.get( "ModifyFeaturesOperation_label", layer.getLabel(), "", "..." ) );
+        this.layer = layer;
         this.fs = fs;
         this.types = types;
         this.values = values;
@@ -133,14 +124,12 @@ public class ModifyFeaturesOperation
         return fs;
     }
     
-    public IStatus execute( IProgressMonitor _monitor, IAdaptable info )
+    public IStatus execute( IProgressMonitor monitor, IAdaptable info )
             throws ExecutionException {
         try {
             // display and monitor
             Display display = Polymap.getSessionDisplay();
             log.debug( "### Display: " + display );
-            OffThreadProgressMonitor monitor = new OffThreadProgressMonitor( _monitor );
-//            JobMonitors.set( monitor );
             monitor.subTask( getLabel() );
             
             // process values
@@ -187,28 +176,28 @@ public class ModifyFeaturesOperation
         catch (Exception e) {
             throw new ExecutionException( e.getLocalizedMessage(), e );
         }
-        finally {
-//            JobMonitors.remove();
-        }
         return Status.OK_STATUS;
     }
 
 
     public boolean canUndo() {
-        return false;
+        return layer != null && LayerFeatureBufferManager.forLayer( layer, false ) != null;
     }
 
+    
     public IStatus undo( IProgressMonitor monitor, IAdaptable info ) {
-        throw new RuntimeException( "not yet implemented." );
+        LayerFeatureBufferManager featureBuffer = LayerFeatureBufferManager.forLayer( layer, false );
+        featureBuffer.revert( filter, monitor );
+        return Status.OK_STATUS;
     }
 
+    
     public boolean canRedo() {
-        return false;
+        return true;
     }
 
-    public IStatus redo( IProgressMonitor monitor, IAdaptable info )
-            throws ExecutionException {
-        throw new RuntimeException( "not yet implemented." );
+    public IStatus redo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
+        return execute( monitor, info );
     }
 
 }

@@ -157,14 +157,14 @@ public class ReshapeOperation implements IOp {
     public IGeoResource process(FeatureSource<SimpleFeatureType, SimpleFeature> source, ReshapeDialog dialog, IProgressMonitor monitor ) throws IOException {
         if( monitor == null ) monitor = new NullProgressMonitor();
         
-        monitor.beginTask(Messages.ReshapeOperation_task, 100 );
+        monitor.beginTask(Messages.get("ReshapeOperation_task"), 100 );
         
         final SimpleFeatureType featureType = dialog.getFeatureType();
         final List<Expression> expressionList = dialog.getExpressionList();
         FeatureCollection<SimpleFeatureType, SimpleFeature> collection = source.getFeatures();
         
         IGeoResource scratch = CatalogPlugin.getDefault().getLocalCatalog().createTemporaryResource( featureType );
-        final FeatureStore<SimpleFeatureType, SimpleFeature> store = scratch.resolve(FeatureStore.class, SubMonitor.convert(monitor,Messages.ReshapeOperation_createTempSpaceTask, 10));
+        final FeatureStore<SimpleFeatureType, SimpleFeature> store = scratch.resolve(FeatureStore.class, SubMonitor.convert(monitor,Messages.get("ReshapeOperation_createTempSpaceTask"), 10));
         
         DefaultTransaction transaction = new DefaultTransaction("Process to "+featureType.getTypeName() ); //$NON-NLS-1$
         store.setTransaction( transaction );
@@ -247,7 +247,7 @@ public class ReshapeOperation implements IOp {
 
         @Override
         protected Control createDialogArea(Composite parent) {
-            getShell().setText(Messages.ReshapeOperation_DialogText);          
+            getShell().setText(Messages.get("ReshapeOperation_DialogText"));          
             mainComp = (Composite) super.createDialogArea(parent);
             
             mainLayout = new GridLayout();
@@ -312,8 +312,8 @@ public class ReshapeOperation implements IOp {
             return mainComp;
         }
         private void fillActionCombo( Combo actionCombo ) {
-            actionCombo.add(Messages.ReshapeOperation_noAction);
-            actionCombo.setData(Messages.ReshapeOperation_noAction, new StaticProvider<PostReshapeAction>(new Null_Action()));
+            actionCombo.add(Messages.get("ReshapeOperation_noAction"));
+            actionCombo.setData(Messages.get("ReshapeOperation_noAction"), new StaticProvider<PostReshapeAction>(new Null_Action()));
             
             int i=1;
             String lastSelection = CatalogUIPlugin.getDefault().getDialogSettings().get(ACTION_COMBO_SETTINGS);
@@ -393,9 +393,9 @@ public class ReshapeOperation implements IOp {
             }
             String errormessage = t.getLocalizedMessage();
             if( errormessage==null ){
-                errormessage = Messages.ReshapeOperation_2;
+                errormessage = Messages.get("ReshapeOperation_2");
             }
-            String message = MessageFormat.format(Messages.ReshapeOperation_3,errormessage);
+            String message = MessageFormat.format(Messages.get("ReshapeOperation_3"),errormessage);
             errors.setDescriptionText(message);
             //errors.showHoverText(message);
             errors.setShowHover( true );
@@ -442,7 +442,7 @@ public class ReshapeOperation implements IOp {
                         String path = ((PropertyName)expression).getPropertyName();
                         AttributeType attributeType = sample.getFeatureType().getType(path);
                         if( attributeType == null ){
-                            String msg = Messages.ReshapeOperation_4;
+                            String msg = Messages.get("ReshapeOperation_4");
                             throw new ReshapeException(format(msg, name, path));
                         }
                         binding = attributeType.getClass();
@@ -452,7 +452,7 @@ public class ReshapeOperation implements IOp {
                 }
                 
                 if( binding ==null ){
-                    String msg = Messages.ReshapeOperation_5;
+                    String msg = Messages.get("ReshapeOperation_5");
                     throw new ReshapeException(format(msg, name));
                 }
                 
@@ -497,7 +497,7 @@ public class ReshapeOperation implements IOp {
                 if (mark != -1) {
                     String name = line.substring(0, mark).trim();
                     if( list.contains(name)){
-                            String msg = Messages.ReshapeOperation_6;
+                            String msg = Messages.get("ReshapeOperation_6");
                             throw new ReshapeException(format(msg, name));
                     }
                     list.add(name);

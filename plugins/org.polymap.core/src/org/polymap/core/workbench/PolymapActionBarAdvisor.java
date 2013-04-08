@@ -11,7 +11,14 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
+
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.lifecycle.PhaseEvent;
+import org.eclipse.rwt.lifecycle.PhaseId;
+import org.eclipse.rwt.lifecycle.PhaseListener;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -42,9 +49,11 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.runtime.Platform;
-
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.Timer;
+import org.polymap.core.security.SecurityUtils;
 
 /**
  * 
@@ -94,6 +103,10 @@ public class PolymapActionBarAdvisor
 
     private IWorkbenchAction helpContentsAction, helpSearchAction;
 
+    private IContributionItem showViewMenu;
+
+    private IWorkbenchAction showViewAction;
+
     private static int       browserIndex;
 
 
@@ -119,13 +132,16 @@ public class PolymapActionBarAdvisor
 
         newAction = ActionFactory.NEW.create( window );
         newAction.setText( Messages.get( "PolymapActionBarAdvisor_new" ) );
+        newAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
         register( newAction );
 
         new2Action = ActionFactory.NEW_WIZARD_DROP_DOWN.create( window );
         new2Action.setText( Messages.get( "PolymapActionBarAdvisor_newDropDown" ) );
+        new2Action.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
         register( new2Action );
 
         importAction = ActionFactory.IMPORT.create( window );
+        importAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/import3.gif" ) );
         register( importAction );
 
         exportAction = ActionFactory.EXPORT.create( window );
@@ -138,6 +154,7 @@ public class PolymapActionBarAdvisor
         register( saveAllAction );
 
         preferencesAction = ActionFactory.PREFERENCES.create( window );
+        preferencesAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_prefs.gif" ) );
         register( preferencesAction );
 
         resetPerspectiveAction = ActionFactory.RESET_PERSPECTIVE.create( window );
@@ -187,8 +204,9 @@ public class PolymapActionBarAdvisor
             }
         };
         aboutAction.setText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
+        aboutAction.setToolTipText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
         aboutAction.setId( "org.eclipse.rap.demo.about" ); //$NON-NLS-1$
-        aboutAction.setImageDescriptor( helpActionImage );
+        aboutAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/info_tsk.gif" ) );
         register( aboutAction );
         
         polymapWebSiteAction = new Action() {
@@ -211,9 +229,15 @@ public class PolymapActionBarAdvisor
         polymapWebSiteAction.setImageDescriptor( rapWebSiteActionImage );
         register( polymapWebSiteAction );
         
-//        showViewMenuMgr = new MenuManager( "Show View", "showView" );
-//        IContributionItem showViewMenu = ContributionItemFactory.VIEWS_SHORTLIST.create( window );
-//        showViewMenuMgr.add( showViewMenu );
+        showViewMenuMgr = new MenuManager( Messages.get( "PolymapActionBarAdvisor_showView" ),
+                ContributionItemFactory.VIEWS_SHORTLIST.getId() );
+        showViewMenu = ContributionItemFactory.VIEWS_SHORTLIST.create( window );
+        showViewMenuMgr.add( showViewMenu );
+
+        showViewAction = ActionFactory.SHOW_VIEW_MENU.create( window );
+        showViewAction.setToolTipText( Messages.get( "PolymapActionBarAdvisor_showView" ) );
+        showViewAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_view.gif" ) );
+        showViewAction.setEnabled( true );
         
 //        wizardAction = new Action() {
 //            public void run() {
@@ -317,12 +341,12 @@ public class PolymapActionBarAdvisor
         windowMenu.add( new Separator() );
 
         IMenuManager perspectiveMenu = new MenuManager(
-                Messages.get().PolymapActionBarAdvisor_openPerspective,
+                Messages.get( "PolymapActionBarAdvisor_openPerspective" ),
                 ContributionItemFactory.PERSPECTIVES_SHORTLIST.getId() );
         perspectiveMenu.add( ContributionItemFactory.PERSPECTIVES_SHORTLIST.create( window ) );
         windowMenu.add( perspectiveMenu );
 
-        IMenuManager viewMenu = new MenuManager( Messages.get().PolymapActionBarAdvisor_showView,
+        IMenuManager viewMenu = new MenuManager( Messages.get( "PolymapActionBarAdvisor_showView" ),
                 ContributionItemFactory.VIEWS_SHORTLIST.getId() );
         viewMenu.add( ContributionItemFactory.VIEWS_SHORTLIST.create( window ) );
         windowMenu.add( viewMenu );
@@ -332,7 +356,7 @@ public class PolymapActionBarAdvisor
         windowMenu.add( closePerspectiveAction );
 
         IAction closeAllPerspectives = ActionFactory.CLOSE_ALL_PERSPECTIVES.create( window );
-        closeAllPerspectives.setText( Messages.get().PolymapActionBarAdvisor_closeAllPerspective );
+        closeAllPerspectives.setText( Messages.get( "PolymapActionBarAdvisor_closeAllPerspective" ) );
         windowMenu.add( closeAllPerspectives );
 
         IAction editActionSets = ActionFactory.EDIT_ACTION_SETS.create( window );
@@ -357,22 +381,99 @@ public class PolymapActionBarAdvisor
     
 
     protected void fillCoolBar( final ICoolBarManager coolBar ) {
-        createToolBar( coolBar, "main" );
-//        createToolBar( coolBar, "editor" );
-    }
-
-
-    private void createToolBar( final ICoolBarManager coolBar, final String name ) {
         IToolBarManager toolbar = new ToolBarManager( SWT.FLAT | SWT.RIGHT );
-        coolBar.add( new ToolBarContributionItem( toolbar, name ) );
-        if (name == "main") { 
-            toolbar.add( new2Action );
-        }
+        coolBar.add( new ToolBarContributionItem( toolbar, "main" ) );
+        
+        toolbar.add( newAction );
+        toolbar.add( importAction );
+       // toolbar.add( showViewAction );
+        toolbar.add( preferencesAction );
+        
+//        createToolBar( coolBar, "editor" );
     }
 
 
     protected void fillStatusLine( final IStatusLineManager statusLine ) {
         statusLine.add( aboutAction );
         statusLine.add( helpContentsAction );
+        statusLine.add( showViewAction );
+        
+        if (SecurityUtils.isAdmin( Polymap.instance().getUser() )) {
+            final Action action = new Action( "------" ) {
+                public void runWithEvent( Event ev ) {
+                    Runtime rt = Runtime.getRuntime();
+                    long free = rt.freeMemory();
+                    long max = rt.maxMemory();
+                    long total = rt.totalMemory();
+                    System.gc();
+                    MessageDialog.openInformation( 
+                            PolymapWorkbench.getShellToParentOn(), "Memory Information",
+                            "Free : " + memFormat( rt.freeMemory() ) + " -- (" + memFormat( free ) + ")\n" +
+                            "Alloc : " + memFormat( rt.totalMemory() ) + " -- (" + memFormat( total ) + ")\n" +
+                            "Total : " + memFormat( rt.maxMemory() ) + " -- (" + memFormat( max ) + ")\n"
+                            );
+                   // PlatformUI.getWorkbench().close();
+                }
+            };
+            action.setToolTipText( "Memory in use" );
+            statusLine.add( action );
+            
+            RWT.getLifeCycle().addPhaseListener( new PhaseListener() {
+                private Display display = Polymap.getSessionDisplay();
+                private Timer lastUpdate = new Timer();
+                @Override
+                public PhaseId getPhaseId() {
+                    return PhaseId.RENDER;
+                }
+                @Override
+                public void beforePhase( PhaseEvent event ) {
+                    if (display != null) {
+                        if (display.isDisposed()) {
+                            RWT.getLifeCycle().removePhaseListener( this );
+                            display = null;
+                        }
+                        else {
+                            if (lastUpdate.elapsedTime() > 3000) {
+                                Runtime rt = Runtime.getRuntime();
+                                String used = memFormat( rt.totalMemory() - rt.freeMemory() );
+                                String alloc = memFormat( rt.totalMemory() );
+                                String max = memFormat( rt.maxMemory() );
+                                action.setText( used );
+                                action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
+                                lastUpdate.start();
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void afterPhase( PhaseEvent event ) {
+                }
+            });
+            
+//            Job job = new UIJob( "MemoryDisplay" ) {
+//                private Display display = Polymap.getSessionDisplay();
+//                protected void runWithException( IProgressMonitor monitor ) throws Exception {
+//                    if (!display.isDisposed()) {
+//                        Runtime rt = Runtime.getRuntime();
+//                        String used = memFormat( rt.totalMemory() - rt.freeMemory() );
+//                        String alloc = memFormat( rt.totalMemory() );
+//                        String max = memFormat( rt.maxMemory() );
+//                        action.setText( used );
+//                        action.setToolTipText( "Heap size: " + used + " of: " + alloc + " max: " + max );
+//                        schedule( 5000 );
+//                    }
+//                    else {
+//                        log.debug( "Exiting " + getName() );
+//                    }
+//                }
+//            };
+//            job.setSystem( true );
+//            job.schedule( 5000 );
+        }
+    }
+    
+    protected String memFormat( long value ) {
+        //FileUtils.byteCountToDisplaySize(
+        return (int)(value / 1000000) + "M";
     }
 }

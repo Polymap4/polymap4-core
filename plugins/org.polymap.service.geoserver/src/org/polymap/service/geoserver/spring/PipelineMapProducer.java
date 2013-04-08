@@ -123,17 +123,19 @@ public class PipelineMapProducer
                         
                         HttpServletResponse response = GeoServerWms.response.get();
                         if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
-                            log.debug( "Response: 304!" );
+                            log.info( "Response: 304!" );
                             response.setStatus( 304 );
                         }
                         else {
                             long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
                             // allow caches and browser clients to cache for 1h
-                            response.setHeader( "Cache-Control", "public,max-age=3600" );
+                            //response.setHeader( "Cache-Control", "public,max-age=3600" );
                             if (lastModified > 0) {
+                                response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
                                 response.setDateHeader( "Last-Modified", lastModified );
                             }
                             else {
+                                response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
                                 response.setDateHeader( "Expires", 0 );
                             }
 

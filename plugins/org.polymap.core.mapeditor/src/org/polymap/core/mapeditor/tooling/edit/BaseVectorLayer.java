@@ -26,18 +26,20 @@ import java.io.IOException;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.spatial.BBOX;
+import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.spatial.Intersects;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
+import com.vividsolutions.jts.geom.Envelope;
 
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
@@ -131,24 +133,34 @@ public abstract class BaseVectorLayer
         };
         styleMap = styler.createStyleMap();
         
-        vectorLayer = new JsonVectorLayer( "selection", jsonServer, jsonEncoder, styleMap );
+        vectorLayer = new JsonVectorLayer( "JsonVectorLayer", jsonServer, jsonEncoder, styleMap );
         vectorLayer.setVisibility( true );
         vectorLayer.setIsBaseLayer( false );
         vectorLayer.setZIndex( 10000 );
 
         this.mapEditor.addLayer( vectorLayer );
-        
-        // hover control
-        hoverControl = new SelectFeatureControl( vectorLayer, SelectFeatureControl.FLAG_HOVER );
-        hoverControl.setHighlightOnly( true );
-        hoverControl.setRenderIntent( "temporary" );
-        mapEditor.addControl( hoverControl );
-        
+                
         // XXX try to chnage select tolerance
         vectorLayer.addObjModCode( "OpenLayers.Handler.Feature.prototype.clickTolerance = 10;" );
     }
 
     
+    public void enableHover() {
+        assert hoverControl == null;
+        hoverControl = new SelectFeatureControl( vectorLayer, SelectFeatureControl.FLAG_HOVER );
+        hoverControl.setHighlightOnly( true );
+        hoverControl.setRenderIntent( "temporary" );
+        mapEditor.addControl( hoverControl );
+    }
+    
+    
+    public void refresh() {
+        if (vectorLayer != null) {
+            vectorLayer.refresh();
+        }
+    }
+
+
     public void dispose() {
         if (fsm != null) {
             fsm.removeSelectionChangeListener( this );
@@ -193,7 +205,9 @@ public abstract class BaseVectorLayer
         }
         this.active = true;
         assert vectorLayer != null : "no vectorLayer";
-        hoverControl.activate();
+        if (hoverControl != null) {
+            hoverControl.activate();
+        }
         
         //selectFeatures( fsm.getFeatureCollection() );
     }
@@ -235,7 +249,9 @@ public abstract class BaseVectorLayer
     }
 
 
-    public void selectFeatures( FeatureCollection _features ) { 
+    public void selectFeatures( FeatureCollection _features ) {
+        List<Feature> previous = new ArrayList( features );
+        
         // copy features
         features.clear();
         final AtomicBoolean exceeded = new AtomicBoolean();
@@ -256,6 +272,7 @@ public abstract class BaseVectorLayer
         
         // still initializing?
         if (vectorLayer != null) {
+            // avoid subsequent refresh after several calls of this method
             vectorLayer.getJsonEncoder().setFeatures( features );
             vectorLayer.refresh();
         }
@@ -270,18 +287,18 @@ public abstract class BaseVectorLayer
     public void selectFeatures( ReferencedEnvelope bounds, boolean runOperation ) {
         try {
             CoordinateReferenceSystem dataCRS = layer.getCRS();
-            ReferencedEnvelope dataBBox = bounds.transform( dataCRS, true );
+            ReferencedEnvelope dataBounds = bounds.transform( dataCRS, true );
             //log.debug( "dataBBox: " + dataBBox );
 
-            FilterFactory ff = CommonFactoryFinder.getFilterFactory( GeoTools.getDefaultHints() );
-            //JD: should this be applied to all geometries?
-            //String name = featureType.getDefaultGeometry().getLocalName();
-            //JD: changing to "" so it is
-            String propname = "";
-            String epsgCode = CRS.toSRS( dataBBox.getCoordinateReferenceSystem() );  //GML2EncodingUtils.crs( dataBBox.getCoordinateReferenceSystem() );
+            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( GeoTools.getDefaultHints() );
+//            SimpleFeatureType schema = PipelineFeatureSource.forLayer( layer, false ).getSchema();
+//            String propName = schema.getGeometryDescriptor().getLocalName();
+            String propName = "";
+            String epsgCode = CRS.toSRS( dataBounds.getCoordinateReferenceSystem() );  //GML2EncodingUtils.crs( dataBBox.getCoordinateReferenceSystem() );
             
-            BBOX filter = ff.bbox( propname, dataBBox.getMinX(), dataBBox.getMinY(), 
-                    dataBBox.getMaxX(), dataBBox.getMaxY(), epsgCode);
+            Intersects filter = ff.intersects( 
+                    ff.property( propName ), 
+                    ff.literal( JTS.toGeometry( (Envelope)dataBounds ) ) );
             
             if (runOperation) {
                 // change feature selection
@@ -296,7 +313,7 @@ public abstract class BaseVectorLayer
             else {
                 // select features directly 
                 PipelineFeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-                selectFeatures (fs.getFeatures( filter ) );
+                selectFeatures( fs.getFeatures( filter ) );
             }
         }
         catch (final Exception e) {

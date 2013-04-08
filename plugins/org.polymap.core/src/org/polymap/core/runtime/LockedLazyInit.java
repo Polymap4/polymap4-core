@@ -62,4 +62,8 @@ public final class LockedLazyInit<T>
         value = null;
     }
 
+    public boolean isInitialized() {
+        return value != null;
+    }
+
 }

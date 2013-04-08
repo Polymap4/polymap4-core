@@ -47,7 +47,7 @@
 			<remoteRepository refid="geotools.repository.snapshot" />
 			<remoteRepository refid="central.repository" />
 			<remoteRepository refid="jaitoolsmaven.repository" />
-			<remoteRepository refid="geosolutionsmaven.repository" />
+			<!--remoteRepository refid="geosolutionsmaven.repository" /-->
 
 			<!-- GeoServer -->
             <dependency groupId="org.geoserver" artifactId="main" version="${geoserver.version}"/>

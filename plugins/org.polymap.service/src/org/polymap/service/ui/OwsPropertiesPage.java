@@ -85,7 +85,7 @@ public class OwsPropertiesPage
         if (providedService == null) {
             try {
                 log.info( "No Service found, creating new..." );
-                NewServiceOperation op = ServiceRepository.instance().newOperation( NewServiceOperation.class );
+                NewServiceOperation op = new NewServiceOperation();
                 op.init( map, ServicesPlugin.SERVICE_TYPE_WMS );
                 OperationSupport.instance().execute( op, false, false );
 

@@ -65,8 +65,13 @@ public class ReportFactoryExtension {
     public static List<IReport> reportsFor( IReportSite site ) {
         List<IReport> result = new ArrayList();
         for (ReportFactoryExtension ext : all()) {
-            IReportFactory factory = ext.createReportFactory();
-            result.addAll( factory.createReports( site ) );
+            try {
+                IReportFactory factory = ext.createReportFactory();
+                result.addAll( factory.createReports( site ) );
+            }
+            catch (Exception e) {
+                log.warn( "Error while initializing IReportFactory: ", e );
+            }
         }
         return result;
     }

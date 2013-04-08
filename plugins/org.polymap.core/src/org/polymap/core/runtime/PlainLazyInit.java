@@ -31,7 +31,6 @@ public class PlainLazyInit<T>
         super();
     }
 
-
     /**
      * Constructs a new instance.
      * <p/>
@@ -44,7 +43,6 @@ public class PlainLazyInit<T>
     public PlainLazyInit( Supplier<T> supplier ) {
         super( supplier );
     }
-
     
     @SuppressWarnings("hiding")
     public T get( Supplier<T> supplier ) {
@@ -55,9 +53,14 @@ public class PlainLazyInit<T>
         return value;
     }
 
-    
+    @Override
     public void clear() {
         value = null;
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return value != null;
     }
 
 }

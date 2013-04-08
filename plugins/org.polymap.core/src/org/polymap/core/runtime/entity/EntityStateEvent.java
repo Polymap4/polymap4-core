@@ -57,7 +57,7 @@ public class EntityStateEvent<S>
      * Otherwise the event was triggered by a foreign session.
      */
     public boolean isMySession() {
-        return srcContext == SessionContext.current();
+        return srcContext.equals( SessionContext.current() );
     }
     
     public EventType getEventType() {

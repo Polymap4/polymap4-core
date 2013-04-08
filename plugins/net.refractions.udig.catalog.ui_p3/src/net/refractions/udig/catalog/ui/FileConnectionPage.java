@@ -103,13 +103,13 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
      * Construct <code>OpenFilePage</code>.
      */
     public FileConnectionPage() {
-        super(Messages.OpenFilePage_pageTitle);
+        super(Messages.get("OpenFilePage_pageTitle"));
     }
 
     
     List<IService> process( List<URL> urls, IProgressMonitor monitor ) {
         List<IService> resources = new ArrayList<IService>();
-        monitor.beginTask( Messages.OpenFilePage_1, list.size() );
+        monitor.beginTask( Messages.get("OpenFilePage_1"), list.size() );
         int worked = 0;
         for (URL url : urls) {
             if (monitor.isCanceled()) {

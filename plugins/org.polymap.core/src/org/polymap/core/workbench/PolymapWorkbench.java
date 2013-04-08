@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id: $
  */
-
 package org.polymap.core.workbench;
 
 import org.apache.commons.logging.Log;
@@ -36,8 +27,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.util.URLHelper;
 import org.eclipse.rwt.lifecycle.IEntryPoint;
+import org.eclipse.rwt.service.ISessionStore;
+
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.ui.IWorkbench;
@@ -48,8 +42,10 @@ import org.eclipse.ui.application.WorkbenchAdvisor;
 import org.eclipse.ui.internal.util.PrefUtil;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
@@ -58,19 +54,16 @@ import org.polymap.core.runtime.Polymap;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  *         <li>24.06.2009: created</li>
- * @version $Revision: $
  */
 public class PolymapWorkbench
         implements IEntryPoint {
 
     private static final Log log = LogFactory.getLog( PolymapWorkbench.class );
     
-    private static final String POLYMAP_PRESENTATION = "polymap3.presentation";
 
     public PolymapWorkbench() {
-        log.debug( "..." );
     }
 
 
@@ -140,51 +133,70 @@ public class PolymapWorkbench
     }
 
     
-//    public static void setStatusLine() {
-//        if (layer.getStatus() == ILayer.ERROR) {
-//            getViewSite().getActionBars().getStatusLineManager().setErrorMessage(
-//                    layer.getStatusMessage());
-//        } else {
-//            getViewSite().getActionBars().getStatusLineManager().setErrorMessage(null);
-//            getViewSite().getActionBars().getStatusLineManager().setMessage(
-//                    layer.getStatusMessage());
-//
-//        }
-//    } else {
-//        getViewSite().getActionBars().getStatusLineManager().setMessage(null);
-//        getViewSite().getActionBars().getStatusLineManager().setErrorMessage(null);
-//
-//    }
-    
-    
+    @Override
     public int createUI() {
-        log.debug( "..." );
-        
-        // see http://www.eclipse.org/forums/index.php/m/91519/
-//        UICallBack.activate( String.valueOf( this.hashCode() ) );
-        
+        return createUI( new PolymapWorkbenchAdvisor() );
+    }
+    
+    
+    protected int createUI( WorkbenchAdvisor advisor ) {
         ScopedPreferenceStore prefStore = (ScopedPreferenceStore)PrefUtil.getAPIPreferenceStore();
         String keyPresentationId = IWorkbenchPreferenceConstants.PRESENTATION_FACTORY_ID;
         String presentationId = prefStore.getString( keyPresentationId );
-
-        WorkbenchAdvisor worbenchAdvisor = new PolymapWorkbenchAdvisor();
-//        if (POLYMAP_PRESENTATION.equals( presentationId )) {
-//            worbenchAdvisor = new PolymapPresentationWorkbenchAdvisor();
-//        }
 
         // security config / login
         Polymap.instance().login();
         
         // start workbench
+        Display display = PlatformUI.createDisplay();
         try {
-            Display display = null;
-            display = PlatformUI.createDisplay();
-            return PlatformUI.createAndRunWorkbench( display, worbenchAdvisor );
+            int result = PlatformUI.createAndRunWorkbench( display, advisor );
+            
+            new Terminator().schedule( 1000 );
+            return result;
         }
-        catch (Exception e) {
-            // 
-            handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-            return PlatformUI.RETURN_OK;
+        // reload/F5
+        catch (Error e) {
+            log.warn( e.getLocalizedMessage() );
+            new Terminator().schedule( 1000 );
+            return PlatformUI.RETURN_EMERGENCY_CLOSE;
+        }
+        catch (Throwable e) {
+            log.warn( e.getLocalizedMessage() );
+            return PlatformUI.RETURN_EMERGENCY_CLOSE;
+        }
+    }
+
+    
+    /**
+     * Invalidates the current HTTP session. Due to bug in RAP (?) this
+     * cannot be done in UIThread.
+     * <p/>
+     * Invalidating the HTTP session causes the UIThread to terminate.
+     * Intension was to free SessioNStore and ThreadLocals on the UIThread.
+     * Does not (?) work as there are still ThreadLocals on Jetty threads.
+     */
+    public static class Terminator
+            extends Job {
+
+        private ISessionStore sessionStore = RWT.getSessionStore();
+        
+        public Terminator() {
+            super( "Terminator" );
+            setSystem( true );
+            setUser( false );
+        }
+
+        protected IStatus run( IProgressMonitor monitor ) {
+            sessionStore.getHttpSession().invalidate();
+//            ((SessionStoreImpl)sessionStore).valueUnbound( null );
+
+//            List names = new ArrayList( EnumerationUtils.toList( sessionStore.getAttributeNames() ) );
+//            for (Object name : names) {
+//                sessionStore.removeAttribute( (String)name );
+//            }
+//            ContextProvider.releaseContextHolder();
+            return Status.OK_STATUS;
         }
     }
     

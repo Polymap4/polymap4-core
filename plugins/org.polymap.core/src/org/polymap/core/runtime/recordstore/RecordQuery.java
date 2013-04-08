@@ -46,6 +46,7 @@ public abstract class RecordQuery {
 
     private Class               sortType;
     
+    private IRecordFieldSelector fieldSelector = IRecordFieldSelector.ALL;
     
     /**
      * 
@@ -97,6 +98,14 @@ public abstract class RecordQuery {
     
     public Class getSortType() {
         return sortType;
+    }
+
+    public IRecordFieldSelector getFieldSelector() {
+        return fieldSelector;
+    }
+    
+    public void setFieldSelector( IRecordFieldSelector fieldSelector ) {
+        this.fieldSelector = fieldSelector;
     }
 
 }

@@ -242,10 +242,12 @@ class DeferredFeatureContentProvider2
                     monitor.setCanceled( true );
                 }
             }
-            catch (Exception e) {
+            // NPE when disposed and variables are null; dont show to user
+            catch (NullPointerException e) {
                 log.warn( "", e );
-                // NPE when disposed and variables are null; dont show to user
-               // return new Status( IStatus.ERROR, DataPlugin.PLUGIN_ID, "", e );
+            }
+            catch (Exception e) {
+                throw e;
             }
             finally {
                 monitor.done();

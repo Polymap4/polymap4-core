@@ -37,12 +37,14 @@ import org.opengis.util.ProgressListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.google.common.collect.Iterators;
 
+import org.polymap.core.data.feature.recordstore.QueryDialect.PostProcessResultSet;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.recordstore.IRecordState;
-import org.polymap.core.runtime.recordstore.ResultSet;
 
 /**
  * A {@link FeatureCollection} returned from {@link RFeatureStore} as a result
@@ -108,8 +110,10 @@ class RFeatureCollection
         return size.get( new Supplier<Integer>() {
             public Integer get() {
                 try {
-                    ResultSet results = queryDialect.getFeatureStates( fs, query );
-                    return results.count();
+                    PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
+                    return results.hasPostProcessing()
+                            ? Iterators.size( results.iterator() )
+                            : results.size();
                 }
                 catch (Exception e) {
                     throw new RuntimeException( e );
@@ -156,37 +160,34 @@ class RFeatureCollection
     
     public Iterator iterator() {
         try {
-            final ResultSet results = queryDialect.getFeatureStates( fs, query );
+            final PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
             
+            // build features
             Iterator<Feature> result = new Iterator<Feature>() {
-            
                 private Iterator<IRecordState>  delegate = results.iterator();
-                
+                @Override
                 public boolean hasNext() {
                     return delegate.hasNext(); 
                 }
-                
+                @Override                
                 public Feature next() {
                     return schema instanceof SimpleFeatureType
                             ? new RSimpleFeature( delegate.next(), schema )
                             : new RFeature( delegate.next(), schema );
                 }
-                
+                @Override
                 public void remove() {
                     delegate.remove();
                 }
             };
-            // this iterator does not remove itself when done;
-            // I just don't want to bother the code with it            
-//            Iterator<Feature> result = transform( results.iterator(), new Function<IRecordState,Feature>() {
-//                public Feature apply( IRecordState input ) {
-//                    return new RFeature( input, schema );
-//                }
-//            });
-
-//            if (!open.add( result )) {
-//                throw new IllegalStateException( "Unable to register new FeatureCollection" );
-//            }
+            // post-process
+            if (results.hasPostProcessing()) {
+                result = Iterators.filter( result, new Predicate<Feature>() {
+                    public boolean apply( Feature input ) {
+                        return results.postProcess( input );
+                    }
+                });
+            }
             return result;
         }
         catch (Exception e) {

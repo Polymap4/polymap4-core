@@ -47,7 +47,6 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
-import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.RemoveMapOperation;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -78,7 +77,7 @@ public class RemoveMapAction
 
     public void runWithEvent( IAction action, Event event ) {
         try {
-            RemoveMapOperation op = ProjectRepository.instance().newOperation( RemoveMapOperation.class ); 
+            RemoveMapOperation op = new RemoveMapOperation(); 
             op.init( selectedMap ); 
             OperationSupport.instance().execute( op, true, true );
         }
@@ -98,7 +97,7 @@ public class RemoveMapAction
             if (selectedMap != null) {
                 // check ACL permission
                 boolean hasPermission = selectedMap instanceof ACL
-                        ? ACLUtils.checkPermission( (ACL)selectedMap, AclPermission.DELETE, false )
+                        ? ACLUtils.checkPermission( selectedMap, AclPermission.DELETE, false )
                         : true;
                 action.setEnabled( hasPermission );
             }

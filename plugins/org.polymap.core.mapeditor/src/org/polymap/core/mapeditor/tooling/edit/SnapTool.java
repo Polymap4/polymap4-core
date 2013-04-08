@@ -60,15 +60,15 @@ public class SnapTool
         extends DefaultEditorTool 
         implements PropertyChangeListener, VectorLayerStylerAware {
 
-    private static final int            DEFAULT_TOLERANCE = 10;
-
     private static Log log = LogFactory.getLog( SnapTool.class );
+
+    private static final int            DEFAULT_TOLERANCE = 10;
 
     private BaseLayerEditorTool         parentTool;
 
     private SnappingControl             control;
 
-    private List<EditVectorLayer>       snapLayers;
+    private List<SnapVectorLayer>       snapLayers;
     
     private VectorLayerStyler           styler;
     
@@ -80,6 +80,10 @@ public class SnapTool
     @Override
     public boolean init( IEditorToolSite site ) {
         boolean result = super.init( site );
+        
+        // disable deactivation for other tools
+        getSite().removeListener( this );
+        
         parentTool = (BaseLayerEditorTool)getFirst( site.filterTools( isEqual( getToolPath().removeLastSegments( 1 ) ) ), null );
         assert parentTool != null;
         return result;
@@ -107,7 +111,7 @@ public class SnapTool
 
     @Override
     public void onActivate() {
-        log.debug( "onActivate(): ..." );
+        super.onActivate();
         
         // create snapLayers
         snapLayers = new ArrayList();
@@ -116,7 +120,7 @@ public class SnapTool
             public void visit( ILayer layer ) {
                 if (layer.isVisible() && isVector.apply( layer )) {
                     try {
-                        EditVectorLayer snapLayer = new EditVectorLayer( getSite().getEditor(), layer );
+                        SnapVectorLayer snapLayer = new SnapVectorLayer( getSite().getEditor(), layer );
                         snapLayer.activate();
 
                         ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
@@ -139,7 +143,7 @@ public class SnapTool
                     styleMap.dispose();
                 }
                 styleMap = newStyleMap;
-                for (EditVectorLayer snapLayer : snapLayers) {
+                for (SnapVectorLayer snapLayer : snapLayers) {
                     snapLayer.getVectorLayer().setStyleMap( styleMap );
                     snapLayer.getVectorLayer().redraw();
                 }
@@ -188,19 +192,22 @@ public class SnapTool
 
     @Override
     public void onDeactivate() {
-        log.debug( "onDeactivate(): ..." );
+        super.onDeactivate();
+        
         parentTool.removeListener( this );
+        
         if (toleranceField != null) {
             toleranceField.dispose();
             toleranceField = null;
         }
         if (control != null) {
             getSite().getEditor().removeControl( control );
+            control.deactivate();
             control.destroy();
             control.dispose();
             control = null;
         }
-        for (EditVectorLayer snapLayer : snapLayers) {
+        for (SnapVectorLayer snapLayer : snapLayers) {
             snapLayer.dispose();
         }
         snapLayers = null;

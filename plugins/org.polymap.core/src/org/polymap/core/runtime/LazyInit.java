@@ -89,4 +89,11 @@ public abstract class LazyInit<T>
      */
     public abstract void clear();
 
+    
+    /**
+     * Returns true if the variable is currently initialized. That is, the next call
+     * of {@link #get()} is <b>supposed</b> to return without calling the supplier.
+     */
+    public abstract boolean isInitialized();
+    
 }

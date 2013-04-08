@@ -1,12 +1,6 @@
 package net.refractions.udig.catalog.ui;
 
-import java.io.IOException;
-
 import org.eclipse.swt.widgets.Display;
-
-import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
-import org.eclipse.rwt.lifecycle.UICallBack;
-
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -14,17 +8,21 @@ import java.util.Map;
 
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.ICatalog;
+import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IResolveChangeEvent;
 import net.refractions.udig.catalog.IResolveChangeListener;
-import net.refractions.udig.ui.PlatformGIS;
+import net.refractions.udig.catalog.IService;
+import net.refractions.udig.catalog.ui.internal.Messages;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.PlatformUI;
 
-import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
+
+import org.polymap.core.runtime.UIJob;
 
 
 /**
@@ -40,33 +38,34 @@ import org.eclipse.core.runtime.jobs.Job;
  * @author jgarnett
  * @since 0.6.0
  */
-public class AbstractResolveContentProvider implements IResolveChangeListener {
+public class AbstractResolveContentProvider
+        implements IResolveChangeListener {
 
     /**
      * Map of threads used to resolve associated IResolves.
-     * <p>
+     * <p/>
      * Waking up the thread will cause the associated IResolve to be refreshed.
      * </p>
-     * <p>
-     * Here an {@link IdentityHashMap} is used because the containsKey otherwise doesn't look deep 
-     * enough in the object to correctly deal with multilevel services.  
-     * </p>
+     * Here an {@link IdentityHashMap} is used because the containsKey otherwise
+     * doesn't look deep enough in the object to correctly deal with multilevel
+     * services.
      */
-    Map<IResolve, Job> threadFarm = new IdentityHashMap<IResolve, Job>();
+    private Map<IResolve,Update>    jobs = new IdentityHashMap<IResolve,Update>();
+
     /**
      * Captures parent child relationships.
-     * <p>
-     * Here an {@link IdentityHashMap} is used because the containsKey otherwise doesn't look deep 
-     * enough in the object to correctly deal with multilevel services.  
-     * </p>
+     * <p/>
+     * Here an {@link IdentityHashMap} is used because the containsKey otherwise
+     * doesn't look deep enough in the object to correctly deal with multilevel
+     * services.
      */
     protected final Map<IResolve, List<IResolve>> structure = new IdentityHashMap<IResolve, List<IResolve>>();
-    /**
-     * Root of this tree, often a ICatalog.
-     */
-    protected ICatalog catalog;
-    protected List<IResolve> list;
-    protected Viewer viewer;
+
+    /** Root of this tree, often a ICatalog. */
+    protected ICatalog              catalog;
+    protected List<IResolve>        list;
+    protected Viewer                viewer;
+    private Display                 display;
 
     public AbstractResolveContentProvider() {
         super();
@@ -88,7 +87,7 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
      * @param event
      */
     public void changed( IResolveChangeEvent event ) {
-    	if (threadFarm==null) {
+    	if (jobs==null) {
     		// we are disposed
     		if (catalog!=null) {
     			catalog.removeCatalogListener(this);
@@ -99,7 +98,7 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
             return;
         }
         IResolve resolve = event.getResolve();
-        if (threadFarm.containsKey(resolve)) {
+        if (jobs.containsKey(resolve)) {
             update(resolve);
         }
     }
@@ -116,7 +115,7 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
         if (PlatformUI.getWorkbench().isClosing()) {
             return;
         }
-        Runnable refresh = new Runnable(){
+        display.asyncExec( new Runnable(){
         	public void run() {
         		if (viewer instanceof TreeViewer) {
     				TreeViewer treeViewer = (TreeViewer) viewer;
@@ -125,74 +124,44 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
         			viewer.refresh();
     			}
         	}
-        };
-        //_p3: using explizit
-        LifeCycleUtil.getSessionDisplay().asyncExec( refresh );
-        
-//        PlatformGIS.asyncInDisplayThread(object, true);
+        });
     }
 
     /**
      * Update appearance and structure.
-     * <p>
+     * <p/>
      * Note: this will spawn a thread to fetch the required information.
-     * </p>
-     * 
-     * @param resolve
      */
     public void update( final IResolve resolve ) {
         if (resolve == null) {
-            // go away
             return;
         }
         if (resolve.getIdentifier() == null) {
-            // go away x 2
             // System.out.println( "Got an resolve with out an id "+ resolve);
-        }
-        
-        // _p3:
-        Display display = LifeCycleUtil.getSessionDisplay();
-        if (display == null) {
-            throw new IllegalStateException( "Called outside the UI thread.");
         }
         
         // run the thread, unless it is already running...
         // (this will cause any change events generated by the thread
         // to be ignored).
-        if (threadFarm.containsKey(resolve)) {
-            Job job = threadFarm.get(resolve);
-            if (job == null) {
-                // This IResolve is not suitable for member resolution
-                //
-            }
+        Update job = jobs.get( resolve );
+        if (job != null) {
             if (job.getState() == Job.RUNNING) {
                 // thread will already report back to structure
                 // Note: thread should end with a async update to the
                 // assoicated element
-            } else {
+            } 
+            else {
                 // We had a thread but it stopped - must be do to an error?
-                job.cancel();
-                
-                Update update = new Update(resolve,display);
-                job = PlatformGIS.run( update );  //"Update " + resolve.getIdentifier() );
-                threadFarm.put(resolve, job);
+                job.cancelAndInterrupt();
 
-//                update = new Thread(new Update(resolve,display), "Update " + resolve.getIdentifier()); //$NON-NLS-1$
-//                threadFarm.put(resolve, update);
-//                update.setPriority(Thread.MIN_PRIORITY);
-//                update.start();
+                job = new Update( resolve );
+                jobs.put( resolve, job );
             }
         } 
         else {
             // request a structure update
-            Update update = new Update(resolve,display);
-            Job job = PlatformGIS.run( update );  //"Update " + resolve.getIdentifier() );
-            threadFarm.put(resolve, job);
-            
-//            Thread update = new Thread(new Update(resolve,display), "Update " + resolve.getIdentifier()); //$NON-NLS-1$
-//            threadFarm.put(resolve, update);
-//            update.setPriority(Thread.MIN_PRIORITY);
-//            update.start();
+            job = new Update( resolve );
+            jobs.put( resolve, job );
         }
     }
 
@@ -222,6 +191,9 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
             return;
         }
         viewer = newViewer;
+        display = viewer.getControl().getDisplay();
+        assert display != null : "Called outside UIThread.";
+        
         if (catalog != null || list != null) {
             CatalogPlugin.removeListener(this);
         }
@@ -234,9 +206,9 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
     }
 
     public void dispose() {
-        if (threadFarm != null) {
-            for( IResolve resolve : threadFarm.keySet() ) {
-                Job job = threadFarm.get(resolve);
+        if (jobs != null) {
+            for( IResolve resolve : jobs.keySet() ) {
+                Job job = jobs.get(resolve);
                 if (job!=null && job.getState()==Job.RUNNING) {
                     job.cancel();
                 }
@@ -245,8 +217,8 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
             	catalog.removeCatalogListener(this);
             
             CatalogPlugin.getDefault().getLocalCatalog().removeCatalogListener(this);
-            threadFarm.clear();
-            threadFarm = null;
+            jobs.clear();
+            jobs = null;
         }
         if (structure != null) {
             for( IResolve resolve : structure.keySet() ) {
@@ -264,16 +236,16 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
      * <p>
      * Note: thread notify the system that the element has requires an update
      */
-    class Update implements ISafeRunnable {
+    class Update
+            extends UIJob {
         
-        IResolve resolve;
-        //_p3: display needed for context
-        Display display;
-        Throwable exception;
+        private IResolve        resolve;
+        private Throwable       exception;
         
-        Update( IResolve target, Display display ) {
+        Update( IResolve target ) {
+            super( Messages.get( "ResolveContentProvider_connecting" ) + ": " + target );
             this.resolve = target;
-            this.display = display;
+            schedule();
         }
         
         public Throwable getException() {
@@ -285,38 +257,48 @@ public class AbstractResolveContentProvider implements IResolveChangeListener {
          * <p>
          * Note: We also need to let ourselves be interrupted
          */
-        @SuppressWarnings("unchecked")
-        public void run() 
-                throws Exception {
-            //_p3: give the runnable to correct context
-            UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                public void run() {
-                    try {
-                        System.out.println(getClass().getSimpleName() + ": " + resolve.getIdentifier()); //$NON-NLS-1$
+        @Override
+        protected void runWithException( IProgressMonitor monitor ) throws Exception {
+            try {
+                System.out.println( getClass().getSimpleName() + ": " + resolve.getIdentifier()); //$NON-NLS-1$
 
-                        List<IResolve> members = new ArrayList<IResolve>(resolve.members(null));
-                        structure.put(resolve, members);
-                        
-                        //_p3: test job system
-                        //Thread.sleep( 3000 );
-                    } 
-                    catch (IOException io) {
-                        // could not get children
-                        // System.out.println( resolve.getIdentifier()+": "+ io );
-                        io.printStackTrace();
-                        structure.put(resolve, null);
-                        // return; // don't even try again
-                    }
-                    refresh(resolve);
+                List<IResolve> children = new ArrayList();
+
+                // force connect to backend resource here in the job, so that just
+                // the job is blocked and not the UIThread of the label providers
+                List<UIJob> infoJobs = new ArrayList();
+                for (final IResolve child : resolve.members( monitor )) {
+                    children.add( child );
+                    
+                    // separate jobs to fetch info to speed up operation
+                    UIJob infoJob = new UIJob( Messages.get( "ResolveContentProvider_connecting" ) + ": " + child ) {
+                        protected void runWithException( IProgressMonitor _monitor ) throws Exception {
+                            if (child instanceof IService) {
+                                ((IService)child).getInfo( _monitor );
+                            }
+                            else if (child instanceof IGeoResource) {
+                                ((IGeoResource)child).getInfo( _monitor );
+                            }
+                        }
+                    };
+                    infoJobs.add( infoJob );
+                    infoJob.schedule();
                 }
-            });
+                
+                // wait for infoJobs
+                UIJob.joinJobs( infoJobs );
+                
+                structure.put( resolve, children );
+            } 
+            catch (Exception e) {
+                // could not get children
+                e.printStackTrace();
+                structure.put( resolve, null );
+                exception = e;
+            }
+            refresh( resolve );
         }
 
-        public void handleException( Throwable exception ) {
-            this.exception = exception;
-            System.out.println( resolve.getIdentifier()+": "+exception );
-            exception.printStackTrace();
-        }
     }
 
 }

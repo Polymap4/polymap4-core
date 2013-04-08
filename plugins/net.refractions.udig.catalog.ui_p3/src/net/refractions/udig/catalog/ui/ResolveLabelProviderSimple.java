@@ -33,6 +33,7 @@ import net.refractions.udig.catalog.IResolveFolder;
 import net.refractions.udig.catalog.ISearch;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.IServiceInfo;
+import net.refractions.udig.catalog.ui.internal.Messages;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -95,8 +96,8 @@ public class ResolveLabelProviderSimple extends LabelProvider implements IResolv
         	if(element instanceof IGeoResource) {
         		IGeoResource resource = (IGeoResource) element;
         		String title = resource.getTitle();
-        		//log.info( "resource: " + resource.getIdentifier() + ": " + title );
-        		title = null;  // FIXME: force load
+        		log.info( "resource: " + resource.getIdentifier() + ": " + title );
+        		//title = null;  // FIXME: force load
         		
         		if( title == null ){
                     IGeoResourceInfo info = resource.getInfo(new NullProgressMonitor());
@@ -176,9 +177,16 @@ public class ResolveLabelProviderSimple extends LabelProvider implements IResolv
      * @see org.eclipse.jface.viewers.LabelProvider#getImage(java.lang.Object)
      */
     public Image getImage( Object element ) {
+        // IResolve
         if (element instanceof IResolve) {
-            return CatalogUIPlugin.image((IResolve) element);
+            return CatalogUIPlugin.image( (IResolve)element );
         }
-        return super.getImage(element);
+        // Loading...
+        else if (element instanceof String
+                && element.equals( Messages.get("ResolveContentProvider_searching"))) {
+            ISharedImages images = CatalogUIPlugin.getDefault().getImages();
+            return images.get( ISharedImages.LOADING );
+        }
+        return super.getImage( element );
     }
 }

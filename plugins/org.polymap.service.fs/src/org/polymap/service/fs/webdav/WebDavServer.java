@@ -212,6 +212,7 @@ public class WebDavServer
             public void beforeDestroy() {
                 log.info( "SessionContext is destroyed -> invalidating HTTP session" );
                 try {
+                    //sessionContext.removeSessionListener( this );
                     session.invalidate();
                 }
                 catch (Exception e) {

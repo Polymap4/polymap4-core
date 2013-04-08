@@ -94,7 +94,7 @@ public class CatalogExportWizard extends WorkflowWizard implements IExportWizard
 
     public CatalogExportWizard( Workflow workflow, Map<Class<? extends State>, WorkflowWizardPageProvider> map) {
         super(workflow, map);
-        setWindowTitle(Messages.CatalogExportWizard_WindowTitle);        
+        setWindowTitle(Messages.get("CatalogExportWizard_WindowTitle"));        
     }
     
     /**
@@ -121,7 +121,7 @@ public class CatalogExportWizard extends WorkflowWizard implements IExportWizard
         List<Data> resources = layerSelectState.getExportData();
         boolean success = true;
 
-        monitor.beginTask(Messages.CatalogExport_taskName, resources.size()+1);
+        monitor.beginTask(Messages.get("CatalogExport_taskName"), resources.size()+1);
         monitor.worked(1);
         
         //for each layer, export
@@ -215,30 +215,30 @@ public class CatalogExportWizard extends WorkflowWizard implements IExportWizard
                 }
             }
         } catch (IOException e) {
-            String msg = MessageFormat.format(Messages.CatalogExport_layerFail,resource.getIdentifier());
+            String msg = MessageFormat.format(Messages.get("CatalogExport_layerFail"),resource.getIdentifier());
             CatalogUIPlugin.log(msg, e);
             wizardDialog.setErrorMessage(msg);
             return false;
         } catch (IllegalFilterException e) {
-            String msg = MessageFormat.format(Messages.CatalogExport_layerFail,resource.getIdentifier());
+            String msg = MessageFormat.format(Messages.get("CatalogExport_layerFail"),resource.getIdentifier());
             CatalogUIPlugin.log(msg, e);
             wizardDialog.setErrorMessage(msg);
             return false;
         } catch (SchemaException e) {
-            String msg = MessageFormat.format(Messages.CatalogExport_layerFail,resource.getIdentifier());
+            String msg = MessageFormat.format(Messages.get("CatalogExport_layerFail"),resource.getIdentifier());
             CatalogExport.setError(wizardDialog, msg, e);
             return false;
         } catch (FactoryException e) {
-            String msg = resource.getIdentifier()+Messages.CatalogExport_reprojectError;
+            String msg = resource.getIdentifier()+Messages.get("CatalogExport_reprojectError");
             CatalogExport.setError(wizardDialog, msg, e);
             return false;
         } catch ( RuntimeException e){
             e.printStackTrace(); 
             if( e.getCause() instanceof TransformException ){
-                String msg = resource.getIdentifier()+Messages.CatalogExport_reprojectError;
+                String msg = resource.getIdentifier()+Messages.get("CatalogExport_reprojectError");
                 CatalogExport.setError(wizardDialog, msg, e);
             }else{
-                String msg = MessageFormat.format(Messages.CatalogExport_layerFail,resource.getIdentifier());
+                String msg = MessageFormat.format(Messages.get("CatalogExport_layerFail"),resource.getIdentifier());
                 CatalogExport.setError(wizardDialog, msg, e);
             }
             return false;
@@ -263,21 +263,21 @@ public class CatalogExportWizard extends WorkflowWizard implements IExportWizard
             if (destination[0].exists()) {
                 getContainer().getShell().getDisplay().syncExec(new Runnable(){
                     public void run() {
-                        String pattern = Messages.CatalogExportWizard_OverwriteDialogQuery;
+                        String pattern = Messages.get("CatalogExportWizard_OverwriteDialogQuery");
                         
                         String message = MessageFormat.format(pattern, destination[0].getName());
                         
                         boolean overwrite = !MessageDialog.openQuestion(getContainer().getShell(),
-                                Messages.CatalogExportWizard_0, message);
+                                Messages.get("CatalogExportWizard_0"), message);
 
                         if (!overwrite) {
                             if (!destination[0].delete()) {
                                 destination[0] = selectFile(destination[0],
-                                        Messages.CatalogExportWizard_UnableToDelete);
+                                        Messages.get("CatalogExportWizard_UnableToDelete"));
                             }
 
                         } else {
-                            destination[0] = selectFile(destination[0], Messages.CatalogExportWizard_SelectFile);
+                            destination[0] = selectFile(destination[0], Messages.get("CatalogExportWizard_SelectFile"));
                         }
                     }
                 });
@@ -574,7 +574,7 @@ public class CatalogExportWizard extends WorkflowWizard implements IExportWizard
 
     private boolean writeToShapefile(FeatureCollection<SimpleFeatureType, SimpleFeature> fc, SimpleFeatureType type, File file) throws IOException {
         if (!canWrite(file)) {
-            throw new IOException(MessageFormat.format(Messages.CatalogExport_cannotWrite, file.getAbsolutePath())); 
+            throw new IOException(MessageFormat.format(Messages.get("CatalogExport_cannotWrite"), file.getAbsolutePath())); 
         }        
         URL shpFileURL = URLUtils.fileToURL( file );
         ShapefileDataStore ds = new IndexedShapefileDataStore(shpFileURL);

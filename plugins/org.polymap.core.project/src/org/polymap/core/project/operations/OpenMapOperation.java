@@ -83,7 +83,7 @@ public class OpenMapOperation
         
         // set map extent
         try {
-            monitor.subTask( Messages.get( "OpenMapOperation_calcLayersBounds" ) ); //$NON-NLS-1$
+            monitor.subTask( Messages.get( "OpenMapOperation_calcLayersBounds" ) );
             final ReferencedEnvelope bbox = map.getMaxExtent() == null
                     ? calcLayersBounds( map.getLayers(), map.getCRS(), monitor )
                     : map.getMaxExtent();
@@ -92,16 +92,19 @@ public class OpenMapOperation
                 log.info( "### No map max extent -> using calculated values: " + bbox );
                 map.setMaxExtent( bbox );
             }
-            display.syncExec( new Runnable() {
-                public void run() {
-                    if (bbox == null && !map.getLayers().isEmpty()) {
+            if (bbox == null && !map.getLayers().isEmpty()) {
+                display.syncExec( new Runnable() {
+                    public void run() {
                         MessageBox box = new MessageBox( page.getWorkbenchWindow().getShell() );
-                        box.setText( Messages.get( "OpenMapOperation_bboxErrorText" ) ); //$NON-NLS-1$
-                        box.setMessage( Messages.get( "OpenMapOperation_bboxErrorMsg" ) ); //$NON-NLS-1$
+                        box.setText( Messages.get( "OpenMapOperation_bboxErrorText" ) );
+                        box.setMessage( Messages.get( "OpenMapOperation_bboxErrorMsg" ) );
                         box.open();
                     }
-                }
-            });
+                });
+            }
+            else {
+                map.setVisible( true );
+            }
             return Status.OK_STATUS;
         }
         catch (Exception e) {

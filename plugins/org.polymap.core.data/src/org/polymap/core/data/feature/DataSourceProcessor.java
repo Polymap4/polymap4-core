@@ -34,12 +34,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.opengis.feature.Feature;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 
@@ -48,9 +45,7 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureCollections;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-
+import org.geotools.feature.collection.AdaptorFeatureCollection;
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
@@ -155,7 +150,7 @@ public class DataSourceProcessor
             AddFeaturesRequest request = (AddFeaturesRequest)r;
             FeatureStore fs = geores.resolve( FeatureStore.class, null );
             List<FeatureId> result = addFeatures( fs, request.getFeatures() );
-            context.sendResponse( new ModifyFeaturesResponse( result ) );
+            context.sendResponse( new ModifyFeaturesResponse( new FidSet( result ) ) );
             context.sendResponse( ProcessorResponse.EOP );
         }
         // RemoveFeatures
@@ -251,39 +246,50 @@ public class DataSourceProcessor
     }
 
 
-    protected List<FeatureId> addFeatures( FeatureStore fs, Collection<Feature> features )
+    protected List<FeatureId> addFeatures( FeatureStore fs, final Collection<Feature> features )
     throws IOException {
         log.debug( "addFeatures(): Features: " + features.size() );
-        // XXX supports SimpleFeatureType only yet
+        // XXX supports SimpleFeatureType only
         // XXX transactions?
-        FeatureCollection<SimpleFeatureType, SimpleFeature> coll =
-                FeatureCollections.newCollection();
+//        FeatureType schema = fs.getSchema();
+//        for (Feature feature : features) {
+//            // adopt schema and properties; I'm not sure if this is the proper place to
+//            // do this; here I know the proper target schema and iterating over features
+//            // is done anyway
+//            if (!feature.getType().equals( schema )) {
+//                log.debug( "addFeatures(): FeatureType does not match: " + feature.getType() );
+//                SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
+//
+//                for (Property prop : feature.getProperties()) {
+//                    PropertyDescriptor desc = schema.getDescriptor( prop.getName().getLocalPart() );
+//                    if (desc != null) {
+//                        builder.set( desc.getName(), prop.getValue() );
+//                    }
+//                    else {
+//                        log.warn( "addFeatures(): No such property in target: " + prop.getName() );
+//                    }
+//                }
+//                feature = builder.buildFeature( null );
+//            }
+//            coll.add( (SimpleFeature)feature );
+//        }
+////        coll.addAll( (Collection<? extends SimpleFeature>)features );
 
-        FeatureType schema = fs.getSchema();
-        for (Feature feature : features) {
-            // adopt schema and properties; I'm not sure if this is the proper place to
-            // do this; here I know the proper target schema and iterating over features
-            // is done anyway
-            if (!feature.getType().equals( schema )) {
-                log.debug( "addFeatures(): FeatureType does not match: " + feature.getType() );
-                SimpleFeatureBuilder builder = new SimpleFeatureBuilder( (SimpleFeatureType)schema );
-
-                for (Property prop : feature.getProperties()) {
-                    PropertyDescriptor desc = schema.getDescriptor( prop.getName().getLocalPart() );
-                    if (desc != null) {
-                        builder.set( desc.getName(), prop.getValue() );
-                    }
-                    else {
-                        log.warn( "addFeatures(): No such property in target: " + prop.getName() );
-                    }
-                }
-                feature = builder.buildFeature( null );
+        FeatureCollection fc = new AdaptorFeatureCollection( "features", (SimpleFeatureType)fs.getSchema() ) {
+            @Override
+            protected void closeIterator( Iterator it ) {
             }
-            coll.add( (SimpleFeature)feature );
-        }
-//        coll.addAll( (Collection<? extends SimpleFeature>)features );
+            @Override
+            protected Iterator openIterator() {
+                return features.iterator();
+            }
+            @Override
+            public int size() {
+                return features.size();
+            }
+        };
 
-        return fs.addFeatures( coll );
+        return fs.addFeatures( fc );
     }
 
 

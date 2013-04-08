@@ -146,7 +146,7 @@ public class CatalogExport {
         }
 
         dialog.getWorkflowWizard().getWorkflow().setContext(context);
-        String name=Messages.CatalogExport_taskname; 
+        String name=Messages.get("CatalogExport_taskname"); 
         monitor.beginTask(name, 100);
         monitor.setTaskName(name);
         try {
@@ -165,7 +165,7 @@ public class CatalogExport {
 
     protected Map<Class<? extends State>, WorkflowWizardPageProvider> createPageMapping() {
         HashMap<Class<? extends State>, WorkflowWizardPageProvider> map = new HashMap<Class<? extends State>, WorkflowWizardPageProvider>();
-        String title = Messages.LayerSelectionPage_title;
+        String title = Messages.get("LayerSelectionPage_title");
         ImageDescriptor banner = Images.getDescriptor(ImageConstants.PATH_WIZBAN+"exportshapefile_wiz.gif"); //$NON-NLS-1$
         ExportResourceSelectionPage page = new ExportResourceSelectionPage("Select Layers", title, banner ); 
         map.put(ExportResourceSelectionState.class, new BasicWorkflowWizardPageFactory(page));

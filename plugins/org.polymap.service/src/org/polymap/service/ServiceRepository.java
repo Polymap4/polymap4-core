@@ -95,7 +95,7 @@ public class ServiceRepository
     }
     
     
-    protected void done() {
+    protected void dispose() {
         if (operationListener != null) {
             OperationSupport.instance().removeOperationSaveListener( operationListener );
             operationListener = null;
@@ -204,17 +204,4 @@ public class ServiceRepository
         return result;
     }
 
-
-    public <T> T newOperation( Class<T> type ) {
-        T result = assembler.getModule().transientBuilderFactory().newTransient( type );
-        return result;
-    }
-
-//    public void fireModelChangedEvent( Object source, String propName, Object oldValue, Object newValue) {
-//        PropertyChangeEvent event = new PropertyChangeEvent( source, propName, oldValue, newValue ); 
-//        for (Object l : propChangeListeners.getListeners()) {
-//            ((PropertyChangeListener)l).propertyChange( event );
-//        }
-//    }
-    
 }

@@ -44,8 +44,6 @@ import org.polymap.core.runtime.Polymap;
 
 import org.polymap.service.model.ProvidedServiceComposite;
 import org.polymap.service.model.ServiceListComposite;
-import org.polymap.service.model.operations.NewServiceOperation;
-import org.polymap.service.model.operations.RemoveServiceOperation;
 
 /**
  * 
@@ -95,10 +93,6 @@ public class ServiceRepositoryAssembler
                 ProvidedServiceComposite.class,
                 ServiceListComposite.class,
                 MapComposite.class
-        );
-        domainModule.addTransients( 
-                NewServiceOperation.class,
-                RemoveServiceOperation.class
         );
 
         // persistence: workspace/JSON

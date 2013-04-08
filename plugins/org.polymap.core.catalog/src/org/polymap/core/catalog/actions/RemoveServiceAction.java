@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
@@ -58,12 +57,12 @@ public class RemoveServiceAction
 
     public void run( IAction action ) {
         try {
-            if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
-                    i18n( "confirmTitle" ), i18n( "confirmMessage" ) ) ) {
+//            if (MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+//                    i18n( "confirmTitle" ), i18n( "confirmMessage" ) ) ) {
                 ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
                 for (Object elm : selection.toList()) {
                     catalog.remove( (IService)elm );
-                }
+//                }
             }
         }
         catch (Exception e) {

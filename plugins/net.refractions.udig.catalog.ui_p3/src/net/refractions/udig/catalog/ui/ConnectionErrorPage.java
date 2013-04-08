@@ -41,10 +41,10 @@ public class ConnectionErrorPage extends WorkflowWizardPage {
     IConnectionErrorHandler handler;
 
     public ConnectionErrorPage() {
-        super(Messages.ConnectionErrorPage_pageName); 
+        super(Messages.get("ConnectionErrorPage_pageName")); 
 
-        setDescription(Messages.ConnectionErrorPage_pageDescription); 
-        setTitle(Messages.ConnectionErrorPage_pageTitle); 
+        setDescription(Messages.get("ConnectionErrorPage_pageDescription")); 
+        setTitle(Messages.get("ConnectionErrorPage_pageTitle")); 
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ConnectionErrorPage extends WorkflowWizardPage {
             root.setLayout(new FormLayout());
 
             Label label = new Label(root, SWT.LEFT);
-            label.setText(Messages.ConnectionErrorPage_message); 
+            label.setText(Messages.get("ConnectionErrorPage_message")); 
 
             ListViewer listViewer = new ListViewer(root);
             listViewer.setLabelProvider(new LabelProvider(){

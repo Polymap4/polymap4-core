@@ -14,10 +14,10 @@
  */
 package org.polymap.core.data;
 
-import java.util.Collection;
 import java.util.EventObject;
+import java.util.Set;
 
-import org.opengis.feature.Feature;
+import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,25 +43,25 @@ public class FeatureChangeEvent
         FLUSHED
     }
 
-    private Collection<Feature>     features;
+    private Set<FeatureId>          fids;
     
     private Type                    type;
     
     
-    public FeatureChangeEvent( Object source, Type type, Collection<Feature> features ) {
+    public FeatureChangeEvent( Object source, Type type, Set<FeatureId> fids ) {
         super( source );
         this.type = type;
-        this.features = features;
+        this.fids = fids;
     }
 
     public ILayer getSource() {
         return (ILayer)super.getSource();
     }
 
-    public Collection<Feature> getFeatures() {
-        return features;
+    public Set<FeatureId> getFids() {
+        return fids;
     }
-
+    
     public Type getType() {
         return type;
     }

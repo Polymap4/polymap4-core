@@ -28,7 +28,6 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 import org.eclipse.ui.IObjectActionDelegate;
@@ -38,6 +37,7 @@ import org.eclipse.ui.IWorkbenchPart;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 
@@ -75,9 +75,9 @@ public class LayerVisibleStatusAction
     public void run( IAction _action ) {
         boolean visible = _action.isChecked(); 
         for (ILayer layer : new ArrayList<ILayer>( layers )) {
+            // force propertyChange()
             layer.setVisible( visible );
         }
-        selectionChanged( _action, new StructuredSelection( layers ) );
     }
 
 
@@ -89,32 +89,27 @@ public class LayerVisibleStatusAction
         layers.clear();
         action = _action;
         
-        if (_sel instanceof IStructuredSelection) {
-            Object[] elms = ((IStructuredSelection)_sel).toArray();
-            boolean allLayersVisible = true;
-            for (Object elm : elms) {
-                if (elm instanceof ILayer) {
-                    try {
-                        if (!((ILayer)elm).isVisible()) {
-                            allLayersVisible = false;
-                        }
-                        layers.add( (ILayer)elm );
-                    }
-                    catch (NoSuchEntityException e) {
-                        log.debug( "Layer is removed." );
-                    }                    
+        boolean allLayersVisible = true;
+        for (ILayer layer : new SelectionAdapter( _sel ).elementsOfType( ILayer.class )) {
+            try {
+                if (!layer.isVisible()) {
+                    allLayersVisible = false;
                 }
+                layers.add( layer );
             }
-            action.setEnabled( !layers.isEmpty() ); 
-            action.setChecked( layers.size() == 1 && layers.iterator().next().isVisible()
-                    || layers.size() > 1 && allLayersVisible );
+            catch (NoSuchEntityException e) {
+                log.debug( "Layer is removed." );
+            }                    
         }
+        action.setEnabled( !layers.isEmpty() ); 
+        action.setChecked( layers.size() == 1 && layers.iterator().next().isVisible()
+                || layers.size() > 1 && allLayersVisible );
     }
 
     
     @EventHandler(display=true)
     public void propertyChange( PropertyChangeEvent ev ) {
-        selectionChanged( action, new StructuredSelection( layers ) );
+        selectionChanged( action, new StructuredSelection( layers.toArray() ) );
     }
 
 }

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project.model;
 
 import java.util.List;
@@ -123,12 +114,6 @@ public interface LayerState
         
         private RenderStatus                    renderStatus = RenderStatus.STATUS_OK;
         
-        private boolean                         visible = false;
-        
-        private boolean                         editable = false;
-        
-        private boolean                         selectable = false;
-        
         
         /**
          * Not used, see {@link ILayer}. 
@@ -164,41 +149,6 @@ public interface LayerState
             throw new RuntimeException( "not yet implemented." );
         }
 
-        public boolean isVisible() {
-            return visible;
-        }
-
-        public void setVisible( boolean visible ) {
-            log.info( "this.visible=" + this.visible + ", new= " + visible );
-            if (this.visible != visible) {
-                boolean old = this.visible;
-                this.visible = visible;
-            }
-        }
-
-        public boolean isEditable() {
-            return editable;
-        }
-
-        public void setEditable( boolean editable ) {
-            log.info( "this.editable=" + this.editable + ", new= " + editable );
-            if (this.editable != editable) {
-                boolean old = this.editable;
-                this.editable = editable;
-            }
-        }
-
-        public boolean isSelectable() {
-            return selectable;
-        }
-
-        public void setSelectable( boolean selectable ) {
-            log.info( "this.selectable=" + this.selectable + ", new= " + selectable );
-            if (this.selectable != selectable) {
-                boolean old = this.selectable;
-                this.selectable = selectable;
-            }
-        }
 
         public String toString() {
             return "LayerImpl[label=" + getLabel() +"]";
@@ -363,7 +313,7 @@ public interface LayerState
          * <p/>
          * On the off chance *no* services exist an empty list is returned. All this
          * means is that the service is down, or the user has not connected to it yet
-         * (perhaps they are waiting on security permissions.
+         * (perhaps they are waiting on security permissions.)
          * <p/>
          * getGeoResource() is a blocking method but it must not block UI thread.
          * With this purpose the new imlementation is done to avoid UI thread

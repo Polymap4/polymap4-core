@@ -17,6 +17,7 @@ package org.polymap.core.runtime.cache;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
@@ -37,7 +38,7 @@ final class Soft2Cache<K,V>
     
     private volatile static int         accessCounter = 0;
     
-    private volatile static int         cacheCounter = 0;
+    private static AtomicInteger        cacheCounter = new AtomicInteger();
     
     private String                      name;
     
@@ -50,7 +51,7 @@ final class Soft2Cache<K,V>
 
     Soft2Cache( Soft2CacheManager manager, String name, CacheConfig config ) {
         this.manager = manager;
-        this.name = name != null ? name : String.valueOf( cacheCounter++ );
+        this.name = name != null ? name : String.valueOf( cacheCounter.getAndIncrement() );
         this.config = config;
         
         this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );
@@ -224,9 +225,9 @@ final class Soft2Cache<K,V>
         private Soft2Cache          cache;
         
         /** Use short instead of int, saving 2 bytes of memory. */
-        private short               sizeInKB = -1;
+//        private short               sizeInKB = -1;
         
-        private volatile int        accessed = accessCounter++;
+//        private volatile int        accessed = accessCounter++;
         
         
         CacheEntry( Soft2Cache cache, K key, V value, int elementSize, EvictionListener l ) {
@@ -244,12 +245,12 @@ final class Soft2Cache<K,V>
                 assert evictionListener == null;
                 evictionListener = l;
             }
-            this.sizeInKB = (short)(elementSize / 1024);
-            assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
+//            this.sizeInKB = (short)(elementSize / 1024);
+//            assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
         }
 
         void dispose() {
-            accessed = -1;
+//            accessed = -1;
         }
         
         void fireEvictionEvent() {
@@ -267,21 +268,22 @@ final class Soft2Cache<K,V>
         }
         
         public V value() {
-            accessed = accessCounter++;
-            if (accessed <= 0) {
-                throw new CacheException( "Access counter exceeded!" );
-            }
+            accessCounter++;
+//            accessed = accessCounter++;
+//            if (accessed <= 0) {
+//                throw new CacheException( "Access counter exceeded!" );
+//            }
             return get();
         }
 
-        public int accessed() {
-            return accessed;
-        }
+//        public int accessed() {
+//            return accessed;
+//        }
         
-        public int size() {
-            assert sizeInKB != -1;
-            return 1024*sizeInKB;
-        }
+//        public int size() {
+//            assert sizeInKB != -1;
+//            return 1024*sizeInKB;
+//        }
     }
 
 }

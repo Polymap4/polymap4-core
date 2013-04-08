@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.IAdaptable;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-abstract class DefaultOperationContext
+public abstract class DefaultOperationContext
         implements IFeatureOperationContext {
 
     private static Log log = LogFactory.getLog( DefaultOperationContext.class );

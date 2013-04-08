@@ -42,5 +42,12 @@
             name="%GeneralPreferencesPage_name">
       </page>
    </extension>
+   <extension
+         point="org.polymap.core.operation.concerns">
+      <concern
+            class="org.polymap.service.model.operations.RemoveMapOperationConcern"
+            id="org.polymap.service.RemoveMapOperationConcern">
+      </concern>
+   </extension>
 
 </plugin>

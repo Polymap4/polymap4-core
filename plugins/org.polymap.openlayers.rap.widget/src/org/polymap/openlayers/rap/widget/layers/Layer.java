@@ -30,7 +30,7 @@ import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
  */
 public class Layer extends OpenLayersObject {
 
-	/** Constant to be used in setT^*/
+	/** Constant to be used in {@link #setTransitionEffect(String)}. */
     public static final String TRANSITION_RESIZE = "resize";
 	
 	

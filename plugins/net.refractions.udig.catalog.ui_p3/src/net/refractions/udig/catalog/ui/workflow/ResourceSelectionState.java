@@ -174,7 +174,7 @@ public class ResourceSelectionState extends State {
         	try{
 
                 URL identifier = service.getIdentifier();
-                monitor.setTaskName(MessageFormat.format(Messages.ResourceSelectionState_taskName, new Object[] {identifier.getProtocol()+"://"+identifier.getPath()})); //$NON-NLS-1$
+                monitor.setTaskName(MessageFormat.format(Messages.get("ResourceSelectionState_taskName"), new Object[] {identifier.getProtocol()+"://"+identifier.getPath()})); //$NON-NLS-1$
             count += service.resources(subMonitor).size();
         	}finally{
         		subMonitor.done();
@@ -210,6 +210,6 @@ public class ResourceSelectionState extends State {
 
 	@Override
 	public String getName() {
-		return Messages.ResourceSelectionState_stateName; 
+		return Messages.get("ResourceSelectionState_stateName"); 
 	}
 }

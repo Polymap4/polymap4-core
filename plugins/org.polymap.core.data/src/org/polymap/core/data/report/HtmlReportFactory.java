@@ -80,6 +80,10 @@ public class HtmlReportFactory
                 }
             }
         }
+        // without IDE
+        catch (RuntimeException e) {
+            throw e;
+        }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, null, e.getLocalizedMessage(), e );
         }

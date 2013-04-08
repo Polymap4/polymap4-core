@@ -80,7 +80,7 @@ public interface ModelChangeSupport
         @This 
         private ModelChangeSupport          composite;
         
-        private EntityHandle                 handle;
+        private EntityHandle                handle;
         
         
         public EntityHandle handle() {

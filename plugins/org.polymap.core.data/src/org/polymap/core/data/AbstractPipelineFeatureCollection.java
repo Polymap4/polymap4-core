@@ -27,12 +27,14 @@ import org.apache.commons.logging.LogFactory;
 
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.filter.Filter;
 import org.opengis.util.ProgressListener;
 
 import org.geotools.data.FeatureEvent;
 import org.geotools.data.FeatureListener;
 import org.geotools.feature.CollectionEvent;
 import org.geotools.feature.CollectionListener;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.collection.AbstractFeatureCollection;
 
 /**
@@ -93,4 +95,15 @@ abstract class AbstractPipelineFeatureCollection
         fireChange( new CollectionEvent( this, features, type ) );
     }
 
+    @Override
+    public FeatureCollection<SimpleFeatureType, SimpleFeature> subList( Filter filter ) {
+        throw new RuntimeException( "Sub-classes MUST implement." );
+    }
+
+    @Override
+    public FeatureCollection<SimpleFeatureType, SimpleFeature> subCollection( Filter filter ) {
+        throw new RuntimeException( "Sub-classes MUST implement." );
+    }
+
+    
 }

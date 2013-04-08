@@ -304,7 +304,7 @@ public class Workflow {
             assertNotFinished();
 
             String name = getCurrentState().getName();
-            String string = name != null ? name : Messages.Workflow_busy;
+            String string = name != null ? name : Messages.get("Workflow_busy");
             monitor.beginTask(string, 20);
             monitor.setTaskName(string);
 
@@ -596,7 +596,7 @@ public class Workflow {
          */
         private boolean runInternal( IProgressMonitor monitor ) {
             try {
-                monitor.beginTask(Messages.Workflow_task_name, IProgressMonitor.UNKNOWN);
+                monitor.beginTask(Messages.get("Workflow_task_name"), IProgressMonitor.UNKNOWN);
                 stopped = false;
                 pipe.addListener(this);
 

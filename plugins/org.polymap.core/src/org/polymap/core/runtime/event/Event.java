@@ -16,6 +16,8 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 
+import org.polymap.core.runtime.SessionContext;
+
 /**
  * 
  *
@@ -24,8 +26,19 @@ import java.util.EventObject;
 public class Event<S>
         extends EventObject {
 
+    /**
+     * Event scope is specified via {@link EventHandler} annotation.
+     */
     public enum Scope {
+        /**
+         * Event scope: specifies that a handler receives events published in the
+         * {@link SessionContext#current() current session}.
+         */
         Session,
+        /**
+         * Event scope: specifies that the handler receives all events published in
+         * the this JVM.
+         */
         JVM
     }
     

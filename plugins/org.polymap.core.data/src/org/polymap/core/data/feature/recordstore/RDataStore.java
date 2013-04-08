@@ -24,8 +24,6 @@ import java.util.Set;
 import java.io.IOException;
 import java.net.URI;
 
-import net.refractions.udig.catalog.IGeoResource;
-
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureListenerManager;
 import org.geotools.data.FeatureSource;
@@ -36,6 +34,7 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 
 import org.apache.commons.logging.Log;
@@ -67,6 +66,7 @@ public class RDataStore
     
     protected FeatureListenerManager    listeners = new FeatureListenerManager();
 
+    /* Changed inside updater so no extra synch is needed. */
     private Map<Name,FeatureType>       schemas;
     
     private ServiceInfo                 info;
@@ -156,10 +156,11 @@ public class RDataStore
         try {
             tx.store( store.newRecord()
                     .put( "type", "FeatureType" )
+                    .put( "name", schema.getName().getLocalPart() )
                     .put( "content", schemaCoder.encode( schema ) ) );
-            tx.apply();
             
             schemas.put( schema.getName(), schema );
+            tx.apply();
         }
         catch (Exception e) {
             log.debug( "", e );
@@ -176,14 +177,38 @@ public class RDataStore
 
     public void updateSchema( Name typeName, FeatureType featureType )
     throws IOException {
-        // XXX Auto-generated method stub
+        // ok, we do not have a schema at all :)
         throw new RuntimeException( "not yet implemented." );
     }
 
 
-    public void deleteSchema( IGeoResource geores, IProgressMonitor monitor ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void deleteSchema( FeatureType schema, IProgressMonitor monitor ) {
+        try {
+            RFeatureStore fs = (RFeatureStore)getFeatureSource( schema.getName() );
+            fs.removeFeatures( Filter.INCLUDE );
+        }
+        catch (Exception e) {
+            log.debug( "", e );
+            throw new RuntimeException( e );
+        }
+        
+
+        Updater tx = store.prepareUpdate();
+        try {
+            ResultSet rs = store.find ( new SimpleQuery().setMaxResults( 1 )
+                    .eq( "type", "FeatureType" )
+                    .eq( "name", schema.getName().getLocalPart() ) );
+
+            tx.remove( rs.get( 0 ) );
+            
+            schemas.remove( schema.getName() );
+            tx.apply();
+        }
+        catch (Exception e) {
+            log.debug( "", e );
+            tx.discard();
+            throw new RuntimeException( e );
+        }
     }
 
 

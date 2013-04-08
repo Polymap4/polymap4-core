@@ -23,14 +23,12 @@ import java.lang.ref.SoftReference;
 import javax.measure.unit.Unit;
 
 import org.geotools.data.DefaultTransaction;
-import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.util.NullProgressListener;
+import org.geotools.feature.FeatureIterator;
 import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.identity.FeatureId;
@@ -63,12 +61,10 @@ import org.polymap.core.data.operation.DefaultFeatureOperation;
 import org.polymap.core.data.operation.FeatureOperationExtension;
 import org.polymap.core.data.operation.IFeatureOperation;
 import org.polymap.core.data.operation.IFeatureOperationContext;
-import org.polymap.core.data.operation.IFeatureOperation.Status;
 import org.polymap.core.data.util.Geometries;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
-import org.polymap.core.runtime.CachedLazyInit;
 
 /**
  * Buffer the geometries of the features.
@@ -140,40 +136,46 @@ public class BufferFeaturesOperation
 
             final HashMap<FeatureId,Geometry> undoMap = new HashMap<FeatureId,Geometry>();
             
-            // buffer geometries
-            features.accepts( new FeatureVisitor() {
-                int count = 0;
-                public void visit( Feature feature ) {
-                    if (!submon.isCanceled()) {
-                        if (++count % 100 == 0) {
-                            submon.worked( 100 );
-                            submon.subTask( String.valueOf( count ) );
-                        }
-                        try {
-                            Geometry geom = (Geometry)feature.getDefaultGeometryProperty().getValue();
-                            GeometryDescriptor geomDesc = feature.getDefaultGeometryProperty().getDescriptor();
-                            
-                            undoMap.put( feature.getIdentifier(), geom );
-                            
-                            if (uom.toString().equalsIgnoreCase( "m" )) {
-                                geom = geom.buffer( bufferInputPage.distance, 3 );
-                            }
-                            else {
-                                geom = Geometries.transform( geom, crs, Geometries.crs( "EPSG:3857" ) );
-                                geom = geom.buffer( bufferInputPage.distance, bufferInputPage.segments );
-                                geom = Geometries.transform( geom, Geometries.crs( "EPSG:3857" ), crs );
-                            }
-                            fs.modifyFeatures( geomDesc, geom, 
-                                    ff.id( Collections.singleton( feature.getIdentifier() ) ) );
-                        }
-                        catch (Exception e) {
-                            throw new RuntimeException( e );
-                        }
-                    }
-                }
-            }, new NullProgressListener() );
+            Transaction tx = new DefaultTransaction( "BufferFeaturesOperation" );
+            fs.setTransaction( tx );
 
-            undo = new SoftReference( undoMap );
+            FeatureIterator it = features.features();
+            try {
+                for (int count=0; it.hasNext() && !submon.isCanceled(); count++) {
+                    if (count % 100 == 0) {
+                        submon.worked( 100 );
+                        submon.subTask( String.valueOf( count ) );
+                    }
+                    Feature feature = it.next();
+                    Geometry geom = (Geometry)feature.getDefaultGeometryProperty().getValue();
+                    GeometryDescriptor geomDesc = feature.getDefaultGeometryProperty().getDescriptor();
+
+                    undoMap.put( feature.getIdentifier(), geom );
+
+                    if (uom.toString().equalsIgnoreCase( "m" )) {
+                        geom = geom.buffer( bufferInputPage.distance, 3 );
+                    }
+                    else {
+                        geom = Geometries.transform( geom, crs, Geometries.crs( "EPSG:3857" ) );
+                        geom = geom.buffer( bufferInputPage.distance, bufferInputPage.segments );
+                        geom = Geometries.transform( geom, Geometries.crs( "EPSG:3857" ), crs );
+                    }
+                    fs.modifyFeatures( geomDesc, geom, 
+                            ff.id( Collections.singleton( feature.getIdentifier() ) ) );
+                }
+                undo = new SoftReference( undoMap );
+                tx.commit();
+            }
+            catch (Exception e) {
+                tx.rollback();
+                throw new RuntimeException( e );
+            }
+            finally {
+                tx.close();
+                it.close();
+                submon.done();
+            }
+
             monitor.done();
             return Status.OK;
         }

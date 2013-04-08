@@ -142,6 +142,7 @@ public class DummyLoginModule
             }
         }
 
+        // XXX translation
         Callback label = new TextOutputCallback( TextOutputCallback.INFORMATION,
                 "POLYMAP3 Workbench" );
         NameCallback nameCallback = new NameCallback( "Nutzername", "admin" );

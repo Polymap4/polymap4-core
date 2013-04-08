@@ -45,14 +45,10 @@ import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
-import org.eclipse.jface.dialogs.ErrorDialog;
-
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.equinox.security.auth.ILoginContext;
 import org.eclipse.equinox.security.auth.LoginContextFactory;
@@ -142,8 +138,8 @@ public final class Polymap {
         return RWT.getLocale();
     }
 
-   // public static ExecutorService      executorService = new PolymapJobExecutor();
-    public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
+    public static ExecutorService      executorService = new PolymapJobExecutor();
+   // public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
     
 
     /**
@@ -221,6 +217,7 @@ public final class Polymap {
         for (boolean loggedIn=false; !loggedIn; ) {
             try {
                 secureContext.login();
+                
                 subject = secureContext.getSubject();
                 principals = new HashSet( subject.getPrincipals() );
                 
@@ -235,13 +232,17 @@ public final class Polymap {
                     throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
                 }
                 
+                // allow to access the instance directly via current session (find user for example)
+                SessionContext.current().setAttribute( "user", user );
+                
                 loggedIn = true;
             } 
             catch (LoginException e) {
-                //log.warn( "Login error: " + e, e );
-                IStatus status = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID,
-                        "Login fehlgeschlagen.", e );
-                ErrorDialog.openError( null, "Achtung", "Login fehlgeschlagen", status );
+                log.warn( "Login error:" + e.getLocalizedMessage() );
+//                // FIXME causes zombie threads?
+//                // XXX translation
+//                IStatus status = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, "Login fehlgeschlagen.", e );
+//                ErrorDialog.openError( null, "Achtung", "Login fehlgeschlagen", status );
             }
         }
     }
@@ -278,6 +279,9 @@ public final class Polymap {
         if (user == null) {
             throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
         }
+
+        // allow to access the instance directly via current session (find user for example)
+        SessionContext.current().setAttribute( "user", user );
     }
 
     

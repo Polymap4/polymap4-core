@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -22,12 +24,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.SessionSingletonBase;
 import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rwt.internal.service.ContextProvider;
 import org.eclipse.rwt.internal.service.ServiceContext;
 import org.eclipse.rwt.lifecycle.UICallBack;
+import org.eclipse.rwt.service.ISessionStore;
 import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
 
@@ -54,20 +56,27 @@ public class RapSessionContextProvider
     }
     
     
-    /*
+    /**
      * 
      */
     class RapSessionContext
             extends SessionContext {
 
-        private ServiceContext      serviceContext;
+        private ServiceContext              serviceContext;
         
-        private Display             display;
+        private Display                     display;
+
+        private ISessionStore               sessionStore;
+        
+        private Map<ISessionListener,SessionStoreListener> listenerMap = new HashMap();
 
 
         RapSessionContext( ServiceContext serviceContext ) {
+            assert !serviceContext.isDisposed();
             this.serviceContext = serviceContext;
             this.display = LifeCycleUtil.getSessionDisplay();
+            this.sessionStore = serviceContext.getSessionStore();
+            assert this.sessionStore != null;
         }
 
 
@@ -90,31 +99,34 @@ public class RapSessionContextProvider
 
         public void destroy() {
             serviceContext = null;
+            listenerMap = null;
         }
 
 
         public boolean isDestroyed() {
-            return serviceContext == null || display.isDisposed();
+            return serviceContext == null /*|| serviceContext.isDisposed()*/ || display.isDisposed();
         }
 
 
         public String getSessionKey() {
-            return serviceContext.getSessionStore().getId();
+            return sessionStore.getId();
         }
 
         
         public <T> T sessionSingleton( Class<T> type ) {
-            return (T)SessionSingletonBase.getInstance( type );
+            return SessionSingletonBase.getInstance( type );
         }
 
 
         public void execute( Runnable task ) {
+//            assert !isDestroyed();
             UICallBack.runNonUIThreadWithFakeContext( display, task );
         }
 
 
         public <T> T execute( final Callable<T> task ) 
         throws Exception {
+//            assert !isDestroyed();
             final AtomicReference<Exception> ee = new AtomicReference();
             final AtomicReference<T> result = new AtomicReference();
             
@@ -138,37 +150,44 @@ public class RapSessionContextProvider
 
 
         public boolean addSessionListener( final ISessionListener l ) {
-            return RWT.getSessionStore().addSessionStoreListener( new SessionStoreListener() {
+            SessionStoreListener l2 = new SessionStoreListener() {
                 public void beforeDestroy( SessionStoreEvent event ) {
                     log.info( "beforeDestroy(): ..." );
                     l.beforeDestroy();
                 }
-            });
+            };
+            listenerMap.put( l, l2 );
+            return sessionStore.addSessionStoreListener( l2 );
         }
 
 
         public boolean removeSessionListener( ISessionListener l ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+            SessionStoreListener l2 = listenerMap.remove( l );
+            return sessionStore.removeSessionStoreListener( l2 );
         }
 
 
         public Object getAttribute( String key ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+//            assert !isDestroyed();
+            return sessionStore.getAttribute( key );
         }
 
 
         public void setAttribute( String key, Object value ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+//            assert !isDestroyed();
+            sessionStore.setAttribute( key, value );
         }
 
 
         private RapSessionContextProvider getOuterType() {
             return RapSessionContextProvider.this;
         }
-        
+     
+        @Override
+        public String toString() {
+            return "RapSessionContext[serviceContext=" + serviceContext + ", attributes=" + serviceContext.getSessionStore() + "]";
+        }
+
     }
     
 }

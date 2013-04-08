@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,8 +19,9 @@ import java.io.IOException;
 import org.geotools.data.Query;
 import org.geotools.data.QueryCapabilities;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.Feature;
+import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
-import org.polymap.core.runtime.recordstore.ResultSet;
 
 /**
  * Defines the SPI of a query dialect. A query dialect is reponsibly of handling the
@@ -45,7 +46,24 @@ public abstract class QueryDialect {
     public abstract ReferencedEnvelope getBounds( RFeatureStore fs, Query query )
     throws IOException;
     
-    public abstract ResultSet getFeatureStates( RFeatureStore fs, Query query )
+    public abstract PostProcessResultSet getFeatureStates( RFeatureStore fs, Query query )
     throws IOException;
 
+    /**
+     * 
+     */
+    interface PostProcessResultSet
+            extends Iterable<IRecordState> {
+        
+        public boolean postProcess( Feature feature );
+        
+        public boolean hasPostProcessing();
+        
+        /**
+         * The size of the {@link #iterator()} results - without post-processing!
+         */
+        public int size();
+        
+    }
+    
 }

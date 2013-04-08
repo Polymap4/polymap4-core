@@ -50,9 +50,57 @@ public class ModifyFeatureControl
 
 
 	public ModifyFeatureControl(VectorLayer layer) {
-		super.create("new OpenLayers.Control.ModifyFeature( "
-				+ layer.getJSObjRef() + "   );");
-	}
+	    String controlName = "ModifyFeature";
+		super.create("new OpenLayers.Control."+controlName + "(" + layer.getJSObjRef() + ");");
+		
+//        addObjModCode( "OpenLayers.Util.extend(" + getJSObjRef() + ", {"
+//                + "activate: function() {"
+//                + "    OpenLayers.Control."+controlName+".prototype.activate.apply(this, arguments);"
+//                + "    if (!this.keyboardHandler) {"
+//                + "        this.keyboardCallbacks = { keydown: this.handleKeyDown };"
+//                + "        this.keyboardHandler = new OpenLayers.Handler.Keyboard(this, this.keyboardCallbacks, {});"
+//                + "    }"
+//                + "    this.keyboardHandler.activate();"
+//                + "},"
+//                + "deactivate: function() {"
+//                + "    OpenLayers.Control."+controlName+".prototype.deactivate.apply(this, arguments);"
+//                + "    this.keyboardHandler.deactivate();"
+//                + "},"
+//                + "destroy: function() {"
+//                + "    OpenLayers.Control."+controlName+".prototype.destroy.apply(this, arguments);"
+//                + "    if (this.keyboardHandler) {"
+//                + "        this.keyboardHandler.destroy();"
+//                + "    }"
+//                + "},"
+//                + "onModificationStart: function(feature) {"
+////                + "    OpenLayers.Control."+controlName+".prototype.selectFeature.apply(this, arguments);"
+//                + "    this.origGeom = feature.geometry.clone();"
+////                + "    alert( 'feature: ' + this.origGeom );"
+//                + "},"
+//                + "handleKeyDown: function (evt) {"
+//                + "    var handled = false;"
+//                + "    switch (evt.keyCode) {"
+//                + "    case 27:"  // esc
+////                + "        this.layer.refresh();"
+//                + "        this.feature.geometry = this.origGeom;"
+////                + "        this.activate();"
+////                + "        this.modified = false;"
+//                + "        this.resetVertices();"
+////                + "        this.unselectFeature( this.feature );"
+////                + "        this.onModification( this.feature );"
+////                + "        this.layer.events.triggerEvent( 'featuremodified', {feature: this.feature} );"
+//                + "        this.layer.drawFeature( this.feature, this.standalone ? undefined : 'select' );"
+////                + "        this.layer.redraw();"
+//                + "        handled = true;"
+//                + "        break;"
+//                + "    }"
+//                + "    if (handled) {"
+//                + "        OpenLayers.Event.stop(evt);"
+//                + "    }"
+//                + "}"
+//                + "});"
+//        );
+    }
 
 	public void setDeleteKeyCodes(int[] codes) {
         String code = "obj.deleteCodes = [";

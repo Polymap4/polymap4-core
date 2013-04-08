@@ -17,8 +17,11 @@ package org.polymap.core.runtime.recordstore.lucene;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -31,13 +34,14 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
@@ -50,12 +54,12 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Constants;
 import org.apache.lucene.util.Version;
 
-import com.google.common.collect.MapMaker;
-
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
+import org.polymap.core.runtime.cache.CacheManager;
 import org.polymap.core.runtime.recordstore.BaseRecordStore;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
@@ -78,34 +82,41 @@ public final class LuceneRecordStore
 
     private static Log log = LogFactory.getLog( LuceneRecordStore.class );
 
-    private static final Version    VERSION = Version.LUCENE_36;
+    public static final Version     VERSION = Version.LUCENE_36;
 
+    /** Default: 3% of HEAP; 32M is good for 512M RAM fand merge size 16MB (Lucene 3). */
+    public static final double      MAX_RAMBUFFER_SIZE = 10d / 100d * Runtime.getRuntime().maxMemory() / 1000000;
+    
+    public static final double      MAX_MERGE_SIZE = 16;
+    
+    public static final double      MAX_DELETED_PERCENT = 10;
+    
     /**
      * The {@link ExecutorService} used by the {@link #searcher}.
      * <p/>
      * XXX This is not the {@link Polymap#executorService()}, as this used Eclipse
      * Jobs, which results in deadlocks.
      */
-    private static ExecutorService  executor = Polymap.executorService();
+    private static ExecutorService  executor = null; //Polymap.executorService();
     
-//    static {
-//        int nThreads = Runtime.getRuntime().availableProcessors() * 8;
-//        ThreadFactory threadFactory = new ThreadFactory() {
-//            volatile int threadNumber = 0;
-//            public Thread newThread( Runnable r ) {
-//                String prefix = "LuceneRecordStore-searcher-";
-//                Thread t = new Thread( r, prefix + threadNumber++ );
-//                t.setDaemon( false );
-//                t.setPriority( Thread.NORM_PRIORITY - 1 );
-//                return t;
-//            }
-//        };
-//        executor = new ThreadPoolExecutor( nThreads, nThreads,
-//                60L, TimeUnit.SECONDS,
-//                new LinkedBlockingQueue<Runnable>(),
-//                threadFactory);
-//        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
-//    }
+    static {
+        int procs = Runtime.getRuntime().availableProcessors();
+        ThreadFactory threadFactory = new ThreadFactory() {
+            volatile int threadNumber = 0;
+            public Thread newThread( Runnable r ) {
+                String prefix = "Lucene-searcher-";
+                Thread t = new Thread( r, prefix + threadNumber++ );
+                t.setDaemon( false );
+                //t.setPriority( Thread.NORM_PRIORITY - 1 );
+                return t;
+            }
+        };
+        executor = new ThreadPoolExecutor( 0, 100,
+                60L, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>(),
+                threadFactory );
+        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
+    }
     
     
     // instance *******************************************
@@ -122,7 +133,7 @@ public final class LuceneRecordStore
      * Maps docnum into record id; this helps to find a cached record
      * for a given docnum. This contains a map only if a cache is set.
      */
-    private ConcurrentMap<Integer,Object> doc2id = null;
+    private Cache<Integer,Object>   doc2id = null;
 
     IndexSearcher                   searcher;
 
@@ -259,16 +270,18 @@ public final class LuceneRecordStore
 
     public void setDocumentCache( Cache<Object,Document> cache ) {
         this.cache = cache;
-        this.doc2id = new MapMaker().initialCapacity( 1024 ).concurrencyLevel( 8 ).makeMap();
+        this.doc2id = CacheManager.instance().newCache( 
+                CacheConfig.DEFAULT.defaultElementSize( 128 ) );
     }
 
 
+    @Override
     public IRecordState newRecord() {
         assert reader != null : "Store is closed.";
         return new LuceneRecordState( this, new Document(), false );
     }
 
-
+    @Override
     public IRecordState get( Object id ) 
     throws Exception {
         assert reader != null : "Store is closed.";
@@ -281,8 +294,18 @@ public final class LuceneRecordStore
         return doc != null ? new LuceneRecordState( LuceneRecordStore.this, doc, cache != null ) : null;
     }
 
-
-    public LuceneRecordState get( int docnum ) 
+    
+    /**
+     * Get the record for the given document index.
+     * 
+     * @param docnum The document index for the {@link IndexReader}.
+     * @param fieldSelector The field selector, or null.
+     * @return Newly created record instance. If {@link #cache} is active and
+     *         the docnum is found in {@link #doc2id} then the underlying
+     *         {@link Document} of the recod might be shared with other records.
+     * @throws Exception
+     */
+    public LuceneRecordState get( int docnum, FieldSelector fieldSelector ) 
     throws Exception {
         assert reader != null : "Store is closed.";
 
@@ -293,7 +316,7 @@ public final class LuceneRecordStore
             if (id != null) {
                 Document doc = cache.get( id );
                 if (doc != null) {
-                    //System.out.print( "." );
+                    //System.out.println( "." );
                     return new LuceneRecordState( LuceneRecordStore.this, doc, true );
                 }
             }
@@ -302,7 +325,7 @@ public final class LuceneRecordStore
         Document doc = null;
         try {
             lock.readLock().lock();
-            doc = reader.document( docnum );
+            doc = reader.document( docnum, fieldSelector );
         }
         finally {
             lock.readLock().unlock();
@@ -310,7 +333,8 @@ public final class LuceneRecordStore
         
         LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
         if (cache != null) {
-            doc2id.put( docnum, result.id() );
+            doc2id.putIfAbsent( docnum, result.id() );
+            //System.out.println( "-" );
             if (cache.putIfAbsent( result.id(), doc ) == null) {
                 result.setShared( true );
             }
@@ -346,8 +370,8 @@ public final class LuceneRecordStore
             return Cache.ELEMENT_SIZE_UNKNOW;
         }
     }
-    
-    
+        
+    @Override
     public ResultSet find( RecordQuery query )
     throws Exception {
         // SimpleQuery
@@ -376,8 +400,8 @@ public final class LuceneRecordStore
             return query.execute();
         }
     }
-
     
+    @Override
     public Updater prepareUpdate() {
         return new LuceneUpdater();
     }
@@ -399,11 +423,14 @@ public final class LuceneRecordStore
                 //  - autCommit == false
                 //  - 8 concurrent thread
                 IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
-                        .setOpenMode( OpenMode.APPEND );
+                        .setOpenMode( OpenMode.APPEND )
+                        .setRAMBufferSizeMB( MAX_RAMBUFFER_SIZE );
+                
                 // limit segment size for lower pauses on interactive indexing
                 LogByteSizeMergePolicy mergePolicy = new LogByteSizeMergePolicy();
-                mergePolicy.setMaxMergeMB( 10 );
+                mergePolicy.setMaxMergeMB( MAX_MERGE_SIZE );
                 config.setMergePolicy( mergePolicy );
+                config.setMaxBufferedDocs( IndexWriterConfig.DISABLE_AUTO_FLUSH );
                 writer = new IndexWriter( directory, config );
             }
             catch (Exception e) {
@@ -458,7 +485,7 @@ public final class LuceneRecordStore
 
         
         public void apply() {
-            apply( true );
+            apply( false );
         }
         
         
@@ -467,12 +494,15 @@ public final class LuceneRecordStore
             Timer timer = new Timer();
             try {
                 writer.commit();
-                log.debug( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
+                log.info( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
                 
-                if (optimizeIndex) {
+                double deleted = reader.numDeletedDocs();
+                double total = reader.numDocs();
+                double percent = 100d / total * deleted; 
+                if (optimizeIndex || percent > MAX_DELETED_PERCENT) {
                     //writer.expungeDeletes( true );
                     writer.forceMergeDeletes( true );
-                    log.debug( "Writer optimization done. (" + timer.elapsedTime() + "ms)"  );
+                    log.info( "Writer optimization done. (" + timer.elapsedTime() + "ms)"  );
                 }
                 writer.close();
                 writer = null;
@@ -490,7 +520,7 @@ public final class LuceneRecordStore
                     doc2id.clear();
                 }
                 
-                log.debug( "COMMIT: " + timer.elapsedTime() + "ms" );
+                log.info( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

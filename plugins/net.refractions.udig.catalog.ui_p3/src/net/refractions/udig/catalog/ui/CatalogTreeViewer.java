@@ -154,12 +154,12 @@ public class CatalogTreeViewer extends TreeViewer implements ISelectionChangedLi
                     IResolve resolve = (IResolve) obj;
                     if( resolve.getStatus()==Status.BROKEN ){
                         if (null == resolve.getMessage()) {
-                            messageBoard.putMessage(Messages.CatalogTreeViewer_broken, IMessageBoard.Type.ERROR);
+                            messageBoard.putMessage(Messages.get("CatalogTreeViewer_broken"), IMessageBoard.Type.ERROR);
                         } else {
                             messageBoard.putMessage(resolve.getMessage().getLocalizedMessage(), IMessageBoard.Type.ERROR);   
                         }
                     }else if( resolve.getStatus()==Status.RESTRICTED_ACCESS ){
-                        messageBoard.putMessage(Messages.CatalogTreeViewer_permission, IMessageBoard.Type.ERROR);
+                        messageBoard.putMessage(Messages.get("CatalogTreeViewer_permission"), IMessageBoard.Type.ERROR);
                     }else{
                         messageBoard.putMessage(null, IMessageBoard.Type.NORMAL);
                     }

@@ -104,6 +104,6 @@ public class DataSourceSelectionState extends State {
 
 	@Override
 	public String getName() {
-		return Messages.DataSourceSelectionState_name; 
+		return Messages.get("DataSourceSelectionState_name"); 
 	}
 }

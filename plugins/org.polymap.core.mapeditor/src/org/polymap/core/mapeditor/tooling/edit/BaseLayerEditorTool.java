@@ -143,10 +143,20 @@ public abstract class BaseLayerEditorTool
     protected void fireEvent( BaseLayerEditorTool tool, String name, Object newValue ) {
         PropertyChangeEvent ev = new PropertyChangeEvent( tool, name, null, newValue );
         for (PropertyChangeListener l : listeners) {
-            l.propertyChange( ev );
+            try {
+                l.propertyChange( ev );
+            }
+            catch (Exception e) {
+                log.warn( e, e );
+            }
         }
         for (PropertyChangeListener l : sessionTools().listeners) {
-            l.propertyChange( ev );
+            try {
+                l.propertyChange( ev );
+            }
+            catch (Exception e) {
+                log.warn( e, e );
+            }
         }
     }
 
@@ -213,6 +223,8 @@ public abstract class BaseLayerEditorTool
      */
     @Override
     public void onActivate() {
+        super.onActivate();
+        
         // find best initial layer (if not called from changeLayer())
         if (selectedLayer == null) {
             List<ILayer> selectableLayers = selectableLayers();
@@ -242,6 +254,8 @@ public abstract class BaseLayerEditorTool
      */
     @Override
     public void onDeactivate() {
+        super.onDeactivate();
+        
         if (mapListener != null) {
             EventManager.instance().unsubscribe( mapListener );
             mapListener = null;

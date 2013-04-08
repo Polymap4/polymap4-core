@@ -33,10 +33,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.lf5.util.StreamUtils;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -96,9 +95,12 @@ public class CsvImporter {
         assert in != null : "in == null";
         this.prefs = prefs != null ? prefs : new Preferences( '"', ',', "\r\n", false );
         
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        StreamUtils.copyThenClose( in, out );
-        data = out.toByteArray();
+        try {
+            data = IOUtils.toByteArray( in );
+        }
+        finally {
+            IOUtils.closeQuietly( in );
+        }
     }
     
 
@@ -115,10 +117,13 @@ public class CsvImporter {
 
     public void setInputStream( InputStream in ) 
     throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        StreamUtils.copyThenClose( in, out );
-        data = out.toByteArray();
-        lines = null;
+        try {
+            data = IOUtils.toByteArray( in );
+            lines = null;
+        }
+        finally {
+            IOUtils.closeQuietly( in );
+        }
     }
 
     

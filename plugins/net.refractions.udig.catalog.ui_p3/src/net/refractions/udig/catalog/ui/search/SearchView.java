@@ -121,8 +121,8 @@ public class SearchView extends SearchPart {
         super.setOrientation(orientation);
 
         if (splitter.getOrientation() == SWT.HORIZONTAL) {
-            label.setText(Messages.SearchView_prompt); 
-            bbox.setText(Messages.SearchView_bbox);             
+            label.setText(Messages.get("SearchView_prompt")); 
+            bbox.setText(Messages.get("SearchView_bbox"));             
         } else {
             label.setText(""); //$NON-NLS-1$
             bbox.setText(""); //$NON-NLS-1$
@@ -132,10 +132,10 @@ public class SearchView extends SearchPart {
     @Override
     public void createPartControl( Composite aParent ) {
         label = new Label(aParent, SWT.NONE);
-        label.setText(Messages.SearchView_prompt); 
+        label.setText(Messages.get("SearchView_prompt")); 
 
         text = new Text(aParent, SWT.BORDER);
-        text.setText(Messages.SearchView_default); 
+        text.setText(Messages.get("SearchView_default")); 
         text.setEditable(true);
         text.addSelectionListener(new SelectionListener(){
             public void widgetDefaultSelected( SelectionEvent e ) {
@@ -148,8 +148,8 @@ public class SearchView extends SearchPart {
 
         // Create bbox button
         bbox = new Button(aParent, SWT.CHECK);
-        bbox.setText(Messages.SearchView_bbox); 
-        bbox.setToolTipText(Messages.SearchView_bboxTooltip); 
+        bbox.setText(Messages.get("SearchView_bbox")); 
+        bbox.setToolTipText(Messages.get("SearchView_bboxTooltip")); 
         bbox.setSelection(true);
 
         super.createPartControl(aParent);
@@ -392,19 +392,19 @@ public class SearchView extends SearchPart {
         }
 
         if (cache.title != null && !(cache.title.equals(""))) { //$NON-NLS-1$
-            summary.append(MessageFormat.format(Messages.SearchView_title, new Object[] {cache.title}) + "\n\n");  //$NON-NLS-1$
+            summary.append(MessageFormat.format(Messages.get("SearchView_title"), new Object[] {cache.title}) + "\n\n");  //$NON-NLS-1$
         }
 
         if (cache.name != null && !(cache.name.equals(""))) { //$NON-NLS-1$
-            summary.append(MessageFormat.format(Messages.SearchView_name, new Object[] {cache.name, serverName}) + ")\n\n");  //$NON-NLS-1$
+            summary.append(MessageFormat.format(Messages.get("SearchView_name"), new Object[] {cache.name, serverName}) + ")\n\n");  //$NON-NLS-1$
         } else {
             if (serverName != null && !serverName.equals("")) { //$NON-NLS-1$
-                summary.append(MessageFormat.format(Messages.SearchView_server, new Object[] {serverName}) + "\n\n");  //$NON-NLS-1$
+                summary.append(MessageFormat.format(Messages.get("SearchView_server"), new Object[] {serverName}) + "\n\n");  //$NON-NLS-1$
             }
         }
 
         if (cache.keys != null && cache.keys.length > 0) {
-            summary.append(Messages.SearchView_keywords); 
+            summary.append(Messages.get("SearchView_keywords")); 
             for( int i = 0; i < cache.keys.length; i++ ) {
                 String keyword = cache.keys[i];
                 keyword = keyword == null ? null : keyword.trim();
@@ -420,7 +420,7 @@ public class SearchView extends SearchPart {
         }
 
         if (cache.description != null && !(cache.description.equals(""))) { //$NON-NLS-1$
-            summary.append(MessageFormat.format(Messages.SearchView_description, new Object[] {cache.description}));
+            summary.append(MessageFormat.format(Messages.get("SearchView_description"), new Object[] {cache.description}));
         }
     }
     @Override
@@ -487,7 +487,7 @@ public class SearchView extends SearchPart {
         if (query.scope == null) {
             query.scope = Arrays.asList(CatalogPlugin.getDefault().getCatalogs());
         }
-        monitor.beginTask(Messages.SearchView_searching, query.scope.size() * 3); 
+        monitor.beginTask(Messages.get("SearchView_searching"), query.scope.size() * 3); 
         int work = 0;
         for( ISearch catalog : query.scope ) {
             String name = null;
@@ -502,7 +502,7 @@ public class SearchView extends SearchPart {
             }
             List<IResolve> records = null;
             try {
-                monitor.subTask(MessageFormat.format(Messages.SearchView_searching_for, new Object[] {query.text, name}));
+                monitor.subTask(MessageFormat.format(Messages.get("SearchView_searching_for"), new Object[] {query.text, name}));
                 monitor.worked(++work);
                 records = catalog.search(query.text, query.bbox, monitor);
                 if (records != null && !records.isEmpty()) {

@@ -27,6 +27,7 @@ Require-Bundle: org.eclipse.core.runtime,
  net.refractions.udig.ui;bundle-version="1.2.0",
  net.refractions.udig.core;bundle-version="1.2.0",
  org.polymap.core.libs;bundle-version="3.0.0",
+ org.polymap.core;bundle-version="3.1.0",
  org.eclipse.rwt.widgets.upload;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

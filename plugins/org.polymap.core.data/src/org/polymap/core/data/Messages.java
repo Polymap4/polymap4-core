@@ -23,8 +23,7 @@
 
 package org.polymap.core.data;
 
-import org.eclipse.rwt.RWT;
-
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.MessagesImpl;
 
 /**
@@ -51,9 +50,17 @@ public class Messages {
         return instance.get( caller, key, args );
     }
 
-    public static Messages get() {
-        Class clazz = Messages.class;
-        return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
+    public static IMessages forClass( Class type ) {
+        return instance.forClass( type );
     }
+
+    public static IMessages forPrefix( String prefix ) {
+        return instance.forPrefix( prefix );
+    }
+
+//    public static Messages get() {
+//        Class clazz = Messages.class;
+//        return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
+//    }
 
 }

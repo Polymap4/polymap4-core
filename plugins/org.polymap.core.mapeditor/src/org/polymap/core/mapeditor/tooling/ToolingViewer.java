@@ -166,7 +166,7 @@ public class ToolingViewer {
                     && ev.getType() == EventType.TOOL_DEACTIVATED) {
                 dispose();
             }
-            else if (tools.contains( ev.getSource() )) {
+            else if (tools != null && tools.contains( ev.getSource() )) {
                 if (ev.getType() == EventType.TOOL_ACTIVATED) {
                     onToolActivated( ev.getSource() );
                 }

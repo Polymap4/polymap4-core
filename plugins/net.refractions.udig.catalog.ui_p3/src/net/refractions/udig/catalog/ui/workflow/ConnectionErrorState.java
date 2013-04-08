@@ -75,7 +75,7 @@ public class ConnectionErrorState extends State {
 
 	@Override
 	public String getName() {
-		return Messages.ConnectionErrorState_error_name;
+		return Messages.get("ConnectionErrorState_error_name");
 	}
 
 }

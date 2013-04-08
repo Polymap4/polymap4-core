@@ -35,12 +35,4 @@ public class EditVectorLayer
         super( mapEditor, layer );
     }
 
-
-//    public void activate() {
-//        super.activate();
-//        if (isActive() == true) {
-//            return;
-//        }
-//    }
-
 }

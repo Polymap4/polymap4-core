@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,34 +11,38 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.project;
 
 import java.util.List;
-
+import org.polymap.core.runtime.Callback;
 import net.refractions.udig.catalog.IGeoResource;
 
 /**
- * A resource resolver provides the logic to find the actual
- * {@link IGeoResource} for a given {@link ILayer}. Instances are created via
+ * A resource resolver provides the logic to find the actual {@link IGeoResource} for
+ * a given {@link ILayer}. Instances are created via
  * {@link ProjectPlugin#geoResourceResolver(ILayer)}.
- * <p>
- * The interface is the bridge between the packages
- * {@link org.polymap.core.project} and {@link org.refractions.udig.catalog}.
+ * <p/>
+ * The interface is the bridge between {@link org.polymap.core.project} and
+ * {@link org.refractions.udig.catalog}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public interface IGeoResourceResolver {
 
+    /**
+     * Find geo resources in the catalog and handle results asynchronously.
+     *     
+     * @see #resolve(String)
+     * @param identifier
+     * @param handler
+     * @throws Exception
+     */
+    void resolve( String identifier, Callback<List<IGeoResource>> handler )
+    throws Exception;
+    
+    
     /**
      * Used to find the associated service in the catalog.
      * <p>

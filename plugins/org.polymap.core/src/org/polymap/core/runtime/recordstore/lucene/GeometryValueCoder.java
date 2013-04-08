@@ -32,18 +32,22 @@ import org.polymap.core.runtime.recordstore.QueryExpression.Greater;
 import org.polymap.core.runtime.recordstore.QueryExpression.Less;
 
 /**
- * Encode/Decode {@link Geometry} values using {@link NumericField} build-in support of
- * Lucene.
+ * Encode/Decode {@link Geometry} values using {@link NumericField} build-in support
+ * of Lucene.
+ * <p/>
+ * <b>Note:</b> The results generated from {@link #searchQuery(QueryExpression)}
+ * should be post-processed to make sure that the geometry <b>actually</b> intersects
+ * the bbox. The search just checks that the bounds of the geometry intersect the bbox!
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public final class GeometryValueCoder
         implements LuceneValueCoder {
 
-    static final String                 FIELD_MAXX = "_maxx_";
-    static final String                 FIELD_MAXY = "_maxy_";
-    static final String                 FIELD_MINX = "_minx_";
-    static final String                 FIELD_MINY = "_miny_";
+    public static final String              FIELD_MAXX = "_maxx_";
+    public static final String              FIELD_MAXY = "_maxy_";
+    public static final String              FIELD_MINX = "_minx_";
+    public static final String              FIELD_MINY = "_miny_";
     
     /** Re-used readers per thread. */
     static final ThreadLocal<WKBReader> wkbReaders = new ThreadLocal<WKBReader>() {
@@ -105,10 +109,10 @@ public final class GeometryValueCoder
 
             // store bbox
             Envelope envelop = geom.getEnvelopeInternal();
-            numeric.encode( doc, key+FIELD_MAXX, envelop.getMaxX(), true );
-            numeric.encode( doc, key+FIELD_MAXY, envelop.getMaxY(), true ); 
-            numeric.encode( doc, key+FIELD_MINX, envelop.getMinX(), true ); 
-            numeric.encode( doc, key+FIELD_MINY, envelop.getMinY(), true );
+            numeric.encode( doc, key+FIELD_MAXX, envelop.getMaxX(), true, true );
+            numeric.encode( doc, key+FIELD_MAXY, envelop.getMaxY(), true, true ); 
+            numeric.encode( doc, key+FIELD_MINX, envelop.getMinX(), true, true ); 
+            numeric.encode( doc, key+FIELD_MINY, envelop.getMinY(), true, true );
             return true;
         }
         else {

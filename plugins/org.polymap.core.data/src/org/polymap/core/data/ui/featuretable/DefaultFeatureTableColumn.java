@@ -58,6 +58,10 @@ public class DefaultFeatureTableColumn
 
     private String                  header;
 
+    private int                     weight = -1;
+
+    private int                     minimumWidth = -1;
+
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
         super();
@@ -78,6 +82,12 @@ public class DefaultFeatureTableColumn
         return this;
     }
 
+    public DefaultFeatureTableColumn setWeight( int weight, int minimumWidth) {
+        this.weight = weight;
+        this.minimumWidth = minimumWidth;
+        return this;
+    }
+    
     public DefaultFeatureTableColumn setEditing( boolean editing ) {
         assert viewer == null : "Call before table is created.";
         // defer creation of editingSupport to setViewer()
@@ -141,7 +151,10 @@ public class DefaultFeatureTableColumn
         
         TableLayout tableLayout = (TableLayout)viewer.getTable().getLayout();
 
-        if (String.class.isAssignableFrom( propBinding )) {
+        if (weight > -1) {
+            tableLayout.addColumnData( new ColumnWeightData( weight, minimumWidth, true ) );            
+        }
+        else if (String.class.isAssignableFrom( propBinding )) {
             tableLayout.addColumnData( new ColumnWeightData( 20, 120, true ) );
         }
         else {
