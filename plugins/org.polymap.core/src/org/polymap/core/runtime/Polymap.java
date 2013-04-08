@@ -181,6 +181,14 @@ public final class Polymap {
      * Logging in using default JAAS config.
      */
     public void login() {
+        login( DEFAULT_LOGIN_CONFIG );
+    }
+    
+    
+    /**
+     * Logging in using default JAAS config.
+     */
+    public void login( String loginContext ) {
         String jaasConfigFile = "jaas_config.txt";
         File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
         
@@ -203,8 +211,7 @@ public final class Polymap {
 
         // create secureContext
         try {
-            secureContext = LoginContextFactory.createContext( DEFAULT_LOGIN_CONFIG, 
-                    configFile.toURI().toURL() );
+            secureContext = LoginContextFactory.createContext( loginContext, configFile.toURI().toURL() );
         }
         catch (MalformedURLException e) {
             throw new RuntimeException( "Should never happen.", e );

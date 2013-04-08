@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Polymap Core Style
-Bundle-SymbolicName: org.polymap.core.style
-Bundle-Version: 3.1.0.qualifier
+Bundle-Name: Style Catalog
+Bundle-SymbolicName: org.polymap.core.style;singleton:=true
+Bundle-Version: 3.2.0.qualifier
 Bundle-Activator: org.polymap.core.style.StylePlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.core.runtime,

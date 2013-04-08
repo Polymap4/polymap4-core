@@ -72,12 +72,12 @@ public final class LuceneRecordState
     
     
     public String toString() {
-        StringBuilder result = new StringBuilder( "LuceneRecordState{" );
+        StringBuilder result = new StringBuilder( "LuceneRecordState[" );
         for (Entry<String,Object> entry : this) {
-            result.append( entry.getKey() ).append( " = " ).append( entry.getValue() );
+            result.append( entry.getKey() ).append( "=" ).append( entry.getValue() );
             result.append( ",\n    " );
         }
-        result.append( "}" );
+        result.append( "]" );
         return result.toString();
     }
 

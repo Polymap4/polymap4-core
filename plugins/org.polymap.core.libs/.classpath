@@ -57,7 +57,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-ows-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wfs-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wps-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/guava-10.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-10.0.1.jar" sourcepath="lib/sources/guava-10.0.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/h2-1.1.104.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/hatbox-1.0.b7.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/hsqldb-1.8.0.7.jar"/>

@@ -116,12 +116,13 @@ public final class InstanceBuilder {
                     PropertyInfo info = compositeInfo.getProperty( field.getName() );
                     StoreProperty storeProp = state.loadProperty( info );
                     
-                    // Composite
                     Class propType = info.getType();
                     Property prop = null;
+                    // Collection
                     if (info.getMaxOccurs() > 1) {
                         throw new RuntimeException( "No Collection properties yet: " + propType );                        
                     }
+                    // Composite
                     else if (Composite.class.isAssignableFrom( propType )) {
                         prop = new CompositePropertyImpl( context, storeProp );
                     }

@@ -14,10 +14,9 @@
  */
 package org.polymap.core.model2.store.recordstore;
 
-import java.awt.Composite;
-
 import com.google.common.base.Joiner;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.runtime.PropertyInfo;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreProperty;
@@ -30,6 +29,8 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  */
 class RecordCompositeState
         implements CompositeState {
+    
+    public static final String      KEY_DELIMITER = "/";
 
     protected IRecordState          state;
     
@@ -48,12 +49,15 @@ class RecordCompositeState
         this.baseKey = baseKey;
     }
 
-
     @Override
     public Object id() {
         // a non-Entity Composite property does not have an id 
-        assert baseKey == null;
-        return state.id();
+        if (baseKey != null) {
+            throw new IllegalStateException( "Composite property does not have an id." );            
+        } 
+        else {
+            return state.id();
+        }
     }
 
     @Override
@@ -90,7 +94,7 @@ class RecordCompositeState
         }
 
         protected String key() {
-            return Joiner.on( '/' ).skipNulls().join( baseKey, info.getNameInStore() );
+            return Joiner.on( KEY_DELIMITER ).skipNulls().join( baseKey, info.getNameInStore() );
         }
         
         public Object get() {
@@ -124,11 +128,13 @@ class RecordCompositeState
         
         @Override
         public CompositeState get() {
-            return new RecordCompositeState( state, key() );
+            Object id = state.get( key() + KEY_DELIMITER + "_id_" );
+            return id != null ? new RecordCompositeState( state, key() ) : null;
         }
         
         @Override
         public CompositeState newValue() {
+            state.put( key() + KEY_DELIMITER + "_id_", "created" );
             return new RecordCompositeState( state, key() );
         }
         

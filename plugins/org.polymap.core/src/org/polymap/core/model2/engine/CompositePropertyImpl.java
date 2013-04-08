@@ -17,6 +17,7 @@ package org.polymap.core.model2.engine;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.runtime.EntityRuntimeContext;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
 import org.polymap.core.model2.runtime.ValueInitializer;
 import org.polymap.core.model2.store.CompositeState;
@@ -41,7 +42,7 @@ class CompositePropertyImpl<T extends Composite>
      * operation the Composite and the corresponding {@link CompositeState} cached
      * here in contrast to primitive values.
      */
-    private Object /*T*/                    value;
+    private Object                          value;
 
 
     protected CompositePropertyImpl( EntityRuntimeContext entityContext, 
@@ -83,13 +84,23 @@ class CompositePropertyImpl<T extends Composite>
         T result = get();
         if (result == null) {
             synchronized (this) {
-                result = get();
-                if (result == null) {
-                    CompositeState state = underlying.newValue();
-                    assert state != null : "Store must not return null as newValue().";
-                    InstanceBuilder builder = new InstanceBuilder( entityContext );
-                    value = result = (T)builder.newComposite( state, getInfo().getType() );
+                CompositeState state = underlying.newValue();
+                assert state != null : "Store must not return null as newValue().";
+                InstanceBuilder builder = new InstanceBuilder( entityContext );
+                result = (T)builder.newComposite( state, getInfo().getType() );
+
+                if (initializer != null) {
+                    try {
+                        result = initializer.initialize( result );
+                    }
+                    catch (RuntimeException e) {
+                        throw e;
+                    }
+                    catch (Exception e) {
+                        throw new ModelRuntimeException( e );
+                    }
                 }
+                value = result;
             }
         }
         return result;
