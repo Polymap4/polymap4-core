@@ -139,8 +139,9 @@ public final class Polymap {
         return RWT.getLocale();
     }
 
-    public static ExecutorService      executorService = new PolymapJobExecutor();
-   // public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
+   // public static ExecutorService      executorService = new PolymapJobExecutor();
+    // public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
+     public static ExecutorService      executorService = UnboundPoolExecutor.newInstance();
     
 
     /**

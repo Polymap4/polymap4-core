@@ -54,7 +54,7 @@ class AsyncPipelineFeatureCollection
 
     protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
     
-    protected static final int              DEFAULT_QUEUE_SIZE = 2500 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
+    protected static final int              DEFAULT_QUEUE_SIZE = 2560 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
     private static int                      fetcherCount = 0;
     
