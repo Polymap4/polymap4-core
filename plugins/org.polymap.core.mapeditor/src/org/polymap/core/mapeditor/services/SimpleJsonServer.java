@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010-2012 Polymap GmbH. All rights reserved.
+ * Copyright 2010-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -47,7 +47,7 @@ import org.polymap.service.ServicesPlugin;
  * SPI/API and factory for HTTP server providing {@link SimpleFeature}s as
  * GeoJSON.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class SimpleJsonServer 
@@ -56,7 +56,7 @@ public class SimpleJsonServer
 
     private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
 
-    public static final int             DEFAULT_MAX_BYTES = 512*1024;
+    public static final int             DEFAULT_MAX_BYTES = 3*1024*1024;
     
     
     // static factory *************************************

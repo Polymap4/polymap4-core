@@ -17,20 +17,16 @@ package org.polymap.core.mapeditor.tooling.edit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.spatial.Intersects;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -249,32 +245,32 @@ public abstract class BaseVectorLayer
     }
 
 
-    public void selectFeatures( FeatureCollection _features ) {
+    public synchronized void selectFeatures( FeatureCollection _features ) {
+        // this method is called directly and from propertyChange(); the event might be
+        // the result of the same action but arrives in different thread; so synchronize
+        // and check feature size before refreshing
         List<Feature> previous = new ArrayList( features );
         
         // copy features
         features.clear();
-        final AtomicBoolean exceeded = new AtomicBoolean();
+        FeatureIterator it = _features.features();
         try {
-            _features.accepts( new FeatureVisitor() {
-                public void visit( Feature feature ) {
-                    if (features.size() <= maxFeatures) {
-                        features.add( feature );
-                    } else {
-                        exceeded.set( true );
-                    }
-                }
-            }, null );
+            while (it.hasNext() && features.size() <= maxFeatures) {
+                features.add( it.next() );
+            }
         }
-        catch (IOException e) {
-            PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, "Unable to access selected features.", e );
+        finally {
+            it.close();
         }
         
         // still initializing?
         if (vectorLayer != null) {
             // avoid subsequent refresh after several calls of this method
             vectorLayer.getJsonEncoder().setFeatures( features );
-            vectorLayer.refresh();
+            
+//            if (features.size() != previous.size()) {
+                vectorLayer.refresh();
+//            }
         }
     }
 
@@ -306,7 +302,8 @@ public abstract class BaseVectorLayer
                 op.init( layer, filter, null, this );
                 OperationSupport.instance().execute( op, true, false, new JobChangeAdapter() {
                     public void done( IJobChangeEvent event ) {
-                        selectFeatures( fsm.getFeatureCollection() );
+                        // don't call directly as this will be done in propertyChange()
+                        //selectFeatures( fsm.getFeatureCollection() );
                     }
                 });
             }

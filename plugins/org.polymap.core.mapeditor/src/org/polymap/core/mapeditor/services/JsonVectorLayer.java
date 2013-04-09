@@ -18,6 +18,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.lifecycle.PhaseEvent;
+import org.eclipse.rwt.lifecycle.PhaseId;
+import org.eclipse.rwt.lifecycle.PhaseListener;
+
 import org.polymap.openlayers.rap.widget.base_types.Protocol;
 import org.polymap.openlayers.rap.widget.base_types.StyleMap;
 import org.polymap.openlayers.rap.widget.layers.VectorLayer;
@@ -36,6 +41,8 @@ public class JsonVectorLayer
     
     private SimpleJsonServer    jsonServer;
     
+    private PhaseListener       phaseListener;
+    
     
     public JsonVectorLayer( String name, SimpleJsonServer jsonServer,
             JsonEncoder jsonEncoder, StyleMap styleMap ) {
@@ -44,6 +51,24 @@ public class JsonVectorLayer
                 "GeoJSON" ), styleMap );
         this.jsonEncoder = jsonEncoder;
         this.jsonServer = jsonServer;
+        
+        // init phase listener: prevent subsequent refreshs if just created
+        RWT.getLifeCycle().addPhaseListener( phaseListener = new PhaseListener() {
+            @Override
+            public PhaseId getPhaseId() {
+                return PhaseId.RENDER;
+            }
+            @Override
+            public void beforePhase( PhaseEvent event ) {
+            }
+            @Override
+            public void afterPhase( PhaseEvent event ) {
+                log.info( "AFTER PHASE: " + getName() ); 
+                phaseListener = null;
+                RWT.getLifeCycle().removePhaseListener( this );
+            }
+        });
+        
         log.debug( "URL: " + jsonServer.getPathSpec() + "/" + jsonEncoder.getName() );
     }
 
@@ -61,9 +86,36 @@ public class JsonVectorLayer
     public JsonEncoder getJsonEncoder() {
         return jsonEncoder;
     }
-    
+
+
     public SimpleJsonServer getJsonServer() {
         return jsonServer;
+    }
+
+
+    @Override
+    public void refresh() {
+        if (phaseListener == null) {
+            // prevent subsequent refreshs during one request; each refresh generates
+            // a refresh() call in JS that causes reload all features - even if nothing has changed
+            phaseListener = new PhaseListener() {
+                @Override
+                public PhaseId getPhaseId() {
+                    return PhaseId.RENDER;
+                }
+                @Override
+                public void beforePhase( PhaseEvent event ) {
+                }
+                @Override
+                public void afterPhase( PhaseEvent event ) {
+                    log.info( "AFTER PHASE: " + getName() ); 
+                    phaseListener = null;
+                    JsonVectorLayer.super.refresh();
+                    RWT.getLifeCycle().removePhaseListener( this );
+                }
+            };
+            RWT.getLifeCycle().addPhaseListener( phaseListener );
+        }
     }
     
 }

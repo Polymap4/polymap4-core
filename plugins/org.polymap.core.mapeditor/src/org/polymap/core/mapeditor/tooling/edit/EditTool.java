@@ -187,9 +187,9 @@ public class EditTool
 //                            WMSLayer olayer = (WMSLayer)getSite().getEditor().findLayer( getSelectedLayer() );
 //                            olayer.redraw( true );
                             
-                            // XXX hack to remove 'duplicate" geometries introduces by OL 2.12
-                            ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
-                            vectorLayer.selectFeatures( bounds, false );
+//                            // XXX hack to remove 'duplicate" geometries introduces by OL 2.12
+//                            ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
+//                            vectorLayer.selectFeatures( bounds, false );
                         }
                     });
                 }

@@ -1,7 +1,6 @@
 /*
  * polymap.org 
- * Copyright 2010-2012, Polymap GmbH, and individual contributors as
- * indicated by the @authors tag.
+ * Copyright 2010-2013, Polymap GmbH. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -14,6 +13,7 @@
  */
 package org.polymap.core.mapeditor.services;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -60,10 +60,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * GeoJSON server based on {@link FeatureJSON} package of GeoTools. The encoder
  * seems to work faster for big geometries compared to to {@link GsJsonEncoder}.
  * The encoder does not encode all decimals of coordinates.
- * <p/>
- * FIXME Does not convert WGS84 geometries correctly.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 class GtJsonEncoder 
@@ -72,8 +70,7 @@ class GtJsonEncoder
     private static final Log log = LogFactory.getLog( GtJsonEncoder.class );
 
     
-    public void encode( CountingOutputStream out, String encoding )
-    throws IOException {
+    public void encode( CountingOutputStream out, String encoding ) throws IOException {
         BufferedWriter writer = new BufferedWriter( 
                 new OutputStreamWriter( out, encoding ) );
 
@@ -177,19 +174,17 @@ class GtJsonEncoder
             this.byteCounter = byteCounter;
         }
         
-        public void writeJSONString( Writer out ) 
-        throws IOException {
-            
-            out.write("[");
-            
+        public void writeJSONString( Writer out ) throws IOException {
+            out.write( "[" );            
             try {
                 int featureCount = 0;
-                Iterator<Feature> it = features.iterator();
+                Iterator<Feature> it = new ArrayList( features ).iterator();
                 while (it.hasNext()) {
                     // check byte limit
                     if (byteCounter.getCount() > maxBytes) {
                         log.warn( "Byte limit reached. Features encoded: " + featureCount );
                         final int encoded = featureCount;
+                       
                         display.asyncExec( new Runnable() {
                             public void run() {
                                 MessageDialog.openInformation(
@@ -200,10 +195,14 @@ class GtJsonEncoder
                         } );
                         break;
                     }
+                    
+                    if (featureCount > 0) { 
+                        out.write( "," ); 
+                    }
+
                     // encode feature
                     fjson.writeFeature( transform( (SimpleFeature)it.next() ), out );
                     featureCount++;
-                    if (it.hasNext()) { out.write( "," ); }
                 }
             }
             catch (IOException e) {
@@ -213,7 +212,7 @@ class GtJsonEncoder
                 throw new IOException( e );
             }
 
-            out.write("]");
+            out.write( "]" );
         }
 
         private SimpleFeatureType transformedSchema( SimpleFeatureType schema )

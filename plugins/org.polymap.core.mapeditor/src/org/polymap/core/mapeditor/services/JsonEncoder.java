@@ -42,7 +42,7 @@ import org.polymap.core.runtime.Polymap;
  */
 public abstract class JsonEncoder {
 
-    private static final Log log = LogFactory.getLog( SimpleJsonServer.class );
+    private static final Log log = LogFactory.getLog( JsonEncoder.class );
 
     public static JsonEncoder newInstance() {
         // GsJsonEncoder might be slower than GtJsonEncoder but it handles
@@ -127,7 +127,7 @@ public abstract class JsonEncoder {
                 this.features.add( feature );
             }
             else {
-                throw new IllegalArgumentException( "Complex features are not supported yet." );
+                log.warn( "Not a SimpleFeature: " + feature );
             }
         }
     }
