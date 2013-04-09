@@ -68,7 +68,8 @@ public class GeoServerClassLoader
     }
 
     
-    public void destroy() {
+    public void close() throws IOException {
+        super.close();
         this.parent = null;
     }
 
