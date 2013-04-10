@@ -32,7 +32,7 @@
 
 	<target name="load_m2_deps" unless="already_downloaded">
 		
-        <setproxy proxyhost="46.4.28.8" proxyport="3128"/>
+        <!-- setproxy proxyhost="46.4.28.8" proxyport="3128"/-->
 		
 		<!-- we can probably replace this with a reference to a pom.xml file -->
 		<!-- Use http://mvnrepository.com/ to look stuff up -->
