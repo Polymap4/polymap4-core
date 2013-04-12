@@ -37,7 +37,7 @@ public class UnboundPoolExecutor {
 
     public static int           DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
     
-    public static int           MAX_THREADS_PER_PROC = 20;
+    public static int           MAX_THREADS_PER_PROC = 32;
     
     
     public static ExecutorService newInstance() {

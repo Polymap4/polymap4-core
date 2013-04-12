@@ -19,6 +19,7 @@ import java.util.Enumeration;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -69,7 +70,14 @@ public class GeoServerClassLoader
 
     
     public void close() throws IOException {
-        super.close();
+        try {
+            // super.close() is defined in JDK 1.7
+            Method m = URLClassLoader.class.getMethod( "close", new Class[0] );
+            m.invoke( this, new Object[0] );
+        }
+        catch (Exception e) {
+            log.warn( "" + e );
+        }
         this.parent = null;
     }
 

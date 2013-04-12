@@ -14,6 +14,9 @@
  */
 package org.polymap.core.workbench;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.rap.ui.branding.IExitConfirmation;
 
 import org.polymap.core.Messages;
@@ -26,6 +29,8 @@ import org.polymap.core.operation.OperationSupport;
  */
 public class BrowserExitConfirmation
         implements IExitConfirmation {
+
+    private static final Log log = LogFactory.getLog( BrowserExitConfirmation.class );
 
     public BrowserExitConfirmation() {
     }
