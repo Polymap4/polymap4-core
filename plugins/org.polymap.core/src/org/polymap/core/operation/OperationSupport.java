@@ -14,6 +14,9 @@
  */
 package org.polymap.core.operation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -321,7 +324,6 @@ public class OperationSupport
     public void saveChanges()
     throws Exception {
         UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
-            
             protected void runWithException( IProgressMonitor monitor ) throws Exception {
             
                 Object[] listeners = saveListeners.getListeners();
@@ -373,20 +375,28 @@ public class OperationSupport
      * Afterwards the history of operations is disposed.
      */
     public void revertChanges() {
-        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
-            
-            protected void runWithException( IProgressMonitor monitor )
-            throws Exception {
-            
+        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {            
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                
+                List<Exception> exceptions = new ArrayList();            
                 monitor.beginTask( getName(), saveListeners.size() * 10 );
 
                 Object[] listeners = saveListeners.getListeners();
                 for (Object listener : listeners) {
-                    SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Revert" );
-                    ((IOperationSaveListener)listener).revert( OperationSupport.this, subMon );
-                    subMon.done();
+                    try {
+                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Revert" );
+                        ((IOperationSaveListener)listener).revert( OperationSupport.this, subMon );
+                        subMon.done();
+                    }
+                    catch (final Exception e) {
+                        exceptions.add( e );
+                    }
                 }        
                 history.dispose( context, true, true, true );
+                
+                if (!exceptions.isEmpty()) {
+                    throw exceptions.get( 0 );
+                }
             }
         };
         job.setRule( new OneSaver() );

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -52,7 +51,7 @@ import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class EntityModificationDecorator
@@ -61,7 +60,7 @@ public class EntityModificationDecorator
 
     private static final Log log = LogFactory.getLog( EntityModificationDecorator.class );
     
-    private static final String         dirtyImage = "icons/ovr16/outgo_synch3.gif";
+    private static final String         dirtyImage = "icons/ovr16/dirty_ovr2.gif";
     private static final String         pendingImage = "icons/ovr16/changed_ovr.gif";
     private static final String         warningImage = "icons/ovr16/warning_ovr.gif";
     private static final String         conflictImage = "icons/ovr16/error_ovr.gif";
@@ -146,24 +145,24 @@ public class EntityModificationDecorator
             if (dirty && conflicting) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, conflictImage );
                 decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-                decoration.addPrefix( "# " );
+                //decoration.addPrefix( "# " );
             }
             else if (!dirty && conflicting) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, warningImage );
+                //ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, warningImage );
                 //decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-                decoration.addPrefix( "< " );
+                //decoration.addPrefix( "< " );
             }
             else if (dirty) {
                 ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, dirtyImage );
                 decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
-                decoration.addPrefix( "> " );
+                //decoration.addSuffix( "*" );
             }
 
             // register
             decorated.put( entity.id(), entity );
         }
         catch (NoSuchEntityException e) {
-            decoration.addSuffix( " (deleted)" );
+            decoration.addSuffix( " (removed)" );
         }
     }
 

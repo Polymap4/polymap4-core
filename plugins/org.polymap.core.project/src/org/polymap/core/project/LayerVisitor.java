@@ -24,6 +24,12 @@ public abstract class LayerVisitor<T> {
 
     public T            result;
     
-    public abstract void visit( ILayer layer );
+    /**
+     * 
+     *
+     * @param layer
+     * @return False stops the loop.
+     */
+    public abstract boolean visit( ILayer layer );
     
 }

@@ -31,15 +31,12 @@ import org.polymap.core.runtime.recordstore.SimpleQuery;
  */
 public class CacheStatistics {
 
-    private Cache304            cache;
-    
     private ConcurrentMap<String,AtomicInteger> layerHitCounters = new ConcurrentHashMap( 128 );
     
     private ConcurrentMap<String,AtomicInteger> layerMissCounters = new ConcurrentHashMap( 128 );
     
     
-    public CacheStatistics( Cache304 cache ) {
-        this.cache = cache;
+    CacheStatistics() {
     }
 
     
@@ -77,7 +74,7 @@ public class CacheStatistics {
         return counter != null ? counter.intValue() : 0;
     }
     
-    public long layerStoreSize( ILayer layer ) {
+    public long layerStoreSize( Cache304 cache, ILayer layer ) {
         try {
             SimpleQuery query = new SimpleQuery();
             query.setMaxResults( Integer.MAX_VALUE );
@@ -95,7 +92,7 @@ public class CacheStatistics {
         }
     }
     
-    public int layerTileCount( ILayer layer ) {
+    public int layerTileCount( Cache304 cache, ILayer layer ) {
         try {
             SimpleQuery query = new SimpleQuery();
             query.setMaxResults( Integer.MAX_VALUE );
@@ -109,7 +106,7 @@ public class CacheStatistics {
         }
     }
     
-    public long totalStoreSize() {
+    public long totalStoreSize( Cache304 cache ) {
         return cache.store.storeSizeInByte();
     }
     

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.operation.actions;
 
@@ -35,14 +27,17 @@ import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
 
 import org.polymap.core.CorePlugin;
+import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
- *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * <p/>
+ * Revert does not work with all {@link IOperationSaveListener} providers yet.
+ * Therefore this action is disabled yet.
+ * 
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class RevertChangesAction
@@ -50,8 +45,6 @@ public class RevertChangesAction
 
     private static Log log = LogFactory.getLog( RevertChangesAction.class );
 
-    private boolean                 enabled = false;
-    
     /** The action we are working for. Can I just store this and use in modelChanged() ? */
     private IAction                 action;
     
@@ -71,12 +64,8 @@ public class RevertChangesAction
 
 
     public void historyNotification( OperationHistoryEvent ev ) {
-        //log.info( "History changed: ev= " + ev );
-        enabled = operationSupport.undoHistorySize() > 0;
-
         if (action != null) {
-            action.setEnabled( enabled );
-            //action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
+            action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
         }
     }
 
@@ -93,12 +82,6 @@ public class RevertChangesAction
     
     public void selectionChanged( IAction _action, ISelection _selection ) {
         this.action = _action;
-        log.debug( "Selection changed. enabled= " + enabled + ", action= " + action );
-
-        // check if we have a pending change
-        if (action.isEnabled() != enabled) {
-            action.setEnabled( enabled );
-        }
     }
     
 }

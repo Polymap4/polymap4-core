@@ -278,7 +278,9 @@ public interface MapState
         
         public <T> T visit( LayerVisitor<T> visitor ) {
             for (ILayer layer : getLayers()) {
-                visitor.visit( layer );
+                if (!visitor.visit( layer )) {
+                    break;
+                }
             }
             return visitor.result;
         }

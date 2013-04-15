@@ -23,7 +23,7 @@ public class CacheConfig {
     
     public static final int         DEFAULT_ELEMENT_SIZE = 1024 * 10;
     
-    public static final int         DEFAULT_CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors() * 2;
+    public static final int         DEFAULT_CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors() * 4;
     
     public static final int         DEFAULT_INIT_SIZE = 1024;
     
@@ -74,7 +74,7 @@ public class CacheConfig {
     
     public CacheConfig initSize( int value ) {
         CacheConfig result = new CacheConfig( this );
-        this.initSize = value;
+        result.initSize = value;
         return result;
     }
 

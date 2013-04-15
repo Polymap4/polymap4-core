@@ -99,7 +99,7 @@ public class ImageCacheProcessorConfig
         // statistics
         //new SeparatorFieldEditor( "sep1", "", getFieldEditorParent() );
         
-        CacheStatistics stats = Cache304.instance().statistics();
+        CacheStatistics stats = Cache304.statistics();
      
         // hit count
         Composite fieldParent = getFieldEditorParent();
@@ -117,19 +117,19 @@ public class ImageCacheProcessorConfig
         fieldParent = getFieldEditorParent();
         StringFieldEditor layerSizeField = new StringFieldEditor( "layerSize", "Layer cache size (MB)", fieldParent );
         layerSizeField.setEnabled( false, fieldParent );
-        layerSizeField.setStringValue( mbFormat.format( (double)stats.layerStoreSize( (ILayer)holder ) / 1024 / 1024 ) );
+        layerSizeField.setStringValue( mbFormat.format( (double)stats.layerStoreSize( cache, (ILayer)holder ) / 1024 / 1024 ) );
 
         // layer tile count
         fieldParent = getFieldEditorParent();
         StringFieldEditor tileCountField = new StringFieldEditor( "tileCount", "Tiles", fieldParent );
         tileCountField.setEnabled( false, fieldParent );
-        tileCountField.setStringValue( mbFormat.format( stats.layerTileCount( (ILayer)holder ) ) );
+        tileCountField.setStringValue( mbFormat.format( stats.layerTileCount( cache, (ILayer)holder ) ) );
 
         // store size
         fieldParent = getFieldEditorParent();
         StringFieldEditor totalSizeField = new StringFieldEditor( "totalSize", "Total cache size (MB)", fieldParent );
         totalSizeField.setEnabled( false, fieldParent );
-        totalSizeField.setStringValue( mbFormat.format( (double)stats.totalStoreSize() / 1024 / 1024 ) );
+        totalSizeField.setStringValue( mbFormat.format( (double)stats.totalStoreSize( cache ) / 1024 / 1024 ) );
     }
 
     

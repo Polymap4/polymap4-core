@@ -79,9 +79,9 @@ public class CacheUpdateQueue {
     }
     
         
-    public void remove( List<Command> commands ) {
+    public boolean remove( List<Command> commands ) {
         // should be O(n) as both list are in same order
-        queue.removeAll( commands );
+        return queue.removeAll( commands );
     }
     
         
