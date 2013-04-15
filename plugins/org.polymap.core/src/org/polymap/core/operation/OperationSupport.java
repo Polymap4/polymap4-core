@@ -15,6 +15,7 @@
 package org.polymap.core.operation;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -28,7 +29,6 @@ import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -94,7 +94,7 @@ public class OperationSupport
 
    // private AdvancedValidationUserApprover approver;
     
-    private ListenerList                saveListeners = new ListenerList( ListenerList.IDENTITY );
+    private List<IOperationSaveListener> saveListeners = new LinkedList();
     
     
     /**
@@ -307,11 +307,21 @@ public class OperationSupport
     // save / revert **************************************
     
     public void addOperationSaveListener( IOperationSaveListener listener ) {
-        saveListeners.add( listener );
+        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
+        newList.add( listener );
+        saveListeners = newList;
+    }
+    
+    public void prependOperationSaveListener( IOperationSaveListener listener ) {
+        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
+        newList.add( 0, listener );
+        saveListeners = newList;
     }
     
     public void removeOperationSaveListener( IOperationSaveListener listener ) {
-        saveListeners.remove( listener );
+        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
+        newList.remove( listener );
+        saveListeners = newList;        
     }
 
     /**
@@ -326,32 +336,30 @@ public class OperationSupport
         UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
             protected void runWithException( IProgressMonitor monitor ) throws Exception {
             
-                Object[] listeners = saveListeners.getListeners();
-
-                monitor.beginTask( getName(), listeners.length * 11 );
+                monitor.beginTask( getName(), saveListeners.size() * 11 );
                 try {
                     // prepare
-                    for (Object listener : listeners) {
+                    for (IOperationSaveListener listener : saveListeners) {
                         SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Preparing" );
-                        ((IOperationSaveListener)listener).prepareSave( OperationSupport.this, subMon );
+                        listener.prepareSave( OperationSupport.this, subMon );
                         if (monitor.isCanceled()) {
                             throw new OperationCanceledException( "Operation wurde abgebrochen." );
                         }
                         subMon.done();
                     }
                     // commit
-                    for (Object listener : listeners) {
+                    for (IOperationSaveListener listener : saveListeners) {
                         SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Committing" );
-                        ((IOperationSaveListener)listener).save( OperationSupport.this, subMon );
+                        listener.save( OperationSupport.this, subMon );
                         subMon.done();
                     }
                     history.dispose( context, true, true, false );
                 }
                 catch (final Throwable e) {
                     // rollback
-                    for (Object listener : listeners) {
+                    for (IOperationSaveListener listener : saveListeners) {
                         SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Rolling back" );
-                        ((IOperationSaveListener)listener).rollback( OperationSupport.this, subMon );
+                        listener.rollback( OperationSupport.this, subMon );
                         subMon.done();
                     }
                     Polymap.getSessionDisplay().asyncExec( new Runnable() {
@@ -381,11 +389,10 @@ public class OperationSupport
                 List<Exception> exceptions = new ArrayList();            
                 monitor.beginTask( getName(), saveListeners.size() * 10 );
 
-                Object[] listeners = saveListeners.getListeners();
-                for (Object listener : listeners) {
+                for (IOperationSaveListener listener : saveListeners) {
                     try {
                         SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Revert" );
-                        ((IOperationSaveListener)listener).revert( OperationSupport.this, subMon );
+                        listener.revert( OperationSupport.this, subMon );
                         subMon.done();
                     }
                     catch (final Exception e) {
