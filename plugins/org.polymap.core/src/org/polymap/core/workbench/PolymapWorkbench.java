@@ -18,7 +18,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Rectangle;
@@ -28,7 +27,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.internal.util.URLHelper;
+import org.eclipse.rwt.internal.widgets.JSExecutor;
 import org.eclipse.rwt.lifecycle.IEntryPoint;
 import org.eclipse.rwt.service.ISessionStore;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -228,17 +227,28 @@ public class PolymapWorkbench
     }
     
     
+    @SuppressWarnings("restriction")
     public static void restart() {
-        String url = URLHelper.getURLString( false );
-        Shell shell = new Shell( Display.getCurrent(), SWT.NONE );
-        Browser browser = new Browser( shell, SWT.NONE );
-        String page = "<html><head><title></title><meta http-equiv=\"refresh\" content=\"0;url="
-                + url + "\";>" + "<script type=\"text/javascript\">"
-                + "if (top != self) top.location = self.location;"
-                + "</script></head><body></body></html>";
-        browser.setText( page );
-        shell.setMaximized( true );
-        shell.open();
+        JSExecutor.executeJS( "window.location.reload();" );
+        
+//        StringBuilder url = new StringBuilder( URLHelper.getURLString( false ) );
+//        // convert to relative URL (code is from RAP)
+//        int firstSlash = url.indexOf( "/" , url.indexOf( "//" ) + 2 ); // first slash after double slash of "http://"
+//        url.delete( 0, firstSlash + 1 ); // Result is sth like "/rap?custom_service_handler..."
+
+//        Shell shell = new Shell( Display.getCurrent(), SWT.NONE );
+//        Browser browser = new Browser( shell, SWT.NONE );
+//        String page = "<html><head><title></title>"
+//                //+ "<meta http-equiv=\"refresh\" content=\"0;url=" + url.toString() + "\";>" 
+//                + "<script type=\"text/javascript\">"
+//                + "    alert( window.location.href );"
+//                //+ "    if (top != self) window.location.reload();"
+//                //+ "    if (top != self) top.location = self.location;"
+//                + "    if (top != self) window.location.href=window.location.href;"
+//                + "</script></head><body></body></html>";
+//        browser.setText( page );
+//        shell.setMaximized( true );
+//        shell.open();
     }
     
 }
