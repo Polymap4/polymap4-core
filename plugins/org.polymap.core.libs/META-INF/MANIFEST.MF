@@ -2239,7 +2239,7 @@ Bundle-ClassPath: .,
  lib/hatbox-1.0.b7.jar,
  lib/lucene-core-3.6.2.jar,
  lib/lucene-queryparser-3.6.2.jar,
- lib/guava-10.0.1.jar
+ lib/guava-14.0.1.jar
 Import-Package: javax.servlet;version="2.5.0",
  javax.servlet.http;version="2.5.0"
 Bundle-Vendor: polymap.org

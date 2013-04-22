@@ -106,7 +106,7 @@ public class SimpleFormData {
     }
 
     public SimpleFormData left( int num, int offset ) {
-        formData.left = new FormAttachment( num, offset );
+        formData.left = num > -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
