@@ -130,6 +130,7 @@ public class VectorLayerStyler {
         hover.put( "strokeDashstyle", "solid" );
         Number strokeWidth = (Number)hover.get( "strokeWidth" );
         hover.put( "strokeWidth", strokeWidth );
+        hover.put( "fillOpacity", 0.25 );
     
 //        hsl = new HSLColor( new Color( rgb.red, rgb.green, rgb.blue ) );
 //        c = hsl.adjustHue( 180 ).adjustShade( 10 ).toRGB();
@@ -140,6 +141,7 @@ public class VectorLayerStyler {
         select.put( "strokeDashstyle", "solid" );
         strokeWidth = (Number)select.get( "strokeWidth" );
         select.put( "strokeWidth", strokeWidth );
+        select.put( "fillOpacity", 0.20 );
     }
 
     

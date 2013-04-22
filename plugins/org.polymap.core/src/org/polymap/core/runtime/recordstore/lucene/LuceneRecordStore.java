@@ -18,10 +18,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -97,26 +93,26 @@ public final class LuceneRecordStore
      * XXX This is not the {@link Polymap#executorService()}, as this used Eclipse
      * Jobs, which results in deadlocks.
      */
-    private static ExecutorService  executor = null; //Polymap.executorService();
+    private static ExecutorService  executor = Polymap.executorService();
     
-    static {
-        int procs = Runtime.getRuntime().availableProcessors();
-        ThreadFactory threadFactory = new ThreadFactory() {
-            volatile int threadNumber = 0;
-            public Thread newThread( Runnable r ) {
-                String prefix = "Lucene-searcher-";
-                Thread t = new Thread( r, prefix + threadNumber++ );
-                t.setDaemon( false );
-                //t.setPriority( Thread.NORM_PRIORITY - 1 );
-                return t;
-            }
-        };
-        executor = new ThreadPoolExecutor( 0, 100,
-                60L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>(),
-                threadFactory );
-        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
-    }
+//    static {
+//        int procs = Runtime.getRuntime().availableProcessors();
+//        ThreadFactory threadFactory = new ThreadFactory() {
+//            volatile int threadNumber = 0;
+//            public Thread newThread( Runnable r ) {
+//                String prefix = "Lucene-searcher-";
+//                Thread t = new Thread( r, prefix + threadNumber++ );
+//                t.setDaemon( false );
+//                //t.setPriority( Thread.NORM_PRIORITY - 1 );
+//                return t;
+//            }
+//        };
+//        executor = new ThreadPoolExecutor( 0, 100,
+//                60L, TimeUnit.SECONDS,
+//                new SynchronousQueue<Runnable>(),
+//                threadFactory );
+//        ((ThreadPoolExecutor)executor).allowCoreThreadTimeOut( true );        
+//    }
     
     
     // instance *******************************************
@@ -161,7 +157,7 @@ public final class LuceneRecordStore
         directory = null;
         // use mmap on 32bit Linux of index size < xxxMB
         if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
-                && FileUtils.sizeOfDirectory( indexDir ) < 500 * 1024 * 1024) {
+                && FileUtils.sizeOfDirectory( indexDir ) < 1024 * 1024 * 1024) {
             try {
                 directory = new MMapDirectory( indexDir, null );
                 open( clean );

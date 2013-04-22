@@ -34,8 +34,6 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarContributionItem;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
-
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -46,11 +44,10 @@ import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-
 import org.eclipse.core.runtime.Platform;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.security.SecurityUtils;
@@ -68,8 +65,6 @@ public class PolymapActionBarAdvisor
     private static final Log    log = LogFactory.getLog( PolymapActionBarAdvisor.class );
 
     private IWebBrowser      browser;
-
-    private IWorkbenchAction exitAction;
 
     private IWorkbenchAction newAction, new2Action;
     
@@ -91,7 +86,7 @@ public class PolymapActionBarAdvisor
 
     private Action           wizardAction;
 
-    private Action           browserAction;
+    private Action           restartAction;
 
     public IWorkbenchAction  saveAction;
 
@@ -116,20 +111,6 @@ public class PolymapActionBarAdvisor
 
 
     protected void makeActions( final IWorkbenchWindow window ) {
-        ImageDescriptor quitActionImage = AbstractUIPlugin.imageDescriptorFromPlugin(
-                "org.eclipse.rap.demo", "icons/ttt.gif" ); //$NON-NLS-1$ //$NON-NLS-2$
-        ImageDescriptor helpActionImage = AbstractUIPlugin.imageDescriptorFromPlugin(
-                "org.eclipse.rap.demo", "icons/help.gif" ); //$NON-NLS-1$ //$NON-NLS-2$
-        ImageDescriptor wizardActionImage = AbstractUIPlugin.imageDescriptorFromPlugin(
-                "org.eclipse.rap.demo", "icons/login.gif" ); //$NON-NLS-1$ //$NON-NLS-2$
-        ImageDescriptor browserActionImage = AbstractUIPlugin.imageDescriptorFromPlugin(
-                "org.eclipse.rap.demo", "icons/internal_browser.gif" ); //$NON-NLS-1$ //$NON-NLS-2$
-        ImageDescriptor rapWebSiteActionImage = AbstractUIPlugin.imageDescriptorFromPlugin(
-                "org.eclipse.rap.demo", "icons/browser.gif" ); //$NON-NLS-1$ //$NON-NLS-2$
-        exitAction = ActionFactory.QUIT.create( window );
-        exitAction.setImageDescriptor( quitActionImage );
-        register( exitAction );
-
         newAction = ActionFactory.NEW.create( window );
         newAction.setText( Messages.get( "PolymapActionBarAdvisor_new" ) );
         newAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
@@ -177,13 +158,27 @@ public class PolymapActionBarAdvisor
         helpSearchAction.setText( Messages.get( "PolymapActionBarAdvisor_helpSearch" ) );
         register( helpSearchAction );
         
-//        IWorkbench workbench = window.getWorkbench();
-//        IOperationHistory operationHistory = workbench.getOperationSupport().getOperationHistory();
-//        IUndoContext undoContext = workbench.getOperationSupport().getUndoContext();
-//        undoRedoGroup = new UndoRedoActionGroup( window.getActivePage().get, undoContext, true );
-
-//        introAction = ActionFactory.INTRO.create( window );
-//        register( introAction );
+        restartAction = new Action() {
+            public void run() {
+                Polymap.getSessionDisplay().syncExec( new Runnable() {
+                    @Override
+                    public void run() {
+                        if (OperationSupport.instance().undoHistorySize() == 0
+                                || MessageDialog.openQuestion( PolymapWorkbench.getShellToParentOn(),
+                                        "Arbeitssitzung beenden", 
+                                        "Nicht alle Änderungen wurden gespeichert.\nWollen Sie trotzdem beenden?")) {
+                            // avoid browser question about restart
+                            OperationSupport.instance().dispose();
+                            PolymapWorkbench.restart();                             
+                        }
+                    }
+                });
+            }
+        };
+        restartAction.setId( "org.polymap.core.RestartAction" );
+        restartAction.setText( Messages.get( "PolymapActionBarAdvisor_restart" ) );
+        restartAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/exit.gif" ) );
+        register( restartAction );
 
         aboutAction = new Action() {
             public void run() {
@@ -226,7 +221,7 @@ public class PolymapActionBarAdvisor
         };
         polymapWebSiteAction.setText( "POLYMAP3 Website" );
         polymapWebSiteAction.setId( "polymap3.core.rapWebSite" );
-        polymapWebSiteAction.setImageDescriptor( rapWebSiteActionImage );
+//        polymapWebSiteAction.setImageDescriptor( rapWebSiteActionImage );
         register( polymapWebSiteAction );
         
         showViewMenuMgr = new MenuManager( Messages.get( "PolymapActionBarAdvisor_showView" ),
@@ -251,23 +246,6 @@ public class PolymapActionBarAdvisor
 //        wizardAction.setId( "org.eclipse.rap.demo.wizard" );
 //        wizardAction.setImageDescriptor( wizardActionImage );
 //        register( wizardAction );
-
-//        browserAction = new Action() {
-//            public void run() {
-//                browserIndex++;
-//                try {
-//                    window.getActivePage().showView( "org.eclipse.rap.demo.DemoBrowserViewPart",
-//                            String.valueOf( browserIndex ), IWorkbenchPage.VIEW_ACTIVATE );
-//                }
-//                catch (PartInitException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//        browserAction.setText( "Open new Browser View" );
-//        browserAction.setId( "org.eclipse.rap.demo.browser" );
-//        browserAction.setImageDescriptor( browserActionImage );
-//        register( browserAction );
     }
 
 
@@ -386,8 +364,8 @@ public class PolymapActionBarAdvisor
         
         toolbar.add( newAction );
         toolbar.add( importAction );
-       // toolbar.add( showViewAction );
         toolbar.add( preferencesAction );
+        toolbar.add( restartAction );
         
 //        createToolBar( coolBar, "editor" );
     }

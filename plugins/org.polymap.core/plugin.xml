@@ -91,7 +91,7 @@
                toolbarPath="undo"
                tooltip="%actions_undoTip">
          </action>
-         <action
+         <!--action
                class="org.polymap.core.operation.actions.RevertChangesAction"
                icon="icons/elcl16/trash.gif"
                id="org.polymap.core.operation.actions.Revert"
@@ -100,7 +100,7 @@
                style="push"
                toolbarPath="undo"
                tooltip="%actions_revertTip">
-         </action>
+         </action-->
          <action
                class="org.polymap.core.operation.actions.MergeChangesAction"
                icon="icons/elcl16/up_nav.gif"

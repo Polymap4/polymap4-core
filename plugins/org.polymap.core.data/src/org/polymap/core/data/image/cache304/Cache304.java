@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,12 +23,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Supplier;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -44,6 +46,8 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.CachedLazyInit;
+import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
@@ -82,16 +86,50 @@ public class Cache304 {
     public static final int             DEFAULT_MAX_TILE_LIVETIME = 24;
     public static final int             DEFAULT_MAX_STORE_SIZE = 100 * 1024 * 1024;
     
-    private static final Cache304       instance;
+    private static CacheStatistics      statistics = new CacheStatistics();
     
+    /**
+     * No one should hold a permanent ref to the cache as every access uses {@link #instance()}.
+     * If the {@link #updater} job is scheduled, then it holds a strong ref and keeps it from GC.
+     * <p/>
+     * XXX This does not use {@link CachedLazyInit} as it allows multiple instances to be created.
+     */
+    private static LazyInit<Cache304>   instance = new LazyInit() {
+        private SoftReference<Cache304> ref;
+        @Override
+        public Cache304 get() {
+            Cache304 result = null;
+            if (ref == null || (result = ref.get()) == null) {
+                synchronized (this) {
+                    if (ref == null || (result = ref.get()) == null) {
+                        ref = new SoftReference( result = new Cache304() );
+                    }
+                }
+            }
+            return result;
+        }
+        @Override
+        public Object get( Supplier _supplier ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
+        @Override
+        public void clear() {
+            ref = null;
+        }
+        @Override
+        public boolean isInitialized() {
+            return ref != null && ref.get() != null;
+        }
+    };
     
-    static {
-        instance = new Cache304();
+    public static CacheStatistics statistics() {
+        return statistics;
     }
     
     public static final Cache304 instance() {
-        return instance;
+        return instance.get();
     }
+
     
     // instance *******************************************
     
@@ -113,7 +151,6 @@ public class Cache304 {
     /** Update lastAccessed() time, only if it is older then this time (3min.) */
     private long                accessTimeRasterMillis = 3 * 60 * 1000;
 
-    private CacheStatistics     statistics = new CacheStatistics( this );
     
     private IPersistentPreferenceStore    prefs = new ScopedPreferenceStore( 
             new InstanceScope(), DataPlugin.getDefault().getBundle().getSymbolicName() );
@@ -138,6 +175,19 @@ public class Cache304 {
     }
     
     
+    @Override
+    protected void finalize() throws Throwable {
+        log.info( "FINALIZE..." );
+        try {
+            // write pending changes and cleanup
+            updater.run( new NullProgressMonitor() );
+            store.close();
+        }
+        finally {
+        }
+    }
+
+
     public long getMaxTotalSize() {
         return maxStoreSizeInByte;    
     }
@@ -381,9 +431,10 @@ public class Cache304 {
         protected IStatus run( IProgressMonitor monitor ) {
             // flushing updateQueue
             IRecordStore.Updater tx = store.prepareUpdate();
+            List<CacheUpdateQueue.Command> queueState = null; 
             try {
                 Timer timer = new Timer();
-                List<CacheUpdateQueue.Command> queueState = updateQueue.state(); 
+                queueState = updateQueue.state(); 
                 log.debug( "Updater: flushing elements in queue: " + queueState.size() );
                 for (CacheUpdateQueue.Command command: queueState) {
                     try {
@@ -403,8 +454,7 @@ public class Cache304 {
                     log.warn( "Unable to aquire write lock! (3 seconds)" );
                 }
                 timer.start();
-                tx.apply( false );
-                updateQueue.remove( queueState );
+                tx.apply( false );                
                 log.debug( "commit done. (" + timer.elapsedTime() + "ms)" );
             }
             catch (Exception e) {
@@ -412,6 +462,11 @@ public class Cache304 {
                 log.error( "Error while flushing queue:", e );
             }
             finally {
+                // remove command from queue no matter if tx failed to avoid
+                // overflow if somethinf is wrong with backend
+                if (queueState != null && !updateQueue.remove( queueState )) {
+                    log.warn( "!!! UNABLE TO REMOVE COMMAND FROM QUEUE: " + queueState.size() );
+                }
                 if (lock.writeLock().isHeldByCurrentThread()) {
                     lock.writeLock().unlock();
                 }
@@ -499,9 +554,4 @@ public class Cache304 {
         
     }
 
-
-    public CacheStatistics statistics() {
-        return statistics;
-    }
-    
 }

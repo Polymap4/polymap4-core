@@ -21,9 +21,8 @@ import org.qi4j.api.unitofwork.NoSuchEntityException;
 
 import org.eclipse.swt.graphics.Image;
 
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
-import org.eclipse.jface.viewers.LabelProvider;
-
 import org.eclipse.ui.PlatformUI;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
@@ -50,7 +49,7 @@ public class LayerLabelProvider
      * 
      */
     static class BaseLabelProvider
-            extends LabelProvider {
+            extends ColumnLabelProvider {
             
         public Image getImage( Object elm ) {
             if (elm instanceof ILayer) {
@@ -58,6 +57,13 @@ public class LayerLabelProvider
                 return result;
             }
             return null;
+        }
+
+
+        @Override
+        public String getToolTipText( Object element ) {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
         }
 
 

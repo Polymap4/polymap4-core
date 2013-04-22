@@ -25,9 +25,12 @@ package org.polymap.core.operation.actions;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import net.refractions.udig.core.internal.CorePlugin;
+import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ISelection;
 
 import org.eclipse.ui.IWorkbenchWindow;
@@ -36,6 +39,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
 
+import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -52,12 +56,12 @@ public class SaveChangesAction
 
     private static Log log = LogFactory.getLog( SaveChangesAction.class );
 
-    private boolean                 enabled = false;
-    
     /** The action we are working for. Can I just store this and use in modelChanged() ? */
     private IAction                 action;
     
     private OperationSupport        operationSupport;
+
+    private static ImageDescriptor  origImage = CorePlugin.imageDescriptor( "icons/etool16/save.gif" );
 
     
     public void init( IWorkbenchWindow window ) {
@@ -74,13 +78,20 @@ public class SaveChangesAction
 
     public void historyNotification( OperationHistoryEvent ev ) {
         log.debug( "History changed: ev= " + ev );
-        enabled = operationSupport.undoHistorySize() > 0;
 
         if (action != null) {
             Polymap.getSessionDisplay().asyncExec( new Runnable() {
                 public void run() {
-                    action.setEnabled( enabled );
-                    //action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
+                    if (operationSupport.undoHistorySize() > 0) {
+                        Image image = CorePlugin.getDefault().imageForDescriptor( origImage, "_saveActionOrig" );
+                        ImageDescriptor ovr = CorePlugin.imageDescriptor( "icons/ovr16/dirty_ovr2.png" );
+                        action.setImageDescriptor( new DecorationOverlayIcon( image, ovr, IDecoration.BOTTOM_RIGHT ) );
+                        //action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
+                    }
+                    else {
+                        action.setImageDescriptor( origImage );
+                        //action.setToolTipText( "Save (including open editors)" );                        
+                    }
                 }
             });
         }
@@ -92,19 +103,13 @@ public class SaveChangesAction
             operationSupport.saveChanges();
         }
         catch (Throwable e) {
-            PolymapWorkbench.handleError( CorePlugin.ID, this, e.getLocalizedMessage(), e );
+            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
     }
 
     
     public void selectionChanged( IAction _action, ISelection _selection ) {
         this.action = _action;
-        log.debug( "Selection changed. enabled= " + enabled + ", action= " + action );
-
-        // check if we have a pending change
-        if (action.isEnabled() != enabled) {
-            action.setEnabled( enabled );
-        }
     }
     
 }

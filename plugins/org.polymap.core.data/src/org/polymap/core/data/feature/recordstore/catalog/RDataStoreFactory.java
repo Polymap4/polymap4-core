@@ -1,6 +1,7 @@
 package org.polymap.core.data.feature.recordstore.catalog;
 
 import java.util.Map;
+
 import java.io.File;
 import java.io.Serializable;
 
@@ -105,7 +106,8 @@ class RDataStoreFactory {
             public RDataStore load( File key ) throws Exception {
                 LuceneRecordStore store = new LuceneRecordStore( key, false );
 
-//                Cache<Object,Document> documentCache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
+//                Cache<Object,Document> documentCache = CacheManager.instance().newCache( 
+//                        CacheConfig.DEFAULT.initSize( 10000 ) );
 //                store.setDocumentCache( documentCache );
                 log.info( "### NO CACHE ACTIVATED! ###" );
 

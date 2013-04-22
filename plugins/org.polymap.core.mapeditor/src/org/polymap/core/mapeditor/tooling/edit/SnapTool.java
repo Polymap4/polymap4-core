@@ -117,7 +117,7 @@ public class SnapTool
         snapLayers = new ArrayList();
         final Predicate<ILayer> isVector = BaseLayerEditorTool.isVector();
         parentTool.getSelectedLayer().getMap().visit( new LayerVisitor() {
-            public void visit( ILayer layer ) {
+            public boolean visit( ILayer layer ) {
                 if (layer.isVisible() && isVector.apply( layer )) {
                     try {
                         SnapVectorLayer snapLayer = new SnapVectorLayer( getSite().getEditor(), layer );
@@ -133,6 +133,7 @@ public class SnapTool
                         log.warn( "", e );
                     }
                 }
+                return true;
             }
         });
 

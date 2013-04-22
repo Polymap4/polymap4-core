@@ -215,7 +215,7 @@
          <action
                class="org.polymap.core.project.ui.project.RemoveMapAction"
                enablesFor="+"
-               icon="icons/etool16/delete.gif"
+               icon="icons/etool16/delete_edit.gif"
                id="org.polymap.core.project.action.removeMap"
                label="%actions_deleteMap"
                style="push"

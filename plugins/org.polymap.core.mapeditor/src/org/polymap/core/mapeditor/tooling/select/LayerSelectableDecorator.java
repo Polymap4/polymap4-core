@@ -53,7 +53,7 @@ public class LayerSelectableDecorator
     
     public static final Point           DEFAULT_SIZE = new Point( 17, 16 );
 
-    public static final int            QUADRANT = IDecoration.TOP_RIGHT;
+    public static final int             QUADRANT = IDecoration.TOP_RIGHT;
 
     public static final String          image = "icons/ovr16/selectable_ovr_small.png";
 

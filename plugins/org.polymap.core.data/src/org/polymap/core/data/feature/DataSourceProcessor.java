@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.feature;
 
@@ -59,8 +51,7 @@ import org.polymap.core.project.LayerUseCase;
 /**
  *
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class DataSourceProcessor
@@ -68,7 +59,7 @@ public class DataSourceProcessor
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
-    public static final int                 DEFAULT_CHUNK_SIZE = 500;
+    public static final int                 DEFAULT_CHUNK_SIZE = 512;
 
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {
@@ -205,31 +196,23 @@ public class DataSourceProcessor
 
     protected void getFeatures( FeatureSource fs, Query query, ProcessorContext context )
     throws Exception {
-        // features
-        // we cannot just cache this since the query specifies chunks instead
-        // of the entire collection
         log.debug( "            Filter: " + query.getFilter() );
         FeatureCollection fc = fs.getFeatures( query );
 
-
-        // execute should of set all the header information
-        // including the lockID
-        //
-        // execute should also fail if all of the locks could not be aquired
-//        List resultsList = featureCollection.getFeature();
-
-
         Iterator it = null;
+        int currentChunkSize = 64;
         try {
-            ArrayList<Feature> chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
+            ArrayList<Feature> chunk = new ArrayList( currentChunkSize );
             for (it = fc.iterator(); it.hasNext(); ) {
                 Feature feature = (Feature)it.next();
 
                 chunk.add( feature );
-                if (chunk.size() >= DEFAULT_CHUNK_SIZE) {
+                if (chunk.size() >= currentChunkSize) {
                     log.debug( "                sending chunk: " + chunk.size() );
                     context.sendResponse( new GetFeaturesResponse( chunk ) );
-                    chunk = new ArrayList( DEFAULT_CHUNK_SIZE );
+                    
+                    currentChunkSize = Math.min( DEFAULT_CHUNK_SIZE, currentChunkSize * 2 );
+                    chunk = new ArrayList( currentChunkSize );
                 }
             }
             if (!chunk.isEmpty()) {
@@ -312,63 +295,6 @@ public class DataSourceProcessor
     throws Exception {
         throw new RuntimeException( "This is a terminal processor." );
     }
-
-    /**** sample code from the old SourceFeaturesProcessor ****
-
-    public void processRequest( ProcessorRequest r, ProcessorContext context )
-    throws Exception {
-        GetDataRequest request = (GetDataRequest)r;
-        ReferencedEnvelope bbox = request.getBBox();
-
-        // FeatureSource
-        IGeoResource geores = layer.getGeoResource();
-        FeatureSource fs = geores.resolve( FeatureSource.class, null );
-        log.debug( "            FeatureSource: " + fs.getName() );
-
-        //SimpleFeatureType schema = (SimpleFeatureType)fs.getSchema();
-        //log.debug( "### Schema: type name: " + schema.getTypeName() );
-        //GeometryDescriptor geom = fs.getSchema().getGeometryDescriptor();
-        //log.debug( "    Geometry: name=" + geom.getLocalName() + ", type=" + geom.getType().getName() );
-        //for (AttributeDescriptor attr : schema.getAttributeDescriptors()) {
-        //    log.debug( "    Attribute: name=" + attr.getName() + ", type=" + attr.getType().getName() );
-        //}
-
-        // features
-        FeatureCollection fc = null;
-        if (bbox != null) {
-            // transform bbox
-            CoordinateReferenceSystem layerCRS =
-                geores.getInfo( new NullProgressMonitor() ).getCRS();
-            if (layerCRS == null) {
-                log.warn( "### No CRS found for layer. Using map CRS for layer CRS." );
-                layerCRS = layer.getMap().getCRS();
-            }
-            bbox = bbox.transform( layerCRS, true );
-            log.debug( "### bbox: " + bbox );
-
-            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
-            GeometryDescriptor geomDesc = fs.getSchema().getGeometryDescriptor();
-            String geometryAttributeName = geomDesc.getLocalName();
-            log.debug( "### geom attr: " + geometryAttributeName );
-
-            // filter to select features that intersect with the bounding box
-            Filter filter = ff.bbox( ff.property( geometryAttributeName ), bbox);
-            fc = fs.getFeatures( filter );
-        }
-        else {
-            fc = fs.getFeatures();
-        }
-        GetDataResponse response = new GetDataResponse( fc );
-        log.debug( "            Features: " + fc.size() );
-
-        //for (Iterator it=fs.getFeatures( Query.ALL ).iterator(); it.hasNext(); ) {
-        //    Object feature = it.next();
-        //    System.out.println( "              feature: " + feature );
-        //}
-
-        context.sendResponse( response );
-        context.sendResponse( ProcessorResponse.EOP );
-    }*/
 
 }
 

@@ -18,8 +18,9 @@ import com.google.common.base.Supplier;
 
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
+import org.polymap.core.runtime.cache.EvictionAwareCacheLoader;
+import org.polymap.core.runtime.cache.EvictionListener;
 
 /**
  * Provides a pseudo-persistent lazily initialized variable. Ones initialized the
@@ -83,7 +84,7 @@ public class CachedLazyInit<T>
     @Override
     @SuppressWarnings("hiding")
     public T get( final Supplier<T> supplier ) {
-        return (T)cache.get( cacheKey, new CacheLoader<Integer,Object,RuntimeException>() {
+        return (T)cache.get( cacheKey, new EvictionAwareCacheLoader<Integer,Object,RuntimeException>() {
             @Override
             public Object load( Integer key ) throws RuntimeException {
                 return supplier.get();
@@ -91,6 +92,12 @@ public class CachedLazyInit<T>
             @Override
             public int size() throws RuntimeException {
                 return elementSize;
+            }
+            @Override
+            public EvictionListener evictionListener() {
+                return supplier instanceof EvictionSupplier
+                        ? ((EvictionSupplier)supplier).evictionListener() 
+                        : null;
             }
         });
     }
@@ -114,8 +121,10 @@ public class CachedLazyInit<T>
     /**
      * 
      */
-    interface EvictionSupplier<T>
+    public static interface EvictionSupplier<T>
             extends Supplier<T> {
+        
+        EvictionListener evictionListener();
         
     }
     

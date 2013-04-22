@@ -29,7 +29,10 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.graphics.Image;
+
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
@@ -243,7 +246,18 @@ public class CorePlugin
 		return plugin;
 	}
 
+	
+    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
+        ImageRegistry images = getImageRegistry();
+        Image image = images.get( key );
+        if (image == null || image.isDisposed()) {
+            images.put( key, imageDescriptor );
+            image = images.get( key );
+        }
+        return image;
+    }
 
+    
     public static void logInfo( String msg ) {
         getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );
     }

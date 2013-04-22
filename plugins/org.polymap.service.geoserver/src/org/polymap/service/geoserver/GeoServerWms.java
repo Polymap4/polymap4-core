@@ -102,6 +102,7 @@ public class GeoServerWms
 
     public void destroy() {
         log.debug( "destroy(): ..." );
+        super.destroy();
         if (dispatcher != null) {
             ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader( context.cl );
@@ -120,6 +121,9 @@ public class GeoServerWms
 
                 context.destroy();
                 context = null;
+            }
+            catch (IOException e) {
+                log.warn( "", e );
             }
             finally {
                 Thread.currentThread().setContextClassLoader( threadLoader );
@@ -253,8 +257,9 @@ public class GeoServerWms
             log.debug( "ClassLoader: " + cl );
         }
 
-        public void destroy() {
-            cl.destroy();
+        public void destroy() throws IOException {
+            LogFactory.release( cl );
+            cl.close();
             cl = null;
             delegate = null;
         }

@@ -128,7 +128,9 @@ public class ProjectRepository
     public <T> T visit( LayerVisitor<T> visitor ) {
         for (IMap map : rootMap.getMaps()) {
             for (ILayer layer : map.getLayers()) {
-                visitor.visit( layer );
+                if (!visitor.visit( layer )) {
+                    return visitor.result;
+                }
             }
         }
         return visitor.result;

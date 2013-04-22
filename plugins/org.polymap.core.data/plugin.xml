@@ -282,8 +282,17 @@
             id="org.polymap.core.data.LayerBufferDecorator"
             label="Layer Buffer State"
             lightweight="true"
-            objectClass="org.polymap.core.project.ILayer"
             state="true">
+         <enablement>
+            <or>
+               <objectClass
+                     name="org.polymap.core.project.ILayer">
+               </objectClass>
+               <objectClass
+                     name="org.polymap.core.project.IMap">
+               </objectClass>
+            </or>
+         </enablement>
       </decorator>
    </extension>
    <extension

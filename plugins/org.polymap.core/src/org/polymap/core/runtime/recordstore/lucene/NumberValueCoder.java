@@ -58,7 +58,7 @@ final class NumberValueCoder
 
             Field field = (Field)doc.getFieldable( key );
             if (field == null) {
-                field = new Field( key, formatted, Store.YES, indexed ? Index.NOT_ANALYZED : Index.NO ); 
+                doc.add( new Field( key, formatted, Store.YES, indexed ? Index.NOT_ANALYZED : Index.NO ) ); 
             }
             else {
                 field.setValue( formatted );

@@ -17,6 +17,7 @@ package org.polymap.core.data.feature.buffer;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,8 +38,10 @@ import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeEvent.Type;
 import org.polymap.core.data.FeatureStateTracker;
+import org.polymap.core.model.Entity;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.entity.EntityHandle;
+import org.polymap.core.project.IMap;
+import org.polymap.core.project.LayerVisitor;
 import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 import org.polymap.core.runtime.event.Event;
@@ -64,14 +67,15 @@ public class LayerBufferDecorator
     public static final int         BOTTOM_LEFT = 2;
     public static final int         BOTTOM_RIGHT = 3;
 
-    private static final String     OUTGOING = "icons/ovr16/outgo_synch3.gif";    
+    private static final String     OUTGOING = "icons/ovr16/dirty_ovr2.png";    
     private static final String     INCOMING = "icons/ovr16/incom_synch.gif";    
     private static final String     CONFLICT = "icons/ovr16/conf_synch.gif";    
 
     /** The ids of the decorated layers. */
-    private Map<String,ILayer>      decorated;
+    private Map<String,Entity>      decorated;
 
-    private Map<String,ILayer>      modified;
+    private Map<String,Entity>      modified;
+    
     
     public LayerBufferDecorator() {
         decorated = new MapMaker().weakValues().initialCapacity( 128 ).makeMap();
@@ -126,44 +130,54 @@ public class LayerBufferDecorator
 
     
     public void decorate( Object elm, IDecoration decoration ) {
-        if (elm instanceof ILayer) {
-            ILayer layer = (ILayer)elm;
+        boolean incoming = false;
+        boolean outgoing = false;
 
-            try {
-                layer.id();
-            }
-            catch (NoSuchEntityException e) {
-                // handled by EntityModificationDecorator
-                return;
-            }
+        // check removed; handled by EntityModificationDecorator
+        try { ((Entity)elm).id(); } catch (NoSuchEntityException e) { return; }
+        
+        try {
+            // ILayer
+            if (elm instanceof ILayer) {
+                ILayer layer = (ILayer)elm;
+                outgoing = modified.containsKey( layer.id() );
 
-            try {
-                boolean outgoing = modified.containsKey( layer.id() );
-                
-                EntityHandle layerHandle = FeatureStateTracker.layerHandle( layer );
-                boolean incoming = false;
+//                EntityHandle layerHandle = FeatureStateTracker.layerHandle( layer );
 //                boolean incoming = EntityStateTracker.instance().isConflicting( 
 //                        layerHandle, layerBuffer.getLayerTimestamp() );
+                decorated.put( layer.id(), layer );
+            }
+            // IMap
+            else if (elm instanceof IMap) {
+                IMap map = (IMap)elm;
+                final AtomicBoolean outgo = new AtomicBoolean( outgoing );
+                map.visit( new LayerVisitor() {
+                    public boolean visit( ILayer layer ) {
+                        outgo.set( modified.containsKey( layer.id() ) );
+                        return !outgo.get();
+                    }
+                });
+                outgoing = outgo.get();
+                decorated.put( map.id(), map );
+            }
                 
-                if (outgoing && incoming) {
-                    decoration.addPrefix( "# " );                    
-                }
-                else if (incoming) {
-                    decoration.addPrefix( "< " );                    
-                }
-                else if (outgoing) {
-                    ImageDescriptor ovr = DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, OUTGOING );
-                    decoration.addOverlay( ovr, BOTTOM_RIGHT );
-                    decoration.addPrefix( "> " );
-                }
+            if (outgoing && incoming) {
+                decoration.addPrefix( "# " );                    
             }
-            catch (Exception e) {
-                log.warn( "", e );
-                // XXX add question mark overlay
+            else if (incoming) {
+                decoration.addPrefix( "< " );                    
             }
-
-            decorated.put( layer.id(), layer );
+            else if (outgoing) {
+                ImageDescriptor ovr = DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, OUTGOING );
+                decoration.addOverlay( ovr, BOTTOM_RIGHT );
+                //decoration.addSuffix( "*" );
+            }
         }
+        catch (Exception e) {
+            log.warn( "", e );
+            // XXX add question mark overlay
+        }
+
     }
 
 }

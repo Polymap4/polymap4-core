@@ -18,7 +18,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Rectangle;
@@ -28,10 +27,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.internal.util.URLHelper;
+import org.eclipse.rwt.internal.widgets.JSExecutor;
 import org.eclipse.rwt.lifecycle.IEntryPoint;
 import org.eclipse.rwt.service.ISessionStore;
-
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.ui.IWorkbench;
@@ -150,20 +148,12 @@ public class PolymapWorkbench
         // start workbench
         Display display = PlatformUI.createDisplay();
         try {
-            int result = PlatformUI.createAndRunWorkbench( display, advisor );
-            
-            new Terminator().schedule( 1000 );
-            return result;
+            return PlatformUI.createAndRunWorkbench( display, advisor );
         }
-        // reload/F5
+        // thread termination due to timeout or reload/F5
         catch (Error e) {
-            log.warn( e.getLocalizedMessage() );
-            new Terminator().schedule( 1000 );
-            return PlatformUI.RETURN_EMERGENCY_CLOSE;
-        }
-        catch (Throwable e) {
-            log.warn( e.getLocalizedMessage() );
-            return PlatformUI.RETURN_EMERGENCY_CLOSE;
+            log.warn( e );
+            throw e;
         }
     }
 
@@ -173,8 +163,8 @@ public class PolymapWorkbench
      * cannot be done in UIThread.
      * <p/>
      * Invalidating the HTTP session causes the UIThread to terminate.
-     * Intension was to free SessioNStore and ThreadLocals on the UIThread.
-     * Does not (?) work as there are still ThreadLocals on Jetty threads.
+     * Intension was to free SessionStore and ThreadLocals on the UIThread.
+     * Does not(?) work as there are still ThreadLocals on Jetty threads.
      */
     public static class Terminator
             extends Job {
@@ -237,17 +227,28 @@ public class PolymapWorkbench
     }
     
     
+    @SuppressWarnings("restriction")
     public static void restart() {
-        String url = URLHelper.getURLString();
-        Shell shell = new Shell( Display.getCurrent(), SWT.NONE );
-        Browser browser = new Browser( shell, SWT.NONE );
-        String page = "<html><head><title></title><meta http-equiv=\"refresh\" content=\"0;url="
-                + url + "\";>" + "<script type=\"text/javascript\">"
-                + "if (top != self) top.location = self.location;"
-                + "</script></head><body></body></html>";
-        browser.setText( page );
-        shell.setMaximized( true );
-        shell.open();
+        JSExecutor.executeJS( "window.location.reload();" );
+        
+//        StringBuilder url = new StringBuilder( URLHelper.getURLString( false ) );
+//        // convert to relative URL (code is from RAP)
+//        int firstSlash = url.indexOf( "/" , url.indexOf( "//" ) + 2 ); // first slash after double slash of "http://"
+//        url.delete( 0, firstSlash + 1 ); // Result is sth like "/rap?custom_service_handler..."
+
+//        Shell shell = new Shell( Display.getCurrent(), SWT.NONE );
+//        Browser browser = new Browser( shell, SWT.NONE );
+//        String page = "<html><head><title></title>"
+//                //+ "<meta http-equiv=\"refresh\" content=\"0;url=" + url.toString() + "\";>" 
+//                + "<script type=\"text/javascript\">"
+//                + "    alert( window.location.href );"
+//                //+ "    if (top != self) window.location.reload();"
+//                //+ "    if (top != self) top.location = self.location;"
+//                + "    if (top != self) window.location.href=window.location.href;"
+//                + "</script></head><body></body></html>";
+//        browser.setText( page );
+//        shell.setMaximized( true );
+//        shell.open();
     }
     
 }
