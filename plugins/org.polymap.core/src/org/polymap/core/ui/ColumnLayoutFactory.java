@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.mapeditor.tooling;
+package org.polymap.core.ui;
 
 import org.eclipse.ui.forms.widgets.ColumnLayout;
 
@@ -21,13 +21,28 @@ import org.eclipse.ui.forms.widgets.ColumnLayout;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class ColumnLayoutFactory {
+public class ColumnLayoutFactory {
 
+    /**
+     * Creates a new factory with margins and spacing set to <code>0</code>.
+     * 
+     * @see new {@link ColumnLayout#ColumnLayout()}
+     * @return Newly created factory.
+     */
     public static ColumnLayoutFactory defaults() {
-        return new ColumnLayoutFactory();
+        ColumnLayoutFactory factory = new ColumnLayoutFactory();
+        factory.margins( 0, 0 );
+        factory.spacing( 0 );
+        return factory;
     }
     
-    public static ColumnLayoutFactory fillDefaults() {
+    /**
+     * Creates a new factory with SWT default values set.
+     * 
+     * @see new {@link ColumnLayout#ColumnLayout()}
+     * @return Newly created factory.
+     */
+    public static ColumnLayoutFactory swtDefaults() {
         return new ColumnLayoutFactory();
     }
     
@@ -36,10 +51,11 @@ class ColumnLayoutFactory {
     
     private ColumnLayout        layout;
     
+    
     protected ColumnLayoutFactory() {
         layout = new ColumnLayout();
         layout.maxNumColumns = 1;
-        margin( 0, 0 );
+        margins( 0, 0 );
         spacing( 0 );
     }
     
@@ -49,14 +65,20 @@ class ColumnLayoutFactory {
         return this;
     }
 
-    public ColumnLayoutFactory margin( int x, int y ) {
-        layout.leftMargin = x;
-        layout.rightMargin = x;
-        layout.topMargin = y;
-        layout.bottomMargin = y;
+    public ColumnLayoutFactory margins( int width, int height ) {
+        layout.leftMargin = width;
+        layout.rightMargin = width;
+        layout.topMargin = height;
+        layout.bottomMargin = height;
         return this;
     }
 
+    public ColumnLayoutFactory columns( int min, int max ) {
+        layout.minNumColumns = min;
+        layout.maxNumColumns = max;
+        return this;
+    }
+    
     public ColumnLayout create() {
         return layout;
     }

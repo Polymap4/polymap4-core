@@ -38,6 +38,7 @@ Export-Package: org.polymap.core,
  org.polymap.core.runtime.recordstore,
  org.polymap.core.runtime.recordstore.lucene,
  org.polymap.core.security,
+ org.polymap.core.ui,
  org.polymap.core.workbench,
  org.polymap.core.workbench.dnd
 Bundle-ClassPath: .

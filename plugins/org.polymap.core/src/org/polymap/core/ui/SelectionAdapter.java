@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.project.ui.util;
+package org.polymap.core.ui;
 
 import java.util.Iterator;
 
