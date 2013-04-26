@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -48,6 +51,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Constants;
+import org.apache.lucene.util.DummyConcurrentLock;
 import org.apache.lucene.util.Version;
 
 import org.polymap.core.runtime.Polymap;
@@ -136,7 +140,7 @@ public final class LuceneRecordStore
     IndexReader                     reader;
     
     /** Prevents {@link #reader} close/reopen by {@link LuceneUpdater} while in use. */
-    ReadWriteLock                   lock = new ReentrantReadWriteLock();
+    ReadWriteLock                   lock; /*= new ReentrantReadWriteLock();*/
 
     ValueCoders                     valueCoders = new ValueCoders( this );
     
@@ -192,6 +196,11 @@ public final class LuceneRecordStore
     }
 
     
+    protected ReadWriteLock newLock() {
+        return new IndexReaderReadWriteLock( reader );    
+    }
+    
+    
     protected void open( boolean clean ) 
     throws IOException {
         // create or clear index
@@ -204,6 +213,7 @@ public final class LuceneRecordStore
         }
 
         reader = IndexReader.open( directory );
+        lock = newLock();
         searcher = new IndexSearcher( reader, executor );
     }
     
@@ -217,6 +227,7 @@ public final class LuceneRecordStore
             if (reader != null) {
                 reader.close();
                 reader = null;
+                lock = null;
                 directory.close();
                 directory = null;
             }
@@ -523,6 +534,7 @@ public final class LuceneRecordStore
             }
             finally {
                 lock.writeLock().unlock();
+                lock = newLock();
             }
         }
 
@@ -542,7 +554,73 @@ public final class LuceneRecordStore
                 //throw new RuntimeException( e );
             }
         }
+    }
+    
+
+    /**
+     * Use Lucene IndexReader internal mechanism to MROW lock. Maybe(?) less overhead
+     * than {@link ReentrantReadWriteLock}.
+     * 
+     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+     */
+    static class IndexReaderReadWriteLock
+            implements ReadWriteLock {
+
+        private IndexReader     indexReader;
         
+        /**
+         * This is just a dummy. The writeLock is aquired just to call
+         * {@link IndexReader#close()}. This calls decRef() itself and so
+         * synchronizes with readers.
+         */
+        private Lock            writeLock = DummyConcurrentLock.INSTANCE;
+        
+        private Lock            readLock = new Lock() {
+            @Override
+            public void lock() {
+                indexReader.incRef();
+            }
+            @Override
+            public void unlock() {
+                try {
+                    indexReader.decRef();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException( e );
+                }
+            }
+            @Override
+            public void lockInterruptibly() throws InterruptedException {
+                throw new RuntimeException( "not yet implemented." );
+            }
+            @Override
+            public boolean tryLock() {
+                return indexReader.tryIncRef();
+            }
+
+            @Override
+            public boolean tryLock( long time, TimeUnit unit ) throws InterruptedException {
+                throw new RuntimeException( "not yet implemented." );
+            }
+            @Override
+            public Condition newCondition() {
+                throw new RuntimeException( "not yet implemented." );
+            }
+        };
+        
+        public IndexReaderReadWriteLock( IndexReader indexReader ) {
+            this.indexReader = indexReader;
+        }
+
+        @Override
+        public Lock readLock() {
+            return readLock;
+        }
+
+        @Override
+        public Lock writeLock() {
+            return writeLock;
+        }
     }
     
 }
