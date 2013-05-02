@@ -285,18 +285,21 @@ public class CopyFeaturesOperation2
             // geometry attribute
             GeometryDescriptor destGeomAttr = schema.getGeometryDescriptor();
             GeometryDescriptor sourceGeomAttr = sourceSchema.getGeometryDescriptor();
-            mappings.put( new AttributeMapping( destGeomAttr.getLocalName(),
-                    destGeomAttr.getType().getBinding(),
-                    destGeomAttr.getCoordinateReferenceSystem(),
-                    sourceGeomAttr.getLocalName(), null ) );
+            if (destGeomAttr != null && sourceGeomAttr != null) {
+                
+                mappings.put( new AttributeMapping( destGeomAttr.getLocalName(),
+                        destGeomAttr.getType().getBinding(),
+                        destGeomAttr.getCoordinateReferenceSystem(),
+                        sourceGeomAttr.getLocalName(), null ) );
 
-            // check geometry type
-            Class destGeomType = destGeomAttr.getType().getBinding();
-            Class sourceGeomType = sourceGeomAttr.getType().getBinding();
-            if (!destGeomType.isAssignableFrom( sourceGeomType )) {
-                setMessage( i18n.get( "FeatureEditorPage_errorGeom",
-                        destGeomType.getSimpleName(), sourceGeomType.getSimpleName() ),
-                        DialogPage.WARNING );
+                // check geometry type
+                Class destGeomType = destGeomAttr.getType().getBinding();
+                Class sourceGeomType = sourceGeomAttr.getType().getBinding();
+                if (!destGeomType.isAssignableFrom( sourceGeomType )) {
+                    setMessage( i18n.get( "FeatureEditorPage_errorGeom",
+                            destGeomType.getSimpleName(), sourceGeomType.getSimpleName() ),
+                            DialogPage.WARNING );
+                }
             }
 
             for (AttributeDescriptor destAttr : schema.getAttributeDescriptors()) {
