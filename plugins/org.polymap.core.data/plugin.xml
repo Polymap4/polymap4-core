@@ -466,21 +466,21 @@
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.CopyFeaturesOperation2"
-            icon="icons/etool16/copy_features.gif"
+            icon="icons/etool16/features_copy.gif"
             id="org.polymap.core.data.CopyFeaturesOperation"
             label="%CopyFeaturesOperation_label"
             tooltip="%CopyFeaturesOperation_tip">
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.IntersectFeaturesOperation"
-            icon="icons/etool16/feature_ops.gif"
+            icon="icons/etool16/features_select2.gif"
             id="org.polymap.core.data.IntersectFeaturesOperation"
             label="%IntersectFeaturesOperation_label"
             tooltip="%IntersectFeaturesOperation_tip">
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.BufferFeaturesOperation"
-            icon="icons/etool16/feature_ops.gif"
+            icon="icons/etool16/features_buffer.gif"
             id="org.polymap.core.data.BufferFeaturesOperation"
             label="%BufferFeaturesOperation_label"
             tooltip="%BufferFeaturesOperation_tip">

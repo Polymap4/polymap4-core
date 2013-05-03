@@ -153,7 +153,7 @@ public class BufferFeaturesOperation
                     undoMap.put( feature.getIdentifier(), geom );
 
                     if (uom.toString().equalsIgnoreCase( "m" )) {
-                        geom = geom.buffer( bufferInputPage.distance, 3 );
+                        geom = geom.buffer( bufferInputPage.distance, bufferInputPage.segments );
                     }
                     else {
                         geom = Geometries.transform( geom, crs, Geometries.crs( "EPSG:3857" ) );

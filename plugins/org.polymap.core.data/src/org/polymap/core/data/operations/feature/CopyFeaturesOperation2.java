@@ -38,6 +38,8 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -178,10 +180,13 @@ public class CopyFeaturesOperation2
                 Pipeline pipe = destFs.getPipeline();
                 Iterables.removeIf( pipe, Predicates.instanceOf( FeatureBufferProcessor.class ) );
             }
+            
             // transform CRS
-            CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
+            SimpleFeatureType destSchema = destFs.getSchema();
+            final CoordinateReferenceSystem destCrs = destSchema.getCoordinateReferenceSystem();
             SimpleFeatureType sourceSchema = source.getSchema();
             CoordinateReferenceSystem sourceCrs = sourceSchema.getCoordinateReferenceSystem();
+            
             if (destCrs != null && !destCrs.equals( sourceCrs )) {
                // features = new ReprojectingFeatureCollection( features, destCrs );
                 
@@ -205,6 +210,51 @@ public class CopyFeaturesOperation2
                     }
                 };
             }
+            
+            // transform geometry types
+            SimpleFeatureType featuresSchema = (SimpleFeatureType)features.getSchema();
+            final GeometryDescriptor featureGeom = featuresSchema.getGeometryDescriptor();
+            final GeometryDescriptor destGeom = destSchema.getGeometryDescriptor();
+            if (featureGeom != null && destGeom != null
+                    && !featureGeom.getType().getBinding().equals( destGeom.getType().getBinding() )) {
+             
+                SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
+                ftb.init( featuresSchema );
+                ftb.remove( featureGeom.getLocalName() );
+                ftb.add( destGeom.getLocalName(), destGeom.getType().getBinding(), destGeom.getCoordinateReferenceSystem() );
+                final SimpleFeatureType retypedSchema = ftb.buildFeatureType();
+                
+                features = new RetypingFeatureCollection( features, sourceSchema ) {
+                    protected Feature retype( Feature feature ) {
+                        try {
+                            SimpleFeatureBuilder fb = new SimpleFeatureBuilder( retypedSchema );
+                            fb.init( (SimpleFeature)feature );
+                            Geometry geom = (Geometry)feature.getProperty( featureGeom.getLocalName() ).getValue();
+
+                            // Point -> MultiPolygon
+                            if (destGeom.getType().getBinding().equals( MultiPolygon.class )
+                                    || destGeom.getType().getBinding().equals( Polygon.class )) {
+                                geom = Geometries.transform( geom, destCrs, Geometries.crs( "EPSG:3857" ) );
+                                geom = geom.buffer( 10, 3 );
+                                geom = Geometries.transform( geom, Geometries.crs( "EPSG:3857" ), destCrs );
+                                
+                                fb.set( destGeom.getLocalName(), geom );
+                                return fb.buildFeature( feature.getIdentifier().getID() );
+                            }
+                            else {
+                                throw new UnsupportedOperationException( "Unsupported geometry transformation: " + destGeom.getType().getBinding().getSimpleName() );
+                            }
+                        }
+                        catch (RuntimeException e) {
+                            throw e;
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                };
+            }
+            
             // tranform schema
             features = featureEditorPage.retyped( features );            
             
