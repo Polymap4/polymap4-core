@@ -54,7 +54,7 @@ public final class CharsetSelectionDialog extends FilteredItemsSelectionDialog {
     
     public CharsetSelectionDialog( Shell shell, boolean multi, String initialSelection ) {
         super(shell, multi);
-        setTitle(Messages.CharsetSelectionDialog_title);
+        setTitle(Messages.get("CharsetSelectionDialog_title"));
         setSelectionHistory(new CharsetSelectionHistory());
         setInitialPattern(initialSelection);
         

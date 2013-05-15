@@ -72,7 +72,7 @@ public class SendLogDialog extends TitleAreaDialog {
     @Override
     protected void configureShell( Shell newShell ) {
         super.configureShell(newShell);
-        newShell.setText(Messages.SendLogDialog_title);
+        newShell.setText(Messages.get("SendLogDialog_title"));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class SendLogDialog extends TitleAreaDialog {
 
     @Override
     protected Control createDialogArea( Composite parent ) {
-        setTitle(Messages.SendLogDialog_description); 
+        setTitle(Messages.get("SendLogDialog_description")); 
         ImageDescriptor image = Images.getDescriptor(ImageConstants.LOG_WIZ);
         if (image != null) setTitleImage(image.createImage());
         
@@ -99,7 +99,7 @@ public class SendLogDialog extends TitleAreaDialog {
 
         contactLabel = new Label(composite, SWT.NONE);
         contactLabel.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false));
-        contactLabel.setText(Messages.SendLogDialog_contact);
+        contactLabel.setText(Messages.get("SendLogDialog_contact"));
 
         contact = new Text(composite, SWT.BORDER);
         GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -116,7 +116,7 @@ public class SendLogDialog extends TitleAreaDialog {
         
         noteLabel = new Label(composite, SWT.NONE);
         noteLabel.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false));
-        noteLabel.setText(Messages.SendLogDialog_notes);
+        noteLabel.setText(Messages.get("SendLogDialog_notes"));
 
         notes = new Text(composite, SWT.WRAP | SWT.BORDER | SWT.MULTI);
         gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -136,14 +136,14 @@ public class SendLogDialog extends TitleAreaDialog {
         gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         gridData.verticalAlignment = SWT.END;
         logLabel.setLayoutData(gridData);
-        logLabel.setText(Messages.SendLogDialog_log);
+        logLabel.setText(Messages.get("SendLogDialog_log"));
 
         log = new Text(composite, SWT.WRAP | SWT.READ_ONLY | SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
         log.setBackground(getShell().getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
         gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.horizontalSpan = 2;
         log.setLayoutData(gridData);
-        log.setText(Messages.SendLogDialog_reading);
+        log.setText(Messages.get("SendLogDialog_reading"));
         log.setEnabled(false);
         
         //start a thread to acquire the log file
@@ -156,7 +156,7 @@ public class SendLogDialog extends TitleAreaDialog {
 
     @Override
     protected void createButtonsForButtonBar( Composite parent ) {
-        createButton(parent, IDialogConstants.PROCEED_ID, Messages.SendLogDialog_submit, false);
+        createButton(parent, IDialogConstants.PROCEED_ID, Messages.get("SendLogDialog_submit"), false);
         createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
         refreshButtons();
     }
@@ -175,10 +175,10 @@ public class SendLogDialog extends TitleAreaDialog {
             setMessage(null);
             proceed.setEnabled(hasLog); //only allow submission if a log exists
         } else if (!hasContact) {
-            setMessage(Messages.SendLogDialog_contact_message, IMessageProvider.WARNING);
+            setMessage(Messages.get("SendLogDialog_contact_message"), IMessageProvider.WARNING);
             proceed.setEnabled(false);
         } else {
-            setMessage(Messages.SendLogDialog_notes_message, IMessageProvider.WARNING);
+            setMessage(Messages.get("SendLogDialog_notes_message"), IMessageProvider.WARNING);
             proceed.setEnabled(false);
         }
         
@@ -284,7 +284,7 @@ public class SendLogDialog extends TitleAreaDialog {
             if (logExists()) {
                 text = getLogText(monitor);
             } else {
-                text = Messages.SendLogDialog_empty;
+                text = Messages.get("SendLogDialog_empty");
             }
 
             if (monitor.isCanceled()) {

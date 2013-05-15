@@ -33,7 +33,7 @@ public class CRSChooserDialog extends Dialog {
 
 	@Override
 	protected Control createDialogArea( Composite parent ) {
-		getShell().setText(Messages.CRSChooserDialog_title);
+		getShell().setText(Messages.get("CRSChooserDialog_title"));
 
 		if (msg != null) {
 		    Label l = new Label( parent, SWT.NONE );

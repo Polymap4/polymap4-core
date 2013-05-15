@@ -89,7 +89,7 @@ public class RunOperationDialog extends Dialog implements
      */
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText(Messages.RunOperationDialog_run_operation);
+        shell.setText(Messages.get("RunOperationDialog_run_operation"));
     }
 
     /**

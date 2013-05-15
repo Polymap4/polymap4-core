@@ -25,6 +25,7 @@ package org.polymap.core.project;
 
 import org.eclipse.rwt.RWT;
 
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.MessagesImpl;
 
 /**
@@ -39,7 +40,12 @@ public class Messages {
 
     private static final MessagesImpl   instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
+    public static IMessages forPrefix( String prefix ) {
+        return instance.forPrefix( prefix );
+    }
 
+    // instance *******************************************
+    
     private Messages() {
         // prevent instantiation
     }

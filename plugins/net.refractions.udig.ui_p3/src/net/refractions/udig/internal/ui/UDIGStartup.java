@@ -99,14 +99,14 @@ public class UDIGStartup implements IStartup {
 //                            status[0] = true;
 //                        } catch (Exception e) {
 //                            final String message = 
-//                                Messages.UDIGApplication_error1
-//                                + Messages.UDIGApplication_error2
+//                                Messages.get("UDIGApplication_error")1
+//                                + Messages.get("UDIGApplication_error")2
 //                                + "http://www.microsoft.com/downloads/details.aspx?FamilyID=6A63AB9C-DF12-4D41-933C-BE590FEAA05A&displaylang=en"; //$NON-NLS-1$
 //                            UiPlugin.log( message, null );                
 //                                                   
 //                            MessageDialog dialog = new MessageDialog(
 //                                    display.getActiveShell(),
-//                                    Messages.UDIGApplication_title,
+//                                    Messages.get("UDIGApplication_title"),
 //                                    null,
 //                                    message,
 //                                    MessageDialog.ERROR,

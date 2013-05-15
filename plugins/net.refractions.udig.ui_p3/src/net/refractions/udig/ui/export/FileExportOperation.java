@@ -83,7 +83,7 @@ public class FileExportOperation implements IOp {
      * @return Prompt (may be based on target), should be internationalized
      */
     public String prompt( Object target ){
-        return Messages.FileExportOperation_prompt;
+        return Messages.get("FileExportOperation_prompt");
     }
     
     /**
@@ -97,7 +97,7 @@ public class FileExportOperation implements IOp {
      * @return Default filename based on target, default is "new"
      */
     public String defaultName( Object target ){
-        return Messages.FileExportOperation_defaultName;
+        return Messages.get("FileExportOperation_defaultName");
     }
     
     /**
@@ -128,7 +128,7 @@ public class FileExportOperation implements IOp {
      * @return Filter names, default "All Files"
      */
     public String[] getFilterNames(){
-        return new String[]{ Messages.FileExportOperation_allFiles };
+        return new String[]{ Messages.get("FileExportOperation_allFiles") };
     }
     
     /**
@@ -225,9 +225,9 @@ public class FileExportOperation implements IOp {
         	return;
         }
         
-        status( Messages.FileExportOperation_writingStatus+file );
+        status( Messages.get("FileExportOperation_writingStatus")+file );
         exportTo( target, file, monitor );
-        status( Messages.FileExportOperation_finishStatus+file );
+        status( Messages.get("FileExportOperation_finishStatus")+file );
     }
 
     /**

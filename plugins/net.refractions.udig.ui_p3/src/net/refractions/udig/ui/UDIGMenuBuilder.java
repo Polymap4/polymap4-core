@@ -75,7 +75,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         IMenuManager fileMenu = menuBar.findMenuUsingPath(IWorkbenchActionConstants.M_FILE);
         if (fileMenu == null) {
-            fileMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_file,
+            fileMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_file"),
                     IWorkbenchActionConstants.M_FILE);
             if (menuBar.getItems().length > 0) {
                 menuBar.insertBefore(menuBar.getItems()[0].getId(), fileMenu);
@@ -86,7 +86,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         IMenuManager editMenu = menuBar.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
         if (editMenu == null) {
-            editMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_edit,
+            editMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_edit"),
                     IWorkbenchActionConstants.M_EDIT);
             menuBar.insertAfter(IWorkbenchActionConstants.M_FILE, editMenu);
         }
@@ -96,13 +96,13 @@ public class UDIGMenuBuilder implements MenuBuilder {
         }
         IMenuManager windowMenu = menuBar.findMenuUsingPath(IWorkbenchActionConstants.M_WINDOW);
         if (windowMenu == null) {
-            windowMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_window,
+            windowMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_window"),
                     IWorkbenchActionConstants.M_WINDOW);
             menuBar.insertAfter(IWorkbenchActionConstants.MB_ADDITIONS, windowMenu);
         }
         IMenuManager helpMenu = menuBar.findMenuUsingPath(IWorkbenchActionConstants.M_HELP);
         if (helpMenu == null) {
-            helpMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_help,
+            helpMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_help"),
                     IWorkbenchActionConstants.M_HELP);
             menuBar.insertAfter(IWorkbenchActionConstants.M_WINDOW, helpMenu);
         }
@@ -184,7 +184,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         IMenuManager newMenu = fileMenu.findMenuUsingPath(ActionFactory.NEW.getId());
         if (newMenu == null) {
-            newMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_new, ActionFactory.NEW.getId());
+            newMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_new"), ActionFactory.NEW.getId());
             fileMenu.insertAfter(Constants.FILE_START, newMenu);
         }
 
@@ -303,7 +303,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
     }
 
     private IMenuManager createLayerMenu() {
-        MenuManager menu = new MenuManager(Messages.UDIGWorkbenchAdvisor_layerMenu,
+        MenuManager menu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_layerMenu"),
                 Constants.M_LAYER);
         menu.add(new GroupMarker(Constants.LAYER_ADD_EXT));
         menu.add(new Separator());
@@ -319,7 +319,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
     }
 
     private IMenuManager createNavigationMenu() {
-        MenuManager menu = new MenuManager(Messages.UDIGWorkbenchAdvisor_navigationMenu,
+        MenuManager menu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_navigationMenu"),
                 Constants.M_NAVIGATE);
         // menu.add(ActionFactory.BACKWARD_HISTORY.create(window));
         // menu.add(ActionFactory.FORWARD_HISTORY.create(window));
@@ -337,7 +337,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
     }
 
     private IMenuManager createToolMenu() {
-        MenuManager menu = new MenuManager(Messages.UDIGWorkbenchAdvisor_tools, Constants.M_TOOL);
+        MenuManager menu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_tools"), Constants.M_TOOL);
         menu.add(new GroupMarker(Constants.TOOL_ACTION));
         menu.add(new Separator());
         menu.add(new GroupMarker(Constants.TOOL_MODAL));
@@ -351,7 +351,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         if (windowMenu.findUsingPath(ActionFactory.OPEN_NEW_WINDOW.getId()) == null) {
             IAction openNewWindow = ActionFactory.OPEN_NEW_WINDOW.create(window);
-            openNewWindow.setText(Messages.UDIGWorkbenchAdvisor_newWindow_text);
+            openNewWindow.setText(Messages.get("UDIGWorkbenchAdvisor_newWindow_text"));
             if (windowMenu.getItems().length > 0) {
                 windowMenu.insertBefore(windowMenu.getItems()[0].getId(), openNewWindow);
             } else {
@@ -362,7 +362,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
         IMenuManager perspectiveMenu = windowMenu
                 .findMenuUsingPath(ContributionItemFactory.PERSPECTIVES_SHORTLIST.getId());
         if (perspectiveMenu == null) {
-            perspectiveMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_open_perspective,
+            perspectiveMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_open_perspective"),
                     ContributionItemFactory.PERSPECTIVES_SHORTLIST.getId());
             windowMenu.insertAfter(ActionFactory.OPEN_NEW_WINDOW.getId(), perspectiveMenu);
             IContributionItem perspectiveList = ContributionItemFactory.PERSPECTIVES_SHORTLIST
@@ -373,7 +373,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
         IMenuManager viewMenu = windowMenu
                 .findMenuUsingPath(ContributionItemFactory.VIEWS_SHORTLIST.getId());
         if (viewMenu == null) {
-            viewMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_show_view,
+            viewMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_show_view"),
                     ContributionItemFactory.VIEWS_SHORTLIST.getId());
             windowMenu
                     .insertAfter(ContributionItemFactory.PERSPECTIVES_SHORTLIST.getId(), viewMenu);
@@ -388,7 +388,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         if (windowMenu.findUsingPath(ActionFactory.PREFERENCES.getId()) == null) {
             IAction preferences = ActionFactory.PREFERENCES.create(window);
-            preferences.setText(Messages.UDIGWorkbenchAdvisor_preferences_text);
+            preferences.setText(Messages.get("UDIGWorkbenchAdvisor_preferences_text"));
             windowMenu.insertBefore(ContributionItemFactory.OPEN_WINDOWS.getId(), preferences);
         }
 
@@ -399,19 +399,19 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         if (windowMenu.findUsingPath(ActionFactory.CLOSE_ALL_PERSPECTIVES.getId()) == null) {
             IAction closeAllPerspectives = ActionFactory.CLOSE_ALL_PERSPECTIVES.create(window);
-            closeAllPerspectives.setText(Messages.UDIGWorkbenchAdvisor_closeAllPerspectives_text);
+            closeAllPerspectives.setText(Messages.get("UDIGWorkbenchAdvisor_closeAllPerspectives_text"));
             windowMenu.insertBefore(IWorkbenchActionConstants.MB_ADDITIONS, closeAllPerspectives);
         }
 
         if (windowMenu.findUsingPath(ActionFactory.CLOSE_PERSPECTIVE.getId()) == null) {
             IAction closePerspective = ActionFactory.CLOSE_PERSPECTIVE.create(window);
-            closePerspective.setText(Messages.UDIGWorkbenchAdvisor_closePerspective_text);
+            closePerspective.setText(Messages.get("UDIGWorkbenchAdvisor_closePerspective_text"));
             windowMenu.insertBefore(ActionFactory.CLOSE_ALL_PERSPECTIVES.getId(), closePerspective);
         }
 
         if (windowMenu.findUsingPath(ActionFactory.RESET_PERSPECTIVE.getId()) == null) {
             IAction resetPerspective = ActionFactory.RESET_PERSPECTIVE.create(window);
-            resetPerspective.setText(Messages.UDIGWorkbenchAdvisor_resetPerspective_text);
+            resetPerspective.setText(Messages.get("UDIGWorkbenchAdvisor_resetPerspective_text"));
             windowMenu.insertBefore(ActionFactory.CLOSE_PERSPECTIVE.getId(), resetPerspective);
         }
 
@@ -426,7 +426,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         if (helpMenu.findUsingPath(ActionFactory.INTRO.getId()) == null) {
             IAction welcome = ActionFactory.INTRO.create(window);
-            welcome.setText(Messages.UDIGWorkbenchAdvisor_welcome_text);
+            welcome.setText(Messages.get("UDIGWorkbenchAdvisor_welcome_text"));
             if (helpMenu.getItems().length > 0) {
                 helpMenu.insertBefore(helpMenu.getItems()[0].getId(), welcome);
             } else {
@@ -441,7 +441,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
         if (helpMenu.findUsingPath(ActionFactory.HELP_CONTENTS.getId()) == null) {
             IAction helpContents = ActionFactory.HELP_CONTENTS.create(window);
-            helpContents.setText(Messages.UDIGWorkbenchAdvisor_helpContents_text);
+            helpContents.setText(Messages.get("UDIGWorkbenchAdvisor_helpContents_text"));
             helpMenu.insertBefore(Constants.HELP_START, helpContents);
         }
 
@@ -464,7 +464,7 @@ public class UDIGMenuBuilder implements MenuBuilder {
 
 //        if (helpMenu.findUsingPath(ActionFactory.ABOUT.getId()) == null) {
 //            IAction about = ActionFactory.ABOUT.create(window);
-//            about.setText(Messages.UDIGWorkbenchAdvisor_aboutUDig_text);
+//            about.setText(Messages.get("UDIGWorkbenchAdvisor_aboutUDig_text"));
 //            // About should always be at the bottom, so just append it to the menu
 //            helpMenu.add(about);
 //        }

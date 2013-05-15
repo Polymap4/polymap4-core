@@ -25,7 +25,7 @@ public class UiPreferences extends FieldEditorPreferencePage implements IWorkben
     public UiPreferences() {
         super(GRID);
         setPreferenceStore(UiPlugin.getDefault().getPreferenceStore());
-        setDescription(Messages.UiPreferences_description);
+        setDescription(Messages.get("UiPreferences_description"));
     }
 
     /**
@@ -36,16 +36,16 @@ public class UiPreferences extends FieldEditorPreferencePage implements IWorkben
     public void createFieldEditors() {
         addField(new CharSetFieldEditor(
                 net.refractions.udig.ui.preferences.PreferenceConstants.P_DEFAULT_CHARSET,
-                Messages.UiPreferences_charset, getFieldEditorParent()));
+                Messages.get("UiPreferences_charset"), getFieldEditorParent()));
 
         //if (Platform.getOS().equals(Platform.OS_LINUX)) {
             addField(new BooleanFieldEditor(
                     net.refractions.udig.ui.preferences.PreferenceConstants.P_ADVANCED_GRAPHICS,
-                    Messages.UiPreferences_advancedGraphics_label, getFieldEditorParent()));
+                    Messages.get("UiPreferences_advancedGraphics_label"), getFieldEditorParent()));
         //}
            
-            String[][] values = {{Messages.UiPreferences_AutoUnits, PreferenceConstants.AUTO_UNITS}, {Messages.UiPreferences_MetricUnits, PreferenceConstants.METRIC_UNITS}, {Messages.UiPreferences_ImperialUnits,PreferenceConstants.IMPERIAL_UNITS}};
-            addField(new ComboFieldEditor(net.refractions.udig.ui.preferences.PreferenceConstants.P_DEFAULT_UNITS, Messages.UiPreferences_UnitsLabel, values, getFieldEditorParent()));
+            String[][] values = {{Messages.get("UiPreferences_AutoUnits"), PreferenceConstants.AUTO_UNITS}, {Messages.get("UiPreferences_MetricUnits"), PreferenceConstants.METRIC_UNITS}, {Messages.get("UiPreferences_ImperialUnits"),PreferenceConstants.IMPERIAL_UNITS}};
+            addField(new ComboFieldEditor(net.refractions.udig.ui.preferences.PreferenceConstants.P_DEFAULT_UNITS, Messages.get("UiPreferences_UnitsLabel"), values, getFieldEditorParent()));
 
     }
 

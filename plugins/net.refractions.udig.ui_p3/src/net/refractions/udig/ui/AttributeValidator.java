@@ -67,12 +67,12 @@ public class AttributeValidator implements ICellEditorValidator {
     	
         if( value==null || (value instanceof String && ((String)value).equals(""))){ //$NON-NLS-1$
             if( !attributeDescriptor.isNillable() )
-                return Messages.AttributeValidator_missingAtt1+attributeDescriptor.getName()+Messages.AttributeValidator_missingAtt2;
+                return Messages.get("AttributeValidator_missingAtt1")+attributeDescriptor.getName()+Messages.get("AttributeValidator_missingAtt2");
             else
                 return null; 
         }
             if( !attributeDescriptor.getType().getBinding().isAssignableFrom(value.getClass()) ){
-                return Messages.AttributeValidator_wrongType+ attributeDescriptor.getType().getBinding().getSimpleName();
+                return Messages.get("AttributeValidator_wrongType")+ attributeDescriptor.getType().getBinding().getSimpleName();
             }
             /*
             if( false ){
@@ -83,7 +83,7 @@ public class AttributeValidator implements ICellEditorValidator {
 	                
 	                for( Filter filter : attributeDescriptor.getType().getRestrictions() ){
 	                	if( filter != null && !filter.evaluate(feature) ){
-	                		return Messages.AttributeValidator_restriction+filter;
+	                		return Messages.get("AttributeValidator_restriction")+filter;
 	                	}
 	                }
 	            } catch (Throwable e1) {

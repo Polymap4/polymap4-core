@@ -52,10 +52,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
@@ -90,16 +88,12 @@ public class CRSChooser {
     private static final String CUSTOM_ID = "CRS.Custom.Services"; //$NON-NLS-1$
     
     private static final Controller DEFAULT = new Controller(){
-
         public void handleClose() {
         }
-        
         public void handleOk() {
         }
-
         public void handleSelect() {
         }
-        
     };
 
     ListViewer                        codesList;
@@ -136,23 +130,24 @@ public class CRSChooser {
         Composite composite = new Composite(parent, SWT.NONE);
 
         GridLayout layout = new GridLayout(2, false);
+        layout.verticalSpacing = 7;
         composite.setLayout(layout);
 
         GridData gridData = new GridData();
         Label keywordsLabel = new Label(composite, SWT.NONE);
-        keywordsLabel.setText(Messages.CRSChooser_keywordsLabel); 
+        keywordsLabel.setText(Messages.get("CRSChooser_keywordsLabel")); 
         keywordsLabel.setLayoutData(gridData);
-        keywordsLabel.setToolTipText(Messages.CRSChooser_tooltip); 
+        keywordsLabel.setToolTipText(Messages.get("CRSChooser_tooltip")); 
 
         gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
         keywordsText = new Text(composite, SWT.SINGLE | SWT.BORDER);
         keywordsText.setLayoutData(gridData);
-        keywordsText.setToolTipText(Messages.CRSChooser_tooltip); 
+        keywordsText.setToolTipText(Messages.get("CRSChooser_tooltip")); 
 
         gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
         gridData.horizontalSpan = 2;
         Label editorLabel = new Label(composite, SWT.NONE);
-        editorLabel.setText(Messages.CRSChooser_label_crsWKT); 
+        editorLabel.setText(Messages.get("CRSChooser_label_crsWKT")); 
         editorLabel.setLayoutData(gridData);
 
         gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -176,30 +171,32 @@ public class CRSChooser {
 
     private Control createStandardCRSControl( Composite parent ) {
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
+        GridLayout layout = new GridLayout(2,false);
+        layout.verticalSpacing = 7;
+        layout.marginWidth = layout.marginHeight = 10;
         composite.setLayout(layout);
 
         GridData gridData = new GridData();
         Label codesLabel = new Label(composite, SWT.NONE);
-        codesLabel.setText(Messages.CRSChooser_label_crs); 
+        codesLabel.setText(Messages.get("CRSChooser_label_crs")); 
         codesLabel.setLayoutData(gridData);
 
         gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
         searchText = new Text(composite, SWT.SINGLE | SWT.BORDER /*_p3:| SWT.SEARCH*/ | SWT.CANCEL);
+        searchText.setToolTipText(Messages.get("CRSChooser_tooltip")); 
         searchText.setLayoutData(gridData);
         searchText.addModifyListener(new ModifyListener(){
             public void modifyText( ModifyEvent e ) {
                 fillCodesList();
             }
         });
-        searchText.addListener(SWT.KeyUp, new Listener(){
-			public void handleEvent(Event event) {
-				if( event.keyCode==SWT.ARROW_DOWN){
-					codesList.getControl().setFocus();
-				}
-			}
-        	
-        });
+//        searchText.addListener(SWT.KeyUp, new Listener(){
+//			public void handleEvent(Event event) {
+//				if( event.keyCode==SWT.ARROW_DOWN){
+//					codesList.getControl().setFocus();
+//				}
+//			}
+//        });
         gridData = new GridData();
         gridData.minimumWidth = 400;
         gridData.minimumHeight = 200;
@@ -207,6 +204,7 @@ public class CRSChooser {
         gridData.verticalAlignment = SWT.FILL;
         gridData.grabExcessHorizontalSpace = true;
         gridData.grabExcessVerticalSpace = true;
+        gridData.horizontalSpan = 2;
         codesList = new ListViewer(composite);
         codesList.setContentProvider(new ArrayContentProvider());
         codesList.setLabelProvider(new LabelProvider());
@@ -359,7 +357,7 @@ public class CRSChooser {
                     wktText.setText(toWKT);
                 }catch(RuntimeException e){
                     UiPlugin.log(crs.toString()+" cannot be formatted as WKT", e); //$NON-NLS-1$
-                    wktText.setText(Messages.CRSChooser_unknownWKT);
+                    wktText.setText(Messages.get("CRSChooser_unknownWKT"));
                 }
             }else{
                 Integer next = candidates.iterator().next();
@@ -406,12 +404,12 @@ public class CRSChooser {
         folder.setLayoutData(gridData);
 
         TabItem standard = new TabItem(folder, SWT.NONE);
-        standard.setText(Messages.CRSChooser_tab_standardCRS); 
+        standard.setText(Messages.get("CRSChooser_tab_standardCRS")); 
         Control stdCRS = createStandardCRSControl(folder);
         standard.setControl(stdCRS);
 
         TabItem custom = new TabItem(folder, SWT.NONE);
-        custom.setText(Messages.CRSChooser_tab_customCRS); 
+        custom.setText(Messages.get("CRSChooser_tab_customCRS")); 
         Control cstCRS = createCustomCRSControl(folder);
         custom.setControl(cstCRS);
 
@@ -460,7 +458,7 @@ public class CRSChooser {
                         description = factory.getDescriptionText( code ).toString();
                     }
                     catch (Exception e1) {
-                        description = Messages.CRSChooser_unnamed;
+                        description = Messages.get("CRSChooser_unnamed");
                     }
                     description += " (" + code + ")"; //$NON-NLS-1$ //$NON-NLS-2$
                     crsCodeMap.put( code, description );

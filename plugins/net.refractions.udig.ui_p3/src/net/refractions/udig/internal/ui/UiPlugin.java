@@ -560,7 +560,7 @@ public class UiPlugin extends AbstractUIPlugin  {
                   return configObj[0];
                 } else {
                     MessageFormat format = new MessageFormat(
-                            Messages.UDIGWorkbenchWindowAdvisor_specifiedButNotFound);
+                            Messages.get("UDIGWorkbenchWindowAdvisor_specifiedButNotFound"));
                     Object[] args = new Object[] {configurationID, interfaceClass.getName()};
                     StringBuffer message = format.format(args, new StringBuffer(), null);
                     Throwable e = null;
@@ -571,7 +571,7 @@ public class UiPlugin extends AbstractUIPlugin  {
                 }
             } catch (Exception e) {
                 log(
-                        MessageFormat.format(Messages.UDIGWorkbenchWindowAdvisor_classNotFound,
+                        MessageFormat.format(Messages.get("UDIGWorkbenchWindowAdvisor_classNotFound"),
                                 new Object[] {configurationID}, interfaceClass.getName()),
                         e);
             }

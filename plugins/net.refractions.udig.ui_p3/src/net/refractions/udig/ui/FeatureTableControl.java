@@ -27,8 +27,6 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.swt.SWT;
@@ -262,13 +260,13 @@ public class FeatureTableControl implements ISelectionProvider {
             shown=true;
            
             MessageDialogWithToggle dialog = MessageDialogWithToggle.openOkCancelConfirm(display
-                    .getActiveShell(), Messages.FeatureTableControl_warningTitle,
-                    Messages.FeatureTableControl_warningMessage,
-                    Messages.FeatureTableControl_warningToggle, false, null, null);
+                    .getActiveShell(), Messages.get("FeatureTableControl_warningTitle"),
+                    Messages.get("FeatureTableControl_warningMessage"),
+                    Messages.get("FeatureTableControl_warningToggle"), false, null, null);
 //            MessageDialogWithToggle dialog = MessageDialogWithToggle.openWarning(display
-//                    .getActiveShell(), Messages.FeatureTableControl_warningTitle,
-//                    Messages.FeatureTableControl_warningMessage,
-//                    Messages.FeatureTableControl_warningToggle, false, null, null);
+//                    .getActiveShell(), Messages.get("FeatureTableControl_warningTitle"),
+//                    Messages.get("FeatureTableControl_warningMessage"),
+//                    Messages.get("FeatureTableControl_warningToggle"), false, null, null);
             preferenceStore.setValue(CACHING_WARNING, dialog.getToggleState());
             if (dialog.getReturnCode() ==MessageDialogWithToggle.OK){
                 return true;
@@ -598,8 +596,8 @@ public class FeatureTableControl implements ISelectionProvider {
 
             } else {
                 WarningCellEditor textCellEditor = new WarningCellEditor(control,
-                        Messages.FeatureTableControl_noEditor1 + concreteType.getSimpleName()
-                                + Messages.FeatureTableControl_noEditor2);
+                        Messages.get("FeatureTableControl_noEditor1") + concreteType.getSimpleName()
+                                + Messages.get("FeatureTableControl_noEditor2"));
                 editors[i + 1] = textCellEditor;
             }
         }
@@ -610,7 +608,7 @@ public class FeatureTableControl implements ISelectionProvider {
 
         if (features == null) {
             TableColumn column = new TableColumn(table, SWT.CENTER | SWT.BORDER);
-            column.setText(Messages.FeatureTableControl_1); 
+            column.setText(Messages.get("FeatureTableControl_1")); 
             layout.addColumnData(new ColumnWeightData(1));
         }else{
 
@@ -895,7 +893,7 @@ public class FeatureTableControl implements ISelectionProvider {
     }
     
     public void select( String cql, boolean selectAll ) throws CQLException {
-        Filter filter = (Filter) CQL.toFilter( cql );
+        Filter filter = CQL.toFilter( cql );
 
         FeatureTableContentProvider provider = (FeatureTableContentProvider) this.tableViewer.getContentProvider();
         List<SimpleFeature> toSearch = provider.features;

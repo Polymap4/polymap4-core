@@ -63,7 +63,7 @@ public final class CharSetFieldEditor extends FieldEditor {
         
         Button button = new Button(parent, SWT.PUSH);
         button.setLayoutData(new GridData());
-        button.setText(Messages.CharSetFieldEditor_select);
+        button.setText(Messages.get("CharSetFieldEditor_select"));
         button.addListener(SWT.Selection, new Listener(){
 
             public void handleEvent( Event event ) {

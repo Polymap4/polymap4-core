@@ -83,7 +83,7 @@ public class ErrorManager {
 
         PlatformGIS.syncInDisplayThread(new Runnable(){
             public void run() {
-                Dialog dialog = new ErrorDialog(Display.getDefault().getActiveShell(), Messages.ErrorManager_very_informative_error,
+                Dialog dialog = new ErrorDialog(Display.getDefault().getActiveShell(), Messages.get("ErrorManager_very_informative_error"),
                         m, multi, IStatus.ERROR);
                 dialog.open();
             }

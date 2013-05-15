@@ -124,7 +124,7 @@ public class OpAction extends Action implements ISelectionListener {
                 Runnable runnable=new Runnable(){
                     public void run() {
                         setEnabled(false);
-                        MessageDialog.openError(display.getActiveShell(), Messages.OpAction_errorTitle, Messages.OpAction_errorMessage);
+                        MessageDialog.openError(display.getActiveShell(), Messages.get("OpAction_errorTitle"), Messages.get("OpAction_errorMessage"));
                     }
                 };
                 loadingError=true;

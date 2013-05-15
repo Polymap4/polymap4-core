@@ -73,12 +73,12 @@ public class FeatureTextTransfer extends AbstractTextStrategizedTransfer impleme
 
     @Override
     public String[] getStrategyNames() {
-        return new String[]{Messages.FeatureTextTransfer_strategy_gml_name, Messages.FeatureTextTransfer_strategy_wkt_name};  
+        return new String[]{Messages.get("FeatureTextTransfer_strategy_gml_name"), Messages.get("FeatureTextTransfer_strategy_wkt_name")};  
     }
 
     @Override
     public String getTransferName() {
-        return Messages.FeatureTextTransfer_transfer_name; 
+        return Messages.get("FeatureTextTransfer_transfer_name"); 
     }
 
 	

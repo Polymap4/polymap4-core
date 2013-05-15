@@ -64,7 +64,7 @@ public class ShutdownTaskList implements IWorkbenchListener {
                         }
                     }
 
-                    monitor.beginTask(Messages.ShutdownTaskList_shutDown, totalsteps);
+                    monitor.beginTask(Messages.get("ShutdownTaskList_shutDown"), totalsteps);
 
                     for( PostTask task : postShutdownTasks ) {
                         IProgressMonitor subMonitor = new ProgressMonitorTaskNamer(monitor,
@@ -114,7 +114,7 @@ public class ShutdownTaskList implements IWorkbenchListener {
                             UiPlugin.log("error calling getProgressMonitorSteps() on " + task.task, e); //$NON-NLS-1$
                         }
                     }
-                    monitor.beginTask(Messages.ShutdownTaskList_shutDown,
+                    monitor.beginTask(Messages.get("ShutdownTaskList_shutDown"),
                             totalsteps);
 
                     for( PreTask task : preShutdownTasks ) {

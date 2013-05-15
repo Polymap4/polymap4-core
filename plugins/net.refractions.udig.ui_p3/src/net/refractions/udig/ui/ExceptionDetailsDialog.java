@@ -93,7 +93,7 @@ public class ExceptionDetailsDialog extends Dialog {
                 if (msg == null) {
                     msg = "";
                 }
-                msg = msg + Messages.ExceptionDetailsEditorMessage;
+                msg = msg + Messages.get("ExceptionDetailsEditorMessage");
                 ExceptionDetailsDialog dialog = new ExceptionDetailsDialog(Display.getDefault()
                         .getActiveShell(), title, msg, status, throwable);
                 dialog.open();

@@ -274,7 +274,7 @@ public class UDIGDropHandler extends DropTargetAdapter {
         
 
         public CompositeDropActionJob() {
-            super( Messages.UDIGDropHandler_jobName );
+            super( Messages.get("UDIGDropHandler_jobName") );
 
             queue = new ConcurrentLinkedQueue<Collection<DropActionRunnable>>();
             setUser( true );
@@ -333,7 +333,7 @@ public class UDIGDropHandler extends DropTargetAdapter {
                     DropActionRunnable action = iterator.next();
                     IProgressMonitor monitor = new ProgressMonitorTaskNamer( monitor2, 10 );
 
-                    monitor2.subTask( /*Messages.UDIGDropHandler_performing_task + ": " +*/ action.action.getName() ); 
+                    monitor2.subTask( /*Messages.get("UDIGDropHandler_performing_task") + ": " +*/ action.action.getName() ); 
 
                     // run the next job
                     UICallBack.runNonUIThreadWithFakeContext( display, action );
@@ -375,7 +375,7 @@ public class UDIGDropHandler extends DropTargetAdapter {
                 status = Status.OK_STATUS;
             }
             catch (Throwable t) {
-                String msg = Messages.UDIGDropHandler_error;
+                String msg = Messages.get("UDIGDropHandler_error");
                 String ns = action.getElement().getNamespaceIdentifier();
 
                 Status s = new Status( IStatus.WARNING, ns, 0, msg, t );
