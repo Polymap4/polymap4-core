@@ -60,7 +60,7 @@ public class EntityModificationDecorator
 
     private static final Log log = LogFactory.getLog( EntityModificationDecorator.class );
     
-    private static final String         dirtyImage = "icons/ovr16/dirty_ovr2.gif";
+    private static final String         dirtyImage = "icons/ovr16/dirty_ovr2.png";
     private static final String         pendingImage = "icons/ovr16/changed_ovr.gif";
     private static final String         warningImage = "icons/ovr16/warning_ovr.gif";
     private static final String         conflictImage = "icons/ovr16/error_ovr.gif";

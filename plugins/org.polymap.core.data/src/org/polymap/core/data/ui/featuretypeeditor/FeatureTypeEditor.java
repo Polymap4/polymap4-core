@@ -174,11 +174,11 @@ public class FeatureTypeEditor {
 
         TreeColumn column = new TreeColumn( tree, SWT.CENTER );
         column.setResizable( true );
-        column.setText( Messages.FeatureTypeEditor_nameColumnName );
+        column.setText( Messages.get( "FeatureTypeEditor_nameColumnName" ) );
 
         column = new TreeColumn( tree, SWT.LEFT );
         column.setResizable( true );
-        column.setText( Messages.FeatureTypeEditor_typeColumnName );
+        column.setText( Messages.get( "FeatureTypeEditor_typeColumnName" ) );
 
         column = new TreeColumn( tree, SWT.LEFT );
         column.setResizable( true );
@@ -365,11 +365,11 @@ public class FeatureTypeEditor {
     public SimpleFeatureType createDefaultFeatureType() {
         SimpleFeatureTypeBuilder builder;
         builder = new SimpleFeatureTypeBuilder();
-        builder.setName( Messages.FeatureTypeEditor_newFeatureTypeName );
+        builder.setName( Messages.get( "FeatureTypeEditor_newFeatureTypeName" ) );
         builder.setCRS( getDefaultCRS() );
         builder.length( LegalAttributeType.DEFAULT_STRING_LENGTH );
-        builder.add( Messages.FeatureTypeEditor_defaultNameAttributeName, String.class );
-        builder.add( Messages.FeatureTypeEditor_defaultGeometryName, LineString.class );
+        builder.add( Messages.get( "FeatureTypeEditor_defaultNameAttributeName" ), String.class );
+        builder.add( Messages.get( "FeatureTypeEditor_defaultGeometryName" ), LineString.class );
         return builder.buildFeatureType();
     }
 
