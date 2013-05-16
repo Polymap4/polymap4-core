@@ -13,8 +13,6 @@ import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySource;
 import org.eclipse.ui.views.properties.IPropertySource2;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
-import org.eclipse.ui.views.properties.TextPropertyDescriptor;
-
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Labeled;
@@ -51,7 +49,7 @@ public class MapPropertySource
 
     public IPropertyDescriptor[] getPropertyDescriptors() {
         IPropertyDescriptor[] result = new IPropertyDescriptor[] {
-                new TextPropertyDescriptor( IMap.PROP_LABEL, i18n( "label_name" ) ),
+                new RWTTextPropertyDescriptor( IMap.PROP_LABEL, i18n( "label_name" ) ),
                 new CrsPropertyDescriptor( IMap.PROP_CRSCODE, i18n( "label_crs" ) ),
                 new PropertyDescriptor( IMap.PROP_MAXEXTENT, i18n( "label_maxExtent" ) ),
         };

@@ -25,8 +25,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.TextCellEditor;
-
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import org.polymap.core.runtime.Polymap;
@@ -67,7 +65,7 @@ public class NumberPropertyDescriptor
         if (!editable) {
             return null;
         }
-        CellEditor editor = new TextCellEditor( parent ) {
+        CellEditor editor = new RWTTextCellEditor( parent ) {
             protected void doSetValue( Object value ) {
                 if (value instanceof Number) {
                     super.doSetValue( format.format( value ) );

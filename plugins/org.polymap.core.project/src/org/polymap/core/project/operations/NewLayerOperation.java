@@ -31,6 +31,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import org.eclipse.jface.dialogs.Dialog;
+
 import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -51,7 +53,7 @@ import org.polymap.core.runtime.Polymap;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class NewLayerOperation
@@ -90,8 +92,7 @@ public class NewLayerOperation
     }
 
 
-    public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
-    throws ExecutionException {
+    public IStatus doExecute( final IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
         try {
             monitor.beginTask( getLabel(), 5 );
             ProjectRepository repo = ProjectRepository.instance();
@@ -131,30 +132,20 @@ public class NewLayerOperation
                         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
                         CRSChooserDialog dialog = new CRSChooserDialog( shell, map.getCRS(),
                                 Messages.get( "NewLayerOperation_noCRS" ) );
-                        //                            InputDialog dialog = new InputDialog( shell, "Layer CRS", 
-                        //                                    Messages.get( "NewLayerOperation_noCRS" ), "EPSG:4326",
-                        //                                    new IInputValidator() {
-                        //                                        public String isValid( String newText ) {
-                        //                                            try {
-                        //                                                CRS.decode( newText );
-                        //                                                return null;
-                        //                                            }
-                        //                                            catch (Exception e2) {
-                        //                                                return e2.getMessage();
-                        //                                            }
-                        //                                        }
-                        //                                    });
                         dialog.setBlockOnOpen( true );
+                        
                         int answer = dialog.open();
-                        layer.setCRS( dialog.getResult() );
-                        //                            try {
-                        //                                layer.setCRS( CRS.decode( dialog.getValue() ) );
-                        //                            }
-                        //                            catch (Exception e1) {
-                        //                                throw new RuntimeException( "The value is validated, so this should never happen.", e1 );
-                        //                            }
+                        if (answer == Dialog.CANCEL) {
+                            monitor.setCanceled( true );
+                        }
+                        else {
+                            layer.setCRS( dialog.getResult() );
+                        }
                     }
                 });
+            }
+            if (monitor.isCanceled()) {
+                return Status.CANCEL_STATUS;
             }
             monitor.worked( 1 );
 
