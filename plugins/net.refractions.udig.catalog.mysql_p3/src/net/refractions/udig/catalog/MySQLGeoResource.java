@@ -31,10 +31,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.geotools.data.DataSourceException;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
-import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -154,6 +155,10 @@ public class MySQLGeoResource extends IGeoResource {
 
     }
 
+    
+    /**
+     * 
+     */
     class MySQLResourceInfo extends IGeoResourceInfo {
 
         private SimpleFeatureType ft = null;
@@ -187,64 +192,62 @@ public class MySQLGeoResource extends IGeoResource {
         @Override
         public synchronized ReferencedEnvelope getBounds() {
             if (bounds == null) {
-
                 try {
-                    FeatureSource<SimpleFeatureType, SimpleFeature> source = parent.getDS()
-                            .getFeatureSource(typename);
+                    FeatureSource source = parent.getDS().getFeatureSource(typename);
 
                     bounds = source.getBounds();
                     CoordinateReferenceSystem crs = getCRS();
 
                     if (bounds == null) {
-
                         // try getting an envelope out of the crs
-                        org.opengis.geometry.Envelope envelope = CRS.getEnvelope(crs);
+                        org.opengis.geometry.Envelope envelope = CRS.getEnvelope( crs );
 
                         if (envelope != null) {
-                            bounds = new ReferencedEnvelope(envelope.getLowerCorner()
-                                    .getOrdinate(0), envelope.getUpperCorner().getOrdinate(0),
-                                    envelope.getLowerCorner().getOrdinate(1), envelope
-                                            .getUpperCorner().getOrdinate(1), crs);
-                        } else {
+                            bounds = new ReferencedEnvelope(
+                                    envelope.getLowerCorner().getOrdinate(0), 
+                                    envelope.getUpperCorner().getOrdinate(0),
+                                    envelope.getLowerCorner().getOrdinate(1), 
+                                    envelope.getUpperCorner().getOrdinate(1), crs);
+                        } 
+                        else {
                             // TODO: perhaps access a preference which indicates
                             // whether to do a full table scan
                             // bounds = new ReferencedEnvelope(new Envelope(),crs);
                             // as a last resort do the full scan
-                            bounds = new ReferencedEnvelope(new Envelope(), crs);
-                            FeatureIterator<SimpleFeature> iter = source.getFeatures().features();
-                            try {
-                                while( iter.hasNext() ) {
-                                    SimpleFeature element = iter.next();
-                                    if (bounds.isNull())
-                                        bounds.init(element.getBounds());
-                                    else
-                                        bounds.include(element.getBounds());
+                            bounds = new ReferencedEnvelope( new Envelope(), crs );
+                            source.getFeatures().accepts( new FeatureVisitor() {
+                                public void visit( Feature feature ) {
+                                    if (bounds.isNull()) {
+                                        bounds.init( feature.getBounds() );
+                                    } else {
+                                        bounds.include( feature.getBounds() );
+                                    }
                                 }
-                            } finally {
-                                iter.close();
-                            }
+                            }, null );
                         }
                     }
-                } catch (DataSourceException e) {
+                } 
+                catch (DataSourceException e) {
                     MySQLPlugin.log("Exception while generating MySQLGeoResource.", e); //$NON-NLS-1$
-                } catch (Exception e) {
-                    CatalogPlugin
-                            .getDefault()
-                            .getLog()
-                            .log(
-                                    new org.eclipse.core.runtime.Status(
-                                            IStatus.WARNING,
-                                            "net.refractions.udig.catalog", 0, Messages.MySQLGeoResource_error_layer_bounds, e)); //$NON-NLS-1$
-                    bounds = new ReferencedEnvelope(new Envelope(), null);
+                } 
+                catch (Exception e) {
+                    CatalogPlugin.getDefault().getLog().log( new org.eclipse.core.runtime.Status(
+                            IStatus.WARNING, "net.refractions.udig.catalog", 0, Messages.MySQLGeoResource_error_layer_bounds, e)); //$NON-NLS-1$
+                    bounds = new ReferencedEnvelope( new Envelope(), null );
                 }
-
             }
-            return super.getBounds();
+            return bounds;
         }
 
         public CoordinateReferenceSystem getCRS() {
-            System.out.println( "XXX MySQLGeoResource: _p3: returning CRS: WGS84" );
-            return DefaultGeographicCRS.WGS84;
+            try {
+                System.out.println( "XXX _p3: MySQLGeoResource: returning CRS: WGS84" );
+                return CRS.decode( "EPSG:4326" );
+            }
+            catch (Exception e) {
+                return DefaultGeographicCRS.WGS84;
+            }
+            
             // FIXME
 //            if (status == Status.BROKEN || status == Status.RESTRICTED_ACCESS) {
 //                return DefaultGeographicCRS.WGS84;

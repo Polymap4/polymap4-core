@@ -146,5 +146,11 @@ class PostgisResourceInfo extends IGeoResourceInfo {
 
     public String getTitle() {
         return owner.typename;
+//        try {
+//            return "PostGIS - " + owner.service( new NullProgressMonitor() ).getTitle() + "#" + owner.typename;
+//        }
+//        catch (IOException e) {
+//            return "PostGIS - " + owner.typename;
+//        }
     }
 }
