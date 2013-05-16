@@ -210,7 +210,15 @@ public class ShpGeoResourceImpl extends IGeoResource {
                 adaptee.isAssignableFrom(Style.class)) ||
                 super.canResolve(adaptee);
     }
+    
     protected IGeoResourceInfo createInfo(IProgressMonitor monitor) throws IOException{
         return new ShpGeoResourceInfo(this);
+    }
+    
+    /**
+     * Allows to reset info after *.prj file was written.
+     */
+    public void resetInfo() {
+        info = null;
     }
 }

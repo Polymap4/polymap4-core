@@ -20,8 +20,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 
-import org.eclipse.ui.IWorkbenchActionConstants;
-
 import org.eclipse.swt.widgets.Display;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.referencing.CRS;
@@ -65,7 +63,7 @@ public class SetProjection implements IOp {
 
 		final CoordinateReferenceSystem finalCRS = crs;
 
-		display.asyncExec(new Runnable() {
+		display.syncExec(new Runnable() {
 			public void run() {
 				try {
 					CoordinateReferenceSystem initVal = finalCRS;

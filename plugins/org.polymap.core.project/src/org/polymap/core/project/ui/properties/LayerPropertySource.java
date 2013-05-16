@@ -82,7 +82,7 @@ public class LayerPropertySource
         IPropertyDescriptor[] result = new IPropertyDescriptor[] {
                 new RWTTextPropertyDescriptor( ILayer.PROP_LABEL, i18n( "label_name" ) ),
                 new RWTTextPropertyDescriptor( ILayer.PROP_KEYWORDS, i18n( "label_keywords" ) ),
-                new CrsPropertyDescriptor( ILayer.PROP_CRSCODE, i18n( "label_crs" ) ),
+                //new CrsPropertyDescriptor( ILayer.PROP_CRSCODE, i18n( "label_crs" ) ),
                 new PropertyDescriptor( "maxExtent", i18n( "label_maxExtent" ) ),
                 new PropertyDescriptor( "datacrs", i18n( "label_dataCrs" ) ),
                 new PropertyDescriptor( ILayer.PROP_GEORESID, i18n( "label_geores" ) ),

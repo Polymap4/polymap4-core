@@ -407,6 +407,11 @@
             class="org.polymap.core.data.image.cache304.CacheNewLayerOperationConcern"
             id="org.polymap.core.data.addLayerCacheConcern">
       </concern>
+      <concern
+            class="org.polymap.core.data.operations.feature.ShapeCRSOperationConcern"
+            id="org.polymap.core.data.ShapeCRSConcern"
+            name="Shapefile CRS">
+      </concern>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
