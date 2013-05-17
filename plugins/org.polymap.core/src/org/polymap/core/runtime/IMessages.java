@@ -23,8 +23,25 @@ import java.util.Locale;
  */
 public interface IMessages {
     
+    /**
+     * Find the localized message for the given key. If arguments are given, then the
+     * result message is formatted via {@link MessageFormat}.
+     *
+     * @param key
+     * @param args If not null, then the message is formatted via {@link MessageFormat}
+     * @return The message for the given key.
+     */
     String get( String key, Object... args );
     
+    /**
+     * Find the localized message for the given key. If arguments are given, then the
+     * result message is formatted via {@link MessageFormat}.
+     *
+     * @param locale The locale to use to localize the given message.
+     * @param key
+     * @param args If not null, then the message is formatted via {@link MessageFormat}
+     * @return The message for the given key.
+     */
     String get( Locale locale, String key, Object... args );
     
     Locale getDefaultLocale();

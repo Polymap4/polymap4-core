@@ -31,6 +31,14 @@ package org.polymap.openlayers.rap.widget.layers;
 public class HTTPRequestLayer
         extends Layer {
 
+    /**
+     * <p/>
+     * XXX After redrawing a layer the z-priorities of the layers seem to get out of order.
+     * It seems that the sequence of adding the layer to the map is priority then.
+     * See http://polymap.org/atlas/ticket/185 for detail.
+     *
+     * @param force
+     */
 	public void redraw(boolean force) {
 		addObjModCode("redraw",force);
 	}
