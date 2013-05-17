@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
@@ -43,7 +44,9 @@ import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
+import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
 import org.polymap.openlayers.rap.widget.controls.ModifyFeatureControl;
+import org.polymap.openlayers.rap.widget.controls.NavigationControl;
 
 /**
  * 
@@ -59,7 +62,10 @@ public class EditTool
     private EditVectorLayer         vectorLayer;
 
     private ModifyFeatureControl    modifyControl;
+
+    private NavigationControl       naviControl;
     
+    private KeyboardDefaultsControl keyboardControl;
 
     @Override
     public void dispose() {
@@ -79,6 +85,15 @@ public class EditTool
         if (getSelectedLayer() == null) {
             return;
         }
+//      // keyboardControl
+        keyboardControl = new KeyboardDefaultsControl();
+        getSite().getEditor().addControl( keyboardControl );
+        keyboardControl.activate();
+
+        // naviControl
+        naviControl = new NavigationControl();
+        getSite().getEditor().addControl( naviControl );
+        naviControl.activate();
         
         vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
         vectorLayer.enableHover();
@@ -145,6 +160,18 @@ public class EditTool
     public void onDeactivate() {
         super.onDeactivate();
         
+        if (keyboardControl != null) {
+            getSite().getEditor().removeControl( keyboardControl );
+            keyboardControl.deactivate();
+            keyboardControl.dispose();
+            keyboardControl = null;
+        }
+        if (naviControl != null) {
+            getSite().getEditor().removeControl( naviControl );
+            naviControl.deactivate();
+            naviControl.dispose();
+            naviControl = null;
+        }
         if (modifyControl != null) {
             getSite().getEditor().removeControl( modifyControl );
             modifyControl.deactivate();

@@ -33,6 +33,8 @@ import org.polymap.core.mapeditor.tooling.IEditorToolSite;
 import org.polymap.core.mapeditor.tooling.ToolingEvent;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
 import org.polymap.core.runtime.Polymap;
+
+import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
 import org.polymap.openlayers.rap.widget.controls.NavigationControl;
 
 /**
@@ -46,7 +48,9 @@ public class NavigationTool
 
     private static Log log = LogFactory.getLog( NavigationTool.class );
 
-    private NavigationControl           control;
+    private NavigationControl           naviControl;
+
+    private KeyboardDefaultsControl     keyboardControl;
     
     
     @Override
@@ -75,9 +79,15 @@ public class NavigationTool
     @Override
     public void onActivate() {
         super.onActivate();
-        control = new NavigationControl();
-        getSite().getEditor().addControl( control );
-        control.activate();
+//        // keyboardControl (catches each and every keyboard event)
+//        keyboardControl = new KeyboardDefaultsControl();
+//        getSite().getEditor().addControl( keyboardControl );
+//        keyboardControl.activate();
+        
+        // navi naviControl
+        naviControl = new NavigationControl();
+        getSite().getEditor().addControl( naviControl );
+        naviControl.activate();
     }
 
 
@@ -95,12 +105,18 @@ public class NavigationTool
     @Override
     public void onDeactivate() {
         super.onDeactivate();
-        if (control != null) {
-            control.deactivate();
-            getSite().getEditor().removeControl( control );
-            control.destroy();
-            control.dispose();
-            control = null;
+        if (keyboardControl != null) {
+            getSite().getEditor().removeControl( keyboardControl );
+            keyboardControl.deactivate();
+            keyboardControl.dispose();
+            keyboardControl = null;
+        }
+        if (naviControl != null) {
+            naviControl.deactivate();
+            getSite().getEditor().removeControl( naviControl );
+            naviControl.destroy();
+            naviControl.dispose();
+            naviControl = null;
         }
     }
 

@@ -38,9 +38,9 @@ public class Control extends OpenLayersObject {
     /** Triggered when deactivated. **/
     public final static String EVENT_DEACTIVATE = "deactivate";
     
-	public boolean         has_map = false;
-	
-	protected boolean      active = false;
+    protected boolean       active = false;
+
+    private OpenLayersMap   map;
 	
 	
 	public Control() {
@@ -55,7 +55,7 @@ public class Control extends OpenLayersObject {
 	 * Activates this non-visual control. The control has to be added to a map previously.
 	 */
 	public void activate() {
-		assert has_map : "control needs a map before activating it";
+		assert map != null : "control needs a map before activating it";
 		super.addObjModCode("obj.activate();");
 		this.active = true;
 	}
@@ -79,7 +79,10 @@ public class Control extends OpenLayersObject {
 	}
 
 	public void setMap(OpenLayersMap map) {
-	    super.addObjModCode("setMap",map);
+	    this.map = map;
+	    if (map != null) {
+	        super.addObjModCode("setMap",map);
+	    }
 	}
 	
 	public void destroy() {

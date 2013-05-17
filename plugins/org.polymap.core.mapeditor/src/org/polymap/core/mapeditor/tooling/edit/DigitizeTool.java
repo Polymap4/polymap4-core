@@ -38,6 +38,8 @@ import org.polymap.core.workbench.PolymapWorkbench;
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.DrawFeatureControl;
+import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
+import org.polymap.openlayers.rap.widget.controls.NavigationControl;
 import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
@@ -55,7 +57,11 @@ public class DigitizeTool
 
     private DrawFeatureControl      drawControl;
     
+    private NavigationControl       naviControl;
+    
+    private KeyboardDefaultsControl keyboardControl;
 
+    
     @Override
     public void dispose() {
         onDeactivate();
@@ -80,6 +86,18 @@ public class DigitizeTool
         // vector layer
         vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
         vectorLayer.activate();
+
+        // after digitize often a editor is opened, which cannot be used since KeyboardDefaultsControl
+        // catches all key event; so disable until observeElement is correctly set
+//        // keyboardControl
+//        keyboardControl = new KeyboardDefaultsControl();
+//        getSite().getEditor().addControl( keyboardControl );
+//        keyboardControl.activate();
+
+        // naviControl
+        naviControl = new NavigationControl();
+        getSite().getEditor().addControl( naviControl );
+        naviControl.activate();
 
         // drawControl
         try {
@@ -135,6 +153,18 @@ public class DigitizeTool
     public void onDeactivate() {
         super.onDeactivate();
         
+        if (keyboardControl != null) {
+            getSite().getEditor().removeControl( keyboardControl );
+            keyboardControl.deactivate();
+            keyboardControl.dispose();
+            keyboardControl = null;
+        }
+        if (naviControl != null) {
+            getSite().getEditor().removeControl( naviControl );
+            naviControl.deactivate();
+            naviControl.dispose();
+            naviControl = null;
+        }
         if (drawControl != null) {
             getSite().getEditor().removeControl( drawControl );
             drawControl.deactivate();
