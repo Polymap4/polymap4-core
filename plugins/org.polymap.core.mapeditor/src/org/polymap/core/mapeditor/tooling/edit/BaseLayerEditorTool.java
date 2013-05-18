@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -113,6 +114,9 @@ public abstract class BaseLayerEditorTool
     private IMap                    map;
     
     private ILayer                  selectedLayer;
+    
+    /** Allow sub-classes to filter layers. */
+    protected Predicate<ILayer>     additionalLayerFilter = Predicates.alwaysTrue();
 
     private MapListener             mapListener;
 
@@ -202,6 +206,7 @@ public abstract class BaseLayerEditorTool
         AssocCollection<ILayer> layers = getSite().getEditor().getMap().getLayers();
         Iterable<ILayer> result = filter( layers, Layers.isVisible() );
         result = filter( result, isVector() );
+        result = filter( result, additionalLayerFilter );
         
         List<ILayer> list = newArrayList( result );
         Collections.sort( list, Layers.zPrioComparator() );        

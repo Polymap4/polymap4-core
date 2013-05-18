@@ -23,7 +23,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicate;
+
 import org.eclipse.swt.widgets.Composite;
+
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
@@ -31,7 +34,11 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.Messages;
+import org.polymap.core.mapeditor.tooling.IEditorToolSite;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -61,6 +68,19 @@ public class DigitizeTool
     
     private KeyboardDefaultsControl keyboardControl;
 
+    
+    @Override
+    public boolean init( IEditorToolSite site ) {
+        boolean result = super.init( site );
+        
+        additionalLayerFilter = new Predicate<ILayer>() {
+            public boolean apply( ILayer input ) {
+                return ACLUtils.checkPermission( input, AclPermission.WRITE, false );
+            }
+        };
+        return result;
+    }
+    
     
     @Override
     public void dispose() {

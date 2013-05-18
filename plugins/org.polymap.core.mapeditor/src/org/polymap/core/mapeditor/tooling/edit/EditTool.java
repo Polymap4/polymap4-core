@@ -26,6 +26,8 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicate;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
@@ -38,7 +40,11 @@ import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.Messages;
+import org.polymap.core.mapeditor.tooling.IEditorToolSite;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -66,6 +72,19 @@ public class EditTool
     private NavigationControl       naviControl;
     
     private KeyboardDefaultsControl keyboardControl;
+
+    @Override
+    public boolean init( IEditorToolSite site ) {
+        boolean result = super.init( site );
+        
+        additionalLayerFilter = new Predicate<ILayer>() {
+            public boolean apply( ILayer input ) {
+                return ACLUtils.checkPermission( input, AclPermission.WRITE, false );
+            }
+        };
+        return result;
+    }
+    
 
     @Override
     public void dispose() {

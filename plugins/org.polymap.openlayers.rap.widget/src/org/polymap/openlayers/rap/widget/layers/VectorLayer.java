@@ -171,7 +171,9 @@ public class VectorLayer
      * refresh event if the layer is in range and visible.
      */
     public void refresh() {
-        addObjModCode("obj.refresh();");
+        // XXX the check fixes a problem of JsonVectorLayer#refresh() which uses a PhaseListener;
+        // when SnapTool is used obj is sometimes null
+        addObjModCode( "if (obj) {obj.refresh();}" );
     }
 
     
