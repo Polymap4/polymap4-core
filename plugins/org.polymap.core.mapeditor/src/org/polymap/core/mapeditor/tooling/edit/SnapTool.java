@@ -41,11 +41,17 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Spinner;
 
+import org.eclipse.ui.IMemento;
+
 import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.mapeditor.tooling.DefaultEditorTool;
 import org.polymap.core.mapeditor.tooling.IEditorToolSite;
+import org.polymap.core.mapeditor.tooling.ToolingEvent;
+import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
+import org.polymap.core.mapeditor.tooling.ToolingListener;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerVisitor;
+import org.polymap.core.runtime.Polymap;
 
 import org.polymap.openlayers.rap.widget.base_types.StyleMap;
 import org.polymap.openlayers.rap.widget.controls.SnappingControl;
@@ -75,24 +81,50 @@ public class SnapTool
     private StyleMap                    styleMap;
 
     private Spinner                     toleranceField;
+    
+    private Integer                     tolerance;
 
     
     @Override
     public boolean init( IEditorToolSite site ) {
         boolean result = super.init( site );
+
+        tolerance = site.getMemento().getInteger( "tolerance" );
+        tolerance = tolerance != null ? tolerance : DEFAULT_TOLERANCE;
         
         // disable deactivation for other tools
         getSite().removeListener( this );
         
         parentTool = (BaseLayerEditorTool)getFirst( site.filterTools( isEqual( getToolPath().removeLastSegments( 1 ) ) ), null );
         assert parentTool != null;
+
+        // listen to state changes of parentTool
+        site.addListener( new ToolingListener() {
+            public void toolingChanged( ToolingEvent ev ) {
+                if (ev.getSource().equals( parentTool )) {
+                    if (ev.getType() == EventType.TOOL_ACTIVATED) {
+                        Boolean active = getSite().getMemento().getBoolean( "active" );
+                        if (active != null && active) {
+                            // delay triggerTool() until UI has been created
+                            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                                public void run() {
+                                    getSite().triggerTool( getSite().getToolPath(), true );
+                                }
+                            });
+                        }                        
+                    }
+                    else if (ev.getType() == EventType.TOOL_DEACTIVATING) {
+                        getSite().getMemento().putBoolean( "active", isActive() );                        
+                    }
+                }
+            }
+        });
         return result;
     }
 
 
     @Override
     public void dispose() {
-        log.debug( "dispose(): ..." );
         super.dispose();
     }
 
@@ -120,7 +152,7 @@ public class SnapTool
             public boolean visit( ILayer layer ) {
                 if (layer.isVisible() && isVector.apply( layer )) {
                     try {
-                        SnapVectorLayer snapLayer = new SnapVectorLayer( getSite().getEditor(), layer );
+                        SnapVectorLayer snapLayer = new SnapVectorLayer( getSite(), layer );
                         snapLayer.activate();
 
                         ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
@@ -138,8 +170,13 @@ public class SnapTool
         });
 
         // vector styler
-        styler = new VectorLayerStyler() {
+        String mementoKey = "vectorStyle";  //"vectorStyle_" + layer.id()
+        IMemento stylerMemento = getSite().getMemento().getChild( mementoKey );
+        stylerMemento = stylerMemento != null ? stylerMemento : getSite().getMemento().createChild( mementoKey );
+
+        styler = new VectorLayerStyler( stylerMemento ) {
             protected void styleChanged( StyleMap newStyleMap ) {
+                super.styleChanged( newStyleMap );
                 if (styleMap != null) {
                     styleMap.dispose();
                 }
@@ -149,18 +186,20 @@ public class SnapTool
                     snapLayer.getVectorLayer().redraw();
                 }
             }
-        };        
-        Map<String,Object> standard = new HashMap();
-        standard.put( "strokeWidth", 1 );
-        standard.put( "strokeDashstyle", "dot" );
-        standard.put( "strokeColor", new RGB( 80, 80, 80 ) );
-        standard.put( "strokeOpacity", 1 );
-        standard.put( "fillOpacity", 0 );
-        styler.changeStyles( standard, false );
+        };
+        // change default style
+        if (stylerMemento.getFloat( "strokeWidth" ) == null) {
+            Map<String,Object> standard = new HashMap();
+            standard.put( "strokeWidth", 1f );
+            standard.put( "strokeDashstyle", "dot" );
+            standard.put( "strokeColor", new RGB( 80, 80, 80 ) );
+            standard.put( "strokeOpacity", 1 );
+            standard.put( "fillOpacity", 0 );
+            styler.changeStyles( standard, false );
+        }
 
         // control
         VectorLayer[] targetLayers = Iterables.toArray( Lists.transform( snapLayers, BaseVectorLayer.toVectorLayer()) , VectorLayer.class );
-        int tolerance = toleranceField != null ? toleranceField.getSelection() : DEFAULT_TOLERANCE;
         control = new SnappingControl( parentTool.getVectorLayer().getVectorLayer(), targetLayers, false, tolerance );
         getSite().getEditor().addControl( control );
         control.activate();
@@ -177,10 +216,13 @@ public class SnapTool
         toleranceField = getSite().getToolkit().createSpinner( parent );
         toleranceField.setMaximum( 50 );
         toleranceField.setMinimum( 0 );
-        toleranceField.setSelection( 10 );
+        toleranceField.setIncrement( 2 );
+        toleranceField.setSelection( tolerance );
         layoutControl( i18n( "toleranceLabel" ), toleranceField );
+        toleranceField.setToolTipText( i18n( "toleranceTip" ) );
         toleranceField.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent event ) {
+                tolerance = toleranceField.getSelection();
                 onDeactivate();
                 onActivate();
             }
@@ -195,12 +237,10 @@ public class SnapTool
     public void onDeactivate() {
         super.onDeactivate();
         
+        getSite().getMemento().putInteger( "tolerance", tolerance );
+        
         parentTool.removeListener( this );
         
-        if (toleranceField != null) {
-            toleranceField.dispose();
-            toleranceField = null;
-        }
         if (control != null) {
             getSite().getEditor().removeControl( control );
             control.deactivate();

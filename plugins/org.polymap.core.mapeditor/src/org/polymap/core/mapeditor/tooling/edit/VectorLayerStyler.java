@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -32,12 +32,17 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Spinner;
 
 import org.eclipse.jface.preference.ColorSelector;
 import org.eclipse.jface.util.IPropertyChangeListener;
 
+import org.eclipse.ui.IMemento;
+
 import org.polymap.core.mapeditor.Messages;
+import org.polymap.core.mapeditor.tooling.DefaultEditorTool;
+
 import org.polymap.openlayers.rap.widget.base_types.Style;
 import org.polymap.openlayers.rap.widget.base_types.StyleMap;
 
@@ -50,10 +55,12 @@ public class VectorLayerStyler {
 
     private static Log log = LogFactory.getLog( VectorLayerStyler.class );
     
-//    private static final RGB        COLOR_STANDARD = new RGB( 0xF6, 0xEA, 0x00 );
+    public static final String      CONTROL_INTENT = "vectorStyler";
+    
     private static final RGB        COLOR_STANDARD = new RGB( 0xe0, 0x05, 0x05 );
 
     private static final String     SYMBOL_SIMPLECROSS = "OpenLayers.Renderer.symbol.simplecross = [5,0, 5,10, 5,5, 0,5, 10,5, 5,5];";
+
     
     public enum Intent {
         standard,   // = "default",
@@ -74,12 +81,16 @@ public class VectorLayerStyler {
     private Spinner                 lineWidth;
 
     private CCombo                  dashList;
+    
+    private IMemento                memento;
 
 
     /**
      * Constructs a new instance with default style.
      */
-    public VectorLayerStyler() {
+    public VectorLayerStyler( IMemento memento ) {
+        this.memento = memento;
+        
         standard.put( "strokeWidth", 1.6f );
         standard.put( "strokeColor", COLOR_STANDARD );
         standard.put( "strokeDashstyle", "solid" );
@@ -87,10 +98,35 @@ public class VectorLayerStyler {
         standard.put( "fillColor", COLOR_STANDARD );
         standard.put( "fillOpacity", 0.0 );
         standard.put( "graphicName", "circle" );
+
+        if (memento != null && memento.getFloat( "strokeWidth" ) != null) {
+            standard.put( "strokeWidth", memento.getFloat( "strokeWidth" ) );
+            RGB strokeColor = new RGB( memento.getInteger( "strokeColor_red" ), memento.getInteger( "strokeColor_green" ), memento.getInteger( "strokeColor_blue" ));
+            standard.put( "strokeColor", strokeColor );
+            standard.put( "strokeDashstyle", memento.getString( "strokeDashstyle" ) );
+        }
+        
         calculateHoverSelectStyle();
     }
 
+    
+    /**
+     * Dispose all UI controls created for this styler.
+     */
+    public void dispose() {
+        if (lineWidth != null) {
+            Composite parent = lineWidth.getParent();
+            
+            for (Control child : parent.getChildren()) {
+                if (VectorLayerStyler.CONTROL_INTENT.equals( child.getData( DefaultEditorTool.CONTROL_INTENT_DATA ) )) {
+                    child.dispose();
+                }
+            }
+            lineWidth = null;
+        }
+    }
 
+    
     /**
      * 
      * @param style Style attributes to be added to {@link #standard} style.
@@ -177,7 +213,7 @@ public class VectorLayerStyler {
                 result.setAttribute( entry.getKey(), hex );
             }
             else {
-                throw new RuntimeException( "Unknown style attribute type: " + entry.getValue().getClass() );
+                throw new RuntimeException( "Unknown style attribute type: " + entry );
             }
         }
         return result;
@@ -205,6 +241,7 @@ public class VectorLayerStyler {
         // lineColor
         lineColor = tool.getSite().getToolkit().createColorSelector( parent );
         tool.layoutControl( i18n( "colorLabel" ), lineColor.getButton() );
+        lineColor.getButton().setData( DefaultEditorTool.CONTROL_INTENT_DATA, CONTROL_INTENT );
         lineColor.addListener( new IPropertyChangeListener() {
             public void propertyChange( org.eclipse.jface.util.PropertyChangeEvent ev ) {
                 standard.put( "strokeColor", lineColor.getColorValue() );
@@ -220,6 +257,7 @@ public class VectorLayerStyler {
         lineWidth.setMinimum( 10 );
         lineWidth.setDigits( 1 );
         tool.layoutControl( i18n( "lineWidthLabel" ), lineWidth );
+        lineWidth.setData( DefaultEditorTool.CONTROL_INTENT_DATA, CONTROL_INTENT );
         lineWidth.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent event ) {
                 standard.put( "strokeWidth", ((float)lineWidth.getSelection()) / 10 );
@@ -234,6 +272,7 @@ public class VectorLayerStyler {
         dashList.select( 0 );
         dashList.setEditable( false );
         tool.layoutControl( i18n( "dashListLabel" ), dashList );
+        dashList.setData( DefaultEditorTool.CONTROL_INTENT_DATA, CONTROL_INTENT );
         dashList.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent e ) {
                 standard.put( "strokeDashstyle", dashList.getItem( dashList.getSelectionIndex() ) );
@@ -270,7 +309,14 @@ public class VectorLayerStyler {
      *        disposing this StyleMap properly when it is no longer used.
      */
     protected void styleChanged( StyleMap newStyleMap ) {
-        log.debug( "Style changed: ..." );
+        if (memento != null) {
+            memento.putFloat( "strokeWidth", (Float)standard.get( "strokeWidth" ) );
+            memento.putString( "strokeDashstyle", (String)standard.get( "strokeDashstyle" ) );
+            RGB strokeColor = (RGB)standard.get( "strokeColor" );
+            memento.putInteger( "strokeColor_red", strokeColor.red );
+            memento.putInteger( "strokeColor_green", strokeColor.green );
+            memento.putInteger( "strokeColor_blue", strokeColor.blue );
+        }
     }
 
     

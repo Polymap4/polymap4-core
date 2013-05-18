@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -46,5 +46,7 @@ public interface IToolingToolkit {
     public Spinner createSpinner( Composite parent, int... styles );
 
     public ColorSelector createColorSelector( Composite parent );
+
+    public Composite createComposite( Composite parent, int... styles );
 
 }

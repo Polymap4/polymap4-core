@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -82,6 +82,7 @@ public class EditTool
     @Override
     public void onActivate() {
         super.onActivate();
+        
         if (getSelectedLayer() == null) {
             return;
         }
@@ -95,10 +96,16 @@ public class EditTool
         getSite().getEditor().addControl( naviControl );
         naviControl.activate();
         
-        vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
+        vectorLayer = new EditVectorLayer( getSite(), getSelectedLayer() );
         vectorLayer.enableHover();
         vectorLayer.activate();
-
+        
+        // re-create the styler controls if this activation is due to a layer change
+        if (getParent() != null && !getParent().isDisposed()) {
+            vectorLayer.getStyler().createPanelControl( getParent(), this );
+            getParent().layout( true );
+        }
+        
         ReferencedEnvelope bounds = getSite().getEditor().getMap().getExtent();
         vectorLayer.selectFeatures( bounds, true );
 
@@ -146,12 +153,15 @@ public class EditTool
                 });
             }
         }, ModifyFeatureControl.EVENT_BEFORE_MODIFIED, payload2 );
+        
+        fireEvent( this, PROP_LAYER_ACTIVATED, getSelectedLayer() );
     }
 
 
     @Override
     public void createPanelControl( Composite parent ) {
         super.createPanelControl( parent );
+        
         vectorLayer.getStyler().createPanelControl( parent, this );     
     }
 
@@ -182,6 +192,7 @@ public class EditTool
         if (vectorLayer != null) {
             vectorLayer.dispose();
             vectorLayer = null;
+            lastControl = layersList;
         }
     }
 

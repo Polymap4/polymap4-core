@@ -219,7 +219,7 @@ public class ToolingViewer {
             }
             
             // tool area
-            Composite toolArea = new Composite( content, SWT.NONE );
+            final Composite toolArea = new Composite( content, SWT.NONE );
             toolAreas.put( tool, toolArea );
             //toolArea.setBackground( Graphics.getColor( 0xff, 0xff, 0xff ) );
             toolArea.setLayout( ColumnLayoutFactory.defaults().margin( 3, 3 ).spacing( 3 ).create() );
@@ -262,6 +262,8 @@ public class ToolingViewer {
             new Label( toolArea, SWT.SEPARATOR | SWT.HORIZONTAL );
             
             content.pack();
+            ToolingViewer.this.content.layout( true );
+
             Polymap.getSessionDisplay().asyncExec( new Runnable() {
                 public void run() {
                     content.getParent().layout( true );
@@ -286,6 +288,15 @@ public class ToolingViewer {
             Composite toolArea = toolAreas.remove( tool );
             assert toolArea != null;
             toolArea.dispose();
+
+            content.pack();
+            ToolingViewer.this.content.layout( true );
+
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    content.getParent().layout( true );
+                }
+            });
         }
         
     }

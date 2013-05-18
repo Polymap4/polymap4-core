@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -84,8 +84,14 @@ public class DigitizeTool
         }
         
         // vector layer
-        vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
+        vectorLayer = new EditVectorLayer( getSite(), getSelectedLayer() );
         vectorLayer.activate();
+
+        // re-create the styler controls if this activation is due to a layer change
+        if (getParent() != null && !getParent().isDisposed()) {
+            vectorLayer.getStyler().createPanelControl( getParent(), this );
+            getParent().layout( true );
+        }
 
         // after digitize often a editor is opened, which cannot be used since KeyboardDefaultsControl
         // catches all key event; so disable until observeElement is correctly set
@@ -139,12 +145,15 @@ public class DigitizeTool
         catch (Exception e) {
             PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, i18n( "errorMsg" ), e );
         }
+        
+        fireEvent( this, PROP_LAYER_ACTIVATED, getSelectedLayer() );
     }
 
 
     @Override
     public void createPanelControl( Composite parent ) {
         super.createPanelControl( parent );
+        
         vectorLayer.getStyler().createPanelControl( parent, this );
     }
 
@@ -176,6 +185,7 @@ public class DigitizeTool
         if (vectorLayer != null) {
             vectorLayer.dispose();
             vectorLayer = null;
+            lastControl = layersList;
         }
     }
 

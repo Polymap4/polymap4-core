@@ -37,6 +37,8 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.base.Function;
 import com.vividsolutions.jts.geom.Envelope;
 
+import org.eclipse.ui.IMemento;
+
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
@@ -48,6 +50,7 @@ import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.services.JsonEncoder;
 import org.polymap.core.mapeditor.services.JsonVectorLayer;
 import org.polymap.core.mapeditor.services.SimpleJsonServer;
+import org.polymap.core.mapeditor.tooling.IEditorToolSite;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
@@ -101,8 +104,8 @@ public abstract class BaseVectorLayer
     private boolean                 active;
 
     
-    public BaseVectorLayer( MapEditor mapEditor, ILayer layer ) {
-        this.mapEditor = mapEditor;
+    public BaseVectorLayer( IEditorToolSite site, ILayer layer ) {
+        this.mapEditor = site.getEditor();
         this.layer = layer;
         this.fsm = LayerFeatureSelectionManager.forLayer( layer );
         this.fsm.addSelectionChangeListener( this );
@@ -116,9 +119,14 @@ public abstract class BaseVectorLayer
         // 3 decimals should be enough even for lat/long values
         //jsonEncoder.setDecimals( 3 );
 
-        // init default style
-        styler = new VectorLayerStyler() {
+        // init default style (shared for all layers)
+        String mementoKey = "vectorStyle";  //"vectorStyle_" + layer.id()
+        IMemento stylerMemento = site.getMemento().getChild( mementoKey );
+        stylerMemento = stylerMemento != null ? stylerMemento : site.getMemento().createChild( mementoKey );
+
+        styler = new VectorLayerStyler( stylerMemento ) {
             protected void styleChanged( StyleMap newStyleMap ) {
+                super.styleChanged( newStyleMap );
                 if (styleMap != null) {
                     styleMap.dispose();
                 }
@@ -174,6 +182,7 @@ public abstract class BaseVectorLayer
             styleMap = null;
         }
         if (styler != null) {
+            styler.dispose();
             styler = null;
         }
         if (vectorLayer != null) {
@@ -231,17 +240,17 @@ public abstract class BaseVectorLayer
     @Override
     @EventHandler
     public void propertyChange( PropertyChangeEvent ev ) {
-        assert fsm == ev.getSource();
-        
-        //select
-        if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
-            selectFeatures( fsm.getFeatureCollection() );
+        if (fsm == ev.getSource()) {
+            //select
+            if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_FILTER )) {
+                selectFeatures( fsm.getFeatureCollection() );
+            }
+            //        // hover
+            //        else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
+            //            selectControl.unselectAll();
+            //            selectControl.selectFids( Collections.singletonList( (String)ev.getNewValue() ) );
+            //        }
         }
-//        // hover
-//        else if (ev.getPropertyName().equals( LayerFeatureSelectionManager.PROP_HOVER )) {
-//            selectControl.unselectAll();
-//            selectControl.selectFids( Collections.singletonList( (String)ev.getNewValue() ) );
-//        }
     }
 
 

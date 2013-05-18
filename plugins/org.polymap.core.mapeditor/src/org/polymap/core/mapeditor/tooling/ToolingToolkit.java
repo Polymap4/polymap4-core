@@ -182,4 +182,12 @@ public class ToolingToolkit
         return cs;
     }
 
+
+    @Override
+    public Composite createComposite( Composite parent, int... styles ) {
+        Composite result = adapt( new Composite( parent, stylebits( styles ) ) );
+        result.setLayout( ColumnLayoutFactory.defaults().margin( 3, 3 ).spacing( 3 ).create() );
+        return result;
+    }
+
 }
