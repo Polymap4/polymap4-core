@@ -96,7 +96,7 @@ public class NavigationTool
         super.createPanelControl( parent );
         
         Button cb = getSite().getToolkit().createButton( parent, null, SWT.CHECK );
-        cb.setSelection( true );
+        cb.setSelection( false );
         cb.setEnabled( false );
         layoutControl( i18n( "keyboardLabel" ), cb );
     }

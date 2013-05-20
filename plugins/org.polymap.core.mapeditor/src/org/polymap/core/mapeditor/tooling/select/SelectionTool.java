@@ -71,8 +71,9 @@ public class SelectionTool
 
     @Override
     public void dispose() {
-        log.debug( "dispose(): ..." );
-        onDeactivate();
+        if (isActive()) {
+            onDeactivate();
+        }
         super.dispose();
     }
 

@@ -84,7 +84,9 @@ public class DigitizeTool
     
     @Override
     public void dispose() {
-        onDeactivate();
+        if (isActive()) {
+            onDeactivate();
+        }
         super.dispose();
     }
 

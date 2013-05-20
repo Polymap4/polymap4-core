@@ -152,7 +152,7 @@ public class PolymapWorkbench
         }
         // thread termination due to timeout or reload/F5
         catch (Error e) {
-            log.warn( e );
+            //log.warn( e );
             throw e;
         }
     }

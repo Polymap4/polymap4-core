@@ -41,6 +41,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.eclipse.ui.PlatformUI;
+
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
@@ -74,8 +76,9 @@ public class ResolveLabelProviderSimple extends LabelProvider implements IResolv
 
         Display.getDefault().asyncExec(new Runnable(){
             public void run() {
-                fireLabelProviderChanged(new LabelProviderChangedEvent(
-                        ResolveLabelProviderSimple.this, resolve));
+                if (!PlatformUI.getWorkbench().isClosing()) {
+                    fireLabelProviderChanged(new LabelProviderChangedEvent(ResolveLabelProviderSimple.this, resolve));
+                }
             }
         });
     }

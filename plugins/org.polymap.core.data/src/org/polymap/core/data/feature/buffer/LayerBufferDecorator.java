@@ -34,10 +34,11 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.eclipse.ui.PlatformUI;
+
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.FeatureChangeEvent.Type;
-import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.model.Entity;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
@@ -98,7 +99,6 @@ public class LayerBufferDecorator
     
     public void dispose() {
         EventManager.instance().unsubscribe( this );
-        FeatureStateTracker.instance().removeFeatureListener( this );
         decorated.clear();
         modified.clear();
     }
@@ -114,7 +114,10 @@ public class LayerBufferDecorator
                 modified.put( ev.getSource().id(), ev.getSource() );
             }
         }
-        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+        // avoid deadlock on close
+        if (!PlatformUI.getWorkbench().isClosing()) {
+            fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+        }
     }
 
     
@@ -125,7 +128,10 @@ public class LayerBufferDecorator
                 modified.clear();
             }
         }
-        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+        // avoid deadlock on close
+        if (!PlatformUI.getWorkbench().isClosing()) {
+            fireLabelProviderChanged( new LabelProviderChangedEvent( LayerBufferDecorator.this ) );
+        }
     }
 
     

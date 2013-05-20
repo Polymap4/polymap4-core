@@ -33,6 +33,8 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.eclipse.ui.PlatformUI;
+
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
 
@@ -44,9 +46,9 @@ import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.qi4j.event.EntityChangeStatus;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.entity.IEntityStateListener;
 import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
+import org.polymap.core.runtime.entity.IEntityStateListener;
 
 /**
  * 
@@ -101,7 +103,9 @@ public class EntityModificationDecorator
                 if (entity instanceof IAdaptable) {
                     ((IAdaptable)entity).getAdapter( String.class );
                     if (decorated.containsKey( entity.id() )) {
-                        fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                        if (!PlatformUI.getWorkbench().isClosing()) {
+                            fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                        }
                         break;                
                     }
                 }
@@ -126,7 +130,9 @@ public class EntityModificationDecorator
             if (ev != null && ev.getEventType() == EventType.COMMIT) {
                 display.asyncExec( new Runnable() {
                     public void run() {
-                        fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                        if (!PlatformUI.getWorkbench().isClosing()) {
+                            fireLabelProviderChanged( new LabelProviderChangedEvent( EntityModificationDecorator.this ) );
+                        }
                     }
                 });
             }

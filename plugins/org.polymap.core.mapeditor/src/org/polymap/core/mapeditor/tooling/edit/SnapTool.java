@@ -110,21 +110,28 @@ public class SnapTool
                     styleMap.dispose();
                 }
                 styleMap = newStyleMap;
-                for (SnapVectorLayer snapLayer : snapLayers) {
-                    snapLayer.getVectorLayer().setStyleMap( styleMap );
-                    snapLayer.getVectorLayer().redraw();
+                if (snapLayers != null) {
+                    for (SnapVectorLayer snapLayer : snapLayers) {
+                        snapLayer.getVectorLayer().setStyleMap( styleMap );
+                        snapLayer.getVectorLayer().redraw();
+                    }
                 }
             }
         };
         // change default style
         if (stylerMemento.getFloat( "strokeWidth" ) == null) {
-            Map<String,Object> standard = new HashMap();
-            standard.put( "strokeWidth", 1f );
-            standard.put( "strokeDashstyle", "dot" );
-            standard.put( "strokeColor", new RGB( 80, 80, 80 ) );
-            standard.put( "strokeOpacity", 1 );
-            standard.put( "fillOpacity", 0 );
-            styler.changeStyles( standard, false );
+            // defer until client side JS is setup and StyleMap can be created
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    Map<String,Object> standard = new HashMap();
+                    standard.put( "strokeWidth", 1f );
+                    standard.put( "strokeDashstyle", "dot" );
+                    standard.put( "strokeColor", new RGB( 80, 80, 80 ) );
+                    standard.put( "strokeOpacity", 1 );
+                    standard.put( "fillOpacity", 0 );
+                    styler.changeStyles( standard, false );
+                }
+            });
         }
 
         // listen to state changes of parentTool

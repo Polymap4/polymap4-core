@@ -243,8 +243,9 @@ public class EventManager {
      * @throws IllegalStateException If the handler is subscribed already.
      */
     public void subscribe( Object annotated, EventFilter... filters ) {
-        EventListener listener = new AnnotatedEventListener( annotated, filters ); 
+        assert annotated != null;
         Integer key = System.identityHashCode( annotated );
+        AnnotatedEventListener listener = new AnnotatedEventListener( annotated, key, filters ); 
         if (listeners.putIfAbsent( key, listener ) != null) {
             throw new IllegalStateException( "Event handler already registered: " + annotated );        
         }
@@ -259,14 +260,26 @@ public class EventManager {
     public boolean unsubscribe( Object listenerOrHandler ) {
         assert listenerOrHandler != null;
         Integer key = System.identityHashCode( listenerOrHandler );
-        return listeners.remove( key ) != null;
+        boolean result = listeners.remove( key ) != null;
+        if (!result) {
+            log.warn( "Unable to remove handler: " + listenerOrHandler.getClass().getName() );
+        }
+        return result;
     }
     
     
     EventListener removeKey( Object key ) {
-        return listeners.remove( key );
+        assert key instanceof Integer;
+        EventListener removed = listeners.remove( key );
+        if (removed == null) {
+            log.warn( "Unable to remove key: " + key + " (EventManager: " + EventManager.instance().size() + ")" );
+        }
+        return removed;
     }
 
+    int size() {
+        return listeners.size();
+    }
 
     /**
      * Checks if there are pending events after the render page of an request. If

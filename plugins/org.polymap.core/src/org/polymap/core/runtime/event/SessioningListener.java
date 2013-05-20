@@ -16,7 +16,6 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 import java.util.concurrent.Callable;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -33,21 +32,51 @@ class SessioningListener
 
     private static Log log = LogFactory.getLog( SessioningListener.class );
     
+//    private static ConcurrentMap<String,List> sessionListenerKeys = new ConcurrentHashMap( 32, .75f, 4 );
+    
     private SessionContext          session;
     
     private Object                  mapKey;
+
+    private Class                   handlerClass;
     
     /**
      * 
      * @param delegate
      * @param mapKey
+     * @param handlerClass 
      */
-    public SessioningListener( EventListener delegate, Object mapKey, SessionContext session ) {
+    public SessioningListener( EventListener delegate, Object mapKey, final SessionContext session, Class handlerClass ) {
         super( delegate );
         assert mapKey != null;
         assert session != null;
         this.session = session;
         this.mapKey = mapKey;
+        this.handlerClass = handlerClass;
+        
+//        //
+//        List listenerKeys = sessionListenerKeys.get( session.getSessionKey() );
+//        if (listenerKeys == null) {
+//            listenerKeys = Collections.synchronizedList( new ArrayList() );
+//            List<SessionContext> previous = sessionListenerKeys.putIfAbsent( session.getSessionKey(), listenerKeys );
+//            if (previous == null) {
+//                this.session.addSessionListener( new ISessionListener() {
+//                    String sessionKey = session.getSessionKey();
+//                    public void beforeDestroy() {
+//                        List l = sessionListenerKeys.remove( sessionKey );
+//                        if (l != null) {
+//                            for (Object key : new ArrayList( l )) {
+//                                EventManager.instance().removeKey( key );
+//                            }
+//                        }
+//                    }
+//                });
+//            }
+//            else {
+//                listenerKeys = previous;
+//            }
+//        }
+//        listenerKeys.add( mapKey );
     }
 
     @Override
@@ -62,7 +91,7 @@ class SessioningListener
                 });
             }
             else {
-                log.warn( "Removing event handler for destroyed session: " + session.getClass().getSimpleName() );
+                log.warn( "Removing event handler for destroyed session: " + session.getClass().getSimpleName() + ", handler: " + handlerClass );
                 EventManager.instance().removeKey( mapKey );
                 session = null;
                 delegate = null;

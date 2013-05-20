@@ -294,7 +294,9 @@ public class ToolingViewer {
 
             Polymap.getSessionDisplay().asyncExec( new Runnable() {
                 public void run() {
-                    content.getParent().layout( true );
+                    if (content != null) {
+                        content.getParent().layout( true );
+                    }
                 }
             });
         }

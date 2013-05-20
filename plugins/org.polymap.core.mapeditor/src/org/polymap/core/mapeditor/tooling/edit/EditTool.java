@@ -88,7 +88,9 @@ public class EditTool
 
     @Override
     public void dispose() {
-        onDeactivate();
+        if (isActive()) {
+            onDeactivate();
+        }
         super.dispose();
     }
 

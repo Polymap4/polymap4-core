@@ -55,12 +55,12 @@ class AnnotatedEventListener
     /**
      * 
      */
-    public AnnotatedEventListener( Object handler, EventFilter... filters ) {
+    public AnnotatedEventListener( Object handler, Integer mapKey, EventFilter... filters ) {
         assert handler != null;
         assert filters != null;
         this.handlerRef = new WeakReference( handler );
         this.handlerClass = handler.getClass();
-        this.mapKey = System.identityHashCode( handler );
+        this.mapKey = mapKey;
         
         // find annotated methods
         Queue<Class> types = new ArrayDeque( 16 );
@@ -108,7 +108,7 @@ class AnnotatedEventListener
                     // get the proper context
                     SessionContext session = SessionContext.current();
                     if (session != null) {
-                        listener = new SessioningListener( listener, mapKey, session );
+                        listener = new SessioningListener( listener, mapKey, session, handlerClass );
                     }
                     methods.add( listener );
                 }
@@ -132,12 +132,14 @@ class AnnotatedEventListener
             else {
                 log.info( "Removing reclaimed handler: " + handlerClass );
                 handlerRef = null;
-                EventListener removed = EventManager.instance().removeKey( mapKey );
-                if (removed == null) {
-                    log.warn( "Unable to remove reclaimed handler for key: " + mapKey );
-                }
+                EventManager.instance().removeKey( mapKey );
             }
         }
+    }
+
+    
+    protected Integer getMapKey() {
+        return mapKey;
     }
 
 
