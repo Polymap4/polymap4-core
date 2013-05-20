@@ -16,6 +16,7 @@
 package org.polymap.core.data.ui.featuretable;
 
 import java.util.Comparator;
+import java.util.Date;
 
 import org.opengis.feature.type.PropertyDescriptor;
 
@@ -128,7 +129,8 @@ public class DefaultFeatureTableColumn
         // sort listener for supported prop bindings
         Class propBinding = prop.getType().getBinding();
         if (String.class.isAssignableFrom( propBinding )
-                || Number.class.isAssignableFrom( propBinding )) {
+                || Number.class.isAssignableFrom( propBinding )
+                || Date.class.isAssignableFrom( propBinding )) {
 
             viewerColumn.getColumn().addListener( SWT.Selection, new Listener() {
                 public void handleEvent( Event ev ) {
@@ -188,6 +190,9 @@ public class DefaultFeatureTableColumn
                 }
                 else if (Number.class.isAssignableFrom( propBinding )) {
                     return (int)(((Number)value1).doubleValue() - ((Number)value2).doubleValue());
+                }
+                else if (Date.class.isAssignableFrom( propBinding )) {
+                    return ((Date)value1).compareTo( (Date)value2 );
                 }
                 else {
                     return value1.toString().compareTo( value2.toString() );
