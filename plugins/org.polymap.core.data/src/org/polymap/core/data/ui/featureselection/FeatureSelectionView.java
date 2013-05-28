@@ -78,13 +78,13 @@ import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.ui.SelectionAdapter;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 

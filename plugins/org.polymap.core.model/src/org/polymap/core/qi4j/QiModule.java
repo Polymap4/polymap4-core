@@ -261,7 +261,7 @@ public abstract class QiModule
      */
     public <T> T newEntity( Class<T> type, String id, EntityCreator<T> creator )
     throws Exception {
-        EntityBuilder<T> builder = uow.newEntityBuilder( type );
+        EntityBuilder<T> builder = id != null ? uow.newEntityBuilder( type, id ) : uow.newEntityBuilder( type );
         creator.create( builder.instance() );
         return builder.newInstance();
     }

@@ -27,8 +27,8 @@ import org.eclipse.core.runtime.Status;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
-import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.SelectionAdapter;
 
 /**
  * This selection change listener updates the views status line according to the

@@ -45,7 +45,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.PartListenerAdapter;
-import org.polymap.core.project.ui.util.SelectionAdapter;
+import org.polymap.core.ui.SelectionAdapter;
 
 /**
  * Spreading the Rhei while listening to Charlotte McKinnon... :) 

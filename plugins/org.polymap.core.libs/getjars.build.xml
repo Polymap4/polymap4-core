@@ -32,7 +32,7 @@
 
 	<target name="load_m2_deps" unless="already_downloaded">
 		
-        <!--setproxy proxyhost="46.4.28.8" proxyport="3128"/-->
+        <setproxy proxyhost="46.4.28.8" proxyport="3128"/>
 		
 		<!-- we can probably replace this with a reference to a pom.xml file -->
 		<!-- Use http://mvnrepository.com/ to look stuff up -->
@@ -202,7 +202,7 @@
 			<dependency groupId="commons-codec" artifactid="commons-codec" version="1.2" />
 			<dependency groupId="commons-httpclient" artifactid="commons-httpclient" version="3.1" />
             <dependency groupId="commons-logging" artifactid="commons-logging" version="1.1.1" />
-            <dependency groupId="commons-lang" artifactid="commons-lang" version="2.3" />
+            <dependency groupId="commons-lang" artifactid="commons-lang" version="2.6" />
 			<dependency groupId="log4j" artifactId="log4j" version="1.2.12" />
             
 			<!-- dependency groupId="org.eclipse.xsd" artifactId="xsd" version="2.2.2" scope="provided" />

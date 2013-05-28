@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar" sourcepath="lib/sources/commons-lang-2.6-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava-14.0.1.jar" sourcepath="lib/sources/guava-14.0.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/lucene-core-3.6.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/lucene-queryparser-3.6.2.jar"/>
@@ -17,7 +18,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-1.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-jxpath-1.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.1.1.jar" sourcepath="lib/sources/commons-logging-1.1.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-pool-1.5.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ecore-2.2.2.jar"/>

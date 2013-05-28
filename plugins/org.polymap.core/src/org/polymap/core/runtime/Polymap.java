@@ -308,6 +308,11 @@ public final class Polymap {
         return subject;    
     }
 
+
+    public void setUser( UserPrincipal userPrincipal ) {
+        this.user = userPrincipal;
+    }
+
     
 //    /**
 //     * Returns the preference service for the current session and user.

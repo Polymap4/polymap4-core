@@ -50,8 +50,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.ui.SelectionAdapter;
 
 /**
  *

@@ -44,9 +44,9 @@ import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.OpenMapOperation;
-import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.ui.SelectionAdapter;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
