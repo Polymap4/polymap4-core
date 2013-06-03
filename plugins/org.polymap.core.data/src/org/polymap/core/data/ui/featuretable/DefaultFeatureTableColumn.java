@@ -39,7 +39,6 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewerColumn;
 
-
 /**
  *
  *
@@ -55,6 +54,7 @@ public class DefaultFeatureTableColumn
     private PropertyDescriptor      prop;
 
     private boolean                 editing;
+    
     private EditingSupport          editingSupport;
 
     private String                  header;
@@ -62,6 +62,8 @@ public class DefaultFeatureTableColumn
     private int                     weight = -1;
 
     private int                     minimumWidth = -1;
+    
+    private ColumnLabelProvider     labelProvider = new DefaultCellLabelProvider();
 
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
@@ -73,11 +75,16 @@ public class DefaultFeatureTableColumn
         this.viewer = viewer;
         this.editingSupport = editing ? new DefaultEditingSupport( viewer ) : null;
     }
-
+    
     public String getName() {
         return prop.getName().getLocalPart();
     }
     
+    public DefaultFeatureTableColumn setLabelProvider( ColumnLabelProvider labelProvider ) {
+        this.labelProvider = labelProvider;
+        return this;
+    }
+
     public DefaultFeatureTableColumn setHeader( String header ) {
         this.header = header;
         return this;
@@ -118,7 +125,7 @@ public class DefaultFeatureTableColumn
         viewerColumn.getColumn().setMoveable( true );
         viewerColumn.getColumn().setResizable( true );
         
-        viewerColumn.setLabelProvider( new DefaultCellLabelProvider() );
+        viewerColumn.setLabelProvider( labelProvider );
         String normalizedName = StringUtils.capitalize( getName() );
         viewerColumn.getColumn().setText( header != null ? header : normalizedName );
         
@@ -203,7 +210,7 @@ public class DefaultFeatureTableColumn
     }
 
     
-    /*
+    /**
      * 
      */
     class DefaultCellLabelProvider
@@ -235,7 +242,7 @@ public class DefaultFeatureTableColumn
     }
     
     
-    /*
+    /**
      * 
      */
     class DefaultEditingSupport
