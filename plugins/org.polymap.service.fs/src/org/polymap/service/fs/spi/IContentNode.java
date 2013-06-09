@@ -63,9 +63,10 @@ public interface IContentNode {
      */
     public Date getModifiedDate();
 
+    
     /**
-     * How many seconds to allow the content to be cached for, or null if caching is
-     * not allowed
+     * How many seconds to allow the content to be cached on the client side, or null
+     * if caching is not allowed.
      */
     public Long getMaxAgeSeconds();
 
@@ -84,5 +85,13 @@ public interface IContentNode {
     public int getSizeInMemory();
     
     public void dispose();
+    
+    /**
+     * This method is called by the engine before this node is returned from the
+     * cache.
+     * 
+     * @return True if this (currently cached) instance is still valid.
+     */
+    public boolean isValid();
     
 }

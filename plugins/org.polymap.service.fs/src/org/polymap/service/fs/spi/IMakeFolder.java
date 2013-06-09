@@ -19,7 +19,8 @@ package org.polymap.service.fs.spi;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IMakeFolder {
+public interface IMakeFolder
+        extends IContentFolder {
 
     /**
      * Creates a new folder with the given name.

@@ -135,6 +135,15 @@ public class ContentManager {
             super( 64 );
         }
 
+        public boolean isValid() {
+            for (IContentNode node : values()) {
+                if (!node.isValid()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
         public EvictionListener newListener() {
             return new CachedNodeEvictionListener();
         }
@@ -265,6 +274,15 @@ public class ContentManager {
             // first loop for the root
             initPath = (i >= 0) ? initPath.append( path.segment( i ) ) : initPath;
 
+            // check cache expiration
+            if (lastResult != null) {
+                IContentNode node = lastResult.get( initPath.lastSegment() );
+                if (node instanceof IContentFolder && !node.isValid()) {
+                    invalidateFolder( (IContentFolder)node );
+                }
+            }
+            
+            // get/create
             lastResult = nodes.get( initPath, new CacheLoader<IPath,CachedNode,RuntimeException>() {
 
                 int memSize = 1024;
@@ -314,9 +332,9 @@ public class ContentManager {
         //              parentChildren.remove( nodeName );
         //          }
         //      }
-        Map<String, IContentNode> children = nodes.remove( node.getPath() );
+        Map<String,IContentNode> children = nodes.remove( node.getPath() );
         if (children != null) {
-            // XXX do it recursively
+            // XXX do it recursively?
             for (IContentNode child : children.values()) {
                 nodes.remove( child.getPath() );
                 child.dispose();

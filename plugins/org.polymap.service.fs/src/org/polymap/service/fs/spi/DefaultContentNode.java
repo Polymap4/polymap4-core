@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -44,6 +44,14 @@ public abstract class DefaultContentNode
     private Map<String,Object>      data = new HashMap();
     
 
+    /**
+     * 
+     * @param name
+     * @param parentPath
+     * @param provider
+     * @param source The backend object this content node represents. Might be null
+     *        if no such mapping to a backend objekt exists. {@link #getSource()}
+     */
     public DefaultContentNode( String name, IPath parentPath, IContentProvider provider, Object source ) {
         assert name != null;
 //        assert parentPath != null;
@@ -59,18 +67,35 @@ public abstract class DefaultContentNode
      * This default implementation does nothing. Override this to
      * perform any folder/file specific cleanup.
      */
+    @Override
     public void dispose() {
+    }
+
+
+    /**
+     * This method is called by the engine before this node is returned from the
+     * cache.
+     * <p/>
+     * This default implementation of the method always returns <code>true</code>.
+     * 
+     * @return True if this (currently cached) instance is still valid.
+     */
+    @Override
+    public boolean isValid() {
+        return true;
     }
 
 
     /**
      * Default implementation: 1kB
      */
+    @Override
     public int getSizeInMemory() {
         return 1024;
     }
 
     
+    @Override
     public String getName() {
         return name;
     }
@@ -81,11 +106,13 @@ public abstract class DefaultContentNode
     }
 
     
+    @Override
     public IPath getPath() {
         return parentPath != null ? parentPath.append( getName() ) : new Path( getName() );
     }
 
 
+    @Override
     public IContentProvider getProvider() {
         return provider;
     }
@@ -97,16 +124,24 @@ public abstract class DefaultContentNode
         return getProvider().getSite();
     }
 
+    
+    /**
+     * The backend object this content node represents. Might be null if no such
+     * mapping to a backend objekt exists.
+     */
+    @Override
     public Object getSource() {
         return source;
     }
 
 
+    @Override
     public Object getData( String key ) {
         return data.get( key );
     }
 
 
+    @Override
     public Object putData( String key, Object value ) {
         return data.put( key, value );
     }

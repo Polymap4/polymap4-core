@@ -149,7 +149,7 @@ public class WebDavServer
         DefaultSessionContextProvider contextProvider = FsPlugin.getDefault().sessionContextProvider;
         
         try {
-            Request request = new com.bradmcevoy.http.ServletRequest( req );
+            Request request = new com.bradmcevoy.http.ServletRequest( req, req.getServletContext() );
             Response response = new com.bradmcevoy.http.ServletResponse( resp );
             threadRequest.set( request );
             threadResponse.set( response );

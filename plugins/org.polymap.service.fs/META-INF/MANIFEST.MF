@@ -23,10 +23,11 @@ Bundle-ClassPath: .,
  lib/slf4j-api-1.5.8.jar,
  lib/slf4j-jcl-1.5.8.jar,
  lib/mime-util-2.1.3.jar,
- lib/milton-api-1.7.2.jar,
- lib/milton-servlet-1.7.2.jar
+ lib/milton-api-1.8.0.1.jar,
+ lib/milton-servlet-1.8.0.1.jar
 Bundle-Localization: plugin
 Export-Package: com.bradmcevoy.http,
  org.polymap.service.fs,
  org.polymap.service.fs.providers,
- org.polymap.service.fs.spi
+ org.polymap.service.fs.spi,
+ org.polymap.service.fs.webdav
