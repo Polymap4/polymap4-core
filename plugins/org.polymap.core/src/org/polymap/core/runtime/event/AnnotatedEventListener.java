@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -138,7 +138,7 @@ class AnnotatedEventListener
     }
 
     
-    protected Integer getMapKey() {
+    public Integer getMapKey() {
         return mapKey;
     }
 
