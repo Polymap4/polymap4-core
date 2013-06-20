@@ -40,7 +40,7 @@ public class PerformanceEventTests
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
     }
 
-    private volatile int        count, target = 1000000;
+    private int         count, target = 1000000;
     
     
     @Override

@@ -187,11 +187,11 @@ class AnnotatedEventListener
                 // display events are always wrapped into DeferredListener (see above)
                 if (ev instanceof DeferredEvent) {
                     for (EventObject ev2 : ((DeferredEvent)ev).events()) {
-                        handlerMethod.invoke( handler, new Object[] { ev2 } );
+                        handlerMethod.invoke( handler, new Object[] {ev2} );
                     }
                 }
                 else {
-                    handlerMethod.invoke( handler, new Object[] { ev } );
+                    handlerMethod.invoke( handler, new Object[] {ev} );
                 }
             }
         }
@@ -237,8 +237,8 @@ class AnnotatedEventListener
         
         @Override
         public void handleEvent( final EventObject ev ) throws Exception {
-            List<EventObject> events = ((DeferredEvent)ev).events();
-            handlerMethod.invoke( handlerRef.get(), new Object[] { events } );
+            Object[] params = new Object[] { ((DeferredEvent)ev).events() };
+            handlerMethod.invoke( handlerRef.get(), params );
         }
     }
     

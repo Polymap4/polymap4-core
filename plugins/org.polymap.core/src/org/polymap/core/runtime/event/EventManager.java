@@ -16,9 +16,10 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 import java.util.Iterator;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.LinkedTransferQueue;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,7 +33,6 @@ import org.eclipse.rwt.service.ISessionStore;
 import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
 
-import org.eclipse.osgi.framework.eventmgr.EventDispatcher;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
 
@@ -88,7 +88,7 @@ public class EventManager {
     
     private Timer                                   statTimer;
     
-    private volatile int                            pendingEvents;
+    private /*volatile*/ int                            pendingEvents;
     
     /** The global {@link PhaseListener} installed by the {@link SessionEventDispatcher}. */
     private UICallbackPhaseListener                 phaseListener;
@@ -144,8 +144,7 @@ public class EventManager {
         assert ev != null;        
         
         Iterator<AnnotatedEventListener> snapshot = queueableListeners();
-        int numOfListeners = listeners.size();
-        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, numOfListeners, omitHandlers );
+        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
 
         dispatcher.dispatch( d );
     }
@@ -164,14 +163,13 @@ public class EventManager {
     public void syncPublish( EventObject ev, Object... omitHandlers ) {
         assert ev != null;
         Iterator<AnnotatedEventListener> snapshot = queueableListeners();
-        int numOfListeners = listeners.size();
-        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, numOfListeners, omitHandlers );
+        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
         
         dispatcher.dispatch( d );
         
         synchronized (d) {
             while (!d.isDone()) {
-                try { d.wait( 1000 ); } catch (InterruptedException e) {}
+                try { d.wait( 200 ); } catch (InterruptedException e) {}
             }
         }
     }
@@ -331,7 +329,7 @@ public class EventManager {
      * 
      */
     private class SessionEventDispatcher
-            implements EventDispatcher, Runnable {
+            implements Runnable {
         
         private SessionContext      publishSession;
         
@@ -339,17 +337,16 @@ public class EventManager {
         
         private Iterator<? extends EventListener> snapshot;
         
-        private final int           numOfListeners;
-        
         private int                 dispatched;
 
         private EventObject         event;
         
+        private boolean             done;
         
-        SessionEventDispatcher( EventObject event, Iterator<? extends EventListener> snapshot, int numOfListeners, Object[] omitHandlers ) {
+        
+        SessionEventDispatcher( EventObject event, Iterator<? extends EventListener> snapshot, Object[] omitHandlers ) {
             this.event = event;
             this.snapshot = snapshot;
-            this.numOfListeners = numOfListeners;
             this.omitHandlers = omitHandlers;
             this.publishSession = SessionContext.current();
 //            assert publishSession != null;
@@ -357,52 +354,54 @@ public class EventManager {
             
             // XXX should never happen
             if (pendingEvents < 0) {
-                log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
+                //log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
                 pendingEvents = 0;
             }
-            pendingEvents ++;
+            ++ pendingEvents;
         }
     
         
         @Override
         public void run() {
-            while (snapshot.hasNext()) {
-                dispatchEvent( snapshot.next(), null, 0, event );
-            }
-            synchronized (this) {
-                notifyAll();
+            try {
+                assert threadPublishSession == null;
+                threadPublishSession = publishSession;
+
+                while (snapshot.hasNext()) {
+                    try {
+                        EventListener listener = snapshot.next();
+                        
+                        if (omitHandlers.length == 0 || !ArrayUtils.contains( omitHandlers, listener )) {
+                            listener.handleEvent( event );
+                        }
+                    } 
+                    catch (Throwable e) {
+                        log.warn( "Error during event dispatch: " + e, e );
+                        log.debug( "", e );
+                    }
+                }
+            } 
+            finally {
+                threadPublishSession = null;
+
+                -- pendingEvents;
+                
+                synchronized (this) {
+                    done = true;
+                    notifyAll();
+                }
             }
         }
 
         
         public boolean isDone() {
-            return dispatched == numOfListeners;
+            return done;
         }
         
         
         @SuppressWarnings("hiding")
-        public void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
-            assert threadPublishSession == null;
-            threadPublishSession = publishSession;
-            
-            try {
-                if (!ArrayUtils.contains( omitHandlers, listener )) {
-                    ((EventListener)listener).handleEvent( (EventObject)event );
-                }
-            } 
-            catch (Throwable e) {
-                log.warn( "Error during event dispatch: " + e, e );
-                log.debug( "", e );
-            }
-            finally {
-                threadPublishSession = null;
-            }
+        protected void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
 
-            // decrement pendingEvents
-            if (++dispatched >= numOfListeners) {
-                pendingEvents --;
-            }
-            
 //            // statistics
 //            if (log.isDebugEnabled()) {
 //                statCount++;
@@ -423,16 +422,28 @@ public class EventManager {
     /**
      * 
      */
-    class DispatcherThread
+    static class DispatcherThread
             extends Thread {
 
-        private BlockingQueue<Runnable> queue = new ArrayBlockingQueue( 10000 );
+        public static final int         MAX_QUEUE_SIZE = 10000;
         
+        private BlockingQueue<Runnable> queue = new LinkedTransferQueue();  //ArrayBlockingQueue( MAX_QUEUE_SIZE );
+
+        /** 
+         * Non synchronized "assumption" about size of the {@link #queue}. 
+         * XXX on IA32 it seems to work ok without "volatile"; not sure about other platforms; 
+         * see http://brooker.co.za/blog/2012/09/10/volatile.html
+         */
+        private int                     queueSize;
+        
+        private int                     queueReadCount;
+
         private boolean                 stopped;
+        
         
         public DispatcherThread() {
             super( "EventManager.Dispatcher" );
-            setPriority( Thread.MAX_PRIORITY );
+            //setPriority( Thread.MAX_PRIORITY );
             setDaemon( true );
         }
 
@@ -442,6 +453,13 @@ public class EventManager {
         
         public void dispatch( Runnable work ) {
             try {
+                for (int i=0; queueSize >= MAX_QUEUE_SIZE; i++) {
+                    log.trace( "Waiting on dispatch... queue: " + queueSize );
+                    try {Thread.sleep( Math.min( 10*i, 1000 ) );} catch (InterruptedException e) {};
+                    log.trace( "    queue: " + queueSize );
+                }
+                ++queueSize;
+
                 //log.debug( "Queue size: " + queue.size() );
                 queue.put( work );
             }
@@ -454,8 +472,16 @@ public class EventManager {
         public void run() {
             while (!stopped) {
                 try {
+                    if (queueReadCount > MAX_QUEUE_SIZE) {
+                        // synchronize the assumption with real value
+                        queueSize = queue.size();
+                        queueReadCount = 0;
+                    }
+                    ++queueReadCount;
+                    
                     Runnable work = queue.take();
                     work.run();
+                    --queueSize;
                 }
                 catch (InterruptedException e) {
                 }
