@@ -23,9 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.polymap.core.CorePlugin;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
@@ -61,10 +59,10 @@ class DisplayingListener
                     }
                     // as this is used by AnnotatedEventListener
                     catch (InvocationTargetException e) {
-                        PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, delegate, "Error during event dispatch.", e.getTargetException() );
+                        log.warn( "Error during event dispatch: " + e.getTargetException(), e.getTargetException() );
                     }
                     catch (Exception e) {
-                        PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, delegate, "Error during event dispatch.", e );
+                        log.warn( "Error during event dispatch: " + e, e );
                     }
                 }            
             });
