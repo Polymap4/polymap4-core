@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-
 import java.io.IOException;
 
 import org.geotools.data.DefaultQuery;
@@ -94,7 +92,7 @@ public class FeatureStoreUnitOfWork
     private Transaction                 tx;
     
     /** Never evicting cache of used {@link FeatureSource} instances. */
-    private Cache<Class<?>,FeatureStore> featureSources;
+    private Cache<Class<? extends Entity>,FeatureStore> featureSources;
 
     
     protected FeatureStoreUnitOfWork( StoreRuntimeContext context, FeatureStoreAdapter store ) {
@@ -116,12 +114,14 @@ public class FeatureStoreUnitOfWork
 
     
     public FeatureStore featureSource( Class<? extends Entity> entityClass ) {
-        try {
-            return featureSources.get( entityClass );
-        }
-        catch (ExecutionException e) {
-            throw new RuntimeException( e );
-        }
+        throw new RuntimeException( "FIXME - new Guave version, port!" );
+//        try {
+//            // why use Guave cache here anyway?
+//            return featureSources.get( entityClass );
+//        }
+//        catch (ExecutionException e) {
+//            throw new RuntimeException( e );
+//        }
     }
 
 

@@ -58,7 +58,7 @@ qx.Class.define("org.polymap.openlayers.rap.widget.OpenLayersWidget", {
             loadScript( lib_url, function(context) {
                 qx.ui.core.Widget.flushGlobalQueues();
 
-                    if (!org_eclipse_rap_rwt_EventUtil_suspend) {
+                    if (!org.eclipse.swt.EventUtil.getSuspended()) {
                         var openlayersId = org.eclipse.swt.WidgetManager
                                 .getInstance().findIdByWidget(context);
                         var req = org.eclipse.swt.Request.getInstance();

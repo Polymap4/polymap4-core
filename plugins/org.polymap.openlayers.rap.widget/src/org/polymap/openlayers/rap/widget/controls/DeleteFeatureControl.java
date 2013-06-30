@@ -18,6 +18,7 @@ package org.polymap.openlayers.rap.widget.controls;
 import java.io.IOException;
 import java.net.URL;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import org.polymap.openlayers.rap.widget.OpenlayersPlugin;
 import org.polymap.openlayers.rap.widget.layers.VectorLayer;

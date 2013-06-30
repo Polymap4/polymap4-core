@@ -14,8 +14,6 @@
  */
 package org.polymap.core.runtime.cache;
 
-import java.util.concurrent.ExecutionException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -135,19 +133,20 @@ final class GuavaCache<K,V>
         assert currentLoader == null || currentLoader == loader;
         try {
             currentLoader = loader;
-            V result = cache.get( key );
-
-            manager.event( CacheEntry.ACCESSED, this, key, result );
-            
-            return result;
+            throw new RuntimeException( "FIXME - port to new Guava version!" );
+//            V result = cache.get( key );
+//
+//            manager.event( CacheEntry.ACCESSED, this, key, result );
+//            
+//            return result;
         }
         // XXX for the google cache the loader *always* returns a value
         catch (NullPointerException e) {
             return null;
         }
-        catch (ExecutionException e) {
-            throw new CacheException( e );
-        }
+//        catch (ExecutionException e) {
+//            throw new CacheException( e );
+//        }
     }
 
     

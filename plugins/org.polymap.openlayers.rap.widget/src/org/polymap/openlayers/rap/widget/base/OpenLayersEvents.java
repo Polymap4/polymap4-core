@@ -80,7 +80,7 @@ public class OpenLayersEvents {
 
 		obj.addObjModCode( "obj.events.register('" + event_name + "', this,"
 		        + "function (event) {"
-		        + "if( !org_eclipse_rap_rwt_EventUtil_suspend ) {"
+		        + "if (!org.eclipse.swt.EventUtil.getSuspended()) {"
 		        + "var openlayersId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( this );"
 		        + "var req = org.eclipse.swt.Request.getInstance();"
 		        + "req.addParameter( openlayersId + '.event_name', event.type );"

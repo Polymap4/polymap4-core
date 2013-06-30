@@ -153,7 +153,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
                 loadScript( lib_url + "&res=mode/clike/clike.js", function( context ) {
                     qx.ui.core.Widget.flushGlobalQueues();
 
-                    if (!org_eclipse_rap_rwt_EventUtil_suspend) {
+                    if (!org.eclipse.swt.EventUtil.getSuspended()) {
                         context._init( document.getElementById( context._id ) );
 
                         var widgetId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( context );

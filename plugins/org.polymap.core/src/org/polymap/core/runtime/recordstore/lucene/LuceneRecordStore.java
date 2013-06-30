@@ -78,6 +78,7 @@ public final class LuceneRecordStore
 
     private static Log log = LogFactory.getLog( LuceneRecordStore.class );
 
+    /** The Lucene version this store is working with. */
     public static final Version     VERSION = Version.LUCENE_36;
 
     /** Default: 3% of HEAP; 32M is good for 512M RAM fand merge size 16MB (Lucene 3). */

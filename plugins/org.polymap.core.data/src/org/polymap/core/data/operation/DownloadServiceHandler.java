@@ -85,7 +85,7 @@ public class DownloadServiceHandler
         }
         
         // XXX code from RAP; its a bit confusing, don't like it but it works
-        StringBuffer url = new StringBuffer();
+        StringBuilder url = new StringBuilder();
         url.append( URLHelper.getURLString() );
 
         URLHelper.appendFirstParam( url, REQUEST_PARAM, SERVICE_HANDLER_ID );
