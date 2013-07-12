@@ -168,8 +168,13 @@ public class EventManager {
         dispatcher.dispatch( d );
         
         synchronized (d) {
+            Timer timer = new Timer();
             while (!d.isDone()) {
                 try { d.wait( 200 ); } catch (InterruptedException e) {}
+                
+                if (timer.elapsedTime() >= 5000) {
+                    throw new RuntimeException( "Timeout exceeded for synch event: " + ev );
+                }
             }
         }
     }

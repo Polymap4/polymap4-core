@@ -185,13 +185,15 @@ public abstract class UIJob
                     catch (final Throwable e) {
                         log.warn( "UIJob exception: ", e );
 
-                        display.syncExec( new Runnable() {
-                            public void run() {
-                                MessageDialog.openWarning( display.getActiveShell(),
-                                        i18n.get( "errorTitle", getName() ), 
-                                        i18n.get( "errorMsg", getName(), e.getLocalizedMessage() ) );
-                            }
-                        });
+                        if (display != null) {
+                            display.syncExec( new Runnable() {
+                                public void run() {
+                                    MessageDialog.openWarning( display.getActiveShell(),
+                                            i18n.get( "errorTitle", getName() ), 
+                                            i18n.get( "errorMsg", getName(), e.getLocalizedMessage() ) );
+                                }
+                            });
+                        }
                         
                         // users don't read any further if they see an 'error' sign, so make a warning
                         resultStatus = new Status( IStatus.WARNING, CorePlugin.PLUGIN_ID,

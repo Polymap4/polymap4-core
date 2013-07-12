@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.project.ui.properties;
+package org.polymap.core.ui;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

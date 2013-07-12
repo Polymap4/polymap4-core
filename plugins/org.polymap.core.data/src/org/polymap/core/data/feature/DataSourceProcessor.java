@@ -59,7 +59,12 @@ public class DataSourceProcessor
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
-    public static final int                 DEFAULT_CHUNK_SIZE = 512;
+    /**
+     * As of now the chunk size increazing for each chunk in order to deliver first
+     * results quickly and minimize synchronization later. So this defines the the
+     * <b>MAX_CHUNK_SIZE</b> now.
+     */
+    public static final int                 DEFAULT_CHUNK_SIZE = 1024;
 
 
     public static ProcessorSignature signature( LayerUseCase usecase ) {

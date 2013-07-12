@@ -271,9 +271,9 @@ public interface LayerState
                 job.schedule();
 
                 boolean success = job.joinAndDispatch( 15000 );
-                if (!success) {
+                if (!success || georesInfo == null) {
                     job.cancelAndInterrupt();
-                    throw new RuntimeException( "Das koordinatenreferenzsystem konnte nicht ermittelt werden: " + getLabel() );
+                    throw new RuntimeException( "Das koordinatenreferenzsystem konnte nicht ermittelt werden: " + getLabel(), job.getResult().getException() );
                 }
             }
             return georesInfo.getCRS();

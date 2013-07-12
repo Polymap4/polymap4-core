@@ -28,6 +28,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.RWTTextCellEditor;
 
 /**
  * 

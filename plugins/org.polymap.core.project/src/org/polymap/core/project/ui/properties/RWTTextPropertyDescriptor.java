@@ -20,6 +20,8 @@ import org.eclipse.jface.viewers.CellEditor;
 
 import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 
+import org.polymap.core.ui.RWTTextCellEditor;
+
 /**
  * Fix a bug in RAP <= 1.3.2 and Firefox: see {@link RWTTextCellEditor}.
  *

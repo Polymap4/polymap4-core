@@ -31,10 +31,7 @@ import org.geotools.data.Transaction;
 import org.geotools.data.Transaction.State;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.filter.expression.PropertyAccessor;
-import org.geotools.filter.expression.PropertyAccessors;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.feature.Attribute;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.Property;
@@ -48,6 +45,8 @@ import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
@@ -254,9 +253,22 @@ public class RFeatureStore
 //                  Attribute attribute = xpath.evaluate( feature, Attribute.class );
 //                  attribute.setValue( values[i] );
                     
-                    PropertyAccessor accessor = PropertyAccessors.findPropertyAccessor( feature, 
-                            types[i].getLocalName(), Attribute.class, null );
-                    accessor.set( feature, types[i].getLocalName(), values[i], null );
+                    String name = types[i].getLocalName();
+                    // FIXME bug in SimpleFeaturePropertyAccessorFactory prevents prop name like aaa-bbb
+//                    PropertyAccessor accessor = PropertyAccessors.findPropertyAccessor( 
+//                            feature, name, Attribute.class, null );
+//                    accessor.set( feature, types[i].getLocalName(), values[i], null );
+                    if (feature instanceof SimpleFeature) {
+                        if (Geometry.class.isAssignableFrom( types[i].getType().getBinding() ) ) {
+                            ((SimpleFeature)feature).setDefaultGeometry( values[i] );
+                        }
+                        else {
+                            ((SimpleFeature)feature).setAttribute( name, values[i] );
+                        }
+                    }
+                    else {
+                        throw new RuntimeException( "FIXME: bug in SimpleFeaturePropertyAccessorFactory prevents prop name like xxx-yyy" );
+                    }
                     
                     txState.updater().store( feature.state );                    
                 }

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH. All rights reserved.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -36,14 +36,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
-import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 class AsyncPipelineFeatureCollection
@@ -54,7 +53,7 @@ class AsyncPipelineFeatureCollection
 
     protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
     
-    protected static final int              DEFAULT_QUEUE_SIZE = 2560 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
+    protected static final int              DEFAULT_QUEUE_SIZE = 5;  //2560 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
     private static int                      fetcherCount = 0;
     
