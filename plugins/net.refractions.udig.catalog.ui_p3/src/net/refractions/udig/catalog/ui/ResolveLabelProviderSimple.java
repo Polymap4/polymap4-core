@@ -188,7 +188,7 @@ public class ResolveLabelProviderSimple extends LabelProvider implements IResolv
         else if (element instanceof String
                 && element.equals( Messages.get("ResolveContentProvider_searching"))) {
             ISharedImages images = CatalogUIPlugin.getDefault().getImages();
-            return images.get( ISharedImages.LOADING );
+            return images != null ? images.get( ISharedImages.LOADING ) : null;
         }
         return super.getImage( element );
     }

@@ -32,7 +32,7 @@ import org.eclipse.swt.graphics.ImageData;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
-
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
@@ -117,7 +117,7 @@ public class CatalogUIPlugin extends AbstractUIPlugin {
         super.start(context);
 // falko: IllegalThreadAccess        
         iconsUrl = context.getBundle().getEntry(ICONS_PATH);
-//        images.initializeImages(iconsUrl, getImageRegistry());
+
         System.out.println( "CatalogUIPlugin: _p3: XXX exception: No context outside request lifecycle." );
 //        registerChangeListener();
     }
@@ -202,8 +202,9 @@ public class CatalogUIPlugin extends AbstractUIPlugin {
      */
     public synchronized ISharedImages getImages() {
         if (images == null) {
+            ImageRegistry imageRegistry = new ImageRegistry();
             images = new Images();
-            images.initializeImages(iconsUrl, getImageRegistry());
+            images.initializeImages(iconsUrl, imageRegistry);
         }
         return images;
     }
@@ -339,7 +340,7 @@ public class CatalogUIPlugin extends AbstractUIPlugin {
     public static Image image( IResolve resolve ) {
         ISharedImages images = CatalogUIPlugin.getDefault().getImages();
 
-        if (resolve == null) {
+        if (resolve == null || images == null) {
             return null;
         }
         if (resolve instanceof IResolveFolder ) {
