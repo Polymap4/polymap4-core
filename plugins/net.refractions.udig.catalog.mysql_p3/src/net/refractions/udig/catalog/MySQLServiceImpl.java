@@ -76,10 +76,10 @@ public class MySQLServiceImpl
             temp.put( MySQLDataStoreFactory.USER.key, "xxx" ); 
             temp.put( MySQLDataStoreFactory.PASSWD.key, "xxx" );
 
-            return "MySQL Service: " + MySQLServiceExtension.toURL( temp );
+            return "MySQL: " + MySQLServiceExtension.toURL( temp );
         }
         catch (Exception e) {
-            return "MySQL Service";
+            return "MySQL";
         }
     }
 

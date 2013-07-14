@@ -182,7 +182,14 @@ public class FeatureTypeEditorProcessorConfig
                         throw new IllegalStateException( "No GeoResource for layer: " + ((ILayer)holder).getLabel() );
                     }
                     FeatureSource fs = geores.resolve( FeatureSource.class, null );
-                    sourceFeatureType = (SimpleFeatureType)fs.getSchema();
+                    // EntitieProviders do not support FeatureSource
+                    // #71: http://polymap.org/biotop/ticket/71
+                    sourceFeatureType = fs != null
+                            ? (SimpleFeatureType)fs.getSchema()
+                            : geores.resolve( SimpleFeatureType.class, null );
+                    if (sourceFeatureType == null) {
+                        throw new IllegalStateException( "No FeatureType for layer: " + ((ILayer)holder).getLabel() );                        
+                    }
                     log.debug( "        DataSource schema: " + sourceFeatureType );
                 }
                 catch (Exception e) {

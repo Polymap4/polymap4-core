@@ -75,7 +75,7 @@ public class TipDialog extends Dialog {
 
 	@Override
 	protected void configureShell(Shell newShell) {
-		newShell.setText(Messages.TipDialog_shellText); 
+		newShell.setText(Messages.get("TipDialog_shellText")); 
 		super.configureShell(newShell);
 	}
 
@@ -112,7 +112,7 @@ public class TipDialog extends Dialog {
 		gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gridData.horizontalSpan = 2;
 		check.setLayoutData(gridData);
-		check.setText(Messages.TipDialog_question); 
+		check.setText(Messages.get("TipDialog_question")); 
 		boolean selected;
 		try {
             IPreferenceStore store = UiPlugin.getDefault().getPreferenceStore();

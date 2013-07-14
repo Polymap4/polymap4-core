@@ -23,15 +23,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 
 import org.eclipse.ui.IMemento;
@@ -39,11 +48,12 @@ import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.XMLMemento;
-
 import org.eclipse.core.runtime.IPath;
 import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
+import org.polymap.core.runtime.CachedLazyInit;
+import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
@@ -120,7 +130,7 @@ public class ToolingModel {
     
     private ListenerList<ToolingListener>   listeners = new ListenerList();
 
-    private IMemento                        memento;
+    private XMLMemento                      memento;
 
     /** The file backend of the {@link #memento}. */
     private File                            stateFile;
@@ -138,18 +148,8 @@ public class ToolingModel {
     protected ToolingModel( MapEditor editor ) {
         this.editor = editor;
 
-        // create then init tools
-        for (EditorToolExtension ext : EditorToolExtension.all()) {
-            IEditorTool tool = ext.createEditorTool();
-            tools.put( tool.getToolPath(), tool );
-        }
-        for (IEditorTool tool : tools.values()) {
-            if (!tool.init( new EditorToolSiteImpl( tool.getToolPath() ) )) {
-                tools.remove( tool.getToolPath() );
-            }
-        }
-
         // init memento
+        InputStream in = null;
         try {
            // ISettingStore settingStore = RWT.getSettingStore();
 
@@ -160,7 +160,7 @@ public class ToolingModel {
             log.info( "State file: " +  stateFile.getAbsolutePath() );
 
             if (stateFile.exists()) {
-                FileInputStream in = new FileInputStream( stateFile );
+                in = new BufferedInputStream( new FileInputStream( stateFile ) );
                 memento = XMLMemento.createReadRoot( new InputStreamReader( in, "utf-8" ) );
             }
             else {
@@ -170,13 +170,47 @@ public class ToolingModel {
         catch (Exception e) {
             throw new RuntimeException( e );
         }
+        finally {
+            IOUtils.closeQuietly( in );
+        }
+
+        // create and init tools
+        for (EditorToolExtension ext : EditorToolExtension.all()) {
+            IEditorTool tool = ext.createEditorTool();
+            tools.put( tool.getToolPath(), tool );
+        }
+        for (IEditorTool tool : tools.values()) {
+            if (!tool.init( new EditorToolSiteImpl( tool.getToolPath() ) )) {
+                tools.remove( tool.getToolPath() );
+            }
+        }
     }
 
     
     public void dispose() {
+        for (IEditorTool tool : tools.values()) {
+            tool.dispose();
+        }
         tools = null;
         activeTools = null;
         listeners = null;
+        
+        saveMemento();
+    }
+
+
+    protected void saveMemento() {
+        OutputStream out = null;
+        try {
+            out = new BufferedOutputStream( new FileOutputStream( stateFile ) );
+            memento.save( new OutputStreamWriter( out, "utf-8" ) );
+        }
+        catch (IOException e) {
+            log.warn( "", e );
+        }
+        finally {
+            IOUtils.closeQuietly( out );
+        }
     }
 
 
@@ -221,6 +255,8 @@ public class ToolingModel {
                     triggerTool( child.getToolPath(), false );
                 }
                 fireEvent( tool, EventType.TOOL_DEACTIVATED, null );
+                
+                saveMemento();
             }
             return true;
         }
@@ -276,7 +312,6 @@ public class ToolingModel {
 //        });
     }
     
-    
     /**
      * 
      */
@@ -286,6 +321,8 @@ public class ToolingModel {
         private IPath                   toolPath;
         
         private List<ToolingListener>   localListeners = new ArrayList();
+        
+        private LazyInit<IMemento>      toolMemento = new CachedLazyInit( 1024 );
         
         
         public EditorToolSiteImpl( IPath toolPath ) {
@@ -329,14 +366,18 @@ public class ToolingModel {
 
         @Override
         public IMemento getMemento() {
-            // find existing
-            for (IMemento m : memento.getChildren( "editorTool" )) {
-                if (m.getID().equals( getToolPath().toString() )) {
-                    return m;
+            return toolMemento.get( new Supplier<IMemento>() {
+                public IMemento get() {
+                    // find existing
+                    for (IMemento m : memento.getChildren( "editorTool" )) {
+                        if (m.getID().equals( getToolPath().toString() )) {
+                            return m;
+                        }
+                    }
+                    // create new
+                    return memento.createChild( "editorTool", getToolPath().toString() );
                 }
-            }
-            // create new
-            return memento.createChild( "editorTool", getToolPath().toString() );
+            });
         }
 
         @Override

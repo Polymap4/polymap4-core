@@ -546,8 +546,9 @@ public class WMSGeoResourceImpl extends IGeoResource {
             }
             description = caps.getService().get_abstract();
 
-            super.icon = CatalogUIPlugin.getDefault().getImages().getImageDescriptor(
-                    ISharedImages.GRID_OBJ);
+            // XXX _p3: is this icon used anywhere?
+//            super.icon = CatalogUIPlugin.getDefault().getImages().getImageDescriptor(
+//                    ISharedImages.GRID_OBJ);
             
             // icon = fetchIcon( monitor );
         }

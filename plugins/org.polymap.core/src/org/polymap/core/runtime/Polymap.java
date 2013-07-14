@@ -36,6 +36,7 @@ import java.security.Principal;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -165,6 +166,8 @@ public final class Polymap {
     private Set<Principal>  principals = new HashSet();
     
     private UserPrincipal   user;
+
+    private Map             initHttpParams;
     
     
     /**
@@ -186,6 +189,9 @@ public final class Polymap {
      * Logging in using default JAAS config.
      */
     public void login( String loginContext ) {
+        HttpServletRequest request = RWT.getRequest();
+        initHttpParams = new HashMap( request.getParameterMap() );
+
         String jaasConfigFile = "jaas_config.txt";
         File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
         
@@ -251,6 +257,9 @@ public final class Polymap {
     
     public void login( String username, String passwd )
     throws LoginException {
+        HttpServletRequest request = RWT.getRequest();
+        initHttpParams = new HashMap( request.getParameterMap() );
+
         String jaasConfigFile = "jaas_config.txt";
         File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
 
@@ -311,6 +320,13 @@ public final class Polymap {
 
     public void setUser( UserPrincipal userPrincipal ) {
         this.user = userPrincipal;
+    }
+    
+    
+    public String getInitRequestParam( String key, String defaultValue ) {
+        assert initHttpParams != null;
+        String[] value = (String[])initHttpParams.get( key );
+        return value != null ? value[0] : defaultValue;
     }
 
     

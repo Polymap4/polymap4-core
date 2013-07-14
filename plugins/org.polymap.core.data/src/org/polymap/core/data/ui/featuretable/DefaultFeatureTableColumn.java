@@ -16,6 +16,7 @@
 package org.polymap.core.data.ui.featuretable;
 
 import java.util.Comparator;
+import java.util.Date;
 
 import org.opengis.feature.type.PropertyDescriptor;
 
@@ -38,7 +39,6 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewerColumn;
 
-
 /**
  *
  *
@@ -54,6 +54,7 @@ public class DefaultFeatureTableColumn
     private PropertyDescriptor      prop;
 
     private boolean                 editing;
+    
     private EditingSupport          editingSupport;
 
     private String                  header;
@@ -61,6 +62,8 @@ public class DefaultFeatureTableColumn
     private int                     weight = -1;
 
     private int                     minimumWidth = -1;
+    
+    private ColumnLabelProvider     labelProvider = new DefaultCellLabelProvider();
 
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
@@ -72,11 +75,16 @@ public class DefaultFeatureTableColumn
         this.viewer = viewer;
         this.editingSupport = editing ? new DefaultEditingSupport( viewer ) : null;
     }
-
+    
     public String getName() {
         return prop.getName().getLocalPart();
     }
     
+    public DefaultFeatureTableColumn setLabelProvider( ColumnLabelProvider labelProvider ) {
+        this.labelProvider = labelProvider;
+        return this;
+    }
+
     public DefaultFeatureTableColumn setHeader( String header ) {
         this.header = header;
         return this;
@@ -117,7 +125,7 @@ public class DefaultFeatureTableColumn
         viewerColumn.getColumn().setMoveable( true );
         viewerColumn.getColumn().setResizable( true );
         
-        viewerColumn.setLabelProvider( new DefaultCellLabelProvider() );
+        viewerColumn.setLabelProvider( labelProvider );
         String normalizedName = StringUtils.capitalize( getName() );
         viewerColumn.getColumn().setText( header != null ? header : normalizedName );
         
@@ -128,7 +136,8 @@ public class DefaultFeatureTableColumn
         // sort listener for supported prop bindings
         Class propBinding = prop.getType().getBinding();
         if (String.class.isAssignableFrom( propBinding )
-                || Number.class.isAssignableFrom( propBinding )) {
+                || Number.class.isAssignableFrom( propBinding )
+                || Date.class.isAssignableFrom( propBinding )) {
 
             viewerColumn.getColumn().addListener( SWT.Selection, new Listener() {
                 public void handleEvent( Event ev ) {
@@ -189,6 +198,9 @@ public class DefaultFeatureTableColumn
                 else if (Number.class.isAssignableFrom( propBinding )) {
                     return (int)(((Number)value1).doubleValue() - ((Number)value2).doubleValue());
                 }
+                else if (Date.class.isAssignableFrom( propBinding )) {
+                    return ((Date)value1).compareTo( (Date)value2 );
+                }
                 else {
                     return value1.toString().compareTo( value2.toString() );
                 }
@@ -198,7 +210,7 @@ public class DefaultFeatureTableColumn
     }
 
     
-    /*
+    /**
      * 
      */
     class DefaultCellLabelProvider
@@ -230,7 +242,7 @@ public class DefaultFeatureTableColumn
     }
     
     
-    /*
+    /**
      * 
      */
     class DefaultEditingSupport

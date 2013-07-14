@@ -283,7 +283,7 @@ class FeatureTableSelectionProvider implements ISelectionProvider {
         private void startProgress() {
             Runnable runnable = new Runnable(){
                 public void run() {
-                    progressMonitor.beginTask(Messages.FeatureTableSelectionProvider_loading_new_selection, 10);
+                    progressMonitor.beginTask(Messages.get("FeatureTableSelectionProvider_loading_new_selection"), 10);
                     progressMonitor.worked(1);
                 }
             };

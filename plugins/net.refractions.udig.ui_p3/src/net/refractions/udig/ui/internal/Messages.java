@@ -16,194 +16,70 @@
  */
 package net.refractions.udig.ui.internal;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 import java.lang.reflect.Field;
+import java.text.MessageFormat;
 
 import net.refractions.udig.internal.ui.Images;
 import net.refractions.udig.internal.ui.UiPlugin;
 
+import org.apache.commons.lang.StringUtils;
+
+import org.eclipse.rwt.RWT;
+import org.eclipse.rwt.internal.service.ContextProvider;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.resource.ImageDescriptor;
+
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
+    
 	private static final String BUNDLE_NAME = "net.refractions.udig.ui.internal.messages"; //$NON-NLS-1$
-	public static String AttributeValidator_missingAtt1;
-    public static String AttributeValidator_missingAtt2;
-    public static String AttributeValidator_restriction;
-    public static String AttributeValidator_wrongType;
-    public static String BooleanCellEditor_FALSE;
-    public static String BooleanCellEditor_TRUE;
-    public static String CharSetFieldEditor_select;
-    public static String CharsetSelectionDialog_title;
-    public static String CRSChooser_unknownWKT;
-	public static String CRSChooserDialog_title;
-	public static String ErrorManager_very_informative_error;
-	public static String ExceptionDisplayer_very_informative_error;
-    public static String FeatureTableContentProvider_loadedFeatures;
-    public static String FeatureTableContentProvider_loading ;
-    public static String FeatureTableContentProvider_outOfMemory;
-    public static String FeatureTableContentProvider_sortTable;
-    public static String FeatureTableContentProvider_unexpectedErro;
-    public static String FeatureTableContentProvider_probablecharseterror;
-    public static String FeatureTableContentProvider_updateTaskName;
-    public static String FeatureTableContentProvider_updatingFeatures;
-    public static String FeatureTableControl_1;
-    public static String FeatureTableControl_loading1;
-    public static String FeatureTableControl_loading2;
-    public static String FeatureTableControl_noEditor1;
-    public static String FeatureTableControl_noEditor2;
-    public static String FeatureTableControl_warningMessage;
-    public static String FeatureTableControl_warningTitle;
-    public static String FeatureTableControl_warningToggle;
-	public static String FeatureTableSelectionProvider_loading_new_selection;
-    public static String FeatureTypeEditor_booleanType;
-    public static String FeatureTypeEditorDialog_ShellTitle;
-    public static String FileExportOperation_allFiles;
-    public static String FileExportOperation_defaultName;
-    public static String FileExportOperation_finishStatus;
-    public static String FileExportOperation_prompt;
-    public static String FileExportOperation_writingStatus;
-    public static String OpAction_errorMessage;
-    public static String OpAction_errorTitle;
-    public static String OperationDialog_Message;
-    public static String OperationDialog_Operate;
-    public static String OperationDialog_PleaseSelect;
-    public static String OperationDialog_Title;
-	public static String OperationLabelProvider_unknown;
-    public static String PlatformGIS_background;
-	public static String RunOperationDialog_run_operation;
-	public static String RunntimeFieldEditor_error;
-    public static String RunntimeFieldEditor_locale;
-    public static String RunntimeFieldEditor_maxheap;
-    public static String RunntimeFieldEditor_memory_positive;
-    public static String RunntimeFieldEditor_path_not_existing;
-    public static String RunntimeFieldEditor_restart;
-    public static String RunntimeFieldEditor_workspace_path;
-    public static String SendLogDialog_contact;
-    public static String SendLogDialog_contact_message;
-    public static String SendLogDialog_description;
-    public static String SendLogDialog_empty;
-    public static String SendLogDialog_log;
-    public static String SendLogDialog_notes;
-    public static String SendLogDialog_notes_message;
-    public static String SendLogDialog_reading;
-    public static String SendLogDialog_submit;
-    public static String SendLogDialog_title;
-    public static String ShutdownTaskList_shutDown;
-    public static String TransferPreference_transfer_preference_description;
-	public static String FeatureTextTransfer_transfer_name;
-	public static String FeatureTextTransfer_strategy_wkt_name;
-	public static String FeatureTextTransfer_strategy_gml_name;
-	public static String TipDialog_question;
-	public static String TipDialog_shellText;
-	public static String NewFeatureTypeOp_duplicateTypeName;
-	public static String deleteAttributeAction_tooltip;
-    public static String deleteAttributeAction_label;
-    public static String deleteAttributeAction_description;
-	public static String FeatureTypeEditor_newAttributeTypeDefaultName;
-	public static String FeatureTypeEditor_newFeatureTypeName;
-	public static String FeatureTypeEditor_typeColumnName;
-	public static String FeatureTypeEditor_nameColumnName;
-	public static String FeatureTableControl_loadingMessage;
-	public static String FeatureTypeEditor_multiPolygonType;
-	public static String FeatureTypeEditor_defaultNameAttributeName;
-	public static String FeatureTypeEditor_defaultGeometryName;
-	public static String FeatureTypeEditor_multiLineStringType;
-	public static String FeatureTypeEditor_multiPointType;
-	public static String FeatureTypeEditor_geometryType;
-	public static String FeatureTypeEditor_polygonType;
-	public static String FeatureTypeEditor_lineStringType;
-	public static String FeatureTypeEditor_pointType;
-	public static String FeatureTypeEditor_floatType;
-	public static String FeatureTypeEditor_doubleType;
-	public static String FeatureTypeEditor_longType;
-	public static String FeatureTypeEditor_integerType;
-	public static String FeatureTypeEditor_dateType;
-	public static String FeatureTypeEditor_stringType;
-	public static String UDIGApplication_error2;
-	public static String UDIGApplication_error1;
-	public static String UDIGApplication_title;
-	public static String UDIGApplication_error;
-	public static String UDIGDropHandler_jobName;
-	public static String UDIGDropHandler_error;
-	public static String OperationMenuFactory_menu_text;
-	public static String AuthenticationDialog_dialog_title;
-	public static String AuthenticationDialog_label_rememberPassword;
-	public static String AuthenticationDialog_label_password;
-	public static String AuthenticationDialog_label_username;
-	public static String AuthenticationDialog_label_prompt;
-	public static String UDIGDropHandler_performing_task;
-	public static String UDIGWorkbenchAdvisor_welcome_text;
-	public static String UDIGWorkbenchAdvisor_closeAllPerspectives_text;
-	public static String UDIGWorkbenchAdvisor_closePerspective_text;
-	public static String UDIGWorkbenchAdvisor_aboutUDig_text;
-	public static String UDIGWorkbenchAdvisor_newWindow_text;
-	public static String UDIGWorkbenchAdvisor_navigationMenu;
-	public static String UDIGWorkbenchAdvisor_helpContents_text;
-	public static String UDIGWorkbenchAdvisor_preferences_text;
-	public static String UDIGWorkbenchAdvisor_resetPerspective_text;
-	public static String UDIGWorkbenchAdvisor_open_perspective;
-	public static String UDIGWorkbenchAdvisor_help;
-	public static String UDIGWorkbenchAdvisor_layerMenu;
-	public static String UDIGWorkbenchAdvisor_show_view;
-	public static String UDIGWorkbenchAdvisor_window;
-	public static String UDIGWorkbenchAdvisor_tools;
-	public static String UDIGWorkbenchAdvisor_edit;
-	public static String UDIGWorkbenchAdvisor_new;
-	public static String UDIGWorkbenchAdvisor_file;
-	public static String UDIGApplication_error_jai_warning_text;
-	public static String UDIGApplication_error_jai_warning_title;
-    public static String UDIGApplication_helpstring;
-    public static String UDIGWorkbenchWindowAdvisor_classNotFound;
-    public static String UDIGWorkbenchWindowAdvisor_specifiedButNotFound;
-	public static String UiPreferences_advancedGraphics_label;
-    public static String UiPreferences_charset;
-	public static String UiPreferences_description;
-    public static String UiPreferences_ImperialUnits;
-    public static String UiPreferences_MetricUnits;
-    public static String UiPreferences_AutoUnits;
-    public static String UiPreferences_UnitsLabel;
-    public static String CRSChooser_tooltip;
-    public static String CRSChooser_unnamed;
-    public static String CRSChooser_keywordsLabel;
-    public static String CRSChooser_tab_customCRS;
-    public static String CRSChooser_tab_standardCRS;
-    public static String CRSChooser_label_crs;
-    public static String CRSChooser_label_crsWKT;
-    
-    public static String cancel_label;
-    public static String cancel_image;
-    public static String cancel_description;
-    public static String cancel_tooltip;
-    
-    public static String orientation_horizontal_label;
-    public static String orientation_horizontal_image;
-    public static String orientation_horizontal_description;
-    public static String orientation_horizontal_tooltip;
-    
-    public static String orientation_vertical_label;
-    public static String orientation_vertical_image;
-    public static String orientation_vertical_description;
-    public static String orientation_vertical_tooltip;
-    
-    public static String orientation_single_label;
-    public static String orientation_single_image;
-    public static String orientation_single_description;
-    public static String orientation_single_tooltip;
-    
-    public static String orientation_automatic_label;
-    public static String orientation_automatic_image;
-    public static String orientation_automatic_description;
-    public static String orientation_automatic_tooltip;
-    
-    public static String addAttributeAction_label;
 
-    public static String ExceptionDetailsEditorMessage;
+    private static final Locale defaultLocale = Locale.GERMAN;
     
-	static {
-		// initialize resource bundle
-		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
-	}
+    /**
+     * Find the localized message for the given key. If arguments are given, then the
+     * result message is formatted via {@link MessageFormat}.
+     *
+     * @param key
+     * @param args If not null, then the message is formatted via {@link MessageFormat}
+     * @return The message for the given key.
+     */
+    public static String get( String key, Object... args ) {
+        Locale locale = ContextProvider.hasContext() ? RWT.getLocale() : defaultLocale;
+        return get( locale, key, args );
+    }
+
+    /**
+     * Find the localized message for the given key. If arguments are given, then the
+     * result message is formatted via {@link MessageFormat}.
+     *
+     * @param locale The locale to use to localize the given message.
+     * @param key
+     * @param args If not null, then the message is formatted via {@link MessageFormat}
+     * @return The message for the given key.
+     */
+    public static String get( Locale locale, String key, Object... args ) {
+        try {
+            // getBundle() caches the bundles
+            ResourceBundle bundle = ResourceBundle.getBundle( BUNDLE_NAME, locale, Messages.class.getClassLoader() );
+            if (args == null || args.length == 0) {
+                return bundle.getString( key );
+            }
+            else {
+                String msg = bundle.getString( key );
+                return MessageFormat.format( msg, args );
+            }
+        }
+        catch (Exception e) {
+            return StringUtils.substringAfterLast( key, "_" );
+        }
+    }
+
 
 	private Messages() {
 	}

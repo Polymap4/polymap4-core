@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,7 +23,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicate;
+
 import org.eclipse.swt.widgets.Composite;
+
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
@@ -31,13 +34,19 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.operations.NewFeatureOperation;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.Messages;
+import org.polymap.core.mapeditor.tooling.IEditorToolSite;
+import org.polymap.core.model.security.ACLUtils;
+import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.operation.OperationSupport;
+import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.openlayers.rap.widget.base.OpenLayersEventListener;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.DrawFeatureControl;
+import org.polymap.openlayers.rap.widget.controls.KeyboardDefaultsControl;
+import org.polymap.openlayers.rap.widget.controls.NavigationControl;
 import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 
 /**
@@ -55,10 +64,29 @@ public class DigitizeTool
 
     private DrawFeatureControl      drawControl;
     
+    private NavigationControl       naviControl;
+    
+    private KeyboardDefaultsControl keyboardControl;
 
+    
+    @Override
+    public boolean init( IEditorToolSite site ) {
+        boolean result = super.init( site );
+        
+        additionalLayerFilter = new Predicate<ILayer>() {
+            public boolean apply( ILayer input ) {
+                return ACLUtils.checkPermission( input, AclPermission.WRITE, false );
+            }
+        };
+        return result;
+    }
+    
+    
     @Override
     public void dispose() {
-        onDeactivate();
+        if (isActive()) {
+            onDeactivate();
+        }
         super.dispose();
     }
 
@@ -78,8 +106,26 @@ public class DigitizeTool
         }
         
         // vector layer
-        vectorLayer = new EditVectorLayer( getSite().getEditor(), getSelectedLayer() );
+        vectorLayer = new EditVectorLayer( getSite(), getSelectedLayer() );
         vectorLayer.activate();
+
+        // re-create the styler controls if this activation is due to a layer change
+        if (getParent() != null && !getParent().isDisposed()) {
+            vectorLayer.getStyler().createPanelControl( getParent(), this );
+            getParent().layout( true );
+        }
+
+        // after digitize often a editor is opened, which cannot be used since KeyboardDefaultsControl
+        // catches all key event; so disable until observeElement is correctly set
+//        // keyboardControl
+//        keyboardControl = new KeyboardDefaultsControl();
+//        getSite().getEditor().addControl( keyboardControl );
+//        keyboardControl.activate();
+
+        // naviControl
+        naviControl = new NavigationControl();
+        getSite().getEditor().addControl( naviControl );
+        naviControl.activate();
 
         // drawControl
         try {
@@ -121,12 +167,15 @@ public class DigitizeTool
         catch (Exception e) {
             PolymapWorkbench.handleError( MapEditorPlugin.PLUGIN_ID, this, i18n( "errorMsg" ), e );
         }
+        
+        fireEvent( this, PROP_LAYER_ACTIVATED, getSelectedLayer() );
     }
 
 
     @Override
     public void createPanelControl( Composite parent ) {
         super.createPanelControl( parent );
+        
         vectorLayer.getStyler().createPanelControl( parent, this );
     }
 
@@ -135,6 +184,18 @@ public class DigitizeTool
     public void onDeactivate() {
         super.onDeactivate();
         
+        if (keyboardControl != null) {
+            getSite().getEditor().removeControl( keyboardControl );
+            keyboardControl.deactivate();
+            keyboardControl.dispose();
+            keyboardControl = null;
+        }
+        if (naviControl != null) {
+            getSite().getEditor().removeControl( naviControl );
+            naviControl.deactivate();
+            naviControl.dispose();
+            naviControl = null;
+        }
         if (drawControl != null) {
             getSite().getEditor().removeControl( drawControl );
             drawControl.deactivate();
@@ -146,6 +207,7 @@ public class DigitizeTool
         if (vectorLayer != null) {
             vectorLayer.dispose();
             vectorLayer = null;
+            lastControl = layersList;
         }
     }
 

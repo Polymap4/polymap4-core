@@ -71,8 +71,9 @@ public class SelectionTool
 
     @Override
     public void dispose() {
-        log.debug( "dispose(): ..." );
-        onDeactivate();
+        if (isActive()) {
+            onDeactivate();
+        }
         super.dispose();
     }
 
@@ -92,10 +93,16 @@ public class SelectionTool
         this.fsm = LayerFeatureSelectionManager.forLayer( getSelectedLayer() );
         this.fsm.addSelectionChangeListener( this );
         
-        vectorLayer = new SelectionVectorLayer( getSite().getEditor(), getSelectedLayer() );
+        vectorLayer = new SelectionVectorLayer( getSite(), getSelectedLayer() );
         vectorLayer.enableHover();
         vectorLayer.activate();
         vectorLayer.selectFeatures( fsm.getFeatureCollection() );
+
+        // re-create the styler controls if this activation is due to a layer change
+        if (getParent() != null && !getParent().isDisposed()) {
+            vectorLayer.getStyler().createPanelControl( getParent(), this );
+            getParent().layout( true );
+        }
 
 //        clickControl = new ClickControl();
 //        getSite().getEditor().addControl( clickControl );
@@ -129,6 +136,8 @@ public class SelectionTool
 
         boxControl.activate();
         selectControl.activate();    
+
+        fireEvent( this, PROP_LAYER_ACTIVATED, getSelectedLayer() );
 
         // XXX find an indirect way to signal that the layer has selected
         // features; GeoHub? 
@@ -173,6 +182,7 @@ public class SelectionTool
         if (vectorLayer != null) {
             vectorLayer.dispose();
             vectorLayer = null;
+            lastControl = layersList;
         }
     }
 

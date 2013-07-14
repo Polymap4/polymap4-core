@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -55,12 +55,12 @@ class AnnotatedEventListener
     /**
      * 
      */
-    public AnnotatedEventListener( Object handler, EventFilter... filters ) {
+    public AnnotatedEventListener( Object handler, Integer mapKey, EventFilter... filters ) {
         assert handler != null;
         assert filters != null;
         this.handlerRef = new WeakReference( handler );
         this.handlerClass = handler.getClass();
-        this.mapKey = System.identityHashCode( handler );
+        this.mapKey = mapKey;
         
         // find annotated methods
         Queue<Class> types = new ArrayDeque( 16 );
@@ -108,7 +108,7 @@ class AnnotatedEventListener
                     // get the proper context
                     SessionContext session = SessionContext.current();
                     if (session != null) {
-                        listener = new SessioningListener( listener, mapKey, session );
+                        listener = new SessioningListener( listener, mapKey, session, handlerClass );
                     }
                     methods.add( listener );
                 }
@@ -132,12 +132,14 @@ class AnnotatedEventListener
             else {
                 log.info( "Removing reclaimed handler: " + handlerClass );
                 handlerRef = null;
-                EventListener removed = EventManager.instance().removeKey( mapKey );
-                if (removed == null) {
-                    log.warn( "Unable to remove reclaimed handler for key: " + mapKey );
-                }
+                EventManager.instance().removeKey( mapKey );
             }
         }
+    }
+
+    
+    public Integer getMapKey() {
+        return mapKey;
     }
 
 
@@ -185,11 +187,11 @@ class AnnotatedEventListener
                 // display events are always wrapped into DeferredListener (see above)
                 if (ev instanceof DeferredEvent) {
                     for (EventObject ev2 : ((DeferredEvent)ev).events()) {
-                        handlerMethod.invoke( handler, new Object[] { ev2 } );
+                        handlerMethod.invoke( handler, new Object[] {ev2} );
                     }
                 }
                 else {
-                    handlerMethod.invoke( handler, new Object[] { ev } );
+                    handlerMethod.invoke( handler, new Object[] {ev} );
                 }
             }
         }
@@ -235,8 +237,8 @@ class AnnotatedEventListener
         
         @Override
         public void handleEvent( final EventObject ev ) throws Exception {
-            List<EventObject> events = ((DeferredEvent)ev).events();
-            handlerMethod.invoke( handlerRef.get(), new Object[] { events } );
+            Object[] params = new Object[] { ((DeferredEvent)ev).events() };
+            handlerMethod.invoke( handlerRef.get(), params );
         }
     }
     

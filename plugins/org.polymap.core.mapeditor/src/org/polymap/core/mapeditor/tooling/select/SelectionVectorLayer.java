@@ -17,7 +17,7 @@ package org.polymap.core.mapeditor.tooling.select;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.tooling.IEditorToolSite;
 import org.polymap.core.mapeditor.tooling.edit.BaseVectorLayer;
 import org.polymap.core.project.ILayer;
 
@@ -31,8 +31,8 @@ public class SelectionVectorLayer
 
     private static Log log = LogFactory.getLog( SelectionVectorLayer.class );
 
-    public SelectionVectorLayer( MapEditor mapEditor, ILayer layer ) {
-        super( mapEditor, layer );
+    public SelectionVectorLayer( IEditorToolSite site, ILayer layer ) {
+        super( site, layer );
     }
 
 }

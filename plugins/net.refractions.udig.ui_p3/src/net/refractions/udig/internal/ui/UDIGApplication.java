@@ -92,7 +92,7 @@ public class UDIGApplication implements IApplication {
 
         for( String arg : Platform.getCommandLineArgs() ) {
             if ("--help".equalsIgnoreCase(arg) || "-h".equalsIgnoreCase(arg)) { //$NON-NLS-1$ //$NON-NLS-2$
-                String helpString = MessageFormat.format(Messages.UDIGApplication_helpstring,
+                String helpString = MessageFormat.format(Messages.get("UDIGApplication_helpstring"),
                         udigNameStr);
                 System.out.println(helpString);
                 return EXIT_OK;
@@ -133,7 +133,7 @@ public class UDIGApplication implements IApplication {
         try {
             returnCode = PlatformUI.createAndRunWorkbench(display, workbenchAdvisor);
         } catch (Throwable t) {
-            UiPlugin.log(Messages.UDIGApplication_error, t);
+            UiPlugin.log(Messages.get("UDIGApplication_error"), t);
         } finally {
             context.applicationRunning();
             display.dispose();

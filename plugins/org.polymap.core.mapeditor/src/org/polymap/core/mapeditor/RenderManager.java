@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH. All rights reserved.
+ * Copyright 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,7 +18,7 @@ import java.util.EventObject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.TreeSet;
 
 import java.beans.PropertyChangeEvent;
 import net.refractions.udig.catalog.IGeoResource;
@@ -44,7 +44,6 @@ import org.eclipse.rwt.service.ISettingStore;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.CorePlugin;
@@ -60,6 +59,7 @@ import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.project.operations.OpenMapOperation;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
@@ -74,27 +74,27 @@ import org.polymap.service.http.MapHttpServer;
  * that displays the contents of this map. It listens to all kind of events regarding
  * its map and changes its {@link #mapEditor} as needed.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class RenderManager {
 
     private static Log log = LogFactory.getLog( RenderManager.class );
 
+    private static final IMessages  i18n = Messages.forPrefix( "RenderManager" );
+    
     private IMap                    map;
     
     private MapEditor               mapEditor;
 
     private MapHttpServer           wmsServer;
     
-    private TreeMap<String,RenderLayerDescriptor> descriptors = new TreeMap();
+    /** Sorted set, see {@link RenderLayerDescriptor#compare()}. */
+    private TreeSet<RenderLayerDescriptor> descriptors = new TreeSet();
     
     private MapDomainListener       modelListener = new MapDomainListener();
     
     private FeatureListener         featureListener = new FeatureListener();
-    
-    /** The layer that is currently in edit (vector) mode or null. */
-    private ILayer                  editLayer;
     
     
     public RenderManager( IMap map, MapEditor mapEditor ) {
@@ -154,22 +154,13 @@ public class RenderManager {
     }
     
     
-    /** 
-     * The layer that is currently in edit (vector) mode or null. 
-     */
-    public ILayer getEditLayer() {
-        return editLayer;
-    }
-
-
     protected synchronized void clearPipelines() {
         if (mapEditor != null) {
-            for (RenderLayerDescriptor descriptor : descriptors.values()) {
+            for (RenderLayerDescriptor descriptor : descriptors) {
                 mapEditor.removeLayer( descriptor );
             }
         }
         descriptors.clear();
-        editLayer = null;
     }
     
     
@@ -197,7 +188,7 @@ public class RenderManager {
             try {
                 log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
                 if (layer.isVisible()) {
-                    monitor.subTask( "Find geo-resource of layer: " + layer.getLabel() );
+                    monitor.subTask( i18n.get( "georesTaskTitle", layer.getLabel() ) );
                     IGeoResource res = layer.getGeoResource();
                     if (res == null) {
                         log.warn( "Unable to find geo resource of layer: " + layer );
@@ -208,8 +199,8 @@ public class RenderManager {
                                 String label = layer instanceof LayerComposite
                                         ? ((LayerComposite)layer).georesId().get()
                                         : layer.getLabel();
-                                box.setMessage( "Geo-Ressource kann im Katalog nicht gefunden werden: " + label );
-                                box.setText( "Achtung." );
+                                box.setMessage( i18n.get( "noGeoresMsg", label ) );
+                                box.setText( i18n.get( "noGeoresTitle", label ) );
                                 box.open();
                             }
                         });
@@ -218,9 +209,10 @@ public class RenderManager {
 
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
                             StringUtils.removeStart( wmsServer.getPathSpec(), "/" ), 
-                            false, layer.getOrderKey(), layer.getOpacity() );
+                            layer.getOrderKey(), layer.getOpacity() );
                     descriptor.layers.add( layer );
-                    descriptors.put( descriptor.renderLayerKey(), descriptor );
+                    boolean added = descriptors.add( descriptor );
+                    assert added : "Unable to add layer descriptor: " + descriptor.layerNames();
                     
                     monitor.worked( 1 );
                 }
@@ -232,7 +224,7 @@ public class RenderManager {
         }
         
         // add layers to mapEditor
-        for (RenderLayerDescriptor descriptor : descriptors.values()) {
+        for (RenderLayerDescriptor descriptor : descriptors) {
             mapEditor.addLayer( descriptor );
         }
     }
@@ -437,7 +429,7 @@ public class RenderManager {
 
     
     private final RenderLayerDescriptor findDescriptorForLayer( ILayer layer ) {
-        for (RenderLayerDescriptor descriptor : descriptors.values()) {
+        for (RenderLayerDescriptor descriptor : descriptors) {
             if (descriptor.layers.contains( layer )) {
                 return descriptor;
             }
@@ -447,45 +439,61 @@ public class RenderManager {
 
     
     /**
-     * A set of {@link ILayer}s along with render properties to be
-     * displayed by a {@link MapEditor}.
-     *
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
-     * @since 3.0
+     * A set of {@link ILayer}s along with render properties to be displayed by a
+     * {@link MapEditor}.
      */
-    class RenderLayerDescriptor {
-        
-        String              title;
+    class RenderLayerDescriptor
+            implements Comparable {
         
         int                 zPriority;
         
         int                 opacity;
         
-        boolean             isEdit;
-        
         Set<ILayer>         layers = new HashSet();
         
         String              servicePath;
 
-        RenderLayerDescriptor( String servicePath, boolean isEdit, int zPriority, int opacity ) {
-            super();
+        RenderLayerDescriptor( String servicePath, int zPriority, int opacity ) {
             this.servicePath = servicePath;
-            this.isEdit = isEdit;
             this.zPriority = zPriority;
             this.opacity = opacity;
-            this.title = servicePath;
+        }
+
+        String title() {
+            return layerNames();
+        }
+        
+        String layerNames() {
+            StringBuilder result = new StringBuilder();
+            for (ILayer layer : layers) {
+                result.append( result.length() > 0 ? "," : "" ).append( layer.getLabel() );
+            }
+            return result.toString();
+        }
+        
+        
+        /**
+         * Sort layers after zPriority. Fixes ticket
+         * http://polymap.org/atlas/ticket/185.
+         */
+        @Override
+        public int compareTo( Object o ) {
+            RenderLayerDescriptor other = (RenderLayerDescriptor)o;
+            if (zPriority != other.zPriority) {
+                // reverse order: add high zPriority to map first
+                return zPriority - other.zPriority;
+            }
+            else {
+                return hashCode() - other.hashCode();
+            }
         }
 
         /**
-         * Creates a sort key for the values of this descriptor. Sort: service
-         * -> edit -> zPriority -> opacity.
+         * Creates a render priority key.
          */
         String renderLayerKey() {
-            StringBuilder result = new StringBuilder( 256 );
-            result.append( hashCode() /*service.getIdentifier()*/ )
-                    .append( isEdit ? "1" : "0" ).append( zPriority ).append( opacity );
-            return result.toString();
+            return new StringBuilder( 128 )
+                    .append( zPriority ).append( opacity ).append( hashCode() ).toString();
         }
 
     }

@@ -31,6 +31,7 @@ import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,8 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -78,6 +81,7 @@ import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.IMessages;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.WeakListener;
 
 /**
@@ -102,9 +106,9 @@ public class CopyFeaturesOperation2
 
     private FeatureCollection           features;
 
-    private PipelineFeatureSource destFs;
+    private PipelineFeatureSource       destFs;
 
-    private List<FeatureId> createdFeatureIds;
+    private List<FeatureId>             createdFeatureIds;
 
 
     /** The copied features. */    
@@ -134,17 +138,25 @@ public class CopyFeaturesOperation2
         // open wizard dialog
         monitor.subTask( "Eingaben vom Nutzer..." );
         IUndoableOperation op = context.adapt( IUndoableOperation.class );
-        OperationWizard wizard = new OperationWizard( op, context, monitor ) {
-            public boolean doPerformFinish()
-            throws Exception {
+        final OperationWizard wizard = new OperationWizard( op, context, monitor ) {
+            public boolean doPerformFinish() throws Exception {
                 ((FeatureEditorPage2)getPage( FeatureEditorPage2.ID )).performFinish();
                 return true;
             }
         };
+        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            public void run() {
+                wizard.getShell().setMinimumSize( 600, 600 );
+                wizard.getShell().layout( true );
+            }
+        });
+
         final ChooseLayerPage chooseLayerPage = new ChooseLayerPage(
                 i18n.get( "ChooseLayerPage_title" ),
                 i18n.get( "ChooseLayerPage_description" ),
                 true );
+        ILayer layer = context.adapt( ILayer.class );
+        chooseLayerPage.preset( layer );
         wizard.addPage( chooseLayerPage );
         final FeatureEditorPage2 featureEditorPage = new FeatureEditorPage2();
         wizard.addPage( featureEditorPage );
@@ -178,10 +190,17 @@ public class CopyFeaturesOperation2
                 Pipeline pipe = destFs.getPipeline();
                 Iterables.removeIf( pipe, Predicates.instanceOf( FeatureBufferProcessor.class ) );
             }
+
+            // tranform schema
+            features = featureEditorPage.retyped( features );            
+            
             // transform CRS
-            CoordinateReferenceSystem destCrs = destFs.getSchema().getCoordinateReferenceSystem();
-            SimpleFeatureType sourceSchema = source.getSchema();
+            SimpleFeatureType destSchema = destFs.getSchema();
+            final CoordinateReferenceSystem destCrs = destSchema.getCoordinateReferenceSystem();
+            SimpleFeatureType sourceSchema = (SimpleFeatureType)features.getSchema();
+            // XXX do not use sourceSchema here as featureEditorPage ff. has set CRS to destFs schema CRS
             CoordinateReferenceSystem sourceCrs = sourceSchema.getCoordinateReferenceSystem();
+            
             if (destCrs != null && !destCrs.equals( sourceCrs )) {
                // features = new ReprojectingFeatureCollection( features, destCrs );
                 
@@ -205,8 +224,50 @@ public class CopyFeaturesOperation2
                     }
                 };
             }
-            // tranform schema
-            features = featureEditorPage.retyped( features );            
+            
+            // transform geometry types
+            SimpleFeatureType featuresSchema = (SimpleFeatureType)features.getSchema();
+            final GeometryDescriptor featureGeom = featuresSchema.getGeometryDescriptor();
+            final GeometryDescriptor destGeom = destSchema.getGeometryDescriptor();
+            if (featureGeom != null && destGeom != null
+                    && !featureGeom.getType().getBinding().equals( destGeom.getType().getBinding() )) {
+             
+                SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
+                ftb.init( featuresSchema );
+                ftb.remove( featureGeom.getLocalName() );
+                ftb.add( destGeom.getLocalName(), destGeom.getType().getBinding(), destGeom.getCoordinateReferenceSystem() );
+                final SimpleFeatureType retypedSchema = ftb.buildFeatureType();
+                
+                features = new RetypingFeatureCollection( features, retypedSchema ) {
+                    protected Feature retype( Feature feature ) {
+                        try {
+                            SimpleFeatureBuilder fb = new SimpleFeatureBuilder( retypedSchema );
+                            fb.init( (SimpleFeature)feature );
+                            Geometry geom = (Geometry)feature.getProperty( featureGeom.getLocalName() ).getValue();
+
+                            // Point -> MultiPolygon
+                            if (destGeom.getType().getBinding().equals( MultiPolygon.class )
+                                    || destGeom.getType().getBinding().equals( Polygon.class )) {
+                                geom = Geometries.transform( geom, destCrs, Geometries.crs( "EPSG:3857" ) );
+                                geom = geom.buffer( 10, 3 );
+                                geom = Geometries.transform( geom, Geometries.crs( "EPSG:3857" ), destCrs );
+                                
+                                fb.set( destGeom.getLocalName(), geom );
+                                return fb.buildFeature( feature.getIdentifier().getID() );
+                            }
+                            else {
+                                throw new UnsupportedOperationException( "Unsupported geometry transformation: " + destGeom.getType().getBinding().getSimpleName() );
+                            }
+                        }
+                        catch (RuntimeException e) {
+                            throw e;
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                };
+            }
             
             createdFeatureIds = destFs.addFeatures( features, new ProgressListenerAdaptor( copyMonitor ) );
 
@@ -256,7 +317,7 @@ public class CopyFeaturesOperation2
         }
 
         protected void pageEntered() {
-            getContainer().getShell().setMinimumSize( 700, 500 );
+            getContainer().getShell().setMinimumSize( 600, 600 );
             getContainer().getShell().layout( true );
 
             setErrorMessage( null );
@@ -285,18 +346,22 @@ public class CopyFeaturesOperation2
             // geometry attribute
             GeometryDescriptor destGeomAttr = schema.getGeometryDescriptor();
             GeometryDescriptor sourceGeomAttr = sourceSchema.getGeometryDescriptor();
-            mappings.put( new AttributeMapping( destGeomAttr.getLocalName(),
-                    destGeomAttr.getType().getBinding(),
-                    destGeomAttr.getCoordinateReferenceSystem(),
-                    sourceGeomAttr.getLocalName(), null ) );
+            if (destGeomAttr != null && sourceGeomAttr != null) {
+                
+                mappings.put( new AttributeMapping( destGeomAttr.getLocalName(),
+                        // binding and CRS are tranformed in #execute()
+                        sourceGeomAttr.getType().getBinding(),
+                        sourceGeomAttr.getCoordinateReferenceSystem(),
+                        sourceGeomAttr.getLocalName(), null ) );
 
-            // check geometry type
-            Class destGeomType = destGeomAttr.getType().getBinding();
-            Class sourceGeomType = sourceGeomAttr.getType().getBinding();
-            if (!destGeomType.isAssignableFrom( sourceGeomType )) {
-                setMessage( i18n.get( "FeatureEditorPage_errorGeom",
-                        destGeomType.getSimpleName(), sourceGeomType.getSimpleName() ),
-                        DialogPage.WARNING );
+                // check geometry type
+                Class destGeomType = destGeomAttr.getType().getBinding();
+                Class sourceGeomType = sourceGeomAttr.getType().getBinding();
+                if (!destGeomType.isAssignableFrom( sourceGeomType )) {
+                    setMessage( i18n.get( "FeatureEditorPage_errorGeom",
+                            destGeomType.getSimpleName(), sourceGeomType.getSimpleName() ),
+                            DialogPage.WARNING );
+                }
             }
 
             for (AttributeDescriptor destAttr : schema.getAttributeDescriptors()) {
@@ -332,6 +397,9 @@ public class CopyFeaturesOperation2
             }
             configPageProps.put( "mappings", mappings.serialize() );
 
+            if (configPage != null) {
+                configPage.getControl().dispose();                
+            }
             configPage = new FeatureTypeEditorProcessorConfig();
             configPage.init( dest, configPageProps );
             configPage.setSourceFeatureType( sourceSchema );

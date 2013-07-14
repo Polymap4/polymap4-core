@@ -393,4 +393,11 @@ public class ShpServiceImpl
         }
     }
     
+    /**
+     * Allows to reset data source after *.prj file was written.
+     */
+    public void resetDataSource() {
+        ds = null;
+    }
+    
 }

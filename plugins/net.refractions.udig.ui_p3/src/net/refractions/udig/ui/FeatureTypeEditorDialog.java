@@ -69,7 +69,7 @@ public class FeatureTypeEditorDialog extends Dialog {
     
     @Override
     protected Control createDialogArea( Composite parent ) {
-        getShell().setText(Messages.FeatureTypeEditorDialog_ShellTitle);
+        getShell().setText(Messages.get("FeatureTypeEditorDialog_ShellTitle"));
         Composite composite=new Composite(parent, SWT.NONE);
         GridLayout gridLayout = new GridLayout(8, false);
         gridLayout.marginWidth=0;
@@ -208,7 +208,7 @@ public class FeatureTypeEditorDialog extends Dialog {
              * somewhere the reference to the old object is needed. 
              */
             SimpleFeatureTypeBuilder ftB = new SimpleFeatureTypeBuilder();
-            ftB.setName(Messages.NewFeatureTypeOp_duplicateTypeName);
+            ftB.setName(Messages.get("NewFeatureTypeOp_duplicateTypeName"));
             ftB.init(defaultFeatureType);
             defaultFeatureType = ftB.buildFeatureType();
             return false;

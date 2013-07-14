@@ -3,6 +3,7 @@ package org.polymap.core.project.ui.properties;
 import java.util.HashSet;
 
 import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IService;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -61,7 +62,7 @@ public class LayerPropertySource
     public IPropertyDescriptor[] getPropertyDescriptors() {
         
         // opacity descriptor
-        TextPropertyDescriptor opacityDescr = new TextPropertyDescriptor( ILayer.PROP_OPACITY, i18n( "label_opacity" ) );
+        TextPropertyDescriptor opacityDescr = new RWTTextPropertyDescriptor( ILayer.PROP_OPACITY, i18n( "label_opacity" ) );
         opacityDescr.setValidator( new ICellEditorValidator() {
             public String isValid( Object value ) {
                 try {
@@ -79,13 +80,13 @@ public class LayerPropertySource
         });
         // all other descriptors
         IPropertyDescriptor[] result = new IPropertyDescriptor[] {
-                new TextPropertyDescriptor( ILayer.PROP_LABEL, i18n( "label_name" ) ),
-                new TextPropertyDescriptor( ILayer.PROP_KEYWORDS, i18n( "label_keywords" ) ),
-                new CrsPropertyDescriptor( ILayer.PROP_CRSCODE, i18n( "label_crs" ) ),
+                new RWTTextPropertyDescriptor( ILayer.PROP_LABEL, i18n( "label_name" ) ),
+                new RWTTextPropertyDescriptor( ILayer.PROP_KEYWORDS, i18n( "label_keywords" ) ),
+                //new CrsPropertyDescriptor( ILayer.PROP_CRSCODE, i18n( "label_crs" ) ),
                 new PropertyDescriptor( "maxExtent", i18n( "label_maxExtent" ) ),
                 new PropertyDescriptor( "datacrs", i18n( "label_dataCrs" ) ),
                 new PropertyDescriptor( ILayer.PROP_GEORESID, i18n( "label_geores" ) ),
-                new TextPropertyDescriptor( ILayer.PROP_ORDERKEY, i18n( "label_zPriority" ) ),
+                new RWTTextPropertyDescriptor( ILayer.PROP_ORDERKEY, i18n( "label_zPriority" ) ),
                 opacityDescr
         };
         return result;
@@ -132,7 +133,13 @@ public class LayerPropertySource
                 return i18n( "unknownValue" );
             }
             else if (id.equals( ILayer.PROP_GEORESID )) {
-                return geores != null ? geores.getIdentifier() : i18n( "noGeoRes" );
+                if (geores == null) {
+                    return i18n( "noGeoRes" );
+                }
+                else {
+                    IService service = geores.service( new NullProgressMonitor() );
+                    return service.toString() + "#" + geores.getInfo( new NullProgressMonitor() ).getTitle();
+                }
             }
             else if (id.equals( ILayer.PROP_ORDERKEY )) {
                 Integer result = layer.getOrderKey();

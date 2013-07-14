@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import net.refractions.udig.catalog.IGeoResource;
 
+import org.geotools.data.FeatureSource;
 import org.geotools.styling.Style;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -84,12 +85,20 @@ public interface ILayer
     public void setGeoResource( IGeoResource selectedGeoRes );
 
 
+    /**
+     * @deprecated Use <code>{@link #getGeoResource()}.getInfo().getCRS()</code> or
+     *             get CRS from {@link FeatureSource} of the layer.
+     */
     public CoordinateReferenceSystem getCRS();
 
+    /**
+     * @deprecated Use <code>{@link #getGeoResource()}.getInfo().getCRS()</code> or
+     *             get CRS from {@link FeatureSource} of the layer.
+     */
     public String getCRSCode();
 
-    @ModelProperty(PROP_CRSCODE)
-    public void setCRS( CoordinateReferenceSystem crs );
+//    @ModelProperty(PROP_CRSCODE)
+//    public void setCRS( CoordinateReferenceSystem crs );
     
     
     /**

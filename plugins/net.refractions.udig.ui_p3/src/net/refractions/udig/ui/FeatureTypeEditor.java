@@ -114,29 +114,29 @@ public class FeatureTypeEditor {
         List<LegalAttributeTypes> types = new ArrayList<LegalAttributeTypes>();
         types
         .add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_stringType, String.class)); 
+                Messages.get("FeatureTypeEditor_stringType"), String.class)); 
         types
-        .add(new LegalAttributeTypes(Messages.FeatureTypeEditor_booleanType, Boolean.class)); 
-        types.add(new LegalAttributeTypes(Messages.FeatureTypeEditor_dateType, Date.class)); 
+        .add(new LegalAttributeTypes(Messages.get("FeatureTypeEditor_booleanType"), Boolean.class)); 
+        types.add(new LegalAttributeTypes(Messages.get("FeatureTypeEditor_dateType"), Date.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_integerType, Integer.class)); 
+                Messages.get("FeatureTypeEditor_integerType"), Integer.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_longType, Long.class)); 
-        types.add(new LegalAttributeTypes(Messages.FeatureTypeEditor_floatType, Float.class)); 
-        types.add(new LegalAttributeTypes(Messages.FeatureTypeEditor_doubleType, Double.class)); 
-        types.add(new LegalAttributeTypes(Messages.FeatureTypeEditor_pointType, Point.class)); 
+                Messages.get("FeatureTypeEditor_longType"), Long.class)); 
+        types.add(new LegalAttributeTypes(Messages.get("FeatureTypeEditor_floatType"), Float.class)); 
+        types.add(new LegalAttributeTypes(Messages.get("FeatureTypeEditor_doubleType"), Double.class)); 
+        types.add(new LegalAttributeTypes(Messages.get("FeatureTypeEditor_pointType"), Point.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_lineStringType, LineString.class)); 
+                Messages.get("FeatureTypeEditor_lineStringType"), LineString.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_polygonType, Polygon.class)); 
+                Messages.get("FeatureTypeEditor_polygonType"), Polygon.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_geometryType, Geometry.class)); 
+                Messages.get("FeatureTypeEditor_geometryType"), Geometry.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_multiPointType, MultiPoint.class)); 
+                Messages.get("FeatureTypeEditor_multiPointType"), MultiPoint.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_multiLineStringType, MultiLineString.class)); 
+                Messages.get("FeatureTypeEditor_multiLineStringType"), MultiLineString.class)); 
         types.add(new LegalAttributeTypes(
-                Messages.FeatureTypeEditor_multiPolygonType, MultiPolygon.class)); 
+                Messages.get("FeatureTypeEditor_multiPolygonType"), MultiPolygon.class)); 
 
         TYPES = Collections.unmodifiableList(types);
     }
@@ -199,11 +199,11 @@ public class FeatureTypeEditor {
 
         TreeColumn column = new TreeColumn(tree, SWT.CENTER);
         column.setResizable(true);
-        column.setText(Messages.FeatureTypeEditor_nameColumnName); 
+        column.setText(Messages.get("FeatureTypeEditor_nameColumnName")); 
 
         column = new TreeColumn(tree, SWT.CENTER);
         column.setResizable(true);
-        column.setText(Messages.FeatureTypeEditor_typeColumnName); 
+        column.setText(Messages.get("FeatureTypeEditor_typeColumnName")); 
 
         column = new TreeColumn(tree, SWT.CENTER);
         column.setResizable(true);
@@ -363,12 +363,12 @@ public class FeatureTypeEditor {
     public SimpleFeatureType createDefaultFeatureType() {
         SimpleFeatureTypeBuilder builder;
         builder = new SimpleFeatureTypeBuilder();
-        builder.setName(Messages.FeatureTypeEditor_newFeatureTypeName); 
+        builder.setName(Messages.get("FeatureTypeEditor_newFeatureTypeName")); 
         builder.setCRS(getDefaultCRS());
         // _p3: MySQL does allow row with 65535 only
         //builder.length(MAX_ATTRIBUTE_LENGTH);
-        builder.add(Messages.FeatureTypeEditor_defaultNameAttributeName, String.class); 
-        builder.add(Messages.FeatureTypeEditor_defaultGeometryName, LineString.class); 
+        builder.add(Messages.get("FeatureTypeEditor_defaultNameAttributeName"), String.class); 
+        builder.add(Messages.get("FeatureTypeEditor_defaultGeometryName"), LineString.class); 
         return builder.buildFeatureType();
     }
 
@@ -434,7 +434,7 @@ public class FeatureTypeEditor {
                     int index = 0;
                     while( true ) {
                         try {
-                            ftB.add(Messages.FeatureTypeEditor_newAttributeTypeDefaultName + index, String.class); 
+                            ftB.add(Messages.get("FeatureTypeEditor_newAttributeTypeDefaultName") + index, String.class); 
                             break;
                         } catch (IllegalArgumentException e) {
                             index++;
@@ -448,8 +448,8 @@ public class FeatureTypeEditor {
 
             };
             createAttributeAction.setId("net.refractions.udig.ui.FeatureTypeEditor.createAttributeAction"); //$NON-NLS-1$
-            createAttributeAction.setText(Messages.addAttributeAction_label); 
-            createAttributeAction.setToolTipText(Messages.addAttributeAction_label); 
+            createAttributeAction.setText(Messages.get("addAttributeAction_label")); 
+            createAttributeAction.setToolTipText(Messages.get("addAttributeAction_label")); 
             createAttributeAction.setImageDescriptor(Images.getDescriptor("elcl16/new_attribute.gif")); //$NON-NLS-1$
         }
         return createAttributeAction;
@@ -478,10 +478,10 @@ public class FeatureTypeEditor {
                     viewer.setInput(featureType);
                 }
             };
-            deleteAttributeAction.setText(Messages.deleteAttributeAction_label);
-            deleteAttributeAction.setToolTipText(Messages.deleteAttributeAction_tooltip);
+            deleteAttributeAction.setText(Messages.get("deleteAttributeAction_label"));
+            deleteAttributeAction.setToolTipText(Messages.get("deleteAttributeAction_tooltip"));
             deleteAttributeAction.setImageDescriptor(Images.getDescriptor("elcl16/delete.gif")); //$NON-NLS-1$
-            deleteAttributeAction.setDescription(Messages.deleteAttributeAction_description);
+            deleteAttributeAction.setDescription(Messages.get("deleteAttributeAction_description"));
             deleteAttributeAction.setId("net.refractions.udig.ui.FeatureTypeEditor.deleteAttributeAction"); //$NON-NLS-1$
         }
         return deleteAttributeAction;

@@ -55,7 +55,6 @@
             favicon="icons/favicon.gif"
             id="org.polymap.core.branding1"
             servletName="polymap"
-            themeId="org.eclipse.rap.design.example.fancy.theme"
             title="POLYMAP3 Workbench">
          <additionalHeaders>
             <meta
@@ -127,7 +126,7 @@
          point="org.eclipse.rap.ui.themes">
       <themeContribution
             file="defaultTheme.css"
-            themeId="org.eclipse.rap.design.example.fancy.theme">
+            themeId="org.eclipse.rap.rwt.theme.Default">
       </themeContribution>
    </extension>
    <extension

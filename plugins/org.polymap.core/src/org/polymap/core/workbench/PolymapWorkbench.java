@@ -33,13 +33,9 @@ import org.eclipse.rwt.service.ISessionStore;
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.WorkbenchAdvisor;
-import org.eclipse.ui.internal.util.PrefUtil;
-import org.eclipse.ui.preferences.ScopedPreferenceStore;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -138,9 +134,9 @@ public class PolymapWorkbench
     
     
     protected int createUI( WorkbenchAdvisor advisor ) {
-        ScopedPreferenceStore prefStore = (ScopedPreferenceStore)PrefUtil.getAPIPreferenceStore();
-        String keyPresentationId = IWorkbenchPreferenceConstants.PRESENTATION_FACTORY_ID;
-        String presentationId = prefStore.getString( keyPresentationId );
+//        ScopedPreferenceStore prefStore = (ScopedPreferenceStore)PrefUtil.getAPIPreferenceStore();
+//        String keyPresentationId = IWorkbenchPreferenceConstants.PRESENTATION_FACTORY_ID;
+//        String presentationId = prefStore.getString( keyPresentationId );
 
         // security config / login
         Polymap.instance().login();
@@ -152,7 +148,7 @@ public class PolymapWorkbench
         }
         // thread termination due to timeout or reload/F5
         catch (Error e) {
-            log.warn( e );
+            //log.warn( e );
             throw e;
         }
     }

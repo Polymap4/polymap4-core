@@ -33,6 +33,8 @@ import org.eclipse.rwt.lifecycle.WidgetUtil;
 
 import org.eclipse.jface.preference.ColorSelector;
 
+import org.polymap.core.ui.ColumnLayoutFactory;
+
 /**
  * Factory for UI elements used in tool panels.
  *
@@ -180,6 +182,14 @@ public class ToolingToolkit
         ColorSelector cs = new ColorSelector( parent );
         adapt( cs.getButton(), true, true );
         return cs;
+    }
+
+
+    @Override
+    public Composite createComposite( Composite parent, int... styles ) {
+        Composite result = adapt( new Composite( parent, stylebits( styles ) ) );
+        result.setLayout( ColumnLayoutFactory.defaults().margins( 3, 3 ).spacing( 3 ).create() );
+        return result;
     }
 
 }

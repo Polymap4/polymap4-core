@@ -263,7 +263,7 @@ public class OperationMenuFactory {
     }
     
     private String getMenuText() {
-        return Messages.OperationMenuFactory_menu_text; 
+        return Messages.get("OperationMenuFactory_menu_text"); 
     }
     
     public MenuManager createMenuManager() {

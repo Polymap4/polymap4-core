@@ -190,7 +190,7 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
 
             final FeatureCollection<SimpleFeatureType, SimpleFeature> input = (FeatureCollection<SimpleFeatureType, SimpleFeature>) newInput;
             Display display = Display.getCurrent();
-            owningFeatureTableControl.message(Messages.FeatureTableContentProvider_loading, display
+            owningFeatureTableControl.message(Messages.get("FeatureTableContentProvider_loading"), display
                     .getSystemColor(SWT.COLOR_INFO_BACKGROUND), display
                     .getSystemColor(SWT.COLOR_INFO_FOREGROUND));
             PlatformGIS.run(new ContentLoader(input));
@@ -281,16 +281,16 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
                     i++;
                 }
             } catch (OutOfMemoryError error) {
-                error(input, i + " " + Messages.FeatureTableContentProvider_outOfMemory, true); //$NON-NLS-1$
+                error(input, i + " " + Messages.get("FeatureTableContentProvider_outOfMemory"), true); //$NON-NLS-1$
                 UiPlugin.log("Out of memory error in table view", error); //$NON-NLS-1$
                 return;
             } catch (IndexOutOfBoundsException e) {
-                error(input, Messages.FeatureTableContentProvider_unexpectedErro
-                        + " " + Messages.FeatureTableContentProvider_probablecharseterror, false);
+                error(input, Messages.get("FeatureTableContentProvider_unexpectedErro")
+                        + " " + Messages.get("FeatureTableContentProvider_probablecharseterror"), false);
                 UiPlugin.log("error loading features in table view", e); //$NON-NLS-1$
                 return;
             } catch (Throwable t) {
-                error(input, Messages.FeatureTableContentProvider_unexpectedErro
+                error(input, Messages.get("FeatureTableContentProvider_unexpectedErro")
                         + t.getLocalizedMessage(), false);
                 UiPlugin.log("error loading features in table view", t); //$NON-NLS-1$
                 return;
@@ -336,7 +336,7 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
                     new Runnable(){
                         public void run() {
                             monitor
-                                    .subTask(Messages.FeatureTableContentProvider_loadedFeatures
+                                    .subTask(Messages.get("FeatureTableContentProvider_loadedFeatures")
                                             + j);
                             monitor.worked(j - monitorUpdate[0]);
                             monitorUpdate[0] = j;
@@ -368,9 +368,9 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
                     if (enabled) {
                         done();
                     } else {
-                        monitor.beginTask(Messages.FeatureTableControl_loading1
+                        monitor.beginTask(Messages.get("FeatureTableControl_loading1")
                                 + input.getSchema().getName().getLocalPart()
-                                + Messages.FeatureTableControl_loading2, size + 1);
+                                + Messages.get("FeatureTableControl_loading2"), size + 1);
                         monitor.worked(1);
                     }
                 }
@@ -509,7 +509,7 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
                             }
                         }
                         loaded++;
-                        updateMonitor(loaded+Messages.FeatureTableContentProvider_updatingFeatures);
+                        updateMonitor(loaded+Messages.get("FeatureTableContentProvider_updatingFeatures"));
                     }
                     
                     updateTable(featuresWereAdded);
@@ -525,7 +525,7 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
             table.getDisplay().asyncExec(new Runnable(){
                 public void run() {
                     if( featuresWereAdded ){
-                        updateMonitor(Messages.FeatureTableContentProvider_sortTable);
+                        updateMonitor(Messages.get("FeatureTableContentProvider_sortTable"));
                         owningFeatureTableControl.sort(false);
                         owningFeatureTableControl.getViewer().setItemCount(features.size());
                     }else{
@@ -561,7 +561,7 @@ class FeatureTableContentProvider implements ILazyContentProvider, IProvider<Col
                     owningFeatureTableControl.notifyLoadingListeners(new LoadingEvent(false, monitor, true));
                     monitor=progressMonitorProvider.get();
                     monitor.setCanceled(false);
-                    monitor.beginTask(Messages.FeatureTableContentProvider_updateTaskName, IProgressMonitor.UNKNOWN);
+                    monitor.beginTask(Messages.get("FeatureTableContentProvider_updateTaskName"), IProgressMonitor.UNKNOWN);
                 }
             });
         }

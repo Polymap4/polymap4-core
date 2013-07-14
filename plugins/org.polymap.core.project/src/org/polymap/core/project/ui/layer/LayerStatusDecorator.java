@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import java.beans.PropertyChangeEvent;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,6 +31,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+
 import org.eclipse.rwt.graphics.Graphics;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -39,6 +41,8 @@ import org.eclipse.jface.viewers.DecorationContext;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
+
+import org.eclipse.ui.PlatformUI;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
@@ -113,7 +117,9 @@ public class LayerStatusDecorator
 
     @EventHandler(delay=1000,display=true)
     public void propertyChange( List<PropertyChangeEvent> ev ) {
-        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
+        if (!PlatformUI.getWorkbench().isClosing()) {
+            fireLabelProviderChanged( new LabelProviderChangedEvent( LayerStatusDecorator.this ) );
+        }
     }
 
 

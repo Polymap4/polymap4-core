@@ -45,6 +45,8 @@ public abstract class DefaultEditorTool
         implements IEditorTool, ToolingListener {
 
     private static Log log = LogFactory.getLog( DefaultEditorTool.class );
+    
+    public static final String  CONTROL_INTENT_DATA = "toolingControlIntent";
 
     /** Initialized by {@link EditorToolExtension}. */
     Image                       icon;
@@ -57,7 +59,7 @@ public abstract class DefaultEditorTool
     
     private Composite           parent;
    
-    private Control             lastControl;
+    protected Control           lastControl;
 
     private Label               lastLabel;
     
@@ -77,9 +79,13 @@ public abstract class DefaultEditorTool
         return site;
     }
     
+    protected Composite getParent() {
+        return parent;
+    }
+
     @Override
     public boolean isActive() {
-        return active;    
+        return active;
     }
     
     /**
@@ -128,8 +134,11 @@ public abstract class DefaultEditorTool
     }
 
     protected void layoutControl( @SuppressWarnings("hiding") String label, Control control ) {
-        Label l = new Label( parent, SWT.NONE );
+        Label l = new Label( control.getParent(), SWT.NONE );
         l.setText( label );
+        
+        l.setData( CONTROL_INTENT_DATA, control.getData( CONTROL_INTENT_DATA ) );
+        
         FormData labelData = new FormData( 80, SWT.DEFAULT );
         labelData.left = new FormAttachment( 0 );
         labelData.top = lastLabel != null

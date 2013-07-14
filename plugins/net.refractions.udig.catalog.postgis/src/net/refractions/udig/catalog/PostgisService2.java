@@ -78,10 +78,10 @@ public class PostgisService2
             temp.put( PostgisNGDataStoreFactory.USER.key, "xxx" ); 
             temp.put( PostgisNGDataStoreFactory.PASSWD.key, "xxx" );
 
-            return "PostGIS Service: " + temp;
+            return "PostGIS: " + PostgisServiceExtension2.DIALECT.toURL( temp );
         }
         catch (Exception e) {
-            return "PostGIS Service";
+            return "PostGIS";
         }
     }
 

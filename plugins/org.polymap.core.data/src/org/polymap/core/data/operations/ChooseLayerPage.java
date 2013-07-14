@@ -4,10 +4,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 
@@ -50,6 +53,11 @@ public class ChooseLayerPage
     }
 
     
+    public void preset( ILayer layer ) {
+        result = layer;
+    }
+    
+    
     public ILayer getResult() {
         return result;
     }
@@ -65,14 +73,25 @@ public class ChooseLayerPage
         viewer = new ProjectTreeViewer( contents, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER );
         viewer.setRootMap( ProjectRepository.instance().getRootMap() );
         viewer.getTree().setLayoutData( new SimpleFormData().fill().create() );
+        
+        viewer.addDoubleClickListener( new IDoubleClickListener() {
+            public void doubleClick( DoubleClickEvent ev ) {
+                getWizard().getContainer().showPage( getWizard().getNextPage( ChooseLayerPage.this ) );
+            }
+        });
+        if (result != null) {
+            viewer.setSelection( new StructuredSelection( result ), true );
+        }
 
         viewer.addSelectionChangedListener( WeakListener.forListener( this ) );
     }
 
+    
     public boolean isPageComplete() {
         return !mandatory || result != null;
     }
 
+    
     public void selectionChanged( SelectionChangedEvent ev ) {
         result = null;
         ISelection sel = ev.getSelection();

@@ -92,7 +92,9 @@ public class FeatureStateTracker {
      * @param layer
      */
     public static EntityHandle layerHandle( ILayer layer ) {
-        String id = layer.id();
+        // several layers may map to the same geores
+        //String id = layer.id();
+        String id = layer.getGeoResource().getIdentifier().toString();
         String type = "features:" + layer.getEntityType().getName();
         return EntityHandle.instance( id, type );
     }

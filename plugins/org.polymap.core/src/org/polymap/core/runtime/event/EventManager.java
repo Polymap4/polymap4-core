@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,19 +14,15 @@
  */
 package org.polymap.core.runtime.event;
 
-import static com.google.common.collect.Iterables.transform;
-
 import java.util.EventObject;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Iterator;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.LinkedTransferQueue;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.lifecycle.PhaseEvent;
@@ -36,9 +32,6 @@ import org.eclipse.rwt.lifecycle.UICallBack;
 import org.eclipse.rwt.service.ISessionStore;
 import org.eclipse.rwt.service.SessionStoreEvent;
 import org.eclipse.rwt.service.SessionStoreListener;
-
-import org.eclipse.osgi.framework.eventmgr.EventDispatcher;
-import org.eclipse.osgi.framework.eventmgr.ListenerQueue;
 
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
@@ -87,15 +80,15 @@ public class EventManager {
     
     // instance *******************************************
     
-    private org.eclipse.osgi.framework.eventmgr.EventManager manager;
+    private DispatcherThread                        dispatcher = new DispatcherThread();
     
-    private ConcurrentMap<Integer,EventListener>    listeners = new ConcurrentHashMap( 1024, 0.75f, 8 );
+    private CopyOnWriteArraySet<AnnotatedEventListener> listeners = new CopyOnWriteArraySet();
     
     private volatile int                            statCount;
     
     private Timer                                   statTimer;
     
-    private volatile int                            pendingEvents;
+    private /*volatile*/ int                            pendingEvents;
     
     /** The global {@link PhaseListener} installed by the {@link SessionEventDispatcher}. */
     private UICallbackPhaseListener                 phaseListener;
@@ -109,24 +102,30 @@ public class EventManager {
                 return false;
             }
         });
-        
-        ThreadGroup tg = new ThreadGroup( "EventManager" );
-        manager = new org.eclipse.osgi.framework.eventmgr.EventManager( "EventManager.Dispatcher", tg );
 
-//        // force the manager to create the thread
-//        publish( new EventObject( this ) );
-//        
-//        Thread[] threads = new Thread[1];
-//        tg.enumerate( threads );
-//        for (Thread t : threads) {
-//            t.setPriority( Thread.MAX_PRIORITY );
-//            log.info( "thread: " + t.getName() + ", prio: " + t.getPriority() );
-//        }
+        // install UICallbackPhaseListener
+        try {
+            // seems that a PhaseListener is installed just once for all sessions
+            if (phaseListener == null) {
+                phaseListener = new UICallbackPhaseListener();
+                RWT.getLifeCycle().addPhaseListener( phaseListener );
+            }
+        }
+        catch (IllegalStateException e) {
+            phaseListener = null;
+            // outside request lifecycle -> no UICallback handling
+            log.warn( e.toString() );
+        }
+
+        dispatcher.start();
     }
 
     
     public void dispose() {
-        manager.close();        
+        if (dispatcher != null) {
+            dispatcher.dispose();
+            dispatcher = null;
+        }
     }
 
 
@@ -136,19 +135,18 @@ public class EventManager {
 
     
     /**
-     * Asynchronously publish the given event. An event dispatch thread maintained by
-     * the associated EventManager is used to deliver the events. This method may
-     * immediatelly return to the caller.
+     * Asynchronously publish the given event. An event dispatch thread actually
+     * delivers the events. This method may immediatelly return to the caller.
      * 
      * @param ev The event to dispatch.
      */
     public void publish( EventObject ev, Object... omitHandlers ) {
-        assert ev != null;
-        ListenerQueue listenerQueue = new ListenerQueue( manager );        
-        Set<Map.Entry> queueableListeners = queueableListeners();
-        listenerQueue.queueListeners( queueableListeners, 
-                new SessionEventDispatcher( queueableListeners.size(), omitHandlers ) );
-        listenerQueue.dispatchEventAsynchronous( 0, ev );
+        assert ev != null;        
+        
+        Iterator<AnnotatedEventListener> snapshot = queueableListeners();
+        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
+
+        dispatcher.dispatch( d );
     }
 
 
@@ -156,7 +154,7 @@ public class EventManager {
      * Synchronously publish the given event. This method will not return to the
      * caller until the event is dispatched to all listeners.
      * <p>
-     * Using this method is discouraged. For normal event dispatch use teh
+     * Using this method is discouraged. For normal event dispatch use the
      * asynchronous {@link #publish(EventObject)}.
      * 
      * @see #publish(Event)
@@ -164,35 +162,29 @@ public class EventManager {
      */
     public void syncPublish( EventObject ev, Object... omitHandlers ) {
         assert ev != null;
-        ListenerQueue listenerQueue = new ListenerQueue( manager );
-        Set<Map.Entry> queueableListeners = queueableListeners();
-        listenerQueue.queueListeners( queueableListeners, 
-                new SessionEventDispatcher( queueableListeners.size(), omitHandlers ) );
-        listenerQueue.dispatchEventSynchronous( 0, ev );
+        Iterator<AnnotatedEventListener> snapshot = queueableListeners();
+        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
+        
+        dispatcher.dispatch( d );
+        
+        synchronized (d) {
+            Timer timer = new Timer();
+            while (!d.isDone()) {
+                try { d.wait( 200 ); } catch (InterruptedException e) {}
+                
+                if (timer.elapsedTime() >= 5000) {
+                    throw new RuntimeException( "Timeout exceeded for synch event: " + ev );
+                }
+            }
+        }
     }
 
     
     /**
-     * Transforms listeners into Set<Map.Entry> for {@link ListenerQueue}.
+     * A snapshot of the current {@link #listeners}.
      */
-    protected Set<Map.Entry> queueableListeners() {
-        Iterable<Map.Entry> transformed = transform( listeners.values(), new Function<EventListener,Map.Entry>() {
-            public Map.Entry apply( final EventListener input ) {
-                return new Map.Entry() {
-                    public Object getKey() {
-                        return input;
-                    }
-                    public Object getValue() {
-                        // XXX ???
-                        return input;
-                    }
-                    public Object setValue( Object value ) {
-                        throw new RuntimeException( "not implemented." );
-                    }
-                };
-            }            
-        });
-        return ImmutableSet.copyOf( transformed );
+    protected Iterator<AnnotatedEventListener> queueableListeners() {
+        return listeners.iterator();
     }
 
     
@@ -243,9 +235,10 @@ public class EventManager {
      * @throws IllegalStateException If the handler is subscribed already.
      */
     public void subscribe( Object annotated, EventFilter... filters ) {
-        EventListener listener = new AnnotatedEventListener( annotated, filters ); 
+        assert annotated != null;
         Integer key = System.identityHashCode( annotated );
-        if (listeners.putIfAbsent( key, listener ) != null) {
+        AnnotatedEventListener listener = new AnnotatedEventListener( annotated, key, filters ); 
+        if (!listeners.add( listener )) {
             throw new IllegalStateException( "Event handler already registered: " + annotated );        
         }
     }
@@ -256,18 +249,34 @@ public class EventManager {
      * @param listenerOrHandler
      * @throws True if the given handler actually was removed.
      */
-    public boolean unsubscribe( Object listenerOrHandler ) {
-        assert listenerOrHandler != null;
-        Integer key = System.identityHashCode( listenerOrHandler );
-        return listeners.remove( key ) != null;
+    public boolean unsubscribe( Object annotated ) {
+        assert annotated != null;
+        Integer key = System.identityHashCode( annotated );
+        return removeKey( key ) != null;
     }
     
     
     EventListener removeKey( Object key ) {
-        return listeners.remove( key );
+        assert key instanceof Integer;
+        EventListener removed = null;
+        for (AnnotatedEventListener l : listeners) {
+            if (l.getMapKey().equals( key )) {
+                if (!listeners.remove( l )) {
+                    log.warn( "Unable to remove key: " + key + " (EventManager: " + EventManager.instance().size() + ")" );                    
+                }
+                return l;
+            }
+        }
+        log.warn( "Unable to remove key: " + key + " (EventManager: " + EventManager.instance().size() + ")" );
+        return null;
     }
 
+    
+    int size() {
+        return listeners.size();
+    }
 
+    
     /**
      * Checks if there are pending events after the render page of an request. If
      * yes, then UICallback is activated - until there are no pending events after
@@ -325,86 +334,160 @@ public class EventManager {
      * 
      */
     private class SessionEventDispatcher
-            implements EventDispatcher {
+            implements Runnable {
         
         private SessionContext      publishSession;
         
         private Object[]            omitHandlers;
         
-        private final int           numOfListeners;
+        private Iterator<? extends EventListener> snapshot;
         
         private int                 dispatched;
 
+        private EventObject         event;
         
-        SessionEventDispatcher( int numOfListeners, Object[] omitHandlers ) {
-            this.numOfListeners = numOfListeners;
-            this.publishSession = SessionContext.current();
+        private boolean             done;
+        
+        
+        SessionEventDispatcher( EventObject event, Iterator<? extends EventListener> snapshot, Object[] omitHandlers ) {
+            this.event = event;
+            this.snapshot = snapshot;
             this.omitHandlers = omitHandlers;
-            assert publishSession != null;
+            this.publishSession = SessionContext.current();
+//            assert publishSession != null;
             assert omitHandlers != null;
             
             // XXX should never happen
             if (pendingEvents < 0) {
-                log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
+                //log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
                 pendingEvents = 0;
             }
-            pendingEvents ++;
-            
-            // install UICallbackPhaseListener
-            try {
-                // seems that a PhaseListener is installed just once for all sessions
-                if (phaseListener == null) {
-                    phaseListener = new UICallbackPhaseListener();
-                    RWT.getLifeCycle().addPhaseListener( phaseListener );
-                }
-//                ISessionStore session = RWT.getSessionStore();
-//                if (session.getAttribute( "EventManager.PhaseListener" ) == null) {
-//                    session.setAttribute( "EventManager.PhaseListener", true );
-//                    UICallbackPhaseListener rpl = new UICallbackPhaseListener();
-//                    RWT.getLifeCycle().addPhaseListener( rpl );
-//                    session.addSessionStoreListener( rpl );
-//                }
-            }
-            catch (IllegalStateException e) {
-                phaseListener = null;
-                // outside request lifecycle -> no UICallback handling
-                log.warn( e.toString() );
-            }
+            ++ pendingEvents;
         }
     
-        public void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
-            assert threadPublishSession == null;
-            threadPublishSession = publishSession;
-            
+        
+        @Override
+        public void run() {
             try {
-                if (!ArrayUtils.contains( omitHandlers, listener )) {
-                    ((EventListener)listener).handleEvent( (EventObject)event );
+                assert threadPublishSession == null;
+                threadPublishSession = publishSession;
+
+                while (snapshot.hasNext()) {
+                    try {
+                        EventListener listener = snapshot.next();
+                        
+                        if (omitHandlers.length == 0 || !ArrayUtils.contains( omitHandlers, listener )) {
+                            listener.handleEvent( event );
+                        }
+                    } 
+                    catch (Throwable e) {
+                        log.warn( "Error during event dispatch: " + e, e );
+                    }
                 }
             } 
-            catch (Throwable e) {
-                log.warn( "Error during event dispatch: " + e, e );
-                log.debug( "", e );
-            }
             finally {
                 threadPublishSession = null;
-            }
 
-            // decrement pendingEvents
-            if (++dispatched >= numOfListeners) {
-                pendingEvents --;
-            }
-            
-            // statistics
-            if (log.isDebugEnabled()) {
-                statCount++;
-                if (statTimer == null) {
-                    statTimer = new Timer();
+                -- pendingEvents;
+                
+                synchronized (this) {
+                    done = true;
+                    notifyAll();
                 }
-                long elapsed = statTimer.elapsedTime();
-                if (elapsed > 1000) {
-                    log.debug( "********************************************** STATISTICS: " + statCount + " handlers/events in " + elapsed + "ms" );
-                    statCount = 0;
-                    statTimer = null;
+            }
+        }
+
+        
+        public boolean isDone() {
+            return done;
+        }
+        
+        
+        @SuppressWarnings("hiding")
+        protected void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
+
+//            // statistics
+//            if (log.isDebugEnabled()) {
+//                statCount++;
+//                if (statTimer == null) {
+//                    statTimer = new Timer();
+//                }
+//                long elapsed = statTimer.elapsedTime();
+//                if (elapsed > 1000) {
+//                    log.debug( "********************************************** STATISTICS: " + statCount + " handlers/events in " + elapsed + "ms" );
+//                    statCount = 0;
+//                    statTimer = null;
+//                }
+//            }
+        }
+    }
+
+    
+    /**
+     * 
+     */
+    static class DispatcherThread
+            extends Thread {
+
+        public static final int         MAX_QUEUE_SIZE = 10000;
+        
+        private BlockingQueue<Runnable> queue = new LinkedTransferQueue();  //ArrayBlockingQueue( MAX_QUEUE_SIZE );
+
+        /** 
+         * Non synchronized "assumption" about size of the {@link #queue}. 
+         * XXX on IA32 it seems to work ok without "volatile"; not sure about other platforms; 
+         * see http://brooker.co.za/blog/2012/09/10/volatile.html
+         */
+        private int                     queueSize;
+        
+        private int                     queueReadCount;
+
+        private boolean                 stopped;
+        
+        
+        public DispatcherThread() {
+            super( "EventManager.Dispatcher" );
+            //setPriority( Thread.MAX_PRIORITY );
+            setDaemon( true );
+        }
+
+        public void dispose() {
+            stopped = true;    
+        }
+        
+        public void dispatch( Runnable work ) {
+            try {
+                for (int i=0; queueSize >= MAX_QUEUE_SIZE; i++) {
+                    log.trace( "Waiting on dispatch... queue: " + queueSize );
+                    try {Thread.sleep( Math.min( 10*i, 1000 ) );} catch (InterruptedException e) {};
+                    log.trace( "    queue: " + queueSize );
+                }
+                ++queueSize;
+
+                //log.debug( "Queue size: " + queue.size() );
+                queue.put( work );
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException( e );
+            }    
+        }
+        
+        @Override
+        public void run() {
+            while (!stopped) {
+                try {
+                    if (queueReadCount > MAX_QUEUE_SIZE) {
+                        // synchronize the assumption with real value
+                        queueSize = queue.size();
+                        queueReadCount = 0;
+                    }
+                    ++queueReadCount;
+                    
+                    Runnable work = queue.take();
+                    work.run();
+                    --queueSize;
+                }
+                catch (InterruptedException e) {
                 }
             }
         }

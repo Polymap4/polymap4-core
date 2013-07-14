@@ -133,24 +133,24 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
             override.fillMenuBar(menuBar, window);
             return;
         }
-        MenuManager fileMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_file,
+        MenuManager fileMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_file"),
                 IWorkbenchActionConstants.M_FILE);
         fillFileMenu(fileMenu);
         menuBar.add(fileMenu);
 
-        IMenuManager editMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_edit,
+        IMenuManager editMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_edit"),
                 IWorkbenchActionConstants.M_EDIT);
         fillEditMenu(editMenu);
         menuBar.add(editMenu);
 
         if( true ){
             // TODO: phase these out with org.eclipse.ui.menus        
-            IMenuManager navMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_navigationMenu,
+            IMenuManager navMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_navigationMenu"),
                     Constants.M_NAVIGATE);
             fillNavigateMenu(navMenu);
             menuBar.add(navMenu);
     
-            IMenuManager toolMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_tools,
+            IMenuManager toolMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_tools"),
                     Constants.M_TOOL);
             fillToolMenu(toolMenu);
             menuBar.add(toolMenu);
@@ -159,7 +159,7 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
         menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
 //        if( true ){
-//            MenuManager layerMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_layerMenu,
+//            MenuManager layerMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_layerMenu"),
 //            Constants.M_LAYER);
 //            fillLayerMenu( layerMenu );
 //            menuBar.add( layerMenu );
@@ -170,12 +170,12 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
 //            //UiPlugin.getDefault().getOperationMenuFactory().contributeActions(menuBar);
 //        }
         
-        IMenuManager windowMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_window,
+        IMenuManager windowMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_window"),
                 IWorkbenchActionConstants.M_WINDOW);
         fillWindowMenu(windowMenu);
         menuBar.add(windowMenu);
 
-        IMenuManager helpMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_help,
+        IMenuManager helpMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_help"),
                 IWorkbenchActionConstants.M_HELP);
         fillHelpMenu(helpMenu);
         menuBar.add(helpMenu);
@@ -277,7 +277,7 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
 
         fileMenu.add(new GroupMarker(Constants.FILE_START));
 
-        IMenuManager newMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_new, ActionFactory.NEW
+        IMenuManager newMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_new"), ActionFactory.NEW
                 .getId());
         newMenu.add(new GroupMarker(Constants.NEW_START));
         List<IConfigurationElement> list = ExtensionPointList
@@ -420,18 +420,18 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
         windowMenu.add(new GroupMarker(IWorkbenchActionConstants.WB_START));
 
         IAction openNewWindow = ActionFactory.OPEN_NEW_WINDOW.create(window);
-        openNewWindow.setText(Messages.UDIGWorkbenchAdvisor_newWindow_text);
+        openNewWindow.setText(Messages.get("UDIGWorkbenchAdvisor_newWindow_text"));
         windowMenu.add(openNewWindow);
         
         windowMenu.add( new Separator());
 
         IMenuManager perspectiveMenu = new MenuManager(
-                Messages.UDIGWorkbenchAdvisor_open_perspective,
+                Messages.get("UDIGWorkbenchAdvisor_open_perspective"),
                 ContributionItemFactory.PERSPECTIVES_SHORTLIST.getId());
         perspectiveMenu.add(ContributionItemFactory.PERSPECTIVES_SHORTLIST.create(window));
         windowMenu.add(perspectiveMenu);
 
-        IMenuManager viewMenu = new MenuManager(Messages.UDIGWorkbenchAdvisor_show_view,
+        IMenuManager viewMenu = new MenuManager(Messages.get("UDIGWorkbenchAdvisor_show_view"),
                     ContributionItemFactory.VIEWS_SHORTLIST.getId());
         viewMenu.add(ContributionItemFactory.VIEWS_SHORTLIST.create(window));
         windowMenu.add(viewMenu);
@@ -439,15 +439,15 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
 
         // FIXME: compile problem
 //        IAction resetPerspective = ActionFactory.RESET_PERSPECTIVE.create(window);
-//        resetPerspective.setText(Messages.UDIGWorkbenchAdvisor_resetPerspective_text);
+//        resetPerspective.setText(Messages.get("UDIGWorkbenchAdvisor_resetPerspective_text"));
 //        windowMenu.add(resetPerspective);
         
         IAction closePerspective = ActionFactory.CLOSE_PERSPECTIVE.create(window);
-        closePerspective.setText(Messages.UDIGWorkbenchAdvisor_closePerspective_text);
+        closePerspective.setText(Messages.get("UDIGWorkbenchAdvisor_closePerspective_text"));
         windowMenu.add(closePerspective);
         
         IAction closeAllPerspectives = ActionFactory.CLOSE_ALL_PERSPECTIVES.create(window);
-        closeAllPerspectives.setText(Messages.UDIGWorkbenchAdvisor_closeAllPerspectives_text);
+        closeAllPerspectives.setText(Messages.get("UDIGWorkbenchAdvisor_closeAllPerspectives_text"));
         windowMenu.add(closeAllPerspectives);        
         
         windowMenu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -455,7 +455,7 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
         windowMenu.add( new Separator());
         
         IAction preferences = ActionFactory.PREFERENCES.create(window);
-        preferences.setText(Messages.UDIGWorkbenchAdvisor_preferences_text);
+        preferences.setText(Messages.get("UDIGWorkbenchAdvisor_preferences_text"));
         IContributionItem item = new ActionContributionItem(preferences);
         item.setVisible(!Platform.OS_MACOSX.equals(Platform.getOS()));
         
@@ -475,7 +475,7 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
         if (hasIntro) {
             if (helpMenu.findUsingPath(ActionFactory.INTRO.getId()) == null) {
                 IAction welcome = ActionFactory.INTRO.create(window);
-                welcome.setText(Messages.UDIGWorkbenchAdvisor_welcome_text);
+                welcome.setText(Messages.get("UDIGWorkbenchAdvisor_welcome_text"));
                 if (helpMenu.getItems().length > 0) {
                     helpMenu.insertBefore(helpMenu.getItems()[0].getId(), welcome);
                 } else {
@@ -500,7 +500,7 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
         // XXX: no help system in rap
 //        if (helpMenu.findUsingPath(ActionFactory.HELP_CONTENTS.getId()) == null) {
 //            IAction helpContents = ActionFactory.HELP_CONTENTS.create(window);
-//            helpContents.setText(Messages.UDIGWorkbenchAdvisor_helpContents_text);
+//            helpContents.setText(Messages.get("UDIGWorkbenchAdvisor_helpContents_text"));
 //            helpMenu.insertBefore(Constants.HELP_START, helpContents);
 //        }
 
@@ -528,7 +528,7 @@ public class UDIGActionBarAdvisor extends ActionBarAdvisor {
 // FIXME: compile problem
 //        if (helpMenu.findUsingPath(ActionFactory.ABOUT.getId()) == null) {
 //            IAction about = ActionFactory.ABOUT.create(window);
-//            String pattern = Messages.UDIGWorkbenchAdvisor_aboutUDig_text;
+//            String pattern = Messages.get("UDIGWorkbenchAdvisor_aboutUDig_text");
 //            IProduct product = Platform.getProduct();
 //            String productName;
 //            if( product == null ){

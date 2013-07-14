@@ -339,38 +339,42 @@
                class="org.polymap.core.data.ui.featureselection.Replace"
                icon="icons/etool16/select_replace.gif"
                id="org.polymap.core.data.FeatureSelectionMode"
-               label="REPLACE"
+               label="%actions_selectionReplace"
                menubarPath="selection"
                state="true"
                style="radio"
-               toolbarPath="selection">
+               toolbarPath="selection"
+               tooltip="%actions_selectionReplace">
          </action>
          <action
                class="org.polymap.core.data.ui.featureselection.Add"
                icon="icons/etool16/select_add.gif"
                id="org.polymap.core.data.FeatureSelectionMode_add"
-               label="ADD"
+               label="%actions_selectionAdd"
                menubarPath="selection"
                style="radio"
-               toolbarPath="selection">
+               toolbarPath="selection"
+               tooltip="%actions_selectionAdd">
          </action>
          <action
                class="org.polymap.core.data.ui.featureselection.Intersect"
                icon="icons/etool16/select_intersect.gif"
                id="org.polymap.core.data.FeatureSelectionMode_intersect"
-               label="INTERSECT"
+               label="%actions_selectionIntersect"
                menubarPath="selection"
                style="radio"
-               toolbarPath="selection">
+               toolbarPath="selection"
+               tooltip="%actions_selectionIntersect">
          </action>
          <action
                class="org.polymap.core.data.ui.featureselection.Difference"
                icon="icons/etool16/select_difference.gif"
                id="org.polymap.core.data.FeatureSelectionMode_difference"
-               label="DIFF"
+               label="%actions_selectionDiff"
                menubarPath="selection"
                style="radio"
-               toolbarPath="selection">
+               toolbarPath="selection"
+               tooltip="%actions_selectionDiff">
          </action>
          <menu
                id="org.polymap.core.data.selectionModeMenu"
@@ -402,6 +406,11 @@
       <concern
             class="org.polymap.core.data.image.cache304.CacheNewLayerOperationConcern"
             id="org.polymap.core.data.addLayerCacheConcern">
+      </concern>
+      <concern
+            class="org.polymap.core.data.operations.feature.ShapeCRSOperationConcern"
+            id="org.polymap.core.data.ShapeCRSConcern"
+            name="Shapefile CRS">
       </concern>
    </extension>
    <extension
@@ -462,21 +471,21 @@
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.CopyFeaturesOperation2"
-            icon="icons/etool16/copy_features.gif"
+            icon="icons/etool16/features_copy.gif"
             id="org.polymap.core.data.CopyFeaturesOperation"
             label="%CopyFeaturesOperation_label"
             tooltip="%CopyFeaturesOperation_tip">
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.IntersectFeaturesOperation"
-            icon="icons/etool16/feature_ops.gif"
+            icon="icons/etool16/features_select2.gif"
             id="org.polymap.core.data.IntersectFeaturesOperation"
             label="%IntersectFeaturesOperation_label"
             tooltip="%IntersectFeaturesOperation_tip">
       </featureOperation>
       <featureOperation
             class="org.polymap.core.data.operations.feature.BufferFeaturesOperation"
-            icon="icons/etool16/feature_ops.gif"
+            icon="icons/etool16/features_buffer.gif"
             id="org.polymap.core.data.BufferFeaturesOperation"
             label="%BufferFeaturesOperation_label"
             tooltip="%BufferFeaturesOperation_tip">

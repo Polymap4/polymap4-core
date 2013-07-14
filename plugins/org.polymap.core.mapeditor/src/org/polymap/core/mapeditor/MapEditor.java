@@ -30,6 +30,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Widget;
 
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -41,6 +42,7 @@ import org.eclipse.ui.part.EditorPart;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
 import org.polymap.core.mapeditor.contextmenu.ContextMenuControl;
 import org.polymap.core.mapeditor.tooling.ToolingModel;
@@ -307,13 +309,8 @@ public class MapEditor
         assert descriptor != null;
         assert !layers.containsKey( descriptor );
 
-        StringBuffer layerNames = new StringBuffer();
-        for (ILayer layer : descriptor.layers) {
-            layerNames.append( layerNames.length() > 0 ? "," : "" );
-            layerNames.append( layer.getLabel() );
-        }
-        WMSLayer olayer = new WMSLayer( descriptor.title, 
-                descriptor.servicePath, layerNames.toString() );
+        WMSLayer olayer = new WMSLayer( descriptor.title(), 
+                descriptor.servicePath, descriptor.layerNames() );
         olayer.setFormat( "image/png" );
         olayer.setVisibility( true );
         olayer.setIsBaseLayer( false );
@@ -429,14 +426,6 @@ public class MapEditor
         createWidget();
     }
     
-    
-    /**
-     * @deprecated 
-     */
-    public ILayer getEditLayer() {
-        return renderManager.getEditLayer();
-    }
-
     
     public boolean isDirty() {
         return false;

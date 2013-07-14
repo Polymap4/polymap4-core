@@ -42,7 +42,7 @@ public class TransferPreference extends FieldEditorPreferencePage
         super(GRID);
         IPreferenceStore store = UiPlugin.getDefault().getPreferenceStore();
         setPreferenceStore(store);
-        setDescription(Messages.TransferPreference_transfer_preference_description); 
+        setDescription(Messages.get("TransferPreference_transfer_preference_description")); 
     }
 
     @Override

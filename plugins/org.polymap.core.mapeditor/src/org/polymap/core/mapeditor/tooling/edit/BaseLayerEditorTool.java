@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -108,11 +109,14 @@ public abstract class BaseLayerEditorTool
     
     // instance *******************************************
     
-    private CCombo                  layersList;
+    protected CCombo                layersList;
     
     private IMap                    map;
     
     private ILayer                  selectedLayer;
+    
+    /** Allow sub-classes to filter layers. */
+    protected Predicate<ILayer>     additionalLayerFilter = Predicates.alwaysTrue();
 
     private MapListener             mapListener;
 
@@ -127,11 +131,28 @@ public abstract class BaseLayerEditorTool
     public boolean init( IEditorToolSite site ) {
         boolean result = super.init( site );
         this.map = site.getEditor().getMap();
+        
+        // get config from memento
+        String selectedLayerId = site.getMemento().getString( "selectedLayerId" );
+        for (ILayer layer : selectableLayers()) {
+            if (layer.id().equals( selectedLayerId )) {
+                selectedLayer = layer;
+                break;
+            }
+        }
+        
         fireEvent( this, PROP_CREATED, null );
         return result;
     }
 
     
+    @Override
+    public void dispose() {        
+        super.dispose();
+        fireEvent( this, PROP_DISPOSED, null );
+    }
+
+
     public boolean addListener( PropertyChangeListener listener ) {
         return listeners.add( listener );
     }
@@ -181,17 +202,11 @@ public abstract class BaseLayerEditorTool
     public abstract BaseVectorLayer getVectorLayer();
     
 
-    @Override
-    public void dispose() {
-        super.dispose();
-        fireEvent( this, PROP_DISPOSED, null );
-    }
-
-    
     protected List<ILayer> selectableLayers() {
         AssocCollection<ILayer> layers = getSite().getEditor().getMap().getLayers();
         Iterable<ILayer> result = filter( layers, Layers.isVisible() );
         result = filter( result, isVector() );
+        result = filter( result, additionalLayerFilter );
         
         List<ILayer> list = newArrayList( result );
         Collections.sort( list, Layers.zPrioComparator() );        
@@ -220,8 +235,12 @@ public abstract class BaseLayerEditorTool
      * Beware that this is also called from {@link #changeLayer(ILayer)}. You may
      * check {@link #selectedLayer} to see if this call comes from
      * {@link #changeLayer(ILayer)}.
+     * <p/>
+     * <b>Beware:</b>This method does <b>not</b>
+     * {@link #fireEvent(BaseLayerEditorTool, String, Object)}. Caller has to do so
+     * after activation is complete!
      */
-    @Override
+//    @Override
     public void onActivate() {
         super.onActivate();
         
@@ -236,12 +255,18 @@ public abstract class BaseLayerEditorTool
         mapListener = new MapListener();
         EventManager.instance().subscribe( mapListener, mapListener );
 
-        // Hmmm...?! the PageListener is anoying without the possibility to pin the active layer
+        // Hmmm...?! the PageListener is annoying without the possibility to pin the active layer
 //        pageListener = new PageListener();
 //        page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 //        page.addSelectionListener( pageListener );
         
-        fireEvent( this, PROP_LAYER_ACTIVATED, selectedLayer );
+//        // delay event until sub-class has initialized all fields
+//        // so that listeners can access those fields
+//        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+//            public void run() {
+//                fireEvent( BaseLayerEditorTool.this, PROP_LAYER_ACTIVATED, selectedLayer );
+//            }
+//        });
     }
 
 
@@ -264,8 +289,16 @@ public abstract class BaseLayerEditorTool
             page.removeSelectionListener( pageListener );
             pageListener = null;
         }
-        fireEvent( this, PROP_LAYER_DEACTIVATED, selectedLayer );
-        selectedLayer = null;
+//        // delay event until sub-class has initialized all fields
+//        // so that listeners can access those fields
+//        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+//            public void run() {
+                fireEvent( BaseLayerEditorTool.this, PROP_LAYER_DEACTIVATED, selectedLayer );
+//            }
+//        });
+        
+        //selectedLayer = null;
+        getSite().getMemento().putString( "selectedLayerId", selectedLayer != null ? selectedLayer.id() : "" );
     }
 
     

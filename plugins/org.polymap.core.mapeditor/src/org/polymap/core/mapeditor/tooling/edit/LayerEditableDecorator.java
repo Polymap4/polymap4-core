@@ -33,8 +33,9 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.eclipse.ui.PlatformUI;
+
 import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.tooling.edit.BaseLayerEditorTool;
 import org.polymap.core.mapeditor.tooling.select.LayerSelectableDecorator;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectPlugin;
@@ -124,7 +125,9 @@ public class LayerEditableDecorator
         if (changed) {
             Runnable runnable = new Runnable() {
                 public void run() {
-                    fireLabelProviderChanged( new LabelProviderChangedEvent( LayerEditableDecorator.this ) );
+                    if (!PlatformUI.getWorkbench().isClosing()) {
+                        fireLabelProviderChanged( new LabelProviderChangedEvent( LayerEditableDecorator.this ) );
+                    }
                 }
             };
             if (Display.getCurrent() != null) {

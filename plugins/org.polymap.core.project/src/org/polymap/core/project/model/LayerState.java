@@ -23,11 +23,11 @@ import java.net.URL;
 
 import net.refractions.udig.catalog.ID;
 import net.refractions.udig.catalog.IGeoResource;
+import net.refractions.udig.catalog.IGeoResourceInfo;
 import net.refractions.udig.core.internal.CorePlugin;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.referencing.CRS;
-import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
@@ -37,6 +37,7 @@ import org.qi4j.api.common.Optional;
 import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.property.Property;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
@@ -47,6 +48,7 @@ import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.RenderStatus;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.style.IStyle;
 import org.polymap.core.style.IStyleCatalog;
 import org.polymap.core.style.StylePlugin;
@@ -64,8 +66,8 @@ public interface LayerState
     @Optional
     Property<String>                georesId();
     
-    @Optional
-    Property<String>                crsCode();
+//    @Optional
+//    Property<String>                crsCode();
     
     @Optional
     Property<String>                styleId();
@@ -101,11 +103,13 @@ public interface LayerState
 
         /** The cache of the {@link #georesId()} property. */
         private IGeoResource                    geores;
+        
+        private IGeoResourceInfo                georesInfo;
 
         private ReadWriteLock                   georesLock = new ReentrantReadWriteLock();
         
-        /** The cache of the {@link #crsCode()} property. */
-        private CoordinateReferenceSystem       crs;
+//        /** The cache of the {@link #crsCode()} property. */
+//        private CoordinateReferenceSystem       crs;
         
         /** The cache of the {@link #styleId()} property. */
         private IStyle                          style;
@@ -253,22 +257,30 @@ public interface LayerState
         }
 
         
-        public synchronized CoordinateReferenceSystem getCRS() {
-            if (crs == null) {
-                try {
-                    crs = CRS.decode( getCRSCode() );
-                }
-                catch (Exception e) {
-                    // checked at set, should never happen
-                    throw new RuntimeException( e.getMessage(), e );
+        public CoordinateReferenceSystem getCRS() {
+            getGeoResource();
+            
+            if (georesInfo == null) {
+                UIJob job = new UIJob( "Info: " + geores.getTitle() ) {
+                    public void runWithException( IProgressMonitor monitor ) throws Exception {
+                        monitor.beginTask( "Info: " + geores.getTitle(), 1 );
+                        georesInfo = getGeoResource().getInfo( monitor );
+                        monitor.done();
+                    }
+                };
+                job.schedule();
+
+                boolean success = job.joinAndDispatch( 15000 );
+                if (!success || georesInfo == null) {
+                    job.cancelAndInterrupt();
+                    throw new RuntimeException( "Das koordinatenreferenzsystem konnte nicht ermittelt werden: " + getLabel(), job.getResult().getException() );
                 }
             }
-            return crs;
+            return georesInfo.getCRS();
         }
 
         public String getCRSCode() {
-            String code = crsCode().get();
-            return code != null ? code : "EPSG:4326";
+            return CRS.toSRS( getCRS() );
         }
 
 //        public void setCRSCode( String code )
@@ -277,28 +289,28 @@ public interface LayerState
 //            this.crs = CRS.decode( getCRSCode() );
 //        }
         
-        public void setCRS( CoordinateReferenceSystem crs ) {
-            // from http://lists.wald.intevation.org/pipermail/schmitzm-commits/2009-July/000228.html
-            // If we can determine the EPSG code for this, let's save it as
-            // "EPSG:12345" to the file.
-            if (!crs.getIdentifiers().isEmpty()) {
-                Object next = crs.getIdentifiers().iterator().next();
-                if (next instanceof Identifier) {
-                    Identifier identifier = (Identifier) next;
-                    
-                    crsCode().set( identifier.toString() );
-                    this.crs = crs;
-                    
-//                    if (identifier.getAuthority().getTitle().equals(
-//                            "European Petroleum Survey Group")) {
-//                        crsCode.set( this, "EPSG:" + identifier.getCode() );
-//                        this.crs = crs;
-//                    }
-                    return;
-                }
-            }
-            throw new IllegalArgumentException( "The given crs is not EPSG compatible: " + crs );
-        }
+//        public void setCRS( CoordinateReferenceSystem crs ) {
+//            // from http://lists.wald.intevation.org/pipermail/schmitzm-commits/2009-July/000228.html
+//            // If we can determine the EPSG code for this, let's save it as
+//            // "EPSG:12345" to the file.
+//            if (!crs.getIdentifiers().isEmpty()) {
+//                Object next = crs.getIdentifiers().iterator().next();
+//                if (next instanceof Identifier) {
+//                    Identifier identifier = (Identifier) next;
+//                    
+//                    crsCode().set( identifier.toString() );
+//                    this.crs = crs;
+//                    
+////                    if (identifier.getAuthority().getTitle().equals(
+////                            "European Petroleum Survey Group")) {
+////                        crsCode.set( this, "EPSG:" + identifier.getCode() );
+////                        this.crs = crs;
+////                    }
+//                    return;
+//                }
+//            }
+//            throw new IllegalArgumentException( "The given crs is not EPSG compatible: " + crs );
+//        }
         
 
         public void setGeoResource( IGeoResource geores ) {

@@ -85,6 +85,9 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
         this._codeMirror = null;
         this._libLoaded = false;
         this._lineMarkers = {};
+        
+        this.initHeight();
+        this.initOverflow();
 	},
 
 	properties : {

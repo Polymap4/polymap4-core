@@ -68,7 +68,7 @@ public class OperationLabelProvider extends LabelProvider {
     }
 
     public String getText(Object element) {
-        String label = Messages.OperationLabelProvider_unknown;
+        String label = Messages.get("OperationLabelProvider_unknown");
         if (element instanceof OpAction) {
             label = ((OpAction) element).getText();
         } else if (element instanceof OperationCategory) {

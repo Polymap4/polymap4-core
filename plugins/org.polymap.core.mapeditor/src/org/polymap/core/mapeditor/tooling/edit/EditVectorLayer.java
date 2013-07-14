@@ -14,10 +14,7 @@
  */
 package org.polymap.core.mapeditor.tooling.edit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.tooling.IEditorToolSite;
 import org.polymap.core.project.ILayer;
 
 /**
@@ -28,11 +25,8 @@ import org.polymap.core.project.ILayer;
 public class EditVectorLayer
         extends BaseVectorLayer {
 
-    private static Log log = LogFactory.getLog( EditVectorLayer.class );
-
-    
-    public EditVectorLayer( MapEditor mapEditor, ILayer layer ) {
-        super( mapEditor, layer );
+    public EditVectorLayer( IEditorToolSite site, ILayer layer ) {
+        super( site, layer );
     }
 
 }

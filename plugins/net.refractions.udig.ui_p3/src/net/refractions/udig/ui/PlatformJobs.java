@@ -228,7 +228,7 @@ public class PlatformJobs
 
                     private void createBackgroundButton( Composite parent ) {
                         createButton(parent, IDialogConstants.BACK_ID,
-                                Messages.PlatformGIS_background, true);
+                                Messages.get("PlatformGIS_background"), true);
                     }
 
                     @Override

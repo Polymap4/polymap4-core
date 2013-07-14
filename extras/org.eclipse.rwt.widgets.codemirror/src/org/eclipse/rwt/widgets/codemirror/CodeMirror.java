@@ -29,8 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Layout;
-
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.rwt.widgets.codemirror.internal.CallMethodCommand;
 import org.eclipse.rwt.widgets.codemirror.internal.CodeMirrorJSService;
 import org.eclipse.rwt.widgets.codemirror.internal.CodeMirrorLCA;
@@ -47,7 +46,7 @@ import org.eclipse.core.runtime.ListenerList;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class CodeMirror
-        extends Composite {
+        extends Control {
 
     private static Log log = LogFactory.getLog( CodeMirror.class );
 
@@ -103,14 +102,17 @@ public class CodeMirror
         return js_location;
     }
 
-    public void setLayout( final Layout layout ) {
-    }
+//    @Override
+//    public void setLayout( final Layout layout ) {
+//        throw new UnsupportedOperationException( "setLayout()" );
+//    }
 
     
     public String getText() {
         return text;
     }
 
+    
     public void setText( String text ) {
         this.text = text != null ? text : StringUtils.EMPTY;
         lcaAdapter.pushCommand( new SetPropertyCommand( PROP_TEXT, text ) );

@@ -37,7 +37,7 @@ public class ExceptionDisplayer {
         
        PlatformGIS.syncInDisplayThread(new Runnable(){
             public void run() {
-                Dialog dialog = new ErrorDialog(Display.getDefault().getActiveShell(), Messages.ExceptionDisplayer_very_informative_error, message, multi, IStatus.ERROR);
+                Dialog dialog = new ErrorDialog(Display.getDefault().getActiveShell(), Messages.get("ExceptionDisplayer_very_informative_error"), message, multi, IStatus.ERROR);
                 dialog.open();
             }
         });

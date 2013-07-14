@@ -24,8 +24,6 @@ import org.opengis.geometry.BoundingBox;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.ui.CRSChooserDialog;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
@@ -51,7 +49,7 @@ import org.polymap.core.runtime.Polymap;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class NewLayerOperation
@@ -84,14 +82,18 @@ public class NewLayerOperation
         super.dispose();
     }
 
+    
+    public IGeoResource getGeores() {
+        return geores;
+    }
+
 
     public ILayer getNewLayer() {
         return layer;
     }
 
 
-    public IStatus doExecute( IProgressMonitor monitor, IAdaptable info )
-    throws ExecutionException {
+    public IStatus doExecute( final IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
         try {
             monitor.beginTask( getLabel(), 5 );
             ProjectRepository repo = ProjectRepository.instance();
@@ -117,46 +119,7 @@ public class NewLayerOperation
             }
             layer.setOrderKey( highestOrder + 1 );
 
-            // check layer CRS
-            try {
-                monitor.subTask( Messages.get( "NewLayerOperation_checkingCRS" ) );
-                //                    String crsCode = geores.getInfo( monitor ).getCRS().getName().getCode();
-                //                    layerClass.getAttribute( "crsCode", true ).set( layer, crsCode );
-                layer.setCRS( geores.getInfo( monitor).getCRS() );
-            }
-            catch (Exception e) {
-                Display display = (Display)info.getAdapter( Display.class );
-                display.syncExec( new Runnable() {
-                    public void run() {
-                        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                        CRSChooserDialog dialog = new CRSChooserDialog( shell, map.getCRS(),
-                                Messages.get( "NewLayerOperation_noCRS" ) );
-                        //                            InputDialog dialog = new InputDialog( shell, "Layer CRS", 
-                        //                                    Messages.get( "NewLayerOperation_noCRS" ), "EPSG:4326",
-                        //                                    new IInputValidator() {
-                        //                                        public String isValid( String newText ) {
-                        //                                            try {
-                        //                                                CRS.decode( newText );
-                        //                                                return null;
-                        //                                            }
-                        //                                            catch (Exception e2) {
-                        //                                                return e2.getMessage();
-                        //                                            }
-                        //                                        }
-                        //                                    });
-                        dialog.setBlockOnOpen( true );
-                        int answer = dialog.open();
-                        layer.setCRS( dialog.getResult() );
-                        //                            try {
-                        //                                layer.setCRS( CRS.decode( dialog.getValue() ) );
-                        //                            }
-                        //                            catch (Exception e1) {
-                        //                                throw new RuntimeException( "The value is validated, so this should never happen.", e1 );
-                        //                            }
-                    }
-                });
-            }
-            monitor.worked( 1 );
+            // Shapefile CRS in checked in ShapeCRSOperationConcern
 
             // transformed layerBBox
             ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );

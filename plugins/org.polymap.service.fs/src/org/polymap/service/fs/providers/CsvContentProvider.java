@@ -103,6 +103,11 @@ public class CsvContentProvider
             return (ILayer)getSource();
         }
         
+        @Override
+        public void sendDescription( OutputStream out, Range range, Map<String, String> params, String contentType )
+                throws IOException {
+        }
+
         public String getDescription( String contentType ) {
             return "Dieses Verzeichnis enthält die Daten der Ebene \"" + getLayer().getLabel() 
                     + "\" im <b>CSV-Format</b>.";

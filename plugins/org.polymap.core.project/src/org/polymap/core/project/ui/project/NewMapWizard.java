@@ -23,8 +23,7 @@ import net.refractions.udig.ui.CRSChooser;
 import net.refractions.udig.ui.Controller;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -43,12 +42,14 @@ import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.NewMapOperation;
+import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Creates a new {@link IMap} by executing the {@link NewMapOperation}. 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class NewMapWizard
@@ -57,7 +58,9 @@ public class NewMapWizard
 
     private static final Log log = LogFactory.getLog( NewMapWizard.class );
 
-    private MapWizardPage       mapPage;
+    public static final IMessages   i18n = Messages.forPrefix( "NewMapWizard" );
+            
+    private MapWizardPage           mapPage;
     
     
     public NewMapWizard() {
@@ -65,14 +68,12 @@ public class NewMapWizard
 
 
     public void init( IWorkbench workbench, IStructuredSelection selection ) {
-        log.debug( "..." );
         mapPage = new MapWizardPage();
         addPage( mapPage );
     }
 
 
     public boolean canFinish() {
-        log.debug( "..." );
         return mapPage.isPageComplete();
     }
 
@@ -108,37 +109,39 @@ public class NewMapWizard
     
     /**
      * 
-     *
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @since 3.0
      */
     class MapWizardPage
             extends WizardPage
             implements IWizardPage {
 
-        Text            nameText; //, crsText;
+        private Text            nameText; //, crsText;
         
-        CRSChooser      chooser;
+        private CRSChooser      chooser;
         
         public MapWizardPage() {
-            super( Messages.get( "NewMapWizard_pageName" ) );
-            setMessage( Messages.get( "NewMapWizard_pageMsg" ) );
-            setTitle( Messages.get( "NewMapWizard_pageTitle" ) );
-            setDescription( Messages.get( "NewMapWizard_pageDescription" ) );
+            super( i18n.get( "pageName" ) );
+            setMessage( i18n.get( "pageMsg" ) );
+            setTitle( i18n.get( "pageTitle" ) );
+            setDescription( i18n.get( "pageDescription" ) );
         }
         
         public void createControl( Composite parent ) {
             Composite composite = new Composite( parent, SWT.NONE );
-            GridLayout gl = new GridLayout();
-            gl.numColumns = 1;
-            composite.setLayout( gl );
+            FormLayout layout = new FormLayout();
+            layout.spacing = 2;
+            layout.marginWidth = layout.marginHeight = 7;
+            composite.setLayout( layout  );
 
-            new Label( composite, SWT.NONE ).setText( Messages.get( "NewMapWizard_fieldName" ) );
+            Label l1 = new Label( composite, SWT.NONE );
+            l1.setLayoutData( SimpleFormData.filled().bottom( -1 ).create() );
+            l1.setText( i18n.get( "fieldName" ) );
+            
             nameText = new Text( composite, SWT.BORDER );
-            nameText.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+            nameText.setLayoutData( SimpleFormData.filled().top( l1 ).bottom( -1 ).create() );
             nameText.setText( "Map" );
             
-            new Label( composite, SWT.NONE ).setText( Messages.get( "NewMapWizard_fieldCRS" ) );
+//            new Label( composite, SWT.NONE ).setText( i18n.get( "fieldCRS" ) );
+            
 //            crsText = new Text( composite, SWT.BORDER );
 //            crsText.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
 //            crsText.setText( "EPSG:4326" );
@@ -160,14 +163,13 @@ public class NewMapWizard
                 }
             });
             // XXX get a default value from preferences
-            chooser.createControl( composite );
+            chooser.createControl( composite ).setLayoutData( SimpleFormData.filled().top( nameText, 20 ).create() );
             setControl( composite );
         }
 
-        public boolean canFlipToNextPage() {
-            log.debug( "canFlip()..." );
-            return isPageComplete();
-        }
+//        public boolean canFlipToNextPage() {
+//            return isPageComplete();
+//        }
 
         public boolean isPageComplete() {
             log.info( "isPageComplete()..." );

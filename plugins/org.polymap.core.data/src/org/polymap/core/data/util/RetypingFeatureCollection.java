@@ -39,6 +39,7 @@ public abstract class RetypingFeatureCollection<T extends FeatureType, F extends
     
     public RetypingFeatureCollection( FeatureCollection delegate, T targetSchema ) {
         super( delegate );
+        this.targetSchema = targetSchema;
     }
     
     public T getSchema() {

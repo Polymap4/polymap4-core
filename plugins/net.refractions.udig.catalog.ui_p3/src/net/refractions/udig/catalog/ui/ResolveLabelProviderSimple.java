@@ -41,6 +41,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+import org.eclipse.ui.PlatformUI;
+
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
@@ -74,8 +76,9 @@ public class ResolveLabelProviderSimple extends LabelProvider implements IResolv
 
         Display.getDefault().asyncExec(new Runnable(){
             public void run() {
-                fireLabelProviderChanged(new LabelProviderChangedEvent(
-                        ResolveLabelProviderSimple.this, resolve));
+                if (!PlatformUI.getWorkbench().isClosing()) {
+                    fireLabelProviderChanged(new LabelProviderChangedEvent(ResolveLabelProviderSimple.this, resolve));
+                }
             }
         });
     }
@@ -185,7 +188,7 @@ public class ResolveLabelProviderSimple extends LabelProvider implements IResolv
         else if (element instanceof String
                 && element.equals( Messages.get("ResolveContentProvider_searching"))) {
             ISharedImages images = CatalogUIPlugin.getDefault().getImages();
-            return images.get( ISharedImages.LOADING );
+            return images != null ? images.get( ISharedImages.LOADING ) : null;
         }
         return super.getImage( element );
     }

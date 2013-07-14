@@ -1,13 +1,16 @@
 * {
-    background-color: #f0f0f0;
+  font: 11px Tahoma, Arial, sans-serif;
+  background-color: #f0f0f0;
 }
 
 Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label, Label:hover, CLabel {
-    background-color: #f0f0f0;
+  font: 11px Tahoma, Arial, sans-serif;
+  background-color: #f0f0f0;
 }
 CTabItem:selected {
-    background-color: #909095;
-    color: #ffffff;
+  font: 11px Tahoma, Arial, sans-serif;
+  background-color: #909095;
+  color: #ffffff;
     /*background-color: #C5DCFE;
     color: black; */
 }

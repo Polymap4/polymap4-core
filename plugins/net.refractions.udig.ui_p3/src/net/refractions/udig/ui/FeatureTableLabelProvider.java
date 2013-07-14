@@ -104,7 +104,7 @@ implements ITableLabelProvider, IColorProvider {
         }else if( element instanceof String ){
             return (String) element;
         }else
-        	return Messages.FeatureTableControl_loadingMessage; 
+        	return Messages.get("FeatureTableControl_loadingMessage"); 
     }
 
     public Color getBackground( Object element ) {

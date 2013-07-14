@@ -28,8 +28,8 @@ import org.eclipse.swt.widgets.Composite;
  */
 public class BooleanCellEditor extends ComboBoxCellEditor {
 
-    private static final String FALSE = Messages.BooleanCellEditor_FALSE;
-    private static final String TRUE = Messages.BooleanCellEditor_TRUE;
+    private static final String FALSE = Messages.get("BooleanCellEditor_FALSE");
+    private static final String TRUE = Messages.get("BooleanCellEditor_TRUE");
 
     public BooleanCellEditor( Composite control ) {
         super(control, new String[]{TRUE, FALSE}, SWT.READ_ONLY);

@@ -19,6 +19,9 @@ package net.refractions.udig.catalog.internal.ui;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import net.refractions.udig.catalog.ui.CatalogUIPlugin;
 import net.refractions.udig.catalog.ui.ISharedImages;
 
@@ -30,6 +33,8 @@ import org.eclipse.swt.graphics.Image;
  * The image descrptors for the plugin
  */
 public class Images implements ISharedImages {
+
+    private static final Log log = LogFactory.getLog( Images.class );
 
     /** Hashtable of ImageDescriptors */
     private ImageRegistry imageCache;
@@ -62,10 +67,12 @@ public class Images implements ISharedImages {
     public static ImageDescriptor getDescriptor( String id ) {
         Images images = (Images) CatalogUIPlugin.getDefault().getImages();
         if (images == null) {
-            throw new IllegalArgumentException( "images == null." );
+            log.error( "images == null." );
+            return null;
         }
         if (images.imageCache == null) {
-            throw new IllegalArgumentException( "images.imageCache == null." );
+            log.error( "images.imageCache == null." );
+            return null;
         }
         ImageDescriptor found = images.imageCache.getDescriptor(id);
         if (found != null) {
@@ -81,6 +88,14 @@ public class Images implements ISharedImages {
      */
     public Image get( String id ) {
         Images images = (Images) CatalogUIPlugin.getDefault().getImages();
+        if (images == null) {
+            log.error( "images == null." );
+            return null;
+        }
+        if (images.imageCache == null) {
+            log.error( "images.imageCache == null." );
+            return null;
+        }
         ImageDescriptor found = images.imageCache.getDescriptor(id);
         if (found == null) {
             images.create(id);

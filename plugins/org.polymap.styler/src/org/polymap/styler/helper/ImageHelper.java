@@ -48,17 +48,18 @@ import org.eclipse.swt.internal.graphics.ResourceFactory;
 
 public class ImageHelper {
 
-	private static final Log log = LogFactory
-			.getLog(ImageHelper.class);
+	private static final Log log = LogFactory.getLog(ImageHelper.class);
 
 	
-	public static Image createColorRectImage(java.awt.Color color) {
-		return ResourceFactory.findImage(convertToSWT(createColorRectBufferedImage(color)));
+    public static Image createColorRectImage( java.awt.Color color ) {
+        return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( color ) ) );
 	}
 	
-	public static Image createColorRectImage(RGB rgb) {
-		return ResourceFactory.findImage(convertToSWT(createColorRectBufferedImage(ColorHelper.RGB2Color(rgb) )));
-	}
+
+    public static Image createColorRectImage( RGB rgb ) {
+        return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( ColorHelper.RGB2Color( rgb ) ) ) );
+    }
+
 	
 	public static BufferedImage createColorRectBufferedImage(java.awt.Color color) {
 	    BufferedImage image = new BufferedImage( 10, 10, BufferedImage.TYPE_INT_ARGB );
