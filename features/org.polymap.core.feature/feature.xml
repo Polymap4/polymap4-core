@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.polymap.core.feature"
-      label="Polymap3 Core Feature"
-      version="3.1.0.qualifier"
+      label="Polymap3 Core"
+      version="3.2.0.qualifier"
       provider-name="polymap.org"
       os="linux,win32"
       ws="gtk,win32"
@@ -10,11 +10,11 @@
       arch="x86,x86_64">
 
    <description url="http://polymap.org/polymap3">
-      The POLYMAP3 base system and GIS-Workbench.
+      The POLYMAP3 core system and GIS Workbench.
    </description>
 
    <copyright url="http://www.example.com/copyright">
-      [Enter Copyright Description here.]
+      LGPL
    </copyright>
 
    <license url="http://www.example.com/license">
