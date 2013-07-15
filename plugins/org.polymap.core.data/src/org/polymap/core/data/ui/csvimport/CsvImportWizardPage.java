@@ -274,7 +274,7 @@ public class CsvImportWizardPage extends WizardPage {
         crsButton.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent e ) {
                 // FIXME _p3: the value seems to crash the chooserDialog if its not null
-                CRSChooserDialog dialog = new CRSChooserDialog( PolymapWorkbench.getShellToParentOn(), null );
+                CRSChooserDialog dialog = new CRSChooserDialog( CsvImportWizardPage.this.getShell(), null );
                 dialog.setBlockOnOpen( true );
                 dialog.open();
                 if (dialog.getResult() != null) {
@@ -303,7 +303,8 @@ public class CsvImportWizardPage extends WizardPage {
         // bottom group
         Group bottomGroup = new Group(fileSelectionArea, SWT.None);
         bottomGroup.setLayout(new GridLayout(2, false));
-        bottomGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
+        bottomGroup.setLayoutData(new GridData(
+                GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING ));
         bottomGroup.setText( i18n( "CsvImportWizardPage.headerline" ) );
 
         // lineIndex spinner
@@ -350,7 +351,7 @@ public class CsvImportWizardPage extends WizardPage {
         // extensions group
         Group extensionsGroup = new Group( fileSelectionArea, SWT.None );
         extensionsGroup.setLayout( new GridLayout( 2, false ) );
-        extensionsGroup.setLayoutData( new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL) );
+        extensionsGroup.setLayoutData( new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING) );
         extensionsGroup.setText( i18n( "CsvImportWizardPage.operations" ) );
         createExtensionsArea( extensionsGroup );
 
