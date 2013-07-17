@@ -152,6 +152,10 @@ public class RDataStore
 
     public void createSchema( FeatureType schema )
     throws IOException {
+        if (schemas.containsKey( schema.getName() )) {
+            throw new IOException( "Schema name already exists: " + schema.getName() );
+        }
+        
         Updater tx = store.prepareUpdate();
         try {
             tx.store( store.newRecord()
