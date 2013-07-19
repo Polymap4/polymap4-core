@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -85,7 +85,7 @@ public class DownloadServiceHandler
         }
         
         // XXX code from RAP; its a bit confusing, don't like it but it works
-        StringBuffer url = new StringBuffer();
+        StringBuffer url = new StringBuffer( 256 );
         url.append( URLHelper.getURLString( false ) );
 
         URLHelper.appendFirstParam( url, REQUEST_PARAM, SERVICE_HANDLER_ID );

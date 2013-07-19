@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -28,6 +28,7 @@ import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
@@ -76,12 +77,15 @@ public class OperationSupport
      */
     class MultipleOperations 
             implements ISchedulingRule {
-        
+        @Override
         public boolean isConflicting( ISchedulingRule rule ) {
             return rule == this || rule instanceof OneSaver;
         }
+        @Override
         public boolean contains( ISchedulingRule rule ) {
-            return rule instanceof MultipleOperations;
+            return rule instanceof MultipleOperations
+                    // allow for nested resource opne/update
+                    || rule instanceof IResource;
         }
     }
 
