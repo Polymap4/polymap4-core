@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012 Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2009-2013 Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -70,7 +69,7 @@ import org.polymap.openlayers.rap.widget.layers.WMSLayer;
 /**
  * A map editor based on {@link OpenLayersWidget}.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class MapEditor
@@ -85,8 +84,6 @@ public class MapEditor
 
     protected OpenLayersWidget      olwidget;
 
-    private Point                   displaySize;
-    
     private RenderManager           renderManager;
     
     /** The currently displayed layers. */
@@ -138,6 +135,14 @@ public class MapEditor
         composite.setLayout( layout );
         composite.setBackground( Display.getDefault().getSystemColor( SWT.COLOR_INFO_BACKGROUND ) );
 
+        parent.addControlListener( new ControlListener() {
+            public void controlResized( ControlEvent ev ) {
+                olwidget.getMap().updateSize();
+            }
+            public void controlMoved( ControlEvent ev ) {
+            }
+        });
+
         createWidget();
         
         // renderManager
@@ -171,16 +176,6 @@ public class MapEditor
                 ? new Bounds( bbox.getMinX(), bbox.getMinY(), bbox.getMaxX(), bbox.getMaxY() )
                 : null;
         olwidget.createMap( proj, proj, units, maxExtent, maxResolution );
-
-        // XXX use OpenLayers events
-        displaySize = olwidget.getSize();
-        olwidget.addControlListener( new ControlListener() {
-            public void controlResized( ControlEvent ev ) {
-                displaySize = olwidget.getSize();
-            }
-            public void controlMoved( ControlEvent ev ) {
-            }
-        });
 
         // add some controls to the map
         OpenLayersMap olmap = olwidget.getMap();
