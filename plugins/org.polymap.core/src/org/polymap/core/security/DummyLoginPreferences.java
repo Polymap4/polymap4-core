@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,17 +11,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.security;
-
-import java.util.Set;
 
 import java.io.File;
 
@@ -39,104 +29,76 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.resource.ImageDescriptor;
-
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class DummyLoginPreferences
         extends PreferencePage
         implements IWorkbenchPreferencePage {
 
-    private File            loginConfigFile;
+    private DummyLoginModule    loginModule;
     
-    private Text            editor;
+    private File                loginConfigFile;
+    
+    private Text                editor;
     
     
-    public DummyLoginPreferences() {
-    }
-
-
-    public DummyLoginPreferences( String title ) {
-        super( title );
-    }
-
-
-    public DummyLoginPreferences( String title, ImageDescriptor image ) {
-        super( title, image );
+    public DummyLoginPreferences( DummyLoginModule loginModule ) {
+        this.loginModule = loginModule;
     }
 
 
     public void init( IWorkbench workbench ) {
+        noDefaultAndApplyButton();
     }
 
 
     protected Control createContents( Composite parent ) {
-        Set<DummyLoginModule> dummyLoginModules = Polymap.instance().getSubject().getPrivateCredentials( DummyLoginModule.class );
-        
-        // admin?
-        if (!SecurityUtils.isAdmin( Polymap.instance().getPrincipals() )) {
-            Label msg = new Label( parent, SWT.None ); 
-            msg.setText( Messages.get( "DummyLoginPreferences_noAccess" ) );
-            return msg;
-        }
-        // loginConfigFile?
-        else if (dummyLoginModules.isEmpty()) {
-            Label msg = new Label( parent, SWT.None ); 
-            msg.setText( Messages.get( "DummyLoginPreferences_noLoginModule" ) );
-            return msg;
-        }
-        //
-        else {
-            Composite contents = new Composite( parent, SWT.NONE );
-            contents.setLayoutData( new GridData( GridData.FILL_BOTH ) );
+        Composite contents = new Composite( parent, SWT.NONE );
+        contents.setLayoutData( new GridData( GridData.FILL_BOTH ) );
 
-            Label msg = new Label( contents, SWT.WRAP ); 
-            msg.setText( Messages.get( "DummyLoginPreferences_msg" ) );
-            
-            editor = new Text( contents, SWT.V_SCROLL | SWT.H_SCROLL | SWT.MULTI | SWT.BORDER );
-            DummyLoginModule loginModule = dummyLoginModules.iterator().next();
-            loginConfigFile = loginModule.getConfigFile();
-            if (loginConfigFile != null) {
-                try {
-                    editor.setText( FileUtils.readFileToString( loginConfigFile, "ISO-8859-1" ) );
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-                }
+        Label msg = new Label( contents, SWT.WRAP ); 
+        msg.setText( Messages.get( "DummyLoginPreferences_msg" ) );
+
+        editor = new Text( contents, SWT.V_SCROLL | SWT.H_SCROLL | SWT.MULTI | SWT.BORDER );
+        loginConfigFile = loginModule.getConfigFile();
+        if (loginConfigFile != null) {
+            try {
+                editor.setText( FileUtils.readFileToString( loginConfigFile, "ISO-8859-1" ) );
             }
-            
-            // Layout
-            FormLayout layout = new FormLayout();
-            contents.setLayout( layout );
-
-            FormData msgData = new FormData();
-            msgData.top = new FormAttachment( 0, 0 );
-            msgData.left = new FormAttachment( 0, 0 );
-            msgData.right = new FormAttachment( 100, 0);
-            msg.setLayoutData( msgData );
-
-            FormData editorData = new FormData();
-            editorData.top = new FormAttachment( msg, 5 );
-            editorData.left = new FormAttachment( 0, 0 );
-            editorData.right = new FormAttachment( 100, 0);
-            editorData.bottom = new FormAttachment( 100, 0);
-            editor.setLayoutData( editorData );
-
-            return contents;
+            catch (Exception e) {
+                PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+            }
         }
+
+        // Layout
+        FormLayout layout = new FormLayout();
+        contents.setLayout( layout );
+
+        FormData msgData = new FormData();
+        msgData.top = new FormAttachment( 0, 0 );
+        msgData.left = new FormAttachment( 0, 0 );
+        msgData.right = new FormAttachment( 100, 0);
+        msg.setLayoutData( msgData );
+
+        FormData editorData = new FormData();
+        editorData.top = new FormAttachment( msg, 5 );
+        editorData.left = new FormAttachment( 0, 0 );
+        editorData.right = new FormAttachment( 100, 0);
+        editorData.bottom = new FormAttachment( 100, 0);
+        editor.setLayoutData( editorData );
+
+        return contents;
     }
 
 

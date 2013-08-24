@@ -28,8 +28,7 @@ import javax.security.auth.Subject;
  * SPI of a service that add additional roles to a given subject and its
  * principal. 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public interface IRoleProvider {

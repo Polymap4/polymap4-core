@@ -21,9 +21,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.resource.ImageDescriptor;
 
-import org.polymap.core.CorePlugin;
+import org.polymap.core.Messages;
+import org.polymap.core.runtime.IMessages;
 
 /**
  * Handles the callbacks to show an UI for the LoginModule.
@@ -31,9 +31,7 @@ import org.polymap.core.CorePlugin;
 public class LoginDialog
         extends AbstractLoginDialog {
 
-    private static final ImageDescriptor titleImageDescriptor = 
-            CorePlugin.imageDescriptor( "icons/polymap_logo2_app.png" ); //$NON-NLS-1$
-
+    private static final IMessages          i18n = Messages.forPrefix( "LoginDialog" );
 
     public LoginDialog() {
         this( Display.getDefault().getActiveShell() );
@@ -42,6 +40,7 @@ public class LoginDialog
 
     protected LoginDialog( Shell parentShell ) {
         super( parentShell );
+        //setTitleImage( CorePlugin.getDefault().image( "icons/polymap_logo2_app.png" ) );
     }
 
 
@@ -51,6 +50,9 @@ public class LoginDialog
 
 
     protected Control createDialogArea( Composite parent ) {
+        setTitle( i18n.get( "dialogTitle" ) );
+        setMessage( i18n.get( "msg" ) );
+
         Composite dialogarea = new Composite( parent, SWT.NONE );
         dialogarea.setLayoutData( new GridData( GridData.FILL_BOTH ) );
         
@@ -58,8 +60,8 @@ public class LoginDialog
 
         // Layout
         FormLayout layout = new FormLayout();
-        layout.marginWidth = 5;
-        layout.marginHeight = 5;
+        layout.marginWidth = 15;
+        layout.marginHeight = 15;
         dialogarea.setLayout( layout );
         
 //        setTitleImage( titleImageDescriptor.createImage() );
@@ -144,8 +146,10 @@ public class LoginDialog
         int dialogMessageType = IMessageProvider.NONE;
         switch (messageType) {
             case TextOutputCallback.INFORMATION:
-                dialogMessageType = IMessageProvider.INFORMATION;
-                break;
+                setTitle( callback.getMessage() );
+                return;
+//                dialogMessageType = IMessageProvider.INFORMATION;
+//                break;
             case TextOutputCallback.WARNING:
                 dialogMessageType = IMessageProvider.WARNING;
                 break;

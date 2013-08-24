@@ -1,28 +1,25 @@
 package org.polymap.core.security;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import java.security.Principal;
 
 /**
+ * A user principal identified by a username or account name.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
-public abstract class UserPrincipal
+public class UserPrincipal
         implements Principal, java.io.Serializable {
 
     private static final long       serialVersionUID = 892106070870210969L;
 
     protected final String          name;
     
-    /**
-     * Must not contain UserPrincipal in order to distinguish between groups and
-     * users.
-     */
-    protected final Set<Principal>  roles = new HashSet();
+//    /**
+//     * Must not contain UserPrincipal in order to distinguish between groups and
+//     * users.
+//     */
+//    protected final Set<Principal>  roles = new HashSet();
 
 
     /**
@@ -69,14 +66,14 @@ public abstract class UserPrincipal
         return name;
     }
 
-    /**
-     * Returns the password of this principal.
-     */
-    public abstract String getPassword();
-    
-    public Set<Principal> getRoles() {
-        return roles;
-    }
+//    /**
+//     * Returns the password of this principal.
+//     */
+//    public abstract String getPassword();
+//    
+//    public Set<Principal> getRoles() {
+//        return roles;
+//    }
 
     /**
      * Returns a string representation of this principal.
@@ -84,4 +81,5 @@ public abstract class UserPrincipal
     public String toString() {
         return name;
     }
+
 }

@@ -4,6 +4,7 @@
    <extension-point id="org.polymap.core.http.servlets" name="HttpServlets" schema="schema/servlets.exsd"/>
    <extension-point id="org.polymap.core.data.ows.wms" name="WMS Server" schema="schema/org.polymap.core.data.ows.wms.exsd"/>
    <extension-point id="org.polymap.core.operation.concerns" name="Operation Concerns" schema="schema/operation.concerns.exsd"/>
+   <extension-point id="org.polymap.core.security.AuthorizationModule" name="AuthorizationModule" schema="schema/AuthorizationModule.exsd"/>
    <extension
          point="org.eclipse.rap.ui.entrypoint">
       <entrypoint
@@ -139,6 +140,32 @@
       </loginModule>
    </extension>
    <extension
+         id="org.polymap.core.security.LdapLoginModule"
+         name="LDAP"
+         point="org.eclipse.equinox.security.loginModule">
+      <loginModule
+            class="org.polymap.core.security.LdapLoginModule"
+            description="LDAP">
+      </loginModule>
+   </extension>
+   <extension
+         id="org.polymap.core.security.DummyAuthorizationModule"
+         point="org.polymap.core.security.AuthorizationModule">
+      <AuthorizationModule
+            class="org.polymap.core.security.DummyAuthorizationModule"
+            id="org.polymap.core.security.DummyAuthorizationModule">
+      </AuthorizationModule>
+   </extension>
+   <extension
+         id="org.polymap.core.security.NullAuthorizationModule"
+         name="Null"
+         point="org.polymap.core.security.AuthorizationModule">
+      <AuthorizationModule
+            class="org.polymap.core.security.NullAuthorizationModule"
+            description="Null">
+      </AuthorizationModule>
+   </extension>
+   <extension
          id="org.polymap.core.security.LoginDialogCallbackHandler"
          point="org.eclipse.equinox.security.callbackHandler">
       <callbackHandler
@@ -174,7 +201,7 @@
             name="Activities">
       </page>
       <page
-            class="org.polymap.core.security.DummyLoginPreferences"
+            class="org.polymap.core.security.LoginModulePreferencePage"
             id="org.polymap.core.security.DummyLoginPreferences"
             name="%prefpages_dummy_title">
       </page>

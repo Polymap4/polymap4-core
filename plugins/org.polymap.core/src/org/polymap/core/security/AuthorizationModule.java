@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -14,18 +14,22 @@
  */
 package org.polymap.core.security;
 
+import java.util.Set;
+
 import java.security.Principal;
-import sun.security.acl.PrincipalImpl;
+
+import javax.security.auth.Subject;
+import javax.security.auth.spi.LoginModule;
 
 /**
- *
+ * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
-public class Authentication {
+public interface AuthorizationModule {
 
-    /** The role/group every user is in. */
-    public static final Principal       ALL = new PrincipalImpl( "ALL" );
+    public void init( LoginModule loginModule );
+    
+    public Set<Principal> rolesOf( Subject subject );
     
 }

@@ -151,6 +151,9 @@ public class PolymapWorkbench
             //log.warn( e );
             throw e;
         }
+        finally {
+            Polymap.instance().logout();
+        }
     }
 
     
