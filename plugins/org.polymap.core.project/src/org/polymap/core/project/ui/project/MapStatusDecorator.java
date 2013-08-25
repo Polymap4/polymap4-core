@@ -52,9 +52,9 @@ public class MapStatusDecorator
 
     private static final Log log = LogFactory.getLog( MapStatusDecorator.class );
 
-    private static final ImageDescriptor    empty = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, "icons/obj16/map_empty_obj.gif" );
-    private static final ImageDescriptor    visible = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, "icons/obj16/map_obj.gif" );
-    private static final ImageDescriptor    visibleOvr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, "icons/ovr16/visible_ovr.png" );
+    private static final ImageDescriptor    empty = ProjectPlugin.getDefault().imageDescriptor( "icons/obj16/map_empty_obj.gif" );
+    private static final ImageDescriptor    visible = ProjectPlugin.getDefault().imageDescriptor( "icons/obj16/map_obj.gif" );
+    private static final ImageDescriptor    visibleOvr = ProjectPlugin.getDefault().imageDescriptor( "icons/ovr16/visible_ovr.png" );
     
     private Map<String,IMap>                decorated;
 

@@ -165,7 +165,8 @@ public class FeatureTypeEditorProcessorConfig
         return true;
     }
 
-
+    
+    @Override
     protected Control createContents( Composite parent ) {
         noDefaultAndApplyButton();
 

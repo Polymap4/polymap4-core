@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,10 +14,9 @@
  */
 package org.polymap.core.data;
 
-import java.net.URL;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import org.polymap.core.ImageRegistryHelper;
 import org.polymap.core.geohub.FeatureCollectionFactory;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
@@ -31,7 +30,6 @@ import org.osgi.framework.BundleContext;
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
 
 /**
  * 
@@ -52,6 +50,15 @@ public class DataPlugin
     
     private static DataPlugin  plugin;
 
+
+    public static DataPlugin getDefault() {
+        return plugin;
+    }
+
+    // instance *******************************************
+    
+    private ImageRegistryHelper         images = new ImageRegistryHelper( this );
+    
 
     public void start( BundleContext context ) throws Exception {
         super.start( context );
@@ -78,32 +85,18 @@ public class DataPlugin
     }
 
 
-    public static DataPlugin getDefault() {
-        return plugin;
-    }
-
-
-    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
-        ImageRegistry images = getImageRegistry();
-        Image image = images.get( key );
-        if (image == null || image.isDisposed()) {
-            images.put( key, imageDescriptor );
-            image = images.get( key );
-        }
-        return image;
+    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
+        return images.image( descriptor, key );
     }
 
     
     public Image imageForName( String resName ) {
-        ImageRegistry images = getImageRegistry();
-        Image image = images.get( resName );
-        if (image == null || image.isDisposed()) {
-            URL res = getBundle().getResource( resName );
-            assert res != null : "Image resource not found: " + resName;
-            images.put( resName, ImageDescriptor.createFromURL( res ) );
-            image = images.get( resName );
-        }
-        return image;
+        return images.image( resName );
+    }
+
+    
+    public ImageDescriptor imageDescriptor( String path ) {
+        return images.imageDescriptor( path );
     }
 
 }

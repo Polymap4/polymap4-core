@@ -137,14 +137,14 @@ public class LayerStatusDecorator
             
             // visible
             if (layer.isVisible()) {
-                ImageDescriptor image = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible );
+                ImageDescriptor image = ProjectPlugin.getDefault().imageDescriptor( visible );
                 decoration.setFont( bold );
 
                 DecorationContext context = (DecorationContext)decoration.getDecorationContext();
                 context.putProperty( IDecoration.ENABLE_REPLACE, Boolean.TRUE );
                 decoration.addOverlay( image, IDecoration.REPLACE );
 
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, visible_ovr );
+                ImageDescriptor ovr = ProjectPlugin.getDefault().imageDescriptor( visible_ovr );
                 decoration.addOverlay( ovr, TOP_LEFT );
             }
 
@@ -159,7 +159,7 @@ public class LayerStatusDecorator
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_missing") );    
             }
             else if (layerStatus == LayerStatus.STATUS_WAITING) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, waiting );
+                ImageDescriptor ovr = ProjectPlugin.getDefault().imageDescriptor( waiting );
                 decoration.setFont( italic );
                 decoration.addOverlay( ovr, TOP_RIGHT );
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );

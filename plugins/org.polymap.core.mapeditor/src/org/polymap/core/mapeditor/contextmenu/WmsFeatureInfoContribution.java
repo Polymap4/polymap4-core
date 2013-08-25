@@ -139,8 +139,7 @@ public class WmsFeatureInfoContribution
                     openHelpWindow( label, content );
                 }            
             };
-            action.setImageDescriptor( MapEditorPlugin.imageDescriptorFromPlugin(
-                    MapEditorPlugin.PLUGIN_ID, "icons/etool16/discovery.gif" ) );
+            action.setImageDescriptor( MapEditorPlugin.imageDescriptor( "icons/etool16/discovery.gif" ) );
             new ActionContributionItem( action ).fill( parent, index );
         }
     }

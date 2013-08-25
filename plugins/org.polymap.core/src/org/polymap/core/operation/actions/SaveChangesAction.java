@@ -61,7 +61,7 @@ public class SaveChangesAction
     
     private OperationSupport        operationSupport;
 
-    private static ImageDescriptor  origImage = CorePlugin.imageDescriptor( "icons/etool16/save.gif" );
+    private static ImageDescriptor  origImage = CorePlugin.getDefault().imageDescriptor( "icons/etool16/save.gif" );
 
     
     public void init( IWorkbenchWindow window ) {
@@ -84,7 +84,7 @@ public class SaveChangesAction
                 public void run() {
                     if (operationSupport.undoHistorySize() > 0) {
                         Image image = CorePlugin.getDefault().imageForDescriptor( origImage, "_saveActionOrig" );
-                        ImageDescriptor ovr = CorePlugin.imageDescriptor( "icons/ovr16/dirty_ovr2.png" );
+                        ImageDescriptor ovr = CorePlugin.getDefault().imageDescriptor( "icons/ovr16/dirty_ovr2.png" );
                         action.setImageDescriptor( new DecorationOverlayIcon( image, ovr, IDecoration.BOTTOM_RIGHT ) );
                         //action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
                     }

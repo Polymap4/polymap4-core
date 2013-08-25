@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, 2012 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -32,8 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -63,11 +61,6 @@ public class CorePlugin
 
 	// The shared instance
 	private static CorePlugin  plugin;
-
-
-	public static ImageDescriptor imageDescriptor( String path ) {
-        return imageDescriptorFromPlugin( PLUGIN_ID, path );
-    }
 
 
     /**
@@ -197,7 +190,9 @@ public class CorePlugin
     private RapSessionContextProvider   rapSessionContextProvider;
 
     private HttpServiceTracker          httpServiceTracker;
-
+    
+    private ImageRegistryHelper         images = new ImageRegistryHelper( this );
+    
 
 	public CorePlugin() {
 		log.debug( "Hello from the first POLYMAP3 plugin! :)" );
@@ -247,17 +242,21 @@ public class CorePlugin
 	}
 
 	
-    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
-        ImageRegistry images = getImageRegistry();
-        Image image = images.get( key );
-        if (image == null || image.isDisposed()) {
-            images.put( key, imageDescriptor );
-            image = images.get( key );
-        }
-        return image;
+    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
+        return images.image( descriptor, key );
     }
 
     
+    public ImageDescriptor imageDescriptor( String path ) {
+        return images.imageDescriptor( path );
+    }
+
+    
+    public Image image( String path ) {
+        return images.image( path );
+    }
+
+
     public static void logInfo( String msg ) {
         getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );
     }

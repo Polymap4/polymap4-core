@@ -28,13 +28,12 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 
-import net.refractions.udig.internal.ui.Images;
-
 import org.eclipse.swt.widgets.Event;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 
 /**
@@ -57,7 +56,7 @@ public class DeleteAttributeAction
         setId( "org.polymap.core.data.ui.featuretypeeditor.deleteAttributeAction" ); //$NON-NLS-1$
         setText( Messages.get( "DeleteAttributeAction_label" ) );
         setToolTipText( Messages.get( "DeleteAttributeAction_tip" ) );
-        setImageDescriptor( Images.getDescriptor( "elcl16/delete.gif" ) ); //$NON-NLS-1$
+        setImageDescriptor( DataPlugin.getDefault().imageDescriptor( "icons/etool16/delete_edit.gif" ) ); //$NON-NLS-1$
     }
 
     public void runWithEvent( Event event ) {
