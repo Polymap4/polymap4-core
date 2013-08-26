@@ -78,15 +78,15 @@ public class WmsFeatureInfoContribution
 
     public IContextMenuContribution init( ContextMenuSite _site ) {
         this.site = _site;
-        
+
         setVisible( false );
+        
         for (final ILayer layer : site.getMap().getLayers()) {
             if (layer.isVisible()
                     && layer.getGeoResource().canResolve( WebMapServer.class )) {
                 
                 UIJob job = new UIJob( "WMS: GetFeatureInfo" ) {
-                    protected void runWithException( IProgressMonitor monitor )
-                    throws Exception {
+                    protected void runWithException( IProgressMonitor monitor ) throws Exception {
                         try {
                             geores = layer.getGeoResource();
                             wms = geores.resolve( WebMapServer.class, null );
@@ -95,7 +95,6 @@ public class WmsFeatureInfoContribution
                             
                             // GetFeatureInfo supported?
                             if (caps.getRequest().getGetFeatureInfo() != null) {
-                                
                                 log.info( "Possible formats: " + layer.getLabel() );
                                 for (String format : caps.getRequest().getGetFeatureInfo().getFormats()) {
                                     log.info( "    " + format );
@@ -118,7 +117,6 @@ public class WmsFeatureInfoContribution
                 };
                 job.schedule();
                 job.joinAndDispatch( 5000 );
-                break;
             }
         }
         return this;
