@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Widget;
 
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -78,6 +79,39 @@ public class MapEditor
 
     static Log log = LogFactory.getLog( MapEditor.class );
 
+    /**
+     * 
+     *
+     * @param map
+     * @param createIfAbsent
+     * @throws PartInitException
+     */
+    public static MapEditor openMap( IMap map, boolean createIfAbsent ) throws PartInitException {
+        assert map != null;
+        MapEditorInput input = new MapEditorInput( map );
+
+        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        
+        // check current editors
+        MapEditor result = null;
+        for (IEditorReference reference : page.getEditorReferences()) {
+            IEditorInput candidate = reference.getEditorInput();
+            if (candidate.equals( input )) {
+                result = (MapEditor)reference.getPart( true );
+                page.activate( result );
+            }
+        }
+
+        // not found -> open new editor
+        if (result == null && createIfAbsent) {
+            result = (MapEditor)page.openEditor( input, input.getEditorId(), true, IWorkbenchPage.MATCH_NONE );
+        }
+        return result;
+    }
+
+    
+    // instance *******************************************
+    
     private IMap                    map;
     
     private Composite               composite;
