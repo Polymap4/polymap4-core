@@ -72,8 +72,7 @@ public class LayerVisibleContribution
                 }            
             };
             action.setChecked( layer.isVisible() );
-            action.setImageDescriptor( MapEditorPlugin.imageDescriptorFromPlugin( MapEditorPlugin.PLUGIN_ID, 
-                    "icons/etool16/layer_visible.png" ) );
+            action.setImageDescriptor( MapEditorPlugin.imageDescriptor( "icons/etool16/layer_visible.png" ) );
             new ActionContributionItem( action ).fill( parent, index );
         }
     }

@@ -14,24 +14,19 @@
  */
 package org.polymap.core.project;
 
-import java.net.URL;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+
+import org.polymap.core.ImageRegistryHelper;
 
 /**
  * 
@@ -54,8 +49,8 @@ public class ProjectPlugin
     private static IGeoResourceResolver resolver;
     
 
-    public ProjectPlugin() {
-        instance = this;
+    public static ProjectPlugin getDefault() {
+        return instance;
     }
 
 
@@ -70,17 +65,6 @@ public class ProjectPlugin
     }
 
 
-    public void start( BundleContext context )
-            throws Exception {
-        super.start( context );
-    }
-    
-    
-    public static ProjectPlugin getDefault() {
-        return instance;
-    }
-
-
     /**
      *
      * @param layer
@@ -92,56 +76,17 @@ public class ProjectPlugin
         }
         return resolver;
     }
-    
-
-    public Image imageForDescriptor( ImageDescriptor imageDescriptor, String key ) {
-        ImageRegistry images = getImageRegistry();
-        Image image = images.get( key );
-        if (image == null || image.isDisposed()) {
-            images.put( key, imageDescriptor );
-            image = images.get( key );
-        }
-        return image;
-    }
 
 
-    public Image imageForName( String resName ) {
-        ImageRegistry images = getImageRegistry();
-        Image image = images.get( resName );
-        if (image == null || image.isDisposed()) {
-            URL res = getBundle().getResource( resName );
-            assert res != null : "Image resource not found: " + resName;
-            images.put( resName, ImageDescriptor.createFromURL( res ) );
-            image = images.get( resName );
-        }
-        return image;
-    }
-
-
-    public static ImageDescriptor getImageDescriptor( String path ) {
-        ImageRegistry registry = instance.getImageRegistry();
-        ImageDescriptor result = registry.getDescriptor( path );
-        if (result == null) {
-            Bundle bundle = instance.getBundle();
-            result = ImageDescriptor.createFromURL(
-                    FileLocator.find( bundle, new Path( path ), null ) );
-            registry.put( path, result );
-        }
-        return result;
-    }
-
-    
     public static Image getImage( String path ) {
-        // create and cache
-        getImageDescriptor( path );
-        return instance.getImageRegistry().get( path );
+        return getDefault().imageForName( path );
     }
 
-    
+
     public static void logInfo( String msg ) {
         getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );    
     }
-    
+
 
     public static void logError( String msg ) {
         try {
@@ -150,6 +95,38 @@ public class ProjectPlugin
         catch (Exception e) {
             // ignore
         }    
+    }
+
+    
+    // instance *******************************************
+    
+    private ImageRegistryHelper     images = new ImageRegistryHelper( this );
+
+    public void start( BundleContext context ) throws Exception {
+        super.start( context );
+        instance = this;
+    }
+    
+    
+    @Override
+    public void stop( BundleContext context ) throws Exception {
+        super.stop( context );
+        instance = null;
+    }
+
+
+    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
+        return images.image( descriptor, key );
+    }
+
+    
+    public Image imageForName( String resName ) {
+        return images.image( resName );
+    }
+
+    
+    public ImageDescriptor imageDescriptor( String path ) {
+        return images.imageDescriptor( path );
     }    
 
 }

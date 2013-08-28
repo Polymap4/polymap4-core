@@ -174,7 +174,7 @@ public class LayerBufferDecorator
                 decoration.addPrefix( "< " );                    
             }
             else if (outgoing) {
-                ImageDescriptor ovr = DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, OUTGOING );
+                ImageDescriptor ovr = DataPlugin.getDefault().imageDescriptor( OUTGOING );
                 decoration.addOverlay( ovr, BOTTOM_RIGHT );
                 //decoration.addSuffix( "*" );
             }

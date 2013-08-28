@@ -25,8 +25,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public abstract class AbstractLoginDialog
@@ -125,6 +124,6 @@ public abstract class AbstractLoginDialog
 
     protected void configureShell( Shell shell ) {
         super.configureShell( shell );
-        shell.setText( "Login" );
+        //shell.setText( "Login" );
     }
 }

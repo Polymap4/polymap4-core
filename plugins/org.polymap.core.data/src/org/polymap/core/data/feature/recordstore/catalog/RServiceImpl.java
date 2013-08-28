@@ -22,7 +22,6 @@ import net.refractions.udig.ui.UDIGDisplaySafeLock;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
-import org.geotools.jdbc.JDBCDataStore;
 import org.opengis.feature.type.Name;
 
 import org.apache.commons.lang.StringUtils;
@@ -87,7 +86,7 @@ public class RServiceImpl
         if (adaptee == null) {
             return false;
         }
-        return adaptee.isAssignableFrom( JDBCDataStore.class )
+        return adaptee.isAssignableFrom( DataAccess.class )
                 || adaptee.isAssignableFrom( Connection.class ) 
                 || super.canResolve( adaptee );
     }

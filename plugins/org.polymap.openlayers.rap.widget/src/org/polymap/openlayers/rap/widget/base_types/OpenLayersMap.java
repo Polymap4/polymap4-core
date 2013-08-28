@@ -18,6 +18,7 @@ import org.polymap.openlayers.rap.widget.OpenLayersWidget;
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
 import org.polymap.openlayers.rap.widget.controls.Control;
 import org.polymap.openlayers.rap.widget.layers.Layer;
+import org.polymap.openlayers.rap.widget.util.Stringer;
 
 /**
  * 
@@ -209,5 +210,12 @@ public class OpenLayersMap
     public void setUnits(String units) {
         this.units = units;
         super.setObjAttr("units", units);
+    }
+
+    public void updateSize() {
+        addObjModCode( new Stringer( 
+                "setTimeout( function() {", 
+                    getJSObjRef(), ".updateSize();",
+                "}, 500 );" ).toString() );
     }
 }

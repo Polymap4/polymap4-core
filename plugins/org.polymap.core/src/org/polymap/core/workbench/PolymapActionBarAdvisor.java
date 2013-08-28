@@ -113,16 +113,16 @@ public class PolymapActionBarAdvisor
     protected void makeActions( final IWorkbenchWindow window ) {
         newAction = ActionFactory.NEW.create( window );
         newAction.setText( Messages.get( "PolymapActionBarAdvisor_new" ) );
-        newAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
+        newAction.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/add.gif" ) );
         register( newAction );
 
         new2Action = ActionFactory.NEW_WIZARD_DROP_DOWN.create( window );
         new2Action.setText( Messages.get( "PolymapActionBarAdvisor_newDropDown" ) );
-        new2Action.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/add.gif" ) );
+        new2Action.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/add.gif" ) );
         register( new2Action );
 
         importAction = ActionFactory.IMPORT.create( window );
-        importAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/import3.gif" ) );
+        importAction.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/import3.gif" ) );
         register( importAction );
 
         exportAction = ActionFactory.EXPORT.create( window );
@@ -135,7 +135,7 @@ public class PolymapActionBarAdvisor
         register( saveAllAction );
 
         preferencesAction = ActionFactory.PREFERENCES.create( window );
-        preferencesAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_prefs.gif" ) );
+        preferencesAction.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/show_prefs.gif" ) );
         register( preferencesAction );
 
         resetPerspectiveAction = ActionFactory.RESET_PERSPECTIVE.create( window );
@@ -177,7 +177,7 @@ public class PolymapActionBarAdvisor
         };
         restartAction.setId( "org.polymap.core.RestartAction" );
         restartAction.setText( Messages.get( "PolymapActionBarAdvisor_restart" ) );
-        restartAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/exit.gif" ) );
+        restartAction.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/exit.gif" ) );
         register( restartAction );
 
         aboutAction = new Action() {
@@ -201,7 +201,7 @@ public class PolymapActionBarAdvisor
         aboutAction.setText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
         aboutAction.setToolTipText( Messages.get( "PolymapActionBarAdvisor_about" ) ); //$NON-NLS-1$
         aboutAction.setId( "org.eclipse.rap.demo.about" ); //$NON-NLS-1$
-        aboutAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/info_tsk.gif" ) );
+        aboutAction.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/info_tsk.gif" ) );
         register( aboutAction );
         
         polymapWebSiteAction = new Action() {
@@ -231,7 +231,7 @@ public class PolymapActionBarAdvisor
 
         showViewAction = ActionFactory.SHOW_VIEW_MENU.create( window );
         showViewAction.setToolTipText( Messages.get( "PolymapActionBarAdvisor_showView" ) );
-        showViewAction.setImageDescriptor( CorePlugin.imageDescriptor( "icons/etool16/show_view.gif" ) );
+        showViewAction.setImageDescriptor( CorePlugin.getDefault().imageDescriptor( "icons/etool16/show_view.gif" ) );
         showViewAction.setEnabled( true );
         
 //        wizardAction = new Action() {

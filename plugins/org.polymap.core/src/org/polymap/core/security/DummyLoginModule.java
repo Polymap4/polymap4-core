@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,23 +11,19 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.security;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.security.Principal;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -42,9 +37,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import org.polymap.core.Messages;
+import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
 
 import sun.security.acl.PrincipalImpl;
@@ -53,15 +49,16 @@ import sun.security.acl.PrincipalImpl;
  * Dummy authentication based on user/role setting in the jaas_config file or
  * a properties file.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class DummyLoginModule
-        implements javax.security.auth.spi.LoginModule {
+        implements PreferencesLoginModule {
 
     private static Log log = LogFactory.getLog( DummyLoginModule.class );
 
+    private static final IMessages          i18n = Messages.forPrefix( "LoginDialog" );
+    
     /** Maps user name to passwd. */
     private Map<String,DummyUserPrincipal>  users = new HashMap();
 
@@ -75,11 +72,21 @@ public class DummyLoginModule
     
     private File                            configFile;
 
+    private String                          dialogTitle = i18n.get( "dialogTitle" );
+    
+    private AuthorizationModule             authModule;
+
 
     public DummyLoginModule() {
     }
 
     
+    @Override
+    public IWorkbenchPreferencePage createPreferencePage() {
+        return new DummyLoginPreferences( this );
+    }
+
+
     public File getConfigFile() {
         return configFile;
     }
@@ -91,6 +98,9 @@ public class DummyLoginModule
         this.subject = subject;
         this.callbackHandler = callbackHandler;
         
+        this.authModule = new DummyAuthorizationModule();
+        this.authModule.init( this );
+        
         // check user/passwd settings in options
         for (Object elm : options.entrySet()) {
             Map.Entry<String,String> option = (Map.Entry)elm;
@@ -101,6 +111,13 @@ public class DummyLoginModule
                 configFile = option.getValue().startsWith( File.pathSeparator )
                         ? new File( option.getValue() )
                         : new File( Polymap.getWorkspacePath().toFile(), option.getValue() );
+            }
+            else if (option.getKey().equals( "dialogTitle" )) {
+                dialogTitle = option.getValue();
+            }
+            else if (option.getKey().equals( "authorizationExtensionId" )) {
+                authModule = AuthorizationModuleExtension.forId( option.getValue() ).createClass();
+                this.authModule.init( this );
             }
             else {
                 String user = option.getKey();
@@ -132,8 +149,7 @@ public class DummyLoginModule
     }
 
 
-    public boolean login()
-    throws LoginException {
+    public boolean login() throws LoginException {
         // check if there is a user with "login" password
         for (DummyUserPrincipal candidate : users.values()) {
             if (candidate.getPassword().equals( "login" )) {
@@ -143,10 +159,9 @@ public class DummyLoginModule
         }
 
         // XXX translation
-        Callback label = new TextOutputCallback( TextOutputCallback.INFORMATION,
-                "POLYMAP3 Workbench" );
-        NameCallback nameCallback = new NameCallback( "Nutzername", "admin" );
-        PasswordCallback passwordCallback = new PasswordCallback( "Passwort", false );
+        Callback label = new TextOutputCallback( TextOutputCallback.INFORMATION, dialogTitle );
+        NameCallback nameCallback = new NameCallback( i18n.get( "username" ), "default" );
+        PasswordCallback passwordCallback = new PasswordCallback( i18n.get( "password" ), false );
         try {
             callbackHandler.handle( new Callback[] { label, nameCallback, passwordCallback } );
         }
@@ -172,28 +187,26 @@ public class DummyLoginModule
     }
 
 
-    public boolean commit()
-            throws LoginException {
+    public boolean commit() throws LoginException {
         subject.getPrincipals().add( principal );
-        subject.getPrincipals().addAll( principal.getRoles() );
 
         subject.getPrivateCredentials().add( this );
-        subject.getPrivateCredentials().add( Display.getCurrent() );
-        subject.getPrivateCredentials().add( SWT.getPlatform() );
+        subject.getPrivateCredentials().add( authModule );
+        
         return loggedIn;
     }
 
 
-    public boolean abort()
-            throws LoginException {
+    public boolean abort() throws LoginException {
         loggedIn = false;
         return true;
     }
 
 
-    public boolean logout()
-            throws LoginException {
+    public boolean logout() throws LoginException {
         subject.getPrincipals().remove( principal );
+        subject.getPrivateCredentials().remove( this );
+        subject.getPrivateCredentials().remove( authModule );
         loggedIn = false;
         return true;
     }
@@ -201,12 +214,13 @@ public class DummyLoginModule
 
     /**
      * 
-     * 
      */
     final class DummyUserPrincipal
             extends UserPrincipal {
 
         private final String        passwd;
+        
+        private Set<Principal>      roles = new HashSet();
         
 
         /**
@@ -231,8 +245,14 @@ public class DummyLoginModule
             }
         }
 
+        
         public String getPassword() {
             return passwd;
+        }
+
+        
+        public Set<Principal> getRoles() {
+            return roles;
         }
 
     }

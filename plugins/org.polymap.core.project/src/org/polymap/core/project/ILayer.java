@@ -94,6 +94,7 @@ public interface ILayer
     /**
      * @deprecated Use <code>{@link #getGeoResource()}.getInfo().getCRS()</code> or
      *             get CRS from {@link FeatureSource} of the layer.
+     * @return The SRS of this layer, or null.
      */
     public String getCRSCode();
 

@@ -25,6 +25,8 @@ package org.polymap.openlayers.rap.widget.base;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.polymap.openlayers.rap.widget.util.Stringer;
+
 /**
  * Client Side OpenLayers Object Base Class holding a reference to the widget
  * and keeps track of changes to the object
@@ -50,45 +52,46 @@ public class OpenLayersEvents {
         }
     }
     
-	public OpenLayersEvents(OpenLayersObject obj) {
-		this.obj = obj;
-	}
+    public OpenLayersEvents(OpenLayersObject obj) {
+        this.obj = obj;
+    }
 
-	public Map<String,String> getPayload(String event_name) {
-	    ListenerData listener_data = listeners.get(event_name);
-	    return listener_data != null
-	            ? listener_data.payload : null;
-	}
-	
-	public void register(OpenLayersEventListener listener, 
-	        String event_name,
-			Map<String, String> payload_request) {
-	    
-		ListenerData listener_data = new ListenerData( event_name, listener, payload_request );
+    public Map<String,String> getPayload(String event_name) {
+        ListenerData listener_data = listeners.get(event_name);
+        return listener_data != null
+                ? listener_data.payload : null;
+    }
+    
+    public void register(OpenLayersEventListener listener, 
+            String event_name,
+            Map<String, String> payload_request) {
+        
+        ListenerData listener_data = new ListenerData( event_name, listener, payload_request );
         synchronized (listeners) {
             ListenerData old = listeners.put( event_name, listener_data );
             assert old == null : "Listener already registered for event: " + event_name;
         }
-	    
-		String payload_code = "";
-		if (payload_request != null) {
-			for (Map.Entry<String,String> entry : payload_request.entrySet()) {
-				payload_code += "req.addParameter( openlayersId + '.event_payload_"
-						+ entry.getKey() + "' , " + entry.getValue() + "  );";
-			}
-		}
+        
+        Stringer payload_code = new Stringer();
+        if (payload_request != null) {
+            for (Map.Entry<String,String> entry : payload_request.entrySet()) {
+                payload_code.add( "req.addParameter( openlayersId + '.event_payload_", entry.getKey(), "',", entry.getValue(), ");" );
+            }
+        }
 
-		obj.addObjModCode( "obj.events.register('" + event_name + "', this,"
-		        + "function (event) {"
-		        + "if (!org.eclipse.swt.EventUtil.getSuspended()) {"
-		        + "var openlayersId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( this );"
-		        + "var req = org.eclipse.swt.Request.getInstance();"
-		        + "req.addParameter( openlayersId + '.event_name', event.type );"
-		        + "req.addParameter( openlayersId + '.event_src_obj', '" + obj.getObjRef()
-		        + "' );"
-
-		        + "" + payload_code + "req.send();" + "}" + "});" );
-	}
+		obj.addObjModCode( new Stringer( "obj.events.register('", event_name, "', this, function( event ) {",
+                //+ "alert( 'event:' + event );"
+                "qx.ui.core.Widget.flushGlobalQueues();",
+                "if (!org.eclipse.swt.EventUtil.getSuspended()) {",
+                    "var openlayersId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( this );",
+                    "var req = org.eclipse.swt.Request.getInstance();",
+                    "req.addParameter( openlayersId + '.event_name', event.type );",
+                    "req.addParameter( openlayersId + '.event_src_obj', '" + obj.getObjRef() + "' );",
+                    payload_code,
+                    "req.send();", 
+                    "}", 
+                "});" ).toString() );
+    }
 
     public void unregister(OpenLayersEventListener listener, String name) {
         synchronized (listeners) {
@@ -96,12 +99,12 @@ public class OpenLayersEvents {
         }
     }
 
-	public void process_event(String name, HashMap<String, String> payload) {
-	    ListenerData listener_data = null;
-	    synchronized (listeners) {
-	        listener_data = listeners.get(name);
-	    }
-	    listener_data.listener.process_event(obj, name, payload);
-	}
+    public void process_event(String name, HashMap<String, String> payload) {
+        ListenerData listener_data = null;
+        synchronized (listeners) {
+            listener_data = listeners.get(name);
+        }
+        listener_data.listener.process_event(obj, name, payload);
+    }
 
 }
