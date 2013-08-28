@@ -54,7 +54,7 @@
             exitConfirmationClass="org.polymap.core.workbench.BrowserExitConfirmation"
             favicon="icons/favicon.gif"
             id="org.polymap.core.branding1"
-            servletName="polymap"
+            servletName="workbench"
             title="POLYMAP3 Workbench">
          <additionalHeaders>
             <meta
