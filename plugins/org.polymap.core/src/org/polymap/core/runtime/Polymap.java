@@ -330,16 +330,19 @@ public final class Polymap {
     
     
     public Set<Principal> getPrincipals() {
+        assert principals != null : "getPrincipals(): called after logout!";
         return principals;
     }
 
     
     public Principal getUser() {
+        assert principals != null : "getUser(): called after logout!";
         return user;
     }
 
 
     public Subject getSubject() {
+        assert principals != null : "getSubject(): called after logout!";
         return subject;    
     }
 
