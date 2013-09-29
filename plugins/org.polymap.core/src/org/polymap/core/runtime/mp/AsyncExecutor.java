@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2011-2013, Falko Bräutigam. All rigths reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,10 +19,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.mp.ForEach.Processor;
 import org.polymap.core.runtime.mp.ForEachExecutor.ProcessorContext;
 
 /**
@@ -60,8 +61,8 @@ import org.polymap.core.runtime.mp.ForEachExecutor.ProcessorContext;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class AsyncExecutor<T,S>
-        implements ForEachExecutor<T,S>, ProcessorContext {
+public class AsyncExecutor<S,T>
+        implements ForEachExecutor<S,T>, ProcessorContext {
 
     private static Log log = LogFactory.getLog( AsyncExecutor.class );
 
@@ -105,7 +106,7 @@ public class AsyncExecutor<T,S>
      */
     private volatile int            queueSize = 0;
     
-    private BlockingQueue<Chunk>    results = new ArrayBlockingQueue( queueCapacity );
+    private BlockingQueue<Chunk>    results = new LinkedTransferQueue();  //new ArrayBlockingQueue( queueCapacity );
     
     private Iterator                currentResultChunk;
     
@@ -122,7 +123,7 @@ public class AsyncExecutor<T,S>
      * 
      * @param forEach
      */
-    public AsyncExecutor( ForEach<T, S> forEach ) {
+    public AsyncExecutor( ForEach<S,T> forEach ) {
         this.forEach = forEach;
         this.source = forEach.source().iterator();
         
@@ -249,7 +250,7 @@ public class AsyncExecutor<T,S>
 
         int                     chainNum;
         
-        Processor               processor;
+        Processor               proc;
         
         Lock                    serialProcessorLock = new ReentrantLock();
         
@@ -259,7 +260,7 @@ public class AsyncExecutor<T,S>
         
         
         protected AsyncProcessorContext( Processor proc, int chainNum ) {
-            this.processor = proc;
+            this.proc = proc;
             this.chainNum = chainNum;
         }
 
@@ -268,7 +269,7 @@ public class AsyncExecutor<T,S>
             log.debug( "Got chunk. chainNum=" + chainNum + ", chunkSize=" + chunk.elements.size() );
             
             // wait for previous chunks if serial
-            if (processor instanceof Serial) {
+            if (proc.maxThreads == 1) {
                 try {
                     serialProcessorLock.lock();
                     while (chunk.chunkNum > lastChunkNum+1) {
@@ -293,12 +294,12 @@ public class AsyncExecutor<T,S>
                 throws Exception {
                     int size = chunk.elements.size();
                     for (int i=0; i<size; i++) {
-                        chunk.elements.set( i, processor.process( chunk.elements.get( i ) ) );
+                        chunk.elements.set( i, proc.delegate.apply( chunk.elements.get( i ) ) );
                     }
 
                     log.debug( "ASync task processed. chainNum=" + chainNum + ", chunkSize=" + chunk.elements.size() );
 
-                    if (processor instanceof Serial) {
+                    if (proc.maxThreads == 1) {
                         try {
                             serialProcessorLock.lock();                            
                             lastChunkNum = chunk.chunkNum;

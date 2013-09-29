@@ -44,7 +44,7 @@ public class ExecutorPerfTest
 
     private static Log log = LogFactory.getLog( ExecutorPerfTest.class );
     
-    private static int          runTimeSec = 10;
+    private static int          runTimeSec = 5;
     
     
     public ExecutorPerfTest() {

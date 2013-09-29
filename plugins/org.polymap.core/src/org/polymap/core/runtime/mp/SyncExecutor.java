@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright (C) 2011-2013, Falko Bräutigam. All rigths reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -21,13 +20,15 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.mp.ForEach.Processor;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class SyncExecutor<T,S>
-        implements ForEachExecutor<T,S> {
+public class SyncExecutor<S,T>
+        implements ForEachExecutor<S,T> {
 
     private static Log log = LogFactory.getLog( SyncExecutor.class );
 
@@ -46,15 +47,12 @@ public class SyncExecutor<T,S>
     private Processor[]         chain;
 
     
-    public SyncExecutor( ForEach<T, S> forEach ) {
+    public SyncExecutor( ForEach<S,T> forEach ) {
         this.forEach = forEach;
         this.source = forEach.source().iterator();
         
         List<Processor> procs = forEach.processors();
-        chain = new Processor[ procs.size() ];
-        for (int i=0; i<chain.length; i++) {
-            chain[i] = procs.get( i );
-        }
+        this.chain = procs.toArray( new Processor[ procs.size() ] );
     }
 
     public boolean hasNext() {
@@ -65,7 +63,7 @@ public class SyncExecutor<T,S>
         try {
             Object next = source.next();
             for (int i=0; i<chain.length; i++) {
-                next = chain[i].process( next );
+                next = chain[i].apply( next );
             }
             return (T)next;
         }
