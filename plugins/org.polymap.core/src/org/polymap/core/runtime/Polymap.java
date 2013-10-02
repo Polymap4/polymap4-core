@@ -1,24 +1,14 @@
-/* 
- * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
+/*
+ * polymap.org Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
+ * 
+ * This is free software; you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ * 
+ * This software is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  */
 package org.polymap.core.runtime;
 
@@ -28,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
@@ -42,10 +33,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Supplier;
+
 import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.lifecycle.RWTLifeCycle;
+import org.eclipse.rwt.internal.service.ContextProvider;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -63,8 +57,7 @@ import org.polymap.core.security.UserPrincipal;
 /**
  * Static access to the runtime infrastructure.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 @SuppressWarnings("restriction")
@@ -75,7 +68,12 @@ public final class Polymap {
     public static final String      DEFAULT_LOGIN_CONFIG = "POLYMAP";
     public static final String      SERVICES_LOGIN_CONFIG = "Services";
     
-
+    static {
+        // set the default locale to 'en' as all of our message_xx.properties
+        // files have 'en' as default
+        Locale.setDefault( Locale.ENGLISH );
+    }
+    
     // static factory *************************************
     
     /**
@@ -138,10 +136,11 @@ public final class Polymap {
     
     
     public static Locale getSessionLocale() {
-        return RWT.getLocale();
+        return instance().getLocale();
     }
 
-   // public static ExecutorService      executorService = new PolymapJobExecutor();
+    
+// public static ExecutorService      executorService = new PolymapJobExecutor();
     // public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
      public static ExecutorService      executorService = UnboundPoolExecutor.newInstance();
     
@@ -171,11 +170,33 @@ public final class Polymap {
 
     private Map             initHttpParams;
     
+    /** 
+     * The locale of the HTTP Accept-Langueage header or the server default locale. 
+     * <p/>
+     * Cache the locale for calls from outside the request lifecycle.
+     */
+    private LazyInit<Locale> locale = new PlainLazyInit( new Supplier<Locale>() {
+        public Locale get() {
+            try {
+                // outside request lifecycle -> exception
+                return ContextProvider.getRequest().getLocale();
+            }
+            catch (Exception e) {
+                return null;  // try again next time
+            }
+        }
+    });
+
     
     /**
-     * Parameterless default ctor for implicite creation by {@link #getInstance(Class)}.
+     * No-args default ctor for implicite creation by {@link #getInstance(Class)}.
      */
     private Polymap() {
+    }
+
+
+    public Locale getLocale() {
+        return locale.get();
     }
 
 

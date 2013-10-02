@@ -30,14 +30,17 @@ import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.widgets.JSExecutor;
 import org.eclipse.rwt.lifecycle.IEntryPoint;
 import org.eclipse.rwt.service.ISessionStore;
+
 import org.eclipse.jface.dialogs.ErrorDialog;
 
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.WorkbenchAdvisor;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
@@ -69,7 +72,7 @@ public class PolymapWorkbench
      * @param msg The error message. If null, then a standard message is used.
      * @param e The reason of the error, must not be null.
      */
-    public static void handleError( String pluginId, Object src, final String msg, Throwable e ) {
+    public static void handleError( final String pluginId, Object src, final String msg, final Throwable e ) {
         log.error( msg, e );
 
         final Status status = new Status( IStatus.ERROR, pluginId, e.getLocalizedMessage(), e );
@@ -84,12 +87,21 @@ public class PolymapWorkbench
         Runnable runnable = new Runnable() {
             public void run() {
                 try {
+                    Status displayStatus = status;
+                    if (e.getCause() != null) {
+                        displayStatus = new MultiStatus( pluginId, status.getCode(), status.getMessage(), status.getException() );
+                        for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                            Status next = new Status( IStatus.ERROR, pluginId, e.getLocalizedMessage(), cause );
+                            ((MultiStatus)displayStatus).add( next );
+                        }
+                    }
+                    
                     Shell shell = getShellToParentOn();
                     ErrorDialog dialog = new ErrorDialog(
                             shell,
                             Messages.get( "PolymapWorkbench_errorDialogTitle" ),
                             msg != null ? msg : "Fehler beim Ausführen der Operation.",
-                            status,
+                            displayStatus,
                             IStatus.OK | IStatus.INFO | IStatus.WARNING | IStatus.ERROR );
 //                dialog.setBlockOnOpen( true );
                     dialog.open();

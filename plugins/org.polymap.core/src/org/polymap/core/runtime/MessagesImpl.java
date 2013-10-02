@@ -24,9 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.internal.service.ContextProvider;
-
 /**
  * Provides a default implementation as a backend for the static Messages class of a
  * bundle.
@@ -45,8 +42,6 @@ public class MessagesImpl
     private String              bundleName;
 
     private ClassLoader         cl;
-    
-    private Locale              defaultLocale = Locale.GERMAN;
     
     private String              prefix;
 
@@ -74,15 +69,6 @@ public class MessagesImpl
         this.prefix = prefix != null ? prefix + SEPARATOR : "";
     }
 
-    @Override
-    public Locale getDefaultLocale() {
-        return defaultLocale;
-    }
-
-    public void setDefaultLocale( Locale defaultLocale ) {
-        this.defaultLocale = defaultLocale;
-    }
-
 
     /**
      * Find the localized message for the given key. If arguments are given, then the
@@ -94,7 +80,7 @@ public class MessagesImpl
      */
     @Override
     public String get( String key, Object... args ) {
-        Locale locale = ContextProvider.hasContext() ? RWT.getLocale() : defaultLocale;
+        Locale locale = Polymap.getSessionLocale();
         return get( locale, key, args );
     }
 

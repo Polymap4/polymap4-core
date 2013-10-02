@@ -548,6 +548,26 @@
             name="%RConnectionPage_title">
       </wizardPage>
    </extension>
+   <extension
+         point="net.refractions.udig.ui.dropAction">
+      <action
+            class="org.polymap.core.data.operations.feature.CopyGeoResourceDropAction"
+            enablesFor="+"
+            name="GeoResourceDropAction">
+         <acceptedType
+               adapt="true"
+               class="net.refractions.udig.catalog.IGeoResource">
+         </acceptedType>
+         <destination
+               adapt="true"
+               class="net.refractions.udig.catalog.IService">
+         </destination>
+         <destination
+               adapt="true"
+               class="net.refractions.udig.catalog.IResolveFolder">
+         </destination>
+      </action>
+   </extension>
    <!--extension
          point="net.refractions.udig.catalog.ServiceExtension">
       <service

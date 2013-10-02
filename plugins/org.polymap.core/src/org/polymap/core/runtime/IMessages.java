@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -44,8 +44,6 @@ public interface IMessages {
      */
     String get( Locale locale, String key, Object... args );
     
-    Locale getDefaultLocale();
-
     IMessages forClass( Class type );
 
 }
