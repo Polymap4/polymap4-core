@@ -162,6 +162,23 @@
                label="%actions_deleteFeatureType"
                tooltip="%actions_deleteFeatureTypeTip">
          </action>
+         <action
+               class="org.polymap.core.data.operations.featuretype.UpdateFeatureTypeAction"
+               enablesFor="1"
+               id="org.polymap.core.data.UpdateFeatureTypeAction"
+               label="%actions_updateFeatureType"
+               tooltip="%actions_updateFeatureTypeTip">
+         </action>
+         <action
+               class="org.polymap.core.data.ui.featuretable.SourceFeatureTableAction"
+               enablesFor="1"
+               icon="icons/eview16/table_view.gif"
+               id="org.polymap.core.data.sourceTableView"
+               label="%actions_sourceFeatureTable"
+               menubarPath="content"
+               style="push"
+               tooltip="%actions_showFeatureTable_tip">
+         </action>
       </objectContribution>
       <objectContribution
             adaptable="true"
@@ -552,8 +569,8 @@
          point="net.refractions.udig.ui.dropAction">
       <action
             class="org.polymap.core.data.operations.feature.CopyGeoResourceDropAction"
-            enablesFor="+"
-            name="GeoResourceDropAction">
+            enablesFor="1"
+            name="%actions_copyGeoResource">
          <acceptedType
                adapt="true"
                class="net.refractions.udig.catalog.IGeoResource">

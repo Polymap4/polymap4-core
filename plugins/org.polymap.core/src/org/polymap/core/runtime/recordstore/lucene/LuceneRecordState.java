@@ -137,6 +137,7 @@ public final class LuceneRecordState
         
         Fieldable old = doc.getFieldable( key );
         if (old != null) {
+            // FIXME ValueCoder may have different/additional keys
             doc.removeField( key );
         }
         boolean indexed = store.getIndexFieldSelector().accept( key );
@@ -196,6 +197,7 @@ public final class LuceneRecordState
     public LuceneRecordState remove( String key ) {
         checkCopyOnWrite();
 
+        // FIXME ValueCoder may have different/additional keys
         doc.removeField( key );
         return this;
     }

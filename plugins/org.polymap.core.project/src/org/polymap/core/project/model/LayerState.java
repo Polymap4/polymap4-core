@@ -64,7 +64,7 @@ public interface LayerState
         extends ILayer {
     
     @Optional
-    Property<String>                georesId();
+    public Property<String>                georesId();
     
 //    @Optional
 //    Property<String>                crsCode();
@@ -123,6 +123,9 @@ public interface LayerState
          * Not used, see {@link ILayer}. 
          */
         public Object getAdapter( Class adapter ) {
+//            if (adapter.isAssignableFrom( IGeoResource.class )) {
+//                return adapter.cast( getGeoResource() );
+//            }
             return Platform.getAdapterManager().getAdapter( this, adapter );
         }    
 

@@ -3,7 +3,7 @@
  *    http://geotools.org
  * 
  *    (C) 2002-2008, Open Source Geospatial Foundation (OSGeo)
- *    Copyright 2012, Falko Bräutigam. All rights reserved.
+ *    Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  *    This library is free software; you can redistribute it and/or
  *    modify it under the terms of the GNU Lesser General Public
@@ -37,9 +37,6 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  * 
  * @author Justin Deoliveira, The Open Planning Project
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @source $URL:
- *         http://svn.osgeo.org/geotools/tags/2.6.5/modules/library/main/src/main
- *         /java/org/geotools/feature/RProperty.java $
  */
 @SuppressWarnings("deprecation")
 abstract class RProperty 

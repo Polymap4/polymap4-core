@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data;
 
+import net.refractions.udig.catalog.IGeoResource;
+
 import org.geotools.data.FeatureListener;
 import org.opengis.feature.Feature;
 import org.opengis.filter.identity.FeatureId;
@@ -90,13 +92,21 @@ public class FeatureStateTracker {
      * Creates a handle for the features of an entire layer.
      * 
      * @param layer
+     * @return The EntityHandle, or null if no geores could be found for the given layer.
      */
     public static EntityHandle layerHandle( ILayer layer ) {
         // several layers may map to the same geores
         //String id = layer.id();
-        String id = layer.getGeoResource().getIdentifier().toString();
-        String type = "features:" + layer.getEntityType().getName();
-        return EntityHandle.instance( id, type );
+        IGeoResource geores = layer.getGeoResource();
+        if (geores != null) {
+            String id = geores.getIdentifier().toString();
+            String type = "features:" + layer.getEntityType().getName();
+            return EntityHandle.instance( id, type );
+        }
+        else {
+            log.warn( "No geores found for layer: " + layer );
+            return null;
+        }
     }
 
     

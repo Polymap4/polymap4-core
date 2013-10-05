@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 
 import org.eclipse.ui.PlatformUI;
@@ -44,6 +43,7 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
+import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * Extended Job implementation that provides:
@@ -188,9 +188,8 @@ public abstract class UIJob
                         if (display != null) {
                             display.syncExec( new Runnable() {
                                 public void run() {
-                                    MessageDialog.openWarning( display.getActiveShell(),
-                                            i18n.get( "errorTitle", getName() ), 
-                                            i18n.get( "errorMsg", getName(), e.getLocalizedMessage() ) );
+                                    PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, UIJob.this,
+                                            i18n.get( "errorMsg", getName() ), e );
                                 }
                             });
                         }

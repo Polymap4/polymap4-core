@@ -46,6 +46,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.MMapDirectory;
@@ -84,10 +85,10 @@ public final class LuceneRecordStore
 
     public static final Version     VERSION = Version.LUCENE_36;
 
-    /** Default: 3% of HEAP; 32M is good for 512M RAM fand merge size 16MB (Lucene 3). */
+    /** Default: 10% of HEAP; 32M is good for 512M RAM and merge size 16MB (Lucene 3). */
     public static final double      MAX_RAMBUFFER_SIZE = 10d / 100d * Runtime.getRuntime().maxMemory() / 1000000;
     
-    public static final double      MAX_MERGE_SIZE = 16;
+    public static final double      MAX_MERGE_SIZE = 24;
     
     public static final double      MAX_DELETED_PERCENT = 10;
     
@@ -548,6 +549,8 @@ public final class LuceneRecordStore
                 writer.rollback();
                 writer.close();
                 writer = null;
+            }
+            catch (AlreadyClosedException e) {
             }
             catch (Exception e) {
                 log.warn( "Error during discard()", e );

@@ -29,6 +29,7 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
+import org.polymap.core.project.model.LayerState;
 import org.polymap.core.project.operations.SetPropertyOperation;
 
 /**
@@ -134,7 +135,8 @@ public class LayerPropertySource
             }
             else if (id.equals( ILayer.PROP_GEORESID )) {
                 if (geores == null) {
-                    return i18n( "noGeoRes" );
+                    log.warn( "No geores: " + ((LayerState)layer).georesId().get() );
+                    return i18n( "noGeoRes", ((LayerState)layer).georesId().get() );
                 }
                 else {
                     IService service = geores.service( new NullProgressMonitor() );

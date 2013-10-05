@@ -3,7 +3,7 @@
  *    http://geotools.org
  * 
  *    (C) 2002-2008, Open Source Geospatial Foundation (OSGeo)
- *    Copyright 2012, Falko Bräutigam. All rights reserved.
+ *    Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  *    This library is free software; you can redistribute it and/or
  *    modify it under the terms of the GNU Lesser General Public
@@ -43,9 +43,6 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  * @author Jody Garnett
  * @author Gabriel Roldan
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- *
- * @source $URL: http://svn.osgeo.org/geotools/tags/2.6.5/modules/library/main/src/main/java/org/geotools/feature/RAttribute.java $
- * @version $Id: RAttribute.java 34126 2009-10-12 06:35:18Z mbedward $
  */
 @SuppressWarnings("deprecation")
 class RAttribute 
@@ -86,7 +83,7 @@ class RAttribute
     
     
     public Object getValue() {
-        // collection
+        // FIXME wrong!? Collection is handled up in RComplexAttribute 
         if (descriptor.getMaxOccurs() != 1) {
             return new PropertyCollection( this ) {
                 protected Object valueAt( int index ) {
