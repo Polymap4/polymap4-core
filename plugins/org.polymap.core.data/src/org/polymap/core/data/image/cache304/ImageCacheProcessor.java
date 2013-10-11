@@ -83,16 +83,18 @@ public class ImageCacheProcessor
         props = _props;
         layer = (ILayer)props.get( "layer" );
         assert layer != null;
-        
+        active = !layer.getEditable();
+
         layerListener = new LayerListener( layer, this );
     }
 
 
     protected void deactivate() {
         if (active) {
+            active = false;
+            layer.setEditable( true );
             log.debug( "Cache deactivated for layer: " + layer.getLabel() );
         }
-        active = false;
     }
 
     
@@ -102,6 +104,7 @@ public class ImageCacheProcessor
             Cache304.instance().updateLayer( layer, null );
         }
         active = true;
+        layer.setEditable( false );
     }
 
     
@@ -144,7 +147,7 @@ public class ImageCacheProcessor
             long lastModified = cachedTile.lastModified.get();
             if (modifiedSince > 0 
                     && lastModified > modifiedSince) {
-                log.debug( "### Cache: 304! :)" );
+                log.debug( "### Cache: 304! :) -- " + timer.elapsedTime() + "ms" );
                 context.sendResponse( EncodedImageResponse.NOT_MODIFIED );
                 context.sendResponse( ProcessorResponse.EOP );
             }
@@ -193,9 +196,14 @@ public class ImageCacheProcessor
         // EOP
         else if (r == ProcessorResponse.EOP) {
             GetMapRequest request = (GetMapRequest)context.get( "request" );
-            CachedTile cachedTile = Cache304.instance().put( 
-                    request, context.getLayers(), cacheBuf.toByteArray(),
-                    (Long)context.get( "created" ), props );
+            if (cacheBuf.size() > 0) {
+                CachedTile cachedTile = Cache304.instance().put( 
+                        request, context.getLayers(), cacheBuf.toByteArray(),
+                        (Long)context.get( "created" ), props );
+            }
+            else {
+                log.warn( "Empty response buf! -> not stored in Cache." );
+            }
 
             context.sendResponse( ProcessorResponse.EOP );
             //log.debug( "...all data sent." );

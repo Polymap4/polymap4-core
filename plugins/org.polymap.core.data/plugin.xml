@@ -130,6 +130,14 @@
                menubarPath="buffer"
                style="push">
          </action>
+         <action
+               class="org.polymap.core.data.image.cache304.ClearCacheAction"
+               enablesFor="+"
+               id="org.polymap.core.data.ClearCacheAction"
+               label="%actions_clearCache"
+               menubarPath="buffer"
+               style="push">
+         </action>
          <menu
                id="org.polymap.core.data.menu2"
                label="Feature Operations"

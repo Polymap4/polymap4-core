@@ -67,6 +67,11 @@ public class Layer extends OpenLayersObject {
         addObjModCode("obj.redraw();");
     }
 
+    /**
+     * <b>Note:</b> This does not seem effectivelly change layer index in the map.
+     *
+     * @param index
+     */
 	public void setZIndex(int index) {
 	    addObjModCode("setZIndex", index);  
 	}

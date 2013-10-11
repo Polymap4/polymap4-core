@@ -15,6 +15,7 @@
 package org.polymap.core.project.model;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -101,6 +102,8 @@ public interface LayerState
         
         private static final Log log = LogFactory.getLog( Mixin.class );
 
+        private static AtomicInteger            renderKeyCount = new AtomicInteger( (int)System.currentTimeMillis() );
+        
         /** The cache of the {@link #georesId()} property. */
         private IGeoResource                    geores;
         
@@ -117,6 +120,10 @@ public interface LayerState
         private LayerStatus                     layerStatus = LayerStatus.STATUS_OK;
         
         private RenderStatus                    renderStatus = RenderStatus.STATUS_OK;
+        
+        private String                          renderKey = String.valueOf( renderKeyCount.getAndIncrement() );
+        
+        private boolean                         editable;
         
         
         /**
@@ -371,6 +378,24 @@ public interface LayerState
             finally {
                 georesLock.readLock().unlock();
             }
+        }
+
+        @Override
+        public String getRenderKey() {
+            return renderKey;
+        }
+
+        @Override
+        public void updateRenderKey() {
+            this.renderKey = String.valueOf( renderKeyCount.getAndIncrement() );
+        }
+
+        public boolean getEditable() {
+            return editable;
+        }
+        
+        public void setEditable( boolean editable ) {
+            this.editable = editable;
         }
 
     }
