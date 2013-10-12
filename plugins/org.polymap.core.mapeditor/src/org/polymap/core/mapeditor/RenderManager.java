@@ -344,6 +344,13 @@ public class RenderManager {
             }
         }
 
+        
+        /*
+         * The delay collects events.
+         * 
+         * Besides the delay helps ImageCacheProcessor (for example) to disable
+         * *before* the layer is reloaded.
+         */
         @EventHandler(delay=500, display=true)
         public void propertyChange( List<PropertyChangeEvent> events ) {
             boolean updatePipelines = false;

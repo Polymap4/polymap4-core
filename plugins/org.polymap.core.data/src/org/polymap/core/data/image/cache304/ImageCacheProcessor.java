@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 
@@ -26,6 +27,8 @@ import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Sets;
 
 import org.polymap.core.data.FeatureChangeEvent;
 import org.polymap.core.data.image.EncodedImageResponse;
@@ -102,13 +105,13 @@ public class ImageCacheProcessor
         if (active) {
             active = false;
             layer.setEditable( true );
-            log.debug( "Cache deactivated for layer: " + layer.getLabel() );
+            log.debug( "CACHE deactivated for layer: " + layer.getLabel() );
         }
     }
 
     
     protected void updateAndActivate( boolean updateCache ) {
-        log.debug( "Cache: activating for layer: " + layer.getLabel() );
+        log.debug( "CACHE: activating for layer: " + layer.getLabel() );
         if (!active) {
             if (updateCache) {
                 Cache304.instance().updateLayer( layer, null );
@@ -150,7 +153,6 @@ public class ImageCacheProcessor
         
         Timer timer = new Timer();
         CachedTile cachedTile = Cache304.instance().get( request, context.getLayers(), props );
-        log.debug( "query time: " + timer.elapsedTime() + "ms" );
         
         if (cachedTile != null) {
             // check If-Modified-Since
@@ -158,14 +160,14 @@ public class ImageCacheProcessor
             long lastModified = cachedTile.lastModified.get();
             if (modifiedSince > 0 
                     && lastModified > modifiedSince) {
-                log.debug( "### Cache: 304! :) -- " + timer.elapsedTime() + "ms" );
+                log.debug( "### CACHE: 304! :) -- " + timer.elapsedTime() + "ms" );
                 context.sendResponse( EncodedImageResponse.NOT_MODIFIED );
                 context.sendResponse( ProcessorResponse.EOP );
             }
             // in cache but modified
             else {
                 byte[] data = cachedTile.data.get();
-                log.debug( "### Cache: Hit. (" + data.length + " bytes)" );
+                log.debug( "### CACHE: Hit. (" + data.length + " bytes) -- " + timer.elapsedTime() + "ms" );
                 EncodedImageResponse response = new EncodedImageResponse( data, data.length );
                 response.setLastModified( cachedTile.lastModified.get() );
                 response.setExpires( cachedTile.expires.get() );
@@ -176,7 +178,7 @@ public class ImageCacheProcessor
         
         // not in cache -> send request down the pipeline 
         else {
-            log.debug( "### Cache: Miss. (...)" );
+            log.debug( "### CACHE: Miss. (...) -- " + timer.elapsedTime() + "ms" );
             ByteArrayOutputStream cacheBuf = new ByteArrayOutputStream( 128*1024 );
             context.put( "cacheBuf", cacheBuf );
             context.put( "request", request );
@@ -235,11 +237,14 @@ public class ImageCacheProcessor
      */
     static class LayerListener {
     
-        private ILayer                              layer;
+        /** The property names of ILayer that forces the cache to deactivate. */
+        private static final Set<String>    layerModProps = Sets.newHashSet( ILayer.PROP_STYLE, ILayer.PROP_PROCS );
+                
+        private ILayer                      layer;
         
         private WeakReference<ImageCacheProcessor>  procRef;
         
-        private Set<FeatureId>                      modified = new HashSet();
+        private Set<FeatureId>              modified = new HashSet();
         
         
         public LayerListener( ILayer layer, ImageCacheProcessor processor ) {
@@ -254,12 +259,19 @@ public class ImageCacheProcessor
                         return eev.getEventType() == EntityStateEvent.EventType.COMMIT; //ev.isMySession();
                     }
                     // FeatureChangeEvent
-                    else if (ev instanceof FeatureChangeEvent) {
+                    else if (ev instanceof FeatureChangeEvent
+                            && ev.getSource() instanceof ILayer
+                            && ((ILayer)ev.getSource()).id().equals( LayerListener.this.layer.id() )) {
                         return true;
                     }
-                    else {
-                        throw new IllegalStateException( "Unknown event type: " + ev );
+                    // PropertyChangeEvent: ILayer
+                    else if (ev instanceof PropertyChangeEvent
+                            && ev.getSource() instanceof ILayer
+                            && ((ILayer)ev.getSource()).id().equals( LayerListener.this.layer.id() )
+                            && layerModProps.contains( ((PropertyChangeEvent)ev).getPropertyName() )) {
+                        return true;
                     }
+                    return false;
                 }
             });
         }
@@ -302,13 +314,14 @@ public class ImageCacheProcessor
             }
         }
         
+        /** A feature of the layer has changed. */
         @EventHandler
         protected void featuresChanged( FeatureChangeEvent ev ) {
             ImageCacheProcessor proc = procRef.get();
             if (proc == null) {
                 dispose();
             }
-            else if (ev.getSource() == LayerListener.this.layer) {
+            else {
                 // just activate update if changes have been dropped
                 if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
                     proc.updateAndActivate( false );
@@ -319,6 +332,24 @@ public class ImageCacheProcessor
                     proc.deactivate();
                     modified.addAll( ev.getFids() );
                 }
+            }
+        }                        
+
+        /** 
+         * The style of the layer has changed.
+         * <p/>
+         * The cache managed style information for each tile, so it is
+         * not strictly necessary to deactivate the cache. However, it
+         * seems to be the "right" way to do it.
+         */
+        @EventHandler
+        protected void layerChanged( PropertyChangeEvent ev ) {
+            ImageCacheProcessor proc = procRef.get();
+            if (proc == null) {
+                dispose();
+            }
+            else {
+                proc.deactivate();
             }
         }                        
     }

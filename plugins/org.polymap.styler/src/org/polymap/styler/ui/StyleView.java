@@ -174,7 +174,7 @@ public class StyleView extends ViewPart implements ISelectionProvider
 					: null;
 
 			if ((selectedLayer != null) && (selectedLayer.getStyle() != null)) {
-				log.info("selected layer: " + selectedLayer); //$NON-NLS-1$
+				log.debug("selected layer: " + selectedLayer); //$NON-NLS-1$
 
 				if (act_layer != selectedLayer) {
 					try {
@@ -336,7 +336,7 @@ public class StyleView extends ViewPart implements ISelectionProvider
 	 * Passing the focus request to the viewer's control.
 	 */
 	public void setFocus() {
-		log.info("StyleView setFocus called "); //$NON-NLS-1$
+		log.debug("StyleView setFocus called "); //$NON-NLS-1$
 	}
 
 	@Override

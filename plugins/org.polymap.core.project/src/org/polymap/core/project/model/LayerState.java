@@ -242,7 +242,7 @@ public interface LayerState
             this.style = style;
             
             if (style.getID() == null) {
-                log.info( "Style is default style: adding to catalog..." );
+                log.debug( "Style is default style: adding to catalog..." );
                 IStyleCatalog catalog = StylePlugin.getStyleCatalog();
                 catalog.add( style );
                 
@@ -252,7 +252,7 @@ public interface LayerState
                 // make the layer "dirty" in the UI and for service to reload on save
                 String sld = style.createSLD( new NullProgressMonitor() );
                 style().set( sld );
-                log.info( "Style of layer: " + id() + "\n" + sld );
+                log.debug( "Style of layer: " + id() + "\n" + sld );
             }
             else {
                 throw new IllegalStateException( "Wrong style set: " + style );
