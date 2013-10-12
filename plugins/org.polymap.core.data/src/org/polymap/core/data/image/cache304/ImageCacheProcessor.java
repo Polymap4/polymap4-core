@@ -15,26 +15,29 @@
 package org.polymap.core.data.image.cache304;
 
 import java.util.EventObject;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
+
+import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
@@ -76,7 +79,7 @@ public class ImageCacheProcessor
     
     private LayerListener           layerListener;
     
-    private boolean                 active = true;
+    private volatile boolean        active = true;
     
     
     public void init( Properties _props ) {
@@ -86,6 +89,12 @@ public class ImageCacheProcessor
         active = !layer.getEditable();
 
         layerListener = new LayerListener( layer, this );
+    }
+
+
+    @Override
+    protected void finalize() throws Throwable {
+        layerListener.dispose();
     }
 
 
@@ -100,11 +109,13 @@ public class ImageCacheProcessor
     
     protected void updateAndActivate( boolean updateCache ) {
         log.debug( "Cache: activating for layer: " + layer.getLabel() );
-        if (updateCache) {
-            Cache304.instance().updateLayer( layer, null );
+        if (!active) {
+            if (updateCache) {
+                Cache304.instance().updateLayer( layer, null );
+            }
+            active = true;
+            layer.setEditable( false );
         }
-        active = true;
-        layer.setEditable( false );
     }
 
     
@@ -221,14 +232,14 @@ public class ImageCacheProcessor
     /**
      * Static listener class with weak reference the processor to allow GC to reclaim
      * the processor.
-     * 
-     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
      */
     static class LayerListener {
     
         private ILayer                              layer;
         
         private WeakReference<ImageCacheProcessor>  procRef;
+        
+        private Set<FeatureId>                      modified = new HashSet();
         
         
         public LayerListener( ILayer layer, ImageCacheProcessor processor ) {
@@ -253,26 +264,49 @@ public class ImageCacheProcessor
             });
         }
         
+        public void dispose() {
+            EventManager.instance().unsubscribe( this );
+            LayerListener.this.layer = null;            
+        }
+        
         @EventHandler(scope=Event.Scope.Session)
-        protected void featureChange( EntityStateEvent ev ) {
+        protected void changesCommitted( EntityStateEvent ev ) {
             ImageCacheProcessor proc = procRef.get();
             if (proc != null) {
-                if (ev.getSource() == LayerListener.this.layer) {
+                // for entity features this check does not work
+                // if (ev.getSource() == LayerListener.this.layer) {
+                
+                if (!proc.active) {
+                    // XXX if we are not active and some entities are committed, 
+                    // then this is probable a general save
                     proc.updateAndActivate( true );
+                    modified.clear();
+
+                    // does not work properly for entity features
+//                    // XXX so we guess based on the committed fids ...
+//                    Set<String> committed = new HashSet();
+//                    for (EntityHandle handle : ev) {
+//                        committed.add( handle.id() );
+//                    }
+//                    for (FeatureId fid : modified) {
+//                        if (committed.contains( fid.getID() ) ) {
+//                            proc.updateAndActivate( true );
+//                            modified.clear();
+//                            return;
+//                        }
+//                    }
                 }
             }
             else {
-                FeatureStateTracker.instance().removeFeatureListener( this ); 
-                LayerListener.this.layer = null;                                
+                dispose();
             }
         }
         
         @EventHandler
-        protected void featureChange( FeatureChangeEvent ev ) {
+        protected void featuresChanged( FeatureChangeEvent ev ) {
             ImageCacheProcessor proc = procRef.get();
             if (proc == null) {
-                EventManager.instance().unsubscribe( this );
-                LayerListener.this.layer = null;
+                dispose();
             }
             else if (ev.getSource() == LayerListener.this.layer) {
                 // just activate update if changes have been dropped
@@ -280,8 +314,10 @@ public class ImageCacheProcessor
                     proc.updateAndActivate( false );
                 }
                 // deactivate cache when features have been modified
+                // FIXME there is a race cond. with MapEditor.reloadLayer()
                 else {
                     proc.deactivate();
+                    modified.addAll( ev.getFids() );
                 }
             }
         }                        
