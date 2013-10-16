@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2012-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -78,4 +78,12 @@ public class CacheConfig {
         return result;
     }
 
+    /**
+     * Same as calling <code>CacheManager.instance().newCache( this )</code>.
+     *
+     * @return Newly created cache instance.
+     */
+    public <K,V> Cache<K,V> create() {
+        return CacheManager.instance().newCache( this );
+    }
 }

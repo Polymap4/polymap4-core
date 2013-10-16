@@ -141,7 +141,7 @@ class JsonSchemaCoder {
         
         
         protected String encode( Name name ) {
-            return name.getLocalPart();
+            return name.toString(); //getLocalPart();
         }
     }
     

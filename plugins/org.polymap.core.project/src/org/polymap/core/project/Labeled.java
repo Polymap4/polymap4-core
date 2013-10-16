@@ -14,6 +14,7 @@
  */
 package org.polymap.core.project;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.polymap.core.model.ModelProperty;
@@ -49,7 +50,7 @@ public interface Labeled {
     /**
      * The keywords property
      */
-    public Set<String> getKeywords();
+    public Collection<String> getKeywords();
 
     /**
      * Updates the keywords of the entity.

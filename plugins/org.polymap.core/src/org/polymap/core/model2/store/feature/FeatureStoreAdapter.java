@@ -15,6 +15,8 @@
 package org.polymap.core.model2.store.feature;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
@@ -24,7 +26,10 @@ import org.opengis.feature.type.FeatureType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.Property;
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.store.StoreRuntimeContext;
@@ -59,27 +64,46 @@ public class FeatureStoreAdapter
         // check/create/update schemas
         FeatureStoreUnitOfWork uow = (FeatureStoreUnitOfWork)createUnitOfWork();
         for (Class<? extends Entity> entityClass : repo.getConfig().getEntities()) {
-            SimpleFeatureType entitySchema = simpleFeatureType( entityClass );
+            
+            // is entityClass complex?
+            boolean isComplex = false;
+            Class superClass = entityClass; 
+            for (;superClass != null; superClass = superClass.getSuperclass()) {
+                for (Field field : superClass.getDeclaredFields()) {
+                    if (CollectionProperty.class.isAssignableFrom( field.getType() )) {
+                        isComplex = true; 
+                        break;
+                    }
+                    if (Property.class.isAssignableFrom( field.getType() )) {
+                        Class binding = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+                        if (Composite.class.isAssignableFrom( binding )) {
+                            isComplex = true; 
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // check/update schema            
+            FeatureType entitySchema = isComplex ? featureType( entityClass ) : simpleFeatureType( entityClass );
             try {
-                // check schema
-                log.info( "Checking FeatureSource: " + entitySchema.getTypeName() + " ..." ); 
+                log.info( "Checking FeatureSource: " + entitySchema.getName().getLocalPart() + " ..." ); 
                 FeatureSource fs = store.getFeatureSource( entitySchema.getName() );
                 // update
-                if (! fs.getSchema().equals( entitySchema )) {
+                if (!fs.getSchema().equals( entitySchema )) {
                     try {
                         log.warn( "FeatureType has been changed: " + entitySchema.getName() + " !!!" );
-                        // which store does actually support this?
-                        //store.updateSchema( entitySchema.getName(), entitySchema );
+                        store.updateSchema( entitySchema.getName(), entitySchema );
                     }
                     catch (UnsupportedOperationException e) {
                         log.warn( "", e );
                     }
                 }
             }
+            // create schema
             catch (IOException e) {
-                // create
                 try {
-                    log.info( "Error. Creating schema: " + entitySchema ); 
+                    log.info( "No feature store found: " + e.getLocalizedMessage() + ". Creating schema: " + entitySchema ); 
                     store.createSchema( entitySchema );
                 }
                 catch (IOException e1) {

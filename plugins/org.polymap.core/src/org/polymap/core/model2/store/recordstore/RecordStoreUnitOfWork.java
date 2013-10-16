@@ -24,17 +24,18 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 
 import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.engine.QueryImpl;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
-import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
+import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
 import org.polymap.core.runtime.recordstore.ResultSet;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
-import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
 
 /**
  * 
@@ -88,11 +89,12 @@ public class RecordStoreUnitOfWork
 
 
     @Override
-    public <T extends Entity> Collection find( Class<T> entityClass ) {
+    public <T extends Entity> Collection find( QueryImpl query ) {
+        assert query.expression == null : "Query expressions not yet supported: " + query.expression;
         try {
             // XXX cache result for subsequent loadEntityState() (?)
             final ResultSet results = store.find( 
-                    new SimpleQuery().eq( TYPE_KEY, entityClass.getName() ).setMaxResults( Integer.MAX_VALUE ) );
+                    new SimpleQuery().eq( TYPE_KEY, query.resultType().getName() ).setMaxResults( Integer.MAX_VALUE ) );
             
             return new AbstractCollection() {
 

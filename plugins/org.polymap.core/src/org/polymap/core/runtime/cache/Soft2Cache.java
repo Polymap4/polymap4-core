@@ -15,6 +15,7 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -180,8 +181,8 @@ final class Soft2Cache<K,V>
     public Iterable<V> values() {
         assert entries != null : "Cache is closed.";
         
-        // the returned iterator should be aware off reclaimed entries
-        // and needs to support remove()
+        // the returned iterator should be aware of reclaimed entries
+        // and needs to support remove()!
         return new Iterable<V>() {
             public Iterator<V> iterator() {
                 return new Iterator<V>() {
@@ -212,6 +213,12 @@ final class Soft2Cache<K,V>
     }
 
     
+    @Override
+    public Set<K> keySet() {
+        return entries.keySet();
+    }
+
+
     /**
      * 
      */

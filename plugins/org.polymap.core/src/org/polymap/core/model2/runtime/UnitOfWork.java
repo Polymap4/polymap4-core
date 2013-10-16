@@ -14,12 +14,11 @@
  */
 package org.polymap.core.model2.runtime;
 
-import java.util.Collection;
-
 import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
@@ -46,9 +45,9 @@ public interface UnitOfWork {
     /**
      * Builds an {@link Entity} representation for the given state and assigns it
      * to this {@link UnitOfWork}.
-     * @param entityClass The Class of the entity to build.
-     * @param state The state of the entity
      * 
+     * @param entityClass The type of the entity to build.
+     * @param state The state of the entity
      * @param <T> The type of the entity to build.
      * @return A newly created entity or a previously created instance.
      */
@@ -56,16 +55,17 @@ public interface UnitOfWork {
 
 
     /**
-     * Builds an {@link Entity} representation for the state with the given identity
-     * and assigns it to this {@link UnitOfWork}.
-     * @param entityClass The Class of the entity to build.
-     * @param state The state of the entity
+     * Finds the {@link Entity} with the given type and identity.
      * 
+     * @param entityClass The type of the entity to find.
+     * @param id The identity of the entity to find.
      * @param <T> The type of the entity to build.
      * @return A newly created entity or a previously created instance. Returns null
      *         if no Entity exists for the given id.
      */
     public <T extends Entity> T entity( Class<T> entityClass, Object id );
+
+    public <T extends Composite> T mixin( Class<T> entityClass, Entity entity );
 
 
     /**
@@ -145,12 +145,16 @@ public interface UnitOfWork {
     
     public boolean isOpen();
 
+    
     /**
      * 
-     *
+     * 
      * @param entityClass
-     * @return Collection representing the results of the query.
+     * @param expression Null indicates that all entities of the given type should be
+     *        returned when executing the query.
+     * @return Newly created {@link Query} instance that first allows to set
+     *         ordering, indexes and then executing the query against the data store.
      */
-    public <T extends Entity> Collection<T> find( Class<T> entityClass );
+    public <T extends Entity> Query<T> query( Class<T> entityClass, Object expression );
 
 }

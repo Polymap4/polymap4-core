@@ -290,10 +290,10 @@ public final class LuceneQueryDialect
                 //                
                 //            }
             }
-            log.debug( "LUCENE: " + luceneQuery );
+            //log.debug( "LUCENE: " + luceneQuery );
 
             RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)fs.ds.store, luceneQuery );
-            if (query.getStartIndex() != null) {
+            if (query.getStartIndex() != null && query.getStartIndex() > 0) {
                 result.setFirstResult( query.getStartIndex() );
             }
             result.setMaxResults( query.getMaxFeatures() );

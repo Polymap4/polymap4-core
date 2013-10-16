@@ -73,6 +73,14 @@ public class ColumnLayoutFactory {
         return this;
     }
 
+    public ColumnLayoutFactory margins( int margin ) {
+        layout.leftMargin = margin;
+        layout.rightMargin = margin;
+        layout.topMargin = margin;
+        layout.bottomMargin = margin;
+        return this;
+    }
+
     public ColumnLayoutFactory columns( int min, int max ) {
         layout.minNumColumns = min;
         layout.maxNumColumns = max;

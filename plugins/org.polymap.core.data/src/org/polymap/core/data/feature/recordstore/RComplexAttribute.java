@@ -16,7 +16,6 @@ package org.polymap.core.data.feature.recordstore;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.opengis.feature.ComplexAttribute;
 import org.opengis.feature.Property;
@@ -33,10 +32,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 
-import org.polymap.core.runtime.recordstore.IRecordState;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 
 /**
  * 
@@ -45,56 +46,66 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  */
 public class RComplexAttribute
         extends RAttribute
-        implements ComplexAttribute {
+        implements ComplexAttribute, Supplier<List<Property>> {
 
     private static Log log = LogFactory.getLog( RComplexAttribute.class );
 
-    private IRecordState            state;
-    
-    /** Lazily initialized cache of the value of this attribute. */
-    private Collection<Property>    value;
-    
-    
+    /**
+     * Lazily initialized cache of the value of this attribute.
+     * <p/>
+     * No map or keys, just a List and filter/iterate for searching. Lucene does this
+     * for its Document. Reasonable fast(?) and saved memory.
+     */
+    private Lazy<List<Property>>    value = new LockedLazyInit( this );
+
+
     public RComplexAttribute( RFeature feature, StoreKey baseKey, AttributeDescriptor descriptor, Identifier id ) {
         super( feature, baseKey, descriptor, id );
     }
 
     
+    @Override
     public ComplexType getType() {
         return (ComplexType)super.getType();
     }
 
 
+    @Override
     public Collection<? extends Property> getValue() {
         return getProperties();
     }
 
 
-    public Collection<Property> getProperties() {
-        if (value == null) {
-            Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
-            List<Property> props = new ArrayList( descriptors.size() );
-            for (PropertyDescriptor child : descriptors) {
-                // complex (check more special first!)
-                if (child.getType() instanceof ComplexType) {
-                    props.add( new RComplexAttribute( feature, key, (AttributeDescriptor)child, null ) );                    
-                }
-                // geometry
-                else if (child.getType() instanceof GeometryType) {
-                    props.add( new RGeometryAttribute( feature, key, (GeometryDescriptor)child, null ) );
-                }
-                // attribute
-                else if (child.getType() instanceof AttributeType) {
-                    props.add( new RAttribute( feature, key, (AttributeDescriptor)child, null ) );
-                }
-                // unhandled
-                else {
-                    throw new RuntimeException( "Unhandled property type: " + child.getType() );
-                }
+    /** Internal: {@link Supplier} for lazily initialized {@link #value}. */
+    @Override
+    public List<Property> get() {
+        Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
+        List<Property> props = new ArrayList( descriptors.size() );
+        for (PropertyDescriptor child : descriptors) {
+            // complex (check more special first!)
+            if (child.getType() instanceof ComplexType) {
+                props.add( new RComplexAttribute( feature, key, (AttributeDescriptor)child, null ) );                    
             }
-            value = Collections.unmodifiableList( props ); 
+            // geometry
+            else if (child.getType() instanceof GeometryType) {
+                props.add( new RGeometryAttribute( feature, key, (GeometryDescriptor)child, null ) );
+            }
+            // attribute
+            else if (child.getType() instanceof AttributeType) {
+                props.add( new RAttribute( feature, key, (AttributeDescriptor)child, null ) );
+            }
+            // unhandled
+            else {
+                throw new RuntimeException( "Unhandled property type: " + child.getType() );
+            }
         }
-        return value;
+        return /*Collections.unmodifiableList(*/ props; 
+    }
+
+
+    @Override
+    public Collection<Property> getProperties() {
+        return value.get();
     }
 
     
@@ -127,7 +138,7 @@ public class RComplexAttribute
 
 
     public void setValue( Collection<Property> values ) {
-        throw new RuntimeException( "Not yet implemented. Set single attributes separately." );
+        throw new RuntimeException( "Not yet implemented. Set single attributes separatelly." );
     }
     
 }

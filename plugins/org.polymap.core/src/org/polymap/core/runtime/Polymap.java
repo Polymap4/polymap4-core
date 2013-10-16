@@ -72,8 +72,8 @@ public final class Polymap {
     private static Log log = LogFactory.getLog( Polymap.class );
 
     public static final String      DEFAULT_LOGIN_CONFIG = "POLYMAP";
+    /** The name of the service JAAS login config. See {@link ServicesCallbackHandler}. */
     public static final String      SERVICES_LOGIN_CONFIG = "Services";
-    
 
     // static factory *************************************
     
@@ -182,14 +182,6 @@ public final class Polymap {
      * Logging in using default JAAS config.
      */
     public void login() {
-        login( DEFAULT_LOGIN_CONFIG );
-    }
-    
-    
-    /**
-     * Logging in using default JAAS config.
-     */
-    public void login( String loginContext ) {
         HttpServletRequest request = RWT.getRequest();
         initHttpParams = new HashMap( request.getParameterMap() );
 
@@ -215,7 +207,7 @@ public final class Polymap {
 
         // create secureContext
         try {
-            secureContext = LoginContextFactory.createContext( loginContext, configFile.toURI().toURL() );
+            secureContext = LoginContextFactory.createContext( DEFAULT_LOGIN_CONFIG, configFile.toURI().toURL() );
         }
         catch (MalformedURLException e) {
             throw new RuntimeException( "Should never happen.", e );

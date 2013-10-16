@@ -101,6 +101,9 @@ public class RGeoResource
         else if (adaptee.isAssignableFrom( FeatureSource.class )) {
             return adaptee.cast( parent.getDS().getFeatureSource( typename ) );
         }
+        else if (adaptee.isAssignableFrom( Name.class )) {
+            return adaptee.cast( typename );
+        }
         return super.resolve( adaptee, monitor );
     }
     
@@ -113,6 +116,7 @@ public class RGeoResource
                 || adaptee.isAssignableFrom( FeatureStore.class )
                 || adaptee.isAssignableFrom( FeatureSource.class ) 
                 || adaptee.isAssignableFrom( IService.class ))
+                || adaptee.isAssignableFrom( Name.class )
                 || super.canResolve( adaptee );
     }
     
@@ -149,6 +153,7 @@ public class RGeoResource
         RResourceInfo() throws IOException {
             try {
                 ft = parent.getDS().getSchema( typename );
+                keywords = new String[] {"RDataStore", typename.getLocalPart()/*,ft.getName().getNamespaceURI()*/};
             } 
             catch (DataSourceException e) {
                 if (e.getMessage().contains( "permission" )) {
@@ -159,11 +164,8 @@ public class RGeoResource
                 }
                 message = e;
                 log.warn( "Unable to retrieve FeatureType schema for type '" + typename + "'.", e );
-                keywords = new String[] {"RDataStore", typename.getLocalPart()};
                 return;
             }
-
-            keywords = new String[] {"RDataStore", typename.getLocalPart(), ft.getName().getNamespaceURI()};
 
             // XXX _p3: no Glyph
             //icon = Glyph.icon(ft);
@@ -236,6 +238,7 @@ public class RGeoResource
         }
 
         
+        @Override
         public String getName() {
             return typename.getLocalPart();
         }

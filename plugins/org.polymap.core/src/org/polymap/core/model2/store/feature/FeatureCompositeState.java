@@ -14,6 +14,10 @@
  */
 package org.polymap.core.model2.store.feature;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
 import org.opengis.feature.ComplexAttribute;
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -21,6 +25,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.runtime.PropertyInfo;
 import org.polymap.core.model2.store.CompositeState;
+import org.polymap.core.model2.store.StoreCollectionProperty;
 import org.polymap.core.model2.store.StoreProperty;
 
 /**
@@ -67,7 +72,7 @@ class FeatureCompositeState
     public StoreProperty loadProperty( PropertyInfo info ) {
         // Collection
         if (info.getMaxOccurs() > 1) {
-            throw new UnsupportedOperationException( "Collection properties are not yet supported." );
+            return new CollectionPropertyImpl( info );
         }
         // Composite
         else if (Composite.class.isAssignableFrom( info.getType() )) {
@@ -88,35 +93,33 @@ class FeatureCompositeState
     
         private final PropertyInfo              info;
         
-        /** Cache used by {@link #underlying()}. No LazyInit in order to safe memory. */
-        private org.opengis.feature.Property    underlying;
+        /** Cache used by {@link #delegate()}. No LazyInit in order to safe memory. */
+        private org.opengis.feature.Property    delegate;
     
     
         protected PropertyImpl( PropertyInfo info ) {
             this.info = info;
         }
     
-    
-        protected org.opengis.feature.Property underlying() {
-            if (underlying == null) {
+        protected org.opengis.feature.Property delegate() {
+            if (delegate == null) {
                 // not synchronized: concurrent init is ok
-                underlying = state.getProperty( info.getNameInStore() );
-                assert underlying != null : "No such Feature property: " + info.getNameInStore();
+                delegate = state.getProperty( info.getNameInStore() );
+                assert delegate != null : "No such Feature property: " + info.getNameInStore();
             }
-            return underlying;
+            return delegate;
         }
-
 
         @Override
         public Object get() {
-            return underlying().getValue();
+            return delegate().getValue();
         }
     
         @Override
         public void set( Object value ) {
-            underlying().setValue( value );
+            delegate().setValue( value );
             
-            suow.markPropertyModified( feature, (AttributeDescriptor)underlying().getDescriptor(), value );
+            suow.markPropertyModified( feature, (AttributeDescriptor)delegate().getDescriptor(), value );
         }
         
         @Override
@@ -134,7 +137,7 @@ class FeatureCompositeState
     /**
      * 
      */
-    class CompositePropertyImpl
+    protected class CompositePropertyImpl
             extends PropertyImpl {
 
         protected CompositePropertyImpl( PropertyInfo info ) {
@@ -157,7 +160,106 @@ class FeatureCompositeState
             // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );
         }
+    }
 
+    
+    /**
+     * 
+     */
+    protected class CollectionPropertyImpl
+            extends PropertyImpl
+            implements StoreCollectionProperty {
+
+        private Collection      delegateColl;
+        
+        protected CollectionPropertyImpl( PropertyInfo info ) {
+            super( info );
+        }
+        
+        /**
+         * The value of the {@link #delegate()} property cast to {@link Collection}.
+         */
+        protected Collection delegateColl() {
+            if (delegateColl == null) {
+                delegateColl = (Collection)get();
+                
+                // XXX null Collection values are not allowed; init if null
+                if (delegateColl == null) {
+                    delegateColl = new ArrayList();
+                    // init value
+                    set( delegateColl );
+                    // get the store dependant collection back
+                    delegateColl = (Collection)get();
+                    assert delegateColl != null;
+                }
+            }
+            return delegateColl;
+        }
+
+        @Override
+        public int size() {
+            return delegateColl().size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegateColl().isEmpty();
+        }
+
+        @Override
+        public boolean contains( Object o ) {
+            return delegateColl().contains( o );
+        }
+
+        @Override
+        public Iterator iterator() {
+            return delegateColl().iterator();
+        }
+
+        @Override
+        public Object[] toArray() {
+            return delegateColl().toArray();
+        }
+
+        @Override
+        public Object[] toArray( Object[] a ) {
+            return delegateColl().toArray( a );
+        }
+
+        @Override
+        public boolean add( Object e ) {
+            return delegateColl().add( e );
+        }
+
+        @Override
+        public boolean remove( Object o ) {
+            return delegateColl().remove( o );
+        }
+
+        @Override
+        public boolean containsAll( Collection c ) {
+            return delegateColl().containsAll( c );
+        }
+
+        @Override
+        public boolean addAll( Collection c ) {
+            return delegateColl().addAll( c );
+        }
+
+        @Override
+        public boolean removeAll( Collection c ) {
+            return delegateColl().removeAll( c );
+        }
+
+        @Override
+        public boolean retainAll( Collection c ) {
+            return delegateColl().retainAll( c );
+        }
+
+        @Override
+        public void clear() {
+            delegateColl().clear();
+        }
     }
     
 }

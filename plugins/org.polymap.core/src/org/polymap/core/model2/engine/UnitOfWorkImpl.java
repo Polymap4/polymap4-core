@@ -23,9 +23,11 @@ import java.io.IOException;
 import com.google.common.base.Function;
 import static com.google.common.collect.Collections2.*;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
+import org.polymap.core.model2.runtime.Query;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.model2.runtime.ValueInitializer;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
@@ -48,7 +50,7 @@ public class UnitOfWorkImpl
     
     protected EntityRepositoryImpl          repo;
     
-    protected StoreUnitOfWork               underlying;
+    protected StoreUnitOfWork               delegate;
 
     protected Cache<Object,Entity>          loaded;
     
@@ -89,7 +91,7 @@ public class UnitOfWorkImpl
     
     
     protected UnitOfWorkImpl( EntityRepositoryImpl repo, StoreUnitOfWork suow ) {
-        this.underlying = suow;
+        this.delegate = suow;
         this.repo = repo;
         
         // cache
@@ -123,10 +125,7 @@ public class UnitOfWorkImpl
 
     @Override
     public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T> initializer ) {
-        if (initializer != null) {
-            throw new RuntimeException( "CompositeCreator is not yet supported." );
-        }
-        CompositeState state = underlying.newEntityState( id, entityClass );
+        CompositeState state = delegate.newEntityState( id, entityClass );
         assert id == null || state.id().equals( id );
 
         // build fake id; don't depend on store's ability to deliver
@@ -141,6 +140,17 @@ public class UnitOfWorkImpl
             throw new ModelRuntimeException( "ID of newly created Entity already exists." );
         }
         modified.put( id, result );
+        
+        // initializer
+        try {
+            if (initializer != null) {
+                initializer.initialize( result );
+            }
+        }
+        catch (Exception e) {
+            throw new IllegalStateException( "Error while initializing.", e );
+        }
+        
         return result;
     }
 
@@ -150,7 +160,7 @@ public class UnitOfWorkImpl
         checkOpen();
         return (T)loaded.get( id, new EntityCacheLoader() {
             public Entity load( Object key ) throws RuntimeException {
-                CompositeState state = underlying.loadEntityState( id, entityClass );
+                CompositeState state = delegate.loadEntityState( id, entityClass );
                 result = repo.buildEntity( state, entityClass, UnitOfWorkImpl.this );
                 return result;
             }
@@ -162,7 +172,7 @@ public class UnitOfWorkImpl
     public <T extends Entity> T entityForState( final Class<T> entityClass, Object state ) {
         checkOpen();
         
-        final CompositeState compositeState = underlying.adoptEntityState( state, entityClass );
+        final CompositeState compositeState = delegate.adoptEntityState( state, entityClass );
         final Object id = compositeState.id();
         
         return (T)loaded.get( id, new EntityCacheLoader() {
@@ -175,6 +185,14 @@ public class UnitOfWorkImpl
 
     
     @Override
+    public <T extends Composite> T mixin( Class<T> mixinClass, Entity entity ) {
+        throw new RuntimeException( "not yet implemented." );
+//        assert entity( entity.getClass(), entity.id() ) != null;
+//        result = repo.buildEntity( entity.context.state, mixinClass, UnitOfWorkImpl.this );
+    }
+
+
+    @Override
     public void removeEntity( Entity entity ) {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
@@ -182,21 +200,26 @@ public class UnitOfWorkImpl
 
 
     @Override
-    public <T extends Entity> Collection<T> find( final Class<T> entityClass ) {
-        return transform( underlying.find( entityClass ), new Function<Object,T>() {
-            public T apply( Object key ) {
-                return entity( entityClass, key ); 
+    public <T extends Entity> Query<T> query( final Class<T> entityClass, Object expression ) {
+        return new QueryImpl( entityClass, expression ) {
+            public Collection execute() {
+                // transform id -> Entity
+                return transform( delegate.find( this ), new Function<Object,T>() {
+                    public T apply( Object key ) {
+                        return entity( entityClass, key ); 
+                    }
+                });
             }
-        });
+        };
     }
 
-    
+
     @Override
     public void prepare()
     throws IOException, ConcurrentEntityModificationException {
         try {
             prepareResult = null;
-            underlying.prepareCommit( modified.values() );
+            delegate.prepareCommit( modified.values() );
             prepareResult = PREPARED;
         }
         catch (ModelRuntimeException e) {
@@ -232,7 +255,7 @@ public class UnitOfWorkImpl
             throw new ModelRuntimeException( "UnitOfWork was not successfully prepared for commit." );
         }
         // commit store
-        underlying.commit();
+        delegate.commit();
         prepareResult = null;
         
         // reset Entity status
@@ -245,7 +268,7 @@ public class UnitOfWorkImpl
 
     public void close() {
         if (isOpen()) {
-            underlying.close();
+            delegate.close();
             repo = null;
             loaded.clear();
             loaded = null;

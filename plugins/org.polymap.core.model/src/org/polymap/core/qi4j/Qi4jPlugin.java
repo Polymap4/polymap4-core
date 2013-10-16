@@ -58,7 +58,7 @@ public class Qi4jPlugin
 
 	private static Qi4jPlugin               plugin;
 	
-    private static LazyInit<Energy4Java>    qi4j = 
+    public static LazyInit<Energy4Java>     qi4j = 
             new LockedLazyInit( new Supplier<Energy4Java>() {
                 public Energy4Java get() {
                     return new Energy4Java();

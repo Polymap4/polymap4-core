@@ -54,11 +54,14 @@ public final class LuceneRecordState
     
     private boolean             sharedDoc = false;
     
+    private boolean             isNew = false;
+    
     
     protected LuceneRecordState( LuceneRecordStore store, Document doc, boolean sharedDoc ) {
         this.store = store;
         this.doc = doc;
         this.sharedDoc = sharedDoc;
+        this.isNew = doc.get( ID_FIELD ) == null;
     }
 
     
@@ -82,12 +85,23 @@ public final class LuceneRecordState
     }
 
     
+    public boolean isNew() {
+        return isNew;
+    }
+    
+    
+    public void setIsNew( boolean isNew ) {
+        this.isNew = isNew;
+    }
+
+
     public Object id() {
         return doc.get( ID_FIELD );
     }
 
     
     void createId() {
+        assert isNew;
         assert doc.getFieldable( ID_FIELD ) == null : "ID already set for this record";
         
         Field idField = new Field( ID_FIELD, String.valueOf( idCount++ ), Store.YES, Index.NOT_ANALYZED );

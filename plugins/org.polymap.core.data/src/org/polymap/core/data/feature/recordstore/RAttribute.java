@@ -3,7 +3,7 @@
  *    http://geotools.org
  * 
  *    (C) 2002-2008, Open Source Geospatial Foundation (OSGeo)
- *    Copyright 2012, Falko Bräutigam. All rights reserved.
+ *    Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  *    This library is free software; you can redistribute it and/or
  *    modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,8 @@ import java.util.Collection;
 import org.geotools.feature.type.AttributeDescriptorImpl;
 import org.geotools.feature.type.Types;
 import org.geotools.resources.Utilities;
-import org.geotools.util.Converters;
 import org.opengis.feature.Attribute;
+import org.opengis.feature.IllegalAttributeException;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.filter.identity.Identifier;
@@ -43,9 +43,6 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  * @author Jody Garnett
  * @author Gabriel Roldan
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- *
- * @source $URL: http://svn.osgeo.org/geotools/tags/2.6.5/modules/library/main/src/main/java/org/geotools/feature/RAttribute.java $
- * @version $Id: RAttribute.java 34126 2009-10-12 06:35:18Z mbedward $
  */
 @SuppressWarnings("deprecation")
 class RAttribute 
@@ -87,7 +84,7 @@ class RAttribute
     
     public Object getValue() {
         // collection
-        if (descriptor.getMaxOccurs() != 1) {
+        if (descriptor.getMaxOccurs() > 1) {
             return new PropertyCollection( this ) {
                 protected Object valueAt( int index ) {
                     return feature.state.get( key.appendCollectionIndex( index ).toString() );
@@ -105,12 +102,16 @@ class RAttribute
     throws IllegalArgumentException, IllegalStateException {
         // null
         if (newValue == null) {
-            assert getDescriptor().isNillable();
+            if (!getDescriptor().isNillable()) {
+                throw new IllegalAttributeException( getDescriptor(), null, "Attribute is not nillable." );
+            }
             feature.state.remove( key.toString() );
         }
         // collection
         else if (newValue instanceof Collection) {
-            throw new RuntimeException( "not yet implemented." );
+            PropertyCollection coll = (PropertyCollection)getValue();
+            coll.clear();
+            coll.addAll( (Collection)newValue );
         }
         // single value
         else {
@@ -151,53 +152,53 @@ class RAttribute
     
     
     public String toString() {
-        StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append(":");
-        sb.append(getDescriptor().getName().getLocalPart());
-        if(!getDescriptor().getName().getLocalPart().equals(getDescriptor().getType().getName().getLocalPart()) ||
-                id != null){
-            sb.append("<");
-            sb.append(getDescriptor().getType().getName().getLocalPart());
-            if( id != null ){
-                sb.append( " id=");
+        StringBuilder sb = new StringBuilder( getClass().getSimpleName() ).append( ":" );
+        sb.append( getDescriptor().getName().getLocalPart() );
+        if (!getDescriptor().getName().getLocalPart().equals( getDescriptor().getType().getName().getLocalPart() )
+                || id != null) {
+            sb.append( "<" );
+            sb.append( getDescriptor().getType().getName().getLocalPart() );
+            if (id != null) {
+                sb.append( " id=" );
                 sb.append( id );
             }
-            sb.append(">");
+            sb.append( ">" );
         }
-        sb.append("=");
-        sb.append(getValue());
+        sb.append( "=" );
+        sb.append( getValue() );
         return sb.toString();
     }
     
     
-    /**
-     * Allows this Attribute to convert an argument to its prefered storage
-     * type. If no parsing is possible, returns the original value. If a parse
-     * is attempted, yet fails (i.e. a poor decimal format) throw the Exception.
-     * This is mostly for use internally in Features, but implementors should
-     * simply follow the rules to be safe.
-     * 
-     * @param value
-     *            the object to attempt parsing of.
-     * 
-     * @return <code>value</code> converted to the preferred storage of this
-     *         <code>AttributeType</code>. If no parsing was possible then
-     *         the same object is returned.
-     * 
-     * @throws IllegalArgumentException
-     *             if parsing is attempted and is unsuccessful.
-     */
-    protected Object parse(Object value) throws IllegalArgumentException {
-        if ( value != null ) {
-            Class target = getType().getBinding(); 
-            if ( !target.isAssignableFrom( value.getClass() ) ) {
-                // attempt to convert
-                Object converted = Converters.convert(value,target);
-                if ( converted != null ) {
-                    value = converted;
-                }
-            }
-        }
-        return value;
-    }
+//    /**
+//     * Allows this Attribute to convert an argument to its prefered storage
+//     * type. If no parsing is possible, returns the original value. If a parse
+//     * is attempted, yet fails (i.e. a poor decimal format) throw the Exception.
+//     * This is mostly for use internally in Features, but implementors should
+//     * simply follow the rules to be safe.
+//     * 
+//     * @param value
+//     *            the object to attempt parsing of.
+//     * 
+//     * @return <code>value</code> converted to the preferred storage of this
+//     *         <code>AttributeType</code>. If no parsing was possible then
+//     *         the same object is returned.
+//     * 
+//     * @throws IllegalArgumentException
+//     *             if parsing is attempted and is unsuccessful.
+//     */
+//    protected Object parse(Object value) throws IllegalArgumentException {
+//        if ( value != null ) {
+//            Class target = getType().getBinding(); 
+//            if ( !target.isAssignableFrom( value.getClass() ) ) {
+//                // attempt to convert
+//                Object converted = Converters.convert(value,target);
+//                if ( converted != null ) {
+//                    value = converted;
+//                }
+//            }
+//        }
+//        return value;
+//    }
     
 }

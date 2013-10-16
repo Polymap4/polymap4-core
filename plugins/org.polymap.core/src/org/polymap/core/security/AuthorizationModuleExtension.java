@@ -32,7 +32,7 @@ import org.eclipse.core.runtime.Platform;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class AuthorizationModuleExtension {
+public class AuthorizationModuleExtension {
 
     private static Log log = LogFactory.getLog( AuthorizationModuleExtension.class );
     

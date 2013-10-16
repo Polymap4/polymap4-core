@@ -57,7 +57,7 @@ public class DefaultSessionContextProvider
                 //throw new IllegalStateException( "Un/mapping same session context more than once is not supported yet." );
             }
             else {
-                throw new IllegalStateException( "Another context is mapped to this thread: " + current.getSessionKey() );                
+                throw new IllegalStateException( "Another context is mapped to this thread: " + current.getSessionKey() + " (requested: " + sessionKey + ")" );                
             }
         }
         

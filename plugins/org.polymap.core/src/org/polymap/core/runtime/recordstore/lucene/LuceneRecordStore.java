@@ -286,7 +286,9 @@ public final class LuceneRecordStore
     @Override
     public IRecordState newRecord() {
         assert reader != null : "Store is closed.";
-        return new LuceneRecordState( this, new Document(), false );
+        LuceneRecordState result = new LuceneRecordState( this, new Document(), false );
+        result.createId();
+        return result;
     }
 
     @Override
@@ -401,7 +403,6 @@ public final class LuceneRecordStore
                     .setFirstResult( query.getFirstResult() )
                     .sort( query.getSortKey(), query.getSortOrder(), query.getSortType() )
                     .execute();
-
         }
         // other
         else {
@@ -452,6 +453,7 @@ public final class LuceneRecordStore
         
         public void store( IRecordState record ) throws Exception {
             if (log.isTraceEnabled()) {
+                log.trace( "    " + LuceneRecordState.ID_FIELD + ": " + record.id() ); 
                 for (Map.Entry<String,Object> entry : record) {
                     log.trace( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
                 }
@@ -460,8 +462,9 @@ public final class LuceneRecordStore
             Document doc = ((LuceneRecordState)record).getDocument();
             
             // add
-            if (record.id() == null) {
-                ((LuceneRecordState)record).createId();
+            if (((LuceneRecordState)record).isNew()) {
+                //((LuceneRecordState)record).createId();
+                ((LuceneRecordState)record).setIsNew( false );
                 writer.addDocument( doc );
                 
                 if (cache != null) {
@@ -502,7 +505,7 @@ public final class LuceneRecordStore
             Timer timer = new Timer();
             try {
                 writer.commit();
-                log.info( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
+                log.debug( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
                 
                 double deleted = reader.numDeletedDocs();
                 double total = reader.numDocs();
@@ -510,7 +513,7 @@ public final class LuceneRecordStore
                 if (optimizeIndex || percent > MAX_DELETED_PERCENT) {
                     //writer.expungeDeletes( true );
                     writer.forceMergeDeletes( true );
-                    log.info( "Writer optimization done. (" + timer.elapsedTime() + "ms)"  );
+                    log.debug( "Writer optimization done. (" + timer.elapsedTime() + "ms)"  );
                 }
                 writer.close();
                 writer = null;
@@ -528,7 +531,7 @@ public final class LuceneRecordStore
                     doc2id.clear();
                 }
                 
-                log.info( "COMMIT: " + timer.elapsedTime() + "ms" );
+                log.debug( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -59,7 +59,7 @@ public class SimpleFeatureTableElement
     
     private FeatureSource               fs;
     
-    private Cache<String,SimpleFeature> cache;
+    private Cache<String,Feature>       cache;
     
     /** 
      * The value that was last returned by {@link #getValue(String)}. Key/value
@@ -68,10 +68,10 @@ public class SimpleFeatureTableElement
     private KeyValue                    sortedValue;          
     
     
-    public SimpleFeatureTableElement( SimpleFeature feature, FeatureSource fs, Cache<String,SimpleFeature> cache ) {
+    public SimpleFeatureTableElement( Feature feature, FeatureSource fs, Cache<String,Feature> cache ) {
         super();
         this.fs = fs;
-        this.fid = feature.getID();
+        this.fid = feature.getIdentifier().getID();
         this.cache = cache;
         this.cache.putIfAbsent( fid, feature );
     }
@@ -100,11 +100,10 @@ public class SimpleFeatureTableElement
 
 
     public Object getValue( String name ) {
-        if (sortedValue == null
-                || !sortedValue.getKey().equals( name )) {
-            SimpleFeature feature = feature();
+        if (sortedValue == null || !sortedValue.getKey().equals( name )) {
+            Feature feature = feature();
             if (feature != null) {
-                sortedValue = new DefaultKeyValue( name, feature.getAttribute( name ) );
+                sortedValue = new DefaultKeyValue( name, feature.getProperty( name ).getValue() );
             }
         }
         return sortedValue != null ? sortedValue.getValue() : null;
@@ -116,20 +115,20 @@ public class SimpleFeatureTableElement
     }
 
 
-    public SimpleFeature feature() {
+    public Feature feature() {
 //        try {
             if (cache.isDisposed()) {
                 return null;
             }
-            return cache.get( fid, new CacheLoader<String,SimpleFeature,RuntimeException>() {
-                public SimpleFeature load( String _fid ) throws RuntimeException {
+            return cache.get( fid, new CacheLoader<String,Feature,RuntimeException>() {
+                public Feature load( String _fid ) throws RuntimeException {
                     FetchJob fetcher = new FetchJob();
                     //fetcher.schedule();
 
                     // XXX this may block forever; use PlatformJobs!?
                     //fetcher.join();
                     fetcher.run( null );
-                    return (SimpleFeature)fetcher.result;
+                    return fetcher.result;
                 }
                 public int size() throws RuntimeException {
                     return Cache.ELEMENT_SIZE_UNKNOW;

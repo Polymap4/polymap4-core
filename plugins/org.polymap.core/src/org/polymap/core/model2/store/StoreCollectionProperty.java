@@ -22,6 +22,6 @@ import java.util.Collection;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface StoreCollectionProperty<T>
-        extends StoreProperty<T>, Collection<T> {
+        extends StoreProperty<Collection<T>>, Collection<T> {
 
 }

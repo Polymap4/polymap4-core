@@ -68,7 +68,10 @@ final class StringValueCoder
         if (exp instanceof QueryExpression.Equal) {
             Equal equalExp = (QueryExpression.Equal)exp;
             
-            if (equalExp.value instanceof String) {
+            if (equalExp.value == null) {
+                throw new UnsupportedOperationException( "Null values are not supported for expression: Equal(String)" );
+            }
+            else if (equalExp.value instanceof String) {
                 return new TermQuery( new Term( equalExp.key, (String)equalExp.value) );
             }
         }
@@ -76,7 +79,10 @@ final class StringValueCoder
         else if (exp instanceof QueryExpression.Match) {
             Match matchExp = (Match)exp;
             
-            if (matchExp.value instanceof String) {
+            if (matchExp.value == null) {
+                throw new UnsupportedOperationException( "Null values are not supported for expression: Match(String)" );
+            }
+            else if (matchExp.value instanceof String) {
                 String value = (String)matchExp.value;
                 
                 // XXX properly substitute wildcard chars

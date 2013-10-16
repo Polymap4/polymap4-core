@@ -22,20 +22,20 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-pool-1.5.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ecore-2.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/geoapi-2.3-M1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/geoapi-pending-2.3-M1.jar" sourcepath="lib/sources/geoapi-pending-2.3-M1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/geodb-0.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-2.6.4.jar" sourcepath="lib/sources/gt-api-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-2.6.4.jar" sourcepath="lib/sources/gt-coverage-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-data-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-data-2.6.4.jar" sourcepath="lib/sources/gt-data-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-graph-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-image-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-imageio-ext-gdal-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-imagemosaic-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-2.6.4.jar" sourcepath="lib/sources/gt-jdbc-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-h2-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-mysql-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-postgis-2.6.4.jar"/>
@@ -43,23 +43,23 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-main-2.6.4.jar" sourcepath="lib/sources/gt-main-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-2.6.4.jar" sourcepath="lib/sources/gt-metadata-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-process-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-property-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-property-2.6.4.jar" sourcepath="lib/sources/gt-property-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-2.6.4.jar" sourcepath="lib/sources/gt-referencing-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-2.6.4.jar" sourcepath="lib/sources/gt-render-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-2.6.4.jar" sourcepath="lib/sources/gt-shapefile-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-svg-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-validation-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-2.6.4.jar" sourcepath="lib/sources/gt-wfs-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wms-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wps-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml2-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml3-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-2.6.4.jar" sourcepath="lib/sources/gt-xsd-core-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-2.6.4.jar" sourcepath="lib/sources/gt-xsd-filter-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml2-2.6.4.jar" sourcepath="lib/sources/gt-xsd-gml2-2.6.4-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml3-2.6.4.jar" sourcepath="lib/sources/gt-xsd-gml3-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-kml-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-ows-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wfs-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wfs-2.6.4.jar" sourcepath="lib/sources/gt-xsd-wfs-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wps-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/h2-1.1.104.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/hsqldb-1.8.0.7.jar"/>

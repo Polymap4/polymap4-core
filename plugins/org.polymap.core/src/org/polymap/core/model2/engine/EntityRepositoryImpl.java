@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -217,7 +217,7 @@ public class EntityRepositoryImpl
         public StoreUnitOfWork getStoreUnitOfWork() {
             checkEviction();
             // XXX :( ???
-            return ((UnitOfWorkImpl)uow).underlying;
+            return ((UnitOfWorkImpl)uow).delegate;
         }
 
 
@@ -251,15 +251,15 @@ public class EntityRepositoryImpl
         }
 
 
-        public <T> T createMixin( Class<T> mixinClass ) {
-            checkEviction();
-            try {
-                return new InstanceBuilder( this ).newMixin( mixinClass );
-            }
-            catch (Exception e) {
-                throw new ModelRuntimeException( e );
-            }
-        }
+//        public <T> T createMixin( Class<T> mixinClass ) {
+//            checkEviction();
+//            try {
+//                return new InstanceBuilder( this ).newMixin( mixinClass );
+//            }
+//            catch (Exception e) {
+//                throw new ModelRuntimeException( e );
+//            }
+//        }
 
         public void methodProlog( String methodName, Object[] args ) {
             // XXX Auto-generated method stub

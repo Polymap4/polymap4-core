@@ -28,7 +28,7 @@ import org.polymap.core.runtime.LazyInit;
 
 /**
  * Handles property contraints: {@link DefaultValue}, {@link DefaultValues},
- * {@link Immutable}, {@link Nullable}. This also raises that status of the
+ * {@link Immutable}, {@link Nullable}. This also raises the status of the
  * Entity when a property is modified.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

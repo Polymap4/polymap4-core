@@ -68,6 +68,7 @@ public class DefaultFeatureTableColumn
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
         super();
+        assert prop != null : "Argument is null.";
         this.prop = prop;
     }
 

@@ -20,7 +20,6 @@ import java.lang.reflect.ParameterizedType;
 import javax.annotation.Nullable;
 
 import org.polymap.core.model2.CollectionProperty;
-import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.NameInStore;
@@ -32,7 +31,7 @@ import org.polymap.core.model2.runtime.PropertyInfo;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class PropertyInfoImpl<T>
+public final class PropertyInfoImpl<T>
         implements PropertyInfo<T> {
 
     private Field                   field;
@@ -86,12 +85,6 @@ final class PropertyInfoImpl<T>
     @Override
     public T getDefaultValue() {
         return (T)DefaultValues.valueOf( field );
-    }
-
-    @Override
-    public Entity getEntity() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
     }
 
 }
