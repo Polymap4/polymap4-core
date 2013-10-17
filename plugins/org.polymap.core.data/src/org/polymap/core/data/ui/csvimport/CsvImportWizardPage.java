@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -89,7 +88,7 @@ public class CsvImportWizardPage extends WizardPage {
 
     private CoordinateReferenceSystem readCrs;
 
-    private File                      csvFile     = null;
+    private String                    csvFilename;
 
     private CsvImporter               csvImporter = new CsvImporter( null );
     
@@ -97,10 +96,10 @@ public class CsvImportWizardPage extends WizardPage {
 
     private TableViewer               tableViewer;
 
-    private boolean                   is3d        = false;
+    private boolean                   is3d;
     
     /** The line to be used to fill the table; see {@link #fillTableView(int)}. */
-    private int                       lineIndex   = 1;
+    private int                       lineIndex = 1;
 
 
     public CsvImportWizardPage( String pageName, Map<String, String> params ) {
@@ -137,8 +136,9 @@ public class CsvImportWizardPage extends WizardPage {
                 UploadItem item = upload.getUploadItem();
                 try {
                     System.out.println( "Item name: " + item.getFileName() );
+                    csvFilename = item.getFileName();
                     csvImporter.setInputStream( item.getFileInputStream() );
-                    fillTableView(lineIndex);
+                    fillTableView( lineIndex );
                 } 
                 catch (IOException e1) {
                     e1.printStackTrace();
@@ -274,7 +274,7 @@ public class CsvImportWizardPage extends WizardPage {
         crsButton.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent e ) {
                 // FIXME _p3: the value seems to crash the chooserDialog if its not null
-                CRSChooserDialog dialog = new CRSChooserDialog( PolymapWorkbench.getShellToParentOn(), null );
+                CRSChooserDialog dialog = new CRSChooserDialog( CsvImportWizardPage.this.getShell(), null );
                 dialog.setBlockOnOpen( true );
                 dialog.open();
                 if (dialog.getResult() != null) {
@@ -303,7 +303,8 @@ public class CsvImportWizardPage extends WizardPage {
         // bottom group
         Group bottomGroup = new Group(fileSelectionArea, SWT.None);
         bottomGroup.setLayout(new GridLayout(2, false));
-        bottomGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
+        bottomGroup.setLayoutData(new GridData(
+                GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING ));
         bottomGroup.setText( i18n( "CsvImportWizardPage.headerline" ) );
 
         // lineIndex spinner
@@ -350,7 +351,7 @@ public class CsvImportWizardPage extends WizardPage {
         // extensions group
         Group extensionsGroup = new Group( fileSelectionArea, SWT.None );
         extensionsGroup.setLayout( new GridLayout( 2, false ) );
-        extensionsGroup.setLayoutData( new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL) );
+        extensionsGroup.setLayoutData( new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING) );
         extensionsGroup.setText( i18n( "CsvImportWizardPage.operations" ) );
         createExtensionsArea( extensionsGroup );
 
@@ -503,26 +504,43 @@ public class CsvImportWizardPage extends WizardPage {
     public CoordinateReferenceSystem getCrs() {
         return readCrs;
     }
+    
+    public String getCsvFilename() {
+        return csvFilename;
+    }
 
     private void checkFinish() {
-        boolean hasX = false;
-        boolean hasY = false;
-        for (int i=0; i<tableValues.size(); i++) {
-            Object[] values = tableValues.get(i);
-            Integer type = (Integer) values[2];
-            if (type == 0) {
-                hasX = true;
-            }
-            if (type == 1) {
-                hasY = true;
-            }
-        }
-
-        if (!hasX || !hasY || csvImporter == null || csvImporter.getData() == null || readCrs == null) {
+        setMessage( null );
+        setErrorMessage( null );
+        setPageComplete( true );
+        
+        if (csvImporter == null || csvImporter.getData() == null) {
+            setMessage( "Upload a CSV file to import.", WARNING );    
             setPageComplete( false );
-        } 
+        }
+        
+        else if (readCrs == null) {
+            setMessage( "Specify a valid CRS.", WARNING );    
+            setPageComplete( false );
+        }
+        
         else {
-            setPageComplete( true );
+            boolean hasX = false;
+            boolean hasY = false;
+            for (int i=0; i<tableValues.size(); i++) {
+                Object[] values = tableValues.get(i);
+                Integer type = (Integer) values[2];
+                if (type == 0) {
+                    hasX = true;
+                }
+                if (type == 1) {
+                    hasY = true;
+                }
+            }
+            if (!hasX || !hasY) {
+                setMessage( "Specify X and Y columns.", WARNING );    
+                setPageComplete( false );
+            }
         }
 
         getWizard().getContainer().updateButtons();

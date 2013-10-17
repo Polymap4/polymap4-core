@@ -21,8 +21,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
@@ -32,7 +30,6 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.polymap.core.mapeditor.MapEditor;
-import org.polymap.core.mapeditor.MapEditorInput;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.operation.OperationConcernAdapter;
 import org.polymap.core.operation.OperationInfo;
@@ -88,8 +85,7 @@ public class OpenMapConcern
                 public void run() {
                     try {
                         monitor.subTask( op.getLabel() );
-                        MapEditorInput input = new MapEditorInput( op.getMap() );
-                        openMap( input, op.getPage(), monitor );
+                        MapEditor.openMap( op.getMap(), true );
                         monitor.worked( 1 );
                     }
                     catch (PartInitException e) {
@@ -123,31 +119,31 @@ public class OpenMapConcern
     }
 
 
-    protected static void openMap( final MapEditorInput input, IWorkbenchPage page, IProgressMonitor monitor )
-            throws PartInitException {
-        log.debug( "        new editor: map= " + (input).getMap().id() ); //$NON-NLS-1$
-
-        // check current editors
-        IEditorReference[] editors = page.getEditorReferences();
-        for (IEditorReference reference : editors) {
-            IEditorInput cursor = reference.getEditorInput();
-            if (cursor instanceof MapEditorInput) {
-                log.debug( "        editor: map= " + ((MapEditorInput)cursor).getMap().id() ); //$NON-NLS-1$
-            }
-            if (cursor.equals( input )) {
-                Object previous = page.getActiveEditor();
-                page.activate( reference.getPart( true ) );
-                return;
-            }
-        }
-
-        // not found -> open new editor
-        MapEditor editor = (MapEditor)page.openEditor( input, input.getEditorId(), true, 
-                IWorkbenchPage.MATCH_NONE );
-        
-        // install listener
-        new MapVisibilityListener( page, editor, input.getMap() );
-    }
+//    protected static void openMap( final MapEditorInput input, IWorkbenchPage page, IProgressMonitor monitor )
+//            throws PartInitException {
+//        log.debug( "        new editor: map= " + (input).getMap().id() ); //$NON-NLS-1$
+//
+//        // check current editors
+//        IEditorReference[] editors = page.getEditorReferences();
+//        for (IEditorReference reference : editors) {
+//            IEditorInput cursor = reference.getEditorInput();
+//            if (cursor instanceof MapEditorInput) {
+//                log.debug( "        editor: map= " + ((MapEditorInput)cursor).getMap().id() ); //$NON-NLS-1$
+//            }
+//            if (cursor.equals( input )) {
+//                Object previous = page.getActiveEditor();
+//                page.activate( reference.getPart( true ) );
+//                return;
+//            }
+//        }
+//
+//        // not found -> open new editor
+//        MapEditor editor = (MapEditor)page.openEditor( input, input.getEditorId(), true, 
+//                IWorkbenchPage.MATCH_NONE );
+//        
+//        // install listener
+//        new MapVisibilityListener( page, editor, input.getMap() );
+//    }
     
     
     /**

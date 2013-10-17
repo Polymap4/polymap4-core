@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.IStatus;
  * chain by default.
  * <p/>
  * Implemented methods must not call one of the locally defined method except {@link #getInfo()}.
- * Instead the Operation given to the ctor has to be used 
+ * Instead the Operation given to the ctor has to be used.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
@@ -69,6 +69,13 @@ public abstract class OperationConcernAdapter
         next().dispose();
     }
 
+    
+    /**
+     * Concern implementations should check the {@link IStatus} returned by
+     * <code>next().execute( monitor, info )</code>. If the upstream operation
+     * returnes Cancel or Error state then the concern should return this status
+     * without executing as the upstream operation has unefined state.
+     */
     public IStatus execute( IProgressMonitor monitor, IAdaptable info )
             throws ExecutionException {
         return next().execute( monitor, info );

@@ -32,7 +32,7 @@ import com.google.common.base.Supplier;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class LazyInit<T>
-        implements Supplier<T> {
+        implements Lazy<T>, Supplier<T> {
 
     protected Supplier<T>       supplier;
     

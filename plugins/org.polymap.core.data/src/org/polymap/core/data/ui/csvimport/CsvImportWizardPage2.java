@@ -22,25 +22,35 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.geotools.data.DataAccess;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import net.refractions.udig.catalog.CatalogPlugin;
+import net.refractions.udig.catalog.IResolve;
+import net.refractions.udig.catalog.ui.CatalogTreeViewer;
 import net.refractions.udig.ui.FeatureTableControl;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.wizard.WizardPage;
+
+import org.polymap.core.project.ui.util.SimpleFormData;
+import org.polymap.core.ui.SelectionAdapter;
+
 import static org.polymap.core.data.ui.csvimport.Messages.i18n;
 
 /**
@@ -60,94 +70,87 @@ public class CsvImportWizardPage2 extends WizardPage {
 
     private Button                    memBtn, shpBtn;
     
-    private int                       importTarget;
-    
     private Text                      shpNameText;
 
     private String                    shpName = "csvimport";
-
+    
+    private IResolve                  target;
 
 
     public CsvImportWizardPage2( String pageName, Map<String, String> params ) {
         super( ID );
         setTitle( pageName );
-        setDescription( i18n( "CsvImportWizardPage.importasshape" ) );
+        setDescription( i18n( "CsvImportWizardPage.importasshape" ) );        
     }
 
-    
+    @Override
+    public CsvImportWizard getWizard() {
+        return (CsvImportWizard)super.getWizard();
+    }
+
     public void createControl( Composite parent ) {
+        getWizard().getShell().setSize( 520, 650 );
+        
         fileSelectionArea = new Composite( parent, SWT.NONE );
         fileSelectionArea.setLayout( new GridLayout() );
 
         Group inputGroup = new Group( fileSelectionArea, SWT.None );
         inputGroup.setText( i18n( "CsvImportWizardPage.importinto" ) );
-        inputGroup.setLayout( new GridLayout( 3, false ) );
         inputGroup.setLayoutData( new GridData( GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL ) );
+        inputGroup.setLayout( new FormLayout() );
 
-        // target selection
-        memBtn = new Button( inputGroup, SWT.RADIO );
-        memBtn.setText( "Memory Store" );
-        memBtn.setToolTipText( "Import into temporary memory store" );
-        memBtn.addListener( SWT.Selection, new Listener() {
-            public void handleEvent( Event ev ) {
-                importTarget = memBtn.getSelection() ? 1 : importTarget;
-                shpNameText.setEnabled( false );
-            }
-        } );
-
-        shpBtn = new Button( inputGroup, SWT.RADIO );
-        shpBtn.setSelection( true );
-        importTarget = 2;
-        shpBtn.setText( "Shapefile" );
-        shpBtn.setToolTipText( "Import into shapefile" );
-        shpBtn.addListener( SWT.Selection, new Listener() {
-            public void handleEvent( Event ev ) {
-                log.debug( "stateMask= " + ev.stateMask );
-                importTarget = shpBtn.getSelection() ? 2 : importTarget;
-                shpNameText.setEnabled( true );
-            }
-        } );
-        //radios[0].setBounds(10, 5, 75, 30);
-
+        Label l = new Label( inputGroup, SWT.NONE );
+        l.setText( i18n( "CsvImportWizardPage.typename" ) );
+        l.setLayoutData( SimpleFormData.offset( 5 ).left( 0 ).top( 0 ).create() );
+        
+//        shpName = getWizard().getCsvFilename();
         shpNameText = new Text( inputGroup, SWT.BORDER );
-        shpNameText.setLayoutData( new GridData( GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL ) );
+        shpNameText.setLayoutData( SimpleFormData.offset( 5 ).left( l ).right( 100 ).create() );
         shpNameText.setText( shpName );
         shpNameText.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent ev ) {
                 shpName = shpNameText.getText();
                 log.info( "shpName= " + shpName );
+                getWizard().createCsvFeatureCollection();
             }
         });
         
+        CatalogTreeViewer catalogViewer = new CatalogTreeViewer( inputGroup, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER, true );
+        catalogViewer.getControl().setLayoutData( SimpleFormData.offset( 5 ).left( 0 ).right( 100 ).top( shpNameText ).height( 150 ).bottom( 100 ).create() );
+        catalogViewer.setInput( CatalogPlugin.getDefault().getLocalCatalog() );
+        catalogViewer.addSelectionChangedListener( new ISelectionChangedListener() {
+            public void selectionChanged( SelectionChangedEvent ev ) {
+                target = new SelectionAdapter( ev.getSelection() ).first( IResolve.class );
+                target = target != null && target.canResolve( DataAccess.class ) ? target : null;
+                checkFinish();
+            }
+        });
+        
+        setControl( fileSelectionArea );
+        
         checkFinish();
-        setControl(fileSelectionArea);
     }
 
-    public int getImportTarget() {
-        return importTarget;
-    }
+//    public int getImportTarget() {
+//        return importTarget;
+//    }
     
     public String getShpName() {
         return shpName;
     }
     
+    public IResolve getTarget() {
+        return target;
+    }
+
     public void setVisible( boolean visible ) {
         super.setVisible( visible );
 
-        if (visible = true) {
-            log.info( "setVisible() = " + visible );
-
-            // complete -> job: create fc
-            if (isPageComplete()) {
-                final CsvImportWizard csvWizard = (CsvImportWizard)getWizard();
-
-                csvWizard.createCsvFeatureCollection();
-
-                setFeatureCollection( csvWizard.csvFeatureCollection );
-            }
+        if (visible) {
+            getWizard().createCsvFeatureCollection();
+            setFeatureCollection( getWizard().csvFeatureCollection );
         }
     }
-
 
     public void setFeatureCollection(
             FeatureCollection<SimpleFeatureType, SimpleFeature> csvFeatureCollection ) {
@@ -167,9 +170,11 @@ public class CsvImportWizardPage2 extends WizardPage {
                 comp.setLayoutData(gridData1);
                 
                 tableViewer = new FeatureTableControl( comp, features );
+                fileSelectionArea.layout( true );
             }
             else {
                 tableViewer.setFeatures( features );
+                fileSelectionArea.layout( true );
             }
         }
         catch (Exception e) {
@@ -177,9 +182,14 @@ public class CsvImportWizardPage2 extends WizardPage {
         }
     }
 
-
-    private void checkFinish() {
-        ((CsvImportWizard)getWizard()).canFinish = true;
+    protected void checkFinish() {
+        setMessage( null );
+        setPageComplete( true );
+        
+        if (target == null) {
+            setMessage( i18n( "CsvImportWizardPage.noservice" ), WARNING );
+            setPageComplete( false );
+        }
     }
-
+    
 }

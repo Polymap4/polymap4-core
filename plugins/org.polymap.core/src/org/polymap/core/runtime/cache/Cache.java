@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2012-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,6 +13,8 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.core.runtime.cache;
+
+import java.util.Set;
 
 /**
  * 
@@ -105,6 +107,8 @@ public interface Cache<K,V> {
 
     public Iterable<V> values();
 
+    public Set<K> keySet();
+    
 //    public boolean addEvictionListener( CacheEvictionListener listener );
 //
 //    public boolean removeEvictionListener( CacheEvictionListener listener );

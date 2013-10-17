@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -48,6 +48,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.polymap.core.model2.store.feature.FeatureFactory;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
@@ -59,7 +60,7 @@ import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
  */
 public class RFeatureStore
         extends AbstractFeatureSource
-        implements FeatureStore {
+        implements FeatureStore, FeatureFactory {
 
     private static Log log = LogFactory.getLog( RFeatureStore.class );
 
@@ -123,13 +124,7 @@ public class RFeatureStore
     }
 
     
-    /**
-     * Factory for new, empty {@link RFeature} instances. The newly created
-     * features needs to be added via {@link #addFeatures(FeatureCollection)}
-     * in order to get persistently stored in this store.
-     *
-     * @return Newly created, empty feature instance.
-     */
+    @Override
     public RFeature newFeature() {
         IRecordState state = ds.store.newRecord();
         return schema instanceof SimpleFeatureType
@@ -351,9 +346,14 @@ public class RFeatureStore
 //            this.tx.commit();
 //        }
         this.tx = tx;
-        this.txState = new TransactionState();
         if (tx != Transaction.AUTO_COMMIT) {
-            this.tx.putState( this, txState );
+            txState = (TransactionState)tx.getState( ds );
+            if (txState == null) {
+                tx.putState( ds, txState = new TransactionState() );
+            }
+        }
+        else {
+            txState = new TransactionState();
         }
     }
 

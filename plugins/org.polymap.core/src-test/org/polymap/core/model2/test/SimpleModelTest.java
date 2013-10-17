@@ -112,7 +112,9 @@ public abstract class SimpleModelTest
         assertTrue( thrown instanceof ModelRuntimeException );
         
         try { 
-            employee.nonNullable.get(); } catch (Exception e) { thrown = e; }        
+            employee.nonNullable.get(); 
+        } 
+        catch (Exception e) { thrown = e; }        
         assertTrue( thrown instanceof ModelRuntimeException );
     }
     
@@ -129,7 +131,7 @@ public abstract class SimpleModelTest
         
         // check
         UnitOfWork uow2 = repo.newUnitOfWork();
-        Collection<Employee> results = uow2.find( Employee.class );
+        Collection<Employee> results = uow2.query( Employee.class, null ).execute();
         assertEquals( 11, results.size() );
 
         int previousJap = -1;
@@ -140,10 +142,10 @@ public abstract class SimpleModelTest
     }
 
     
-    public void tstPerformance() throws Exception {
+    public void testPerformance() throws Exception {
         logHeap();
         Timer timer = new Timer();
-        int loops = 50000;
+        int loops = 1000;
         for (int i=0; i<loops; i++) {
             Employee employee = uow.createEntity( Employee.class, null, null );
             employee.jap.set( i );
@@ -160,7 +162,7 @@ public abstract class SimpleModelTest
         // load
         timer.start();
         UnitOfWork uow2 = repo.newUnitOfWork();
-        Collection<Employee> results = uow2.find( Employee.class );
+        Collection<Employee> results = uow2.query( Employee.class, null ).execute();
 
         for (Employee employee : results) {
             int jap = employee.jap.get();
@@ -170,6 +172,19 @@ public abstract class SimpleModelTest
         logHeap();
     }
 
+    
+    public void tstMixin() throws Exception {
+        Employee employee = uow.createEntity( Employee.class, null, null );
+        TrackableMixin trackable = employee.as( TrackableMixin.class );
+        assertNotNull( trackable );
+    }
+    
+    
+    public void tstConcern() throws Exception {
+        Employee employee = uow.createEntity( Employee.class, null, null );
+        
+    }
+    
     
     protected void logHeap() {
         System.gc();

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -45,8 +45,6 @@ class RFeature
 
     private static Log log = LogFactory.getLog( RFeature.class );
 
-    private static final String         NOT_YET_STORED_FID = "not-yet-stored";
-    
     public static final String          TYPE_KEY = "_featureTypeName_";
     
     protected IRecordState              state;
@@ -65,13 +63,13 @@ class RFeature
     public RFeature( IRecordState state, FeatureType type ) {
         super( null, new StoreKey(), 
                 new AttributeDescriptorImpl( type, type.getName(), 0, 1, false, null), 
-                new FeatureIdImpl( state.id() != null ? (String)state.id() : NOT_YET_STORED_FID ) );
+                new FeatureIdImpl( (String)state.id() ) );
         this.feature = this;
         this.state = state;
         this.key = new StoreKey();
         
         // just created? -> set TYPE field
-        if (getIdentifier().getID() == NOT_YET_STORED_FID) {
+        if (state.get( TYPE_KEY ) == null) {
             state.put( TYPE_KEY, type.getName().getLocalPart() );
         }
     }
@@ -79,11 +77,11 @@ class RFeature
     
     public FeatureId getIdentifier() {
         Identifier result = super.getIdentifier();
-        // check if the feature was newly created and has been stored
-        if (result.getID() == NOT_YET_STORED_FID
-                && state.id() != null) {
-            result = new FeatureIdImpl( (String)state.id() );
-        }
+//        // check if the feature was newly created and has been stored
+//        if (result.getID() == NOT_YET_STORED_FID
+//                && state.id() != null) {
+//            result = new FeatureIdImpl( (String)state.id() );
+//        }
         return (FeatureId)result;
     }
 

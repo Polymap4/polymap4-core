@@ -35,7 +35,7 @@ class CompositePropertyImpl<T extends Composite>
     
     private EntityRuntimeContext            entityContext;
     
-    private StoreProperty<CompositeState>   underlying;
+    private StoreProperty<CompositeState>   delegate;
 
     /**
      * Cache of the Composite value. As building the Composite is an expensive
@@ -47,7 +47,7 @@ class CompositePropertyImpl<T extends Composite>
 
     protected CompositePropertyImpl( EntityRuntimeContext entityContext, 
             StoreProperty<CompositeState> underlying ) {
-        this.underlying = underlying;
+        this.delegate = underlying;
         this.entityContext = entityContext;
     }
 
@@ -57,7 +57,7 @@ class CompositePropertyImpl<T extends Composite>
         if (value == null) {
             synchronized (this) {
                 if (value == null) {
-                    CompositeState state = underlying.get();
+                    CompositeState state = delegate.get();
                     if (state != null) {
                         InstanceBuilder builder = new InstanceBuilder( entityContext );
                         value = builder.newComposite( state, getInfo().getType() );
@@ -75,7 +75,7 @@ class CompositePropertyImpl<T extends Composite>
     @Override
     public void set( T value ) {
         this.value = value;
-        underlying.set( value.state() );
+        delegate.set( value.state() );
     }
 
     
@@ -84,7 +84,7 @@ class CompositePropertyImpl<T extends Composite>
         T result = get();
         if (result == null) {
             synchronized (this) {
-                CompositeState state = underlying.newValue();
+                CompositeState state = delegate.newValue();
                 assert state != null : "Store must not return null as newValue().";
                 InstanceBuilder builder = new InstanceBuilder( entityContext );
                 result = (T)builder.newComposite( state, getInfo().getType() );
@@ -109,7 +109,7 @@ class CompositePropertyImpl<T extends Composite>
 
     @Override
     public PropertyInfo getInfo() {
-        return underlying.getInfo();
+        return delegate.getInfo();
     }
     
 }

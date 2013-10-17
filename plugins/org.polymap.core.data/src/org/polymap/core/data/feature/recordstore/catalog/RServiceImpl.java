@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -18,11 +19,8 @@ import net.refractions.udig.catalog.IResolve;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.IServiceInfo;
 import net.refractions.udig.ui.ErrorManager;
-import net.refractions.udig.ui.UDIGDisplaySafeLock;
-
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
-import org.geotools.jdbc.JDBCDataStore;
 import org.opengis.feature.type.Name;
 
 import org.apache.commons.lang.StringUtils;
@@ -49,9 +47,9 @@ public class RServiceImpl
 
     private URL                       url;
 
-    private Map<String, Serializable> params;
+    private Map<String,Serializable>  params;
 
-    protected Lock                    rLock = new UDIGDisplaySafeLock();
+    protected Lock                    rLock = new ReentrantLock();  // UDIGDisplaySafeLock();
 
     private volatile List<RGeoResource> members = null;
     
@@ -59,7 +57,7 @@ public class RServiceImpl
     
     private volatile RDataStore       ds;
     
-    private Lock                      dsInstantiationLock = new UDIGDisplaySafeLock();
+    private Lock                      dsInstantiationLock = new ReentrantLock();  //UDIGDisplaySafeLock();
 
     
     public RServiceImpl( URL url, Map<String, Serializable> params ) {
@@ -87,7 +85,7 @@ public class RServiceImpl
         if (adaptee == null) {
             return false;
         }
-        return adaptee.isAssignableFrom( JDBCDataStore.class )
+        return adaptee.isAssignableFrom( DataAccess.class )
                 || adaptee.isAssignableFrom( Connection.class ) 
                 || super.canResolve( adaptee );
     }

@@ -17,6 +17,7 @@ package org.polymap.core.model2.store;
 import java.util.Collection;
 
 import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.engine.QueryImpl;
 import org.polymap.core.model2.runtime.UnitOfWork;
 
 /**
@@ -40,7 +41,7 @@ public interface StoreUnitOfWork {
      * @param entityClass
      * @return Collection of ids of the found entities.
      */
-    public <T extends Entity> Collection find( Class<T> entityClass );
+    public <T extends Entity> Collection<Object> find( QueryImpl query );
     
     public void prepareCommit( Iterable<Entity> loaded ) throws Exception;
     

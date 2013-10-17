@@ -58,7 +58,7 @@ public class RFeatureStoreTests
 
     protected void setUp() throws Exception {
         super.setUp();
-        LuceneRecordStore rs = new LuceneRecordStore( new File( "/tmp/LuceneRecordStoreTest" ), true );
+        LuceneRecordStore rs = new LuceneRecordStore( /*new File( "/tmp/LuceneRecordStoreTest" ), true*/ );
         ds = new RDataStore( rs, new LuceneQueryDialect() );
     }
 
@@ -77,7 +77,7 @@ public class RFeatureStoreTests
     }
     
     
-    public void tstCreateSimpleSchemaAndFeature() throws Exception {
+    public void testCreateSimpleSchemaAndFeature() throws Exception {
         log.debug( "creating schema..." );
         SimpleFeatureType schema = createSimpleSchema();
         ds.createSchema( schema );

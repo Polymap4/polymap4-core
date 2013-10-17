@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
-import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -73,7 +73,7 @@ class DeferredFeatureContentProvider
      */
     private LazySortedCollection    sortedElements;
 
-    private Cache<String,SimpleFeature> elementCache = 
+    private Cache<String,Feature>   elementCache = 
             CacheManager.instance().newCache( CacheConfig.DEFAULT );
 
     
@@ -159,7 +159,7 @@ class DeferredFeatureContentProvider
                         int chunkSize = 8;
                         
                         for (c=0; it.hasNext(); c++) {
-                            SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (SimpleFeature)it.next(), fs, elementCache );
+                            SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (Feature)it.next(), fs, elementCache );
                             chunk.add( elm );
                             sortedElements.add( elm );
                             monitor.worked( 1 );

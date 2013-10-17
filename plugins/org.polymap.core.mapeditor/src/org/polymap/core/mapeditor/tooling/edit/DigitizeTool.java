@@ -156,12 +156,13 @@ public class DigitizeTool
             }
             drawControl = new DrawFeatureControl( vectorLayer.getVectorLayer(), handler );
             getSite().getEditor().addControl( drawControl );
-            drawControl.activate();
 
             // register event handler
             Map<String, String> payload = new HashMap<String, String>();
             payload.put( "features", "new OpenLayers.Format.GeoJSON().write(event.feature, false)" );
-            vectorLayer.getVectorLayer().events.register( this, DrawFeatureControl.EVENT_ADDED, payload );
+            //vectorLayer.getVectorLayer().events.register( this, DrawFeatureControl.EVENT_ADDED, payload );
+            drawControl.events.register( this, DrawFeatureControl.EVENT_ADDED, payload );
+            drawControl.activate();
             vectorLayer.getVectorLayer().redraw();
         }
         catch (Exception e) {

@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
@@ -73,7 +74,22 @@ public class FeatureOperationExtension {
     
     public ImageDescriptor getIcon() {
         String path = elm.getAttribute( "icon" );
-        return path != null ? DataPlugin.imageDescriptorFromPlugin( DataPlugin.PLUGIN_ID, path ) : null;
+        if (path == null) {
+            return null;
+        }
+        
+        String contributor = elm.getDeclaringExtension().getContributor().getName();
+//        Bundle bundle = Platform.getBundle( contributor );
+//        String pluginId = bundle.getSymbolicName();
+        
+        ImageRegistry images = DataPlugin.getDefault().getImageRegistry();
+        String key = contributor + "." + path;
+        ImageDescriptor result = images.getDescriptor( key );
+        if (result == null) {
+            result = DataPlugin.imageDescriptorFromPlugin( contributor, path );
+            images.put( key, result );
+        }
+        return result;
     }
     
     public String getDescription() {

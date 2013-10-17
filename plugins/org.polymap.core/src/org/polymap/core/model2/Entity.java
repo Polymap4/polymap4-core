@@ -48,7 +48,7 @@ public abstract class Entity
      * @return A mixin of the given type, or null if no such mixin was defined.
      */
     public <T extends Composite> T as( Class<T> mixinClass ) {
-        return context.createMixin( mixinClass );
+        return context.getUnitOfWork().mixin( mixinClass, this );
     }
 
     

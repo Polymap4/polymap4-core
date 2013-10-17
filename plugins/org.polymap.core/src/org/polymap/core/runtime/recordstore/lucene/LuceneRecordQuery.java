@@ -18,6 +18,8 @@ import java.util.Iterator;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.search.Query;
@@ -38,6 +40,8 @@ import org.polymap.core.runtime.recordstore.ResultSet;
  */
 public class LuceneRecordQuery
         extends RecordQuery {
+
+    private static Log log = LogFactory.getLog( LuceneRecordQuery.class );
 
     /** Max size of a {@link ResultSet}. */
     public static final int     BIG_BUT_NOT_MAX_VALUE = 1000000;
@@ -68,6 +72,7 @@ public class LuceneRecordQuery
 
 
     public ResultSet execute() throws IOException {
+        log.trace( "LUCENE: " + luceneQuery );
         if (getSortKey() != null) {
             int sortType = SortField.STRING;
             if (getSortType() == String.class) {

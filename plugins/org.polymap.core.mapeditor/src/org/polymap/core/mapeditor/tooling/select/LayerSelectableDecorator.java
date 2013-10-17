@@ -35,9 +35,10 @@ import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
 import org.eclipse.ui.PlatformUI;
+
+import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.tooling.edit.BaseLayerEditorTool;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.runtime.Polymap;
 
 /**
@@ -85,7 +86,7 @@ public class LayerSelectableDecorator
             try { layer.id(); } catch (NoSuchEntityException e) { return; }
             
             if (selectableLayerIds.contains( layer.id() )) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, image );
+                ImageDescriptor ovr = MapEditorPlugin.imageDescriptor( image );
                 decoration.addOverlay( ovr, QUADRANT );
             }
         }

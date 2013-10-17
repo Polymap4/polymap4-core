@@ -69,15 +69,15 @@ public abstract class AbstractRecordStoreTest
     }
 
     
-    public void tst() throws Exception {
-        int loops = 1000;
+    public void test() throws Exception {
+        int loops = 100;
         createRecords( loops );
         readRecords( loops );
         queryRecords( loops );
     }
 
 
-    public void testThreaded() throws Exception {
+    public void tstThreaded() throws Exception {
         final int loops = 250;
         final int threads = 4;
         createRecords( loops*threads );

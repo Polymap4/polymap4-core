@@ -15,6 +15,7 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -23,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+
 import org.polymap.core.runtime.ListenerList;
 
 /**
@@ -152,6 +154,13 @@ final class LUCache<K,V>
     public Iterable<Map.Entry<K,CacheEntry<V>>> entries() {
         assert entries != null : "Cache is closed.";
         return entries.entrySet();
+    }
+
+    
+    @Override
+    public Set<K> keySet() {
+        assert entries != null : "Cache is closed.";
+        return entries.keySet();
     }
 
     

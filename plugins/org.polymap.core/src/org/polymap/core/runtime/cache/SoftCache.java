@@ -15,6 +15,8 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -143,6 +145,13 @@ final class SoftCache<K,V>
     }
 
     
+    @Override
+    public Set<K> keySet() {
+        assert entries != null : "Cache is closed.";
+        return entries.keySet();
+    }
+
+
     public boolean addEvictionListener( CacheEvictionListener listener ) {
         throw new UnsupportedOperationException( "CacheEvictionListener is not supported." );
 //        if (listeners == null) {

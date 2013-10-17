@@ -16,7 +16,6 @@ package org.polymap.core.model2.runtime;
 
 import javax.annotation.Nullable;
 
-import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
@@ -57,8 +56,6 @@ public interface PropertyInfo<T> {
 
     //public CompositeInfo getDeclaringComposite();
 
-    public Entity getEntity();
-
     public T getDefaultValue();
 
     /**
@@ -72,7 +69,7 @@ public interface PropertyInfo<T> {
     public boolean isNullable();
 
     /**
-     * MaxOcc...
+     *
      */
     public int getMaxOccurs();
     

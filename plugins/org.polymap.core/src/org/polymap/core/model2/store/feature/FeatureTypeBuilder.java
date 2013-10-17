@@ -20,10 +20,6 @@ import java.util.Date;
 import java.util.List;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-
-import javax.annotation.Nullable;
-
 import org.geotools.feature.NameImpl;
 import org.geotools.feature.type.FeatureTypeFactoryImpl;
 import org.geotools.referencing.CRS;
@@ -50,7 +46,7 @@ import org.polymap.core.model2.Description;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.NameInStore;
-import org.polymap.core.model2.engine.DefaultValues;
+import org.polymap.core.model2.engine.PropertyInfoImpl;
 
 /**
  * 
@@ -72,7 +68,7 @@ class FeatureTypeBuilder {
     private ClassLoader                 cl;
     
     
-    public FeatureTypeBuilder( Class<? extends Entity> entityClass) 
+    public FeatureTypeBuilder( Class<? extends Entity> entityClass ) 
     throws Exception {
         this.factory = new FeatureTypeFactoryImpl();
         this.cl = Thread.currentThread().getContextClassLoader();
@@ -83,7 +79,7 @@ class FeatureTypeBuilder {
             this.crs = CRS.decode( srs.value() );
         }
         else {
-            log.warn( "No SRS annoation defined. Using EPSG:4326 for: " + entityClass );
+            log.warn( "No SRS annotation defined. Using EPSG:4326 for: " + entityClass );
             this.crs = CRS.decode( "EPSG:4326" );
         }
     }
@@ -112,13 +108,12 @@ class FeatureTypeBuilder {
         Class superClass = compositeClass; 
         for (;superClass != null; superClass = superClass.getSuperclass()) {
             for (Field field : superClass.getDeclaredFields()) {
+                
+                // Property and CollectionProperty
                 if (Property.class.isAssignableFrom( field.getType() )) {
 
-                    Class<?> binding = (Class)((ParameterizedType)field.getGenericType())
-                            .getActualTypeArguments()[0];
-
-                    boolean isNillable = field.getAnnotation( Nullable.class ) != null;
-                    Object defaultValue = DefaultValues.valueOf( field );
+                    PropertyInfoImpl propInfo = new PropertyInfoImpl( field );
+                    Class<?> binding = propInfo.getType();
 
                     // attribute
                     if (binding.isPrimitive() 
@@ -129,7 +124,7 @@ class FeatureTypeBuilder {
 
                         AttributeType propType = buildAttributeType( field, binding );
                         properties.add( factory.createAttributeDescriptor( propType, 
-                                propType.getName(), 0, 1, isNillable, defaultValue ) );
+                                propType.getName(), 0, propInfo.getMaxOccurs(), propInfo.isNullable(), propInfo.getDefaultValue() ) );
                     }
                     // geometry
                     else if (Geometry.class.isAssignableFrom( binding )) {
@@ -140,15 +135,14 @@ class FeatureTypeBuilder {
                                 propType.getRestrictions(), propType.getSuper(), propType.getDescription() );
 
                         properties.add( factory.createGeometryDescriptor( geomType, 
-                                geomType.getName(), 0, 1, isNillable, defaultValue ) );
+                                geomType.getName(), 0, 1, propInfo.isNullable(), propInfo.getDefaultValue() ) );
                     }
                     // complex
                     else if (Composite.class.isAssignableFrom( binding )) {
                         ComplexType propType = buildComplexType( (Class<? extends Composite>)binding );                    
                     }
                     else {
-                        // XXX no collections yet
-                        throw new RuntimeException( "Type of property is not supported yet: " + binding );
+                        throw new RuntimeException( "Property value type is not supported: " + binding );
                     }
                 }
             }

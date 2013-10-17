@@ -14,7 +14,7 @@
  */
 package org.polymap.core.model2.store.feature;
 
-import static java.util.Collections.*;
+import static java.util.Collections.singleton;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
@@ -23,23 +23,26 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+
 import java.io.IOException;
 
 import org.geotools.data.DefaultQuery;
 import org.geotools.data.DefaultTransaction;
+import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.NameImpl;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.Feature;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
@@ -53,17 +56,18 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.NameInStore;
+import org.polymap.core.model2.engine.QueryImpl;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
-import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreUnitOfWork;
@@ -92,12 +96,13 @@ public class FeatureStoreUnitOfWork
     private Transaction                 tx;
     
     /** Never evicting cache of used {@link FeatureSource} instances. */
-    private Cache<Class<? extends Entity>,FeatureStore> featureSources;
+    private LoadingCache<Class<? extends Entity>,FeatureStore> featureSources;
 
     
     protected FeatureStoreUnitOfWork( StoreRuntimeContext context, FeatureStoreAdapter store ) {
         this.store = store;
 
+        // XXX why use Guave cache here anyway?
         this.featureSources = CacheBuilder.newBuilder().build( new CacheLoader<Class<?>,FeatureStore>() {
             public FeatureStore load( Class<?> entityClass ) throws Exception {
                 // name in store
@@ -106,22 +111,20 @@ public class FeatureStoreUnitOfWork
                         : entityClass.getSimpleName();
                         
                 NameImpl name = new NameImpl( typeName );
-                return (FeatureStore)FeatureStoreUnitOfWork.this
-                        .store.getStore().getFeatureSource( name );
+                return (FeatureStore)FeatureStoreUnitOfWork.this.store.getStore().getFeatureSource( name );
             }
         });
     }
 
     
     public FeatureStore featureSource( Class<? extends Entity> entityClass ) {
-        throw new RuntimeException( "FIXME - new Guave version, port!" );
-//        try {
-//            // why use Guave cache here anyway?
-//            return featureSources.get( entityClass );
-//        }
-//        catch (ExecutionException e) {
-//            throw new RuntimeException( e );
-//        }
+        try {
+            // why use Guave cache here anyway?
+            return featureSources.get( entityClass );
+        }
+        catch (ExecutionException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 
@@ -159,12 +162,16 @@ public class FeatureStoreUnitOfWork
         
         // create feature
         Feature feature = null;
-        if (schema instanceof SimpleFeatureType) {
+        if (fs instanceof FeatureFactory) {
+            feature = ((FeatureFactory)fs).newFeature();
+            assert !(schema instanceof SimpleFeatureType) || feature instanceof SimpleFeature; 
+        }
+        else if (schema instanceof SimpleFeatureType) {
             feature = SimpleFeatureBuilder.build( (SimpleFeatureType)schema, 
                     ListUtils.EMPTY_LIST, (String)id );
         }
         else {
-            throw new UnsupportedOperationException( "Complex FeatureType is not supported yet." );
+            throw new UnsupportedOperationException( "Unable to build feature for schema: " + schema );
         }
         feature.getUserData().put( "__created__", Boolean.TRUE );
         return new FeatureCompositeState( feature, this );
@@ -172,15 +179,21 @@ public class FeatureStoreUnitOfWork
 
 
     @Override
-    public <T extends Entity> Collection find( Class<T> entityClass ) {
+    public <T extends Entity> Collection find( QueryImpl query ) {
+        assert query.expression == null || query.expression instanceof Filter : "Wrong query expression type: " + query.expression;
         try {
             // schema
-            FeatureStore fs = featureSource( entityClass );
+            FeatureStore fs = featureSource( query.resultType() );
             FeatureType schema = fs.getSchema();
 
             // features (just IDs) 
-            final FeatureCollection features = fs.getFeatures( 
-                    new DefaultQuery( schema.getName().getLocalPart(), Filter.INCLUDE, new String[] {} ) );
+            DefaultQuery featureQuery = new DefaultQuery( schema.getName().getLocalPart() );
+            featureQuery.setFilter( query.expression != null ? (Filter)query.expression : Filter.INCLUDE );
+            featureQuery.setPropertyNames( new String[] {} );
+            featureQuery.setStartIndex( query.firstResult );
+            featureQuery.setMaxFeatures( query.maxResults );
+
+            final FeatureCollection features = fs.getFeatures( featureQuery );
             final Iterator<Feature> it = features.iterator();
             
             return new AbstractCollection<String>() {
@@ -292,13 +305,13 @@ public class FeatureStoreUnitOfWork
             // created
             if (entity.status() == EntityStatus.CREATED) {
                 // it in case of exception while prepare the mark is removed to early; but
-                // it should not cause trouble as potential subsequent modufications are
+                // it should not cause trouble as potential subsequent modifications are
                 // just send twice to the store, one in create and the equal modification
                 feature.getUserData().remove( "__created__" );
                 
                 FeatureCollection coll = created.get( entity.getClass() );
                 if (coll == null) {
-                    coll = new DefaultFeatureCollection( null, null );
+                    coll = new MemoryFeatureCollection( null, null );
                     created.put( entity.getClass(), coll );
                 }
                 coll.add( feature );

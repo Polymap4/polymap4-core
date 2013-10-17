@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime.cache;
 
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -189,6 +191,13 @@ final class GuavaCache<K,V>
     public Iterable<V> values() {
         assert cache != null : "Cache is closed.";
         return cache.asMap().values();        
+    }
+
+    
+    @Override
+    public Set<K> keySet() {
+        assert cache != null : "Cache is closed.";
+        return cache.asMap().keySet();        
     }
 
     

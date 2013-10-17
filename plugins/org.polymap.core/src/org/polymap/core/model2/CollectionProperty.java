@@ -24,7 +24,7 @@ import org.polymap.core.model2.runtime.ValueInitializer;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface CollectionProperty<T>
-        extends Property<T>, Collection<T> {
+        extends Property<Collection<T>>, Collection<T> {
 
     /**
      * For composite properties: this method allows the initialize the

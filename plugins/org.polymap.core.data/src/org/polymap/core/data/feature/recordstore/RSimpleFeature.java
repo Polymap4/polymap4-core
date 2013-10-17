@@ -62,17 +62,19 @@ public class RSimpleFeature
 
     @Override
     public Object getAttribute( String name ) {
-        return getProperty( name ).getValue();
+        Property prop = getProperty( name );
+        return prop != null ? prop.getValue() : null;
     }
 
     @Override
     public Object getAttribute( Name name ) {
-        return getProperty( name ).getValue();
+        Property prop = getProperty( name );
+        return prop != null ? prop.getValue() : null;
     }
 
     @Override
     public Object getAttribute( int index ) throws IndexOutOfBoundsException {
-        throw new RuntimeException( "not yet implemented." );
+        return ((List<Property>)getProperties()).get( index ).getValue();
     }
 
     @Override

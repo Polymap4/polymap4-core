@@ -18,29 +18,22 @@
  */
 package org.polymap.core.data.ui.csvimport;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import java.io.File;
-import java.io.Serializable;
-import java.nio.charset.Charset;
-
-import org.geotools.data.DataStoreFactorySpi;
+import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureStore;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import net.refractions.udig.catalog.CatalogPlugin;
-import net.refractions.udig.catalog.ICatalog;
+import net.refractions.udig.catalog.IResolve;
+import net.refractions.udig.catalog.IResolveFolder;
 import net.refractions.udig.catalog.IService;
-import net.refractions.udig.catalog.IServiceInfo;
-import net.refractions.udig.catalog.internal.shp.ShpServiceExtension;
 import net.refractions.udig.ui.ExceptionDetailsDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -50,14 +43,11 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 
+import org.polymap.core.catalog.actions.ResetServiceAction;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.runtime.UIJob;
 
@@ -67,7 +57,6 @@ import static org.polymap.core.data.ui.csvimport.Messages.i18n;
  * @author Andrea Antonello - www.hydrologis.com
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
-@SuppressWarnings("restriction")
 public class CsvImportWizard extends Wizard implements INewWizard {
 
     private CsvImportWizardPage                     page1;
@@ -77,8 +66,6 @@ public class CsvImportWizard extends Wizard implements INewWizard {
     private final Map<String, String>               params    = new HashMap<String, String>();
 
     protected FeatureCollection<SimpleFeatureType, SimpleFeature> csvFeatureCollection;
-
-    protected boolean                               canFinish = false;
 
 
     public CsvImportWizard() {
@@ -90,7 +77,7 @@ public class CsvImportWizard extends Wizard implements INewWizard {
         setDefaultPageImageDescriptor(AbstractUIPlugin.imageDescriptorFromPlugin(
                 DataPlugin.PLUGIN_ID, "icons/workset_wiz.png" ) );
         setNeedsProgressMonitor(true);
-        page1 = new CsvImportWizardPage( i18n( "CsvImportWizard.csvimport" ), params);
+        page1 = new CsvImportWizardPage( i18n( "CsvImportWizard.csvimport" ), params );
         page2 = new CsvImportWizardPage2( i18n( "CsvImportWizard.csvimport" ), params );
     }
 
@@ -100,7 +87,12 @@ public class CsvImportWizard extends Wizard implements INewWizard {
         addPage( page2 );
     }
 
+    public String getCsvFilename() {
+        return page1.getCsvFilename();
+    }
+    
     void createCsvFeatureCollection() {
+        final String name = page2.getShpName();
         final CoordinateReferenceSystem crs = page1.getCrs();
         final CsvImporter csvImporter = page1.getCsvImporter();
         final LinkedHashMap<String, Integer> fieldsAndTypesIndex = page1.getFieldsAndTypesIndex();
@@ -109,7 +101,7 @@ public class CsvImportWizard extends Wizard implements INewWizard {
             protected void runWithException( IProgressMonitor monitor )
             throws Exception {
                 try {
-                    csvFeatureCollection = csvImporter.createFeatureCollection( 
+                    csvFeatureCollection = csvImporter.createFeatureCollection( name, 
                             crs, fieldsAndTypesIndex, new EclipseProgressMonitorAdapter( monitor ) );
                 } 
                 catch (Exception e) {
@@ -137,91 +129,41 @@ public class CsvImportWizard extends Wizard implements INewWizard {
     public boolean performFinish() {
         final AtomicBoolean ok_flag = new AtomicBoolean( false );
         
-        UIJob job = new UIJob( "CSV Import" ) {
-            protected void runWithException( IProgressMonitor monitor )
-            throws Exception {
-                try {
-                    monitor.beginTask( i18n( "CsvImportWizard.tasktitle" ), IProgressMonitor.UNKNOWN );
-                    
-                    SimpleFeatureType featureType = csvFeatureCollection.getSchema();
-                    CoordinateReferenceSystem crs = page1.getCrs();
-                    Charset charset = page1.getCsvImporter().prefs().getFileEncoding();
+        UIJob job = new UIJob( i18n( "CsvImportWizard.tasktitle" ) ) {
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                monitor.beginTask( i18n( "CsvImportWizard.tasktitle" ), IProgressMonitor.UNKNOWN );
 
-                    // memory store
-                    if (page2.getImportTarget() == 1) {
-                        throw new RuntimeException( "Memory store is not supported" );
-//                        JGrassCatalogUtilities.removeMemoryServiceByTypeName(featureType.getTypeName());
-//                        IGeoResource resource = CatalogPlugin.getDefault().getLocalCatalog()
-//                                .createTemporaryResource(featureType);
-//                        resource.resolve(FeatureStore.class, pm).addFeatures(csvFeatureCollection);
-                    }
+                IResolve service = page2.getTarget();
+                SimpleFeatureType featureType = csvFeatureCollection.getSchema();
+                CoordinateReferenceSystem crs = page1.getCrs();
 
-                    // create shape dataStore
-                    else if (page2.getImportTarget() == 2) {
-                        IWorkspace workspace = ResourcesPlugin.getWorkspace();
-                        IWorkspaceRoot root = workspace.getRoot();
-                        IPath path = root.getLocation();
-                        System.out.println( "Workspace root: " + path.toString() );
+                DataAccess ds = page2.getTarget().resolve( DataAccess.class, new SubProgressMonitor( monitor, 1 ) );
+                ds.createSchema( featureType );
 
-                        ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
+                // write the features
+                FeatureStore<SimpleFeatureType, SimpleFeature> fs =
+                        (FeatureStore<SimpleFeatureType, SimpleFeature>) ds.getFeatureSource( featureType.getName() );
 
-//                        Date now = new Date();
-//                        String suffix = "_" + now.getDate() + "_" + now.getTime();
-                        File newFile = new File( path.toFile(), page2.getShpName() /*+ suffix*/ + ".shp" );
-                        DataStoreFactorySpi dataStoreFactory = new ShapefileDataStoreFactory();
+                // no transaction: save memory                        
+                fs.addFeatures( csvFeatureCollection );
 
-                        Map<String,Serializable> shapeParams = new HashMap<String,Serializable>();
-                        shapeParams.put( ShapefileDataStoreFactory.URLP.key, newFile.toURI().toURL() );
-                        shapeParams.put( ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, Boolean.TRUE );
-                        // does not work as Charset is NOT!!! serializable :((
-                        //shapeParams.put( ShapefileDataStoreFactory.DBFCHARSET.key, encoding );
+                // reset service in catalog
+                Thread.sleep( 1000 );
 
-                        ShapefileDataStore newDataStore = (ShapefileDataStore)dataStoreFactory.createNewDataStore(shapeParams);
-                        newDataStore.createSchema( featureType );
-                        newDataStore.forceSchemaCRS( crs );
-                        System.out.println( "CHARSET: " + charset.name() );
-                        newDataStore.setStringCharset( charset );
-
-                        // write the features to shape
-                        String typeName = newDataStore.getTypeNames()[0];
-                        FeatureStore<SimpleFeatureType, SimpleFeature> fs =
-                                (FeatureStore<SimpleFeatureType, SimpleFeature>) newDataStore.getFeatureSource( typeName );
-                        
-                        // no transaction: save memory                        
-                        fs.addFeatures( csvFeatureCollection );
-
-                        // adding service to catalog
-                        ShpServiceExtension creator = new ShpServiceExtension();
-                        shapeParams.put( ShapefileDataStoreFactory.DBFCHARSET.key, charset.name() );
-                        //shapeParams = creator.createParams( newFile.toURI().toURL() );
-                        IService service = creator.createService( null, shapeParams );
-                        IServiceInfo info = service.getInfo( new NullProgressMonitor() ); // load
-
-                        CatalogPlugin.getDefault().getLocalCatalog().add( service );
-                        ok_flag.set( true );
-                    }
-                } 
-                catch (Exception e) {
-                    e.printStackTrace();
-                    ExceptionDetailsDialog.openError( null, i18n( "CsvImportWizard.error" ), 
-                            IStatus.ERROR, DataPlugin.PLUGIN_ID, e);
+                if (service instanceof IService) {
+                    ResetServiceAction.reset( Collections.singletonList( (IService)service ), new SubProgressMonitor( monitor, 1 ) );
                 }
-
+                else if (service instanceof IResolveFolder) {
+                    ResetServiceAction.reset( 
+                            Collections.singletonList( ((IResolveFolder)service).getService( monitor ) ),
+                            new SubProgressMonitor( monitor, 1 ) );                    
+                }
+                monitor.done();
             }
         };
-        job.setShowProgressDialog( "CSV Import", false );
+        job.setUser( true );  //ShowProgressDialog( i18n( "CsvImportWizard.tasktitle" ), false );
         job.schedule();
-
-        if (! job.joinAndDispatch( 180000 )) {
-            job.cancelAndInterrupt();
-            MessageDialog.openInformation( getShell(), "Info", i18n( "CsvImportWizard.timeout" ) );
-        }
-
-        return ok_flag.get();
-    }
-
-    public boolean canFinish() {
-        return canFinish;
+        return true;
     }
 
 }

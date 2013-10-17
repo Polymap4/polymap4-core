@@ -151,6 +151,14 @@ public class PolymapWorkbench
             //log.warn( e );
             throw e;
         }
+        finally {
+            // logout after other cleanup happened
+            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                public void run() {
+                    Polymap.instance().logout();
+                }
+            });
+        }
     }
 
     

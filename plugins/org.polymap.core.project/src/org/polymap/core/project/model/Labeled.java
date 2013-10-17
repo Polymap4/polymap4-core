@@ -23,6 +23,7 @@
 
 package org.polymap.core.project.model;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.qi4j.api.common.UseDefaults;
@@ -51,11 +52,11 @@ public interface Labeled
     @UseDefaults
     //@MaxLength(30)
     @Queryable
-    abstract Property<String>       label();
+    abstract Property<String>               label();
 
     @UseDefaults
     @Queryable
-    abstract Property<Set<String>>  keywords();
+    abstract Property<Collection<String>>   keywords();
 
     /**
      * The mixin.
@@ -72,7 +73,7 @@ public interface Labeled
             label().set( value );
         }
 
-        public Set<String> getKeywords() {
+        public Collection<String> getKeywords() {
             return keywords().get();
         }
 

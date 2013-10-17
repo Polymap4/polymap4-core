@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -97,14 +97,14 @@ final class CompositeInfoImpl
 
     
     /**
-     * Recursivly init {@link #propertyInfos} of the given instance and all complex
+     * Recursivelly init {@link #propertyInfos} of the given instance and all complex
      * propertyInfos.
      */
     protected void initPropertyInfos() throws Exception {
         Class superClass = compositeClass;
         while (superClass != null) {
             for (Field field : superClass.getDeclaredFields()) {
-                if (field.getType().isAssignableFrom( Property.class )) {
+                if (Property.class.isAssignableFrom( field.getType() )) {
                     
                     PropertyInfoImpl info = new PropertyInfoImpl( field );;
                     propertyInfos.put( info.getName(), info );

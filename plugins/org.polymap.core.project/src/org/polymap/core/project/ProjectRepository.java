@@ -56,7 +56,7 @@ public class ProjectRepository
     /**
      * Get or create the repository for the current user session.
      */
-    public static final ProjectRepository instance() {
+    public static ProjectRepository instance() {
         return Qi4jPlugin.Session.instance().module( ProjectRepository.class );
     }
 

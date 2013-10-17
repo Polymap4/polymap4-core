@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,7 +15,6 @@
 package org.polymap.core.model2;
 
 import org.polymap.core.model2.runtime.PropertyInfo;
-
 
 /**
  * 

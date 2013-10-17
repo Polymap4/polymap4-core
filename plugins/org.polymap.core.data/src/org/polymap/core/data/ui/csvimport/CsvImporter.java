@@ -270,6 +270,7 @@ public class CsvImporter {
      */
     @SuppressWarnings("nls")
     public FeatureCollection<SimpleFeatureType, SimpleFeature> createFeatureCollection(
+            String name,
             CoordinateReferenceSystem crs,
             LinkedHashMap<String, Integer> fieldsAndTypesIndex, 
             IProgressMonitorJGrass monitor ) 
@@ -282,7 +283,7 @@ public class CsvImporter {
         String[] typesArray = JGrassConstants.CSVTYPESARRAY;
 
         SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
-        b.setName( "csvimport" );
+        b.setName( name );
         b.setCRS( crs );
         b.add( "the_geom", Point.class );
 

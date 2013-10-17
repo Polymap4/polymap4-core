@@ -25,12 +25,11 @@ package org.polymap.core.data.ui.featuretypeeditor;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import net.refractions.udig.internal.ui.Images;
-
 import org.eclipse.swt.widgets.Event;
 
 import org.eclipse.jface.action.Action;
 
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
 
 /**
@@ -53,7 +52,7 @@ public class CreateAttributeAction
         setId( "org.polymap.core.data.ui.featuretypeeditor.createAttributeAction" ); //$NON-NLS-1$
         setText( Messages.get( "CreateAttributeAction_label" ) );
         setToolTipText( Messages.get( "CreateAttributeAction_tip" ) );
-        setImageDescriptor( Images.getDescriptor( "elcl16/new_attribute.gif" ) ); //$NON-NLS-1$
+        setImageDescriptor( DataPlugin.getDefault().imageDescriptor( "icons/etool16/add.gif" ) ); //$NON-NLS-1$
     }
 
     public void runWithEvent( Event event ) {

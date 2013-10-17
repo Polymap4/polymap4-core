@@ -149,7 +149,7 @@ public class EntityModificationDecorator
             boolean conflicting = entityState.isConflicting();
 
             if (dirty && conflicting) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, conflictImage );
+                ImageDescriptor ovr = ProjectPlugin.getDefault().imageDescriptor( conflictImage );
                 decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
                 //decoration.addPrefix( "# " );
             }
@@ -159,7 +159,7 @@ public class EntityModificationDecorator
                 //decoration.addPrefix( "< " );
             }
             else if (dirty) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( ProjectPlugin.PLUGIN_ID, dirtyImage );
+                ImageDescriptor ovr = ProjectPlugin.getDefault().imageDescriptor( dirtyImage );
                 decoration.addOverlay( ovr, IDecoration.BOTTOM_RIGHT );
                 //decoration.addSuffix( "*" );
             }

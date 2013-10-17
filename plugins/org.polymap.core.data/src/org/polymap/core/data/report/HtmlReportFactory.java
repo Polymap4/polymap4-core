@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright 2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -43,6 +43,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.Messages;
@@ -99,8 +100,7 @@ public class HtmlReportFactory
      * @return The Scripts project.
      * @throws CoreException 
      */
-    public static IFolder getOrCreateReportsFolder() 
-    throws CoreException {
+    public static IFolder getOrCreateReportsFolder() throws CoreException {
         IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
         IProject project = root.getProject( "Scripts" );
         
@@ -108,7 +108,7 @@ public class HtmlReportFactory
             // delete also ./.metadata/.plugins/org.eclipse.core.resources/.projects/Scripts/
             project.create( null );
         }
-        project.open( null );
+        project.open( new NullProgressMonitor() );
         
         IFolder reportsFolder = project.getFolder( "src/reports" );
         if (!reportsFolder.exists()) {

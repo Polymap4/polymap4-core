@@ -16,7 +16,9 @@ package org.polymap.service.geoserver;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.EventListener;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import java.io.File;
@@ -25,6 +27,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.servlet.Filter;
+import javax.servlet.FilterRegistration;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -32,6 +36,11 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
+import javax.servlet.ServletRegistration.Dynamic;
+import javax.servlet.SessionCookieConfig;
+import javax.servlet.SessionTrackingMode;
+import javax.servlet.descriptor.JspConfigDescriptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -90,12 +99,29 @@ public class GeoServerWms
 
     protected void init( IMap _map ) {
         super.init( _map );
+        sessionKey = SessionContext.current().getSessionKey();
+    }
+
+
+    @Override
+    public void init( ServletConfig config ) throws ServletException {
+        super.init( config );
+
+        context = new PluginServletContext( getServletContext() );
+        log.debug( "initGeoServer(): contextPath=" + context.getContextPath() );
+
+        ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader( context.cl );
         try {
-            sessionKey = SessionContext.current().getSessionKey();
+            ServiceContext.mapContext( sessionKey );
             initGeoServer();
         }
         catch (Exception e) {
             throw new RuntimeException( e );
+        }
+        finally {
+            Thread.currentThread().setContextClassLoader( threadLoader );
+            ServiceContext.unmapContext();
         }
     }
 
@@ -113,7 +139,7 @@ public class GeoServerWms
                 for (ServletContextListener loader : loaders) {
                     loader.contextDestroyed( ev );
                 }
-                loaders = null;
+                loaders.clear();
 
                 // dispatcher
                 dispatcher.destroy();
@@ -132,67 +158,54 @@ public class GeoServerWms
     }
 
 
-    protected void initGeoServer()
-    throws Exception {
+    protected void initGeoServer() throws Exception {        
+        File cacheDir = GeoServerPlugin.getDefault().getCacheDir();
+        dataDir = new File( cacheDir, Stringer.on( map.getLabel() ).toFilename( "_" ).toString() );
+        log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
+        dataDir.mkdirs();
+        FileUtils.forceDeleteOnExit( dataDir );
 
-        context = new PluginServletContext( getServletContext() );
-        log.debug( "initGeoServer(): contextPath=" + context.getContextPath() );
-        
-        ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader( context.cl );
+        // web.xml
+        context.setAttribute( "serviceStrategy", "SPEED" );
+        context.setAttribute( "contextConfigLocation", "classpath*:/applicationContext.xml classpath*:/applicationSecurityContext.xml" );
+        context.setAttribute( "enableVersioning", "false" );
+        context.setAttribute( "GEOSERVER_DATA_DIR", dataDir.getAbsoluteFile() );
 
         try {
-            File cacheDir = GeoServerPlugin.getDefault().getCacheDir();
-            dataDir = new File( cacheDir, Stringer.on( map.getLabel() ).toFilename( "_" ).toString() );
-            log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
-            dataDir.mkdirs();
-            FileUtils.forceDeleteOnExit( dataDir );
-            
-            // web.xml
-            context.setAttribute( "serviceStrategy", "SPEED" );
-            context.setAttribute( "contextConfigLocation", "classpath*:/applicationContext.xml classpath*:/applicationSecurityContext.xml" );
-            context.setAttribute( "enableVersioning", "false" );
-            context.setAttribute( "GEOSERVER_DATA_DIR", dataDir.getAbsoluteFile() );
+            servers.set( this );
 
-            try {
-                servers.set( this );
+            loaders.add( new LoggingStartupContextListener() );
+            loaders.add( new ContextLoaderListener() );
 
-                loaders.add( new LoggingStartupContextListener() );
-                loaders.add( new ContextLoaderListener() );
-
-                ServletContextEvent ev = new ServletContextEvent( context );
-                for (Object loader : loaders) {
-                    ((ServletContextListener)loader).contextInitialized( ev );
-                }
+            ServletContextEvent ev = new ServletContextEvent( context );
+            for (Object loader : loaders) {
+                ((ServletContextListener)loader).contextInitialized( ev );
             }
-            finally {
-                servers.set( null );
-            }
-
-            dispatcher = new DispatcherServlet();
-            log.debug( "Dispatcher: " + dispatcher.getClass().getClassLoader() );
-            dispatcher.init( new ServletConfig() {
-
-                public String getInitParameter( String name ) {
-                    return GeoServerWms.this.getInitParameter( name );
-                }
-
-                public Enumeration getInitParameterNames() {
-                    return GeoServerWms.this.getInitParameterNames();
-                }
-
-                public ServletContext getServletContext() {
-                    return context;
-                }
-
-                public String getServletName() {
-                    return "dispatcher";
-                }
-            });
         }
         finally {
-            Thread.currentThread().setContextClassLoader( threadLoader );
+            servers.set( null );
         }
+
+        dispatcher = new DispatcherServlet();
+        log.debug( "Dispatcher: " + dispatcher.getClass().getClassLoader() );
+        dispatcher.init( new ServletConfig() {
+
+            public String getInitParameter( String name ) {
+                return GeoServerWms.this.getInitParameter( name );
+            }
+
+            public Enumeration getInitParameterNames() {
+                return GeoServerWms.this.getInitParameterNames();
+            }
+
+            public ServletContext getServletContext() {
+                return context;
+            }
+
+            public String getServletName() {
+                return "dispatcher";
+            }
+        });
     }
 
 
@@ -392,6 +405,113 @@ public class GeoServerWms
 
         public void setAttribute( String name, Object object ) {
             delegate.setAttribute( name, object );
+        }
+
+        // Servlet API version 2.3 ?
+                
+        public int getEffectiveMajorVersion() {
+            return delegate.getEffectiveMajorVersion();
+        }
+
+        public int getEffectiveMinorVersion() {
+            return delegate.getEffectiveMinorVersion();
+        }
+
+        public boolean setInitParameter( String name, String value ) {
+            return delegate.setInitParameter( name, value );
+        }
+
+        public Dynamic addServlet( String servletName, String className ) {
+            return delegate.addServlet( servletName, className );
+        }
+
+        public Dynamic addServlet( String servletName, Servlet servlet ) {
+            return delegate.addServlet( servletName, servlet );
+        }
+
+        public Dynamic addServlet( String servletName, Class<? extends Servlet> servletClass ) {
+            return delegate.addServlet( servletName, servletClass );
+        }
+
+        public <T extends Servlet> T createServlet( Class<T> clazz ) throws ServletException {
+            return delegate.createServlet( clazz );
+        }
+
+        public ServletRegistration getServletRegistration( String servletName ) {
+            return delegate.getServletRegistration( servletName );
+        }
+
+        public Map<String, ? extends ServletRegistration> getServletRegistrations() {
+            return delegate.getServletRegistrations();
+        }
+
+        public javax.servlet.FilterRegistration.Dynamic addFilter( String filterName, String className ) {
+            return delegate.addFilter( filterName, className );
+        }
+
+        public javax.servlet.FilterRegistration.Dynamic addFilter( String filterName, Filter filter ) {
+            return delegate.addFilter( filterName, filter );
+        }
+
+        public javax.servlet.FilterRegistration.Dynamic addFilter( String filterName,
+                Class<? extends Filter> filterClass ) {
+            return delegate.addFilter( filterName, filterClass );
+        }
+
+        public <T extends Filter> T createFilter( Class<T> clazz ) throws ServletException {
+            return delegate.createFilter( clazz );
+        }
+
+        public FilterRegistration getFilterRegistration( String filterName ) {
+            return delegate.getFilterRegistration( filterName );
+        }
+
+        public Map<String, ? extends FilterRegistration> getFilterRegistrations() {
+            return delegate.getFilterRegistrations();
+        }
+
+        public SessionCookieConfig getSessionCookieConfig() {
+            return delegate.getSessionCookieConfig();
+        }
+
+        public void setSessionTrackingModes( Set<SessionTrackingMode> sessionTrackingModes ) {
+            delegate.setSessionTrackingModes( sessionTrackingModes );
+        }
+
+        public Set<SessionTrackingMode> getDefaultSessionTrackingModes() {
+            return delegate.getDefaultSessionTrackingModes();
+        }
+
+        public Set<SessionTrackingMode> getEffectiveSessionTrackingModes() {
+            return delegate.getEffectiveSessionTrackingModes();
+        }
+
+        public void addListener( String className ) {
+            delegate.addListener( className );
+        }
+
+        public <T extends EventListener> void addListener( T t ) {
+            delegate.addListener( t );
+        }
+
+        public void addListener( Class<? extends EventListener> listenerClass ) {
+            delegate.addListener( listenerClass );
+        }
+
+        public <T extends EventListener> T createListener( Class<T> clazz ) throws ServletException {
+            return delegate.createListener( clazz );
+        }
+
+        public JspConfigDescriptor getJspConfigDescriptor() {
+            return delegate.getJspConfigDescriptor();
+        }
+
+        public ClassLoader getClassLoader() {
+            return delegate.getClassLoader();
+        }
+
+        public void declareRoles( String... roleNames ) {
+            delegate.declareRoles( roleNames );
         }
         
     }

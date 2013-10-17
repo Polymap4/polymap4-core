@@ -28,17 +28,21 @@ import org.polymap.core.model2.store.StoreProperty;
 class PropertyImpl<T>
         implements Property<T> {
 
-    protected StoreProperty<T>      underlying;
+    private StoreProperty<T>        delegate;
 
     
     protected PropertyImpl( StoreProperty<T> underlying ) {
-        this.underlying = underlying;
+        this.delegate = underlying;
     }
 
+    protected StoreProperty<T> delegate() {
+        return delegate;
+    }
+    
     @Override
     public T get() {
         // no cache here; the store should decide when and what to cache.
-        return underlying.get();
+        return delegate.get();
     }
 
     @Override
@@ -48,7 +52,7 @@ class PropertyImpl<T>
             synchronized (this) {
                 result = get();
                 if (result == null) {
-                    result = underlying.newValue();
+                    result = delegate.newValue();
                     if (initializer != null) {
                         try {
                             result = initializer.initialize( result );
@@ -68,12 +72,12 @@ class PropertyImpl<T>
 
     @Override
     public void set( T value ) {
-        underlying.set( value );
+        delegate.set( value );
     }
 
     @Override
     public PropertyInfo getInfo() {
-        return underlying.getInfo();
+        return delegate.getInfo();
     }
 
 }

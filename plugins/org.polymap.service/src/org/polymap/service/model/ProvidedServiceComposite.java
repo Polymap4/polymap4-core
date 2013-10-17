@@ -156,7 +156,7 @@ public interface ProvidedServiceComposite
             }
 
             wms = MapHttpServerFactory.createWMS( map, pathSpec, true );
-            log.info( "        service URL: " + wms.getPathSpec() );
+//            log.info( "        service URL: " + wms.getPathSpec() );
         }
 
         

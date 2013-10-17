@@ -15,8 +15,10 @@
 package org.polymap.core.data.feature.recordstore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import java.io.IOException;
 
@@ -199,14 +201,22 @@ public final class LuceneQueryDialect
             final String[] propNames = query.getPropertyNames();
             if (propNames != null) {
                 rsQuery.setFieldSelector( new IRecordFieldSelector() {
+                    private Map<String,Boolean> keys = new HashMap( 64 );
+                    
                     public boolean accept( String key ) {
-                        for (String propName : propNames) {
-                            // XXX real field names and additional fields are not known here
-                            if (key.startsWith( propName )) {
-                                return true;
+                        Boolean accepted = keys.get( key );
+                        if (accepted == null) {
+                            keys.put( key, accepted = Boolean.FALSE );
+
+                            for (String propName : propNames) {
+                                // XXX real field names and additional fields are not known here
+                                if (key.startsWith( propName )) {
+                                    keys.put( key, accepted = Boolean.TRUE );
+                                    break;
+                                }
                             }
                         }
-                        return false;
+                        return accepted;
                     }
                 });
             }
@@ -280,10 +290,10 @@ public final class LuceneQueryDialect
                 //                
                 //            }
             }
-            log.debug( "LUCENE: " + luceneQuery );
+            //log.debug( "LUCENE: " + luceneQuery );
 
             RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)fs.ds.store, luceneQuery );
-            if (query.getStartIndex() != null) {
+            if (query.getStartIndex() != null && query.getStartIndex() > 0) {
                 result.setFirstResult( query.getStartIndex() );
             }
             result.setMaxResults( query.getMaxFeatures() );

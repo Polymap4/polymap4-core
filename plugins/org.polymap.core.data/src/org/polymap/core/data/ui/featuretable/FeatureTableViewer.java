@@ -22,6 +22,7 @@ import java.util.Map;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.filter.Filter;
 
@@ -49,7 +50,6 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.ui.SelectionAdapter;
 
@@ -193,7 +193,7 @@ public class FeatureTableViewer
      * @param fs
      * @param filter
      */
-    public void setContent( final PipelineFeatureSource fs, final Filter filter ) {
+    public void setContent( final FeatureSource fs, final Filter filter ) {
         TableColumn sortColumn = getTable().getSortColumn();
         int sortDir = SWT.DOWN;
         if (sortColumn == null) {

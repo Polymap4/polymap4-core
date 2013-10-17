@@ -32,12 +32,14 @@ public class LogConcern
     private static Log log = LogFactory.getLog( LogConcern.class );
 
     public Object doGet( Property delegate ) {
-        log.info( "LOG: get property = " + delegate.getInfo().getName() );
+        PropertyInfo info = delegate.getInfo();
+        //Entity entity
+        log.info( "LOG: get property: " + info.getName() /*+ " (" + entity.getClass().getSimpleName() + ")"*/ );
         return delegate.get();
     }
 
     public void doSet( Property delegate, Object value ) {
-        log.info( "LOG: set property = " + delegate.getInfo().getName() );
+        log.info( "LOG: set property: " + delegate.getInfo().getName() + " -> " + value );
         delegate.set( value );
     }
 

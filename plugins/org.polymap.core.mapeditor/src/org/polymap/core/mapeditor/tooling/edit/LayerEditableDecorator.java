@@ -38,7 +38,6 @@ import org.eclipse.ui.PlatformUI;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.tooling.select.LayerSelectableDecorator;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.runtime.Polymap;
 
 /**
@@ -85,11 +84,11 @@ public class LayerEditableDecorator
             try { layer.id(); } catch (NoSuchEntityException e) { return; }
             
             if (editableLayerIds.contains( layer.id() )) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( MapEditorPlugin.PLUGIN_ID, imageEdit );
+                ImageDescriptor ovr = MapEditorPlugin.imageDescriptor( imageEdit );
                 decoration.addOverlay( ovr, QUADRANT );
             }
             if (digitizableLayerIds.contains( layer.id() )) {
-                ImageDescriptor ovr = ProjectPlugin.imageDescriptorFromPlugin( MapEditorPlugin.PLUGIN_ID, imageDigitize );
+                ImageDescriptor ovr = MapEditorPlugin.imageDescriptor( imageDigitize );
                 decoration.addOverlay( ovr, QUADRANT );
             }
         }

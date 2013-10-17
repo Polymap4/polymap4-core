@@ -65,8 +65,6 @@ public interface EntityRuntimeContext {
 
     public EntityRepository getRepository();
 
-    public <T> T createMixin( Class<T> mixinClass );
-
     public void methodProlog( String methodName, Object[] args );
     
 }
