@@ -15,7 +15,12 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
+import java.io.IOException;
+
 import org.geotools.feature.FeatureCollection;
+import org.geotools.util.NullProgressListener;
+import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureVisitor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,32 +37,70 @@ public class FeatureCollectionContentProvider
 
     private static Log log = LogFactory.getLog( FeatureCollectionContentProvider.class );
 
-    private FeatureCollection           delegate;
+    private FeatureCollection           coll;
 
 
     public FeatureCollectionContentProvider( FeatureCollection delegate ) {
-        this.delegate = delegate;
+        this.coll = delegate;
     }
 
 
     @Override
-    public Object[] getElements( Object inputElement ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public Object[] getElements( Object input ) {
+        try {
+            final Object[] result = new Object[ coll.size() ];
+            coll.accepts( new FeatureVisitor() {
+                int i = 0;
+                public void visit( Feature feature ) {
+                    result[i++] = new FeatureTableElement( feature );
+                }
+            }, new NullProgressListener() );
+            return result;
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 
     @Override
     public void dispose() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
     }
 
 
     @Override
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    }
+
+    /**
+     *
+     */
+    public class FeatureTableElement
+            implements IFeatureTableElement {
+
+        private Feature         feature;
+
+
+        protected FeatureTableElement( Feature feature ) {
+            this.feature = feature;
+        }
+
+        public Feature getFeature() {
+            return feature;
+        }
+
+        public Object getValue( String name ) {
+            return feature.getProperty( name ).getValue();
+        }
+
+        public void setValue( String name, Object value ) {
+            feature.getProperty( name ).setValue( value );
+        }
+
+        public String fid() {
+            return feature.getIdentifier().getID();
+        }
+
     }
 
 }

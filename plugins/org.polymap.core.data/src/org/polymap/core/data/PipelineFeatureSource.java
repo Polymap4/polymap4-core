@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -77,12 +77,12 @@ import org.polymap.core.runtime.SessionContext;
  * (its underlaying {@link IService}), processed by the layer specific
  * {@link Pipeline}, instantiated for use-case {@link LayerUseCase#FEATURES}.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class PipelineFeatureSource
         extends AbstractFeatureSource
-        implements FeatureStore<SimpleFeatureType, SimpleFeature> {
+        implements FeatureStore<SimpleFeatureType,SimpleFeature> {
 
     private static final Log log = LogFactory.getLog( PipelineFeatureSource.class );
 
@@ -111,7 +111,7 @@ public class PipelineFeatureSource
 
         IGeoResource res = layer.getGeoResource();
         if (res == null) {
-            throw new IllegalStateException( "Unable to find geo resource of layer: " + layer );
+            throw new IllegalStateException( "Unable to find geo resource for layer: " + layer );
         }
         IService service = res.service( null );
         log.debug( "service: " + service );
@@ -308,8 +308,7 @@ public class PipelineFeatureSource
     }
 
 
-    public List<FeatureId> addFeatures( FeatureCollection<SimpleFeatureType,SimpleFeature> features )
-    throws IOException {
+    public List<FeatureId> addFeatures( FeatureCollection features ) throws IOException {
         return addFeatures( features, new NullProgressListener() );
     }
 
@@ -464,8 +463,7 @@ public class PipelineFeatureSource
     }
 
 
-    public void setFeatures( FeatureReader<SimpleFeatureType, SimpleFeature> reader )
-    throws IOException {
+    public void setFeatures( FeatureReader reader ) throws IOException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }

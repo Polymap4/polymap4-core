@@ -17,8 +17,11 @@ package org.polymap.core.data.ui.featuretable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.Feature;
@@ -31,7 +34,10 @@ import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.jface.viewers.IIndexableLazyContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
+
 import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.data.Messages;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.cache.Cache;
@@ -53,6 +59,8 @@ class DeferredFeatureContentProvider2
     private FeatureSource           fs;
     
     private Filter                  filter;
+    
+    private Set<ViewerFilter>       vfilters = new HashSet();
     
     /*
      * XXX This is used by BackgroundContentProvider as well for sorting; for equal
@@ -114,6 +122,15 @@ class DeferredFeatureContentProvider2
         viewer.refresh();
     }
 
+    
+    public boolean addViewerFilter( ViewerFilter vfilter ) {
+        return vfilters.add( vfilter );
+    }
+
+    public boolean removeViewerFilter( ViewerFilter vfilter ) {
+        return vfilters.remove( vfilter );
+    }
+
 
     public int findElement( Object search ) {
         assert search != null;
@@ -149,6 +166,17 @@ class DeferredFeatureContentProvider2
 
         protected void addChunk( List chunk, IProgressMonitor monitor ) {
             log.debug( "adding chunk to table. size=" + chunk.size() );
+            
+            // filter chunk
+            List filtered = new ArrayList( chunk.size() );
+            for (Object elm : chunk) {
+                for (ViewerFilter vfilter : vfilters) {
+                    if (!vfilter.select( viewer, null, elm )) {
+                        break;
+                    }
+                }
+                filtered.add( elm );
+            }
             
             // sort chunk
             Collections.sort( chunk, sortOrder );

@@ -17,6 +17,7 @@ package org.polymap.core.model2.test;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyConcern;
 import org.polymap.core.model2.runtime.PropertyInfo;
@@ -31,15 +32,15 @@ public class LogConcern
 
     private static Log log = LogFactory.getLog( LogConcern.class );
 
-    public Object doGet( Property delegate ) {
+    public Object doGet( Composite composite, Property delegate ) {
         PropertyInfo info = delegate.getInfo();
         //Entity entity
         log.info( "LOG: get property: " + info.getName() /*+ " (" + entity.getClass().getSimpleName() + ")"*/ );
         return delegate.get();
     }
 
-    public void doSet( Property delegate, Object value ) {
-        log.info( "LOG: set property: " + delegate.getInfo().getName() + " -> " + value );
+    public void doSet( Composite composite, Property delegate, Object value ) {
+        log.info( "LOG: set property: " + composite.getClass().getSimpleName() + "." + delegate.getInfo().getName() + " -> " + value );
         delegate.set( value );
     }
 

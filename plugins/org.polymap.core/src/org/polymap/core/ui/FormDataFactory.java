@@ -160,7 +160,7 @@ public class FormDataFactory {
     }
 
     public FormDataFactory top( int num, int offset ) {
-        formData.top = new FormAttachment( num, offset );
+        formData.top = num != -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 

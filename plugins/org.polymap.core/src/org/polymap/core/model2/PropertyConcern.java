@@ -17,15 +17,18 @@ package org.polymap.core.model2;
 import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
- * 
+ * A concern intercepts getting/setting property value.
+ * <p/>
+ * Implementations should be thread save. Instances might be instantiated
+ * on-demand. So instances cannot hold an internal state. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface PropertyConcern {
 
-    public abstract Object doGet( Property delegate );
+    public abstract Object doGet( Composite composite, Property delegate );
     
-    public abstract void doSet( Property delegate, Object value );
+    public abstract void doSet( Composite composite, Property delegate, Object value );
     
     public abstract PropertyInfo doGetInfo( Property delegate );
     

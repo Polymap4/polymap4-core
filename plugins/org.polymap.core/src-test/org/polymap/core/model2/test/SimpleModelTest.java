@@ -16,6 +16,8 @@ package org.polymap.core.model2.test;
 
 import java.util.Collection;
 
+import java.beans.PropertyChangeEvent;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
@@ -26,6 +28,8 @@ import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * 
@@ -180,11 +184,21 @@ public abstract class SimpleModelTest
     }
     
     
-    public void tstConcern() throws Exception {
+    public void testConcern() throws Exception {
+        EventManager.instance().subscribe( this );
+
         Employee employee = uow.createEntity( Employee.class, null, null );
+        employee.name.set( "Mufu" );
         
+        EventManager.instance().subscribe( this );
     }
     
+    
+    @EventHandler
+    protected void propChanged( PropertyChangeEvent ev ) {
+        log.info( "PROP CHANGE: " + ev );
+    }
+
     
     protected void logHeap() {
         System.gc();

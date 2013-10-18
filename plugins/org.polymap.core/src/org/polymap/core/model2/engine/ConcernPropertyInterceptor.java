@@ -14,6 +14,7 @@
  */
 package org.polymap.core.model2.engine;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyConcern;
 import org.polymap.core.model2.runtime.PropertyInfo;
@@ -30,19 +31,22 @@ final class ConcernPropertyInterceptor<T>
     private Property<T>             delegate;
     
     private PropertyConcern         concern;
+
+    private Composite               composite;
     
     
-    public ConcernPropertyInterceptor( Property<T> delegate, PropertyConcern concern ) {
+    public ConcernPropertyInterceptor( Property<T> delegate, PropertyConcern concern, Composite composite ) {
         this.delegate = delegate;
         this.concern = concern;
+        this.composite = composite;
     }
 
     public T get() {
-        return (T)concern.doGet( delegate );
+        return (T)concern.doGet( composite, delegate );
     }
 
     public void set( T value ) {
-        concern.doSet( delegate, value );
+        concern.doSet( composite, delegate, value );
     }
 
     public T getOrCreate( ValueInitializer<T> initializer ) {
