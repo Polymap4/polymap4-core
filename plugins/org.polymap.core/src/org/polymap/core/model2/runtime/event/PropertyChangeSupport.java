@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,93 +15,42 @@
 package org.polymap.core.model2.runtime.event;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.Composite;
-import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.model2.Property;
+import org.polymap.core.model2.PropertyConcern;
+import org.polymap.core.model2.runtime.PropertyInfo;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
- * Provides a mixin that adds support for {@link PropertyChangeEvent} to entities.
- *
+ * Provides support for {@link PropertyChangeEvent}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class PropertyChangeSupport
-        extends Composite {
+        implements PropertyConcern {
 
     private static final Log log = LogFactory.getLog( PropertyChangeSupport.class );
 
-//    @This
-    private PropertyChangeSupport                   composite;
+    @Override
+    public Object doGet( Composite composite, Property delegate ) {
+        return delegate.get();
+    }
 
-    //        @State
-    //        private EntityStateHolder                       entityState;
+    @Override
+    public void doSet( Composite composite, Property delegate, Object value ) {
+        delegate.set( value );
+        
+        PropertyInfo info = delegate.getInfo();
+        PropertyChangeEvent event = new PropertyChangeEvent( composite, info.getName(), null, value );
+        EventManager.instance().publish( event );
+    }
 
-    private ListenerList<PropertyChangeListener>    listeners;
-    
-    
-//    public void create()
-//    throws LifecycleException {
-//        log.debug( "Entity created: " + composite.toString() );
-//        if (Polymap.getSessionDisplay() != null) {
-//            QiModule repo = Qi4jPlugin.Session.instance().resolveModule( composite );
-//            QualifiedName qname = QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_CREATED );
-//            fireEvent( qname, composite, repo, composite );
-//        }
-//    }
-//
-//
-//    public void remove()
-//    throws LifecycleException {
-//        log.debug( "Entity removed: " + composite.toString() );
-//        // FIXME save entity state
-//        QiModule repo = Qi4jPlugin.Session.instance().resolveModule( composite );
-//        QualifiedName qname = QualifiedName.fromClass( composite.getCompositeType(), PROP_ENTITY_REMOVED );
-//        fireEvent( qname, composite, repo, composite );
-//    }
-//
-//
-//    public void addPropertyChangeListener( PropertyChangeListener l ) {
-//        if (listeners == null) {
-//            synchronized (this) {
-//                if (listeners == null) {
-//                    listeners = new ListenerList();
-//                }
-//            }
-//        }
-//        listeners.add( l );    
-//    }
-//
-//    
-//    public void removePropertyChangeListener( PropertyChangeListener l ) {
-//        if (listeners != null) {
-//            listeners.remove( l );
-//        }
-//    }
-//
-//
-//    public void fireEvent( QualifiedName name, Object newValue, Object oldValue, Object propOrAssoc ) {
-//        PropertyChangeEvent ev = propOrAssoc != null
-//        ? new StoredPropertyChangeEvent( composite, name.name(), oldValue, newValue, propOrAssoc )
-//        : new PropertyChangeEvent( composite, name.name(), oldValue, newValue );
-//
-//        ModelEventManager instance = ModelEventManager.instance();
-//        if (instance != null) {
-//            instance.firePropertyChangeEvent( ev );
-//        }
-//
-//        if (listeners != null) {
-//            for (PropertyChangeListener listener : listeners) {
-//                try {
-//                    listener.propertyChange( ev );
-//                }
-//                catch (Throwable e) {
-//                    PolymapWorkbench.handleError( Qi4jPlugin.PLUGIN_ID, listener, "Error while changing object: " + composite, e );
-//                }
-//            }
-//        }
-//    }
+    @Override
+    public PropertyInfo doGetInfo( Property delegate ) {
+        return delegate.getInfo();
+    }
 
 }

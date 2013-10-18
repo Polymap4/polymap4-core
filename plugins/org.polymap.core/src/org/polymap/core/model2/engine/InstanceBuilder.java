@@ -155,7 +155,7 @@ public final class InstanceBuilder {
 
                         // concerns
                         for (PropertyConcern concern : fieldConcerns( field )) {
-                            prop = new ConcernPropertyInterceptor( prop, concern );
+                            prop = new ConcernPropertyInterceptor( prop, concern, instance );
                         }
                     }
                     

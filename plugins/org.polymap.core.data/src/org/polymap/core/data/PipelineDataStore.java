@@ -22,8 +22,6 @@
  */
 package org.polymap.core.data;
 
-import java.util.NoSuchElementException;
-
 import java.io.IOException;
 
 import org.opengis.feature.simple.SimpleFeature;
@@ -34,6 +32,7 @@ import org.geotools.data.AbstractDataStore;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureListenerManager;
 import org.geotools.data.FeatureReader;
+import org.geotools.data.FeatureWriter;
 import org.geotools.data.Query;
 import org.geotools.data.Transaction;
 import org.geotools.data.collection.DelegateFeatureReader;
@@ -67,20 +66,61 @@ public class PipelineDataStore
     }
     
     
-    protected FeatureReader<SimpleFeatureType, SimpleFeature> getFeatureReader( String typeName )
+    protected FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( String typeName )
             throws IOException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        return new DelegateFeatureReader( fs.getSchema(), fs.getFeatures().features() );
     }
 
     
-    public FeatureReader<SimpleFeatureType, SimpleFeature> getFeatureReader( Query query,
-            Transaction transaction )
+    public FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( Query query, Transaction transaction )
             throws IOException {
         return new DelegateFeatureReader( fs.getSchema(), fs.getFeatures( query ).features() );
     }
 
+    
+    protected FeatureWriter<SimpleFeatureType,SimpleFeature> createFeatureWriter(String typeName, Transaction transaction)
+            throws IOException {
+        return new FeatureWriter<SimpleFeatureType,SimpleFeature>() {
 
+            @Override
+            public SimpleFeatureType getFeatureType() {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+
+            @Override
+            public SimpleFeature next() throws IOException {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+
+            @Override
+            public void remove() throws IOException {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+
+            @Override
+            public void write() throws IOException {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+
+            @Override
+            public boolean hasNext() throws IOException {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+
+            @Override
+            public void close() throws IOException {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+        };
+    }
+
+    
     public SimpleFeatureType getSchema( String _typeName )
             throws IOException {
         assert _typeName != null : "typeName must not be null.";
@@ -117,39 +157,39 @@ public class PipelineDataStore
     }
 
 
-    /**
-     * 
-     *
-     */
-    class PipelineFeatureReader
-            implements FeatureReader<SimpleFeatureType, SimpleFeature> {
-
-        public boolean hasNext()
-                throws IOException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-
-        public SimpleFeature next()
-                throws IOException, IllegalArgumentException, NoSuchElementException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-
-        public void close()
-                throws IOException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-
-        public SimpleFeatureType getFeatureType() {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
-        }
-
-    }
+//    /**
+//     * 
+//     *
+//     */
+//    class PipelineFeatureReader
+//            implements FeatureReader<SimpleFeatureType, SimpleFeature> {
+//
+//        public boolean hasNext()
+//                throws IOException {
+//            // XXX Auto-generated method stub
+//            throw new RuntimeException( "not yet implemented." );
+//        }
+//
+//
+//        public SimpleFeature next()
+//                throws IOException, IllegalArgumentException, NoSuchElementException {
+//            // XXX Auto-generated method stub
+//            throw new RuntimeException( "not yet implemented." );
+//        }
+//
+//
+//        public void close()
+//                throws IOException {
+//            // XXX Auto-generated method stub
+//            throw new RuntimeException( "not yet implemented." );
+//        }
+//
+//
+//        public SimpleFeatureType getFeatureType() {
+//            // XXX Auto-generated method stub
+//            throw new RuntimeException( "not yet implemented." );
+//        }
+//
+//    }
     
 }

@@ -14,11 +14,11 @@
  */
 package org.polymap.core.model2.test;
 
-import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.Association;
+import org.polymap.core.model2.Concerns;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.Mixins;
-import org.polymap.core.model2.Property;
+import org.polymap.core.model2.runtime.event.PropertyChangeSupport;
 import org.polymap.core.model2.store.feature.SRS;
 
 /**
@@ -26,20 +26,22 @@ import org.polymap.core.model2.store.feature.SRS;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@Concerns( {PropertyChangeSupport.class} )
 @Mixins( {TrackableMixin.class} )
 @SRS( "EPSG:4326" )
 public class Company
         extends Entity {
 
-    protected Property<Employee>            chief;
+    protected Association<Employee>         chief;
     
-    @MaxOccurs(100)
-    protected CollectionProperty<Employee>  employees;
+//    @MaxOccurs(100)
+//    protected CollectionProperty<Employee>  employees;
     
 
-    public void addEmployee( Employee employee ) {
-        methodProlog( "addEmployee", employee );
-        employees.add( employee );
-        //employee.company().s
-    }
+//    public void addEmployee( Employee employee ) {
+//        methodProlog( "addEmployee", employee );
+//        employees.add( employee );
+//        //employee.company().s
+//    }
+    
 }

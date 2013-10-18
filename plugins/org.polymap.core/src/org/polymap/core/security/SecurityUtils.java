@@ -15,13 +15,16 @@
 package org.polymap.core.security;
 
 import java.util.Collection;
+import java.util.Set;
 
 import java.security.Principal;
+
+import org.polymap.core.runtime.Polymap;
 
 /**
  * Provides basic security checks.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public final class SecurityUtils {
@@ -43,6 +46,26 @@ public final class SecurityUtils {
             }
         }
         return false;
+    }
+
+    
+    public static boolean isAdmin() {
+        return isAdmin( Polymap.instance().getPrincipals() );
+    }
+
+    
+    public static boolean isInGroup( Set<Principal> principals, String group ) {
+        for (Principal principal : principals) {
+            if (principal.getName().equals( group ) || isAdmin( principal )) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    
+    public static boolean isUserInGroup( String group ) {
+        return isInGroup( Polymap.instance().getPrincipals(), group );
     }
     
 }

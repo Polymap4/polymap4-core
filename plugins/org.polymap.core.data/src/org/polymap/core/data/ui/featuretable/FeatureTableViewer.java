@@ -49,6 +49,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.viewers.ViewerFilter;
 
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.ui.SelectionAdapter;
@@ -99,6 +100,30 @@ public class FeatureTableViewer
         displayed.clear();
         available.clear();
         editors.clear();
+    }
+
+
+    @Override
+    public void addFilter( ViewerFilter filter ) {
+        if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
+            ((DeferredFeatureContentProvider2)getContentProvider()).addViewerFilter( filter );
+            refresh();
+        }
+        else {
+            super.addFilter( filter );
+        }
+    }
+
+
+    @Override
+    public void removeFilter( ViewerFilter filter ) {
+        if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
+            ((DeferredFeatureContentProvider2)getContentProvider()).removeViewerFilter( filter );
+            refresh();
+        }
+        else {
+            super.removeFilter( filter );
+        }
     }
 
 
@@ -216,6 +241,7 @@ public class FeatureTableViewer
 
     public void setContent( FeatureCollection coll ) {
         setContentProvider( new FeatureCollectionContentProvider( coll ) );
+        setInput( coll );
     }
 
 
