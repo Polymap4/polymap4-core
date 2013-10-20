@@ -18,6 +18,7 @@ package org.polymap.core.data.feature.mdb;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -34,16 +35,13 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.List;
 
-import org.eclipse.rwt.widgets.Upload;
-import org.eclipse.rwt.widgets.UploadEvent;
-import org.eclipse.rwt.widgets.UploadItem;
-import org.eclipse.rwt.widgets.UploadListener;
-
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.upload.IUploadHandler;
+import org.polymap.core.ui.upload.Upload;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -53,7 +51,7 @@ import org.polymap.core.workbench.PolymapWorkbench;
  */
 public class MdbImportPage
         extends WizardPage
-        implements IWizardPage, UploadListener {
+        implements IWizardPage, IUploadHandler {
 
     private static Log log = LogFactory.getLog( MdbImportPage.class );
 
@@ -82,9 +80,9 @@ public class MdbImportPage
         fileSelectionArea.setLayout( layout );
 
         upload = new Upload( fileSelectionArea, SWT.BORDER, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
-        upload.setBrowseButtonText( "Browse" );
-        upload.setUploadButtonText( "Upload" );
-        upload.addUploadListener( this );
+//        upload.setBrowseButtonText( "Browse" );
+//        upload.setUploadButtonText( "Upload" );
+        upload.setHandler( this );
         FormData data = new FormData();
         data.left = new FormAttachment( 0 );
         data.right = new FormAttachment( 100 );
@@ -117,20 +115,15 @@ public class MdbImportPage
 
     
     // UploadListener *************************************
-
-    public void uploadInProgress( UploadEvent ev ) {
-    }
-    
-    public void uploadFinished( UploadEvent ev ) {
-        UploadItem item = upload.getUploadItem();
+    public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
         FileOutputStream out = null;
         try {
-            log.info( "Uploaded: " + item.getFileName() + ", path=" + item.getFilePath() );
+            log.info( "Uploaded: " + name );
 
             File uploadDir = Polymap.getWorkspacePath().toFile();
-            dbFile = new File( uploadDir, item.getFileName() );
+            dbFile = new File( uploadDir, name );
             out = new FileOutputStream( dbFile );
-            IOUtils.copy( item.getFileInputStream(), out );
+            IOUtils.copy( in, out );
             log.info( "### copied to: " + dbFile );
 
             Database db = Database.open( dbFile );
@@ -146,6 +139,7 @@ public class MdbImportPage
         }
         finally {
             IOUtils.closeQuietly( out );
+            IOUtils.closeQuietly( in );
         }
         checkFinish();
     }

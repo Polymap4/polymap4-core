@@ -53,11 +53,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 
-import org.eclipse.rwt.widgets.Upload;
-import org.eclipse.rwt.widgets.UploadAdapter;
-import org.eclipse.rwt.widgets.UploadEvent;
-import org.eclipse.rwt.widgets.UploadItem;
-
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -71,6 +66,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
+
+import org.polymap.core.ui.upload.IUploadHandler;
+import org.polymap.core.ui.upload.Upload;
 
 /**
  * A wizard page that opens a file dialog and closes the wizard when dialog is closed.
@@ -207,22 +205,14 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
      *
      */
     private void createUpload( Composite parent ) {
-        upload = new Upload( parent, SWT.BORDER, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
+        upload = new Upload( parent, SWT.NONE, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
         //upload.setBrowseButtonText( "Browse" );
         //upload.setUploadButtonText( "Upload" );
 
-        this.upload.addModifyListener( new ModifyListener() {
-            public void modifyText( ModifyEvent ev ) {
-//                EntryPoint.this.uploadPathLabel.setText( EntryPoint.this.upload.getPath() );
-//                EntryPoint.this.uploadPathLabel.getParent().layout();
-            }
-        } );
-
-        this.upload.addUploadListener( new UploadAdapter() {
-            public void uploadFinished( UploadEvent ev ) {
-                System.out.println( "## total: " + ev.getUploadedTotal() );
-                UploadItem item = upload.getUploadItem();
-                upload.reset();
+        this.upload.setHandler( new IUploadHandler() {
+            @Override
+            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
+                //upload.reset();
                 
                 OutputStream out = null;
                 try {
@@ -260,12 +250,12 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
                 }
             }
 
-            public void uploadInProgress( UploadEvent uploadEvent ) {
-                System.out.println( "## partial: " + uploadEvent.getUploadedParcial() );
-                System.out.println( "## total: " + uploadEvent.getUploadedTotal() );
-                int percent = (int)((float)uploadEvent.getUploadedParcial()
-                        / (float)uploadEvent.getUploadedTotal() * 100);
-            }
+//            public void uploadInProgress( UploadEvent uploadEvent ) {
+//                System.out.println( "## partial: " + uploadEvent.getUploadedParcial() );
+//                System.out.println( "## total: " + uploadEvent.getUploadedTotal() );
+//                int percent = (int)((float)uploadEvent.getUploadedParcial()
+//                        / (float)uploadEvent.getUploadedTotal() * 100);
+//            }
         });
     }
 

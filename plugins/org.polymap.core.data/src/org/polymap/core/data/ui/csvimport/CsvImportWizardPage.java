@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import net.refractions.udig.ui.CRSChooserDialog;
@@ -53,10 +55,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.rwt.service.IServiceHandler;
-import org.eclipse.rwt.widgets.Upload;
-import org.eclipse.rwt.widgets.UploadEvent;
-import org.eclipse.rwt.widgets.UploadItem;
-import org.eclipse.rwt.widgets.UploadListener;
 
 import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -77,6 +75,8 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.ui.upload.IUploadHandler;
+import org.polymap.core.ui.upload.Upload;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -123,21 +123,15 @@ public class CsvImportWizardPage extends WizardPage {
 
         String dummy = IServiceHandler.REQUEST_PARAM;
         
-//        final Text csvText = new Text(inputGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
-//        csvText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-//        csvText.setText("");
-        final Upload upload = new Upload( inputGroup, SWT.BORDER, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
-        upload.setBrowseButtonText( i18n( "CsvImportWizardPage.browse" ) );
-        upload.setUploadButtonText( i18n( "CsvImportWizardPage.upload" ) );
-        upload.addUploadListener( new UploadListener() {
-            public void uploadInProgress( UploadEvent ev ) {
-            }
-            public void uploadFinished( UploadEvent ev ) {
-                UploadItem item = upload.getUploadItem();
+        final Upload upload = new Upload( inputGroup, SWT.NONE, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
+//        upload.setBrowseButtonText( i18n( "CsvImportWizardPage.browse" ) );
+//        upload.setUploadButtonText( i18n( "CsvImportWizardPage.upload" ) );
+        upload.setHandler( new IUploadHandler() {
+            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
                 try {
-                    System.out.println( "Item name: " + item.getFileName() );
-                    csvFilename = item.getFileName();
-                    csvImporter.setInputStream( item.getFileInputStream() );
+                    System.out.println( "Item name: " + name );
+                    csvFilename = name;
+                    csvImporter.setInputStream( in );
                     fillTableView( lineIndex );
                 } 
                 catch (IOException e1) {

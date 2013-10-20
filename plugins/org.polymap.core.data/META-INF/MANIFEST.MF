@@ -19,7 +19,6 @@ Require-Bundle: org.eclipse.core.runtime,
  net.refractions.udig.core;bundle-version="1.2.0",
  net.refractions.udig.catalog.rasterings;bundle-version="1.2.0",
  net.refractions.udig.catalog.ui;bundle-version="1.2.0",
- org.eclipse.rwt.widgets.upload;bundle-version="1.0.0",
  org.eclipse.rwt.widgets.codemirror;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

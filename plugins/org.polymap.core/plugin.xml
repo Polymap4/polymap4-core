@@ -48,6 +48,11 @@
             name="DndUpload"
             path="/dndupload">
       </servlet>
+      <servlet
+            class="org.polymap.core.ui.upload.FileUploadServlet"
+            name="FileUpload"
+            path="/fileupload">
+      </servlet>
    </extension>
    <extension
          point="org.eclipse.rap.ui.branding">
