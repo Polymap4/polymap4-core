@@ -22,13 +22,18 @@
 
 package org.polymap.styler.ui;
 
+import java.io.InputStream;
+
 import net.refractions.udig.catalog.ID;
+
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.factory.GeoTools;
+import org.geotools.styling.SLDParser;
+import org.geotools.styling.StyleFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.rwt.widgets.Upload;
-import org.eclipse.rwt.widgets.UploadEvent;
-import org.eclipse.rwt.widgets.UploadItem;
-import org.eclipse.rwt.widgets.UploadListener;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -36,12 +41,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
-import org.geotools.styling.SLDParser;
-import org.geotools.styling.StyleFactory;
+
 import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.geotools.GtStyle;
+import org.polymap.core.ui.upload.IUploadHandler;
+import org.polymap.core.ui.upload.Upload;
+
 import org.polymap.styler.StyleWrapper;
 import org.polymap.styler.helper.LayoutHelper;
 
@@ -110,7 +115,7 @@ public class StyleRootEditorComposite
 		
 		dump_style_btn.setEnabled(style.getIStyle().getID()!=null);
 		
-		dump_style_btn.setText(Messages.get().DOWNLOAD); //$NON-NLS-1$
+		dump_style_btn.setText(Messages.get().DOWNLOAD); 
 		dump_style_btn.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				// style_change_listener.debug_out();
@@ -132,33 +137,18 @@ public class StyleRootEditorComposite
 		Button sld_import_btn = new Button(parent,SWT.NONE);
 		*/
 		
-		final Upload upload = new Upload( import_composite, SWT.BORDER, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
-	    upload.setBrowseButtonText( "Browse" );
-	    upload.setUploadButtonText( "Import" );
-	    upload.addUploadListener( new UploadListener() {
-            public void uploadInProgress( UploadEvent ev ) {
-            }
-            public void uploadFinished( UploadEvent ev ) {
-                UploadItem item = upload.getUploadItem();
+		final Upload upload = new Upload( import_composite, SWT.NONE, /*Upload.SHOW_PROGRESS |*/ Upload.SHOW_UPLOAD_BUTTON );
+//	    upload.setBrowseButtonText( "Browse" );
+//	    upload.setUploadButtonText( "Import" );
+	    upload.setHandler( new IUploadHandler() {
+            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
                 try {
-                	/*
-                    csvFile = File.createTempFile( item.getFileName() + "_", ".tmp");
-                    FileOutputStream out = new FileOutputStream( csvFile ); 
-                    StreamUtils.copyThenClose( item.getFileInputStream(), out );
-                    System.out.println( "## copied to: " + csvFile );
-
-                    csvImporter.setCsvFile( csvFile );
-                    fillTableView(lineIndex);
-                    */
-                	
-                	
                 	StyleFactory factory = CommonFactoryFinder.getStyleFactory(GeoTools
     						.getDefaultHints());
     				SLDParser styleReader;
     		
     					//System.out.println("importing sld from" + _sld_import_combo.getText().toString());
-    					styleReader = new SLDParser(factory,
-    							item.getFileInputStream());
+    					styleReader = new SLDParser(factory,in);
     					
     					((GtStyle)style.getIStyle()).setStyle(styleReader.readXML()[0]);
     					
