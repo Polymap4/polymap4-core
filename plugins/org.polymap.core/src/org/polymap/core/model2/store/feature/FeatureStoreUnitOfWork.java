@@ -179,7 +179,7 @@ public class FeatureStoreUnitOfWork
 
 
     @Override
-    public <T extends Entity> Collection find( QueryImpl query ) {
+    public Collection find( QueryImpl query ) {
         assert query.expression == null || query.expression instanceof Filter : "Wrong query expression type: " + query.expression;
         try {
             // schema
@@ -232,6 +232,12 @@ public class FeatureStoreUnitOfWork
 
 
     @Override
+    public boolean eval( Object entityState, Object expression ) {
+        return ((Filter)expression).evaluate( entityState );
+    }
+
+
+    @Override
     public void prepareCommit( Iterable<Entity> loaded )
     throws IOException, ConcurrentEntityModificationException {
         assert tx == null;
@@ -251,7 +257,7 @@ public class FeatureStoreUnitOfWork
 
 
     public void commit() throws ModelRuntimeException {
-        assert tx != TX_FAILED && tx != null;
+        assert tx != null && tx != TX_FAILED;
         try {
             tx.commit();
             tx.close();
@@ -272,6 +278,34 @@ public class FeatureStoreUnitOfWork
         }
         catch (Exception e) {
             throw new ModelRuntimeException( e );
+        }
+    }
+
+
+    @Override
+    public void rollback() {
+        if (tx != null && tx != TX_FAILED) {
+            try {
+                tx.rollback();
+                tx.close();
+                tx = null;
+
+                for (FeatureStore fs : featureSources.asMap().values()) {
+                    //                log.debug( "Checking features: " + fs );
+                    fs.setTransaction( Transaction.AUTO_COMMIT );
+                    //                fs.getFeatures().accepts( new FeatureVisitor() {
+                    //                    public void visit( Feature feature ) {
+                    //                        log.debug( "FeatureId: " + feature.getIdentifier() );
+                    //                    }
+                    //                }, null );
+                }
+
+                modifications.clear();            
+                featureSources.asMap().clear();
+            }
+            catch (Exception e) {
+                throw new ModelRuntimeException( e );
+            }
         }
     }
 
