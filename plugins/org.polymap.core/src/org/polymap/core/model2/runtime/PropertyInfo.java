@@ -73,4 +73,9 @@ public interface PropertyInfo<T> {
      */
     public int getMaxOccurs();
     
+    
+    public T getValue( Object composite );
+    
+    public void setValue( Object composite, T value );
+    
 }

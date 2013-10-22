@@ -1,6 +1,7 @@
 /* uDig - User Friendly Desktop Internet GIS client
  * http://udig.refractions.net
  * (C) 2004, Refractions Research Inc.
+ * (C) 2013, Polymap GmbH
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,8 +35,7 @@ import org.polymap.core.data.feature.LegalAttributeType;
  * {@link net.refractions.udig.ui.FeatureTypeEditor}.
  * 
  * @author jones
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 class AttributeCellModifier
@@ -150,7 +150,15 @@ class AttributeCellModifier
 
         switch (Integer.parseInt( property )) {
             case FeatureTypeEditor.NAME_COLUMN: {
-                return builder.buildDescriptor( (String)value );
+                AttributeDescriptor result = builder.buildDescriptor( (String)value );
+                String origName = (String)attr.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
+                if (origName != null) {
+                    result.getUserData().put( FeatureTypeEditor.ORIG_NAME_KEY, origName );
+                }
+                else {
+                    result.getUserData().put( FeatureTypeEditor.ORIG_NAME_KEY, attr.getLocalName() );                    
+                }
+                return result;
             }
             case FeatureTypeEditor.TYPE_COLUMN: {
                 int choice = -1;

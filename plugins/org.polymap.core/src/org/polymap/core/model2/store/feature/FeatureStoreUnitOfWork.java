@@ -163,7 +163,7 @@ public class FeatureStoreUnitOfWork
         // create feature
         Feature feature = null;
         if (fs instanceof FeatureFactory) {
-            feature = ((FeatureFactory)fs).newFeature();
+            feature = ((FeatureFactory)fs).newFeature( (String)id );
             assert !(schema instanceof SimpleFeatureType) || feature instanceof SimpleFeature; 
         }
         else if (schema instanceof SimpleFeatureType) {

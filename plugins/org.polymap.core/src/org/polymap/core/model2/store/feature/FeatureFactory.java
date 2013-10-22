@@ -31,9 +31,10 @@ public interface FeatureFactory {
      * needs to be added via
      * {@link FeatureStore#addFeatures(org.geotools.feature.FeatureCollection)} in
      * order to get persistently stored.
+     * @param id 
      * 
      * @return Newly created, empty feature instance.
      */
-    public Feature newFeature();
+    public Feature newFeature( String fid );
     
 }

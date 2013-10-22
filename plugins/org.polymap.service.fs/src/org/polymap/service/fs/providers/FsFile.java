@@ -21,8 +21,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.MappedByteBuffer;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -52,7 +50,7 @@ class FsFile
 
     private String              contentType;
 
-    private MappedByteBuffer    mappedBuffer;
+//    private MappedByteBuffer    mappedBuffer;
     
     
     public FsFile( IPath parentPath, IContentProvider provider, File source ) {

@@ -23,11 +23,12 @@ import junit.framework.TestCase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.mp.AsyncExecutor;
 import org.polymap.core.runtime.mp.ForEach;
-import org.polymap.core.runtime.mp.Parallel;
-import org.polymap.core.runtime.mp.Processor;
 import org.polymap.core.runtime.mp.Producer;
 import org.polymap.core.runtime.mp.SyncExecutor;
 
@@ -41,13 +42,13 @@ public class MPTest
 
     private static Log log = LogFactory.getLog( MPTest.class );
 
-    private int                 arraySize = 300*1000;
+    private int                 arraySize = 1000*1000;
     
 //    private List<StringBuilder> source;
     
 //    private List                result;
     
-    private List<Processor>     procs = new ArrayList();
+    private List<Function>      procs = new ArrayList();
 
     private Timer               timer;
     
@@ -101,20 +102,19 @@ public class MPTest
 
 
     protected void process() {
-        int count = ForEach.in( new SBProducer() ) /*.chunked( 10000 )*/
+        int count = Iterables.size( ForEach.in( new SBProducer() ) /*.chunked( 10000 )*/
 //            .doFirst( new Parallel<StringBuilder,String>() {
 //                public StringBuilder process( String elm ) {
 //                    return new StringBuilder( elm );
 //                }
 //            })
-            .doNext( new UpperCase() )
-            .doNext( new LowerCase() )
-            .doNext( new UpperCase() )
-            .doNext( new LowerCase() )
-            .doNext( new Quote() )
-            .start();
+            .doParallel( new UpperCase() )
+            .doParallel( new LowerCase() )
+            .doParallel( new UpperCase() )
+            .doParallel( new LowerCase() )
+            .doParallel( new Quote() ) );
         
-        System.out.println( "*** Result: " + count );
+        System.out.println( ForEach.executorFactory.getClass().getSimpleName() + " -- Result: " + count );
     }
 
 
@@ -173,18 +173,18 @@ public class MPTest
 
 
     private final class Quote
-            implements Parallel<StringBuilder, StringBuilder> {
+            implements Function<StringBuilder,StringBuilder> {
 
-        public final StringBuilder process( StringBuilder elm ) {
+        public final StringBuilder apply( StringBuilder elm ) {
             return elm.insert( 0, '\'' ).append( '\'' );
         }
     }
 
 
     private final class LowerCase
-            implements Parallel<StringBuilder, StringBuilder> {
+            implements Function<StringBuilder,StringBuilder> {
 
-        public final StringBuilder process( StringBuilder elm ) {
+        public final StringBuilder apply( StringBuilder elm ) {
             for (int i = 0; i < elm.length(); i++) {
                 char c = Character.toLowerCase( elm.charAt( i ) );
                 elm.setCharAt( i, c );
@@ -195,9 +195,9 @@ public class MPTest
 
 
     private final class UpperCase
-            implements Parallel<StringBuilder, StringBuilder> {
+            implements Function<StringBuilder,StringBuilder> {
 
-        public final StringBuilder process( StringBuilder elm ) {
+        public final StringBuilder apply( StringBuilder elm ) {
             for (int i = 0; i < elm.length(); i++) {
                 char c = Character.toUpperCase( elm.charAt( i ) );
                 elm.setCharAt( i, c );

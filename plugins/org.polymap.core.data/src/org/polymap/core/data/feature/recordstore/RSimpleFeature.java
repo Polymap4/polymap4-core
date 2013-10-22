@@ -35,7 +35,7 @@ import org.polymap.core.runtime.recordstore.IRecordState;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class RSimpleFeature
+class RSimpleFeature
         extends RFeature
         implements SimpleFeature {
 

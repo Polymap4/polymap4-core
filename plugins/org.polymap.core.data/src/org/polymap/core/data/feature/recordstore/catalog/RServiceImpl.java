@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
 import net.refractions.udig.catalog.CatalogPlugin;
 import net.refractions.udig.catalog.IDeletingSchemaService;
 import net.refractions.udig.catalog.IGeoResource;
@@ -26,6 +25,8 @@ import org.opengis.feature.type.Name;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Joiner;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -86,7 +87,6 @@ public class RServiceImpl
             return false;
         }
         return adaptee.isAssignableFrom( DataAccess.class )
-                || adaptee.isAssignableFrom( Connection.class ) 
                 || super.canResolve( adaptee );
     }
 
@@ -209,6 +209,12 @@ public class RServiceImpl
         }
         FeatureSource fs = geores.resolve( FeatureSource.class, monitor );
         getDS().deleteSchema( fs.getSchema(), monitor );
+    }
+
+
+    @Override
+    public String toString() {
+        return Joiner.on( "" ).join( "Intern", " (", getIdentifier(), ")" );
     }
 
 

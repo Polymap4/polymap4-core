@@ -15,6 +15,7 @@
 package org.polymap.core.project.model;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -64,7 +65,7 @@ public interface LayerState
         extends ILayer {
     
     @Optional
-    Property<String>                georesId();
+    public Property<String>                georesId();
     
 //    @Optional
 //    Property<String>                crsCode();
@@ -101,6 +102,8 @@ public interface LayerState
         
         private static final Log log = LogFactory.getLog( Mixin.class );
 
+        private static AtomicInteger            renderKeyCount = new AtomicInteger( (int)System.currentTimeMillis() );
+        
         /** The cache of the {@link #georesId()} property. */
         private IGeoResource                    geores;
         
@@ -118,11 +121,18 @@ public interface LayerState
         
         private RenderStatus                    renderStatus = RenderStatus.STATUS_OK;
         
+        private String                          renderKey = String.valueOf( renderKeyCount.getAndIncrement() );
+        
+        private boolean                         editable;
+        
         
         /**
          * Not used, see {@link ILayer}. 
          */
         public Object getAdapter( Class adapter ) {
+//            if (adapter.isAssignableFrom( IGeoResource.class )) {
+//                return adapter.cast( getGeoResource() );
+//            }
             return Platform.getAdapterManager().getAdapter( this, adapter );
         }    
 
@@ -232,7 +242,7 @@ public interface LayerState
             this.style = style;
             
             if (style.getID() == null) {
-                log.info( "Style is default style: adding to catalog..." );
+                log.debug( "Style is default style: adding to catalog..." );
                 IStyleCatalog catalog = StylePlugin.getStyleCatalog();
                 catalog.add( style );
                 
@@ -242,7 +252,7 @@ public interface LayerState
                 // make the layer "dirty" in the UI and for service to reload on save
                 String sld = style.createSLD( new NullProgressMonitor() );
                 style().set( sld );
-                log.info( "Style of layer: " + id() + "\n" + sld );
+                log.debug( "Style of layer: " + id() + "\n" + sld );
             }
             else {
                 throw new IllegalStateException( "Wrong style set: " + style );
@@ -368,6 +378,24 @@ public interface LayerState
             finally {
                 georesLock.readLock().unlock();
             }
+        }
+
+        @Override
+        public String getRenderKey() {
+            return renderKey;
+        }
+
+        @Override
+        public void updateRenderKey() {
+            this.renderKey = String.valueOf( renderKeyCount.getAndIncrement() );
+        }
+
+        public boolean getEditable() {
+            return editable;
+        }
+        
+        public void setEditable( boolean editable ) {
+            this.editable = editable;
         }
 
     }

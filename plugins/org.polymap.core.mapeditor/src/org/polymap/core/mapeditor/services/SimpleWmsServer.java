@@ -22,7 +22,6 @@
  */
 package org.polymap.core.mapeditor.services;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -40,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Supplier;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -63,6 +63,8 @@ import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.LazyInit;
+import org.polymap.core.runtime.PlainLazyInit;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
@@ -99,7 +101,7 @@ public class SimpleWmsServer
     private Cache<String,Pipeline>  pipelines;
     
     private SessionContext          sessionContext;
-
+    
     
     public SimpleWmsServer() { 
     }
@@ -110,8 +112,7 @@ public class SimpleWmsServer
         this.sessionContext = SessionContext.current();
 
         pipelineIncubator = new DefaultPipelineIncubator();
-        pipelines = CacheManager.instance().newCache(
-                CacheConfig.DEFAULT.initSize( 16 ) );
+        pipelines = CacheManager.instance().newCache( CacheConfig.DEFAULT.initSize( 16 ) );
     }
 
     
@@ -130,7 +131,8 @@ public class SimpleWmsServer
         try {
             sessionContext.execute( new Callable() {
                 public Object call() throws Exception {
-                    final String[] layers = StringUtils.split( kvp.get( "LAYERS" ), INNER_DELIMETER );
+                    final String layerRenderKey = kvp.get( "LAYERS" );
+                    assert !layerRenderKey.contains( INNER_DELIMETER );
 
                     // width/height
                     int width = Integer.parseInt( kvp.get( "WIDTH" ) );
@@ -150,50 +152,65 @@ public class SimpleWmsServer
                     String format = kvp.get( "FORMAT" );
                     format = format != null ? format : "image/png";
 
-                    log.debug( "    --layers= " + layers );
+                    log.debug( "    --layers= " + layerRenderKey );
                     log.debug( "    --imageSize= " + width + "x" + height );
                     log.debug( "    --bbox= " + bbox );
                     crs = bbox.getCoordinateReferenceSystem();
                     log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
-            
+
                     // find/create pipeline
-                    final Pipeline pipeline = getOrCreatePipeline( layers );
+                    final Pipeline pipeline = getOrCreatePipeline( layerRenderKey );
+                    //ILayer layer = Iterables.getOnlyElement( pipeline.getLayers() );
 
                     long modifiedSince = request.getDateHeader( "If-Modified-Since" );
-                    final ProcessorRequest pr = new GetMapRequest( 
-                            Arrays.asList( layers ), srsCode, bbox, format, width, height, modifiedSince );  
+                    final ProcessorRequest pr = new GetMapRequest( null, // layers 
+                            srsCode, bbox, format, width, height, modifiedSince );  
 
                     // process
-                    log.debug( "HTTP BUFFER: " + response.getBufferSize() );
-                    final ServletOutputStream out = response.getOutputStream();
-
-                    pipeline.process( pr, new ResponseHandler() {
-                        public void handle( ProcessorResponse pipeResponse )
-                        throws Exception {
-                            if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
-                                response.setStatus( 304 );
-                                response.flushBuffer();
-                            }
-                            else {
-                                long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
-                                if (lastModified > 0) {
-                                    response.setDateHeader( "Last-Modified", lastModified );
-                                    response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
-                                }
-                                else {
-                                    response.setHeader( "Cache-Control", "no-cache,must-revalidate" );
-                                    response.setDateHeader( "Expires", 0 );
-                                }
-
-                                byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
-                                int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
-                                out.write( chunk, 0, len );
+                    final LazyInit<ServletOutputStream> out = new PlainLazyInit( new Supplier<ServletOutputStream>() {
+                        public ServletOutputStream get() {
+                            try {
+                                return response.getOutputStream();
+                            } catch (IOException e) {
+                                throw new RuntimeException( e );
                             }
                         }
                     });
-                    
-                    log.debug( "    flushing response stream..." );
-                    out.flush();
+                    try {
+                        pipeline.process( pr, new ResponseHandler() {
+                            public void handle( ProcessorResponse pipeResponse ) throws Exception {                                
+                                if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
+                                    response.setStatus( 304 );
+                                }
+                                else {
+                                    long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
+                                    // lastModified is only set if response comes from cache ->
+                                    // allow the browser to use a cached tile for max-age without a request
+                                    if (lastModified > 0) {
+                                        response.setDateHeader( "Last-Modified", lastModified );
+                                        response.setHeader( "Cache-Control", "max-age=180,must-revalidate" );
+                                    }
+                                    // disable browser cache if there is no internal Cache for this layer 
+                                    else {
+                                        response.setHeader( "Cache-Control", "no-cache,no-store,must-revalidate" );
+                                        response.setDateHeader( "Expires", 0 );
+                                        response.setHeader( "Pragma", "no-cache" );
+                                    }
+
+                                    byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
+                                    int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
+                                    out.get().write( chunk, 0, len );
+                                }
+                            }
+                        });
+                    }
+                    catch (Throwable e) {
+                        log.warn( "Pipeline exception: " + e, e );
+                        response.setStatus( 502 );
+                    }
+                    if (out.isInitialized()) {
+                        out.get().flush();
+                    }
                     response.flushBuffer();
                     return null;
                 }
@@ -223,14 +240,14 @@ public class SimpleWmsServer
      * @throws PipelineIncubationException 
      * @throws ServletException 
      */
-    protected Pipeline getOrCreatePipeline( String[] layers ) 
+    protected Pipeline getOrCreatePipeline( String layerRenderKey ) 
     throws IOException, PipelineIncubationException, ServletException {
-        if (layers.length == 0 || layers.length > 1) {
-            throw new ServletException( "Wrong layers param: " + layers );
+        
+        if (layerRenderKey.length() == 0) {
+            throw new ServletException( "Wrong layers param: " + layerRenderKey );
         }
         
-        return pipelines.get( layers[0], new CacheLoader<String,Pipeline,IOException>() {
-
+        return pipelines.get( layerRenderKey, new CacheLoader<String,Pipeline,IOException>() {
             public Pipeline load( String key ) throws IOException {
                 ILayer layer = findLayer( key );
                 IService service = findService( layer );
@@ -239,6 +256,7 @@ public class SimpleWmsServer
                     if (pipeline.length() == 0) {
                         throw new ServiceException( "Unable to build processor pipeline for layer: " + layer );                        
                     }
+                    log.info( "PIPELINE build for: " + layer.getLabel() );
                     return pipeline;
                 }
                 catch (PipelineIncubationException e) {
@@ -257,11 +275,9 @@ public class SimpleWmsServer
      * Find the corresponding {@link ILayer} for the given layer name. The
      * label property is used as name.
      */
-    protected ILayer findLayer( String layerName ) {
-        log.debug( "findLayer(): layerName=" + layerName );
-
+    protected ILayer findLayer( String layerRenderKey ) {
         for (ILayer layer : getMap().getLayers()) {
-            if (layer.getLabel().equals( layerName )) {
+            if (layer.getRenderKey().equals( layerRenderKey )) {
                 return layer;
             }
         }

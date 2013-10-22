@@ -28,8 +28,11 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.ServiceInfo;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.NameImpl;
+import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureVisitor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.Name;
+import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 
@@ -37,9 +40,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.cache.Cache;
@@ -179,13 +184,14 @@ public class RDataStore
     }
 
 
+    @Override
     public List<Name> getNames() throws IOException {
-        return new ArrayList( schemas.keySet() );
+        return ImmutableList.copyOf( schemas.keySet() );
     }
 
 
-    public FeatureSource getFeatureSource( Name name )
-    throws IOException {
+    @Override
+    public FeatureSource getFeatureSource( Name name ) throws IOException {
         FeatureType schema = getSchema( name );
         if (schema == null) {
             throw new IOException( "No such schema: " + name );
@@ -205,10 +211,14 @@ public class RDataStore
 
         Updater tx = store.prepareUpdate();
         try {
+            String schemaContent = schemaCoder.encode( schema );
+            log.debug( "Created schema: " + schemaContent );
+            
             IRecordState schemaRecord = store.newRecord()
                     .put( "type", "FeatureType" )
                     .put( "name", schema.getName().getLocalPart() )
-                    .put( "content", schemaCoder.encode( schema ) );
+                    .put( "qname", schema.getName().getURI() )
+                    .put( "content", schemaContent );
             if (schema.getName().getNamespaceURI() != null) {
                 schemaRecord.put( "namespace", schema.getName().getNamespaceURI() );
             }
@@ -224,7 +234,7 @@ public class RDataStore
             //encoder.setEncoding(Charset.forName( global.getCharset() ));
 
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log.debug( "", e );
             tx.discard();
             if (e instanceof IOException) {
@@ -237,14 +247,74 @@ public class RDataStore
     }
 
 
-    public void updateSchema( Name name, FeatureType newSchema ) throws IOException {
-        // XXX just update schema; wait for better code from master branch
+    @Override
+    public void updateSchema( Name name, final FeatureType newSchema ) throws IOException {
+        assert name != null && newSchema != null;
         
-//        if (!schemaNames.get().add( newSchema.getName() )) {
-//            throw new IOException( "Schema name already exists: " + newSchema.getName() );                
-//        }
-        Updater tx = store.prepareUpdate();
+        final Updater tx = store.prepareUpdate();
         try {
+            // check modified property names
+            boolean namesModified = false;
+            for (PropertyDescriptor desc : newSchema.getDescriptors()) {
+                // set by FeatureTypeEditor/AttributeCellModifier
+                String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
+                if (origName != null) {
+                    namesModified = true;
+                }
+            }
+            
+            // find deleted properties
+            // XXX check complex schemas
+            FeatureType schema = getSchema( name );
+            final List<PropertyDescriptor> deleted = new ArrayList();
+            for (PropertyDescriptor desc : schema.getDescriptors()) {
+                if (newSchema.getDescriptor( desc.getName() ) == null) {
+                    deleted.add( desc );
+                }
+            }
+            
+            // schema name changed or prop deleted? -> update features
+            final String newName = newSchema.getName().getLocalPart();
+            if (!name.getLocalPart().equals( newSchema.getName().getLocalPart() )
+                    || !deleted.isEmpty() || namesModified) {
+                
+                FeatureSource fs = getFeatureSource( name );
+                fs.getFeatures().accepts( new FeatureVisitor() {
+                    public void visit( Feature feature ) {
+                        try {
+                            // typeName
+                            ((RFeature)feature).state.put( RFeature.TYPE_KEY, newName );
+                            
+                            // modified attribute name
+                            List<Name> origModifiedNames = new ArrayList();
+                            for (PropertyDescriptor desc : newSchema.getDescriptors()) {
+                                // set by FeatureTypeEditor/AttributeCellModifier
+                                String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
+                                if (origName != null) {
+                                    RAttribute prop = (RAttribute)feature.getProperty( origName );
+                                    if (prop.getValue() != null) {
+                                        ((RFeature)feature).state.put( desc.getName().getLocalPart(), prop.getValue() );
+                                    }
+                                    ((RFeature)feature).state.remove( prop.key.toString() );
+                                }
+                            }
+                            
+                            // deleted attributes
+                            for (PropertyDescriptor desc : deleted) {
+                                // XXX check complex schemas
+                                RProperty prop = (RProperty)feature.getProperty( desc.getName() );
+                                ((RFeature)feature).state.remove( prop.key.toString() );
+                            }
+                            
+                            tx.store( ((RFeature)feature).state );
+                        }
+                        catch (Exception e) {
+                            throw new RuntimeException( "Designing a visitor interface without Exception is not a good idea!", e );
+                        }
+                    }
+                }, null );
+            }
+        
             // update schema record
             ResultSet rs = store.find ( new SimpleQuery().setMaxResults( 1 )
                     .eq( "type", "FeatureType" )
@@ -252,18 +322,21 @@ public class RDataStore
 
             IRecordState record = rs.get( 0 );
             String schemaContent = schemaCoder.encode( newSchema );
-            log.info( "Updated schema: " + schemaContent );
+            log.debug( "Updated schema: " + schemaContent );
             record.put( "content", schemaContent );
+            record.put( "name", newName );
             tx.store( record );
-            tx.apply();
 
             // update schemas cache
             schemas.remove( name );
+            //schemas.put( newSchema.getName(), newSchema );
+            
+            tx.apply();
         }
         catch (Throwable e) {
             log.debug( "", e );
             tx.discard();
-            throw e instanceof IOException ? (IOException)e : new IOException( e );
+            throw new RuntimeException( e );
         }
     }
 
@@ -299,7 +372,7 @@ public class RDataStore
             schemas.remove( schema.getName() );
             tx.apply();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log.debug( "", e );
             tx.discard();
             throw new RuntimeException( e );
@@ -307,6 +380,7 @@ public class RDataStore
     }
 
 
+    @Override
     public ServiceInfo getInfo() {
         if (info == null) {
             info = new ServiceInfo() {

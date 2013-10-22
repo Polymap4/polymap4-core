@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright (C) 2011-2013, Falko Bräutigam. All rigths reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,7 +22,7 @@ import java.util.Iterator;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface ForEachExecutor<T,S>
+public interface ForEachExecutor<S,T>
         extends Iterator<T> {
     
     void setChunkSize( int chunkSize );
@@ -33,9 +32,7 @@ public interface ForEachExecutor<T,S>
      * 
      */
     interface Factory {
-        
         public ForEachExecutor newExecutor( ForEach foreach );
-        
     }
     
     
@@ -43,9 +40,7 @@ public interface ForEachExecutor<T,S>
      * 
      */
     interface ProcessorContext {
-
         public void put( Chunk chunk );
-
     }
 
     

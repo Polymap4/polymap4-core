@@ -135,7 +135,7 @@ public class StyleTree {
 		
 
 		if (preselected==null) {
-			log.info("act selection count " + tree.getSelection().length );
+			log.debug("act selection count " + tree.getSelection().length );
 			if (tree.getSelection().length>0)		
 				act_selected=tree.getSelection()[0].getData();
 		}
@@ -250,7 +250,7 @@ public class StyleTree {
 		TreeItem item2select =recursiveFindSelected(root_item,act_selected);
 	
 		
-		log.info("item 2 select new method " + item2select);
+		log.debug("item 2 select new method " + item2select);
 	
 		if (item2select !=null) {
 			item2select.setExpanded(true);

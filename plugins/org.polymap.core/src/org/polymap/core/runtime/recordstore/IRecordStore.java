@@ -55,8 +55,17 @@ public interface IRecordStore {
     /**
      * Creates a new record for this store. The returned record is not yet
      * stored. Actually storing the record is done via {@link Updater#store(IRecordState)}.
-     *
+     * 
+     * @param id The id of the newly created record.
      * @return Newly created record.
+     */
+    public IRecordState newRecord( Object id );
+
+    /**
+     * Creates a new record for this store. The returned record is not yet
+     * stored. Actually storing the record is done via {@link Updater#store(IRecordState)}.
+     * 
+     * @return Newly created record with automatically created id.
      */
     public IRecordState newRecord();
 

@@ -192,6 +192,15 @@
                tooltip="%actions_zoomToLayer">
          </action-->
          <action
+               class="org.polymap.core.mapeditor.actions.RefreshMapAction"
+               icon="icons/etool16/refresh.gif"
+               id="org.polymap.core.mapeditor.action.mapRefresh_editor"
+               label="%actions_mapRefresh"
+               style="push"
+               toolbarPath="mouseMode"
+               tooltip="%actions_mapRefresh">
+         </action>
+         <action
                class="org.polymap.core.mapeditor.tooling.navi.MaxExtendEditorAction"
                icon="icons/etool16/zoom_extent_co.gif"
                id="org.polymap.core.mapeditor.action.mapMaxExtent_editor"

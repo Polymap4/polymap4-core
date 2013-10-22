@@ -63,7 +63,12 @@ public class Geometries {
     throws Exception {
         return crsCache.get( code, new CacheLoader<String,CoordinateReferenceSystem,Exception>() {
             public CoordinateReferenceSystem load( String key ) throws Exception {
-                return CRS.decode( code );
+                try {
+                    return CRS.decode( code );
+                }
+                catch (Exception e) {
+                    return CRS.parseWKT( code );
+                }
             }
             public int size() throws Exception {
                 return Cache.ELEMENT_SIZE_UNKNOW;
@@ -71,6 +76,31 @@ public class Geometries {
         });
     }
 
+    public static String srs( CoordinateReferenceSystem crs ) {
+        String result = CRS.toSRS( crs );
+        if (!result.startsWith( "EPSG:" )) {
+            result = crs.toWKT();
+        }
+        return result;
+
+//      if (!crs.getIdentifiers().isEmpty()) {
+//      Object next = crs.getIdentifiers().iterator().next();
+//      if (next instanceof Identifier) {
+//          Identifier identifier = (Identifier) next;
+//          
+//          crsCode().set( identifier.toString() );
+//          this.crs = crs;
+//          
+////          if (identifier.getAuthority().getTitle().equals(
+////                  "European Petroleum Survey Group")) {
+////              crsCode.set( this, "EPSG:" + identifier.getCode() );
+////              this.crs = crs;
+////          }
+//          return;
+//      }
+//  }
+        
+    }
     
     /**
      * 

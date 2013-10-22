@@ -246,7 +246,7 @@ public class FeatureTableViewer
 
 
     public void setContent( IFeatureContentProvider provider ) {
-        super.setContentProvider( provider );
+        setContentProvider( provider );
     }
 
 

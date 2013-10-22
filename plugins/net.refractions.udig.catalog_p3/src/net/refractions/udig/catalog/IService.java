@@ -28,6 +28,8 @@ import java.io.Serializable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Joiner;
+
 import net.refractions.udig.catalog.internal.Messages;
 import net.refractions.udig.ui.ErrorManager;
 
@@ -438,12 +440,7 @@ public abstract class IService
      * @return string representing this IResolve
      */
     public String toString() {
-        return new StringBuilder( 128 )
-                .append( getClass().getSimpleName() )
-                .append( "(" )
-                .append( getIdentifier() )
-                .append( ")" )
-                .toString();
+        return Joiner.on( "" ).join( getClass().getSimpleName(), " (", getIdentifier(), ")" );
     }
 
     public void dispose( IProgressMonitor monitor ) {

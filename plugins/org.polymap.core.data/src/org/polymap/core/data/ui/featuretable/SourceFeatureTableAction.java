@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, 2011 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,6 +13,10 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.core.data.ui.featuretable;
+
+import net.refractions.udig.catalog.IGeoResource;
+
+import org.geotools.data.FeatureSource;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -27,13 +31,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionDelegate;
 
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class SourceFeatureTableAction
@@ -42,7 +45,7 @@ public class SourceFeatureTableAction
 
     private IWorkbenchPart      activePart;
     
-    private ILayer              selectedLayer;
+    private IGeoResource        selected;
     
 
     public void setActivePart( IAction action, IWorkbenchPart targetPart ) {
@@ -55,9 +58,10 @@ public class SourceFeatureTableAction
             public void run() {
                 try {            
                     // FIXME check blocking
-                    PipelineFeatureSource fs = PipelineFeatureSource.forLayer( selectedLayer, false );
-
-                    SourceFeatureTableView.open( fs );
+                    FeatureSource fs = selected.resolve( FeatureSource.class, null );
+                    if (fs != null) {
+                        SourceFeatureTableView.open( fs );
+                    }
                 }
                 catch (Exception e) {
                     throw new RuntimeException( e.getMessage(), e );
@@ -68,14 +72,19 @@ public class SourceFeatureTableAction
 
 
     public void selectionChanged( IAction action, ISelection sel ) {
+        selected = null;
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (sel instanceof IStructuredSelection) {
             Object elm = ((IStructuredSelection)sel).getFirstElement();
-            selectedLayer = (elm != null && elm instanceof ILayer)
-                    ? (ILayer)elm : null;
-        }
-        else {
-            selectedLayer = null;
+            if (elm == null) {
+                return;
+            }
+            else if (elm instanceof ILayer) {
+                selected = ((ILayer)elm).getGeoResource();
+            }
+            else if (elm instanceof IGeoResource) {
+                selected = (IGeoResource)elm;
+            }
         }
     }
 

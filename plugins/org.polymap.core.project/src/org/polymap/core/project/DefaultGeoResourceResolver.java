@@ -49,35 +49,36 @@ public class DefaultGeoResourceResolver
     @Override
     public void resolve( final String identifier, final Callback<List<IGeoResource>> handler )
     throws Exception {
-        log.debug( "resolving: " + identifier );
-        UIJob job = new UIJob( Messages.get( "GeoResResolver_jobTitle" ) ) {
-            public void runWithException( IProgressMonitor monitor ) 
-            throws Exception {
-                monitor.beginTask( Messages.get( "GeoResResolver_beginTask" ) + identifier, 5 );
-                monitor.worked( 1 );
-                
-                final List<IGeoResource> results = new ArrayList<IGeoResource>();
-                final ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
-
-                URL url  = new URL( null, identifier, CorePlugin.RELAXED_HANDLER );
-                List<IResolve> canditates = catalog.find( url, monitor );
-                for (IResolve resolve : canditates) {
-                    monitor.worked( 1 );
-                    if (resolve.getStatus() == Status.BROKEN) {
-                        continue;
-                    }
-                    if (resolve instanceof IGeoResource) {
-                        results.add( (IGeoResource)resolve );
-                    }
-                }
-                monitor.done();
-             
-                // callback
-                handler.handle( results );
-            }
-        };
-//        job.setShowProgressDialog( null, true );
-        job.schedule();
+        throw new RuntimeException( "not yet implementd" );
+//        log.debug( "resolving: " + identifier );
+//        UIJob job = new UIJob( Messages.get( "GeoResResolver_jobTitle" ) ) {
+//            public void runWithException( IProgressMonitor monitor ) 
+//            throws Exception {
+//                monitor.beginTask( Messages.get( "GeoResResolver_beginTask" ) + identifier, 5 );
+//                monitor.worked( 1 );
+//                
+//                final List<IGeoResource> results = new ArrayList<IGeoResource>();
+//                final ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
+//
+//                URL url  = new URL( null, identifier, CorePlugin.RELAXED_HANDLER );
+//                List<IResolve> canditates = catalog.find( url, monitor );
+//                for (IResolve resolve : canditates) {
+//                    monitor.worked( 1 );
+//                    if (resolve.getStatus() == Status.BROKEN) {
+//                        continue;
+//                    }
+//                    if (resolve instanceof IGeoResource) {
+//                        results.add( (IGeoResource)resolve );
+//                    }
+//                }
+//                monitor.done();
+//             
+//                // callback
+//                handler.handle( results );
+//            }
+//        };
+////        job.setShowProgressDialog( null, true );
+//        job.schedule();
     }
 
     
@@ -95,7 +96,16 @@ public class DefaultGeoResourceResolver
                 monitor.beginTask( Messages.get( "GeoResResolver_beginTask" ) + identifier, 5 );
                 monitor.worked( 1 );
                 
-                URL url  = new URL( null, identifier, CorePlugin.RELAXED_HANDLER );
+                String id = identifier;
+                
+//                // FIXME hack
+//                if (id.startsWith( "recordstore:" )) {
+//                    String name = StringUtils.substringAfterLast( id, "#" );
+//                    String localpart = name.contains( ":" ) ? StringUtils.substringAfterLast( name, ":" ) : name;
+//                    id = StringUtils.substringBeforeLast( id, "#" ) + "#" + localpart;
+//                }
+                
+                URL url  = new URL( null, id, CorePlugin.RELAXED_HANDLER );
                 List<IResolve> canditates = catalog.find( url, monitor );
                 for (IResolve resolve : canditates) {
                     monitor.worked( 1 );

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +44,7 @@ public final class LuceneRecordState
 
     public static final String  ID_FIELD = "identity";
     
-    private static long         idCount = System.currentTimeMillis();
+    private static AtomicInteger    idCount = new AtomicInteger( (int)System.currentTimeMillis() );
     
     
     // instance *******************************************
@@ -100,11 +101,13 @@ public final class LuceneRecordState
     }
 
     
-    void createId() {
+    void createId( Object id ) {
         assert isNew;
         assert doc.getFieldable( ID_FIELD ) == null : "ID already set for this record";
         
-        Field idField = new Field( ID_FIELD, String.valueOf( idCount++ ), Store.YES, Index.NOT_ANALYZED );
+        Field idField = id != null
+                ? new Field( ID_FIELD, id.toString(), Store.YES, Index.NOT_ANALYZED )
+                : new Field( ID_FIELD, String.valueOf( idCount.getAndIncrement() ), Store.YES, Index.NOT_ANALYZED );
         doc.add( idField );
     }
     
@@ -151,6 +154,7 @@ public final class LuceneRecordState
         
         Fieldable old = doc.getFieldable( key );
         if (old != null) {
+            // FIXME ValueCoder may have different/additional keys
             doc.removeField( key );
         }
         boolean indexed = store.getIndexFieldSelector().accept( key );
@@ -210,6 +214,7 @@ public final class LuceneRecordState
     public LuceneRecordState remove( String key ) {
         checkCopyOnWrite();
 
+        // FIXME ValueCoder may have different/additional keys
         doc.removeField( key );
         return this;
     }

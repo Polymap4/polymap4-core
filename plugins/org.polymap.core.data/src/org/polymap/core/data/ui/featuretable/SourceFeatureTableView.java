@@ -3,6 +3,7 @@ package org.polymap.core.data.ui.featuretable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,7 +30,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
@@ -69,7 +69,7 @@ public class SourceFeatureTableView
                     initFs.set( fs );
                     result[0] = (SourceFeatureTableView)page.showView(
                             SourceFeatureTableView.ID, 
-                            fs.getSchema().getName().getLocalPart(), 
+                            StringUtils.replace( fs.getSchema().getName().getLocalPart(), ":", "_"), 
                             IWorkbenchPage.VIEW_ACTIVATE );
                 }
                 catch (Exception e) {
@@ -131,7 +131,7 @@ public class SourceFeatureTableView
         }
 
         // load table
-        viewer.setContent( (PipelineFeatureSource)fs, Filter.INCLUDE );
+        viewer.setContent( fs, Filter.INCLUDE );
 
         viewer.getTable().pack( true );
 

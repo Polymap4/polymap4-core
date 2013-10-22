@@ -83,7 +83,7 @@ public class Cache304 {
     
     public static final String          PREF_TOTAL_STORE_SIZE = "totalStoreSize";
     
-    public static final int             DEFAULT_MAX_TILE_LIVETIME = 24;
+    public static final int             DEFAULT_MAX_TILE_LIVETIME = 8;
     public static final int             DEFAULT_MAX_STORE_SIZE = 100 * 1024 * 1024;
     
     private static CacheStatistics      statistics = new CacheStatistics();
@@ -148,8 +148,8 @@ public class Cache304 {
     /** Defaults to {@link #DEFAULT_MAX_STORE_SIZE}. */
     private long                maxStoreSizeInByte = DEFAULT_MAX_STORE_SIZE;
     
-    /** Update lastAccessed() time, only if it is older then this time (3min.) */
-    private long                accessTimeRasterMillis = 3 * 60 * 1000;
+    /** Update lastAccessed() time (for LRU), only if it is older then this time (30min.) */
+    private long                accessTimeRasterMillis = 30 * 60 * 1000;
 
     
     private IPersistentPreferenceStore    prefs = new ScopedPreferenceStore( 

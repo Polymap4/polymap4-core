@@ -47,17 +47,16 @@ public class FastApplyComboBoxCellEditor
  
     protected Control createControl( Composite parent ) {
         final CCombo control = (CCombo)super.createControl( parent );
+        control.setVisibleItemCount( 16 );
 
         control.addSelectionListener( new SelectionAdapter() {
-
             public void widgetDefaultSelected( SelectionEvent ev ) {
             }
-
             public void widgetSelected( SelectionEvent event ) {
                 // applies the currently selected value and deactivates the cell editor
                 focusLost();
             }
-        } );
+        });
 
         return control;
     }

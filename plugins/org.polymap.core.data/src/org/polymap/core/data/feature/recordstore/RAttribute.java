@@ -83,7 +83,7 @@ class RAttribute
     
     
     public Object getValue() {
-        // collection
+        // FIXME wrong!? Collection is handled up in RComplexAttribute 
         if (descriptor.getMaxOccurs() > 1) {
             return new PropertyCollection( this ) {
                 protected Object valueAt( int index ) {

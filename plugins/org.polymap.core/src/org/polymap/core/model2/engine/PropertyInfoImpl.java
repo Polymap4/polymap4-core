@@ -31,7 +31,7 @@ import org.polymap.core.model2.runtime.PropertyInfo;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public final class PropertyInfoImpl<T>
+public class PropertyInfoImpl<T>
         implements PropertyInfo<T> {
 
     private Field                   field;
@@ -85,6 +85,28 @@ public final class PropertyInfoImpl<T>
     @Override
     public T getDefaultValue() {
         return (T)DefaultValues.valueOf( field );
+    }
+
+    
+    @Override
+    public T getValue( Object composite ) {
+        try {
+            return ((Property<T>)field.get( composite )).get();
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+    }
+
+    
+    @Override
+    public void setValue( Object composite, T value ) {
+        try {
+            ((Property<T>)field.get( composite )).set( value );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
 }

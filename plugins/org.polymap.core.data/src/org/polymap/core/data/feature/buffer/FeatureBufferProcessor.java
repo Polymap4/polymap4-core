@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010-2013 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2010-2013 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -56,7 +56,7 @@ import org.polymap.core.project.LayerUseCase;
  * helps {@link LayerFeatureBufferManager} together with {@link FeatureStateTracker} to find
  * concurrent changes between feature rad and {@link IFeatureBuffer#registerFeatures(Collection)}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.1
  */
 public class FeatureBufferProcessor

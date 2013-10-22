@@ -221,12 +221,9 @@ class AsyncPipelineFeatureCollection
                             endOfResponse = true;
                             if (resultException != null) {
                                 log.warn( "##### Async: result exception: " + resultException );
-                                if (resultException instanceof RuntimeException) {
-                                    throw (RuntimeException)resultException;
-                                } 
-                                else {
-                                    throw new RuntimeException( resultException );
-                                }
+                                throw resultException instanceof RuntimeException
+                                        ? (RuntimeException)resultException
+                                        : new RuntimeException( resultException );
                             } 
                             else {
                                 return false;
@@ -235,7 +232,9 @@ class AsyncPipelineFeatureCollection
                         else {
                             buffer = chunk;
                             bufferIt = buffer.iterator();
-                            return true;
+                            if (bufferIt.hasNext()) {
+                                return true;
+                            }
                         }
                     }
                     catch (InterruptedException e) {
