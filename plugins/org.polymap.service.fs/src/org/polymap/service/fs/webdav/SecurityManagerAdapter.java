@@ -75,7 +75,7 @@ public class SecurityManagerAdapter
                 return WebDavServer.createNewSession( sessionUser );
             }
             catch (LoginException e) {
-                log.warn( e );
+                log.warn( "", e );
                 return null;
             }
         }

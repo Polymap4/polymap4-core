@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,8 +13,6 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.service;
-
-import org.osgi.service.http.HttpService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,25 +29,25 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
-import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.entity.IEntityStateListener;
 import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 
 /**
- * Wraps a session context of a service ({@link IProvidedService}). Besides providing
- * the session context, this also handles service start/stop/restart via
- * {@link IModelChangeListener}.
+ * Provides a {@link SessionContext session context} for a service (
+ * {@link IProvidedService}) or other services that access a {@link SessionSingleton}
+ * (entity repositories for example) and need a session context for that. It
+ * maps/unmaps session context. Also handles service start/stop/restart via
+ * {@link IModelChangeListener} and {@link EntityStateEvent}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ServiceContext
+public abstract class ServiceContext
         implements IEntityStateListener, IPropertyChangeListener {
 
     private static Log log = LogFactory.getLog( ServiceContext.class );
@@ -66,24 +64,29 @@ public class ServiceContext
         contextProvider.mapContext( sessionKey, false );    
     }
 
-    public static void unmapContext() {
-        contextProvider.unmapContext();
+    public static void unmapContext( boolean failFast ) {
+        try {
+            contextProvider.unmapContext();
+        }
+        catch (RuntimeException e) {
+            log.debug( "", e );
+            if (failFast) {
+                throw e;
+            }
+        }
     }
     
     
     // instance *******************************************
     
-    private String                  serviceId;
+    protected String                serviceId;
 
-    private String                  sessionKey;
-
-    private HttpService             httpService;
+    protected String                sessionKey;
 
 
-    ServiceContext( String serviceId, HttpService httpService ) {
+    public ServiceContext( String serviceId ) {
         this.serviceId = serviceId;
         this.sessionKey = "service-" + serviceId;
-        this.httpService = httpService;
 //        try {
 ////            log.info( "mapping sessionKey: " + sessionKey );
 //            boolean mapped = contextProvider.mapContext( sessionKey, true );
@@ -97,14 +100,14 @@ public class ServiceContext
     }
     
 
-    protected IProvidedService findService() {
-        for (IProvidedService service : ServiceRepository.instance().allServices()) {
-            if (service.id().equals( serviceId )) {
-                return service;
-            }
-        }
-        return null;
-    }
+    protected abstract void start() throws Exception;
+    
+    protected abstract void stop() throws Exception;
+    
+    /**
+     * Does this context needs a restart after the given event?
+     */
+    protected abstract boolean needsRestart( EntityStateEvent ev ) throws Exception;
     
     
     /**
@@ -112,40 +115,38 @@ public class ServiceContext
      * service is currently enabled, then start the service.
      */
     public void startService() {
-        try {
-            boolean newContext = contextProvider.mapContext( sessionKey, true );
-            Polymap.instance().addPrincipal( new ServicesPlugin.AdminPrincipal() );
-            
-            if (contextProvider.currentContext().isDestroyed()) {
-                log.warn( "Context already destroyed: " + sessionKey );
-                return;
-            }
-
-            // start service
-            IProvidedService service = findService();
-            if (service == null) {
-                return;
-            }
-            if (service.isEnabled()) {
+        // "clean" thread to be able to map a new session context
+        new Job( "Re-starting Service: " + serviceId ) {
+            protected IStatus run( IProgressMonitor monitor ) {
                 try {
-                    service.start();
+                    boolean newContext = contextProvider.mapContext( sessionKey, true );
+                    Polymap.instance().addPrincipal( new ServicesPlugin.AdminPrincipal() );
+
+                    if (contextProvider.currentContext().isDestroyed()) {
+                        log.warn( "Context already destroyed: " + sessionKey );
+                        return Status.OK_STATUS;
+                    }
+
+                    // start service
+                    start();
+
+                    // listen to global change events of the map and layers (in the new context)
+                    EntityStateTracker.instance().addListener( ServiceContext.this );
+
+                    // listen to preference changes
+                    final ScopedPreferenceStore prefStore = new ScopedPreferenceStore( 
+                            new InstanceScope(), ServicesPlugin.getDefault().getBundle().getSymbolicName() );
+                    prefStore.addPropertyChangeListener( ServiceContext.this );
                 }
                 catch (Exception e) {
-                    log.error( "Error while starting services: " + service.getPathSpec(), e );
+                    log.error( "Error while starting services: " + serviceId, e );
                 }
+                finally {
+                    contextProvider.unmapContext();
+                }
+                return Status.OK_STATUS;
             }
-            
-            // listen to global change events of the map and layers (in the new context)
-            EntityStateTracker.instance().addListener( this );
-
-            // listen to preference changes
-            final ScopedPreferenceStore prefStore = new ScopedPreferenceStore( 
-                    new InstanceScope(), ServicesPlugin.getDefault().getBundle().getSymbolicName() );
-            prefStore.addPropertyChangeListener( this );
-        }
-        finally {
-            contextProvider.unmapContext();
-        }
+        }.schedule();
     }
 
 
@@ -156,30 +157,26 @@ public class ServiceContext
     public void stopService() {
         try {
             contextProvider.mapContext( sessionKey, false );
-            
             if (contextProvider.currentContext().isDestroyed()) {
                 log.warn( "Context already destroyed: " + sessionKey );
                 return;
             }
             
             // stop service
-            IProvidedService service = findService();
-            if (service != null) {
-                try {
-                    service.stop();
-                }
-                catch (Exception e) {
-                    log.error( "Error while stopping services: " + service.getPathSpec(), e );
-                }
-            }
+            stop();
+            
             // unregister listener
             try {
-                EntityStateTracker.instance().removeListener( this );
+                EntityStateTracker.instance().removeListener( ServiceContext.this );
             }
             catch (Throwable e) {
+                log.warn( "", e );
                 // FIXME hack to 
-                service = null;
+//                service = null;
             }
+        }
+        catch (Exception e) {
+            log.error( "Error while stopping services: " + serviceId, e );
         }
         finally {
             contextProvider.unmapContext();
@@ -196,10 +193,8 @@ public class ServiceContext
             
             // the event comes within a Job but with RAP session context (in most cases)
             // so we need a "clean" Job to be able to map a new session context
-            new Job( "Restarting service: " + serviceId ) {
+            new Job( "Re-starting Service: " + serviceId ) {
                 protected IStatus run( IProgressMonitor monitor ) {
-                    boolean needsRestart = false;
-                    
                     boolean needsUnmap = contextProvider.mapContext( sessionKey, false );
                     assert needsUnmap;
                     if (contextProvider.currentContext().isDestroyed()) {
@@ -208,23 +203,9 @@ public class ServiceContext
                         return Status.OK_STATUS;
                     }
 
+                    boolean needsRestart = false;
                     try {
-                        IProvidedService service = findService();
-                        IMap map = service.getMap();
-                        
-                        if (ev.hasChanged( (IEntityHandleable)service )) {
-                            needsRestart = true;
-                        }
-                        else if (ev.hasChanged( (IEntityHandleable)map )) {
-                            needsRestart = true;
-                        }
-                        else {
-                            for (ILayer layer : map.getLayers()) {
-                                if (ev.hasChanged( (IEntityHandleable)layer )) {
-                                    needsRestart = true;
-                                }
-                            }
-                        }
+                        needsRestart = needsRestart( ev );
                     }
                     // primary NoSuchEntityException
                     catch (Exception e) {
@@ -255,7 +236,7 @@ public class ServiceContext
 
             // the event comes within a Job but with RAP session context (in most cases)
             // so we nee a "clean" Job to be able to map a new session context
-            new Job( "Restart Service" ) {
+            new Job( "Re-starting Service: " + serviceId ) {
                 protected IStatus run( IProgressMonitor monitor ) {
                     try {
                         boolean needsUnmap = contextProvider.mapContext( sessionKey, true );

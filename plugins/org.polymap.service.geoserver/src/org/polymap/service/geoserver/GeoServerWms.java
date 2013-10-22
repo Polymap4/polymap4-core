@@ -98,8 +98,8 @@ public class GeoServerWms
 
 
     protected void init( IMap _map ) {
+        assert _map != null;
         super.init( _map );
-        sessionKey = SessionContext.current().getSessionKey();
     }
 
 
@@ -107,13 +107,16 @@ public class GeoServerWms
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
 
+        sessionKey = SessionContext.current().getSessionKey();
+        assert sessionKey != null;
+
         context = new PluginServletContext( getServletContext() );
         log.debug( "initGeoServer(): contextPath=" + context.getContextPath() );
 
         ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader( context.cl );
         try {
-            ServiceContext.mapContext( sessionKey );
+//            ServiceContext.mapContext( sessionKey );
             initGeoServer();
         }
         catch (Exception e) {
@@ -121,7 +124,7 @@ public class GeoServerWms
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );
-            ServiceContext.unmapContext();
+//            ServiceContext.unmapContext( false );
         }
     }
 
@@ -244,7 +247,7 @@ public class GeoServerWms
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );
-            ServiceContext.unmapContext();
+            ServiceContext.unmapContext( false );
             response.set( null );
         }
     }

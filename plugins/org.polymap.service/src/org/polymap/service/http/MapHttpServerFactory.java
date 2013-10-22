@@ -22,8 +22,6 @@
  */
 package org.polymap.service.http;
 
-import javax.servlet.http.HttpServlet;
-
 import org.osgi.service.http.NamespaceException;
 
 import org.apache.commons.logging.Log;
@@ -98,6 +96,7 @@ public class MapHttpServerFactory {
         try {
             MapHttpServer wmsServer = (MapHttpServer)wmsExt.createExecutableExtension( "class" );
             log.debug( "service: " + wmsServer.getClass().getName() );
+            wmsServer.init( map );
 
             String servicePath = null;
             if (pathSpec.startsWith( ServicesPlugin.SERVICES_PATHSPEC )) {
@@ -110,8 +109,8 @@ public class MapHttpServerFactory {
             
             try {
                 // lazy loading
-                HttpServlet lazyLoading = new LazyLoadingServlet( wmsServer, true );
-                CorePlugin.registerServlet( servicePath, lazyLoading, null );
+                //HttpServlet lazy = new LazyLoadingServlet( wmsServer, true );
+                CorePlugin.registerServlet( servicePath, wmsServer, null );
             }
             catch (NamespaceException e) {
                 if (forceUnregister) {
@@ -123,7 +122,6 @@ public class MapHttpServerFactory {
                     throw e;
                 }
             }
-            wmsServer.init( map );
             
             return wmsServer;
         }
