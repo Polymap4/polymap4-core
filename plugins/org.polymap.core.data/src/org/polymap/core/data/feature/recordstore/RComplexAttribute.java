@@ -16,7 +16,10 @@ package org.polymap.core.data.feature.recordstore;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 import org.opengis.feature.ComplexAttribute;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -31,36 +34,57 @@ import org.opengis.filter.identity.Identifier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
-import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.LockedLazyInit;
+import org.polymap.core.runtime.recordstore.IRecordState;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class RComplexAttribute
+class RComplexAttribute
         extends RAttribute
-        implements ComplexAttribute, Supplier<List<Property>> {
+        implements ComplexAttribute {
 
     private static Log log = LogFactory.getLog( RComplexAttribute.class );
 
-    /**
-     * Lazily initialized cache of the value of this attribute.
-     * <p/>
-     * No map or keys, just a List and filter/iterate for searching. Lucene does this
-     * for its Document. Reasonable fast(?) and saved memory.
-     */
-    private Lazy<List<Property>>    value = new LockedLazyInit( this );
-
-
-    public RComplexAttribute( RFeature feature, StoreKey baseKey, AttributeDescriptor descriptor, Identifier id ) {
+    private static CacheBuilder             valueCacheBuilder = CacheBuilder.newBuilder()
+            .initialCapacity( 32 ).concurrencyLevel( 1 );
+            
+    private IRecordState                    state;
+    
+    /** Lazily initialized cache of {@link Property} or <code>Collection<Property></code>. */
+    private LoadingCache<String,Object>     value; 
+    
+    
+    public RComplexAttribute( final RFeature feature, StoreKey baseKey, AttributeDescriptor descriptor, Identifier id ) {
         super( feature, baseKey, descriptor, id );
+        
+        value = valueCacheBuilder.build( new CacheLoader<String,Object>() {
+            public Property load( String name ) {
+                PropertyDescriptor child = getType().getDescriptor( name );
+                assert child.getMaxOccurs() == 1: "Collections of properties are not yet again implemented. (" + child + ")";
+                
+                // complex (check more special first!)
+                if (child.getType() instanceof ComplexType) {
+                    return new RComplexAttribute( RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null );                    
+                }
+                // geometry
+                else if (child.getType() instanceof GeometryType) {
+                    return new RGeometryAttribute( RComplexAttribute.this.feature, key, (GeometryDescriptor)child, null );
+                }
+                // attribute
+                else if (child.getType() instanceof AttributeType) {
+                    return new RAttribute( RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null );
+                }
+                // unhandled
+                else {
+                    throw new RuntimeException( "Unknown property type: " + child.getType() );
+                }
+        }});
     }
 
     
@@ -76,67 +100,57 @@ public class RComplexAttribute
     }
 
 
-    /** Internal: {@link Supplier} for lazily initialized {@link #value}. */
-    @Override
-    public List<Property> get() {
-        Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
-        List<Property> props = new ArrayList( descriptors.size() );
-        for (PropertyDescriptor child : descriptors) {
-            // complex (check more special first!)
-            if (child.getType() instanceof ComplexType) {
-                props.add( new RComplexAttribute( feature, key, (AttributeDescriptor)child, null ) );                    
-            }
-            // geometry
-            else if (child.getType() instanceof GeometryType) {
-                props.add( new RGeometryAttribute( feature, key, (GeometryDescriptor)child, null ) );
-            }
-            // attribute
-            else if (child.getType() instanceof AttributeType) {
-                props.add( new RAttribute( feature, key, (AttributeDescriptor)child, null ) );
-            }
-            // unhandled
-            else {
-                throw new RuntimeException( "Unhandled property type: " + child.getType() );
-            }
-        }
-        return /*Collections.unmodifiableList(*/ props; 
-    }
-
-
     @Override
     public Collection<Property> getProperties() {
-        return value.get();
+        Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
+        
+        List<Property> result = new ArrayList( descriptors.size() * 2 );
+        for (PropertyDescriptor child : descriptors) {
+            result.addAll( getProperties( child.getName() ) );
+        }
+        return result;
     }
 
     
+    @Override
     public Collection<Property> getProperties( final Name name ) {
-        return Collections2.filter( getProperties(), new Predicate<Property>() {
-            public boolean apply( Property input ) {
-                return input.getName().equals( name );
-            }
-        });
+        return getProperties( name.getLocalPart() );
     }
 
 
-    public Collection<Property> getProperties( final String name ) {
-        return Collections2.filter( getProperties(), new Predicate<Property>() {
-            public boolean apply( Property input ) {
-                return input.getName().getLocalPart().equals( name );
-            }
-        });
+    @Override
+    public Collection<Property> getProperties( final String name ) {        
+        try {
+            Object result = value.get( name );
+            return result instanceof Collection 
+                    ? (Collection<Property>)result
+                    : Collections.singleton( (Property)result ); //ImmutableList.of( result );
+        }
+        catch (ExecutionException e) {
+            throw new RuntimeException( e );
+        }
     }
 
     
+    @Override
     public Property getProperty( Name name ) {
-        return Iterables.getFirst( getProperties( name ), null );
+        return getProperty( name.getLocalPart() );
     }
 
     
+    @Override
     public Property getProperty( String name ) {
-        return Iterables.getFirst( getProperties( name ), null );
+        try {
+            Object result = value.get( name );
+            return (Property)(result instanceof Collection ? ((Collection)result).iterator().next() : result);
+        }
+        catch (ExecutionException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 
+    @Override
     public void setValue( Collection<Property> values ) {
         throw new RuntimeException( "Not yet implemented. Set single attributes separatelly." );
     }

@@ -118,6 +118,20 @@ public class OpenLayersMap
 		super.addObjModCode("removeLayer",layer2rm);
 	}
 		
+    
+    /**
+     * Move the given layer to the specified (zero-based) index in the layer list,
+     * changing its z-index in the map display. Use map.getLayerIndex() to find out
+     * the current index of a layer. Note that this cannot (or at least should not)
+     * be effectively used to raise base layers above overlays.
+     * 
+     * @param layer
+     * @param index
+     */
+    public void setLayerIndex(Layer layer, int index) {
+        super.callObjFunction("setLayerIndex",layer,index);
+    }
+
 	public void addControl(Control control2add) {
 		control2add.setMap( this );
 		super.addObjModCode("addControl",control2add);

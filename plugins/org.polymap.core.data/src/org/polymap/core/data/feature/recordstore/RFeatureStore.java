@@ -17,6 +17,7 @@ package org.polymap.core.data.feature.recordstore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.IOException;
 
@@ -46,6 +47,7 @@ import org.opengis.filter.identity.FeatureId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Joiner;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.model2.store.feature.FeatureFactory;
@@ -65,6 +67,8 @@ public class RFeatureStore
     private static Log log = LogFactory.getLog( RFeatureStore.class );
 
     public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
+    
+    public static AtomicInteger         idcount = new AtomicInteger( (int)System.currentTimeMillis() );
     
     protected RDataStore                ds;
     
@@ -125,8 +129,11 @@ public class RFeatureStore
 
     
     @Override
-    public RFeature newFeature() {
-        IRecordState state = ds.store.newRecord();
+    public RFeature newFeature( String fid ) {
+        if (fid == null) {
+            fid = Joiner.on( '.' ).join( schema.getName().getLocalPart(), idcount.getAndIncrement() ); 
+        }
+        IRecordState state = ds.store.newRecord( fid );
         return schema instanceof SimpleFeatureType
                 ? new RSimpleFeature( state, schema )
                 : new RFeature( state, schema );
@@ -152,7 +159,7 @@ public class RFeatureStore
                         }
                         // SimpleFeature -> convert
                         else if (feature instanceof SimpleFeature) {
-                            RFeature newFeature = newFeature();
+                            RFeature newFeature = newFeature( null );
                             for (Property prop : feature.getProperties()) {
                                 newFeature.getProperty( prop.getName() ).setValue( prop.getValue() );
                             }

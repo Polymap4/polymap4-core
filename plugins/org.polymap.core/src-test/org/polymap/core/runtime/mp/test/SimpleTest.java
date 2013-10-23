@@ -22,10 +22,11 @@ import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 import org.polymap.core.runtime.mp.AsyncExecutor;
 import org.polymap.core.runtime.mp.ForEach;
-import org.polymap.core.runtime.mp.Parallel;
 import org.polymap.core.runtime.mp.SyncExecutor;
 
 /**
@@ -38,9 +39,9 @@ public class SimpleTest
 
     private static Log log = LogFactory.getLog( SimpleTest.class );
     
-    private List                source;
+    private List<String>        source;
     
-    private List                result;
+    private List<StringBuilder> result;
     
 
     public void setUp() throws Exception {
@@ -66,18 +67,17 @@ public class SimpleTest
     
     
     protected void process() {
-        result = ForEach.in( source )
-            .doFirst( new Parallel<StringBuilder,String>() {
-                 public final StringBuilder process( String elm ) {
+        result = Lists.newArrayList( ForEach.in( source )
+            .doParallel( new Function<String,StringBuilder>() {
+                 public final StringBuilder apply( String elm ) {
                       return new StringBuilder( elm );
                   }
              })
-            .doNext( new Parallel<StringBuilder,StringBuilder>() {
-                 public final StringBuilder process( StringBuilder elm ) {
+            .doParallel( new Function<StringBuilder,StringBuilder>() {
+                 public final StringBuilder apply( StringBuilder elm ) {
                      return elm.insert( 0, '\'' ).append( '\'' );
                  }
-             })
-            .asList();
+             } ) );
     }
     
 }

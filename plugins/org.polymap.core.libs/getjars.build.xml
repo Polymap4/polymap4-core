@@ -30,7 +30,7 @@
 		<delete dir="${lib}" />
 	</target>
 
-	<target name="load_m2_deps">
+	<target name="load_m2_deps" unless="already_downloaded">
 		
         <!-- setproxy proxyhost="46.4.28.8" proxyport="3128"/-->
 		
@@ -239,7 +239,7 @@
 		<echo message="Jars = ${listjars}" />
 	</target>
 
-	<target name="build" depends="create, load_m2_deps" >
+	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
 		<description>Download the jars - used by a manual "clean"</description>
 
 		<!--setproxy proxyhost="46.4.28.8" proxyport="3128"/-->

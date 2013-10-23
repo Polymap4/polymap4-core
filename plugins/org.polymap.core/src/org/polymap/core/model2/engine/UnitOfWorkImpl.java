@@ -14,23 +14,31 @@
  */
 package org.polymap.core.model2.engine;
 
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Collections2.transform;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.IOException;
 
+import org.apache.commons.collections.collection.CompositeCollection;
+
 import com.google.common.base.Function;
-import static com.google.common.collect.Collections2.*;
+import com.google.common.base.Predicate;
 
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
+import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.Query;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.model2.runtime.ValueInitializer;
-import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.cache.Cache;
@@ -46,7 +54,7 @@ public class UnitOfWorkImpl
 
     private static final Exception          PREPARED = new Exception( "Successfully prepared for commit." );
     
-    private static volatile long            idCount = 0;
+    private static AtomicInteger            idCount = new AtomicInteger( (int)System.currentTimeMillis() );
     
     protected EntityRepositoryImpl          repo;
     
@@ -54,6 +62,7 @@ public class UnitOfWorkImpl
 
     protected Cache<Object,Entity>          loaded;
     
+    /** Hard reference to Entities that must not be GCed from {@link #loaded} cache. */
     protected ConcurrentMap<Object,Entity>  modified;
     
     private volatile Exception              prepareResult;
@@ -114,7 +123,10 @@ public class UnitOfWorkImpl
 //        });
     }
 
-
+    
+    /**
+     * Raises the status of the given Entity. Called by {@link ConstraintsPropertyInterceptor}.
+     */
     protected void raiseStatus( Entity entity) {
         if (entity.status() == EntityStatus.MODIFIED
                 || entity.status() == EntityStatus.REMOVED) {
@@ -125,12 +137,11 @@ public class UnitOfWorkImpl
 
     @Override
     public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T> initializer ) {
+        // build id; don't depend on store's ability to deliver id for newly created state
+        id = id != null ? id : entityClass.getSimpleName() + "." + idCount.getAndIncrement();
+
         CompositeState state = delegate.newEntityState( id, entityClass );
         assert id == null || state.id().equals( id );
-
-        // build fake id; don't depend on store's ability to deliver
-        // id for newly created state
-        id = id != null ? id : entityClass.getSimpleName() + "." + idCount++;
         
         T result = repo.buildEntity( state, entityClass, this );
         repo.contextOfEntity( result ).raiseStatus( EntityStatus.CREATED );
@@ -204,11 +215,36 @@ public class UnitOfWorkImpl
         return new QueryImpl( entityClass, expression ) {
             public Collection execute() {
                 // transform id -> Entity
-                return transform( delegate.find( this ), new Function<Object,T>() {
-                    public T apply( Object key ) {
-                        return entity( entityClass, key ); 
+                // XXX without this copy the collection is empty on second access
+                // making a copy might be not that bad either as it avoid querying store for every iterator
+                Collection ids = new ArrayList( delegate.find( this ) );
+                Collection<T> found = transform( ids, new Function<Object,T>() {
+                    public T apply( Object id ) {
+                        return entity( entityClass, id ); 
                     }
                 });
+                // filter out modified/removed (avoid loading everything in memory)
+                Collection<T> filtered = filter( found, new Predicate<T>() {
+                    public boolean apply( T input ) {
+                        EntityStatus status = input.status();
+                        assert status != EntityStatus.CREATED; 
+                        return status == EntityStatus.LOADED;
+                    }
+                });
+                
+                // new/updated states -> pre-process
+                List<T> updated = new ArrayList();
+                for (Entity entity : modified.values()) {
+                    if (entity.getClass().equals( entityClass ) &&
+                            (entity.status() == EntityStatus.CREATED || entity.status() == EntityStatus.MODIFIED )) {
+                        if (expression == null || delegate.eval( entity.state(), expression )) {
+                            updated.add( (T)entity );
+                        }
+                    }
+                }
+
+                // result: queried + created
+                return new CompositeCollection( new Collection[] {filtered, updated} );
             }
         };
     }
@@ -262,6 +298,18 @@ public class UnitOfWorkImpl
         for (Entity entity : loaded.values()) {
             repo.contextOfEntity( entity ).resetStatus( EntityStatus.LOADED );
         }
+        modified.clear();
+    }
+
+
+    @Override
+    public void rollback() throws ModelRuntimeException {
+        // commit store
+        delegate.rollback();
+        prepareResult = null;
+        
+        // reset Entity status
+        loaded.clear();
         modified.clear();
     }
 

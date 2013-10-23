@@ -1,7 +1,7 @@
 /* uDig - User Friendly Desktop Internet GIS client
  * http://udig.refractions.net
  * (C) 2004, Refractions Research Inc.
- * Copyright 2011, Falko Bräutigam
+ * Copyright (C) 2011-2013, Falko Bräutigam
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -80,20 +80,26 @@ import org.polymap.core.ui.RWTTextCellEditor;
  */
 public class FeatureTypeEditor {
 
+    /**
+     * Used as key in the user data of {@link PropertyDescriptor}. Stores the
+     * original name of an attribute when name is modified.
+     */
+    public static final String      ORIG_NAME_KEY = "__origName__";
+    
     // _p3: use default by dialect
     //private static final int MAX_ATTRIBUTE_LENGTH = 65535;  //Maximum allows by mysql (postgis bigger) and is "big enough"
     /**
      * The index of the name column in the viewer.
      */
-    static final int NAME_COLUMN = 0;
+    static final int                NAME_COLUMN = 0;
     /**
      * The index of the type column in the viewer.
      */
-    static final int TYPE_COLUMN = 1;
+    static final int                TYPE_COLUMN = 1;
     /**
      * The index of the type column in the viewer.
      */
-    static final int OTHER_COLUMN = 2;
+    static final int                OTHER_COLUMN = 2;
 
 
     TreeViewer                             viewer;

@@ -89,7 +89,7 @@ public class RecordStoreUnitOfWork
 
 
     @Override
-    public <T extends Entity> Collection find( QueryImpl query ) {
+    public Collection find( QueryImpl query ) {
         assert query.expression == null : "Query expressions not yet supported: " + query.expression;
         try {
             // XXX cache result for subsequent loadEntityState() (?)
@@ -97,7 +97,7 @@ public class RecordStoreUnitOfWork
                     new SimpleQuery().eq( TYPE_KEY, query.resultType().getName() ).setMaxResults( Integer.MAX_VALUE ) );
             
             return new AbstractCollection() {
-
+                @Override
                 public Iterator iterator() {
                     return Iterators.transform( results.iterator(), new Function<IRecordState,Object>() {
                         public Object apply( IRecordState input ) {
@@ -105,11 +105,11 @@ public class RecordStoreUnitOfWork
                         }
                     });
                 }
-
+                @Override
                 public int size() {
                     return results.count();
                 }
-
+                @Override
                 protected void finalize() throws Throwable {
                     results.close();
                 }
@@ -118,6 +118,12 @@ public class RecordStoreUnitOfWork
         catch (Exception e) {
             throw new ModelRuntimeException( e );
         }
+    }
+
+
+    @Override
+    public boolean eval( Object entityState, Object expression ) {
+        throw new RuntimeException( "Query expressions not yet supported: " + expression );
     }
 
 
@@ -167,6 +173,15 @@ public class RecordStoreUnitOfWork
         assert !prepareFailed : "Previous prepareCommit() failed.";
 
         tx.apply();
+        tx = null;
+    }
+
+
+    @Override
+    public void rollback() {
+        assert tx != null;
+
+        tx.discard();
         tx = null;
     }
 

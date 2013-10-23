@@ -36,8 +36,9 @@ import java.text.NumberFormat;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeature;
@@ -313,7 +314,7 @@ public class CsvImporter {
 
         // FeatureCollection
         FeatureCollection<SimpleFeatureType, SimpleFeature> newCollection = 
-                FeatureCollections.newCollection();
+                new DefaultFeatureCollection( null, featureType );
         
         try {
             Collection<Integer> orderedTypeIndexes = fieldsAndTypesIndex.values();

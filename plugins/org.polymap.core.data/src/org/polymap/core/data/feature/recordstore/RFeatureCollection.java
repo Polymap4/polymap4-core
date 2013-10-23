@@ -38,12 +38,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Iterators;
 
 import org.polymap.core.data.feature.recordstore.QueryDialect.PostProcessResultSet;
-import org.polymap.core.runtime.LazyInit;
-import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.recordstore.IRecordState;
 
 /**
@@ -71,9 +68,6 @@ class RFeatureCollection
 
     /** Set of open resource iterators. */
 //    private Set                 open = new ConcurrentSkipListSet();
-
-    /** Lazily initialized cache of {@link #size()}. */
-    private LazyInit<Integer>   size = new LockedLazyInit();
 
     
     public RFeatureCollection( RFeatureStore fs, FeatureType schema, Query query, 
@@ -107,19 +101,15 @@ class RFeatureCollection
 
 
     public int size() {
-        return size.get( new Supplier<Integer>() {
-            public Integer get() {
-                try {
-                    PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
-                    return results.hasPostProcessing()
-                            ? Iterators.size( results.iterator() )
-                            : results.size();
-                }
-                catch (Exception e) {
-                    throw new RuntimeException( e );
-                }
-            }
-        });
+        try {
+            PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
+            return results.hasPostProcessing()
+                    ? Iterators.size( results.iterator() )
+                    : results.size();
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
     

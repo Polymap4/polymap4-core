@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright (C) 2011-2013, Falko Bräutigam. All rigths reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,10 +18,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.base.Function;
+
 /**
  * A <code>ForEach</code> statement allows to define several processing steps that
  * are applied to the elements of a {@link #source} collection. The processing steps
- * are specified as (reusable) {@link Processor} objects. The processing steps are
+ * are specified as (reusable) {@link Function} objects. The processing steps are
  * independent from each other, so is is possible to execute them in a pipeline
  * and/or distributed over several threads for an {@link Parallel} processor. The
  * actual mode of execution is provided by {@link ForEachExecutor} instances.
@@ -30,27 +31,34 @@ import java.util.List;
  * <b>Example:</b>
  * <pre>
  * result = ForEach.in( source )
- *     .doFirst( new Parallel<StringBuilder,String>() {
- *          public final StringBuilder process( String elm ) {
+ *     .doParallel( new Function<String,StringBuilder>() {
+ *          public final StringBuilder apply( String elm ) {
  *               return new StringBuilder( elm );
  *           }
  *      })
- *     .doNext( new Parallel<StringBuilder,StringBuilder>() {
- *          public final StringBuilder process( StringBuilder elm ) {
+ *     .doParallel( new Parallel<StringBuilder,StringBuilder>() {
+ *          public final StringBuilder apply( StringBuilder elm ) {
  *              return elm.insert( 0, '\'' ).append( '\'' );
  *          }
- *      })
- *     .asList();
+ *      });
  * </pre>
  * <b>Execution:</b><p>
  * The number of concurrent threads used and the size of the chunks are defined
  * by the {@link AsyncExecutor}, which is used by default.
+ * <p/>
+ * The ForEach loop is <b>executed</b> by calling {@link #iterator()}. So this simplest
+ * way to execute is to use the Iterable interface and iterate over the result elements.
+ * Some examples for other uses:
+ * <ul>
+ * <li>Execute and just get the resulting number of elements : <code>Iterables.size( forEach );</code></li>
+ * <li>Store result elements in an {@link ArrayList} : <code>Lists.newArrayList( forEach );</code></li>
+ * </ul>
  *
  * @param <S> The type of the source elements.
  * @param <T> The type of the target elements.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ForEach<T, S>
+public class ForEach<S,T>
         implements Iterable<T> {
 
     public static ForEachExecutor.Factory      executorFactory = new AsyncExecutor.AsyncFactory();
@@ -66,8 +74,19 @@ public class ForEach<T, S>
      * @param source
      * @return The newly created instance.
      */
-    public static <S, T> ForEach<T, S> in( Iterable<S> source ) {
+    public static <S,T> ForEach<S,T> in( Iterable<S> source ) {
         return new ForEach( source );
+    }
+
+    /**
+     * @see ForEach#in(Iterable)
+     */
+    public static <S,T> ForEach<S,T> in( final Iterator<S> source ) {
+        return new ForEach( new Iterable<S>() {
+            public Iterator<S> iterator() {
+                return source;
+            }
+        });
     }
 
    
@@ -91,20 +110,25 @@ public class ForEach<T, S>
     }
 
 
-    public ForEach doFirst( Processor proc ) {
+    public ForEach doParallel( Function func ) {
+        Processor proc = new Processor( func );
+        proc.maxThreads = Integer.MAX_VALUE;
         processors.add( proc );
         return this;
     }
 
 
-    public ForEach doNext( Processor proc ) {
+    public ForEach doSerial( Function func ) {
+        Processor proc = new Processor( func );
+        proc.maxThreads = 1;
         processors.add( proc );
         return this;
     }
 
 
+    @Override
     public Iterator<T> iterator() {
-        ForEachExecutor<T, S> executor = executorFactory.newExecutor( this );
+        ForEachExecutor<S,T> executor = executorFactory.newExecutor( this );
         executor.setChunkSize( chunkSize );
         return executor;
     }
@@ -115,32 +139,57 @@ public class ForEach<T, S>
     // return list.toArray( new T[ list.size() ] );
     // }
 
-    public List<T> asList() {
-        List<T> result = new ArrayList( 128 );
-        for (T elm : this) {
-            result.add( elm );
-        }
-        return result;
-    }
+//    public List<T> asList() {
+//        List<T> result = new ArrayList( 128 );
+//        for (T elm : this) {
+//            result.add( elm );
+//        }
+//        return result;
+//    }
 
     
-    public int start() {
-        int count = 0;
-        for (T elm : this) {
-            ++count;
-        }
-        return count;
-    }
+//    public int start() {
+//        int count = 0;
+//        for (T elm : this) {
+//            ++count;
+//        }
+//        return count;
+//    }
 
 
     // executor
 
-    List<Processor> processors() {
+    public List<Processor> processors() {
         return processors;
     }
     
-    Iterable<S> source() {
+    public Iterable<S> source() {
         return source;
     }
+
+    /**
+     * Additional information about a {@link Function}. 
+     */
+    static class Processor<S1,T1>
+            implements Function<S1,T1> {
     
+        public Function<S1,T1>  delegate;
+        public int              maxChunkSize = -1;
+        public int              maxThreads = -1;
+
+        public Processor( Function<S1,T1> delegate ) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public T1 apply( S1 input ) {
+            return delegate.apply( input );
+        }
+
+        @Override
+        public boolean equals( Object obj ) {
+            return delegate.equals( obj );
+        }
+    }
+
 }

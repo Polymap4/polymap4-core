@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.ows.Layer;
@@ -201,10 +202,10 @@ public class WmsRenderProcessor
             
             in = wmsResponse.getInputStream();
             int count = 0;
-            byte[] buf = new byte[2048];
+            byte[] buf = new byte[8*1024];
             for (int c=in.read( buf ); c!=-1; c=in.read( buf )) {
                 context.sendResponse( new EncodedImageResponse( buf, c ) );
-                buf = new byte[2048];
+                buf = new byte[8*2048];
                 //log.debug( "    --->data sent: " + c );
                 count += c;
             }
@@ -214,13 +215,8 @@ public class WmsRenderProcessor
             context.sendResponse( ProcessorResponse.EOP );
             log.debug( "...all data send." );
         }
-//        catch (Exception e) {
-//            throw new RuntimeException( e.getMessage(), e );
-//        }
         finally {
-            if (in != null) {
-                in.close();
-            }
+            IOUtils.closeQuietly( in );
         }
     }
 

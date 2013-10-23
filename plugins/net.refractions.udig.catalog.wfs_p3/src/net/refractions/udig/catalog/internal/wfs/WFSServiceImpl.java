@@ -71,9 +71,9 @@ public class WFSServiceImpl extends IService {
 	public String toString() {
         return new StringBuilder( 128 )
                 .append( "WFS" /*getClass().getSimpleName()*/ )
-                .append( " [" )
+                .append( " (" )
                 .append( getIdentifier() )
-                .append( "]" )
+                .append( ")" )
                 .toString();
     }
 

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,12 +18,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.geotools.feature.NameImpl;
 import org.geotools.feature.type.FeatureTypeFactoryImpl;
-import org.geotools.referencing.CRS;
 import org.geotools.util.SimpleInternationalString;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.ComplexType;
 import org.opengis.feature.type.FeatureType;
@@ -38,6 +38,9 @@ import org.opengis.util.InternationalString;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.data.util.Geometries;
+import org.polymap.core.data.util.NameImpl;
 
 /**
  * Encode/decode {@link FeatureType} to/from JSON.
@@ -74,10 +77,13 @@ class JsonSchemaCoder {
         public String run() throws Exception {
             // encode CRS and default geom
             JSONObject json = new JSONObject();
-            json.put( "srs", CRS.toSRS( schema.getCoordinateReferenceSystem() ) );
+            json.put( "srs", Geometries.srs( schema.getCoordinateReferenceSystem() ) );
             json.put( "defaultGeom", schema.getGeometryDescriptor().getLocalName() );
             json.put( "isIdentified", schema.isIdentified() );
-            json.put( "namespace", schema.getName().getNamespaceURI() );
+            json.put( "isSimple", schema instanceof SimpleFeatureType );
+            if (schema.getName().getNamespaceURI() != null) {
+                json.put( "namespace", schema.getName().getNamespaceURI() );
+            }
             encode( json, schema );
             return json.toString( 4 );
         }
@@ -119,7 +125,8 @@ class JsonSchemaCoder {
                 log.warn( "Restrictions are not supported yet." );
                 //throw new RuntimeException( "Restrictions are not supported yet.");
             }
-            parent.put( "name", encode( type.getName() ) );
+            String name = encode( type.getName() );
+            parent.put( "name", name );
             parent.put( "type", "AttributeType" );
             parent.put( "description", type.getDescription() );
             parent.put( "binding", type.getBinding().getName() );
@@ -133,15 +140,25 @@ class JsonSchemaCoder {
             
             if (type instanceof GeometryType) {
                 CoordinateReferenceSystem crs = ((GeometryType)type).getCoordinateReferenceSystem();
-                parent.put( "srs", CRS.toSRS( crs ) );
+                parent.put( "srs", Geometries.srs( crs ) );
                 parent.put( "type", "GeometryType" );
+                
+                // FIXME for unknown reason shapefile schema seem to have something like "MultiPolygon"
+                // as the geom name
+                if (type.getBinding().getName().endsWith( name )) {
+                    parent.put( "name", schema.getGeometryDescriptor().getLocalName() );
+                }
             }
             return parent;
         }
         
         
         protected String encode( Name name ) {
-            return name.toString(); //getLocalPart();
+            return name.getLocalPart();
+//            if (!name.getSeparator().equals( NameImpl.DEFAULT_SEPARATOR )) {
+//                throw new UnsupportedOperationException( "Name sparator is not default: " + name.getSeparator() );
+//            }
+//            return name.getURI();
         }
     }
     
@@ -167,10 +184,11 @@ class JsonSchemaCoder {
         
         public FeatureType run() throws Exception {
             namespace = input.optString( "namespace" );
-            namespace = namespace != null ? namespace : "";
+            namespace = namespace.length() == 0 ? null : namespace;
             //CoordinateReferenceSystem crs = CRS.decode( input.optString( "srs",  );
             //json.put( "isIdentified", schema.isIdentified() );
             String defaultGeomName = input.getString( "defaultGeom" );
+            boolean isSimple = Boolean.parseBoolean( input.optString( "isSimple" ) );
             
             ComplexType complexType = decodeComplexType( input );
             
@@ -181,9 +199,17 @@ class JsonSchemaCoder {
                     geom = (GeometryDescriptor)prop;
             }
             
-            return factory.createFeatureType( complexType.getName(), complexType.getDescriptors(),
-                    geom, complexType.isIdentified(), complexType.getRestrictions(),
-                    complexType.getSuper(), complexType.getDescription() );
+            if (isSimple) {
+                List<AttributeDescriptor> attrs = new ArrayList( complexType.getDescriptors() );
+                return factory.createSimpleFeatureType( complexType.getName(), attrs,
+                        geom, complexType.isIdentified(), complexType.getRestrictions(),
+                        complexType.getSuper(), complexType.getDescription() );                
+            }
+            else {
+                return factory.createFeatureType( complexType.getName(), complexType.getDescriptors(),
+                        geom, complexType.isIdentified(), complexType.getRestrictions(),
+                        complexType.getSuper(), complexType.getDescription() );
+            }
         }
         
         
@@ -210,7 +236,8 @@ class JsonSchemaCoder {
                 }
                 // geometry
                 else if (typeStr.equals( "GeometryType" )) {
-                    CoordinateReferenceSystem crs = CRS.decode( descriptorJson.getString( "srs" ) );
+                    CoordinateReferenceSystem crs = null;
+                    crs = Geometries.crs( descriptorJson.getString( "srs" ) );
                     AttributeType propType = decodeAttributeType( descriptorJson );
                     
                     GeometryType geomType = factory.createGeometryType( propType.getName(),
@@ -254,13 +281,7 @@ class JsonSchemaCoder {
         
         
         protected Name decodeName( String name ) {
-            assert namespace != null;
-            if (name == null || name.length() == 0) {
-                throw new IllegalArgumentException( "Empty name given." );
-            }
-            else {
-                return new NameImpl( namespace, name );
-            }
+            return namespace != null ? new NameImpl( namespace, name ) : new NameImpl( name );
         }
         
     }

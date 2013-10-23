@@ -133,10 +133,18 @@ public interface UnitOfWork {
      */
     public void commit() throws ModelRuntimeException;
 
+    
+    /**
+     * Rollback any uncommitted changes but does not close this UnitOfWork.
+     *
+     * @throws ModelRuntimeException
+     */
+    public void rollback() throws ModelRuntimeException;
+
 
     /**
      * Closes this UnitOfWork by releasing all resources associated with this
-     * UnitOfWork. All un-commited modifications are discarded.
+     * UnitOfWork. All uncommitted modifications are discarded.
      * <p/>
      * No method should be called after closing the UnitOfWork except for
      * {@link #isOpen()}.

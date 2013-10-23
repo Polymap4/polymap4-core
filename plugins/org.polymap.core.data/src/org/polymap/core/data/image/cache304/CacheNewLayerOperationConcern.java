@@ -65,25 +65,24 @@ public class CacheNewLayerOperationConcern
                     Display display = (Display)_info.getAdapter( Display.class );
                     display.syncExec( new Runnable() {
                         public void run() {
-                            boolean yes = MessageDialog.openQuestion( 
+                            MessageDialog.openInformation( 
                                     PolymapWorkbench.getShellToParentOn(),
                                     Messages.get( "CacheNewLayerConcern_title" ),
                                     Messages.get( "CacheNewLayerConcern_msg" ) );
-                            if (yes) {
-                                ILayer layer = ((NewLayerOperation)op).getNewLayer();
-                                try {
-                                    PipelineProcessorConfiguration[] configs = layer.getProcessorConfigs();
+                            
+                            ILayer layer = ((NewLayerOperation)op).getNewLayer();
+                            try {
+                                PipelineProcessorConfiguration[] configs = layer.getProcessorConfigs();
 
-                                    // new config
-                                    PipelineProcessorConfiguration newConfig = new PipelineProcessorConfiguration( 
-                                            ImageCacheProcessor.class.getName(), "Image-TileCache" );
-                                    configs = (PipelineProcessorConfiguration[])ArrayUtils.add( configs, newConfig );
+                                // new config
+                                PipelineProcessorConfiguration newConfig = new PipelineProcessorConfiguration( 
+                                        ImageCacheProcessor.class.getName(), "Image-TileCache" );
+                                configs = (PipelineProcessorConfiguration[])ArrayUtils.add( configs, newConfig );
 
-                                    layer.setProcessorConfigs( configs );
-                                }
-                                catch (Exception e) {
-                                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-                                }
+                                layer.setProcessorConfigs( configs );
+                            }
+                            catch (Exception e) {
+                                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
                             }
                         }
                     });

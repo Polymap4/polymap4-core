@@ -53,6 +53,7 @@ public interface ILayer
     public static final String      PROP_CRSCODE = "crscode";
     public static final String      PROP_GEORESID = "georesid";
     public static final String      PROP_STYLE = "style";
+    public static final String      PROP_EDIT = "edit";
     
     public static final String      PROP_LAYERSTATUS = "layerstatus";
 
@@ -177,5 +178,28 @@ public interface ILayer
     
     @TransientProperty("renderStatus")
     public void setRenderStatus( RenderStatus status );
+
+    /**
+     * The renderKey is used as a unique layer name for WMS layer used to display
+     * this layer in the workbench. It is stored here a semi persistent central store.
+     *
+     * @deprecated XXX This is MapEditor specific and should be handled there.
+     */
+    public String getRenderKey();
+
+    /* @deprecated XXX This is MapEditor specific and should be handled there. */
+//    @TransientProperty("renderKey")
+    public void updateRenderKey();
+
+    /**
+     * Signals if the content of this layer is dirty.
+     *
+     * @deprecated XXX This is used in Cache304 only and should definitely handled there.
+     */
+    public boolean getEditable();
+    
+    /** @deprecated XXX This is used in Cache304 only and should definitely handled there. */
+    @TransientProperty(PROP_EDIT)
+    public void setEditable( boolean editable );
 
 }

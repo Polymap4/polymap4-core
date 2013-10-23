@@ -210,7 +210,7 @@ public class RenderManager {
                     RenderLayerDescriptor descriptor = new RenderLayerDescriptor( 
                             StringUtils.removeStart( wmsServer.getPathSpec(), "/" ), 
                             layer.getOrderKey(), layer.getOpacity() );
-                    descriptor.layers.add( layer );
+                    descriptor.layer = layer;
                     boolean added = descriptors.add( descriptor );
                     assert added : "Unable to add layer descriptor: " + descriptor.layerNames();
                     
@@ -344,6 +344,13 @@ public class RenderManager {
             }
         }
 
+        
+        /*
+         * The delay collects events.
+         * 
+         * Besides the delay helps ImageCacheProcessor (for example) to disable
+         * *before* the layer is reloaded.
+         */
         @EventHandler(delay=500, display=true)
         public void propertyChange( List<PropertyChangeEvent> events ) {
             boolean updatePipelines = false;
@@ -361,7 +368,7 @@ public class RenderManager {
                         updatePipelines = true;
                     }
                     else if (ILayer.PROP_OPACITY.equals( ev.getPropertyName() )) {
-                        if (descriptor != null && descriptor.layers.size() == 1) {
+                        if (descriptor != null && descriptor.layer != null) {
                             mapEditor.setLayerOpacity( descriptor, layer.getOpacity() );
                         }
                         else {
@@ -369,7 +376,7 @@ public class RenderManager {
                         }
                     }
                     else if (ILayer.PROP_ORDERKEY.equals( ev.getPropertyName() )) {
-                        if (descriptor != null && descriptor.layers.size() == 1) {
+                        if (descriptor != null && descriptor.layer != null) {
                             mapEditor.setLayerZPriority( descriptor, layer.getOrderKey() );
                         }
                         else {
@@ -430,7 +437,7 @@ public class RenderManager {
     
     private final RenderLayerDescriptor findDescriptorForLayer( ILayer layer ) {
         for (RenderLayerDescriptor descriptor : descriptors) {
-            if (descriptor.layers.contains( layer )) {
+            if (layer.equals( descriptor.layer )) {
                 return descriptor;
             }
         }
@@ -442,14 +449,14 @@ public class RenderManager {
      * A set of {@link ILayer}s along with render properties to be displayed by a
      * {@link MapEditor}.
      */
-    class RenderLayerDescriptor
+    public class RenderLayerDescriptor
             implements Comparable {
         
         int                 zPriority;
         
         int                 opacity;
         
-        Set<ILayer>         layers = new HashSet();
+        ILayer              layer;
         
         String              servicePath;
 
@@ -464,11 +471,7 @@ public class RenderManager {
         }
         
         String layerNames() {
-            StringBuilder result = new StringBuilder();
-            for (ILayer layer : layers) {
-                result.append( result.length() > 0 ? "," : "" ).append( layer.getLabel() );
-            }
-            return result.toString();
+            return layer != null ? layer.getLabel() : "";
         }
         
         
@@ -486,14 +489,6 @@ public class RenderManager {
             else {
                 return hashCode() - other.hashCode();
             }
-        }
-
-        /**
-         * Creates a render priority key.
-         */
-        String renderLayerKey() {
-            return new StringBuilder( 128 )
-                    .append( zPriority ).append( opacity ).append( hashCode() ).toString();
         }
 
     }

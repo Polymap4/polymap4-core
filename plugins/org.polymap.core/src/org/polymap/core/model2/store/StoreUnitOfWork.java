@@ -18,6 +18,7 @@ import java.util.Collection;
 
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.engine.QueryImpl;
+import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.UnitOfWork;
 
 /**
@@ -37,16 +38,28 @@ public interface StoreUnitOfWork {
     /**
      * 
      *
-     * @param <T>
      * @param entityClass
      * @return Collection of ids of the found entities.
      */
-    public <T extends Entity> Collection<Object> find( QueryImpl query );
+    public Collection<Object> find( QueryImpl query );
     
+    /**
+     * Evaluate the given store specific expression against the given Composite
+     * state. This method is used by {@link UnitOfWorkImpl} to blend a query result
+     * with the locally modified features.
+     * 
+     * @param entityState
+     * @param expression
+     * @return True if expression is true for given entity.
+     */
+    public boolean eval( Object entityState, Object expression );
+
     public void prepareCommit( Iterable<Entity> loaded ) throws Exception;
     
     public void commit();
     
     public void close();
+
+    public void rollback();
 
 }

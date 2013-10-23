@@ -15,26 +15,32 @@
 package org.polymap.core.data.image.cache304;
 
 import java.util.EventObject;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
+import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
+
+import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Sets;
+
 import org.polymap.core.data.FeatureChangeEvent;
-import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
@@ -76,32 +82,43 @@ public class ImageCacheProcessor
     
     private LayerListener           layerListener;
     
-    private boolean                 active = true;
+    private volatile boolean        active = true;
     
     
     public void init( Properties _props ) {
         props = _props;
         layer = (ILayer)props.get( "layer" );
         assert layer != null;
-        
+        active = !layer.getEditable();
+
         layerListener = new LayerListener( layer, this );
+    }
+
+
+    @Override
+    protected void finalize() throws Throwable {
+        layerListener.dispose();
     }
 
 
     protected void deactivate() {
         if (active) {
-            log.debug( "Cache deactivated for layer: " + layer.getLabel() );
+            active = false;
+            layer.setEditable( true );
+            log.debug( "CACHE deactivated for layer: " + layer.getLabel() );
         }
-        active = false;
     }
 
     
     protected void updateAndActivate( boolean updateCache ) {
-        log.debug( "Cache: activating for layer: " + layer.getLabel() );
-        if (updateCache) {
-            Cache304.instance().updateLayer( layer, null );
+        log.debug( "CACHE: activating for layer: " + layer.getLabel() );
+        if (!active) {
+            if (updateCache) {
+                Cache304.instance().updateLayer( layer, null );
+            }
+            active = true;
+            layer.setEditable( false );
         }
-        active = true;
     }
 
     
@@ -136,7 +153,6 @@ public class ImageCacheProcessor
         
         Timer timer = new Timer();
         CachedTile cachedTile = Cache304.instance().get( request, context.getLayers(), props );
-        log.debug( "query time: " + timer.elapsedTime() + "ms" );
         
         if (cachedTile != null) {
             // check If-Modified-Since
@@ -144,14 +160,14 @@ public class ImageCacheProcessor
             long lastModified = cachedTile.lastModified.get();
             if (modifiedSince > 0 
                     && lastModified > modifiedSince) {
-                log.debug( "### Cache: 304! :)" );
+                log.debug( "### CACHE: 304! :) -- " + timer.elapsedTime() + "ms" );
                 context.sendResponse( EncodedImageResponse.NOT_MODIFIED );
                 context.sendResponse( ProcessorResponse.EOP );
             }
             // in cache but modified
             else {
                 byte[] data = cachedTile.data.get();
-                log.debug( "### Cache: Hit. (" + data.length + " bytes)" );
+                log.debug( "### CACHE: Hit. (" + data.length + " bytes) -- " + timer.elapsedTime() + "ms" );
                 EncodedImageResponse response = new EncodedImageResponse( data, data.length );
                 response.setLastModified( cachedTile.lastModified.get() );
                 response.setExpires( cachedTile.expires.get() );
@@ -162,7 +178,7 @@ public class ImageCacheProcessor
         
         // not in cache -> send request down the pipeline 
         else {
-            log.debug( "### Cache: Miss. (...)" );
+            log.debug( "### CACHE: Miss. (...) -- " + timer.elapsedTime() + "ms" );
             ByteArrayOutputStream cacheBuf = new ByteArrayOutputStream( 128*1024 );
             context.put( "cacheBuf", cacheBuf );
             context.put( "request", request );
@@ -193,9 +209,14 @@ public class ImageCacheProcessor
         // EOP
         else if (r == ProcessorResponse.EOP) {
             GetMapRequest request = (GetMapRequest)context.get( "request" );
-            CachedTile cachedTile = Cache304.instance().put( 
-                    request, context.getLayers(), cacheBuf.toByteArray(),
-                    (Long)context.get( "created" ), props );
+            if (cacheBuf.size() > 0) {
+                CachedTile cachedTile = Cache304.instance().put( 
+                        request, context.getLayers(), cacheBuf.toByteArray(),
+                        (Long)context.get( "created" ), props );
+            }
+            else {
+                log.warn( "Empty response buf! -> not stored in Cache." );
+            }
 
             context.sendResponse( ProcessorResponse.EOP );
             //log.debug( "...all data sent." );
@@ -213,14 +234,17 @@ public class ImageCacheProcessor
     /**
      * Static listener class with weak reference the processor to allow GC to reclaim
      * the processor.
-     * 
-     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
      */
     static class LayerListener {
     
-        private ILayer                              layer;
+        /** The property names of ILayer that forces the cache to deactivate. */
+        private static final Set<String>    layerModProps = Sets.newHashSet( ILayer.PROP_STYLE, ILayer.PROP_PROCS );
+                
+        private ILayer                      layer;
         
         private WeakReference<ImageCacheProcessor>  procRef;
+        
+        private Set<FeatureId>              modified = new HashSet();
         
         
         public LayerListener( ILayer layer, ImageCacheProcessor processor ) {
@@ -235,46 +259,97 @@ public class ImageCacheProcessor
                         return eev.getEventType() == EntityStateEvent.EventType.COMMIT; //ev.isMySession();
                     }
                     // FeatureChangeEvent
-                    else if (ev instanceof FeatureChangeEvent) {
+                    else if (ev instanceof FeatureChangeEvent
+                            && ev.getSource() instanceof ILayer
+                            && ((ILayer)ev.getSource()).id().equals( LayerListener.this.layer.id() )) {
                         return true;
                     }
-                    else {
-                        throw new IllegalStateException( "Unknown event type: " + ev );
+                    // PropertyChangeEvent: ILayer
+                    else if (ev instanceof PropertyChangeEvent
+                            && ev.getSource() instanceof ILayer
+                            && ((ILayer)ev.getSource()).id().equals( LayerListener.this.layer.id() )
+                            && layerModProps.contains( ((PropertyChangeEvent)ev).getPropertyName() )) {
+                        return true;
                     }
+                    return false;
                 }
             });
         }
         
+        public void dispose() {
+            EventManager.instance().unsubscribe( this );
+            LayerListener.this.layer = null;            
+        }
+        
         @EventHandler(scope=Event.Scope.Session)
-        protected void featureChange( EntityStateEvent ev ) {
+        protected void changesCommitted( EntityStateEvent ev ) {
             ImageCacheProcessor proc = procRef.get();
             if (proc != null) {
-                if (ev.getSource() == LayerListener.this.layer) {
+                // for entity features this check does not work
+                // if (ev.getSource() == LayerListener.this.layer) {
+                
+                if (!proc.active) {
+                    // XXX if we are not active and some entities are committed, 
+                    // then this is probable a general save
                     proc.updateAndActivate( true );
+                    modified.clear();
+
+                    // does not work properly for entity features
+//                    // XXX so we guess based on the committed fids ...
+//                    Set<String> committed = new HashSet();
+//                    for (EntityHandle handle : ev) {
+//                        committed.add( handle.id() );
+//                    }
+//                    for (FeatureId fid : modified) {
+//                        if (committed.contains( fid.getID() ) ) {
+//                            proc.updateAndActivate( true );
+//                            modified.clear();
+//                            return;
+//                        }
+//                    }
                 }
             }
             else {
-                FeatureStateTracker.instance().removeFeatureListener( this ); 
-                LayerListener.this.layer = null;                                
+                dispose();
             }
         }
         
+        /** A feature of the layer has changed. */
         @EventHandler
-        protected void featureChange( FeatureChangeEvent ev ) {
+        protected void featuresChanged( FeatureChangeEvent ev ) {
             ImageCacheProcessor proc = procRef.get();
             if (proc == null) {
-                EventManager.instance().unsubscribe( this );
-                LayerListener.this.layer = null;
+                dispose();
             }
-            else if (ev.getSource() == LayerListener.this.layer) {
+            else {
                 // just activate update if changes have been dropped
                 if (ev.getType() == FeatureChangeEvent.Type.FLUSHED) {
                     proc.updateAndActivate( false );
                 }
                 // deactivate cache when features have been modified
+                // FIXME there is a race cond. with MapEditor.reloadLayer()
                 else {
                     proc.deactivate();
+                    modified.addAll( ev.getFids() );
                 }
+            }
+        }                        
+
+        /** 
+         * The style of the layer has changed.
+         * <p/>
+         * The cache managed style information for each tile, so it is
+         * not strictly necessary to deactivate the cache. However, it
+         * seems to be the "right" way to do it.
+         */
+        @EventHandler
+        protected void layerChanged( PropertyChangeEvent ev ) {
+            ImageCacheProcessor proc = procRef.get();
+            if (proc == null) {
+                dispose();
+            }
+            else {
+                proc.deactivate();
             }
         }                        
     }

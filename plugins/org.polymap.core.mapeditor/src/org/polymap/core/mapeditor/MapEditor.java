@@ -16,11 +16,16 @@ package org.polymap.core.mapeditor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
@@ -120,8 +125,8 @@ public class MapEditor
 
     private RenderManager           renderManager;
     
-    /** The currently displayed layers. */
-    protected Map<RenderLayerDescriptor,Layer> layers = new HashMap();
+    /** The currently displayed layers. Sorted in layer zIndex order. */
+    protected Map<RenderLayerDescriptor,Layer> layers = new TreeMap();
     
     private MapEditorOverview       overview;
     
@@ -321,13 +326,15 @@ public class MapEditor
     
     public Layer findLayer( ILayer search ) {
         for (Map.Entry<RenderLayerDescriptor,Layer> entry: layers.entrySet()) {
-            for (ILayer candidate : entry.getKey().layers) {
-                if (candidate.equals( search )) {
-                    return entry.getValue();
-                }
+            if (search.equals( entry.getKey().layer )) {
+                return entry.getValue();
             }
         }
         return null;
+    }
+    
+    public Set<RenderLayerDescriptor> layers() {
+        return layers.keySet();
     }
     
     /**
@@ -339,19 +346,21 @@ public class MapEditor
         assert !layers.containsKey( descriptor );
 
         WMSLayer olayer = new WMSLayer( descriptor.title(), 
-                descriptor.servicePath, descriptor.layerNames() );
+                descriptor.servicePath, descriptor.layer.getRenderKey() );
         olayer.setFormat( "image/png" );
         olayer.setVisibility( true );
         olayer.setIsBaseLayer( false );
-        //olayer.setSingleTile( true );
+//        olayer.setSingleTile( true );
         olayer.setTileSize( new Size( 400, 400 ) );
         olayer.setBuffer( 0 );
-        olayer.setZIndex( descriptor.zPriority );
         olayer.setOpacity( ((double)descriptor.opacity) / 100 );
         olayer.setTransitionEffect( Layer.TRANSITION_RESIZE );
-        olwidget.getMap().addLayer( olayer );
-        olayer.setZIndex( descriptor.zPriority );
+        
         layers.put( descriptor, olayer );
+
+        olwidget.getMap().addLayer( olayer );
+        int layerIndex = Iterables.indexOf( layers.keySet(), Predicates.equalTo( descriptor ) );
+        olwidget.getMap().setLayerIndex( olayer, layerIndex );
 
         //overview.addLayer( olLayer );
 
@@ -377,21 +386,25 @@ public class MapEditor
     }
    
    
-    /**
-     * Fills the {@link #olwidget} with the internal servers of the
-     * {@link #renderManager}.
-     */
-    void reloadLayer( RenderLayerDescriptor descriptor ) {
+    public void reloadLayer( RenderLayerDescriptor descriptor ) {
         assert descriptor != null;
         assert layers.containsKey( descriptor );
 
+        // force next SimpleWmsServer to use a new, unique layer key
+        // to prevent old content to be shown
+        descriptor.layer.updateRenderKey();
+        removeLayer( descriptor );
+        addLayer( descriptor );
+        
         Layer ollayer = layers.get( descriptor );
-        if (ollayer instanceof WMSLayer) {
-            ((WMSLayer)ollayer).redraw( true );
-        }
-        else {
-            ollayer.redraw();
-        }
+        ollayer.redraw();
+        
+//        if (ollayer instanceof WMSLayer) {
+//            ((WMSLayer)ollayer).redraw( true );
+//        }
+//        else {
+//            ollayer.redraw();
+//        }
     }
    
 

@@ -48,58 +48,115 @@ public class OpenLayersObject {
         changes2widget();
     }
 
+    
+    /**
+     * Add code that calls the given function with the given arguments.
+     * 
+     * @param function The name of the function.
+     * @param args Can be: {@link String}, kind of {@link Number}, {@link Boolean} or
+     *        {@link OpenLayersObject}.
+     */
+    public void callObjFunction( String function, Object... args ) {
+        StringBuilder buf = new StringBuilder( 128 )
+                .append( getJSObjRef() ).append( '.' ).append( function ).append( '(' );
+        
+        for (int i=0; i<args.length; i++) {
+            if (i > 0) {
+                buf.append( ',' );
+            }
+            Object arg = args[i];
+            if (arg instanceof OpenLayersObject) {
+                buf.append( ((OpenLayersObject)arg).getJSObjRef() );
+            }
+            else if (arg instanceof Number) {
+                buf.append( arg.toString() );
+            }
+            else if (arg instanceof Boolean) {
+                buf.append( arg.toString() );
+            }
+            else if (arg instanceof String) {
+                buf.append( '\'' ).append( (String)arg ).append( '\'' );
+            }
+            else {
+                throw new IllegalArgumentException( "Unknown arg type: " + arg ); 
+            }
+        }
+        addObjModCode( buf.append( ");" ).toString() );
+    }
 
     public void addObjModCode( String function, OpenLayersObject obj ) {
-        addObjModCode( getJSObjRef() + "." + function + "(" + obj.getJSObjRef() + ");" );
+        callObjFunction( function, obj );
     }
 
     public void addObjModCode( String function, OpenLayersObject obj , boolean bool) {
-        addObjModCode( getJSObjRef() + "." + function + "(" + obj.getJSObjRef() + "," + bool + ");" );
+        callObjFunction( function, obj, bool );
     }
-
 
     public void addObjModCode( String function, double dbl , boolean bool) {
-        addObjModCode( getJSObjRef() + "." + function + "(" + dbl + "," + bool + ");" );
+        callObjFunction( function, dbl, bool );
     }
 
-    
     public void addObjModCode( String function, int val ) {
-        addObjModCode( getJSObjRef() + "." + function + "(" + val + ");" );
+        callObjFunction( function, val );
     }
-
-
 
     public void addObjModCode( String function, boolean val ) {
-        addObjModCode( getJSObjRef() + "." + function + "(" + val + ");" );
+        callObjFunction( function, val );
     }
-
 
     public void addObjModCode( String function, double val ) {
-        addObjModCode( getJSObjRef() + "." + function + "(" + val + ");" );
+        callObjFunction( function, val );
     }
 
 
-    public void setObjAttr( String attr, OpenLayersObject obj ) {
-        addObjModCode( getJSObjRef() + "." + attr + "=" + obj.getJSObjRef() + ";" );
+    /**
+     * Adds code that sets the value of the given attribute.
+     * 
+     * @param attr The name of the attribute.
+     * @param args Can be: {@link String}, kind of {@link Number}, {@link Boolean} or
+     *        {@link OpenLayersObject}.
+     */
+    public void setObjAttr( String attr, Object arg ) {
+        StringBuilder buf = new StringBuilder( 128 )
+                .append( getJSObjRef() ).append( '.' ).append( attr ).append( '=' );
+        
+        if (arg instanceof OpenLayersObject) {
+            buf.append( ((OpenLayersObject)arg).getJSObjRef() );
+        }
+        else if (arg instanceof Number) {
+            buf.append( arg.toString() );
+        }
+        else if (arg instanceof Boolean) {
+            buf.append( arg.toString() );
+        }
+        else if (arg instanceof String) {
+            buf.append( '\'' ).append( (String)arg ).append( '\'' );
+        }
+        else {
+            throw new IllegalArgumentException( "Unknown arg type: " + arg ); 
+        }
+        addObjModCode( buf.append( ';' ).toString() );
     }
 
-
-    public void setObjAttr( String attr, int val ) {
-        addObjModCode( getJSObjRef() + "." + attr + "=" + val + ";" );
-    }
-
-    public void setObjAttr( String attr, String val ) {
-        addObjModCode( getJSObjRef() + "." + attr + "='" + val + "';" );
-    }
-
-    public void setObjAttr( String attr, boolean val ) {
-        addObjModCode( getJSObjRef() + "." + attr + "=" + val + ";" );
-    }
-
-
-    public void setObjAttr( String attr, double val ) {
-        addObjModCode( getJSObjRef() + "." + attr + "=" + val + ";" );
-    }
+//    public void setObjAttr( String attr, OpenLayersObject obj ) {
+//        setObjAttr( attr, (Object)obj );
+//    }
+//
+//    public void setObjAttr( String attr, int val ) {
+//        addObjModCode( getJSObjRef() + "." + attr + "=" + val + ";" );
+//    }
+//
+//    public void setObjAttr( String attr, String val ) {
+//        addObjModCode( getJSObjRef() + "." + attr + "='" + val + "';" );
+//    }
+//
+//    public void setObjAttr( String attr, boolean val ) {
+//        addObjModCode( getJSObjRef() + "." + attr + "=" + val + ";" );
+//    }
+//
+//    public void setObjAttr( String attr, double val ) {
+//        addObjModCode( getJSObjRef() + "." + attr + "=" + val + ";" );
+//    }
 
     
     public void createCSS(String name,String css) {

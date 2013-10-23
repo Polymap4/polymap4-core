@@ -25,10 +25,14 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Stringer;
+import org.polymap.core.runtime.entity.EntityStateEvent;
+import org.polymap.core.runtime.entity.IEntityHandleable;
 import org.polymap.core.security.SecurityUtils;
 import org.polymap.core.security.UserPrincipal;
 
@@ -37,8 +41,7 @@ import org.polymap.service.ui.GeneralPreferencePage;
 /**
  * The activator class controls the plug-in life cycle
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class ServicesPlugin 
@@ -147,8 +150,7 @@ public class ServicesPlugin
     }
     
     
-    public void start( final BundleContext context )
-    throws Exception {
+    public void start( final BundleContext context ) throws Exception {
         super.start( context );
         plugin = this;
         
@@ -208,8 +210,7 @@ public class ServicesPlugin
     }
 
 
-    public void stop( BundleContext context )
-    throws Exception {
+    public void stop( BundleContext context ) throws Exception {
         httpServiceTracker.close();
         httpServiceTracker = null;
         
@@ -255,11 +256,55 @@ public class ServicesPlugin
     }
 
     
-    public ServiceContext initServiceContext( IProvidedService service ) {
-        ServiceContext context = serviceContexts.get( service.id() );
+    public ServiceContext initServiceContext( final IProvidedService _service ) {
+        ServiceContext context = serviceContexts.get( _service.id() );
         if (context == null) {
-            context = new ServiceContext( service.id(), httpService );
-            serviceContexts.put( service.id(), context );
+            context = new ServiceContext( _service.id() ) {
+                /** Find the service entity in the current session. */
+                protected IProvidedService findService() {
+                    for (IProvidedService service : ServiceRepository.instance().allServices()) {
+                        if (service.id().equals( serviceId )) {
+                            return service;
+                        }
+                    }
+                    return null;
+                }
+                @Override
+                protected void start() throws Exception {
+                    // XXX prevent (re)start if error occured?
+                    IProvidedService service = findService();
+                    if (service != null && service.isEnabled()) {
+                        service.start();
+                    }
+                }
+                @Override
+                protected void stop() throws Exception {
+                    IProvidedService service = findService();
+                    if (service != null) {
+                        service.stop();
+                    }
+                }
+                @Override
+                protected boolean needsRestart( EntityStateEvent ev ) throws Exception {
+                    IProvidedService service = findService();
+                    IMap map = service.getMap();
+                    if (ev.hasChanged( (IEntityHandleable)service )) {
+                        return true;
+                    }
+                    else if (ev.hasChanged( (IEntityHandleable)map )) {
+                        return true;
+                    }
+                    else {
+                        for (ILayer layer : map.getLayers()) {
+                            if (ev.hasChanged( (IEntityHandleable)layer )) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }                
+            };
+            serviceContexts.put( _service.id(), context );
         }
         return context;
     }

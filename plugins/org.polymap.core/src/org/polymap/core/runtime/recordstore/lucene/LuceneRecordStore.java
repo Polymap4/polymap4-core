@@ -33,6 +33,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -46,6 +49,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.MMapDirectory;
@@ -85,10 +89,10 @@ public final class LuceneRecordStore
     /** The Lucene version this store is working with. */
     public static final Version     VERSION = Version.LUCENE_36;
 
-    /** Default: 3% of HEAP; 32M is good for 512M RAM fand merge size 16MB (Lucene 3). */
+    /** Default: 10% of HEAP; 32M is good for 512M RAM and merge size 16MB (Lucene 3). */
     public static final double      MAX_RAMBUFFER_SIZE = 10d / 100d * Runtime.getRuntime().maxMemory() / 1000000;
     
-    public static final double      MAX_MERGE_SIZE = 16;
+    public static final double      MAX_MERGE_SIZE = 24;
     
     public static final double      MAX_DELETED_PERCENT = 10;
     
@@ -287,9 +291,18 @@ public final class LuceneRecordStore
     public IRecordState newRecord() {
         assert reader != null : "Store is closed.";
         LuceneRecordState result = new LuceneRecordState( this, new Document(), false );
-        result.createId();
+        result.createId( null );
         return result;
     }
+
+    @Override
+    public IRecordState newRecord( Object id ) {
+        assert reader != null : "Store is closed.";
+        LuceneRecordState result = new LuceneRecordState( this, new Document(), false );
+        result.createId( id );
+        return result;
+    }
+
 
     @Override
     public IRecordState get( Object id ) 
@@ -552,6 +565,8 @@ public final class LuceneRecordStore
                 writer.rollback();
                 writer.close();
                 writer = null;
+            }
+            catch (AlreadyClosedException e) {
             }
             catch (Exception e) {
                 log.warn( "Error during discard()", e );
