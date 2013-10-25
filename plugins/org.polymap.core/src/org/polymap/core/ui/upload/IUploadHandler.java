@@ -16,6 +16,8 @@ package org.polymap.core.ui.upload;
 
 import java.io.InputStream;
 
+import org.polymap.core.runtime.SessionContext;
+
 /**
  * 
  *
@@ -23,6 +25,16 @@ import java.io.InputStream;
  */
 public interface IUploadHandler {
 
+    /**
+     * <p/>
+     * This method is usually called outside any {@link SessionContext}.
+     *
+     * @param name
+     * @param contentType
+     * @param in
+     * @throws Exception
+     */
     public void uploadStarted( String name, String contentType, InputStream in )
             throws Exception;
+    
 }

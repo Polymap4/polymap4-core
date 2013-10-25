@@ -14,6 +14,8 @@
  */
 package org.polymap.core.ui.upload;
 
+import java.util.concurrent.Callable;
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +37,7 @@ import org.eclipse.rwt.widgets.FileUpload;
 
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.IMessages;
+import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 
@@ -61,6 +64,8 @@ public class Upload
     private Label                   label;
     
     private IUploadHandler          handler;
+    
+    private SessionContext          sessionContext = SessionContext.current();
     
     
     public Upload( Composite parent, int style, int... uploadStyles ) {
@@ -112,9 +117,10 @@ public class Upload
     }
 
     @Override
-    public void uploadStarted( final String name, String contentType, InputStream in ) throws Exception {
+    public void uploadStarted( final String name, final String contentType, InputStream in ) throws Exception {
         assert handler != null : "No handler set for Upload.";
-        FilterInputStream filtered = new FilterInputStream( in ) {
+        
+        final FilterInputStream filtered = new FilterInputStream( in ) {
             int count = 0;
             Display display = getDisplay();
             @Override
@@ -142,7 +148,13 @@ public class Upload
                 return result;
             }
         };
-        handler.uploadStarted( name, contentType, filtered );
+        
+        sessionContext.execute( new Callable() {
+            public Object call() throws Exception {
+                handler.uploadStarted( name, contentType, filtered );
+                return null;
+            }
+        });
     }
 
 }
