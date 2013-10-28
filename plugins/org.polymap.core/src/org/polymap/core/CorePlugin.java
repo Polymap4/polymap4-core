@@ -153,7 +153,7 @@ public class CorePlugin
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "trace" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "debug" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.workbench.dnd", "debug" );
 
@@ -165,8 +165,8 @@ public class CorePlugin
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
         
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data.entityfeature.EntitySourceProcessor", "info" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data.entityfeature.EntitySourceProcessor", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
 
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );

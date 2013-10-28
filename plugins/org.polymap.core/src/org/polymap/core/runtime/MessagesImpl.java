@@ -41,7 +41,6 @@ import org.apache.commons.logging.LogFactory;
  * @see ResourceBundle
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@SuppressWarnings("restriction")
 public class MessagesImpl
         implements IMessages {
 
@@ -152,7 +151,7 @@ public class MessagesImpl
     
     /**
      * Controls the bundle loading. Enable properties files loaded from workspace.
-     * Default behaviour (properties from classloader) is fallback. If teh workspace
+     * Default behaviour (properties from classloader) is fallback. If the workspace
      * file does not contain a particular key then the properties file from the
      * classloader (default) is checked for that key.
      * <p/>

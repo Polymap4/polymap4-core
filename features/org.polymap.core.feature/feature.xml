@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.polymap.core.feature"
-      label="Polymap3 Core"
+      label="Polymap3 Core System"
       version="3.2.0.qualifier"
       provider-name="polymap.org"
       os="linux,win32"
@@ -407,13 +407,6 @@
 
    <plugin
          id="org.polymap.catalog.dxf"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.rwt.widgets.upload"
          download-size="0"
          install-size="0"
          version="0.0.0"
