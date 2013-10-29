@@ -166,6 +166,11 @@ public class VectorLayer
     }
 
     
+    public void destroyFeatures() {
+        super.callObjFunction( "destroyFeatures" );
+    }
+
+
     /**
      * Ask the layer to request features again and redraw them. Triggers the
      * refresh event if the layer is in range and visible.
