@@ -31,7 +31,6 @@ import org.apache.commons.logging.LogFactory;
  * @see ResourceBundle
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@SuppressWarnings("restriction")
 public class MessagesImpl
         implements IMessages {
 

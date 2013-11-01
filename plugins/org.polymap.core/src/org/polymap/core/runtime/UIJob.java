@@ -131,6 +131,11 @@ public abstract class UIJob
 //        sessionContext.addSessionListener( this );
     }
 
+    
+    public Display getDisplay() {
+        return display;
+    }
+
 
     /**
      * This cancels the job and, if this does not succeeded, it interrupts the

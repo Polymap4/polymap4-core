@@ -128,7 +128,9 @@ public class DxfServiceImpl
             return false;
         }
         else {
-            return adaptee.isAssignableFrom( DXFDataStore.class ) || super.canResolve( adaptee );
+            return adaptee.isAssignableFrom( DXFDataStore.class )
+                    || adaptee.isAssignableFrom( File.class )
+                    || super.canResolve( adaptee );
         }
 	}
 

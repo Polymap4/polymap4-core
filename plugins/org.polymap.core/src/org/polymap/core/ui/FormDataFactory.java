@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright 2011-2013, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,41 +12,46 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.project.ui.util;
+package org.polymap.core.ui;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-
-import org.polymap.core.ui.FormDataFactory;
 
 /**
  * Factory for {@link FormData} instances with simplified API.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class SimpleFormData
-        extends FormDataFactory {
+public class FormDataFactory {
 
-    private static Log log = LogFactory.getLog( SimpleFormData.class );
+    private static Log log = LogFactory.getLog( FormDataFactory.class );
 
     // static factories ***********************************
     
     /**
      * Equivalent of calling <code>new SimpleFormData().fill()</code>
      */
-    public static SimpleFormData filled() {
-        return new SimpleFormData().fill();
+    public static FormDataFactory filled() {
+        return new FormDataFactory().fill();
+    }
+    
+    /**
+     * Equivalent of calling <code>new SimpleFormData().fill()</code>
+     */
+    public static FormDataFactory defaults() {
+        return new FormDataFactory().fill();
     }
     
     /**
      * Equivalent of calling <code>new SimpleFormData(defaultOffset)</code>
      */
-    public static SimpleFormData offset( int defaultOffset) {
-        return new SimpleFormData( defaultOffset );
+    public static FormDataFactory offset( int defaultOffset) {
+        return new FormDataFactory( defaultOffset );
     }
     
     
@@ -61,11 +65,11 @@ public class SimpleFormData
     /**
      * Constructs a new instance with defaultOffset 0.
      */
-    public SimpleFormData() {
+    public FormDataFactory() {
         this( 0 );
     }
 
-    public SimpleFormData( FormData other ) {
+    public FormDataFactory( FormData other ) {
         this( 0 );
         formData.bottom = other.bottom;
         formData.top = other.top;
@@ -75,16 +79,21 @@ public class SimpleFormData
         formData.height = other.height;
     }
 
-    public SimpleFormData( int defaultOffset ) {
+    public FormDataFactory( int defaultOffset ) {
         this.formData = new FormData();
         this.defaultOffset = defaultOffset;
     }
 
+    public <T extends Composite> T applyTo( T composite ) {
+        composite.setLayoutData( create() );
+        return composite;
+    }
+    
     /**
      * Equivalent of calling:
      * <code>left( 0 ).top( 0 ).right( 100 ).bottom( 100 )</code>
      */
-    public SimpleFormData fill() {
+    public FormDataFactory fill() {
         return left( 0 ).top( 0 ).right( 100 ).bottom( 100 );
     }
 
@@ -92,96 +101,96 @@ public class SimpleFormData
         return formData;
     }
 
-    public SimpleFormData height( int height ) {
+    public FormDataFactory height( int height ) {
         formData.height = height;
         return this;
     }
     
-    public SimpleFormData width( int width ) {
+    public FormDataFactory width( int width ) {
         formData.width = width;
         return this;
     }
     
     // left
 
-    public SimpleFormData left( int num ) {
+    public FormDataFactory left( int num ) {
         return left( num, defaultOffset );
     }
 
-    public SimpleFormData left( int num, int offset ) {
-        formData.left = new FormAttachment( num, offset );
+    public FormDataFactory left( int num, int offset ) {
+        formData.left = num > -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
-    public SimpleFormData left( Control control ) {
+    public FormDataFactory left( Control control ) {
         formData.left = new FormAttachment( control, defaultOffset );
         return this;
     }
 
-    public SimpleFormData left( Control control, int offset ) {
+    public FormDataFactory left( Control control, int offset ) {
         formData.left = new FormAttachment( control, offset );
         return this;
     }
 
     // right
 
-    public SimpleFormData right( int num ) {
+    public FormDataFactory right( int num ) {
         return right( num, -defaultOffset );
     }
 
-    public SimpleFormData right( int num, int offset ) {
+    public FormDataFactory right( int num, int offset ) {
         formData.right = num > -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
-    public SimpleFormData right( Control control ) {
+    public FormDataFactory right( Control control ) {
         formData.right = new FormAttachment( control, -defaultOffset );
         return this;
     }
 
-    public SimpleFormData right( Control control, int offset ) {
+    public FormDataFactory right( Control control, int offset ) {
         formData.right = new FormAttachment( control, offset );
         return this;
     }
 
     // top
 
-    public SimpleFormData top( int num ) {
+    public FormDataFactory top( int num ) {
         return top( num, defaultOffset );
     }
 
-    public SimpleFormData top( int num, int offset ) {
-        formData.top = new FormAttachment( num, offset );
+    public FormDataFactory top( int num, int offset ) {
+        formData.top = num != -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
-    public SimpleFormData top( Control control ) {
+    public FormDataFactory top( Control control ) {
         formData.top = new FormAttachment( control, defaultOffset );
         return this;
     }
 
-    public SimpleFormData top( Control control, int offset ) {
+    public FormDataFactory top( Control control, int offset ) {
         formData.top = new FormAttachment( control, offset );
         return this;
     }
 
     // bottom
 
-    public SimpleFormData bottom( int num ) {
+    public FormDataFactory bottom( int num ) {
         return bottom( num, -defaultOffset );
     }
 
-    public SimpleFormData bottom( int num, int offset ) {
+    public FormDataFactory bottom( int num, int offset ) {
         formData.bottom = num != -1 ? new FormAttachment( num, offset ) : null;
         return this;
     }
 
-    public SimpleFormData bottom( Control control ) {
+    public FormDataFactory bottom( Control control ) {
         formData.bottom = new FormAttachment( control, -defaultOffset );
         return this;
     }
 
-    public SimpleFormData bottom( Control control, int offset ) {
+    public FormDataFactory bottom( Control control, int offset ) {
         formData.bottom = new FormAttachment( control, offset );
         return this;
     }

@@ -144,8 +144,9 @@ public class ShpServiceImpl
 	public <T> boolean canResolve(Class<T> adaptee) {
 		if (adaptee == null)
 			return false;
-		return adaptee.isAssignableFrom(ShapefileDataStore.class)||
-                super.canResolve(adaptee);
+		return adaptee.isAssignableFrom(ShapefileDataStore.class)
+		        || adaptee.isAssignableFrom(File.class)
+                || super.canResolve(adaptee);
 	}
 
     public void dispose( IProgressMonitor monitor ) {

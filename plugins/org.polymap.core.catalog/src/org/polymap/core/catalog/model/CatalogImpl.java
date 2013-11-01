@@ -179,7 +179,6 @@ public class CatalogImpl
         IResolveDelta deltaChanged = new ResolveDelta( this, Collections.singletonList( deltaAdded ) );
         fire( new ResolveChangeEvent( CatalogImpl.this, IResolveChangeEvent.Type.POST_CHANGE,
                 deltaChanged ) );
-
     }
 
     public void remove( IService service )

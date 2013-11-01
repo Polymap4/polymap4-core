@@ -30,9 +30,11 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.actions.ActionDelegate;
 
 import org.polymap.core.catalog.Messages;
+import org.polymap.core.catalog.operations.RemoveServiceOperation;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -61,9 +63,9 @@ public class RemoveServiceAction
 //                    i18n( "confirmTitle" ), i18n( "confirmMessage" ) ) ) {
                 ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
                 for (Object elm : selection.toList()) {
-                    catalog.remove( (IService)elm );
-//                }
-            }
+                    RemoveServiceOperation op = new RemoveServiceOperation( catalog, (IService)elm );
+                    OperationSupport.instance().execute( op, false, false );
+                }
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( "", this, e.getLocalizedMessage(), e );

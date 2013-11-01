@@ -36,6 +36,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.Messages;
+import org.polymap.core.catalog.operations.AddServiceOperation;
+import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.workbench.PolymapWorkbench;
 
@@ -77,7 +79,8 @@ public class CatalogImportWizard
 		ICatalog catalog = CatalogPlugin.getDefault().getLocalCatalog();
 		for (IService service : services) {
 		    try {
-                catalog.add( service );
+		        AddServiceOperation op = new AddServiceOperation( catalog, service );
+		        OperationSupport.instance().execute( op, false, false );
             }
             catch (Exception e) {
                 PolymapWorkbench.handleError( CatalogPlugin.ID, this, i18n( "errorMsg" ), e );
