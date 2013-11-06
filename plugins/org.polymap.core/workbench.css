@@ -1,0 +1,110 @@
+CTabFolder { 
+  border-color: #eee;
+  border-radius: 12px;
+ }
+
+CTabItem {
+  font: 17px "Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;  color: #181818;
+  background-image: none;
+  padding: 6px 15px;
+  spacing: 10px;
+  text-shadow: none;
+}
+
+/* Shell titlebar */
+
+Shell-Titlebar {
+  font: 14px "Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;
+  background-color: #eee; /* setting the widget gradient color */
+  color: #ffffff;
+  background-image: gradient(
+    linear, left top, left bottom,
+    from( #216292 ), to( #216292 )
+  );
+  padding: 0 10px 0 10px;
+  margin: 0px;
+  height: 38px;
+  border: none;
+  border-radius: 0;
+  text-shadow: none;
+}
+
+/* Shell buttons */
+
+/* Minimize button */
+/*
+Shell-MinButton {
+  background-image: url( resource/widget/rap/window/shell-min.png );
+  margin: 0 -2px 0 0;
+}
+
+Shell-MinButton:hover {
+  background-image: url( resource/widget/rap/window/shell-min-hover.png );
+}
+
+Shell-MinButton:inactive {
+  background-image: url( resource/widget/rap/window/shell-min.png );
+  margin: 0 -2px 0 0;
+}
+
+Shell-MinButton:inactive:hover {
+  background-image: url( resource/widget/rap/window/shell-min-hover.png );
+}
+*/
+/* Maximize button */
+/*
+Shell-MaxButton {
+  background-image: url( resource/widget/rap/window/shell-max.png );
+  margin: 0 -2px 0 0;
+}
+
+Shell-MaxButton:hover {
+  background-image: url( resource/widget/rap/window/shell-max-hover.png );
+}
+
+Shell-MaxButton:inactive {
+  background-image: url( resource/widget/rap/window/shell-max.png );
+  margin: 0 -2px 0 0;
+}
+
+Shell-MaxButton:inactive:hover {
+  background-image: url( resource/widget/rap/window/shell-max-hover.png );
+}
+*/
+/* Restore button */
+/*
+Shell-MaxButton:maximized {
+  background-image: url( resource/widget/rap/window/shell-restore.png );
+}
+
+Shell-MaxButton:maximized:hover {
+  background-image: url( resource/widget/rap/window/shell-restore-hover.png );
+}
+
+Shell-MaxButton:maximized:inactive {
+  background-image: url( resource/widget/rap/window/shell-restore.png );
+}
+
+Shell-MaxButton:maximized:inactive:hover {
+  background-image: url( resource/widget/rap/window/shell-restore-hover.png );
+}
+*/
+/* Close button */
+
+Shell-CloseButton {
+  background-image: url( icons/etool16/close_button.gif );
+  margin: 0 -2px 0 0;
+}
+
+Shell-CloseButton:hover {
+  background-image: url( icons/etool16/close_button_over.gif );
+}
+
+Shell-CloseButton:inactive {
+  background-image: url( icons/etool16/close_button.gif );
+  margin: 0 -2px 0 0;
+}
+
+Shell-CloseButton:inactive:hover {
+  background-image: url( icons/etool16/close_button_over.gif );
+}

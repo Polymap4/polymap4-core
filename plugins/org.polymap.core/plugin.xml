@@ -128,13 +128,12 @@
          </action>
       </actionSet>
    </extension>
-   <extension
-         point="org.eclipse.rap.ui.themes">
-      <themeContribution
-            file="defaultTheme.css"
-            themeId="org.eclipse.rap.rwt.theme.Default">
-      </themeContribution>
-   </extension>
+  <extension
+      point="org.eclipse.rap.ui.themes">
+    <themeContribution
+          file="workbench.css"
+          themeId="org.eclipse.rap.rwt.theme.Default"/>
+  </extension>
    <extension
          id="org.polymap.core.security.DummyLoginModule"
          name="Dummy Login"
