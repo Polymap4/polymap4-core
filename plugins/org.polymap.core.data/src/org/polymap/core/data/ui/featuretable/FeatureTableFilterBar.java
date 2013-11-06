@@ -78,7 +78,7 @@ public class FeatureTableFilterBar {
         btn.addSelectionListener( new SelectionAdapter() {
             private ViewerFilter    myFilter = vfilter;
             @Override
-            public void widgetSelected( SelectionEvent e ) {
+            public void widgetSelected( SelectionEvent ev ) {
                 if (btn.getSelection()) {
                     viewer.addFilter( myFilter );
                 }
@@ -108,6 +108,8 @@ public class FeatureTableFilterBar {
         
         private Predicate       predicate;
 
+        private String          group;
+
         
         public FilterDescriptor setName( String name ) {
             btn.setText( name );
@@ -122,6 +124,15 @@ public class FeatureTableFilterBar {
         public FilterDescriptor setIcon( Image icon ) {
             btn.setImage( icon );
             return this;
+        }
+
+        public FilterDescriptor setGroup( String group ) {
+            this.group = group;
+            return this;
+        }
+        
+        public Button getControl() {
+            return btn;
         }
         
     }

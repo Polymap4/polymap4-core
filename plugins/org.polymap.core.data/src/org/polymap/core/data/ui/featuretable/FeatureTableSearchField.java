@@ -26,10 +26,10 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.rwt.graphics.Graphics;
@@ -37,6 +37,7 @@ import org.eclipse.rwt.graphics.Graphics;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 
@@ -55,7 +56,7 @@ public class FeatureTableSearchField {
     
     private Text                searchTxt;
     
-    private Button              clearBtn;
+    private Label               clearBtn;
     
     private TextFilter          filter;
     
@@ -69,19 +70,25 @@ public class FeatureTableSearchField {
         container = new Composite( _parent, SWT.NONE );
         container.setLayout( FormLayoutFactory.defaults().spacing( 5 ).create() );
 
-        clearBtn = new Button( container, SWT.PUSH );
+        clearBtn = new Label( container, SWT.PUSH | SWT.SEARCH );
         clearBtn.setToolTipText( "Zurücksetzen" );
-        clearBtn.setEnabled( false );
-//        btn.setImage( BatikPlugin.instance().imageForName( "resources/icons/search.png" ) );
-        clearBtn.setLayoutData( FormDataFactory.filled().left( -1 ).create() );
-        clearBtn.addSelectionListener( new SelectionAdapter() {
-            public void widgetSelected( SelectionEvent e ) {
+        clearBtn.setImage( DataPlugin.getDefault().imageForName( "icons/etool16/delete_edit.gif" ) );
+        clearBtn.setLayoutData( FormDataFactory.filled().top( 0, 5 ).right( 100, -5 ).left( -1 ).create() );
+        clearBtn.addMouseListener( new MouseAdapter() {
+            public void mouseUp( MouseEvent e ) {
                 searchTxt.setText( "" );
             }
         });
+//        clearBtn.addSelectionListener( new SelectionAdapter() {
+//            public void widgetSelected( SelectionEvent e ) {
+//                searchTxt.setText( "" );
+//            }
+//        });
+        clearBtn.setVisible( false );
 
         searchTxt = new Text( container, SWT.SEARCH | SWT.CANCEL );
-        searchTxt.setLayoutData( FormDataFactory.filled().right( clearBtn ).create() );
+        searchTxt.setLayoutData( FormDataFactory.filled().create() );
+        searchTxt.moveBelow( clearBtn );
 
         searchTxt.setText( "Suchen..." );
         searchTxt.setToolTipText( "Suchbegriff: min. 3 Zeichen" );
@@ -90,9 +97,9 @@ public class FeatureTableSearchField {
             @Override
             public void focusLost( FocusEvent ev ) {
                 if (searchTxt.getText().length() == 0) {
-                    searchTxt.setText( "Suchen..." );
-                    searchTxt.setForeground( Graphics.getColor( 0xa0, 0xa0, 0xa0 ) );
-                    clearBtn.setEnabled( false );
+//                    searchTxt.setText( "Suchen..." );
+//                    searchTxt.setForeground( Graphics.getColor( 0xa0, 0xa0, 0xa0 ) );
+                    clearBtn.setVisible( false );
                 }
             }
             @Override
@@ -106,14 +113,12 @@ public class FeatureTableSearchField {
         searchTxt.addModifyListener( new ModifyListener() {
             @Override
             public void modifyText( ModifyEvent ev ) {
-                clearBtn.setEnabled( searchTxt.getText().length() > 0 );
+                clearBtn.setVisible( searchTxt.getText().length() > 0 );
+                
                 if (filter != null) {
                     viewer.removeFilter( filter );
                 }
                 if (searchTxt.getText().length() > 2) {
-                    if (filter != null) {
-                        viewer.removeFilter( filter );
-                    }
                     viewer.addFilter( filter = new TextFilter( searchTxt.getText() ) );
                 }
             }
