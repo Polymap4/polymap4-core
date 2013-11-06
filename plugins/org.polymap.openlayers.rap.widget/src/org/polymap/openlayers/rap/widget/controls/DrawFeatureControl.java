@@ -52,7 +52,7 @@ public class DrawFeatureControl
                 "var self = this; var args = arguments;",
                 "setTimeout( function() {",
                     "OpenLayers.Control.DrawFeature.prototype.drawFeature.apply(self, args);",
-                "}, 250 );",
+                "}, 750 );",
             "},",
             "}",
             ");" ).toString() );
