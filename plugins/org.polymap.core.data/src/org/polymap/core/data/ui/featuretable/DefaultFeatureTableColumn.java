@@ -64,6 +64,8 @@ public class DefaultFeatureTableColumn
     private int                     minimumWidth = -1;
     
     private ColumnLabelProvider     labelProvider = new DefaultCellLabelProvider();
+    
+    private int                     align = -1;
 
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
@@ -97,6 +99,11 @@ public class DefaultFeatureTableColumn
         return this;
     }
     
+    public DefaultFeatureTableColumn setAlign( int align ) {
+        this.align = align;
+        return this;
+    }
+
     public DefaultFeatureTableColumn setEditing( boolean editing ) {
         assert viewer == null : "Call before table is created.";
         // defer creation of editingSupport to setViewer()
@@ -119,8 +126,11 @@ public class DefaultFeatureTableColumn
 
     
     public TableViewerColumn newViewerColumn() {
-        int align = Number.class.isAssignableFrom( prop.getType().getBinding() )
-                ? SWT.RIGHT : SWT.CENTER;
+        if (align == -1) {
+            align = Number.class.isAssignableFrom( prop.getType().getBinding() )
+                    || Date.class.isAssignableFrom( prop.getType().getBinding() )
+                    ? SWT.RIGHT : SWT.LEFT;
+        }
 
         TableViewerColumn viewerColumn = new TableViewerColumn( viewer, align );
         viewerColumn.getColumn().setMoveable( true );
