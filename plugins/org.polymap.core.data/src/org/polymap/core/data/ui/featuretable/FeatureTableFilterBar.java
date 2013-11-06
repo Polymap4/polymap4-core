@@ -73,6 +73,9 @@ public class FeatureTableFilterBar {
         if (last != null) {
             layoutData.left( last.btn );
         }
+
+        final FilterDescriptor descriptor = new FilterDescriptor( vfilter );
+
         final Button btn = new Button( container, SWT.TOGGLE );
         btn.setLayoutData( layoutData.create() );
         btn.addSelectionListener( new SelectionAdapter() {
@@ -80,6 +83,15 @@ public class FeatureTableFilterBar {
             @Override
             public void widgetSelected( SelectionEvent ev ) {
                 if (btn.getSelection()) {
+                    //
+                    for (FilterDescriptor filter : filters) {
+                        if (filter != descriptor &&
+                                filter.group != null && filter.group.equals( descriptor.group )) {
+                            filter.btn.setSelection( false );
+                            viewer.removeFilter( filter.vfilter );
+                        }
+                    }
+                    
                     viewer.addFilter( myFilter );
                 }
                 else {
@@ -88,7 +100,6 @@ public class FeatureTableFilterBar {
             }
         });
 
-        FilterDescriptor descriptor = new FilterDescriptor();
         descriptor.btn = btn;
         filters.add( descriptor );
         return last = descriptor;
@@ -111,6 +122,10 @@ public class FeatureTableFilterBar {
         private String          group;
 
         
+        protected FilterDescriptor( ViewerFilter vfilter ) {
+            this.vfilter = vfilter;
+        }
+
         public FilterDescriptor setName( String name ) {
             btn.setText( name );
             return this;
