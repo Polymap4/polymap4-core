@@ -30,7 +30,8 @@ import org.polymap.core.ui.FormDataFactory;
  * @deprecated Use {@link FormDataFactory} instead.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class SimpleFormData {
+public class SimpleFormData
+        extends FormDataFactory {
 
     private static Log log = LogFactory.getLog( SimpleFormData.class );
 

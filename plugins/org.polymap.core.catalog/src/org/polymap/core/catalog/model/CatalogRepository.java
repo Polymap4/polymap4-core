@@ -28,7 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import net.refractions.udig.catalog.CatalogPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import org.polymap.core.catalog.CatalogImportDropListener;
+import org.polymap.core.catalog.ui.CatalogImportDropListener;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;

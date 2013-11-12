@@ -113,7 +113,8 @@ public class MySQLServiceImpl
         if (adaptee == null)
             return false;
         return adaptee.isAssignableFrom(JDBCDataStore.class)
-                || adaptee.isAssignableFrom(Connection.class) || super.canResolve(adaptee);
+                || adaptee.isAssignableFrom(Connection.class) 
+                || super.canResolve(adaptee);
     }
 
     public void dispose( IProgressMonitor monitor ) {

@@ -267,7 +267,7 @@
    </extension>
    
 
-   <extension
+   <!--extension
          point="net.refractions.udig.catalog.ui.connectionFactory">
      <factory class="net.refractions.udig.catalog.ui.FileConnectionFactory"
             id="net.refractions.udig.catalog.ui.openFilePage"/>
@@ -277,7 +277,7 @@
             description="%wizard.fileopen.description"
             icon="icons/etool16/file_wiz.gif"
             name="%wizard.fileopen.name"/>
-   </extension>
+   </extension-->
    <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
