@@ -26,6 +26,7 @@ import java.util.Set;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -47,18 +48,11 @@ import com.google.common.collect.Iterables;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-
-import org.eclipse.rwt.widgets.Upload;
-import org.eclipse.rwt.widgets.UploadAdapter;
-import org.eclipse.rwt.widgets.UploadEvent;
-import org.eclipse.rwt.widgets.UploadItem;
 
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -73,6 +67,8 @@ import org.polymap.core.catalog.Messages;
 import org.polymap.core.runtime.IMessages;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
+import org.polymap.core.ui.upload.IUploadHandler;
+import org.polymap.core.ui.upload.Upload;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -247,29 +243,24 @@ public class FileUploadPage
      */
     private void createUpload( Composite parent ) {
         upload = new Upload( parent, SWT.BORDER /*Upload.SHOW_PROGRESS |*/ );
-        upload.setBrowseButtonText( i18n.get( "uploadBrowse" ) );
+//        upload.setBrowseButtonText( i18n.get( "uploadBrowse" ) );
 
-        this.upload.addModifyListener( new ModifyListener() {
-            public void modifyText( ModifyEvent ev ) {
-                upload.performUpload();
-//                EntryPoint.this.uploadPathLabel.setText( EntryPoint.this.upload.getPath() );
-//                EntryPoint.this.uploadPathLabel.getParent().layout();
-            }
-        } );
+//        this.upload.addModifyListener( new ModifyListener() {
+//            public void modifyText( ModifyEvent ev ) {
+//                upload.performUpload();
+//            }
+//        } );
 
         setPageComplete( false );
-        this.upload.addUploadListener( new UploadAdapter() {
+        this.upload.setHandler( new IUploadHandler() {
             @Override
-            public void uploadFinished( UploadEvent ev ) {
-                log.info( "## total: " + ev.getUploadedTotal() );
-                UploadItem item = upload.getUploadItem();
-                
+            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
                 try {
                     Charset charset = Charset.forName( charsetCombo.getText() );
                     List<File> files = new FileImporter()
                             .setCharset( charset )
                             .setOverwrite( false )
-                            .doRun( item.getFileName(), null, item.getFileInputStream() );
+                            .doRun( name, null, in );
                     
                     for (File f : files) {
                         viewer.add( f );
@@ -277,20 +268,13 @@ public class FileUploadPage
                             list.add( f.toURI().toURL() );
                         //}
                     }
-                    upload.reset();
+                    upload.setText( "" );
                     setPageComplete( true );
                     getContainer().updateButtons();
                 }
                 catch (Exception e) {
                     PolymapWorkbench.handleError( CatalogPlugin.ID, FileUploadPage.this, e.getMessage(), e );
                 }
-            }
-            @Override
-            public void uploadInProgress( UploadEvent uploadEvent ) {
-                log.debug( "## partial: " + uploadEvent.getUploadedParcial() );
-                log.debug( "## total: " + uploadEvent.getUploadedTotal() );
-                int percent = (int)((float)uploadEvent.getUploadedParcial()
-                        / (float)uploadEvent.getUploadedTotal() * 100);
             }
         });
     }

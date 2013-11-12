@@ -14,8 +14,6 @@
  */
 package org.polymap.core.ui.upload;
 
-import java.util.concurrent.Callable;
-
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +65,8 @@ public class Upload
     
     private SessionContext          sessionContext = SessionContext.current();
     
+    private Display                 display = getDisplay();
+    
     
     public Upload( Composite parent, int style, int... uploadStyles ) {
         super( parent, style );
@@ -112,6 +112,10 @@ public class Upload
         return handler;
     }
     
+    public void setText( String text ) {
+        fileUpload.setText( text );
+    }
+
     public void setHandler( IUploadHandler handler ) {
         this.handler = handler;
     }
@@ -122,7 +126,6 @@ public class Upload
         
         final FilterInputStream filtered = new FilterInputStream( in ) {
             int count = 0;
-            Display display = getDisplay();
             @Override
             public int read() throws IOException {
                 // XXX Auto-generated method stub
@@ -148,13 +151,23 @@ public class Upload
                 return result;
             }
         };
-        
-        sessionContext.execute( new Callable() {
-            public Object call() throws Exception {
-                handler.uploadStarted( name, contentType, filtered );
-                return null;
+    
+        display.asyncExec( new Runnable() {
+            public void run() {
+                try {
+                    handler.uploadStarted( name, contentType, filtered );
+                }
+                catch (Exception e) {
+                    log.warn( "", e );
+                }
             }
         });
+//        sessionContext.execute( new Callable() {
+//            public Object call() throws Exception {
+//                handler.uploadStarted( name, contentType, filtered );
+//                return null;
+//            }
+//        });
     }
 
 }

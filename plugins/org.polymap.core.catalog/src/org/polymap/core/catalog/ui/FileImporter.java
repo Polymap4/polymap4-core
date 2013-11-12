@@ -173,7 +173,7 @@ public class FileImporter {
             }
         }
         catch (Exception e) {
-            if (e instanceof IllegalArgumentException || e.getMessage().equals( "MALFORMED" )) {
+            if (e instanceof IllegalArgumentException || "MALFORMED".equals( e.getMessage() )) {
                 throw new IOException( i18n.get( "wrongCharset", charset ) );
             }
             else {
