@@ -1,5 +1,5 @@
 /*
-This is the POLYMAP standard JAAS config. By default use file based dummy login.
+This login config is used for dialog based login to the Workbench.
 */
 POLYMAP {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
@@ -7,7 +7,11 @@ POLYMAP {
         configFile="login_config.properties"
         dialogTitle="POLYMAP3 Workbench";
 };
- 
+
+/*
+This login config is used for service logins (for example WebDAV). In most cases it is the
+same as the Workbench dialog login above.
+*/
 Services {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.polymap.core.security.DummyLoginModule"

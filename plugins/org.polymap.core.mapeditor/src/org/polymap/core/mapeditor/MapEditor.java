@@ -396,8 +396,8 @@ public class MapEditor
         removeLayer( descriptor );
         addLayer( descriptor );
         
-        Layer ollayer = layers.get( descriptor );
-        ollayer.redraw();
+//        Layer ollayer = layers.get( descriptor );
+//        ollayer.redraw();
         
 //        if (ollayer instanceof WMSLayer) {
 //            ((WMSLayer)ollayer).redraw( true );

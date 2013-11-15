@@ -155,7 +155,7 @@ public class AddLayerToMapDropAction
         try {
             NewLayerOperation op = new NewLayerOperation(); 
             op.init( map, geores ); 
-            OperationSupport.instance().execute( op, true, true );
+            OperationSupport.instance().execute( op, true, false );
         }
         catch (ExecutionException e) {
             PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );

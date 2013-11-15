@@ -162,7 +162,7 @@ public class Cache304 {
             
             store.setIndexFieldSelector( new IRecordFieldSelector() {
                 public boolean accept( String key ) {
-                    return !key.equals( CachedTile.TYPE.data );
+                    return !key.equals( CachedTile.TYPE.data.name() );
                 }
             });
             
