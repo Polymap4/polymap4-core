@@ -158,32 +158,36 @@ public class DummyLoginModule
             }
         }
 
-        // XXX translation
-        Callback label = new TextOutputCallback( TextOutputCallback.INFORMATION, dialogTitle );
-        NameCallback nameCallback = new NameCallback( i18n.get( "username" ), "default" );
-        PasswordCallback passwordCallback = new PasswordCallback( i18n.get( "password" ), false );
         try {
+            Callback label = new TextOutputCallback( TextOutputCallback.INFORMATION, 
+                    // empty if service login
+                    StringUtils.defaultIfEmpty( dialogTitle, "POLYMAP3 Workbench" ) );
+            NameCallback nameCallback = new NameCallback( 
+                    StringUtils.defaultIfEmpty( i18n.get( "username" ), "Username" ), "default" );
+            PasswordCallback passwordCallback = new PasswordCallback( 
+                    StringUtils.defaultIfEmpty( i18n.get( "password" ), "Password" ), false );
+
             callbackHandler.handle( new Callback[] { label, nameCallback, passwordCallback } );
+
+            String username = nameCallback.getName();
+
+            String password = "";
+            if (passwordCallback.getPassword() != null) {
+                password = String.valueOf( passwordCallback.getPassword() );
+            }
+
+            DummyUserPrincipal candidate = users.get( username );
+            if (candidate.getPassword().equals( password )) {
+                principal = candidate;
+                loggedIn = true;
+                return true;
+            }
+            return false;
         }
         catch (Exception e) {
             log.warn( "", e );
             throw new LoginException( e.getLocalizedMessage() );
         }
-
-        String username = nameCallback.getName();
-
-        String password = "";
-        if (passwordCallback.getPassword() != null) {
-            password = String.valueOf( passwordCallback.getPassword() );
-        }
-
-        DummyUserPrincipal candidate = users.get( username );
-        if (candidate.getPassword().equals( password )) {
-            principal = candidate;
-            loggedIn = true;
-            return true;
-        }
-        return false;
     }
 
 
