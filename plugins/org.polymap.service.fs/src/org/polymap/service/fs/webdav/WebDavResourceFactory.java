@@ -231,6 +231,10 @@ class WebDavResourceFactory
                 WebDavMoveableResource res = new WebDavMoveableResource( contentManager, node, securityManager );
                 handlers.put( MoveableResource.class, res );
             }
+            if (node instanceof IContentDeletable) {
+                WebDavFileDeletable deletable = new WebDavFileDeletable( contentManager, (IContentDeletable)node, securityManager );
+                handlers.put( DeletableResource.class, deletable );
+            }
         }
 
 

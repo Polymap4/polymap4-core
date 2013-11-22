@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -162,12 +163,23 @@ public class FsContentProvider
 
 
     public IContentFolder createFolder( FsFolder folder, String newName ) {
-        File dir = new File( folder.getDir(), FilenameUtils.normalize( newName ) );
-        dir.mkdir();
-        return new FsFolder( dir.getName(), folder.getPath(), this, dir );
+        try {
+            File dir = new File( folder.getDir(), FilenameUtils.normalize( newName ) );
+            dir.mkdir();
+            return new FsFolder( dir.getName(), folder.getPath(), this, dir );
+        }
+        finally {
+            getSite().invalidateFolder( folder );
+        }
     }
 
     
+    public void delete( FsFolder folder ) throws IOException {
+        Files.delete( folder.getDir().toPath() );
+        getSite().invalidateFolder( getSite().getFolder( folder.getParentPath() ) );
+    }
+
+
     public void moveTo( IContentNode src, IPath dest, String newName )
     throws BadRequestException, IOException {
         FsFolder destFolder = (FsFolder)getSite().getFolder( dest );
