@@ -5,11 +5,18 @@
 Shell, CTabFolder, CTabItem, ToolBar, CoolBar, Group, Group-Frame, Label, Label:hover, CLabel {
     background-color: #f0f0f0;
 }
+CTabItem {
+    padding: 4px 6px 3px 6px;
+    color: #202020;
+}
 CTabItem:selected {
-    background-color: #909095;
-    color: #ffffff;
+    background-color: white;
+    color: #316AC5;
     /*background-color: #C5DCFE;
     color: black; */
+}
+CTabItem:hover {
+    color: #316AC5;
 }
 
 Shell[BORDER] {

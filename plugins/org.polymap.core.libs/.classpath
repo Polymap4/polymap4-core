@@ -55,7 +55,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-2.6.4.jar" sourcepath="lib/sources/gt-xsd-core-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml2-2.6.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml3-2.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml3-2.6.4.jar" sourcepath="lib/sources/gt-xsd-gml3-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-kml-2.6.4.jar" sourcepath="lib/sources/gt-xsd-kml-2.6.4-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-ows-2.6.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-wfs-2.6.4.jar"/>
