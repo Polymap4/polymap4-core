@@ -52,7 +52,7 @@ public class EventManager {
     /**
      * The session that the currently dispatched event is published from. The
      * {@link SessionEventDispatcher event dispatcher} sets this for every dispatched
-     * event. No {@link ThreadLocal} needed as there si just one thread dispatching
+     * event. No {@link ThreadLocal} needed as there is just one thread dispatching
      * events.
      */
     private static SessionContext           threadPublishSession;
@@ -74,7 +74,7 @@ public class EventManager {
      *         or filter method.
      */
     public static SessionContext publishSession() {
-        assert threadPublishSession != null;
+        assert threadPublishSession != null : "Event was published outside any session context.";
         return threadPublishSession; 
     }
     
@@ -88,7 +88,7 @@ public class EventManager {
     
     private Timer                                   statTimer;
     
-    private /*volatile*/ int                            pendingEvents;
+    private /*volatile*/ int                        pendingEvents;
     
     /** The global {@link PhaseListener} installed by the {@link SessionEventDispatcher}. */
     private UICallbackPhaseListener                 phaseListener;

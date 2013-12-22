@@ -14,6 +14,8 @@
  */
 package org.polymap.core.ui.upload;
 
+import java.util.concurrent.Callable;
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,14 +93,6 @@ public class Upload
         label.setText( i18n.get( "label" ) );
         label.setForeground( Graphics.getColor( 0x60, 0x60, 0x60 ) );
         label.moveAbove( progress );
-
-//        final String url = startUploadReceiver();
-//        uploadButton.addSelectionListener( new SelectionAdapter() {
-//            public void widgetSelected( SelectionEvent e ) {
-//                UICallBack.activate( "upload" );
-//                fileUpload.submit( url );
-//            }
-//        });
     }
 
     @Override
@@ -121,53 +115,62 @@ public class Upload
     }
 
     @Override
-    public void uploadStarted( final String name, final String contentType, InputStream in ) throws Exception {
+    public void uploadStarted( final String name, final String contentType, final InputStream in ) throws Exception {
         assert handler != null : "No handler set for Upload.";
-        
-        final FilterInputStream filtered = new FilterInputStream( in ) {
-            int count = 0;
-            @Override
-            public int read() throws IOException {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public int read( byte[] b, int off, int len ) throws IOException {
-                final int result = super.read( b, off, len );
-                count += result;
-                display.asyncExec( new Runnable() {
-                    public void run() {
-                        if (result == -1) {
-                            progress.setSelection( progress.getMaximum() );
-                            UICallBack.deactivate( "upload" );
-                        }
-                        else {
-                            progress.setSelection( count );
-                        }
-                        int percent = 100 * progress.getSelection() / progress.getMaximum();
-                        label.setText( name + " (" + percent + "%)" );
-                    }
-                });
-                return result;
-            }
-        };
-    
-        display.asyncExec( new Runnable() {
-            public void run() {
-                try {
-                    handler.uploadStarted( name, contentType, filtered );
-                }
-                catch (Exception e) {
-                    log.warn( "", e );
-                }
+
+        // give the thread the proper session context (but outside UI thread)
+        sessionContext.execute( new Callable() {
+            public Object call() throws Exception {
+                handler.uploadStarted( name, contentType, new ProgressInputStream( in, name ) );
+                return null;
             }
         });
-//        sessionContext.execute( new Callable() {
-//            public Object call() throws Exception {
-//                handler.uploadStarted( name, contentType, filtered );
-//                return null;
-//            }
-//        });
+    }
+
+    
+    /**
+     * 
+     */
+    class ProgressInputStream
+            extends FilterInputStream {
+    
+        private String name;
+    
+        private int count = 0;
+    
+    
+        private ProgressInputStream( InputStream in, String name ) {
+            super( in );
+            this.name = name;
+        }
+    
+    
+        @Override
+        public int read() throws IOException {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
+        }
+    
+    
+        @Override
+        public int read( byte[] b, int off, int len ) throws IOException {
+            final int result = super.read( b, off, len );
+            count += result;
+            display.asyncExec( new Runnable() {
+                public void run() {
+                    if (result == -1) {
+                        progress.setSelection( progress.getMaximum() );
+                        UICallBack.deactivate( "upload" );
+                    }
+                    else {
+                        progress.setSelection( count );
+                    }
+                    int percent = 100 * progress.getSelection() / progress.getMaximum();
+                    label.setText( name + " (" + percent + "%)" );
+                }
+            });
+            return result;
+        }
     }
 
 }

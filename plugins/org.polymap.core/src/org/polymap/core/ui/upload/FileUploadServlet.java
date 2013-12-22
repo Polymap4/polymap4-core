@@ -15,8 +15,6 @@
 package org.polymap.core.ui.upload;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -29,8 +27,11 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.MapMaker;
 
 /**
  * 
@@ -42,20 +43,25 @@ public class FileUploadServlet
 
     private static Log log = LogFactory.getLog( FileUploadServlet.class );
 
-    private static Map<String,IUploadHandler>    handlers = new ConcurrentHashMap();
+    private static Map<String,IUploadHandler>    handlers = new MapMaker().concurrencyLevel( 2 ).softValues().makeMap();
     
     
+    /**
+     * Registers the given upload handler with the global upload servlet.
+     * 
+     * @param handler The handler to register. The handler is stored in a soft reference.
+     * @return The URL to use for the given handler.
+     */
     public static String addUploadHandler( IUploadHandler handler ) {
         String key = String.valueOf( handler.hashCode() );
         handlers.put( key, handler );
         return "fileupload?handler=" + key;
     }
     
+    
     public static boolean removeUploadHandler( IUploadHandler handler ) {
         String key = String.valueOf( handler.hashCode() );
-        boolean result = handlers.remove( key ) != null;
-        //assert result : "Removing Upload handler failed.";
-        return result;
+        return handlers.remove( key ) != null;
     }
     
     
@@ -73,16 +79,21 @@ public class FileUploadServlet
                 FileItemStream item = it.next();
                 String name = item.getFieldName();
                 InputStream in = item.openStream();
-                if (item.isFormField()) {
-                    log.info( "Form field " + name + " with value " + Streams.asString( in ) + " detected.");
-                } 
-                else {
-                    log.info( "File field " + name + " with file name " + item.getName() + " detected.");
-                    
-                    String key = req.getParameter( "handler" );
-                    assert key != null;
-                    IUploadHandler handler = handlers.get( key );
-                    handler.uploadStarted( item.getName(), item.getContentType(), in );
+                try {
+                    if (item.isFormField()) {
+                        log.info( "Form field " + name + " with value " + Streams.asString( in ) + " detected.");
+                    } 
+                    else {
+                        log.info( "File field " + name + " with file name " + item.getName() + " detected.");
+                        
+                        String key = req.getParameter( "handler" );
+                        assert key != null;
+                        IUploadHandler handler = handlers.get( key );
+                        handler.uploadStarted( item.getName(), item.getContentType(), in );
+                    }
+                }
+                finally {
+                    IOUtils.closeQuietly( in );
                 }
             }
         }
