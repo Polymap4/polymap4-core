@@ -19,7 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Control;
 
 /**
@@ -34,21 +34,25 @@ public class FormDataFactory {
     // static factories ***********************************
     
     /**
-     * Equivalent of calling <code>new SimpleFormData().fill()</code>
+     * Equivalent of calling <code>new FormDataFactory().fill()</code>
      */
     public static FormDataFactory filled() {
         return new FormDataFactory().fill();
     }
     
     /**
-     * Equivalent of calling <code>new SimpleFormData().fill()</code>
+     * Equivalent of calling <code>new FormDataFactory()</code> which produces a
+     * {@link FormLayout} with no attachments set.
      */
     public static FormDataFactory defaults() {
-        return new FormDataFactory().fill();
+        return new FormDataFactory();
     }
     
+    
     /**
-     * Equivalent of calling <code>new SimpleFormData(defaultOffset)</code>
+     * Equivalent of calling <code>new FormDataFactory(defaultOffset)</code> which
+     * produces a default {@link FormLayout} and sets the default offset for this
+     * factory, effectivly setting extra margins.
      */
     public static FormDataFactory offset( int defaultOffset) {
         return new FormDataFactory( defaultOffset );
@@ -84,9 +88,9 @@ public class FormDataFactory {
         this.defaultOffset = defaultOffset;
     }
 
-    public <T extends Composite> T applyTo( T composite ) {
-        composite.setLayoutData( create() );
-        return composite;
+    public <T extends Control> T applyTo( T control ) {
+        control.setLayoutData( create() );
+        return control;
     }
     
     /**
