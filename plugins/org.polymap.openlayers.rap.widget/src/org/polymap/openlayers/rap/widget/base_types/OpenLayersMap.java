@@ -73,21 +73,21 @@ public class OpenLayersMap
     /** triggered after the base layer changes **/
     public final static String        EVENT_CHANGEBASELAYER ="changebaselayer";
     
-	private OpenLayersWidget           widget;
-	
-	private Projection                 projection;
-	
-	private Projection                 display_projection;
-	
-	private String                     units;
-	
-	private Bounds                     maxExtent;
-	
-	private float                      maxResolution;
-	
-	//private int[]                      scales;
-	
-	
+    private OpenLayersWidget           widget;
+    
+    private Projection                 projection;
+    
+    private Projection                 display_projection;
+    
+    private String                     units;
+    
+    private Bounds                     maxExtent;
+    
+    private float                      maxResolution;
+    
+    //private int[]                      scales;
+    
+    
     public OpenLayersMap(OpenLayersWidget widget,Projection projection,Projection display_projection,String units,Bounds maxExtent,float maxResolution) {
         this.widget = widget;
         this.projection = projection;
@@ -96,28 +96,35 @@ public class OpenLayersMap
         this.units = units;
         this.maxExtent = maxExtent;
         
-		super.create_with_widget ("new OpenLayers.Map( { div : document.getElementById( this._id),	controls : []	,projection: " +projection.getJSObjRef() +" , displayProjection: " +display_projection.getJSObjRef() + " , units: '" + units + "' , maxExtent: " + maxExtent.getJSObjRef() + " , maxResolution: " + maxResolution + " });",widget);
-	}
-	
-	public OpenLayersMap(OpenLayersWidget widget) {
-        this.widget = widget;
-
-        super.create_with_widget ("new OpenLayers.Map( { div : document.getElementById( this._id),  controls : []  });",widget);
+        super.create_with_widget( new Stringer( "new OpenLayers.Map({",
+            "div: document.getElementById( this._id),",
+            "controls: [],",
+            "projection: ", projection.getJSObjRef(), ",",
+            "displayProjection: ", display_projection.getJSObjRef(), ",",
+            "units: '", units, "',",
+            "maxExtent: ", maxExtent.getJSObjRef(), ",",
+            "restrictedExtent: ", maxExtent.getJSObjRef(), ",",
+            "maxResolution: " + maxResolution + "});" ).toString(), widget );
     }
     
-	
+    public OpenLayersMap(OpenLayersWidget widget) {
+        this.widget = widget;
+        super.create_with_widget( "new OpenLayers.Map({div:document.getElementById(this._id), controls:[]});" , widget);
+    }
+    
+    
     public OpenLayersWidget getWidget() {
         return widget;
     }
 
     public void addLayer(Layer layer2add) {
-		super.addObjModCode("addLayer",layer2add);
-	}
+        super.addObjModCode("addLayer",layer2add);
+    }
 
-	public void removeLayer(Layer layer2rm) {
-		super.addObjModCode("removeLayer",layer2rm);
-	}
-		
+    public void removeLayer(Layer layer2rm) {
+        super.addObjModCode("removeLayer",layer2rm);
+    }
+        
     
     /**
      * Move the given layer to the specified (zero-based) index in the layer list,
@@ -132,48 +139,48 @@ public class OpenLayersMap
         super.callObjFunction("setLayerIndex",layer,index);
     }
 
-	public void addControl(Control control2add) {
-		control2add.setMap( this );
-		super.addObjModCode("addControl",control2add);
-	}
+    public void addControl(Control control2add) {
+        control2add.setMap( this );
+        super.addObjModCode("addControl",control2add);
+    }
 
-	public void setProxy(String proxy){
-		super.addObjModCode("OpenLayers.ProxyHost='"+proxy+"';");
-	}
-	
-	public void removeControl(Control control2rm) {
-	    control2rm.setMap( null );
-		super.addObjModCode("removeControl",control2rm);
-	}
+    public void setProxy(String proxy){
+        super.addObjModCode("OpenLayers.ProxyHost='"+proxy+"';");
+    }
+    
+    public void removeControl(Control control2rm) {
+        control2rm.setMap( null );
+        super.addObjModCode("removeControl",control2rm);
+    }
 
-	public void zoomTo(int zoom) {
-		super.addObjModCode("zoomTo",zoom);
-	}
+    public void zoomTo(int zoom) {
+        super.addObjModCode("zoomTo",zoom);
+    }
 
-	public void zoomToExtent(Bounds extent , boolean closest) {
-		super.addObjModCode("zoomToExtent",extent,closest);
-	}
-	
-	public void zoomToScale(double scale , boolean closest) {
-		super.addObjModCode("zoomToScale",scale,closest);
-	}
-	
-	public void setCenter(double center_lon, double center_lat) {
-		super.addObjModCode("setCenter", new LonLat(center_lon,center_lat));
-	}
+    public void zoomToExtent(Bounds extent , boolean closest) {
+        super.addObjModCode("zoomToExtent",extent,closest);
+    }
+    
+    public void zoomToScale(double scale , boolean closest) {
+        super.addObjModCode("zoomToScale",scale,closest);
+    }
+    
+    public void setCenter(double center_lon, double center_lat) {
+        super.addObjModCode("setCenter", new LonLat(center_lon,center_lat));
+    }
 
-	public void setBaseLayer(Layer layer) {
-		super.addObjModCode("setBaseLayer",layer);
-	}
-	
-	public Projection getProjection() {
+    public void setBaseLayer(Layer layer) {
+        super.addObjModCode("setBaseLayer",layer);
+    }
+    
+    public Projection getProjection() {
         return projection;
     }
 
     public void setProjection(Projection projection){
-		super.setObjAttr("projection", projection);
-	}
-	
+        super.setObjAttr("projection", projection);
+    }
+    
     public Projection getDisplayProjection() {
         return display_projection;
     }
