@@ -334,12 +334,12 @@ public class FeatureTableViewer
                 if (loading) {
                     getTable().setForeground( LOADING_FOREGROUND );
                     getTable().setBackground( LOADING_BACKGROUND );
-                    setBusy( true );
+//                    setBusy( true );
                 }
                 else {
                     getTable().setForeground( foreground );
                     getTable().setBackground( background );
-                    setBusy( false );
+//                    setBusy( false );
                 }
             }
         });

@@ -111,27 +111,21 @@ public class FeatureTableSearchField
                 }
             }
         });
+
+        viewer.addFilter( FeatureTableSearchField.this );
+        
         searchTxt.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent ev ) {
-                clearBtn.setVisible( searchTxt.getText().length() > 0 );
-                
-                if (searchTxt.getText().length() < 3) {
-                    viewer.removeFilter( FeatureTableSearchField.this );
-                }
-                else if (searchTxt.getText().length() == 3) {
-                    filterText = searchTxt.getText().toLowerCase();
-                    viewer.addFilter( FeatureTableSearchField.this );
-                }
-                else if (searchTxt.getText().length() > 3) {
-                    filterText = searchTxt.getText().toLowerCase();
-                    viewer.refresh();
-                }
+                filterText = searchTxt.getText().toLowerCase();
+                clearBtn.setVisible( filterText.length() > 0 );
+                viewer.refresh();
             }
         });
     }
 
     
     public void dispose() {
+        viewer.removeFilter( FeatureTableSearchField.this );
     }
 
     
@@ -144,14 +138,19 @@ public class FeatureTableSearchField
         
     @Override
     public boolean select( Viewer _viewer, Object parentElm, Object elm ) {
-        IFeatureTableElement feature = (IFeatureTableElement)elm;
-        for (String propName : searchPropNames) {
-            Object value = feature.getValue( propName );
-            if (value != null && value.toString().toLowerCase().contains( filterText )) {
-                return true;
+        if (filterText != null && filterText.length() >= 3) {
+            IFeatureTableElement feature = (IFeatureTableElement)elm;
+            for (String propName : searchPropNames) {
+                Object value = feature.getValue( propName );
+                if (value != null && value.toString().toLowerCase().contains( filterText )) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
+        else {
+            return true;
+        }
     }
     
 }
