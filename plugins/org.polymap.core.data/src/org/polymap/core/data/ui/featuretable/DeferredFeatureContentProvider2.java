@@ -17,11 +17,9 @@ package org.polymap.core.data.ui.featuretable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.Feature;
@@ -30,13 +28,19 @@ import org.opengis.filter.Filter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Sets;
+
 import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.viewers.IIndexableLazyContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import org.polymap.core.data.Messages;
 import org.polymap.core.runtime.UIJob;
@@ -60,7 +64,7 @@ class DeferredFeatureContentProvider2
     
     private Filter                  filter;
     
-    private Set<ViewerFilter>       vfilters = new HashSet();
+    private Set<ViewerFilter>       vfilters;
     
     /*
      * XXX This is used by BackgroundContentProvider as well for sorting; for equal
@@ -73,12 +77,15 @@ class DeferredFeatureContentProvider2
     private Cache<String,Feature>   elementCache = 
             CacheManager.instance().newCache( CacheConfig.DEFAULT );
 
+    private volatile UpdatorJob     updater;
+
     
     DeferredFeatureContentProvider2( FeatureTableViewer viewer,
-            FeatureSource fs, Filter filter, Comparator sortOrder ) {
+            FeatureSource fs, Filter filter, Comparator sortOrder, ViewerFilter[] viewerFilters ) {
         this.viewer = viewer;
         this.fs = fs;
         this.filter = filter;
+        this.vfilters = Sets.newHashSet( viewerFilters );
         setSortOrder( sortOrder );
     }
 
@@ -94,7 +101,6 @@ class DeferredFeatureContentProvider2
 
     @SuppressWarnings("hiding")
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
-        
     }
 
     
@@ -111,24 +117,51 @@ class DeferredFeatureContentProvider2
     }
 
 
-    public void setSortOrder( Comparator sortOrder ) {
+    public synchronized void setSortOrder( Comparator sortOrder ) {
 //        if (sortedElements != null) {
 //            viewer.remove( sortedElements );
 //        }
-        sortedElements = new Object[0];
+        while (updater != null) {
+            updater.cancel();
+            try {
+                log.info( "Waitung for updater to cancel..." );
+                Thread.sleep( 200 );
+            }
+            catch (InterruptedException e) {
+            }
+        }
+        viewer.getTable().clearAll();
+
         this.sortOrder = sortOrder;
-        UpdatorJob job = new UpdatorJob();
-        job.schedule( 100 );
-        viewer.refresh();
+        
+        updater = new UpdatorJob();
+        updater.addJobChangeListener( new JobChangeAdapter() {
+            public void done( IJobChangeEvent ev ) {
+                updater = null;
+            }
+        });
+        // wait for subsequent sort/refresh request
+        updater.schedule( 100 );
+        
+//        viewer.refresh();
     }
 
-    
-    public boolean addViewerFilter( ViewerFilter vfilter ) {
-        return vfilters.add( vfilter );
+
+    public Comparator getSortOrder() {
+        return sortOrder;
     }
 
-    public boolean removeViewerFilter( ViewerFilter vfilter ) {
-        return vfilters.remove( vfilter );
+
+    public void addViewerFilter( ViewerFilter vfilter ) {
+        if (vfilters.add( vfilter )) {
+            setSortOrder( sortOrder );
+        }
+    }
+
+    public void removeViewerFilter( ViewerFilter vfilter ) {
+        if (vfilters.remove( vfilter )) {
+            setSortOrder( sortOrder );
+        }
     }
 
 
@@ -161,6 +194,8 @@ class DeferredFeatureContentProvider2
             display = viewer.getTable().getDisplay();
 //            viewer.getTable().setItemCount( 0 );
 //            viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
+            
+            UICallBack.activate( UpdatorJob.class.getName() );
         }
 
 
@@ -169,23 +204,23 @@ class DeferredFeatureContentProvider2
             
             // filter chunk
             List filtered = new ArrayList( chunk.size() );
-            for (Object elm : chunk) {
+            outer: for (Object elm : chunk) {
                 for (ViewerFilter vfilter : vfilters) {
                     if (!vfilter.select( viewer, null, elm )) {
-                        break;
+                        continue outer;
                     }
                 }
                 filtered.add( elm );
             }
             
-            // sort chunk
-            Collections.sort( chunk, sortOrder );
+            // sort: stable, supporting equal elements
+            Collections.sort( filtered, sortOrder );
             
             // merge chunk and sortedElements into newArray
-            Object[] newArray = new Object[ sortedElements.length + chunk.size() ];
+            Object[] newArray = new Object[ sortedElements.length + filtered.size() ];
             int readIndex = 0;
             int writeIndex = 0;
-            for (Object elm : chunk) {
+            for (Object elm : filtered) {
                 while (readIndex < sortedElements.length) {
                     Object sortedElm = sortedElements[ readIndex ];
                     if (sortOrder.compare( sortedElm, elm ) <= 0) {
@@ -209,9 +244,8 @@ class DeferredFeatureContentProvider2
                 public void run() {
                     // disposed?
                     if (viewer != null && viewer.getTable() != null) {
-                        viewer.getTable().clearAll();
                         viewer.getTable().setItemCount( sortedElements.length );
-                        viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, sortedElements.length );
+                        viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, sortedElements.length );                        
                     }
                 }
             });
@@ -219,12 +253,11 @@ class DeferredFeatureContentProvider2
 
         
         @Override
-        protected void runWithException( IProgressMonitor monitor )
-        throws Exception {
+        protected void runWithException( IProgressMonitor monitor ) throws Exception {
+            sortedElements = new Object[0];
 
             FeatureCollection coll = null;
             Iterator it = null;
-            int c;
 
             try {
                 if (fs == null) {
@@ -232,23 +265,22 @@ class DeferredFeatureContentProvider2
                 }
                 coll = fs.getFeatures( filter );
                 monitor.beginTask( getName(), coll.size() );
-                if (viewer != null) { viewer.markTableLoading( true ); }
+                if (viewer != null) { 
+                    viewer.markTableLoading( true ); 
+                }
 
                 it = coll.iterator();
-                int chunkSize = 8;
+                int chunkSize = 32;
                 List chunk = new ArrayList( chunkSize ); 
 
-                for (c=0; it.hasNext() && elementCache != null; c++) {
+                for (int c=0; it.hasNext() && elementCache != null; c++) {
                     SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (Feature)it.next(), fs, elementCache );
                     chunk.add( elm );
                     monitor.worked( 1 );
 
-                    if (monitor.isCanceled() 
-                            || Thread.interrupted()
-                            // disposed?
-                            || elementCache == null) {
-                        monitor.setCanceled( true );
-                        return;
+                    // check canceled or disposed
+                    if (monitor.isCanceled() || Thread.interrupted() || elementCache == null) {
+                        break;
                     }
 
                     if (chunk.size() >= chunkSize) {
@@ -270,17 +302,33 @@ class DeferredFeatureContentProvider2
                     monitor.setCanceled( true );
                 }
             }
-            // NPE when disposed and variables are null; dont show to user
+            // NPE when disposed and variables are null; don't show to user
             catch (NullPointerException e) {
                 log.warn( "", e );
             }
             catch (Exception e) {
                 throw e;
             }
-            finally {
+            finally {                
                 monitor.done();
+                if (viewer != null) {
+                    viewer.markTableLoading( false ); 
+                }
                 if (coll != null) { coll.close( it ); }
-                if (viewer != null) { viewer.markTableLoading( false ); }
+                
+                display.asyncExec( new Runnable() {
+                    public void run() {
+                        UICallBack.deactivate( UpdatorJob.class.getName() );
+                        // XXX Fix the "empty" table problem
+                        if (sortedElements.length > 0) {
+                            viewer.reveal( sortedElements[sortedElements.length-1] );
+                            viewer.reveal( sortedElements[0] );
+                        }
+                        
+                        // XXX only necessary if just one element
+                        viewer.refresh( true );
+                    }
+                });
             }
         }
     };

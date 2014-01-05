@@ -69,6 +69,8 @@ public class DefaultFeatureTableColumn
     
     private boolean                 sortable = true;
 
+    private TableViewerColumn viewerColumn;
+
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
         super();
@@ -134,14 +136,24 @@ public class DefaultFeatureTableColumn
         this.sortable = sortable;
     }
 
+    @Override
+    public void sort( int dir ) {
+        assert viewerColumn != null : "Add this column to the viewer before calling sort()!";
+        Comparator<IFeatureTableElement> comparator = newComparator( dir );
+        viewer.sortContent( comparator, dir, viewerColumn.getColumn() );        
+    }
+    
+    
     public TableViewerColumn newViewerColumn() {
+        assert viewerColumn == null;
+        
         if (align == -1) {
             align = Number.class.isAssignableFrom( prop.getType().getBinding() )
                     || Date.class.isAssignableFrom( prop.getType().getBinding() )
                     ? SWT.RIGHT : SWT.LEFT;
         }
 
-        TableViewerColumn viewerColumn = new TableViewerColumn( viewer, align );
+        viewerColumn = new TableViewerColumn( viewer, align );
         viewerColumn.getColumn().setMoveable( true );
         viewerColumn.getColumn().setResizable( true );
         

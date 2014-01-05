@@ -17,7 +17,7 @@ import java.util.Comparator;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewerColumn;
 
-interface IFeatureTableColumn {
+public interface IFeatureTableColumn {
 
     /**
      * Called by the {@link FeatureTableViewer} after this column was added to it.
@@ -37,5 +37,11 @@ interface IFeatureTableColumn {
     public TableViewerColumn newViewerColumn();
     
     public Comparator<IFeatureTableElement> newComparator( int sortDir );
+
+    /**
+     *
+     * @param dir Sort direction: {@link SWT#UP} or {@link SWT#DOWN}.
+     */
+    void sort( int dir );
 
 }

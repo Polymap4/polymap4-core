@@ -68,6 +68,7 @@ public class FeatureTableViewer
     public static final String              PROP_CONTENT_SIZE = "contentsize";
 
     private static final Color              LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
+    private static final Color              LOADING_BACKGROUND = Graphics.getColor( 0xfa, 0xfb, 0xff );
     
     private Map<String,IFeatureTableColumn> displayed = new HashMap();
 
@@ -77,7 +78,7 @@ public class FeatureTableViewer
     
     private ListenerList<PropertyChangeListener> listeners = new ListenerList();
 
-    private Color                           foreground;
+    private Color                           foreground, background;
 
 
     public FeatureTableViewer( Composite parent, int style ) {
@@ -89,6 +90,7 @@ public class FeatureTableViewer
         getTable().setLayout( new TableLayout() );
 
         this.foreground = getTable().getForeground();
+        this.background = getTable().getBackground();
 
         //setUseHashlookup( true );
     }
@@ -105,28 +107,39 @@ public class FeatureTableViewer
 
     @Override
     public void addFilter( ViewerFilter filter ) {
+        assert getContentProvider() != null;
+        super.addFilter( filter );
+
         if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
-            ((DeferredFeatureContentProvider2)getContentProvider()).addViewerFilter( filter );
-            refresh();
-        }
-        else {
-            super.addFilter( filter );
+            DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.addViewerFilter( filter );
         }
     }
 
 
     @Override
     public void removeFilter( ViewerFilter filter ) {
+        super.removeFilter( filter );
         if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
-            ((DeferredFeatureContentProvider2)getContentProvider()).removeViewerFilter( filter );
-            refresh();
-        }
-        else {
-            super.removeFilter( filter );
+            DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.removeViewerFilter( filter );
         }
     }
 
-
+    
+    /**
+     *
+     */
+    @Override
+    public void refresh() {
+        super.refresh();
+        if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
+            DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.setSortOrder( provider.getSortOrder() );
+        }        
+    }
+    
+    
     public int getElementCount() {
         return doGetItemCount();
     }
@@ -210,7 +223,12 @@ public class FeatureTableViewer
         displayed.put( column.getName(), column );
     }
 
+    
+    public <T extends IFeatureTableColumn> T getColumn( String propName ) {
+        return (T)available.get( propName );
+    }
 
+    
     /**
      * Set the content of this viewer. A {@link DeferredFeatureContentProvider} is
      * used to fetch and sort the features.
@@ -233,8 +251,8 @@ public class FeatureTableViewer
         String colName = (String)sortColumn.getData( "name" );
         IFeatureTableColumn sortTableColumn = displayed.get( colName );
 
-        setContentProvider( new DeferredFeatureContentProvider2( this, fs, filter,
-                sortTableColumn.newComparator( sortDir ) ) );
+        setContentProvider( new DeferredFeatureContentProvider2( 
+                this, fs, filter, sortTableColumn.newComparator( sortDir ), getFilters() ) );
         setInput( fs );
     }
 
@@ -282,8 +300,6 @@ public class FeatureTableViewer
 
     /**
      * Sorts the table entries by delegating the call to the content provider.
-     * <p/>
-     * Must be caled only if the content provider is a {@link DeferredFeatureContentProvider}!
      * 
      * @param comparator
      * @param dir
@@ -317,11 +333,13 @@ public class FeatureTableViewer
                 }
                 if (loading) {
                     getTable().setForeground( LOADING_FOREGROUND );
-//                    setBusy( true );
+                    getTable().setBackground( LOADING_BACKGROUND );
+                    setBusy( true );
                 }
                 else {
                     getTable().setForeground( foreground );
-//                    setBusy( false );
+                    getTable().setBackground( background );
+                    setBusy( false );
                 }
             }
         });

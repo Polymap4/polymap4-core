@@ -46,7 +46,8 @@ import org.polymap.core.ui.FormLayoutFactory;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class FeatureTableSearchField {
+public class FeatureTableSearchField
+        extends ViewerFilter {
 
     private static Log log = LogFactory.getLog( FeatureTableSearchField.class );
     
@@ -58,9 +59,9 @@ public class FeatureTableSearchField {
     
     private Label               clearBtn;
     
-    private TextFilter          filter;
-    
     private List<String>        searchPropNames;
+
+    protected String            filterText;
 
     
     public FeatureTableSearchField( FeatureTableViewer _viewer, Composite _parent, Iterable<String> _searchPropNames ) {
@@ -111,15 +112,19 @@ public class FeatureTableSearchField {
             }
         });
         searchTxt.addModifyListener( new ModifyListener() {
-            @Override
             public void modifyText( ModifyEvent ev ) {
                 clearBtn.setVisible( searchTxt.getText().length() > 0 );
                 
-                if (filter != null) {
-                    viewer.removeFilter( filter );
+                if (searchTxt.getText().length() < 3) {
+                    viewer.removeFilter( FeatureTableSearchField.this );
                 }
-                if (searchTxt.getText().length() > 2) {
-                    viewer.addFilter( filter = new TextFilter( searchTxt.getText() ) );
+                else if (searchTxt.getText().length() == 3) {
+                    filterText = searchTxt.getText().toLowerCase();
+                    viewer.addFilter( FeatureTableSearchField.this );
+                }
+                else if (searchTxt.getText().length() > 3) {
+                    filterText = searchTxt.getText().toLowerCase();
+                    viewer.refresh();
                 }
             }
         });
@@ -135,30 +140,18 @@ public class FeatureTableSearchField {
     }
     
 
-    /**
-     * 
-     */
-    class TextFilter
-            extends ViewerFilter {
+    // ViewerFilter
         
-        private String          text;
-        
-        public TextFilter( String text ) {
-            this.text = text;
-        }
-
-        @Override
-        public boolean select( Viewer _viewer, Object parentElm, Object elm ) {
-            IFeatureTableElement feature = (IFeatureTableElement)elm;
-            for (String propName : searchPropNames) {
-                Object value = feature.getValue( propName );
-                if (value != null && value.toString().toLowerCase().contains( text.toLowerCase() )) {
-                    return true;
-                }
+    @Override
+    public boolean select( Viewer _viewer, Object parentElm, Object elm ) {
+        IFeatureTableElement feature = (IFeatureTableElement)elm;
+        for (String propName : searchPropNames) {
+            Object value = feature.getValue( propName );
+            if (value != null && value.toString().toLowerCase().contains( filterText )) {
+                return true;
             }
-            return false;
         }
-
+        return false;
     }
     
 }
