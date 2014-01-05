@@ -66,6 +66,8 @@ public class DefaultFeatureTableColumn
     private ColumnLabelProvider     labelProvider = new DefaultCellLabelProvider();
     
     private int                     align = -1;
+    
+    private boolean                 sortable = true;
 
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
@@ -124,7 +126,14 @@ public class DefaultFeatureTableColumn
         throw new RuntimeException( "not yet implemented" );
     }
 
+    public boolean isSortable() {
+        return sortable;
+    }
     
+    public void setSortable( boolean sortable ) {
+        this.sortable = sortable;
+    }
+
     public TableViewerColumn newViewerColumn() {
         if (align == -1) {
             align = Number.class.isAssignableFrom( prop.getType().getBinding() )
@@ -146,9 +155,10 @@ public class DefaultFeatureTableColumn
         
         // sort listener for supported prop bindings
         Class propBinding = prop.getType().getBinding();
-        if (String.class.isAssignableFrom( propBinding )
+        if (sortable &&
+                (String.class.isAssignableFrom( propBinding )
                 || Number.class.isAssignableFrom( propBinding )
-                || Date.class.isAssignableFrom( propBinding )) {
+                || Date.class.isAssignableFrom( propBinding ))) {
 
             viewerColumn.getColumn().addListener( SWT.Selection, new Listener() {
                 public void handleEvent( Event ev ) {
@@ -204,7 +214,7 @@ public class DefaultFeatureTableColumn
                     return 1;
                 }
                 else if (String.class.isAssignableFrom( propBinding )) {
-                    return ((String)value1).compareTo( (String)value2 );
+                    return ((String)value1).compareToIgnoreCase( (String)value2 );
                 }
                 else if (Number.class.isAssignableFrom( propBinding )) {
                     return (int)(((Number)value1).doubleValue() - ((Number)value2).doubleValue());
