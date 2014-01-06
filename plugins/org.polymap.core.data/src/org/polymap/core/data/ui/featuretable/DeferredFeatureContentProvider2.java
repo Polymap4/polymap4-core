@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.opengis.feature.Feature;
@@ -77,7 +78,7 @@ class DeferredFeatureContentProvider2
     private Cache<String,Feature>   elementCache = 
             CacheManager.instance().newCache( CacheConfig.DEFAULT );
 
-    private volatile UpdatorJob     updater;
+    private volatile UpdatorJob     updator;
 
     
     DeferredFeatureContentProvider2( FeatureTableViewer viewer,
@@ -104,11 +105,15 @@ class DeferredFeatureContentProvider2
     }
 
     
+    @Override
     public void updateElement( int index ) {
         try {
-            if (index < sortedElements.length) {
+            if (sortedElements != null && index < sortedElements.length) {
                 Object elm = sortedElements[index];
                 viewer.replace( elm, index );
+            }
+            else {
+                viewer.replace( FeatureTableViewer.LOADING_ELEMENT, 0 );
             }
         }
         catch (Exception e) {
@@ -121,29 +126,32 @@ class DeferredFeatureContentProvider2
 //        if (sortedElements != null) {
 //            viewer.remove( sortedElements );
 //        }
-        while (updater != null) {
-            updater.cancel();
+        while (updator != null) {
+            updator.cancel();
             try {
-                log.info( "Waitung for updater to cancel..." );
-                Thread.sleep( 200 );
+                log.info( "Waitung for updator to cancel..." );
+                Thread.sleep( 100 );
             }
             catch (InterruptedException e) {
             }
         }
+        // display LOADING_ELEMENT
         viewer.getTable().clearAll();
+        viewer.getTable().setItemCount( 1 );
+        viewer.replace( FeatureTableViewer.LOADING_ELEMENT, 0 );
 
         this.sortOrder = sortOrder;
         
-        updater = new UpdatorJob();
-        updater.addJobChangeListener( new JobChangeAdapter() {
+        updator = new UpdatorJob();
+        updator.addJobChangeListener( new JobChangeAdapter() {
             public void done( IJobChangeEvent ev ) {
-                updater = null;
+                updator = null;
             }
         });
         // wait for subsequent sort/refresh request
-        updater.schedule( 100 );
+        updator.schedule( 100 );
         
-//        viewer.refresh();
+        viewer.refresh( true );
     }
 
 
@@ -195,7 +203,7 @@ class DeferredFeatureContentProvider2
 //            viewer.getTable().setItemCount( 0 );
 //            viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
             
-            UICallBack.activate( UpdatorJob.class.getName() );
+//            UICallBack.activate( UpdatorJob.class.getName() );
         }
 
 
@@ -203,7 +211,7 @@ class DeferredFeatureContentProvider2
             log.debug( "adding chunk to table. size=" + chunk.size() );
             
             // filter chunk
-            List filtered = new ArrayList( chunk.size() );
+            final List filtered = new ArrayList( chunk.size() );
             outer: for (Object elm : chunk) {
                 for (ViewerFilter vfilter : vfilters) {
                     if (!vfilter.select( viewer, null, elm )) {
@@ -245,6 +253,9 @@ class DeferredFeatureContentProvider2
                     // disposed?
                     if (viewer != null && viewer.getTable() != null) {
                         viewer.getTable().setItemCount( sortedElements.length );
+                        viewer.getTable().clearAll();
+//                        viewer.getTable().select( 0 );
+//                        viewer.refresh( false );
                         viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, sortedElements.length );                        
                     }
                 }
@@ -270,7 +281,7 @@ class DeferredFeatureContentProvider2
                 }
 
                 it = coll.iterator();
-                int chunkSize = 32;
+                int chunkSize = 8;
                 List chunk = new ArrayList( chunkSize ); 
 
                 for (int c=0; it.hasNext() && elementCache != null; c++) {
@@ -286,12 +297,13 @@ class DeferredFeatureContentProvider2
                     if (chunk.size() >= chunkSize) {
                         addChunk( chunk, monitor );
 
-                        chunkSize = Math.min( 2*chunkSize, 4096 );
+                        chunkSize = Math.min( 4*chunkSize, 4096 );
                         chunk = new ArrayList( chunkSize );
 
                         // let the UI thread update the table so that the user sees
                         // first results quickly
-                        Thread.sleep( 100 );
+                        //log.info( "sleeping: chunkSize=" + chunkSize );
+                        //Thread.sleep( 50 );
                     }
                 }
                 // disposed?
@@ -319,12 +331,12 @@ class DeferredFeatureContentProvider2
                 display.asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.deactivate( UpdatorJob.class.getName() );
-                        // XXX Fix the "empty" table problem
+//                        // XXX Fix the "empty" table problem
                         if (sortedElements.length > 0) {
                             viewer.reveal( sortedElements[sortedElements.length-1] );
                             viewer.reveal( sortedElements[0] );
                         }
-                        
+//                        
                         // XXX only necessary if just one element
                         viewer.refresh( true );
                     }

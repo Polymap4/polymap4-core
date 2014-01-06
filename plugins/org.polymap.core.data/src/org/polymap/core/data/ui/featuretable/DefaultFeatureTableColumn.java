@@ -26,6 +26,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -36,8 +40,10 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.ViewerColumn;
 
 /**
  *
@@ -69,7 +75,7 @@ public class DefaultFeatureTableColumn
     
     private boolean                 sortable = true;
 
-    private TableViewerColumn viewerColumn;
+    private TableViewerColumn       viewerColumn;
 
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
@@ -157,7 +163,7 @@ public class DefaultFeatureTableColumn
         viewerColumn.getColumn().setMoveable( true );
         viewerColumn.getColumn().setResizable( true );
         
-        viewerColumn.setLabelProvider( labelProvider );
+        viewerColumn.setLabelProvider( new LoadingCheckLabelProvider( labelProvider ) );
         String normalizedName = StringUtils.capitalize( getName() );
         viewerColumn.getColumn().setText( header != null ? header : normalizedName );
         
@@ -246,7 +252,7 @@ public class DefaultFeatureTableColumn
     /**
      * 
      */
-    class DefaultCellLabelProvider
+    public class DefaultCellLabelProvider
             extends ColumnLabelProvider {
             
         public String getText( Object elm ) {
@@ -271,14 +277,13 @@ public class DefaultFeatureTableColumn
             }
             return null;
         }
-
     }
-    
+
     
     /**
      * 
      */
-    class DefaultEditingSupport
+    public class DefaultEditingSupport
             extends EditingSupport {
 
         public DefaultEditingSupport( ColumnViewer viewer ) {
@@ -308,7 +313,112 @@ public class DefaultFeatureTableColumn
             IFeatureTableElement featureElm = (IFeatureTableElement)elm;
             featureElm.setValue( getName(), value );
         }
+    }
+
+    
+    /**
+     * 
+     */
+    class LoadingCheckLabelProvider
+            extends ColumnLabelProvider {
+    
+        private ColumnLabelProvider     delegate;
+
+        public LoadingCheckLabelProvider( ColumnLabelProvider delegate ) {
+            this.delegate = delegate;
+        }
+
+        public String getText( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? "Laden..."
+                    : delegate.getText( element );
+        }
+
+        public Image getImage( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? null : delegate.getImage( element );
+        }
+
+        public Color getForeground( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? FeatureTableViewer.LOADING_FOREGROUND
+                    : delegate.getForeground( element );
+        }
+
+        public Color getBackground( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? FeatureTableViewer.LOADING_BACKGROUND
+                    : delegate.getBackground( element );
+        }
+
+        public void addListener( ILabelProviderListener listener ) {
+            delegate.addListener( listener );
+        }
+
+//        public void update( ViewerCell cell ) {
+//            delegate.update( cell );
+//        }
+
+        public void dispose() {
+            delegate.dispose();
+        }
+
+        public boolean isLabelProperty( Object element, String property ) {
+            return delegate.isLabelProperty( element, property );
+        }
+
+        public Font getFont( Object element ) {
+            return delegate.getFont( element );
+        }
+
+        public void removeListener( ILabelProviderListener listener ) {
+            delegate.removeListener( listener );
+        }
+
+        public Image getToolTipImage( Object object ) {
+            return delegate.getToolTipImage( object );
+        }
+
+        public String getToolTipText( Object element ) {
+            return delegate.getToolTipText( element );
+        }
+
+        public Color getToolTipBackgroundColor( Object object ) {
+            return delegate.getToolTipBackgroundColor( object );
+        }
+
+        public Color getToolTipForegroundColor( Object object ) {
+            return delegate.getToolTipForegroundColor( object );
+        }
+
+        public Font getToolTipFont( Object object ) {
+            return delegate.getToolTipFont( object );
+        }
+
+        public Point getToolTipShift( Object object ) {
+            return delegate.getToolTipShift( object );
+        }
+
+        public boolean useNativeToolTip( Object object ) {
+            return delegate.useNativeToolTip( object );
+        }
+
+        public int getToolTipTimeDisplayed( Object object ) {
+            return delegate.getToolTipTimeDisplayed( object );
+        }
+
+        public int getToolTipDisplayDelayTime( Object object ) {
+            return delegate.getToolTipDisplayDelayTime( object );
+        }
+
+        public int getToolTipStyle( Object object ) {
+            return delegate.getToolTipStyle( object );
+        }
+
+        public void dispose( @SuppressWarnings("hiding") ColumnViewer viewer, ViewerColumn column ) {
+            delegate.dispose( viewer, column );
+        }
         
     }
-    
+
 }

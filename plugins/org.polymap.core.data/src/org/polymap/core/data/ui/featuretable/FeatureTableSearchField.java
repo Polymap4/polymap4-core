@@ -138,7 +138,7 @@ public class FeatureTableSearchField
         
     @Override
     public boolean select( Viewer _viewer, Object parentElm, Object elm ) {
-        if (filterText != null && filterText.length() >= 3) {
+        if (filterText != null /*&& filterText.length() >= 3*/) {
             IFeatureTableElement feature = (IFeatureTableElement)elm;
             for (String propName : searchPropNames) {
                 Object value = feature.getValue( propName );

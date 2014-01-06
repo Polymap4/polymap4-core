@@ -67,8 +67,10 @@ public class FeatureTableViewer
     /** Property type that is fired when the content of the viewer has changed. */
     public static final String              PROP_CONTENT_SIZE = "contentsize";
 
-    private static final Color              LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
-    private static final Color              LOADING_BACKGROUND = Graphics.getColor( 0xfa, 0xfb, 0xff );
+    public static final Object              LOADING_ELEMENT = new Object();
+
+    public static final Color               LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
+    public static final Color               LOADING_BACKGROUND = Graphics.getColor( 0xfa, 0xfb, 0xff );
     
     private Map<String,IFeatureTableColumn> displayed = new HashMap();
 
@@ -168,24 +170,25 @@ public class FeatureTableViewer
     public void selectElement( final String fid, boolean reveal ) {
         assert fid != null;
         IFeatureTableElement search = new IFeatureTableElement() {
+            @Override
             public Object getValue( String name ) {
                 throw new RuntimeException( "not yet implemented." );
             }
-    
+            @Override
             public void setValue( String name, Object value ) {
                 throw new RuntimeException( "not yet implemented." );
             }
-
+            @Override
             public String fid() {
                 return fid;
-            }
-            
+            }            
+            @Override
             public boolean equals( Object other ) {
                 return other instanceof IFeatureTableElement
                         ? fid.equals( ((IFeatureTableElement)other).fid() )
                         : false;
             }
-
+            @Override
             public int hashCode() {
                 return fid.hashCode();
             }
