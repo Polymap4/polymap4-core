@@ -281,13 +281,12 @@ class DeferredFeatureContentProvider2
                 }
 
                 it = coll.iterator();
-                int chunkSize = 8;
+                int chunkSize = 16;
                 List chunk = new ArrayList( chunkSize ); 
 
                 for (int c=0; it.hasNext() && elementCache != null; c++) {
                     SimpleFeatureTableElement elm = new SimpleFeatureTableElement( (Feature)it.next(), fs, elementCache );
                     chunk.add( elm );
-                    monitor.worked( 1 );
 
                     // check canceled or disposed
                     if (monitor.isCanceled() || Thread.interrupted() || elementCache == null) {
@@ -296,6 +295,7 @@ class DeferredFeatureContentProvider2
 
                     if (chunk.size() >= chunkSize) {
                         addChunk( chunk, monitor );
+                        monitor.worked( chunk.size() );
 
                         chunkSize = Math.min( 4*chunkSize, 4096 );
                         chunk = new ArrayList( chunkSize );
