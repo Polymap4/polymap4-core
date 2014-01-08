@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,6 +28,8 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
+import org.polymap.core.runtime.WaitingAtomicReference;
+
 import org.polymap.service.model.ServiceListComposite;
 
 /**
@@ -50,31 +50,6 @@ public class ServiceRepository
      */
     public static final ServiceRepository instance() {
         return Qi4jPlugin.Session.instance().module( ServiceRepository.class );
-    }
-
-
-    class WaitingAtomicReference<T>
-            extends AtomicReference<T> {
-        
-        public T waitAndGet() {
-            T ref = get();
-            if (ref == null) {
-                synchronized (this) {
-                    while ((ref = get()) == null) {
-                        try { wait( 1000 ); } catch (InterruptedException e) { }
-                    }
-                    return get();
-                }
-            }
-            return ref;
-        }
-        
-        public void setAndNotify( T value ) {
-            set( value );
-            synchronized (this) {
-                notifyAll();
-            }
-        }
     }
     
     
