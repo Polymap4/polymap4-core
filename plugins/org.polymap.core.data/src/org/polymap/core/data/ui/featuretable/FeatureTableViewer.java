@@ -137,6 +137,7 @@ public class FeatureTableViewer
         super.refresh();
         if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
             DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.inputChanged( this, null, null );
             provider.setSortOrder( provider.getSortOrder() );
         }        
     }

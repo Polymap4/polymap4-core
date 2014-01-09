@@ -102,6 +102,9 @@ class DeferredFeatureContentProvider2
 
     @SuppressWarnings("hiding")
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
+        if (elementCache != null) {
+            elementCache.clear();
+        }
     }
 
     
@@ -123,9 +126,6 @@ class DeferredFeatureContentProvider2
 
 
     public synchronized void setSortOrder( Comparator sortOrder ) {
-//        if (sortedElements != null) {
-//            viewer.remove( sortedElements );
-//        }
         while (updator != null) {
             updator.cancel();
             try {
@@ -142,6 +142,9 @@ class DeferredFeatureContentProvider2
 
         this.sortOrder = sortOrder;
         
+        // XXX actually start Updator (and access data) just when needed by UI!?
+        // currently, subsequent refresh() may cause a lot of CPU as they always
+        // start the updator
         updator = new UpdatorJob();
         updator.addJobChangeListener( new JobChangeAdapter() {
             public void done( IJobChangeEvent ev ) {
