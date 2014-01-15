@@ -14,12 +14,15 @@
  */
 package org.polymap.core.model2.store.feature;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Deque;
 import java.util.List;
 
 import java.lang.reflect.Field;
+
 import org.geotools.feature.NameImpl;
 import org.geotools.feature.type.FeatureTypeFactoryImpl;
 import org.geotools.referencing.CRS;
@@ -44,8 +47,9 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Description;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.Property;
 import org.polymap.core.model2.NameInStore;
+import org.polymap.core.model2.Property;
+import org.polymap.core.model2.engine.CompositeInfoImpl;
 import org.polymap.core.model2.engine.PropertyInfoImpl;
 
 /**
@@ -68,8 +72,7 @@ class FeatureTypeBuilder {
     private ClassLoader                 cl;
     
     
-    public FeatureTypeBuilder( Class<? extends Entity> entityClass ) 
-    throws Exception {
+    public FeatureTypeBuilder( Class<? extends Entity> entityClass ) throws Exception {
         this.factory = new FeatureTypeFactoryImpl();
         this.cl = Thread.currentThread().getContextClassLoader();
         this.entityClass = entityClass;
@@ -105,9 +108,22 @@ class FeatureTypeBuilder {
     throws Exception {
         // fields -> properties
         Collection<PropertyDescriptor> properties = new ArrayList();
-        Class superClass = compositeClass; 
-        for (;superClass != null; superClass = superClass.getSuperclass()) {
-            for (Field field : superClass.getDeclaredFields()) {
+        
+        // super classes and mixins
+        Deque<Class> stack = new ArrayDeque();
+        stack.push( compositeClass );
+        
+        while (!stack.isEmpty()) {
+            Class type = stack.pop();
+            for (Field field : type.getDeclaredFields()) {
+                // super class
+                if (type.getSuperclass() != null) {
+                    stack.push( type.getSuperclass() );
+                }
+
+                // mixins
+                CompositeInfoImpl typeInfo = new CompositeInfoImpl( type );
+                stack.addAll( typeInfo.getMixins() );
                 
                 // Property and CollectionProperty
                 if (Property.class.isAssignableFrom( field.getType() )) {

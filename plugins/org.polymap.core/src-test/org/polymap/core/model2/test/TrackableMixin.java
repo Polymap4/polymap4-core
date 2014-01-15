@@ -15,7 +15,10 @@
 package org.polymap.core.model2.test;
 
 import org.polymap.core.model2.Composite;
+import org.polymap.core.model2.Computed;
+import org.polymap.core.model2.ComputedProperty;
 import org.polymap.core.model2.Property;
+import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
  * 
@@ -25,6 +28,29 @@ import org.polymap.core.model2.Property;
 public class TrackableMixin
         extends Composite {
 
-    protected Property<Integer>    track;
+    protected Property<Integer>     track;
+    
+    @Computed(SimpleComputedProperty.class)
+    protected Property<String>      computed;
+    
+    
+    public static class SimpleComputedProperty
+            extends ComputedProperty<String> {
+
+        public SimpleComputedProperty( PropertyInfo info, Composite composite ) {
+            super( info, composite );
+        }
+
+        @Override
+        public String get() {
+            return "This is the computed property: " + getInfo().getName();
+        }
+
+        @Override
+        public void set( String value ) {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
+        }
+    }
     
 }

@@ -17,7 +17,6 @@ package org.polymap.core.model2.test;
 import org.polymap.core.model2.Association;
 import org.polymap.core.model2.Concerns;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.Mixins;
 import org.polymap.core.model2.runtime.event.PropertyChangeSupport;
 import org.polymap.core.model2.store.feature.SRS;
 
@@ -27,7 +26,6 @@ import org.polymap.core.model2.store.feature.SRS;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Concerns( {PropertyChangeSupport.class} )
-@Mixins( {TrackableMixin.class} )
 @SRS( "EPSG:4326" )
 public class Company
         extends Entity {

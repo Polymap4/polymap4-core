@@ -36,7 +36,7 @@ import org.polymap.core.model2.runtime.PropertyInfo;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class CompositeInfoImpl
+public final class CompositeInfoImpl
         implements CompositeInfo {
 
     private Class<? extends Composite>      compositeClass;
@@ -45,7 +45,7 @@ final class CompositeInfoImpl
     private Map<String,PropertyInfo>        propertyInfos = new HashMap();
     
     
-    protected CompositeInfoImpl( Class<? extends Composite> compositeClass ) {
+    public CompositeInfoImpl( Class<? extends Composite> compositeClass ) {
         this.compositeClass = compositeClass;
         try {
             initPropertyInfos();
@@ -97,7 +97,7 @@ final class CompositeInfoImpl
 
     
     /**
-     * Recursivelly init {@link #propertyInfos} of the given instance and all complex
+     * Recursivly init {@link #propertyInfos} of the given instance and all complex
      * propertyInfos.
      */
     protected void initPropertyInfos() throws Exception {

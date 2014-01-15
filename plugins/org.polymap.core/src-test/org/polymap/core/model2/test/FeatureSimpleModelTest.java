@@ -92,13 +92,16 @@ public class FeatureSimpleModelTest
 
     
     public void testFeatureTypeBuilder() throws Exception {
-        FeatureType schema = store.featureType( Person.class );
+        FeatureType schema = store.featureType( Employee.class );
         log.info( "FeatureType: " + schema );
-        assertEquals( schema.getName().getLocalPart(), "Person" );
-        assertEquals( schema.getDescriptor( "name" ).getType().getBinding(), String.class );
-        assertEquals( ((AttributeDescriptor)schema.getDescriptor( "firstname" ))
-                    .getDefaultValue(), "Ulli" );
+        assertEquals( "Employee", schema.getName().getLocalPart() );
+        assertEquals( String.class, schema.getDescriptor( "name" ).getType().getBinding() );
+        assertEquals( "Ulli", ((AttributeDescriptor)schema.getDescriptor( "firstname" )).getDefaultValue() );
         assertTrue( schema.getDescriptor( "birthday" ).isNillable() );
+
+        // mixin: Trackable
+        assertEquals( Integer.class, schema.getDescriptor( "track" ).getType().getBinding() );
+        
         GeometryDescriptor geom = schema.getGeometryDescriptor();
         assertNotNull( geom );
         assertEquals( geom.getLocalName(), "geom" );

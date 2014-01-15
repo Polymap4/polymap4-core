@@ -14,6 +14,7 @@
  */
 package org.polymap.core.model2.runtime;
 
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreUnitOfWork;
@@ -48,6 +49,13 @@ public interface EntityRuntimeContext {
         }
         
     }
+    
+    /**
+     * 
+     *
+     * @param type The type of the entity or mixin to find.
+     */
+    public <T extends Composite> T getCompositePart( Class<T> type );
     
     public CompositeInfo getInfo();
 

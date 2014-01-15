@@ -127,11 +127,26 @@ public class EntityRepositoryImpl
     }
 
     
-    protected EntityRuntimeContext contextOfEntity( Entity entity ) {
+    protected <T extends Composite> T buildMixin( Entity entity, Class<T> mixinClass, UnitOfWork uow ) {
+        try {
+            EntityRuntimeContextImpl entityContext = contextOfEntity( entity );
+            InstanceBuilder builder = new InstanceBuilder( entityContext );
+            return builder.newComposite( entityContext.getState(), mixinClass );
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new ModelRuntimeException( e );
+        }
+    }
+
+    
+    protected <T extends EntityRuntimeContext> T contextOfEntity( Entity entity ) {
         try {
             Field f = Composite.class.getDeclaredField( "context" );
             f.setAccessible( true );
-            return (EntityRuntimeContext)f.get( entity );
+            return (T)f.get( entity );
         }
         catch (RuntimeException e) {
             throw e;
@@ -251,15 +266,16 @@ public class EntityRepositoryImpl
         }
 
 
-//        public <T> T createMixin( Class<T> mixinClass ) {
-//            checkEviction();
-//            try {
-//                return new InstanceBuilder( this ).newMixin( mixinClass );
-//            }
-//            catch (Exception e) {
-//                throw new ModelRuntimeException( e );
-//            }
-//        }
+        @Override
+        public <T extends Composite> T getCompositePart( Class<T> type ) {
+            if (Entity.class.isAssignableFrom( type )) {
+                return (T)entity;
+            }
+            else {
+                throw new RuntimeException( "Retrieving mixin parts is not yet implemented." );
+            }
+        }
+
 
         public void methodProlog( String methodName, Object[] args ) {
             // XXX Auto-generated method stub

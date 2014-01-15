@@ -33,15 +33,15 @@ public abstract class Entity
         return context.getStatus();
     }
 
-    
     public String toString() {
         return getClass().getSimpleName() + "[id=" + id() + ",status=" + status() + ",state=" + state() + "]" ;
     }
 
-    
     /**
      * Casts this entity into one of its Mixin types. Mixins are defined via the
-     * {@link Mixins} annotation.
+     * {@link Mixins} annotation. The Mixin type may also be a runtime Mixin. Runtime
+     * Mixins are not statically defined. The use of runtime Mixins is not as
+     * efficient as Mixins defined via the annotation.
      * 
      * @param <T>
      * @param mixinClass
@@ -51,7 +51,6 @@ public abstract class Entity
         return context.getUnitOfWork().mixin( mixinClass, this );
     }
 
-    
     protected void methodProlog( String methodName, Object... args ) {
         context.methodProlog( methodName, args );
     }

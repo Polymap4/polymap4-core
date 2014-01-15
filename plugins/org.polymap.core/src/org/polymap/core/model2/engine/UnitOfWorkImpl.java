@@ -29,6 +29,7 @@ import java.io.IOException;
 import org.apache.commons.collections.collection.CompositeCollection;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 
 import org.polymap.core.model2.Composite;
@@ -61,6 +62,8 @@ public class UnitOfWorkImpl
     protected StoreUnitOfWork               delegate;
 
     protected Cache<Object,Entity>          loaded;
+    
+    protected Cache<String,Composite>       loadedMixins;
     
     /** Hard reference to Entities that must not be GCed from {@link #loaded} cache. */
     protected ConcurrentMap<Object,Entity>  modified;
@@ -103,8 +106,8 @@ public class UnitOfWorkImpl
         this.delegate = suow;
         this.repo = repo;
         
-        // cache
         this.loaded = repo.getConfig().newCache();
+        this.loadedMixins = repo.getConfig().newCache();
         this.modified = new ConcurrentHashMap( 1024, 0.75f, 4 );
         
 //        // check evicted entries and re-insert if modified
@@ -168,12 +171,13 @@ public class UnitOfWorkImpl
 
     @Override
     public <T extends Entity> T entity( final Class<T> entityClass, final Object id ) {
+        assert entityClass != null;
+        assert id != null;
         checkOpen();
         return (T)loaded.get( id, new EntityCacheLoader() {
             public Entity load( Object key ) throws RuntimeException {
                 CompositeState state = delegate.loadEntityState( id, entityClass );
-                result = repo.buildEntity( state, entityClass, UnitOfWorkImpl.this );
-                return result;
+                return repo.buildEntity( state, entityClass, UnitOfWorkImpl.this );
             }
         });
     }
@@ -196,10 +200,16 @@ public class UnitOfWorkImpl
 
     
     @Override
-    public <T extends Composite> T mixin( Class<T> mixinClass, Entity entity ) {
-        throw new RuntimeException( "not yet implemented." );
-//        assert entity( entity.getClass(), entity.id() ) != null;
-//        result = repo.buildEntity( entity.context.state, mixinClass, UnitOfWorkImpl.this );
+    public <T extends Composite> T mixin( final Class<T> mixinClass, final Entity entity ) {
+        checkOpen();
+        String key = Joiner.on( '_' ).join( entity.id().toString(), mixinClass.getName() );
+        return (T)loadedMixins.get( key, new MixinCacheLoader() {
+            public Composite load( String _key ) throws RuntimeException {
+                return repo.buildMixin( entity, mixinClass, UnitOfWorkImpl.this );
+            }
+        });
+
+//        throw new RuntimeException( "not yet implemented." );
     }
 
 
@@ -351,7 +361,25 @@ public class UnitOfWorkImpl
         
         public int size() throws RuntimeException {
             // XXX rough approximation (count Composite props)
-            return Math.max( 1024, result.info().getProperties().size() * 100 );
+            return 1024;
+//            return Math.max( 1024, result.info().getProperties().size() * 100 );
         }
     }
+
+    
+    /**
+     * 
+     */
+    abstract class MixinCacheLoader
+            implements CacheLoader<String,Composite,RuntimeException> {
+
+        protected Composite     result;
+        
+        public int size() throws RuntimeException {
+            // XXX rough approximation (count Composite props)
+            return 1024;
+//            return Math.max( 1024, result.info().getProperties().size() * 100 );
+        }
+    }
+    
 }

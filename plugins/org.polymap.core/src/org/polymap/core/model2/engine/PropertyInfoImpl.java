@@ -20,6 +20,7 @@ import java.lang.reflect.ParameterizedType;
 import javax.annotation.Nullable;
 
 import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.Computed;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.NameInStore;
@@ -40,6 +41,10 @@ public class PropertyInfoImpl<T>
     public PropertyInfoImpl( Field field ) {
         assert Property.class.isAssignableFrom( field.getType() );
         this.field = field;
+    }
+
+    Field getField() {
+        return field;
     }
 
     @Override
@@ -68,6 +73,11 @@ public class PropertyInfoImpl<T>
     @Override
     public boolean isImmutable() {
         return field.getAnnotation( Immutable.class ) != null;
+    }
+
+    @Override
+    public boolean isComputed() {
+        return field.getAnnotation( Computed.class ) != null;
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.polymap.core.model2.test;
 import java.util.Date;
 
 import org.polymap.core.model2.Defaults;
+import org.polymap.core.model2.Mixins;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.runtime.CompositeInfo;
@@ -28,6 +29,7 @@ import org.polymap.core.model2.store.feature.SRS;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @NameInStore("Employee")
+@Mixins( {TrackableMixin.class} )
 @SRS( "EPSG:31468" )
 public class Employee
         extends Person {

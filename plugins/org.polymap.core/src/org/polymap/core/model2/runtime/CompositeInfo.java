@@ -20,7 +20,7 @@ import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.NameInStore;
 
 /**
- * Provides runtime information about a {@link Composite}.
+ * Provides runtime information about a {@link Composite} type.
  * 
  * @see PropertyInfo
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

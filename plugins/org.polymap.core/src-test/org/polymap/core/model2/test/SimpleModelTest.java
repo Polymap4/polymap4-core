@@ -85,7 +85,10 @@ public abstract class SimpleModelTest
         assertEquals( "Philipp", employee2.name.get() );
         log.info( "Employee: firstname=" + employee2.firstname.get() );
         assertEquals( "Ulli", employee2.firstname.get() );
-        
+
+        Employee employee3 = uow.entity( Employee.class, employee.id() );
+        log.info( "Employee: name=" + employee3.name.get() );
+
         // modify
         employee2.firstname.set( "Ulrike" );
         log.info( "Employee: firstname=" + employee2.firstname.get() );
@@ -177,10 +180,31 @@ public abstract class SimpleModelTest
     }
 
     
-    public void tstMixin() throws Exception {
+    public void testMixinComputed() throws Exception {
         Employee employee = uow.createEntity( Employee.class, null, null );
+        Object id = employee.id();
+        
         TrackableMixin trackable = employee.as( TrackableMixin.class );
         assertNotNull( trackable );
+        assertSame( employee.state(), trackable.state() );
+
+        trackable = employee.as( TrackableMixin.class );
+        assertNotNull( trackable );
+        assertSame( employee.state(), trackable.state() );
+        
+        trackable.track.set( 10 );
+        log.info( "Computed property: " + trackable.computed.get() );
+        assertTrue( trackable.computed.get().endsWith( "computed" ) );
+        
+        // commit
+        uow.commit();
+        
+        // check
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        employee = uow2.entityForState( Employee.class, employee.state() );
+        trackable = employee.as( TrackableMixin.class );
+        assertNotNull( trackable );
+        assertEquals( 10, (int)trackable.track.get() );
     }
     
     
