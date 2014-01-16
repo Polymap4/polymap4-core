@@ -199,17 +199,17 @@ public class UnitOfWorkImpl
     }
 
     
-    @Override
     public <T extends Composite> T mixin( final Class<T> mixinClass, final Entity entity ) {
+        assert mixinClass != null : "mixinClass must not be null.";
+        assert entity != null : "entity must not be null.";
         checkOpen();
+        
         String key = Joiner.on( '_' ).join( entity.id().toString(), mixinClass.getName() );
         return (T)loadedMixins.get( key, new MixinCacheLoader() {
             public Composite load( String _key ) throws RuntimeException {
                 return repo.buildMixin( entity, mixinClass, UnitOfWorkImpl.this );
             }
         });
-
-//        throw new RuntimeException( "not yet implemented." );
     }
 
 

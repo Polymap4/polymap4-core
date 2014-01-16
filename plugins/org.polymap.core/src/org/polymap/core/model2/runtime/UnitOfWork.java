@@ -18,7 +18,6 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
@@ -65,7 +64,7 @@ public interface UnitOfWork {
      */
     public <T extends Entity> T entity( Class<T> entityClass, Object id );
 
-    public <T extends Composite> T mixin( Class<T> entityClass, Entity entity );
+//    public <T extends Composite> T mixin( Class<T> entityClass, Entity entity );
 
 
     /**

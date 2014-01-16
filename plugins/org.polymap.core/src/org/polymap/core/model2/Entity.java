@@ -14,6 +14,7 @@
  */
 package org.polymap.core.model2;
 
+import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 
 /**
@@ -37,10 +38,10 @@ public abstract class Entity
         return getClass().getSimpleName() + "[id=" + id() + ",status=" + status() + ",state=" + state() + "]" ;
     }
 
+    
     /**
      * Casts this entity into one of its Mixin types. Mixins are defined via the
-     * {@link Mixins} annotation. The Mixin type may also be a runtime Mixin. Runtime
-     * Mixins are not statically defined. The use of runtime Mixins is not as
+     * {@link Mixins} annotation or at runtime. Creating runtime Mixins is not as
      * efficient as Mixins defined via the annotation.
      * 
      * @param <T>
@@ -48,7 +49,7 @@ public abstract class Entity
      * @return A mixin of the given type, or null if no such mixin was defined.
      */
     public <T extends Composite> T as( Class<T> mixinClass ) {
-        return context.getUnitOfWork().mixin( mixinClass, this );
+        return ((UnitOfWorkImpl)context.getUnitOfWork()).mixin( mixinClass, this );
     }
 
     protected void methodProlog( String methodName, Object... args ) {
