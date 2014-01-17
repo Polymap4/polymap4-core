@@ -284,7 +284,7 @@ class DeferredFeatureContentProvider2
                 }
 
                 it = coll.iterator();
-                int chunkSize = 16;
+                int chunkSize = 4;
                 List chunk = new ArrayList( chunkSize ); 
 
                 for (int c=0; it.hasNext() && elementCache != null; c++) {

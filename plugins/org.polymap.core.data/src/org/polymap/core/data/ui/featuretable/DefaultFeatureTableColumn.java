@@ -93,9 +93,15 @@ public class DefaultFeatureTableColumn
         return prop.getName().getLocalPart();
     }
     
+    @Override
     public DefaultFeatureTableColumn setLabelProvider( ColumnLabelProvider labelProvider ) {
         this.labelProvider = labelProvider;
         return this;
+    }
+
+    @Override
+    public ColumnLabelProvider getLabelProvider() {
+        return labelProvider;
     }
 
     public DefaultFeatureTableColumn setHeader( String header ) {

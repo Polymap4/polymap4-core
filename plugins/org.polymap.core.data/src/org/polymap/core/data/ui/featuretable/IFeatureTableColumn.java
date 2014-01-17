@@ -14,6 +14,9 @@ package org.polymap.core.data.ui.featuretable;
 
 import java.util.Comparator;
 
+import org.eclipse.swt.SWT;
+
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewerColumn;
 
@@ -33,6 +36,10 @@ public interface IFeatureTableColumn {
     public String getName();
 
     public abstract EditingSupport getEditingSupport();
+
+    public IFeatureTableColumn setLabelProvider( ColumnLabelProvider labelProvider );
+
+    public ColumnLabelProvider getLabelProvider();
 
     public TableViewerColumn newViewerColumn();
     

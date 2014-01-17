@@ -16,6 +16,7 @@ package org.polymap.core.data.ui.featuretable;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -34,6 +35,7 @@ import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.rwt.graphics.Graphics;
 
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
@@ -80,11 +82,6 @@ public class FeatureTableSearchField
                 searchTxt.setText( "" );
             }
         });
-//        clearBtn.addSelectionListener( new SelectionAdapter() {
-//            public void widgetSelected( SelectionEvent e ) {
-//                searchTxt.setText( "" );
-//            }
-//        });
         clearBtn.setVisible( false );
 
         searchTxt = new Text( container, SWT.SEARCH | SWT.CANCEL );
@@ -140,13 +137,33 @@ public class FeatureTableSearchField
     public boolean select( Viewer _viewer, Object parentElm, Object elm ) {
         if (filterText != null /*&& filterText.length() >= 3*/) {
             IFeatureTableElement feature = (IFeatureTableElement)elm;
-            for (String propName : searchPropNames) {
-                Object value = feature.getValue( propName );
-                if (value != null && value.toString().toLowerCase().contains( filterText )) {
-                    return true;
+            
+            for (String filterPart : StringUtils.split( filterText.toLowerCase() )) {
+                boolean partFound = false;                
+                for (String propName : searchPropNames) {
+                    try {
+                        ColumnLabelProvider labelProvider = viewer.getColumn( propName ).getLabelProvider();
+                        String text = labelProvider.getText( feature );
+                        //Object value = feature.getValue( propName );
+                        if (text != null && text.toLowerCase().contains( filterPart )) {
+                            partFound = true; 
+                            break;
+                        }
+                        String tooltip = labelProvider.getToolTipText( feature );
+                        if (tooltip != null && tooltip.toLowerCase().contains( filterPart )) {
+                            partFound = true; 
+                            break;
+                        }
+                    }
+                    catch (Exception e) {
+                        throw new RuntimeException( e );
+                    }
+                }
+                if (!partFound) {
+                    return false;
                 }
             }
-            return false;
+            return true;
         }
         else {
             return true;
