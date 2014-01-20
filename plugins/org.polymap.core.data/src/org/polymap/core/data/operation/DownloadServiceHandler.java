@@ -185,7 +185,7 @@ public class DownloadServiceHandler
                 String contentType = provider.getContentType();
                 response.setContentType( contentType );
                 // display any HTML content in browser instead of downloading it
-                if (!contentType.toLowerCase().contains( "html" )) {
+                if (contentType != null && !contentType.toLowerCase().contains( "html" )) {
                     response.setHeader( "Content-disposition", "attachment; filename=" + provider.getFilename() );
                 }
                 response.setHeader( "Pragma", "public" );
