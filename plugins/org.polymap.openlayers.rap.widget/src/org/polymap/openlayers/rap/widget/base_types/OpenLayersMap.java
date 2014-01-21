@@ -104,7 +104,7 @@ public class OpenLayersMap
             "units: '", units, "',",
             "maxExtent: ", maxExtent.getJSObjRef(), ",",
             "restrictedExtent: ", maxExtent.getJSObjRef(), ",",
-            "maxResolution: " + maxResolution + "});" ).toString(), widget );
+            "maxResolution: " + (maxResolution > -1 ? maxResolution : "'auto'") + "});" ).toString(), widget );
     }
     
     public OpenLayersMap(OpenLayersWidget widget) {
