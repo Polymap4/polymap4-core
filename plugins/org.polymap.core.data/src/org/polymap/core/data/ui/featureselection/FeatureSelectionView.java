@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2014, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -86,7 +86,6 @@ import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.workbench.PolymapWorkbench;
-
 
 /**
  * 
@@ -294,7 +293,7 @@ public class FeatureSelectionView
             EventManager.instance().subscribe( changeListener = 
                 new FeatureChangeListener() {
                     public void featureChanges( List<FeatureChangeEvent> events ) {
-                        loadTable( filter );
+                        viewer.refresh();
                     }
                 }, 
                 new EventFilter<EventObject>() {

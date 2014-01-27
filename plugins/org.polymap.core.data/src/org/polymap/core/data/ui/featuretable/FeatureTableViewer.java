@@ -49,8 +49,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.viewers.ViewerFilter;
 
-//import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.runtime.ListenerList;
 
@@ -67,7 +67,10 @@ public class FeatureTableViewer
     /** Property type that is fired when the content of the viewer has changed. */
     public static final String              PROP_CONTENT_SIZE = "contentsize";
 
-    private static final Color              LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
+    public static final Object              LOADING_ELEMENT = new Object();
+
+    public static final Color               LOADING_FOREGROUND = Graphics.getColor( 0xa0, 0xa0, 0xa0 );
+    public static final Color               LOADING_BACKGROUND = Graphics.getColor( 0xfa, 0xfb, 0xff );
     
     private Map<String,IFeatureTableColumn> displayed = new HashMap();
 
@@ -77,7 +80,7 @@ public class FeatureTableViewer
     
     private ListenerList<PropertyChangeListener> listeners = new ListenerList();
 
-    private Color                           foreground;
+    private Color                           foreground, background;
 
 
     public FeatureTableViewer( Composite parent, int style ) {
@@ -89,6 +92,7 @@ public class FeatureTableViewer
         getTable().setLayout( new TableLayout() );
 
         this.foreground = getTable().getForeground();
+        this.background = getTable().getBackground();
 
         //setUseHashlookup( true );
     }
@@ -103,6 +107,42 @@ public class FeatureTableViewer
     }
 
 
+    @Override
+    public void addFilter( ViewerFilter filter ) {
+        assert getContentProvider() != null;
+        super.addFilter( filter );
+
+        if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
+            DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.addViewerFilter( filter );
+        }
+    }
+
+
+    @Override
+    public void removeFilter( ViewerFilter filter ) {
+        super.removeFilter( filter );
+        if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
+            DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.removeViewerFilter( filter );
+        }
+    }
+
+    
+    /**
+     *
+     */
+    @Override
+    public void refresh() {
+        super.refresh();
+        if (getContentProvider() instanceof DeferredFeatureContentProvider2) {
+            DeferredFeatureContentProvider2 provider = (DeferredFeatureContentProvider2)getContentProvider();
+            provider.inputChanged( this, null, null );
+            provider.setSortOrder( provider.getSortOrder() );
+        }        
+    }
+    
+    
     public int getElementCount() {
         return doGetItemCount();
     }
@@ -131,24 +171,25 @@ public class FeatureTableViewer
     public void selectElement( final String fid, boolean reveal ) {
         assert fid != null;
         IFeatureTableElement search = new IFeatureTableElement() {
+            @Override
             public Object getValue( String name ) {
                 throw new RuntimeException( "not yet implemented." );
             }
-    
+            @Override
             public void setValue( String name, Object value ) {
                 throw new RuntimeException( "not yet implemented." );
             }
-
+            @Override
             public String fid() {
                 return fid;
-            }
-            
+            }            
+            @Override
             public boolean equals( Object other ) {
                 return other instanceof IFeatureTableElement
                         ? fid.equals( ((IFeatureTableElement)other).fid() )
                         : false;
             }
-
+            @Override
             public int hashCode() {
                 return fid.hashCode();
             }
@@ -186,7 +227,12 @@ public class FeatureTableViewer
         displayed.put( column.getName(), column );
     }
 
+    
+    public <T extends IFeatureTableColumn> T getColumn( String propName ) {
+        return (T)available.get( propName );
+    }
 
+    
     /**
      * Set the content of this viewer. A {@link DeferredFeatureContentProvider} is
      * used to fetch and sort the features.
@@ -209,8 +255,8 @@ public class FeatureTableViewer
         String colName = (String)sortColumn.getData( "name" );
         IFeatureTableColumn sortTableColumn = displayed.get( colName );
 
-        setContentProvider( new DeferredFeatureContentProvider2( this, fs, filter,
-                sortTableColumn.newComparator( sortDir ) ) );
+        setContentProvider( new DeferredFeatureContentProvider2( 
+                this, fs, filter, sortTableColumn.newComparator( sortDir ), getFilters() ) );
         setInput( fs );
     }
 
@@ -258,8 +304,6 @@ public class FeatureTableViewer
 
     /**
      * Sorts the table entries by delegating the call to the content provider.
-     * <p/>
-     * Must be caled only if the content provider is a {@link DeferredFeatureContentProvider}!
      * 
      * @param comparator
      * @param dir
@@ -293,10 +337,12 @@ public class FeatureTableViewer
                 }
                 if (loading) {
                     getTable().setForeground( LOADING_FOREGROUND );
+                    getTable().setBackground( LOADING_BACKGROUND );
 //                    setBusy( true );
                 }
                 else {
                     getTable().setForeground( foreground );
+                    getTable().setBackground( background );
 //                    setBusy( false );
                 }
             }

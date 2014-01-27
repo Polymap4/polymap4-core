@@ -38,4 +38,10 @@ interface IFeatureTableColumn {
     
     public Comparator<IFeatureTableElement> newComparator( int sortDir );
 
+    /**
+     *
+     * @param dir Sort direction: {@link SWT#UP} or {@link SWT#DOWN}.
+     */
+    void sort( int dir );
+
 }

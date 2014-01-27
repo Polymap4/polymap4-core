@@ -32,6 +32,12 @@ import org.eclipse.jface.viewers.StructuredSelection;
 public class SelectionAdapter
         implements Iterable {
 
+    public static SelectionAdapter on( ISelection delegate ) {
+        return new SelectionAdapter( delegate );
+    }
+    
+    // instance *******************************************
+    
     private IStructuredSelection    delegate;
     
     public SelectionAdapter( ISelection delegate ) {

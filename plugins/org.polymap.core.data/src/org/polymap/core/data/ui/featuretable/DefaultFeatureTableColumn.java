@@ -26,6 +26,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -36,8 +40,10 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.ViewerColumn;
 
 /**
  *
@@ -64,10 +70,17 @@ public class DefaultFeatureTableColumn
     private int                     minimumWidth = -1;
     
     private ColumnLabelProvider     labelProvider = new DefaultCellLabelProvider();
+    
+    private int                     align = -1;
+    
+    private boolean                 sortable = true;
+
+    private TableViewerColumn       viewerColumn;
 
 
     public DefaultFeatureTableColumn( PropertyDescriptor prop ) {
         super();
+        assert prop != null : "Argument is null.";
         this.prop = prop;
     }
 
@@ -96,6 +109,11 @@ public class DefaultFeatureTableColumn
         return this;
     }
     
+    public DefaultFeatureTableColumn setAlign( int align ) {
+        this.align = align;
+        return this;
+    }
+
     public DefaultFeatureTableColumn setEditing( boolean editing ) {
         assert viewer == null : "Call before table is created.";
         // defer creation of editingSupport to setViewer()
@@ -116,16 +134,36 @@ public class DefaultFeatureTableColumn
         throw new RuntimeException( "not yet implemented" );
     }
 
+    public boolean isSortable() {
+        return sortable;
+    }
+    
+    public void setSortable( boolean sortable ) {
+        this.sortable = sortable;
+    }
+
+    @Override
+    public void sort( int dir ) {
+        assert viewerColumn != null : "Add this column to the viewer before calling sort()!";
+        Comparator<IFeatureTableElement> comparator = newComparator( dir );
+        viewer.sortContent( comparator, dir, viewerColumn.getColumn() );        
+    }
+    
     
     public TableViewerColumn newViewerColumn() {
-        int align = Number.class.isAssignableFrom( prop.getType().getBinding() )
-                ? SWT.RIGHT : SWT.CENTER;
+        assert viewerColumn == null;
+        
+        if (align == -1) {
+            align = Number.class.isAssignableFrom( prop.getType().getBinding() )
+                    || Date.class.isAssignableFrom( prop.getType().getBinding() )
+                    ? SWT.RIGHT : SWT.LEFT;
+        }
 
-        TableViewerColumn viewerColumn = new TableViewerColumn( viewer, align );
+        viewerColumn = new TableViewerColumn( viewer, align );
         viewerColumn.getColumn().setMoveable( true );
         viewerColumn.getColumn().setResizable( true );
         
-        viewerColumn.setLabelProvider( labelProvider );
+        viewerColumn.setLabelProvider( new LoadingCheckLabelProvider( labelProvider ) );
         String normalizedName = StringUtils.capitalize( getName() );
         viewerColumn.getColumn().setText( header != null ? header : normalizedName );
         
@@ -135,9 +173,10 @@ public class DefaultFeatureTableColumn
         
         // sort listener for supported prop bindings
         Class propBinding = prop.getType().getBinding();
-        if (String.class.isAssignableFrom( propBinding )
+        if (sortable &&
+                (String.class.isAssignableFrom( propBinding )
                 || Number.class.isAssignableFrom( propBinding )
-                || Date.class.isAssignableFrom( propBinding )) {
+                || Date.class.isAssignableFrom( propBinding ))) {
 
             viewerColumn.getColumn().addListener( SWT.Selection, new Listener() {
                 public void handleEvent( Event ev ) {
@@ -193,7 +232,7 @@ public class DefaultFeatureTableColumn
                     return 1;
                 }
                 else if (String.class.isAssignableFrom( propBinding )) {
-                    return ((String)value1).compareTo( (String)value2 );
+                    return ((String)value1).compareToIgnoreCase( (String)value2 );
                 }
                 else if (Number.class.isAssignableFrom( propBinding )) {
                     return (int)(((Number)value1).doubleValue() - ((Number)value2).doubleValue());
@@ -213,7 +252,7 @@ public class DefaultFeatureTableColumn
     /**
      * 
      */
-    class DefaultCellLabelProvider
+    public class DefaultCellLabelProvider
             extends ColumnLabelProvider {
             
         public String getText( Object elm ) {
@@ -232,20 +271,25 @@ public class DefaultFeatureTableColumn
 
         public String getToolTipText( Object elm ) {
             if (elm != null) {
-                IFeatureTableElement featureElm = (IFeatureTableElement)elm;
-                Object value = featureElm.getValue( getName() );
-                return value != null ? value.toString() : null;
+                try {
+                    IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                    Object value = featureElm.getValue( getName() );
+                    return value != null ? value.toString() : null;
+                }
+                catch (Exception e) {
+                    log.warn( "", e );
+                    return null;
+                }
             }
             return null;
         }
-
     }
-    
+
     
     /**
      * 
      */
-    class DefaultEditingSupport
+    public class DefaultEditingSupport
             extends EditingSupport {
 
         public DefaultEditingSupport( ColumnViewer viewer ) {
@@ -275,7 +319,113 @@ public class DefaultFeatureTableColumn
             IFeatureTableElement featureElm = (IFeatureTableElement)elm;
             featureElm.setValue( getName(), value );
         }
+    }
+
+    
+    /**
+     * 
+     */
+    class LoadingCheckLabelProvider
+            extends ColumnLabelProvider {
+    
+        private ColumnLabelProvider     delegate;
+
+        public LoadingCheckLabelProvider( ColumnLabelProvider delegate ) {
+            this.delegate = delegate;
+        }
+
+        public String getText( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? "Laden..."
+                    : delegate.getText( element );
+        }
+
+        public String getToolTipText( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? null : delegate.getToolTipText( element );
+        }
+
+        public Image getImage( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? null : delegate.getImage( element );
+        }
+
+        public Color getForeground( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? FeatureTableViewer.LOADING_FOREGROUND
+                    : delegate.getForeground( element );
+        }
+
+        public Color getBackground( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? FeatureTableViewer.LOADING_BACKGROUND
+                    : delegate.getBackground( element );
+        }
+
+        public void addListener( ILabelProviderListener listener ) {
+            delegate.addListener( listener );
+        }
+
+//        public void update( ViewerCell cell ) {
+//            delegate.update( cell );
+//        }
+
+        public void dispose() {
+            delegate.dispose();
+        }
+
+        public boolean isLabelProperty( Object element, String property ) {
+            return delegate.isLabelProperty( element, property );
+        }
+
+        public Font getFont( Object element ) {
+            return delegate.getFont( element );
+        }
+
+        public void removeListener( ILabelProviderListener listener ) {
+            delegate.removeListener( listener );
+        }
+
+        public Image getToolTipImage( Object object ) {
+            return delegate.getToolTipImage( object );
+        }
+
+        public Color getToolTipBackgroundColor( Object object ) {
+            return delegate.getToolTipBackgroundColor( object );
+        }
+
+        public Color getToolTipForegroundColor( Object object ) {
+            return delegate.getToolTipForegroundColor( object );
+        }
+
+        public Font getToolTipFont( Object object ) {
+            return delegate.getToolTipFont( object );
+        }
+
+        public Point getToolTipShift( Object object ) {
+            return delegate.getToolTipShift( object );
+        }
+
+        public boolean useNativeToolTip( Object object ) {
+            return delegate.useNativeToolTip( object );
+        }
+
+        public int getToolTipTimeDisplayed( Object object ) {
+            return delegate.getToolTipTimeDisplayed( object );
+        }
+
+        public int getToolTipDisplayDelayTime( Object object ) {
+            return delegate.getToolTipDisplayDelayTime( object );
+        }
+
+        public int getToolTipStyle( Object object ) {
+            return delegate.getToolTipStyle( object );
+        }
+
+        public void dispose( @SuppressWarnings("hiding") ColumnViewer viewer, ViewerColumn column ) {
+            delegate.dispose( viewer, column );
+        }
         
     }
-    
+
 }
