@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,6 +14,7 @@
  */
 package org.polymap.core.runtime.recordstore.lucene;
 
+import java.util.Date;
 import java.util.Iterator;
 
 import java.io.IOException;
@@ -68,7 +69,8 @@ public class LuceneRecordQuery
 
 
     public ResultSet execute() throws IOException {
-        if (getSortKey() != null) {
+        String sortKey = getSortKey();
+        if (sortKey != null) {
             int sortType = SortField.STRING;
             if (getSortType() == String.class) {
                 sortType = SortField.STRING;
@@ -85,7 +87,11 @@ public class LuceneRecordQuery
             else if (getSortType() == Double.class) {
                 sortType = SortField.DOUBLE;
             }
-            Sort sort = new Sort( new SortField( getSortKey(), sortType, getSortOrder() == DESC ) );
+            else if (getSortType() == Date.class) {
+                sortType = SortField.LONG;
+                sortKey = sortKey + DateValueCoder.SUFFIX;
+            }
+            Sort sort = new Sort( new SortField( sortKey, sortType, getSortOrder() == DESC ) );
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults(), sort );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
