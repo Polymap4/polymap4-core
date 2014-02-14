@@ -120,7 +120,7 @@ public class CacheUpdateQueue {
     static final class StoreCommand
             extends Command {
         
-        private CachedTile          tile;
+        protected CachedTile        tile;
         
 
         public StoreCommand( CachedTile tile ) {

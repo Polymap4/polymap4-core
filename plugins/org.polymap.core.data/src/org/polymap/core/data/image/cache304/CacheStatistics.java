@@ -83,7 +83,7 @@ public class CacheStatistics {
             long result = 0;
             ResultSet resultSet = cache.store.find( query );
             for (IRecordState state : resultSet) {
-                result += new CachedTile( state ).data.get().length;
+                result += new CachedTile( state, null ).filesize.get();
             }
             return result;
         }
@@ -107,7 +107,7 @@ public class CacheStatistics {
     }
     
     public long totalStoreSize( Cache304 cache ) {
-        return cache.store.storeSizeInByte();
+        return cache.dataDirSize.get();  //store.storeSizeInByte();
     }
     
 }

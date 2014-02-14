@@ -158,8 +158,7 @@ public class ImageCacheProcessor
             // check If-Modified-Since
             long modifiedSince = request.getIfModifiedSince();
             long lastModified = cachedTile.lastModified.get();
-            if (modifiedSince > 0 
-                    && lastModified > modifiedSince) {
+            if (modifiedSince > 0 && lastModified > modifiedSince) {
                 log.debug( "### CACHE: 304! :) -- " + timer.elapsedTime() + "ms" );
                 context.sendResponse( EncodedImageResponse.NOT_MODIFIED );
                 context.sendResponse( ProcessorResponse.EOP );
