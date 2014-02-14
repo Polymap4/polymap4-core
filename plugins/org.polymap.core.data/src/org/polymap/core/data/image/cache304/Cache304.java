@@ -165,20 +165,33 @@ public class Cache304 {
     
     protected Cache304() {
         try {
-            dataDir = new File( Polymap.getCacheDir(), "tiles.data" );
-            dataDir.mkdirs();
-            log.info( "Data dir: "  + dataDir + " - Checking size..." );
-            Timer timer = new Timer();
-            dataDirSize = new AtomicLong( FileUtils.sizeOfDirectory( dataDir ) );
-            log.info( "  -> "  + FileUtils.byteCountToDisplaySize( dataDirSize.get() ) + " (" + timer.elapsedTime() + "ms)" );
-
-            store = new LuceneRecordStore( new File( Polymap.getCacheDir(), "tiles.index" ), false );
-            
+            store = new LuceneRecordStore( new File( Polymap.getCacheDir(), "tiles.index" ), false );            
             store.setIndexFieldSelector( new IRecordFieldSelector() {
                 public boolean accept( String key ) {
                     return !key.equals( CachedTile.TYPE.data.name() );
                 }
             });
+            
+            dataDir = new File( Polymap.getCacheDir(), "tiles.data" );
+            dataDir.mkdirs();
+            log.info( "Data dir: "  + dataDir + " - Checking size..." );
+            Timer timer = new Timer();
+            long fileSize = 0, count = 0;
+//            SimpleQuery query = new SimpleQuery();
+//            query.setMaxResults( 1000000 );
+//            for (IRecordState record : store.find( query )) {
+//                fileSize += new CachedTile( record ).filesize.get();
+//                count ++;
+//            }
+            for (File f : dataDir.listFiles()) {
+                fileSize += f.length(); 
+                count ++;
+            }
+            dataDirSize = new AtomicLong( fileSize );
+            log.info( "  -> "  
+                    + FileUtils.byteCountToDisplaySize( dataDirSize.get() )
+                    + " in " + count + " tiles"
+                    + " (" + timer.elapsedTime() + "ms)" );
             
             prefs.setDefault( PREF_TOTAL_STORE_SIZE, DEFAULT_MAX_STORE_SIZE );
             maxStoreSizeInByte = prefs.getInt( PREF_TOTAL_STORE_SIZE );
@@ -193,11 +206,14 @@ public class Cache304 {
     protected void finalize() throws Throwable {
         log.info( "FINALIZE..." );
         try {
-            // write pending changes and cleanup
-            updater.run( new NullProgressMonitor() );
-            store.close();
+            if (!store.isClosed()) {
+                // write pending changes and cleanup
+                updater.run( new NullProgressMonitor() );
+                store.close();
+            }
         }
-        finally {
+        catch (Exception e) {
+            log.warn( "Error while finalizing/closing store.", e );
         }
     }
 
