@@ -1,10 +1,37 @@
+ * {
+  color: #222222;
+  background-color: #fff;
+  background-image: none;
+  font: 12px"Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;
+}
+*:disabled {
+  color: #cdcdcd;
+}
+Display {
+  rwt-shadow-color: #cdcdcd;
+  rwt-highlight-color: #ffffff;
+  rwt-darkshadow-color: #85878c;
+  rwt-lightshadow-color: #dcdfe4;
+  rwt-thinborder-color: #fff;
+  rwt-selectionmarker-color: #fec83c;
+  rwt-infobackground-color: #ffffff;
+  rwt-error-image: url(resources/icons/rap/dialog/error.png );
+  rwt-information-image: url(resources/icons/rap/dialog/information.png );
+  rwt-question-image: url(resources/icons/rap/dialog/question.png );
+  rwt-warning-image: url(resources/icons/rap/dialog/warning.png );
+  rwt-working-image: url(resources/icons/rap/dialog/information.png );
+  rwt-fontlist: 14px"Open Sans", 'Segoe UI', Corbel, Calibri, Tahoma, 'Lucida Sans Unicode';
+  background-image: url(resources/icons/rap/display/browser_bg.png );
+  font: 12px"Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;
+}
+
 CTabFolder { 
   border-color: #eee;
-  border-radius: 12px;
+  border-radius: 4px;
  }
 
 CTabItem {
-  font: 17px "Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;  color: #181818;
+  font: 12px "Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;  color: #181818;
   background-image: none;
   padding: 6px 15px;
   spacing: 10px;
@@ -14,7 +41,7 @@ CTabItem {
 /* Shell titlebar */
 
 Shell-Titlebar {
-  font: 14px "Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;
+  font: 12px "Open Sans", "Lucida Sans", Helvetica, Verdana, Arial, sans-serif;
   background-color: #eee; /* setting the widget gradient color */
   color: #ffffff;
   background-image: gradient(
@@ -23,7 +50,7 @@ Shell-Titlebar {
   );
   padding: 0 10px 0 10px;
   margin: 0px;
-  height: 38px;
+  height: 30px;
   border: none;
   border-radius: 0;
   text-shadow: none;

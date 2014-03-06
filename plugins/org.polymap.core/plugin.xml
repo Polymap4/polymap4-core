@@ -131,7 +131,7 @@
   <extension
       point="org.eclipse.rap.ui.themes">
     <themeContribution
-          file="workbench.css"
+          file="resources/css/workbench.css"
           themeId="org.eclipse.rap.rwt.theme.Default"/>
   </extension>
    <extension
