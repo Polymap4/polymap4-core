@@ -19,15 +19,12 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  *
  */
-
 package org.polymap.openlayers.rap.widget.controls;
 
 /**
  * 
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
- * 
  */
-
 public class PanZoomBarControl extends Control {
 
 	public PanZoomBarControl() {

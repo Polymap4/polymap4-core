@@ -15,7 +15,7 @@
 package org.polymap.openlayers.rap.widget.util;
 
 /**
- * Simple helper to build HTML/JavaScript code strings.
+ * Simple helper to build HTML/JavaScript code Strings.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

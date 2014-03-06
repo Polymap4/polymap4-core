@@ -65,7 +65,7 @@ public final class Polymap {
 
     private static Log log = LogFactory.getLog( Polymap.class );
 
-    public static final String      DEFAULT_LOGIN_CONFIG = "POLYMAP";
+    public static final String      DEFAULT_LOGIN_CONFIG = "Workbench";
     /** The name of the service JAAS login config. See {@link ServicesCallbackHandler}. */
     public static final String      SERVICES_LOGIN_CONFIG = "Services";
     
@@ -126,9 +126,9 @@ public final class Polymap {
 
 
     /**
-     * The {@link Display} of the session of the current thread. Null, if the
-     * current thread has no session. The result is equivalent to
-     * {@link Display#getCurrent()} except that the calling thread does need to
+     * The {@link Display} of the session of the current thread. Null, if the current
+     * thread has no session. The result is equivalent to
+     * {@link Display#getCurrent()} except that the calling thread does not have to
      * be the UI thread of the session.
      */
     public static Display getSessionDisplay() {
@@ -197,7 +197,9 @@ public final class Polymap {
 
 
     public Locale getLocale() {
-        return locale.get();
+        // FIXME
+        //return locale.get();
+        return Locale.GERMAN;
     }
 
 

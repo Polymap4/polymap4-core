@@ -58,6 +58,16 @@ public final class ValueCoders {
     }
 
     
+    public void removeValueCoder( LuceneValueCoder valueCoder ) {
+        valueCoders = (LuceneValueCoder[])ArrayUtils.removeElement( valueCoders, valueCoder );
+    }
+
+    
+    public void clear() {
+        valueCoders = new LuceneValueCoder[0];    
+    }
+    
+    
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         LuceneValueCoder valueCoder = keyCoderMap.get( key );
         if (valueCoder != null) {

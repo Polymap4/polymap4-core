@@ -123,6 +123,7 @@ class DeferringListener
                     SessionUICallbackCounter.instance().jobFinished();
                 }
             };
+            job.setUser( false );
             job.setSystem( true );
             job.schedule( delay );
         }

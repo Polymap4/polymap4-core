@@ -47,7 +47,7 @@ public class LoginDialog
 
 
     protected Point getInitialSize() {
-        return new Point( 320, 220 );
+        return new Point( 400, 300 );
     }
 
 

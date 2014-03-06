@@ -27,6 +27,10 @@ import com.google.common.collect.Iterables;
  */
 public class Layers {
 
+    public static LayerFinder finder( String... labels ) {
+        return new LayerFinder( labels );
+    }
+    
     /**
      * 
      * @return Newly created {@link Predicate}.

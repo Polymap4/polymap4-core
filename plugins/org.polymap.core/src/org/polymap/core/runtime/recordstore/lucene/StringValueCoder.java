@@ -36,7 +36,7 @@ import org.polymap.core.runtime.recordstore.QueryExpression.Match;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class StringValueCoder
+public class StringValueCoder
         implements LuceneValueCoder {
 
     

@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.MapMaker;
 
 import org.eclipse.swt.graphics.Color;
@@ -49,6 +50,8 @@ import org.polymap.core.project.LayerStatus;
 import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.Visible;
+import org.polymap.core.runtime.DisplayLazyInit;
+import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
@@ -80,12 +83,23 @@ public class LayerStatusDecorator
     private static final String     waiting = "icons/ovr16/clock0_ovr.gif";
     private static final String     baseImage = "icons/obj16/layer_obj.gif";
     
-    private static final Color      MISSING_COLOR = Graphics.getColor( 255, 0, 0 );
-    private static final Color      INACTIVE_COLOR = Graphics.getColor( 0x60, 0x60, 0x60 );
-    
-    public static final Font        bold = JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT );; 
-    public static final Font        italic = JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT );
+    private static final Lazy<Color> MISSING_COLOR = new DisplayLazyInit( new Supplier<Color>() {
+        public Color get() { return Graphics.getColor( 255, 0, 0 ); }
+    });
+    private static final Lazy<Color> INACTIVE_COLOR = new DisplayLazyInit( new Supplier<Color>() {
+        public Color get() { return Graphics.getColor( 0x60, 0x60, 0x60 ); }
+    }); 
 
+    // instance *******************************************
+    
+    public Lazy<Font>               bold = new DisplayLazyInit( new Supplier<Font>() {
+        public Font get() { return JFaceResources.getFontRegistry().getBold( JFaceResources.DEFAULT_FONT ); } 
+    });
+    
+    public Lazy<Font>               italic = new DisplayLazyInit( new Supplier<Font>() {
+        public Font get() { return JFaceResources.getFontRegistry().getItalic( JFaceResources.DEFAULT_FONT ); } 
+    });
+    
     private Map<String,ILayer>      decorated;
 
 
@@ -138,7 +152,7 @@ public class LayerStatusDecorator
             // visible
             if (layer.isVisible()) {
                 ImageDescriptor image = ProjectPlugin.getDefault().imageDescriptor( visible );
-                decoration.setFont( bold );
+                decoration.setFont( bold.get() );
 
                 DecorationContext context = (DecorationContext)decoration.getDecorationContext();
                 context.putProperty( IDecoration.ENABLE_REPLACE, Boolean.TRUE );
@@ -150,7 +164,7 @@ public class LayerStatusDecorator
 
             // inactive == not visible
             if (!layer.isVisible()) {
-//                decoration.setForegroundColor( INACTIVE_COLOR );
+                decoration.setForegroundColor( INACTIVE_COLOR.get() );
             }
 
             LayerStatus layerStatus = layer.getLayerStatus();

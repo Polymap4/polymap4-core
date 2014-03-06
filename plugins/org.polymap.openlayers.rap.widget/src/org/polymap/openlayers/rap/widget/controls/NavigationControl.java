@@ -19,21 +19,23 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  *
  */
-
 package org.polymap.openlayers.rap.widget.controls;
+
+import org.polymap.openlayers.rap.widget.util.Stringer;
 
 /**
  * 
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
- * 
  */
-
 public class NavigationControl extends Control {
 
-	
-	public NavigationControl() {
-		super.create("new OpenLayers.Control.Navigation();");
-	}
-	
-	
+    public NavigationControl() {
+        super.create("new OpenLayers.Control.Navigation();");
+    }
+    
+    public NavigationControl( boolean kineticScrolling ) {
+        super.create( new Stringer( "new OpenLayers.Control.Navigation({",
+        		"dragPanOptions: {enableKinetic: ", kineticScrolling, "}});" ).toString() );
+    }
+    
 }

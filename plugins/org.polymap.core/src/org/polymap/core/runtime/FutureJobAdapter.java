@@ -28,8 +28,10 @@ import org.polymap.core.CorePlugin;
 /**
  * Provides a {@link Future} interface for a {@link Job} instance.
  * <p/>
- * The result value is read as Job property from the Job.
- *
+ * The result value is read as Job property ({@link #RESULT_VALUE_NAME}) from the
+ * Job. If no such result is set then the result {@link IStatus} is returned by
+ * {@link #get()}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FutureJobAdapter<V>
@@ -52,7 +54,8 @@ public class FutureJobAdapter<V>
     @Override
     public V get() throws InterruptedException, ExecutionException {
         job.join();
-        return (V)job.getProperty( RESULT_VALUE_NAME );
+        V result = (V)job.getProperty( RESULT_VALUE_NAME );
+        return result != null ? result : (V)job.getResult();
     }
 
     @Override

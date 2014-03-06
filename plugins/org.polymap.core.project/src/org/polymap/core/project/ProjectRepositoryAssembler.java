@@ -98,6 +98,7 @@ public class ProjectRepositoryAssembler
         
         moduleRoot = new File( root, "org.polymap.core.project" );
         moduleRoot.mkdir();
+        log.info( "   " + moduleRoot );
 
         domainModule.addServices( JsonEntityStoreService.class )
                 .setMetaInfo( new JsonEntityStoreInfo( moduleRoot ) )

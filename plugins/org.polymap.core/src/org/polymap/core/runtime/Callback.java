@@ -21,6 +21,6 @@ package org.polymap.core.runtime;
  */
 public interface Callback<T> {
 
-    public void handle( T arg );
+    public void handle( T result );
 
 }

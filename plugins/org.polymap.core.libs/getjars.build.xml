@@ -56,13 +56,14 @@
             <dependency groupId="org.apache.lucene" artifactId="lucene-core" version="3.6.2" />
             <dependency groupId="org.apache.lucene" artifactId="lucene-queryparser" version="3.6.2" />
 
+            <dependency groupId="org.json" artifactId="json" version="20131018" />
+
 			<!--dependency groupId="xmlrpc" artifactId="xmlrpc" version="2.0" /-->
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-client" version="3.0" />
 			<dependency groupId="org.apache.xmlrpc" artifactId="xmlrpc-common" version="3.0" />
 			<!--dependency groupId="commons-codec" artifactId="commons-codec" version="1.2" /-->
             
             <dependency groupId="com.google.guava" artifactId="guava" version="14.0.1" />
-            <!-- dependency groupId="com.google.collections" artifactId="google-collections" version="0.8" /-->
             <dependency groupId="com.googlecode.json-simple" artifactId="json-simple" version="1.1" />
             
 			<!-- 

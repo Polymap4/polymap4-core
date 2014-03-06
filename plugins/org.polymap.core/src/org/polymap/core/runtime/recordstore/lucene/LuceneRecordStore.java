@@ -33,9 +33,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -251,6 +248,11 @@ public final class LuceneRecordStore
     @Override
     protected void finalize() throws Throwable {
         close();
+    }
+
+    
+    public void setAnalyzer( Analyzer analyzer ) {
+        this.analyzer = analyzer;
     }
 
 
