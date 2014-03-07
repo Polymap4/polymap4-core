@@ -59,8 +59,9 @@
       <branding
             exitConfirmationClass="org.polymap.core.workbench.BrowserExitConfirmation"
             favicon="icons/favicon.gif"
-            id="org.polymap.core.branding1"
+            id="org.polymap.core.branding"
             servletName="workbench"
+            themeId="org.polymap.core.theme"
             title="POLYMAP3 Workbench">
          <additionalHeaders>
             <meta
@@ -130,9 +131,19 @@
    </extension>
   <extension
       point="org.eclipse.rap.ui.themes">
-    <themeContribution
-          file="resources/css/workbench.css"
-          themeId="org.eclipse.rap.rwt.theme.Default"/>
+     <theme
+           file="resource/css/workbench-default.css"
+           id="org.polymap.core.theme"
+           name="Workbench Theme">
+     </theme>
+     <themeContribution
+           file="resource/css/ctab.css"
+           themeId="org.polymap.core.theme">
+     </themeContribution>
+     <themeContribution
+           file="resource/css/shell.css"
+           themeId="org.polymap.core.theme">
+     </themeContribution>
   </extension>
    <extension
          id="org.polymap.core.security.DummyLoginModule"
