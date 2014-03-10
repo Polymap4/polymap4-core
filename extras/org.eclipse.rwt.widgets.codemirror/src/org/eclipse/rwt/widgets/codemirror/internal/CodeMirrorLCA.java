@@ -1,6 +1,6 @@
 /*
- * polymap.org Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag.
+ * polymap.org 
+ * Copyright (C) 2011-2014, Falko Bräutigam. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,7 @@ import org.eclipse.rwt.widgets.codemirror.CodeMirror;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings("deprecation")
 public class CodeMirrorLCA 
         extends AbstractWidgetLCA
         implements ILifeCycleAdapter {

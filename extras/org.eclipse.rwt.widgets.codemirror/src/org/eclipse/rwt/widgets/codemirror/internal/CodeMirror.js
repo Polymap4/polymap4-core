@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright 2011-2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2011-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -75,7 +75,7 @@ function loadCSS( url ) {
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
-	extend : qx.ui.layout.CanvasLayout,
+	extend : org.eclipse.swt.widgets.Composite,
 
 	construct : function( id ) {
 		this.base( arguments );
@@ -190,7 +190,7 @@ qx.Class.define( "org.eclipse.rwt.widgets.CodeMirror", {
 		 * @param forceSave
 		 */
 		_syncServer : function( info, forceSave ) {
-		    if (!org_eclipse_rap_rwt_EventUtil_suspend && this._codeMirror != null) {
+		    if (!org.eclipse.swt.EventUtil.getSuspended() && this._codeMirror != null) {
 		        var widgetId = org.eclipse.swt.WidgetManager.getInstance().findIdByWidget( this );
 		        var req = org.eclipse.swt.Request.getInstance();
 		        var sendDelay = 1500;

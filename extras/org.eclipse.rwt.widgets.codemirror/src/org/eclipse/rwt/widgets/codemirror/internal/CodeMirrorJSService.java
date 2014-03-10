@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as indicated by
- * the @authors tag.
+ * Copyright (C) 2011-2014, Falko Bräutigam. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -64,7 +63,7 @@ public class CodeMirrorJSService
      * as url parameters. 
      */
     public static String getBaseUrl() {
-        StringBuffer url = new StringBuffer();
+        StringBuilder url = new StringBuilder( 256 );
         url.append( URLHelper.getURLString() );
 
         URLHelper.appendFirstParam( url, REQUEST_PARAM, SERVICE_HANDLER_ID );

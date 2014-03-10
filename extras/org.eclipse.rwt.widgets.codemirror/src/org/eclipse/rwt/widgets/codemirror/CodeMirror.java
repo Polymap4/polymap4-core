@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2011-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -81,11 +80,13 @@ public class CodeMirror
         super( parent, style );
     }
 
+    
     public CodeMirror( Composite parent, int style, String js_location ) {
         this( parent, style );
         this.js_location = js_location;
     }
 
+    
     public Object getAdapter( Class adapter ) {
         if (adapter.isAssignableFrom( CodeMirrorLCA.class )) {
             return new CodeMirrorLCA();
@@ -97,6 +98,15 @@ public class CodeMirror
             return super.getAdapter( adapter );
         }
     }
+
+    /**
+     * XXX Fix IControlThemeAdapter getControlWith() issue when using FormLayout
+     */
+    @Override
+    public int getBorderWidth() {
+        return 0;
+    }
+
 
     public String getJSLocation() {
         return js_location;
@@ -154,7 +164,7 @@ public class CodeMirror
      * <li>{@link #PROP_CURSOR_POS}</li>
      * </ul>
      * 
-     * @param l
+     * @param l The listener to register.
      */
     public void addPropertyChangeListener( PropertyChangeListener l ) {
         listeners.add( l );
@@ -246,6 +256,7 @@ public class CodeMirror
             return put( marker.getLine(), marker );
         }
         
+        @SuppressWarnings("restriction")
         public ILineMarker put( Integer line, ILineMarker marker ) {
             ILineMarker result = super.put( marker.getLine(), marker );
 
@@ -258,11 +269,11 @@ public class CodeMirror
             if (marker.getIcon() != null) {
                 // XXX insert real image URL here
                 String imageUrl = "icons/error_tsk.gif";
-                if (marker.getIcon().resourceName.contains( "warn" )) {
+                if (marker.getIcon().internalImage.getResourceName().contains( "warn" )) {
                     imageUrl = "icons/warn_tsk.gif";
                     textClassName = "cm-warn";
                 }
-                else if (marker.getIcon().resourceName.contains( "info" )) {
+                else if (marker.getIcon().internalImage.getResourceName().contains( "info" )) {
                     imageUrl = "icons/info_tsk.gif";
                     textClassName = "cm-info";
                 }

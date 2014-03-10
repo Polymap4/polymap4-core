@@ -48,7 +48,7 @@ import org.polymap.openlayers.rap.widget.base.OpenLayersSessionHandler;
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
  * 
  */
-
+@SuppressWarnings("deprecation")
 public class OpenLayersWidgetLCA extends AbstractWidgetLCA {
 
 	// Boolean init_done = false;
@@ -103,7 +103,7 @@ public class OpenLayersWidgetLCA extends AbstractWidgetLCA {
 	/*
 	 * Initial creation procedure of the widget
 	 */
-	public void renderInitialization(final Widget widget) throws IOException {
+    public void renderInitialization(final Widget widget) throws IOException {
 		JSWriter writer = JSWriter.getWriterFor(widget);
 		String id = WidgetUtil.getId(widget);
 		writer.newWidget("org.polymap.openlayers.rap.widget.OpenLayersWidget",
