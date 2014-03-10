@@ -144,6 +144,14 @@
            file="resource/css/shell.css"
            themeId="org.polymap.core.theme">
      </themeContribution>
+     <themeContribution
+           file="resource/css/tree.css"
+           themeId="org.polymap.core.theme">
+     </themeContribution>
+     <themeContribution
+           file="resource/css/toolbar.css"
+           themeId="org.polymap.core.theme">
+     </themeContribution>
   </extension>
    <extension
          id="org.polymap.core.security.DummyLoginModule"
