@@ -15,8 +15,13 @@
  */
 package org.polymap.core.runtime;
 
+import static java.util.Collections.enumeration;
+import static java.util.Collections.list;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.PropertyResourceBundle;
@@ -33,6 +38,8 @@ import java.text.MessageFormat;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Joiner;
 
 /**
  * Provides a default implementation as a backend for the static Messages class of a
@@ -84,6 +91,49 @@ public class MessagesImpl
     }
 
 
+    @Override
+    public boolean contains( Locale locale, String key ) {
+        assert key != null && key.length() > 0 : "The given messages key is empty.";
+        ResourceBundle bundle = resourceBundle( locale );
+        // bundle.containsKey() depends on handleKeySet() which we cannot implement
+        // so we have to get and search all keys
+        return Collections.list( bundle.getKeys() ).contains( prefix + key );
+    }
+
+    
+    @Override
+    public boolean contains( String key ) {
+        return contains( Polymap.getSessionLocale(), key );
+    }
+
+    
+    /**
+     * Find the localized message for the given key. If arguments are given, then the
+     * result message is formatted via {@link MessageFormat}.
+     *
+     * @param locale The locale to use to localize the given message.
+     * @param key
+     * @param args If not null, then the message is formatted via {@link MessageFormat}
+     * @return The message for the given key, or the key if there is no resource for that key.
+     */
+    @Override
+    public String get( Locale locale, String key, Object... args ) {
+        assert key != null && key.length() > 0 : "The given messages key is empty.";
+        try {
+            ResourceBundle bundle = resourceBundle( locale );
+            if (args == null || args.length == 0) {
+                return bundle.getString( prefix + key );
+            }
+            else {
+                String msg = bundle.getString( prefix + key );
+                return new MessageFormat( msg, locale ).format( args );
+            }
+        }
+        catch (Exception e) {
+            return key;
+        }
+    }
+
     /**
      * Find the localized message for the given key. If arguments are given, then the
      * result message is formatted via {@link MessageFormat}.
@@ -99,40 +149,8 @@ public class MessagesImpl
     }
 
 
-    /**
-     * Find the localized message for the given key. If arguments are given, then the
-     * result message is formatted via {@link MessageFormat}.
-     *
-     * @param locale The locale to use to localize the given message.
-     * @param key
-     * @param args If not null, then the message is formatted via {@link MessageFormat}
-     * @return The message for the given key.
-     */
-    @Override
-    public String get( Locale locale, String key, Object... args ) {
-        assert key != null && key.length() > 0 : "The given messages key is empty.";
-        try {
-            // getBundle() caches the bundles
-            ResourceBundle bundle = ResourceBundle.getBundle( bundleName, locale, cl, rbcontrol );
-            if (args == null || args.length == 0) {
-                return bundle.getString( prefix + key );
-            }
-            else {
-                String msg = bundle.getString( prefix + key );
-                return MessageFormat.format( msg, args );
-            }
-        }
-        catch (Exception e) {
-            return key;
-        }
-    }
-
-
     public String get( Object caller, String keySuffix, Object... args ) {
-        String key = new StringBuilder( 64 )
-                .append( caller.getClass().getSimpleName() )
-                .append( SEPARATOR )
-                .append( keySuffix ).toString();
+        String key = Joiner.on( SEPARATOR ).join( caller.getClass().getSimpleName(), keySuffix );
         return get( key, args );
     }
 
@@ -148,6 +166,12 @@ public class MessagesImpl
         return new MessagesImpl( bundleName, cl, _prefix );
     }
 
+    
+    public ResourceBundle resourceBundle( Locale locale ) {
+        // getBundle() caches the bundles
+        return ResourceBundle.getBundle( bundleName, locale, cl, rbcontrol );        
+    }
+    
     
     /**
      * Controls the bundle loading. Enable properties files loaded from workspace.
@@ -205,8 +229,11 @@ public class MessagesImpl
 
                             @Override
                             public Enumeration<String> getKeys() {
-                                // XXX Auto-generated method stub
-                                throw new RuntimeException( "not yet implemented." );
+                                Set<String> result = new HashSet( list( super.getKeys() ) );
+                                if (delegate != null) {
+                                    result.addAll( list( delegate.getKeys() ) );
+                                }
+                                return enumeration( result );
                             }
 
                             @Override

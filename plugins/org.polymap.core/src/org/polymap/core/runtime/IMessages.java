@@ -23,6 +23,10 @@ import java.util.Locale;
  */
 public interface IMessages {
     
+    boolean contains( Locale locale, String key );
+    
+    boolean contains( String key );
+    
     /**
      * Find the localized message for the given key. If arguments are given, then the
      * result message is formatted via {@link MessageFormat}.
@@ -34,7 +38,7 @@ public interface IMessages {
     String get( String key, Object... args );
     
     /**
-     * Find the localized message for the given key. If arguments are given, then the
+     * Find the localized message for the given key. If args are given, then the
      * result message is formatted via {@link MessageFormat}.
      *
      * @param locale The locale to use to localize the given message.
