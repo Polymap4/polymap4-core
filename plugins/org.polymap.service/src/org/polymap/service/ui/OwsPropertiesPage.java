@@ -104,7 +104,11 @@ public class OwsPropertiesPage
 
 
     protected void createFieldEditors() {
-        IPreferenceStore store = new PreferenceStore();
+        IPreferenceStore store = new PreferenceStore() {
+            public boolean needsSaving() {
+                return false;
+            }
+        };
         setPreferenceStore( store );
         store.setDefault( "WMS", providedService.isEnabled() );
         store.setDefault( "WFS", false );
@@ -193,8 +197,6 @@ public class OwsPropertiesPage
                 op.init( IProvidedService.class, providedService, IProvidedService.PROP_SRS, srs );
                 OperationSupport.instance().execute( op, false, false );
             }
-            
-            setPreferenceStore( null );
             
             // message box
             Polymap.getSessionDisplay().asyncExec( new Runnable() {
