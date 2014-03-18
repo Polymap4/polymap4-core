@@ -85,7 +85,7 @@ public class WmsFeatureInfoContribution
             if (layer.isVisible()
                     && layer.getGeoResource().canResolve( WebMapServer.class )) {
                 
-                UIJob job = new UIJob( "WMS: GetFeatureInfo" ) {
+                UIJob job = new UIJob( "GetFeatureInfo: " + layer.getLabel() ) {
                     protected void runWithException( IProgressMonitor monitor ) throws Exception {
                         try {
                             geores = layer.getGeoResource();

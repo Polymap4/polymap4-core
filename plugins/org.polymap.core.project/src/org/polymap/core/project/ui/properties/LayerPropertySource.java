@@ -106,7 +106,7 @@ public class LayerPropertySource
             }
             else if (id.equals( "type" )) {
                 return geores != null
-                        ? StringUtils.substringAfterLast( geores.getClass().getName(), "." )
+                        ? geores.getClass().getSimpleName()
                         : i18n( "noGeoRes" );
             }
             else if (id.equals( ILayer.PROP_CRSCODE )) {

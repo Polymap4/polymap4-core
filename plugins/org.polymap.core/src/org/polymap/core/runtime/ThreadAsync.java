@@ -15,7 +15,8 @@
 package org.polymap.core.runtime;
 
 import java.util.concurrent.Callable;
-
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -45,18 +46,10 @@ public class ThreadAsync<T>
 
     
     @Override
-    protected void execute( String title, final Callable task ) {
-        Thread t = new Thread( title ) {
-            public void run() {
-                try {
-                    task.call();
-                }
-                catch (Exception e) {
-                    log.error( "", e );
-                }
-            }
-        };
-        t.start();
+    protected Future<T> execute( String title, final Callable task ) {
+        FutureTask<T> futureTask = new FutureTask<T>( task );
+        new Thread( futureTask, title ).start();
+        return futureTask;
     }
     
 }

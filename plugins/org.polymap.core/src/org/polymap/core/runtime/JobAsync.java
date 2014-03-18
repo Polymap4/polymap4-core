@@ -15,6 +15,7 @@
 package org.polymap.core.runtime;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.lang.StringUtils;
@@ -46,7 +47,7 @@ public class JobAsync<T>
     protected void doInvoke() throws Throwable {
         String title = StringUtils.capitalize( method.getName() );
 
-        new UIJob( title ) {
+        UIJob job = new UIJob( title ) {
             protected void runWithException( IProgressMonitor monitor ) throws Exception {
                 // substitute IProgressMonitor in args
                 Class<?>[] argTypes = method.getParameterTypes();
@@ -64,12 +65,14 @@ public class JobAsync<T>
                     throw (Exception)e.getTargetException();
                 }
             }
-        }.schedule();
+        };
+        futureResult = new FutureJobAdapter( job );
+        job.schedule();
     }
 
     
     @Override
-    protected void execute( String title, final Callable task ) {
+    protected Future<T> execute( String title, final Callable task ) {
         throw new RuntimeException( "Never called." );
     }
     

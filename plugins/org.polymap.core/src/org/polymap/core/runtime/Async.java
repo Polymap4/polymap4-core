@@ -18,15 +18,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * Helps to call methods of existing objects asynchronously. There are several
- * implementations which provide different ways to execute a task asynchronously.
+ * Helps to call methods of a target object asynchronously. There are several
+ * implementations which provide different ways to actually execute a task.
  * <p/>
  * <b>Usage:</b>
  * 
@@ -60,11 +67,15 @@ import org.apache.commons.lang.StringUtils;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class Async<T>
-        implements InvocationHandler {
+        implements Future<T>, InvocationHandler {
+
+    private static Log log = LogFactory.getLog( Async.class );
 
     protected T                 delegate;
     
     protected Callback          callback;
+    
+    protected Callback          errorCallback;
     
     protected T                 proxy;
     
@@ -72,6 +83,8 @@ public abstract class Async<T>
     
     protected Object[]          args; 
 
+    protected Future<T>         futureResult;
+    
     
     /**
      * 
@@ -101,7 +114,14 @@ public abstract class Async<T>
         return this;
     }
 
+    
+    public Async<T> callbackOnError( Callback<Throwable> _callback ) {
+        assert errorCallback == null : "There is a error callback set already: " + this.errorCallback;
+        this.errorCallback = _callback;
+        return this;
+    }
 
+    
     /**
      * Returns a proxy for the delegate to call the target method on.
      */
@@ -137,7 +157,7 @@ public abstract class Async<T>
     
     protected void doInvoke() throws Throwable {
         String title = StringUtils.capitalize( method.getName() );
-        execute( title, new Callable() {
+        futureResult = execute( title, new Callable() {
             public Object call() throws Exception {
                 try {
                     Object result = method.invoke( delegate, args );
@@ -145,6 +165,7 @@ public abstract class Async<T>
                     return null;
                 } 
                 catch (RuntimeException e) {
+                    log.warn( "Error dur", e );
                     throw e;
                 }
             }
@@ -159,6 +180,34 @@ public abstract class Async<T>
      * @param task The task to execute
      * @throws Exception
      */
-    protected abstract void execute( String title, Callable task );
-    
+    protected abstract Future<T> execute( String title, Callable task );
+
+
+    // Future *********************************************
+
+    @Override
+    public boolean cancel( boolean mayInterruptIfRunning ) {
+        return futureResult.cancel( mayInterruptIfRunning );
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return futureResult.isCancelled();
+    }
+
+    @Override
+    public boolean isDone() {
+        return futureResult.isDone();
+    }
+
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+        return futureResult.get();
+    }
+
+    @Override
+    public T get( long timeout, TimeUnit unit ) throws InterruptedException, ExecutionException, TimeoutException {
+        return futureResult.get( timeout, unit );
+    }
+
 }
