@@ -16,14 +16,9 @@ package org.polymap.core.data.image.cache304;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -93,7 +88,6 @@ public class CachedTile
 
         @Override
         public byte[] get() {
-            InputStream in = null;
             try {
                 RandomAccessFile raf = new RandomAccessFile( new File( basedir, filename.get() ), "r" );
                 // assuming that File#length ist faster than mem copy in ByteArrayOutputStream(?)
@@ -101,8 +95,10 @@ public class CachedTile
                 raf.readFully( buf );
                 return buf;
             }
+            catch (RuntimeException e) {
+                throw e;
+            }
             catch (Exception e) {
-                IOUtils.closeQuietly( in );
                 throw new RuntimeException( e );
             }
         }
@@ -116,18 +112,20 @@ public class CachedTile
                 }
                 filesize.put( 0 );
             }
+            // write file
             else {
-                OutputStream out = null;
                 try {
                     if (filename.get() == null) {
                         filename.put( String.valueOf( filenameCount.getAndIncrement() ) );
                     }
-                    out = new FileOutputStream( new File( basedir, filename.get() ) );
-                    IOUtils.copy( new ByteArrayInputStream( value ), out );
+                    RandomAccessFile raf = new RandomAccessFile( new File( basedir, filename.get() ), "rw" );
+                    raf.write( value );
                     filesize.put( value.length );
                 }
+                catch (RuntimeException e) {
+                    throw e;
+                }
                 catch (Exception e) {
-                    IOUtils.closeQuietly( out );
                     throw new RuntimeException( e );
                 }
             }
