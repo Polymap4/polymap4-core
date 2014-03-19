@@ -17,6 +17,7 @@ package org.polymap.core.data.image.cache304;
 import java.util.concurrent.atomic.AtomicLong;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import org.apache.commons.logging.Log;
@@ -88,18 +89,19 @@ public class CachedTile
 
         @Override
         public byte[] get() {
+            RandomAccessFile raf = null;
             try {
-                RandomAccessFile raf = new RandomAccessFile( new File( basedir, filename.get() ), "r" );
+                raf = new RandomAccessFile( new File( basedir, filename.get() ), "r" );
                 // assuming that File#length ist faster than mem copy in ByteArrayOutputStream(?)
                 byte[] buf = new byte[(int)raf.length()];
                 raf.readFully( buf );
                 return buf;
             }
-            catch (RuntimeException e) {
-                throw e;
-            }
-            catch (Exception e) {
+            catch (IOException e) {
                 throw new RuntimeException( e );
+            }
+            finally {
+                closeQuietly( raf );
             }
         }
         
@@ -114,24 +116,36 @@ public class CachedTile
             }
             // write file
             else {
+                RandomAccessFile raf = null;
                 try {
                     if (filename.get() == null) {
                         filename.put( String.valueOf( filenameCount.getAndIncrement() ) );
                     }
-                    RandomAccessFile raf = new RandomAccessFile( new File( basedir, filename.get() ), "rw" );
+                    raf = new RandomAccessFile( new File( basedir, filename.get() ), "rw" );
                     raf.write( value );
                     filesize.put( value.length );
                 }
-                catch (RuntimeException e) {
-                    throw e;
-                }
-                catch (Exception e) {
+                catch (IOException e) {
                     throw new RuntimeException( e );
+                }
+                finally {
+                    closeQuietly( raf );
                 }
             }
             return CachedTile.this;
         }
 
+        protected void closeQuietly( RandomAccessFile raf ) {
+            if (raf != null) {
+                try {
+                    raf.close();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException( e );
+                }
+            }
+        }
+        
         @Override
         public RecordModel add( byte[] value ) {
             throw new RuntimeException( "not supported." );
