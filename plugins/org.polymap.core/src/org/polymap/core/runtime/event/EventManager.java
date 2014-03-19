@@ -16,6 +16,7 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedTransferQueue;
@@ -431,7 +432,7 @@ public class EventManager {
 
         public static final int         MAX_QUEUE_SIZE = 10000;
         
-        private BlockingQueue<Runnable> queue = new LinkedTransferQueue();  //ArrayBlockingQueue( MAX_QUEUE_SIZE );
+        private BlockingQueue<Runnable> queue;
 
         /** 
          * Non synchronized "assumption" about size of the {@link #queue}. 
@@ -447,6 +448,14 @@ public class EventManager {
         
         public DispatcherThread() {
             super( "EventManager.Dispatcher" );
+            try {
+                // faster but available in JDK 1.7 only
+                queue = new LinkedTransferQueue();
+            }
+            catch (Throwable e) {
+                log.warn( e.toString() + " -> falling back to JDK1.6 ArrayBlockingQueue" );
+                queue = new ArrayBlockingQueue( MAX_QUEUE_SIZE );
+            }
             //setPriority( Thread.MAX_PRIORITY );
             setDaemon( true );
         }
