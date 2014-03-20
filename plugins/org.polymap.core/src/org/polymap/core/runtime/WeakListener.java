@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Falko Bräutigam, and other contributors as
- * indicated by the @authors tag. All rights reserved.
+ * Copyright (C) 2011-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -27,7 +26,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * A weak listener reference can be used whereever the listener interface is directly
+ * Provides a weak reference wrapper for a given listener.
+ * <p/>
+ * A weak listener reference can be used wherever the listener interface is directly
  * implemented by the caller or if the listener is implemented by an inner class and the
  * instance is a member of the caller.
  * <p/>
@@ -40,7 +41,14 @@ public class WeakListener
 
     private static Log log = LogFactory.getLog( WeakListener.class );
 
-
+    /**
+     * Shortcut for {@link #forListener(Object)}.
+     * @see #forListener(Object)
+     */
+    public static <T> T on( T delegate ) {
+        return forListener( delegate );
+    }
+    
     /**
      * Creates a proxy for the given listener. The proxy forwards all method calls to the
      * delegate. But it holds just a {@link WeakReference} to the delegate, so that the
@@ -87,8 +95,7 @@ public class WeakListener
         ref = new WeakReference( delegate );
     }
 
-    public Object invoke( Object proxy, Method method, Object[] args )
-    throws Throwable {
+    public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
         Object delegate = ref.get();
         
         if (method.getName().equals( "getDelegate" )) {

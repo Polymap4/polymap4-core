@@ -86,7 +86,7 @@ public class LayerPropertySource
                 //new CrsPropertyDescriptor( ILayer.PROP_CRSCODE, i18n( "label_crs" ) ),
                 new PropertyDescriptor( "maxExtent", i18n( "label_maxExtent" ) ),
                 new PropertyDescriptor( "datacrs", i18n( "label_dataCrs" ) ),
-                new PropertyDescriptor( ILayer.PROP_GEORESID, i18n( "label_geores" ) ),
+                new GeoresPropertyDescriptor( ILayer.PROP_GEORESID, i18n( "label_geores" ), layer ),
                 new RWTTextPropertyDescriptor( ILayer.PROP_ORDERKEY, i18n( "label_zPriority" ) ),
                 opacityDescr
         };
@@ -195,6 +195,11 @@ public class LayerPropertySource
                 CoordinateReferenceSystem crs = (CoordinateReferenceSystem)value;
                 op.init( ILayer.class, layer, ILayer.PROP_CRSCODE, crs );
                 OperationSupport.instance().execute( op, false, false );
+            }
+            else if (id.equals( ILayer.PROP_GEORESID )) {
+                op.init( ILayer.class, layer, ILayer.PROP_GEORESID, value );
+                OperationSupport.instance().execute( op, false, false );
+                this.geores = layer.getGeoResource();
             }
             else {
                 log.error( "Property is read-only: " + id );

@@ -14,6 +14,11 @@
  */
 package org.polymap.core.mapeditor;
 
+import static org.polymap.core.project.ILayer.PROP_GEORESID;
+import static org.polymap.core.project.ILayer.PROP_OPACITY;
+import static org.polymap.core.project.ILayer.PROP_ORDERKEY;
+import static org.polymap.core.project.ILayer.PROP_STYLE;
+
 import java.util.EventObject;
 import java.util.HashSet;
 import java.util.List;
@@ -367,7 +372,7 @@ public class RenderManager {
                     else if ("edit".equals( ev.getPropertyName() )) {
                         updatePipelines = true;
                     }
-                    else if (ILayer.PROP_OPACITY.equals( ev.getPropertyName() )) {
+                    else if (PROP_OPACITY.equals( ev.getPropertyName() )) {
                         if (descriptor != null && descriptor.layer != null) {
                             mapEditor.setLayerOpacity( descriptor, layer.getOpacity() );
                         }
@@ -375,7 +380,7 @@ public class RenderManager {
                             updatePipelines = true;
                         }
                     }
-                    else if (ILayer.PROP_ORDERKEY.equals( ev.getPropertyName() )) {
+                    else if (PROP_ORDERKEY.equals( ev.getPropertyName() )) {
                         if (descriptor != null && descriptor.layer != null) {
                             mapEditor.setLayerZPriority( descriptor, layer.getOrderKey() );
                         }
@@ -383,7 +388,7 @@ public class RenderManager {
                             updatePipelines = true;
                         }
                     }
-                    else if (ILayer.PROP_STYLE.equals( ev.getPropertyName() )) {
+                    else if (PROP_STYLE.equals( ev.getPropertyName() )) {
                         if (descriptor != null) {
                             mapEditor.reloadLayer( descriptor );
                         }
@@ -391,6 +396,11 @@ public class RenderManager {
                     else if (PipelineHolder.PROP_PROCS.equals( ev.getPropertyName() )) {
                         if (descriptor != null) {
                             updatePipelines = true;
+                        }
+                    }
+                    else if (PROP_GEORESID.equals( ev.getPropertyName() )) {
+                        if (descriptor != null) {
+                            mapEditor.reloadLayer( descriptor );
                         }
                     }
                 }

@@ -14,6 +14,9 @@
  */
 package org.polymap.core.data.ui.featureselection;
 
+import static org.polymap.core.project.ILayer.PROP_GEORESID;
+import static org.polymap.core.qi4j.event.PropertyChangeSupport.PROP_ENTITY_REMOVED;
+
 import java.util.EventObject;
 import java.util.List;
 
@@ -21,7 +24,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.filter.v1_1.OGCConfiguration;
@@ -80,7 +82,6 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.ui.util.SelectionAdapter;
 import org.polymap.core.project.ui.util.SimpleFormData;
-import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
@@ -303,7 +304,7 @@ public class FeatureSelectionView
                 }
             );
                 
-            this.fs = PipelineFeatureSource.forLayer( layer, false );            
+            this.fs = PipelineFeatureSource.forLayer( layer, false );
         }
         catch (Exception e) {
             PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
@@ -492,9 +493,19 @@ public class FeatureSelectionView
     class ModelListener {
         @EventHandler(display=true)
         public void propertyChange( PropertyChangeEvent ev ) {
-            if (PropertyChangeSupport.PROP_ENTITY_REMOVED.equals( ev.getPropertyName() )) {
+            String propName = ev.getPropertyName();
+            if (PROP_ENTITY_REMOVED.equals( propName )) {
                 IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                 page.hideView( FeatureSelectionView.this );
+            }
+            else if (PROP_GEORESID.equals( propName )) {
+                try {
+                    fs = PipelineFeatureSource.forLayer( layer, false );
+                    loadTable( filter );
+                }
+                catch (Exception e) {
+                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, "", e );
+                }
             }
         }
     }
