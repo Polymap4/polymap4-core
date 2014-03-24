@@ -136,7 +136,12 @@ public final class Polymap {
     
     
     public static Locale getSessionLocale() {
-        return instance().getLocale();
+        try {
+            return instance().getLocale();
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
     

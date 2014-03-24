@@ -340,10 +340,10 @@
                class="org.polymap.core.project.IMap">
          </destination>
          <destination
-               class="org.polymap.core.project.ILayer">
+               class="org.polymap.core.project.ui.layer.LayerNavigator">
          </destination>
          <destination
-               class="org.polymap.core.project.ui.layer.LayerNavigator">
+               class="org.polymap.core.project.ILayer">
          </destination>
       </action>
       <action
@@ -354,6 +354,18 @@
          </destination>
          <acceptedType
                class="org.polymap.core.project.ILayer">
+         </acceptedType>
+         <destination
+               class="org.polymap.core.project.ILayer">
+         </destination>
+      </action>
+      <action
+            class="org.polymap.core.project.ui.dnd.AssignGeoresDropAction"
+            enablesFor="1"
+            name="AssignGeoresDropAction">
+         <acceptedType
+               adapt="true"
+               class="net.refractions.udig.catalog.IGeoResource">
          </acceptedType>
          <destination
                class="org.polymap.core.project.ILayer">

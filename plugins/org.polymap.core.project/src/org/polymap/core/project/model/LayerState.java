@@ -39,14 +39,12 @@ import org.qi4j.api.common.UseDefaults;
 import org.qi4j.api.property.Property;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.project.IGeoResourceResolver;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerStatus;
-import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.RenderStatus;
 import org.polymap.core.runtime.UIJob;
@@ -117,7 +115,7 @@ public interface LayerState
         /** The cache of the {@link #styleId()} property. */
         private IStyle                          style;
         
-        private LayerStatus                     layerStatus = LayerStatus.STATUS_OK;
+        private LayerStatus                     layerStatus = LayerStatus.STATUS_OK();
         
         private RenderStatus                    renderStatus = RenderStatus.STATUS_OK;
         
@@ -327,6 +325,7 @@ public interface LayerState
             this.geores = geores;
             IGeoResourceResolver resolver = ProjectPlugin.geoResourceResolver( this );
             georesId().set( resolver.createIdentifier( geores ) );
+            layerStatus = LayerStatus.STATUS_OK();
         }
 
 
@@ -345,28 +344,27 @@ public interface LayerState
             georesLock.readLock().lock();
             try {
                 if (geores == null
-                        && layerStatus != LayerStatus.STATUS_MISSING) {
+                        && layerStatus.getCode() != LayerStatus.MISSING) {
                     georesLock.readLock().unlock();
                     georesLock.writeLock().lock();
                     
-                    setLayerStatus( LayerStatus.STATUS_WAITING );
+                    setLayerStatus( LayerStatus.STATUS_WAITING() );
                     try { 
                         IGeoResourceResolver resolver = ProjectPlugin.geoResourceResolver( this );
                         List<IGeoResource> results = resolver.resolve( georesId().get() );
                         if (results.isEmpty()) {
-                            setLayerStatus( LayerStatus.STATUS_MISSING );
+                            setLayerStatus( LayerStatus.STATUS_MISSING( null ) );
                             geores = null;
                         } 
                         else {
-                            setLayerStatus( LayerStatus.STATUS_OK );
+                            setLayerStatus( LayerStatus.STATUS_OK() );
                             geores = results.get( 0 );
                         }
                     } 
                     catch (Exception e) {
-                        PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this
-                                , "Layer: " + getLabel() + ": error getting GeoResource id:" + georesId().get()
-                                , e );
-                        setLayerStatus( new LayerStatus( IStatus.ERROR, LayerStatus.MISSING, Messages.get( "LayerStatus_connectionFailed" ), e ) ); //$NON-NLS-1$
+                        PolymapWorkbench.handleError( ProjectPlugin.PLUGIN_ID, this,
+                                "Layer: " + getLabel() + ": error getting GeoResource id:" + georesId().get(), e );
+                        setLayerStatus( LayerStatus.STATUS_MISSING( e ) ); 
                     }
                     finally {
                         georesLock.readLock().lock();

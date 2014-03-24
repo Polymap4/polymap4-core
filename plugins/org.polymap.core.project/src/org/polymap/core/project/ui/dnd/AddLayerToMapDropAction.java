@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.ui.IDropAction;
+import net.refractions.udig.ui.ViewerDropLocation;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -61,7 +62,13 @@ public class AddLayerToMapDropAction
     public boolean accept() {
         Object data = getData();
         Object dest = getDestination();
-        log.info( "Drop accept(): data=" + data + ", dest=" + dest );
+        ViewerDropLocation location = getViewerLocation();
+        log.info( "Drop accept(): data=" + data + ", dest=" + dest + ", location=" + location );
+
+        // dropping exactly ON layer is handled by AssignGeoresDropAction
+        if (location == ViewerDropLocation.ON) {
+            return false;
+        }
         
 //        if (dest instanceof ProjectView) {
 //            Display display = RWTLifeCycle.getSessionDisplay();
