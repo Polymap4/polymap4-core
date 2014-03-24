@@ -83,7 +83,7 @@ public class ZoomFeatureBoundsOperation
         result = features.getBounds();
 
         // transform
-        if (result != null && !result.isNull()) {
+        if (result != null && !result.isNull() && result.getCoordinateReferenceSystem() != null) {
             if (crs != null) {
                 try {
                     monitor.subTask( "Transforming bounds" );
