@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2014, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -21,6 +21,7 @@ import org.polymap.openlayers.rap.widget.base_types.Size;
 /**
  * 
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ImageLayer extends Layer {
 
@@ -37,7 +38,7 @@ public class ImageLayer extends Layer {
 
     public void _ImageLayer( String layer_name, String url, Bounds bounds, Size size ) {
         super.setName( layer_name );
-        super.create( "new OpenLayers.Layer.Image( '" + name + "','" + url + "', " + bounds.getJSObjRef() + ","
+        super.create( "new OpenLayers.Layer.Image( '" + getName() + "','" + url + "', " + bounds.getJSObjRef() + ","
                 + size.getJSObjRef() + " );" );
     }
 

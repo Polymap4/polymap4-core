@@ -1,7 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2014, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,29 +11,27 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
 package org.polymap.openlayers.rap.widget.layers;
 
 import org.polymap.openlayers.rap.widget.base.OpenLayersObject;
+import org.polymap.openlayers.rap.widget.base_types.OpenLayersMap;
 
 /**
  * 
  * @author Marcus -LiGi- B&uuml;schleb < mail: ligi (at) polymap (dot) de >
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class Layer extends OpenLayersObject {
 
-	/** Constant to be used in {@link #setTransitionEffect(String)}. */
+    /** Constant to be used in {@link #setTransitionEffect(String)}. */
     public static final String TRANSITION_RESIZE = "resize";
 	
 	
-    String name;
+    private String          name;
+    
+    private boolean         isBaseLayer;
+    
 
 	public String getName() {
 		return name;
@@ -46,9 +43,24 @@ public class Layer extends OpenLayersObject {
 
 	public void setIsBaseLayer(Boolean is_base_layer) {
 		addObjModCode("setIsBaseLayer", is_base_layer);
+		isBaseLayer = is_base_layer;
 	}
 
+	public boolean isBaseLayer() {
+	    return isBaseLayer;
+    }
+
+	
+    /**
+     * Set the visibility flag for the layer and hide/show & redraw accordingly. Fire
+     * event unless otherwise specified.
+     * <p/>
+     * For base layers use {@link OpenLayersMap#setBaseLayer(Layer)} instead.
+     */
 	public void setVisibility(Boolean is_visible) {
+	    if (isBaseLayer) {
+	        System.err.print( "WARN: For base layers use OpenLayersMap#setBaseLayer(Layer) instead." );
+	    }
 		addObjModCode("setVisibility", is_visible);
 	}
 
@@ -97,5 +109,5 @@ public class Layer extends OpenLayersObject {
 	public void setGutter(int gutter) {
         setObjAttr("gutter", gutter);  
 	}
-	
+
 }
