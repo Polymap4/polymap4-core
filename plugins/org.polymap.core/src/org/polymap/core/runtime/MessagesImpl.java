@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -121,15 +122,18 @@ public class MessagesImpl
         assert key != null && key.length() > 0 : "The given messages key is empty.";
         try {
             ResourceBundle bundle = resourceBundle( locale );
-            if (args == null || args.length == 0) {
-                return bundle.getString( prefix + key );
+            String result = bundle.getString( prefix + key );
+            if (args != null && args.length > 0) {
+                result = new MessageFormat( result, locale ).format( args );
             }
-            else {
-                String msg = bundle.getString( prefix + key );
-                return new MessageFormat( msg, locale ).format( args );
-            }
+            return result;
+        }
+        catch (MissingResourceException e) {
+            log.warn( e.getLocalizedMessage() );
+            return key;
         }
         catch (Exception e) {
+            log.warn( "", e );
             return key;
         }
     }

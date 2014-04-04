@@ -150,12 +150,11 @@ public class FormDataFactory {
     }
 
     public FormDataFactory left( Control control ) {
-        formData.left = new FormAttachment( control, defaultOffset );
-        return this;
+        return left( control, defaultOffset );
     }
 
     public FormDataFactory left( Control control, int offset ) {
-        formData.left = new FormAttachment( control, offset );
+        formData.left = control != null ? new FormAttachment( control, offset ) : null;
         return this;
     }
 
@@ -171,12 +170,11 @@ public class FormDataFactory {
     }
 
     public FormDataFactory right( Control control ) {
-        formData.right = new FormAttachment( control, -defaultOffset );
-        return this;
+        return right( control, -defaultOffset );
     }
 
     public FormDataFactory right( Control control, int offset ) {
-        formData.right = new FormAttachment( control, offset );
+        formData.right = control != null ? new FormAttachment( control, offset ) : null;
         return this;
     }
 
@@ -192,12 +190,11 @@ public class FormDataFactory {
     }
 
     public FormDataFactory top( Control control ) {
-        formData.top = new FormAttachment( control, defaultOffset );
-        return this;
+        return top( control, defaultOffset );
     }
 
     public FormDataFactory top( Control control, int offset ) {
-        formData.top = new FormAttachment( control, offset );
+        formData.top = control != null ? new FormAttachment( control, offset ) : null;
         return this;
     }
 
@@ -213,12 +210,11 @@ public class FormDataFactory {
     }
 
     public FormDataFactory bottom( Control control ) {
-        formData.bottom = new FormAttachment( control, -defaultOffset );
-        return this;
+        return bottom( control, -defaultOffset );
     }
 
     public FormDataFactory bottom( Control control, int offset ) {
-        formData.bottom = new FormAttachment( control, offset );
+        formData.bottom = control != null ? new FormAttachment( control, offset ) : null;
         return this;
     }
 
