@@ -193,15 +193,17 @@ public class ServicesPlugin
                     proxyBaseUrl = prefStore.getString( ServicesPlugin.PREF_PROXY_URL );
                     log.info( "Proxy URL set to: " + proxyBaseUrl );
 
-                    // delayed starting services in separate thread
-                    new Job( "ServiceStarter" ) {
+                    // delayed starting services in separate thread (LONG prio)
+                    Job job = new Job( "ServiceStarter" ) {
                         protected IStatus run( IProgressMonitor monitor ) {
                             log.info( "Starting services..." );
                             initServices();
                             return Status.OK_STATUS;
                         }
                     // after Atlas but *before* Rhei-IDE
-                    }.schedule( 6000 );
+                    };
+                    job.setPriority( Job.LONG );
+                    job.schedule( 6000 );
                 }
                 return httpService;
             }

@@ -259,7 +259,6 @@ public class EventManager {
     
     EventListener removeKey( Object key ) {
         assert key instanceof Integer;
-        EventListener removed = null;
         for (AnnotatedEventListener l : listeners) {
             if (l.getMapKey().equals( key )) {
                 if (!listeners.remove( l )) {
@@ -268,7 +267,7 @@ public class EventManager {
                 return l;
             }
         }
-        log.warn( "Unable to remove key: " + key + " (EventManager: " + EventManager.instance().size() + ")" );
+        log.warn( "Key not found: " + key + " (EventManager: " + EventManager.instance().size() + ")" );
         return null;
     }
 

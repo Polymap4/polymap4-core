@@ -130,7 +130,8 @@ public class MessagesImpl
         }
         catch (MissingResourceException e) {
             log.warn( e.getLocalizedMessage() );
-            return key;
+            // ResourceBundleEditor removes empty entries :(
+            return "";
         }
         catch (Exception e) {
             log.warn( "", e );
