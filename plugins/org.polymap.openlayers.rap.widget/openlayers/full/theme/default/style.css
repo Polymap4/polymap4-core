@@ -509,10 +509,12 @@ a.olControlZoomOut {
 /**
  * Animations
  */
-
 .olLayerGrid .olTileImage {
-    -webkit-transition: opacity 0.2s linear;
-    -moz-transition: opacity 0.2s linear;
-    -o-transition: opacity 0.2s linear;
+    /* commented out because Chromium flickers when loading tiles if "Hardware acceleration"
+     * https://code.google.com/p/chromium/issues/detail?id=325236
     transition: opacity 0.2s linear;
+    -webkit-transition: opacity 0.2s linear; 
+    */
+    -moz-transition: opacity 0.5s linear;
+    -o-transition: opacity 0.5s linear;
 }
