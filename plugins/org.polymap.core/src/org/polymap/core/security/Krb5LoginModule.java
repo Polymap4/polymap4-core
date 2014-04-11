@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,16 +16,19 @@ package org.polymap.core.security;
 
 import javax.security.auth.spi.LoginModule;
 
-import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * Provides a preference page in order to configure this LoginModule. 
+ * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PreferencesLoginModule
-        extends LoginModule {
+public class Krb5LoginModule
+        extends com.sun.security.auth.module.Krb5LoginModule
+        implements LoginModule {
 
-    public IWorkbenchPreferencePage createPreferencePage();
-    
+    private static Log log = LogFactory.getLog( Krb5LoginModule.class );
+
+
 }

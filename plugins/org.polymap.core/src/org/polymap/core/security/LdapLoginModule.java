@@ -48,16 +48,8 @@ public class LdapLoginModule
             CallbackHandler callbackHandler, Map<String,?> sharedState, Map<String,?> options ) {
         super.initialize( this.subject = subject, callbackHandler, sharedState, options );
 
-        // check user/passwd settings in options
-        for (Object elm : options.entrySet()) {
-            Map.Entry<String,String> option = (Map.Entry)elm;
-            log.debug( "option: key=" + option.getKey() + " = " + option.getValue() );
-            
-            if (option.getKey().equals( "authorizationExtensionId" )) {
-                authModule = AuthorizationModuleExtension.forId( option.getValue() ).createClass();
-                authModule.init( this );
-            }
-        }
+        authModule = AuthorizationModuleExtension.forOptions( options )
+                .initialize( this, subject, callbackHandler, sharedState, options );
     }
 
     

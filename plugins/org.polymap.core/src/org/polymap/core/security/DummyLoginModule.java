@@ -57,6 +57,8 @@ public class DummyLoginModule
 
     private static Log log = LogFactory.getLog( DummyLoginModule.class );
 
+    public static final String              OPTIONS_PROPS_FILE = "configFile";
+    
     private static final IMessages          i18n = Messages.forPrefix( "LoginDialog" );
     
     /** Maps user name to passwd. */
@@ -98,15 +100,22 @@ public class DummyLoginModule
         this.subject = subject;
         this.callbackHandler = callbackHandler;
         
+        // default Authorization: DummyAuthorization
         this.authModule = new DummyAuthorizationModule();
         this.authModule.init( this );
+        
+        // check option for other Autorization
+        AuthorizationModuleExtension authExt = AuthorizationModuleExtension.forOptions( options );
+        if (authExt != null) {
+            authModule = authExt.initialize( this, subject, callbackHandler, sharedState, options );
+        }
         
         // check user/passwd settings in options
         for (Object elm : options.entrySet()) {
             Map.Entry<String,String> option = (Map.Entry)elm;
             log.debug( "option: key=" + option.getKey() + " = " + option.getValue() );
             
-            if (option.getKey().equals( "configFile" )) {
+            if (option.getKey().equals( OPTIONS_PROPS_FILE )) {
                 // absolute path or in the workspace
                 configFile = option.getValue().startsWith( File.pathSeparator )
                         ? new File( option.getValue() )
@@ -114,10 +123,6 @@ public class DummyLoginModule
             }
             else if (option.getKey().equals( "dialogTitle" )) {
                 dialogTitle = option.getValue();
-            }
-            else if (option.getKey().equals( "authorizationExtensionId" )) {
-                authModule = AuthorizationModuleExtension.forId( option.getValue() ).createClass();
-                this.authModule.init( this );
             }
             else {
                 String user = option.getKey();
@@ -149,6 +154,11 @@ public class DummyLoginModule
     }
 
 
+    protected DummyUserPrincipal userForName( String username ) {
+        return users.get( username );
+    }
+    
+    
     public boolean login() throws LoginException {
         // check if there is a user with "login" password
         for (DummyUserPrincipal candidate : users.values()) {
@@ -176,7 +186,7 @@ public class DummyLoginModule
                 password = String.valueOf( passwordCallback.getPassword() );
             }
 
-            DummyUserPrincipal candidate = users.get( username );
+            DummyUserPrincipal candidate = userForName( username );
             if (candidate.getPassword().equals( password )) {
                 principal = candidate;
                 loggedIn = true;

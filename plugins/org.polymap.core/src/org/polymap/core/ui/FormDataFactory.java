@@ -111,6 +111,29 @@ public class FormDataFactory {
         return this;
     }
     
+    /**
+     * Clears the seetings for the left side of the control. 
+     */
+    public FormDataFactory clearLeft() {
+        formData.left = null;
+        return this;
+    }
+    
+    public FormDataFactory clearRight() {
+        formData.right = null; 
+        return this;
+    }
+    
+    public FormDataFactory clearTop() {
+        formData.top = null; 
+        return this;
+    }
+    
+    public FormDataFactory clearBottom() {
+        formData.bottom = null; 
+        return this;
+    }
+
     // left
 
     public FormDataFactory left( int num ) {

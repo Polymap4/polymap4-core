@@ -149,6 +149,15 @@
       </loginModule>
    </extension>
    <extension
+         id="org.polymap.core.security.Krb5LoginModule"
+         name="Kerberos"
+         point="org.eclipse.equinox.security.loginModule">
+      <loginModule
+            class="org.polymap.core.security.Krb5LoginModule"
+            description="Kerberos">
+      </loginModule>
+   </extension>
+   <extension
          id="org.polymap.core.security.DummyAuthorizationModule"
          point="org.polymap.core.security.AuthorizationModule">
       <AuthorizationModule

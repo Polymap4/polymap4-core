@@ -18,8 +18,15 @@ Services {
         configFile="login_config.properties"
         dialogTitle="POLYMAP3 Workbench";
 };
- 
+
+/*POLYMAP {
+    org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
+        extensionId="com.sun.security.auth.module.Krb5LoginModule";
+};*/
+
+/* 
 UNIX {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.eclipse.rap.security.demo.unixLoginModule";
 };
+*/

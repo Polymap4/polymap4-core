@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2013-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,11 +14,16 @@
  */
 package org.polymap.core.security;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
+
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import java.security.Principal;
 
 import javax.security.auth.Subject;
+import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.spi.LoginModule;
 
 import org.apache.commons.logging.Log;
@@ -35,19 +40,43 @@ public class DummyAuthorizationModule
         implements AuthorizationModule {
 
     private static Log log = LogFactory.getLog( DummyAuthorizationModule.class );
+    
+    private DummyLoginModule    delegateLoginModule;
 
 
     @Override
     public void init( LoginModule loginModule ) {
+        delegateLoginModule = loginModule instanceof DummyLoginModule ? (DummyLoginModule)loginModule : null;
+    }
+
+
+    @Override
+    public void initialize( Subject subject, CallbackHandler callbackHandler,
+            Map<String,?> sharedState, Map<String,?> options ) {
+
+        if (delegateLoginModule == null) {
+            delegateLoginModule = new DummyLoginModule();
+            delegateLoginModule.initialize( subject, callbackHandler, sharedState, options );
+        }
     }
 
 
     @Override
     public Set<Principal> rolesOf( Subject subject ) {
-        Set<DummyUserPrincipal> principals = subject.getPrincipals( DummyUserPrincipal.class );
-        assert principals.size() == 1;
-        DummyUserPrincipal user = principals.iterator().next();
-        return user.getRoles();
+        Set<DummyUserPrincipal> dummyPrincipals = subject.getPrincipals( DummyUserPrincipal.class );
+        assert dummyPrincipals.size() <= 1;
+        
+        // DummyUserPrincipal found
+        if (!dummyPrincipals.isEmpty()) {
+            return getOnlyElement( dummyPrincipals ).getRoles();
+        }
+        //
+        else {
+            Set<UserPrincipal> users = subject.getPrincipals( UserPrincipal.class );
+            assert users.size() == 1 : "Too many/less UserPrincipals in subject: " + users;
+            DummyUserPrincipal dummyUser = delegateLoginModule.userForName( getOnlyElement( users ).getName() );
+            return dummyUser != null ? dummyUser.getRoles() : Collections.EMPTY_SET;
+        }
     }
 
 }
