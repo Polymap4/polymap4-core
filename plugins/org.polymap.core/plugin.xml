@@ -48,6 +48,11 @@
             name="DndUpload"
             path="/dndupload">
       </servlet>
+      <servlet
+            class="org.polymap.core.security.spnego.SpnegoHttpServlet"
+            name="SingleSignOn"
+            path="/spnego">
+      </servlet>
    </extension>
    <extension
          point="org.eclipse.rap.ui.branding">
