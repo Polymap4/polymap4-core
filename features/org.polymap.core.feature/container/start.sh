@@ -19,7 +19,7 @@ cd $DIRNAME/bin
 export SUN_VM='-server -XX:MaxPermSize=128M -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=50'
 export VMARGS='-Xverify:none $SUN_VM -Xmx512M -Dorg.eclipse.rwt.compression=true'
 export ARGS='-console -consolelog -registryMultiLanguage'
-#export LOGARGS='-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog'
+export LOGARGS='-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog'
 #export PROXY='-Dhttp.proxyHost=someHost -Dhttp.proxyPort=somePort -Dhttp.proxyUser=someUserName -Dhttp.proxyPassword=somePassword'
 
 ./eclipse $ARGS -data $WORKSPACE -vmargs $VMARGS $PROXY -Dorg.osgi.service.http.port=$PORT $LOGARGS

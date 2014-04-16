@@ -11,7 +11,7 @@
 POLYMAPDIR=`dirname $0`
 
 EXE=$POLYMAPDIR/start.sh
-SERVICENAME=polymap
+SERVICENAME=Polymap3
 LOG=$POLYMAPDIR/logs/$SERVICENAME.log
 
 java -jar $POLYMAPDIR/PolymapServiceController.jar -exe $EXE -serviceName $SERVICENAME -log $LOG $1 

@@ -70,6 +70,7 @@ public class PolymapServiceController {
             printUsage( "No executable specified (-" + exe.name + ")." );
             System.exit( -1 );
         }
+        exe.value = new File( exe.value ).getAbsolutePath();
         // serviceName given?
         if (serviceName.value == null) {
             serviceName.value = new File( exe.value ).getName();
@@ -121,7 +122,8 @@ public class PolymapServiceController {
             return -1;
         }
         try {
-            ProcessBuilder pb = user.value != null 
+            ProcessBuilder pb = user.value != null && !user.value.equals( whoami() )
+                    // su starts its own session for the command
                     ? new ProcessBuilder( "su", "-", user.value, "-c", exe.value ) 
                     : new ProcessBuilder( "setsid", exe.value );
             log( "execute: ", pb.command() );
@@ -252,6 +254,11 @@ public class PolymapServiceController {
             System.exit( -1 );
             return null;
         }
+    }
+    
+    
+    protected static String whoami() {
+        return System.getProperty( "user.name" );
     }
     
     
