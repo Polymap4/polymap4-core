@@ -160,9 +160,10 @@ public final class LuceneRecordStore
         }
         
         directory = null;
-        // use mmap on 32bit Linux of index size < xxxMB
+        // use mmap on 32bit Linux of index size < 100MB
+        // more shared memory results in system stall under rare conditions
         if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
-                && FileUtils.sizeOfDirectory( indexDir ) < 1024 * 1024 * 1024) {
+                && FileUtils.sizeOfDirectory( indexDir ) < 100*1024*1024) {
             try {
                 directory = new MMapDirectory( indexDir, null );
                 open( clean );

@@ -46,6 +46,7 @@ import com.google.common.collect.ImmutableList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.feature.recordstore.RFeatureStore.TransactionState;
 import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
@@ -70,6 +71,9 @@ public class RDataStore
     protected QueryDialect              queryDialect;
     
     protected FeatureListenerManager    listeners = new FeatureListenerManager();
+    
+    /** The currently running tx or null. */
+    protected TransactionState          runningTx;
 
     /* Changed inside updater so no extra synch is needed. */
     private Map<Name,FeatureType>       schemas;
@@ -155,6 +159,9 @@ public class RDataStore
     @Override
     public FeatureSource getFeatureSource( Name name ) throws IOException {
         FeatureType schema = getSchema( name );
+        if (schema == null) {
+            throw new IOException( "Schema does not exist: " + name );
+        }
         return new RFeatureStore( this, schema );
     }
 
@@ -171,7 +178,7 @@ public class RDataStore
             throw new IOException( "Schema name already exists: " + schema.getName() );
         }
         
-        Updater tx = store.prepareUpdate();
+        Updater tx = runningTx != null ? runningTx.updater() : store.prepareUpdate();
         try {
             String schemaContent = schemaCoder.encode( schema );
             log.debug( "Created schema: " + schemaContent );
@@ -183,11 +190,15 @@ public class RDataStore
                     .put( "content", schemaContent ) );
             
             schemas.put( schema.getName(), schema );
-            tx.apply();
+            if (runningTx == null) {
+                tx.apply();
+            }
         }
         catch (Throwable e) {
             log.debug( "", e );
-            tx.discard();
+            if (runningTx == null) {
+                tx.discard();
+            }
             if (e instanceof IOException) {
                 throw (IOException)e;
             }
@@ -243,10 +254,12 @@ public class RDataStore
                                 String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
                                 if (origName != null) {
                                     RAttribute prop = (RAttribute)feature.getProperty( origName );
-                                    if (prop.getValue() != null) {
-                                        ((RFeature)feature).state.put( desc.getName().getLocalPart(), prop.getValue() );
+                                    if (prop != null) {
+                                        if (prop.getValue() != null) {
+                                            ((RFeature)feature).state.put( desc.getName().getLocalPart(), prop.getValue() );
+                                        }
+                                        ((RFeature)feature).state.remove( prop.key.toString() );
                                     }
-                                    ((RFeature)feature).state.remove( prop.key.toString() );
                                 }
                             }
                             
@@ -260,7 +273,8 @@ public class RDataStore
                             tx.store( ((RFeature)feature).state );
                         }
                         catch (Exception e) {
-                            throw new RuntimeException( "Designing a visitor interface without Exception is not a good idea!" );
+                            // Designing a visitor interface without Exception is not a good idea!
+                            throw new RuntimeException( "", e );
                         }
                     }
                 }, null );

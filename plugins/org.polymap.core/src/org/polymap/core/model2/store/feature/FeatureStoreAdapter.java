@@ -65,11 +65,10 @@ public class FeatureStoreAdapter
                 log.info( "Checking FeatureSource: " + entitySchema.getTypeName() + " ..." ); 
                 FeatureSource fs = store.getFeatureSource( entitySchema.getName() );
                 // update
-                if (! fs.getSchema().equals( entitySchema )) {
+                if (fs != null && !fs.getSchema().equals( entitySchema )) {
                     try {
                         log.warn( "FeatureType has been changed: " + entitySchema.getName() + " !!!" );
-                        // which store does actually support this?
-                        //store.updateSchema( entitySchema.getName(), entitySchema );
+                        store.updateSchema( entitySchema.getName(), entitySchema );
                     }
                     catch (UnsupportedOperationException e) {
                         log.warn( "", e );
