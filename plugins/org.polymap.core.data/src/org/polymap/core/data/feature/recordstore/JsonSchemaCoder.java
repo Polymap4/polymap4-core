@@ -188,7 +188,8 @@ class JsonSchemaCoder {
             //CoordinateReferenceSystem crs = CRS.decode( input.optString( "srs",  );
             //json.put( "isIdentified", schema.isIdentified() );
             String defaultGeomName = input.getString( "defaultGeom" );
-            boolean isSimple = Boolean.parseBoolean( input.optString( "isSimple" ) );
+            log.info( "isSimple:" + input.optString( "isSimple" ) );
+            boolean isSimple = Boolean.parseBoolean( input.optString( "isSimple", "true" ) );
             
             ComplexType complexType = decodeComplexType( input );
             

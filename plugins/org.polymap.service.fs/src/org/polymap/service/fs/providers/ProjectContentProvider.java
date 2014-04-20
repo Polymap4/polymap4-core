@@ -141,7 +141,7 @@ public class ProjectContentProvider
                     catch (Exception e) {
                         log.warn( "Error during invalidateSession(): " + e );
                     } 
-//                    ((ProjectContentProvider)getProvider()).getSite().invalidateFolder( 
+//                    ((ResourceBundleContentProvider)getProvider()).getSite().invalidateFolder( 
 //                            getSite().getFolder( getParentPath() ) );                    
                 }
             }
@@ -178,7 +178,7 @@ public class ProjectContentProvider
                     catch (Exception e) {
                         log.warn( "Error during invalidateSession(): " + e );
                     } 
-//                    ((ProjectContentProvider)getProvider()).getSite().invalidateFolder( 
+//                    ((ResourceBundleContentProvider)getProvider()).getSite().invalidateFolder( 
 //                            getSite().getFolder( getParentPath() ) );                    
                 }
             }

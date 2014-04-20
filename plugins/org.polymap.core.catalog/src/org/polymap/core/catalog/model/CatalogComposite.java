@@ -36,10 +36,12 @@ import java.security.Principal;
 import net.refractions.udig.catalog.ICatalogInfo;
 import net.refractions.udig.catalog.ID;
 import net.refractions.udig.catalog.IResolve;
+import net.refractions.udig.catalog.IResolve.Status;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ITransientResolve;
 import net.refractions.udig.catalog.URLUtils;
-import net.refractions.udig.catalog.IResolve.Status;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -66,8 +68,6 @@ import org.polymap.core.qi4j.event.MethodOperationBoundsConcern;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.qi4j.security.ACL;
-import org.polymap.core.qi4j.security.ACLCheckConcern;
-import org.polymap.core.qi4j.security.ACLFilterConcern;
 import org.polymap.core.runtime.Polymap;
 
 /**
@@ -82,8 +82,9 @@ import org.polymap.core.runtime.Polymap;
  * @since 3.0
  */
 @Concerns({
-        ACLCheckConcern.class, 
-        ACLFilterConcern.class,
+// FIXME AZV does not find services with ACL check
+//        ACLCheckConcern.class,
+//        ACLFilterConcern.class,
         PropertyChangeSupport.Concern.class
 })
 @Mixins({
@@ -294,7 +295,7 @@ public interface CatalogComposite
         public void addTransient( ITransientResolve service )
                 throws UnsupportedOperationException {
             transientServices.add( (IService)service );    
-            log.info( "Transient entries: " + transientServices.size() );
+            log.debug( "Transient entries: " + transientServices.size() );
         }
         
         
@@ -345,7 +346,7 @@ public interface CatalogComposite
                 // ITransientResolve
                 if (entry instanceof ITransientResolve || entry.canResolve( ITransientResolve.class )) {
                     transientServices.add( entry );
-                    log.info( "Transient entries: " + transientServices.size() );
+                    log.debug( "Transient entries: " + transientServices.size() );
                 }
                 // persistent entry
                 else {
@@ -474,6 +475,7 @@ public interface CatalogComposite
             // first pass 1.1- use urlEquals on CONNECTED service for subset
             // check
             for (IService service : persistentAndTransientServices()) {
+                log.debug( "service: " + service + " - " + service.getStatus() );
                 if (service == null || service.getStatus() != Status.CONNECTED) {
                     continue; // skip non connected service
                 }
@@ -597,8 +599,17 @@ public interface CatalogComposite
                 monitor = new NullProgressMonitor();
             }
 
+            log.debug( "findChildById: '" + new ID( id.toURL() ) + "' / '" + new ID( handle.getIdentifier() ) + "'" );
             if (roughMatch) {
-                if (new ID( id.toURL() ).equals( new ID( handle.getIdentifier() ) )) {
+                log.info( "FIXME RecordStore is different between 3.1 and 3.2 (?)" );
+                String lhs = new ID( id.toURL() ).toString();
+                lhs = lhs.replaceFirst( "http:.*gml", "" );
+                lhs = lhs.replace( "#:", "#" );
+                String rhs = new ID( handle.getIdentifier() ).toString();
+                log.info( "            -> '" + lhs + "' / '" + rhs + "'" );
+                if (new ID( id.toURL() ).equals( new ID( handle.getIdentifier() ) )
+                        || StringUtils.equalsIgnoreCase( lhs, rhs )) {
+                    log.debug( "    match!" );
                     return handle;
                 }
             }

@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
 import org.opengis.feature.ComplexAttribute;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -34,6 +32,7 @@ import org.opengis.filter.identity.Identifier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -57,28 +56,34 @@ class RComplexAttribute
     private IRecordState                    state;
     
     /** Lazily initialized cache of {@link Property} or <code>Collection<Property></code>. */
-    private LoadingCache<String,Object>     value; 
+    private LoadingCache<String,Optional<Object>> value; 
     
     
     public RComplexAttribute( final RFeature feature, StoreKey baseKey, AttributeDescriptor descriptor, Identifier id ) {
         super( feature, baseKey, descriptor, id );
         
-        value = valueCacheBuilder.build( new CacheLoader<String,Object>() {
-            public Property load( String name ) {
+        value = valueCacheBuilder.build( new CacheLoader<String,Optional<Object>>() {
+            public Optional<Object> load( String name ) {
                 PropertyDescriptor child = getType().getDescriptor( name );
-                assert child.getMaxOccurs() == 1: "Collections of properties are not yet again implemented. (" + child + ")";
+                assert child == null || child.getMaxOccurs() == 1: "Collections of properties are not yet again implemented. (" + name + ")";
                 
+                if (child == null) {
+                    return Optional.absent();
+                }
                 // complex (check more special first!)
                 if (child.getType() instanceof ComplexType) {
-                    return new RComplexAttribute( RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null );                    
+                    return Optional.of( (Object)new RComplexAttribute( 
+                            RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null ) );                    
                 }
                 // geometry
                 else if (child.getType() instanceof GeometryType) {
-                    return new RGeometryAttribute( RComplexAttribute.this.feature, key, (GeometryDescriptor)child, null );
+                    return Optional.of( (Object)new RGeometryAttribute( 
+                            RComplexAttribute.this.feature, key, (GeometryDescriptor)child, null ) );
                 }
                 // attribute
                 else if (child.getType() instanceof AttributeType) {
-                    return new RAttribute( RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null );
+                    return Optional.of( (Object)new RAttribute( 
+                            RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null ) );
                 }
                 // unhandled
                 else {
@@ -100,13 +105,42 @@ class RComplexAttribute
     }
 
 
+//    private Function<PropertyDescriptor,Iterator<Property>> propTransform = new Function<PropertyDescriptor,Iterator<Property>>() {
+//        public Iterator<Property> apply( PropertyDescriptor input ) {
+//            return getProperties( input.getName().getLocalPart() ).iterator();
+//        }
+//    };
+    
     @Override
     public Collection<Property> getProperties() {
-        Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
+//        // Collection view
+//        return new AbstractCollection<Property>() {
+//            private Lazy<Integer>       size = new LockedLazyInit();
+//            @Override
+//            public Iterator<Property> iterator() {
+//                Iterator<PropertyDescriptor> descriptors = getType().getDescriptors().iterator();
+//                return concat( transform( descriptors, propTransform ) );
+//            }
+//            @Override
+//            public int size() {
+//                return size.get( new Supplier<Integer>() {
+//                    public Integer get() { return Iterators.size( iterator() ); }
+//                });
+//            }
+//        };
         
+        Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
         List<Property> result = new ArrayList( descriptors.size() * 2 );
-        for (PropertyDescriptor child : descriptors) {
-            result.addAll( getProperties( child.getName() ) );
+        for (PropertyDescriptor _descriptor : descriptors) {
+            Optional<Object> prop = value.getUnchecked( _descriptor.getName().getLocalPart() );
+            if (!prop.isPresent()) {
+            }
+            else if (prop.get() instanceof Collection) {
+                result.addAll( (Collection<Property>)prop.get() );
+            }
+            else {
+                result.add( (Property)prop.get() );
+            }
         }
         return result;
     }
@@ -120,14 +154,15 @@ class RComplexAttribute
 
     @Override
     public Collection<Property> getProperties( final String name ) {        
-        try {
-            Object result = value.get( name );
-            return result instanceof Collection 
-                    ? (Collection<Property>)result
-                    : Collections.singleton( (Property)result ); //ImmutableList.of( result );
+        Optional<Object> result = value.getUnchecked( name );
+        if (!result.isPresent()) {
+            return Collections.EMPTY_LIST;
         }
-        catch (ExecutionException e) {
-            throw new RuntimeException( e );
+        else if (result.get() instanceof Collection) {
+            throw new RuntimeException( "Collections of properties are not yet again implemented. (" + name + ")" );
+        }
+        else {
+            return Collections.singleton( (Property)result.get() ); //ImmutableList.of( result );
         }
     }
 
@@ -140,12 +175,15 @@ class RComplexAttribute
     
     @Override
     public Property getProperty( String name ) {
-        try {
-            Object result = value.get( name );
-            return (Property)(result instanceof Collection ? ((Collection)result).iterator().next() : result);
+        Optional<Object> result = value.getUnchecked( name );
+        if (!result.isPresent()) {
+            return null;
         }
-        catch (ExecutionException e) {
-            throw new RuntimeException( e );
+        else if (result.get() instanceof Collection) {
+            throw new RuntimeException( "Collections of properties are not yet again implemented. (" + name + ")" );
+        }
+        else {
+            return (Property)result.get();
         }
     }
 

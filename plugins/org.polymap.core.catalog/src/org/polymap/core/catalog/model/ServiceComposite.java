@@ -55,14 +55,11 @@ import org.qi4j.api.injection.scope.This;
 import org.qi4j.api.mixin.Mixins;
 import org.qi4j.api.property.Property;
 
-import org.polymap.core.model.Entity;
 import org.polymap.core.model.ModelProperty;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
 import org.polymap.core.qi4j.security.ACL;
-import org.polymap.core.qi4j.security.ACLCheckConcern;
-import org.polymap.core.qi4j.security.ACLFilterConcern;
 
 /**
  * 
@@ -72,8 +69,8 @@ import org.polymap.core.qi4j.security.ACLFilterConcern;
  * @since 3.0
  */
 @Concerns( {
-        ACLCheckConcern.class, 
-        ACLFilterConcern.class, 
+        /*ACLCheckConcern.class, 
+        ACLFilterConcern.class,*/ 
         PropertyChangeSupport.Concern.class
 })
 @Mixins( {
@@ -303,7 +300,7 @@ public interface ServiceComposite
                 try {
                     result = URLUtils.constructURL( this.reference, txt );
                     if (URL.class.isAssignableFrom( clazz ))
-                        return (Serializable)result;
+                        return result;
                     else
                         return new File( result.getFile() );
                 } 

@@ -186,7 +186,7 @@ public class RDataStore
 
     @Override
     public List<Name> getNames() throws IOException {
-        return ImmutableList.copyOf( schemas.keySet() );
+        return ImmutableList.copyOf( schemaNames.get() );
     }
 
 

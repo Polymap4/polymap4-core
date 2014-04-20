@@ -119,7 +119,8 @@ public class DefaultGeoResourceResolver
                 monitor.done();
             }
         };
-        job.setShowProgressDialog( null, true );
+        //job.setShowProgressDialog( null, true );
+        job.setUser( false );
         job.schedule();
         
         boolean success = job.joinAndDispatch( 15000 );

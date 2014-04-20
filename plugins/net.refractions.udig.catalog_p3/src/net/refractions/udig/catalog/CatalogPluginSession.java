@@ -82,11 +82,7 @@ public class CatalogPluginSession {
         try {
             restoreFromPreferences();
         }
-        catch (BackingStoreException e) {
-            CatalogPlugin.log( null, e );
-            handlerLoadingError( e );
-        }
-        catch (MalformedURLException e) {
+        catch (Exception e) {
             CatalogPlugin.log( null, e );
             handlerLoadingError( e );
         }
@@ -171,8 +167,9 @@ public class CatalogPluginSession {
      * Load the getLocalCatalogFile() into the local catalog(). 
      */
     public void restoreFromPreferences()
-            throws BackingStoreException, MalformedURLException {
-        log.info( "instance: " + this );
+            throws BackingStoreException, MalformedURLException, InterruptedException {
+//        log.info( "instance: " + this );
+//        Thread.sleep( 1000 );
         try {
             if (getLocalCatalog() instanceof CatalogImpl) {
                 ((CatalogImpl)getLocalCatalog()).loadFromFile( getLocalCatalogFile(), getServiceFactory() );

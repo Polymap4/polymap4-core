@@ -48,6 +48,8 @@ import com.google.common.collect.Iterables;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -65,6 +67,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 
 import org.polymap.core.catalog.Messages;
 import org.polymap.core.runtime.IMessages;
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 import org.polymap.core.ui.upload.IUploadHandler;
@@ -99,6 +102,8 @@ public class FileUploadPage
     private Upload                upload;
 
     private CCombo                charsetCombo;
+
+    protected String charsetName;
 
 
     public String getId() {
@@ -233,6 +238,11 @@ public class FileUploadPage
         }
         charsetCombo.setItems( Iterables.toArray( items, String.class ) );
         charsetCombo.setVisibleItemCount( 17 );
+        charsetCombo.addModifyListener( new ModifyListener() {
+            public void modifyText( ModifyEvent ev ) {
+                charsetName = charsetCombo.getText();
+            }
+        });
         charsetCombo.select( first );
         return charsetCombo;
     }
@@ -252,29 +262,33 @@ public class FileUploadPage
 //        } );
 
         setPageComplete( false );
+        
         this.upload.setHandler( new IUploadHandler() {
-            @Override
-            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
-                try {
-                    Charset charset = Charset.forName( charsetCombo.getText() );
-                    List<File> files = new FileImporter()
-                            .setCharset( charset )
-                            .setOverwrite( false )
-                            .doRun( name, null, in );
-                    
-                    for (File f : files) {
-                        viewer.add( f );
-                        //if (f.getName().endsWith( "shp" )) {
-                            list.add( f.toURI().toURL() );
-                        //}
+            public void uploadStarted( final String name, String contentType, final InputStream in ) throws Exception {
+                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                    public void run() {
+                        try {
+                            Charset charset = Charset.forName( charsetName );
+                            final List<File> files = new FileImporter()
+                                    .setCharset( charset )
+                                    .setOverwrite( false )
+                                    .doRun( name, null, in );
+
+                            for (File f : files) {
+                                viewer.add( f );
+                                //if (f.getName().endsWith( "shp" )) {
+                                list.add( f.toURI().toURL() );
+                                //}
+                            }
+                            upload.setText( "" );
+                            setPageComplete( true );
+                            getContainer().updateButtons();
+                        }
+                        catch (Exception e) {
+                            PolymapWorkbench.handleError( CatalogPlugin.ID, FileUploadPage.this, e.getMessage(), e );
+                        }
                     }
-                    upload.setText( "" );
-                    setPageComplete( true );
-                    getContainer().updateButtons();
-                }
-                catch (Exception e) {
-                    PolymapWorkbench.handleError( CatalogPlugin.ID, FileUploadPage.this, e.getMessage(), e );
-                }
+                });
             }
         });
     }

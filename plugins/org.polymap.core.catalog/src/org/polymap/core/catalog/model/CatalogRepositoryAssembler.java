@@ -99,6 +99,7 @@ public class CatalogRepositoryAssembler
         
         moduleRoot = new File( root, "org.polymap.core.catalog" );
         moduleRoot.mkdir();
+        log.info( "    " + moduleRoot );
 
         domainModule.addServices( JsonEntityStoreService.class )
                 .setMetaInfo( new JsonEntityStoreInfo( moduleRoot ) )

@@ -1,6 +1,16 @@
 /*
- This is the POLYMAP standard JAAS config. By default use file based dummy login.
-*/
+ * The standard login for the Workbench. Uses dummy login module.
+ */
+Workbench {
+    org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
+        extensionId="org.polymap.core.security.DummyLoginModule"
+        authorizationExtensionId="org.polymap.core.security.DummyAuthorizationModule"
+        configFile="login_config.properties"
+        dialogTitle="POLYMAP3.2 Workbench";
+};
+/*
+ * Previous to Version 3.2
+ */
 POLYMAP {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.polymap.core.security.DummyLoginModule"
@@ -13,16 +23,6 @@ Services {
         extensionId="org.polymap.core.security.DummyLoginModule"
         configFile="login_config.properties"
         dialogTitle="POLYMAP3 Workbench";
-};
-
-/*
- This is the standard JAAS config for the Atlas.
-*/
-Atlas {
-    org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
-        extensionId="org.polymap.core.security.DummyLoginModule"
-        configFile="login_config.properties"
-        dialogTitle="POLYMAP3 Atlas";
 };
  
 UNIX {

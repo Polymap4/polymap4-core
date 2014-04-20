@@ -140,8 +140,10 @@ public class CatalogPlugin extends Plugin {
         resourceBundle = null;
     }
 
-    /** Load the getLocalCatalogFile() into the local catalog(). */
-    public void restoreFromPreferences() throws BackingStoreException, MalformedURLException {
+    /** 
+     * Load the getLocalCatalogFile() into the local catalog(). 
+     */
+    public void restoreFromPreferences() throws BackingStoreException, MalformedURLException, InterruptedException {
         log.info( "instance: " + this );
         CatalogPluginSession.instance().restoreFromPreferences();
     }
