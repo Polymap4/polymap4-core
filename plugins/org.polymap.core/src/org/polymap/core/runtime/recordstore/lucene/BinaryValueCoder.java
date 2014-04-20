@@ -36,6 +36,9 @@ public final class BinaryValueCoder
     
     public boolean encode( Document doc, String key, Object value, boolean indexed ) {
         if (value instanceof byte[]) {
+            if (indexed) {
+                log.warn( "Binary fields cannot be indexed." );
+            }
             Field field = (Field)doc.getFieldable( key );
             if (field != null) {
                 field.setValue( (byte[])value );

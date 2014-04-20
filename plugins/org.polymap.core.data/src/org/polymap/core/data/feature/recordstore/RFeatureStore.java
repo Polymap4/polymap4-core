@@ -48,9 +48,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Supplier;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.model2.store.feature.FeatureFactory;
+import org.polymap.core.runtime.LazyInit;
+import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
@@ -349,19 +352,20 @@ public class RFeatureStore
 
 
     public void setTransaction( Transaction tx ) {
-//        if (tx != this.tx) {
-//            this.tx.commit();
-//        }
         this.tx = tx;
         if (tx != Transaction.AUTO_COMMIT) {
             txState = (TransactionState)tx.getState( ds );
             if (txState == null) {
-                tx.putState( ds, txState = new TransactionState() );
+                txState = new TransactionState();
+                this.tx.putState( ds, txState );
+
+                ds.runningTx = txState;
             }
         }
         else {
             txState = new TransactionState();
         }
+
     }
 
     
@@ -371,13 +375,14 @@ public class RFeatureStore
     class TransactionState
             implements State {
 
-        private Updater             updater;
+        private LazyInit<Updater>   updater = new LockedLazyInit( new Supplier<Updater>() {
+            public Updater get() {
+                return ds.getStore().prepareUpdate();
+            }
+        });
 
         public Updater updater() {
-            if (updater == null) {
-                updater = ds.getStore().prepareUpdate();
-            }
-            return updater;
+            return updater.get();
         }
         
         @Override
@@ -387,17 +392,19 @@ public class RFeatureStore
 
         @Override
         public void commit() throws IOException {
-            if (updater != null) {
-                updater.apply();
-                updater = null;
+            ds.runningTx = null;
+            if (updater.isInitialized()) {
+                updater.get().apply();
+                updater.clear();
             }
         }
 
         @Override
         public void rollback() throws IOException {
-            if (updater != null) {
-                updater.discard();
-                updater = null;
+            ds.runningTx = null;
+            if (updater.isInitialized()) {
+                updater.get().discard();
+                updater.clear();
             }            
         }
 

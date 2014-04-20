@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.io.File;
@@ -27,6 +28,7 @@ import java.lang.ref.SoftReference;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -45,6 +47,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.image.cache304.CacheUpdateQueue.StoreCommand;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
@@ -133,7 +136,12 @@ public class Cache304 {
     
     // instance *******************************************
     
-    IRecordStore                store;
+    protected IRecordStore      store;
+    
+    /** The directory to store the actual tile data files. */
+    private File                dataDir;
+    
+    protected AtomicLong        dataDirSize;
     
     private CacheUpdateQueue    updateQueue = new CacheUpdateQueue( this );
     
@@ -150,7 +158,6 @@ public class Cache304 {
     
     /** Update lastAccessed() time (for LRU), only if it is older then this time (30min.) */
     private long                accessTimeRasterMillis = 30 * 60 * 1000;
-
     
     private IPersistentPreferenceStore    prefs = new ScopedPreferenceStore( 
             new InstanceScope(), DataPlugin.getDefault().getBundle().getSymbolicName() );
@@ -158,13 +165,33 @@ public class Cache304 {
     
     protected Cache304() {
         try {
-            store = new LuceneRecordStore( new File( Polymap.getCacheDir(), "tiles" ), false );
-            
+            store = new LuceneRecordStore( new File( Polymap.getCacheDir(), "tiles.index" ), false );            
             store.setIndexFieldSelector( new IRecordFieldSelector() {
                 public boolean accept( String key ) {
-                    return !key.equals( CachedTile.TYPE.data );
+                    return !key.equals( CachedTile.TYPE.data.name() );
                 }
             });
+            
+            dataDir = new File( Polymap.getCacheDir(), "tiles.data" );
+            dataDir.mkdirs();
+            log.info( "Data dir: "  + dataDir + " - Checking size..." );
+            Timer timer = new Timer();
+            long fileSize = 0, count = 0;
+//            SimpleQuery query = new SimpleQuery();
+//            query.setMaxResults( 1000000 );
+//            for (IRecordState record : store.find( query )) {
+//                fileSize += new CachedTile( record ).filesize.get();
+//                count ++;
+//            }
+            for (File f : dataDir.listFiles()) {
+                fileSize += f.length(); 
+                count ++;
+            }
+            dataDirSize = new AtomicLong( fileSize );
+            log.info( "  -> "  
+                    + FileUtils.byteCountToDisplaySize( dataDirSize.get() )
+                    + " in " + count + " tiles"
+                    + " (" + timer.elapsedTime() + "ms)" );
             
             prefs.setDefault( PREF_TOTAL_STORE_SIZE, DEFAULT_MAX_STORE_SIZE );
             maxStoreSizeInByte = prefs.getInt( PREF_TOTAL_STORE_SIZE );
@@ -179,11 +206,14 @@ public class Cache304 {
     protected void finalize() throws Throwable {
         log.info( "FINALIZE..." );
         try {
-            // write pending changes and cleanup
-            updater.run( new NullProgressMonitor() );
-            store.close();
+            if (!store.isClosed()) {
+                // write pending changes and cleanup
+                updater.run( new NullProgressMonitor() );
+                store.close();
+            }
         }
-        finally {
+        catch (Exception e) {
+            log.warn( "Error while finalizing/closing store.", e );
         }
     }
 
@@ -227,7 +257,7 @@ public class Cache304 {
 
             List<CachedTile> result = new ArrayList();
             for (IRecordState state : resultSet) {
-                CachedTile cachedTile = new CachedTile( state );
+                CachedTile cachedTile = new CachedTile( state, dataDir );
                 result.add( cachedTile );
             }
             
@@ -282,7 +312,7 @@ public class Cache304 {
         try {
             CachedTile cachedTile = get( request, layers, props );
             if (cachedTile == null) {
-                cachedTile = new CachedTile( store.newRecord() );
+                cachedTile = new CachedTile( store.newRecord(), dataDir );
                 cachedTile.created.put( created );
                 cachedTile.lastModified.put( created );
                 cachedTile.lastAccessed.put( created );
@@ -333,7 +363,7 @@ public class Cache304 {
         }
 
         // remove all tiles for layer
-        IRecordStore.Updater storeUpdater = null;
+        IRecordStore.Updater tx = null;
         try {
             lock.writeLock().tryLock( 3, TimeUnit.SECONDS );
             
@@ -344,16 +374,16 @@ public class Cache304 {
             log.debug( "Removing tiles: " + resultSet.count() );
             
             Timer timer = new Timer();
-            storeUpdater = store.prepareUpdate();
+            tx = store.prepareUpdate();
             for (IRecordState record : resultSet) {
-                storeUpdater.remove( record );
+                deleteTile( record, tx );
             }
-            storeUpdater.apply( true );
+            tx.apply( true );
             log.debug( "done. (" + timer.elapsedTime() + "ms)" );
         }
         catch (Exception e) {
-            if (storeUpdater != null) {
-                storeUpdater.discard();
+            if (tx != null) {
+                tx.discard();
             }
         }
         finally {
@@ -407,6 +437,19 @@ public class Cache304 {
     }
     
     
+    protected CachedTile deleteTile( IRecordState record, IRecordStore.Updater tx ) throws Exception {
+        // adapt dataDirSize
+        CachedTile cachedTile = new CachedTile( record, dataDir );
+        long current = dataDirSize.addAndGet( -cachedTile.filesize.get() );
+        log.debug( "  Deleting: lastAccessed=" + cachedTile.lastAccessed.get() + ", dataSizeDir=" + current );
+        // delete file
+        cachedTile.data.put( null );
+        // delete record from index
+        tx.remove( record );
+        return cachedTile;
+    }
+    
+    
     /**
      * The Updater triggers the {@link CacheUpdateQueue} to flush its queue
      * and it prunes cache store afterwards.
@@ -439,6 +482,13 @@ public class Cache304 {
                 for (CacheUpdateQueue.Command command: queueState) {
                     try {
                         command.apply( tx );
+
+                        // adapt dataDirSize
+                        if (command instanceof StoreCommand) {
+                            CachedTile cachedTile = ((StoreCommand)command).tile;
+                            long current = dataDirSize.addAndGet( cachedTile.filesize.get() );
+                            log.debug( "Data size: " + current );
+                        }
                     }
                     catch (Exception ee) {
                         log.error( "Error while flushing command queue: ", ee );
@@ -485,8 +535,7 @@ public class Cache304 {
                 ResultSet expiredTiles = store.find( query );
                 
                 for (IRecordState state : expiredTiles) {
-                    log.debug( "    expired tile: " + new CachedTile( state ).created.get() );
-                    tx.remove( state );
+                    deleteTile( state, tx );
                 }
                 lock.writeLock().lock();
                 tx.apply( false );
@@ -502,9 +551,8 @@ public class Cache304 {
             }
 
             // check store size ***************************
-            long storeSize = store.storeSizeInByte();
-            if (storeSize > maxStoreSizeInByte) {
-                log.debug( "Updater: checking maxStoreSize... (" + storeSize + "/" + maxStoreSizeInByte + ")" );
+            if (dataDirSize.get() > maxStoreSizeInByte) {
+                log.debug( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
                 tx = store.prepareUpdate();
                 try {
                     // check max livetime
@@ -516,8 +564,7 @@ public class Cache304 {
                     ResultSet expiredTiles = store.find( query );
 
                     for (IRecordState state : expiredTiles) {
-                        log.debug( "    oldest tile: " + new CachedTile( state ).lastAccessed.get() );
-                        tx.remove( state );
+                        deleteTile( state, tx );
                     }
                     lock.writeLock().lock();
                     tx.apply( true );

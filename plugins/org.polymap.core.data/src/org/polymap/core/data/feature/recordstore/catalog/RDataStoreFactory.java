@@ -23,7 +23,7 @@ import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
-class RDataStoreFactory {
+public class RDataStoreFactory {
 
     private static Log log = LogFactory.getLog( RDataStoreFactory.class );
 

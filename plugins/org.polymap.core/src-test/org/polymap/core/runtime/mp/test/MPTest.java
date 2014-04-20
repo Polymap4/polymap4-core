@@ -102,7 +102,7 @@ public class MPTest
 
 
     protected void process() {
-        int count = Iterables.size( ForEach.in( new SBProducer() ) /*.chunked( 10000 )*/
+        int count = Iterables.size( ForEach.in( new SBProducer() ).chunked( arraySize/20 )
 //            .doFirst( new Parallel<StringBuilder,String>() {
 //                public StringBuilder process( String elm ) {
 //                    return new StringBuilder( elm );

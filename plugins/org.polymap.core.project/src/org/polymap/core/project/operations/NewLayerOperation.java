@@ -47,7 +47,9 @@ import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.runtime.Polymap;
 
 /**
- * 
+ *
+ * <p/>
+ * This might open dialogs and must not be executed with progress dialog.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0

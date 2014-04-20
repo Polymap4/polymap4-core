@@ -59,7 +59,7 @@ public class RapSessionContextProvider
     /**
      * 
      */
-    class RapSessionContext
+    public class RapSessionContext
             extends SessionContext {
 
         private ServiceContext              serviceContext;
@@ -77,6 +77,11 @@ public class RapSessionContextProvider
             this.display = LifeCycleUtil.getSessionDisplay();
             this.sessionStore = serviceContext.getSessionStore();
             assert this.sessionStore != null;
+        }
+
+
+        public Display getDisplay() {
+            return display;
         }
 
 

@@ -8,6 +8,7 @@ Workbench {
         configFile="login_config.properties"
         dialogTitle="POLYMAP3.2 Workbench";
 };
+
 /*
  * Previous to Version 3.2
  */
@@ -17,15 +18,26 @@ POLYMAP {
         configFile="login_config.properties"
         dialogTitle="POLYMAP3 Workbench";
 };
- 
+
+/*
+ * This login config is used for service logins (for example WebDAV). In most cases it is the
+ * same as the Workbench dialog login above.
+ */
 Services {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.polymap.core.security.DummyLoginModule"
         configFile="login_config.properties"
         dialogTitle="POLYMAP3 Workbench";
 };
- 
+
+/*POLYMAP {
+    org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
+        extensionId="com.sun.security.auth.module.Krb5LoginModule";
+};*/
+
+/* 
 UNIX {
     org.eclipse.equinox.security.auth.module.ExtensionLoginModule required
         extensionId="org.eclipse.rap.security.demo.unixLoginModule";
 };
+*/

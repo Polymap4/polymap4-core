@@ -83,7 +83,7 @@ public class AddLayerFromCatalogHandler
         op.init( ProjectPlugin.getSelectedMap(), selectedGeoRes ); 
         IWorkbench workbench = HandlerUtil.getActiveWorkbenchWindow( ev ).getWorkbench();
         
-        OperationSupport.instance().execute( op, true, true );
+        OperationSupport.instance().execute( op, true, false );
         return null;
     }
 

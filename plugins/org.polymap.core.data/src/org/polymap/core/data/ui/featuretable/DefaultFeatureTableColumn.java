@@ -277,9 +277,15 @@ public class DefaultFeatureTableColumn
 
         public String getToolTipText( Object elm ) {
             if (elm != null) {
-                IFeatureTableElement featureElm = (IFeatureTableElement)elm;
-                Object value = featureElm.getValue( getName() );
-                return value != null ? value.toString() : null;
+                try {
+                    IFeatureTableElement featureElm = (IFeatureTableElement)elm;
+                    Object value = featureElm.getValue( getName() );
+                    return value != null ? value.toString() : null;
+                }
+                catch (Exception e) {
+                    log.warn( "", e );
+                    return null;
+                }
             }
             return null;
         }
@@ -340,6 +346,11 @@ public class DefaultFeatureTableColumn
                     : delegate.getText( element );
         }
 
+        public String getToolTipText( Object element ) {
+            return element == FeatureTableViewer.LOADING_ELEMENT
+                    ? null : delegate.getToolTipText( element );
+        }
+
         public Image getImage( Object element ) {
             return element == FeatureTableViewer.LOADING_ELEMENT
                     ? null : delegate.getImage( element );
@@ -383,10 +394,6 @@ public class DefaultFeatureTableColumn
 
         public Image getToolTipImage( Object object ) {
             return delegate.getToolTipImage( object );
-        }
-
-        public String getToolTipText( Object element ) {
-            return delegate.getToolTipText( element );
         }
 
         public Color getToolTipBackgroundColor( Object object ) {

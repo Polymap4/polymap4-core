@@ -14,6 +14,12 @@
  */
 package org.polymap.core.data.image.cache304;
 
+import java.util.concurrent.atomic.AtomicLong;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,11 +36,25 @@ public class CachedTile
 
     private static Log log = LogFactory.getLog( CachedTile.class );
     
-    public static final CachedTile      TYPE = type( CachedTile.class );
-    
+    public static final CachedTile TYPE = type( CachedTile.class );
 
+    private static AtomicLong   filenameCount = new AtomicLong( System.currentTimeMillis() );
+    
+    protected File              basedir;
+    
+    /**
+     * Ctor for RecordModel.
+     */
     public CachedTile( IRecordState record ) {
         super( record );
+    }
+
+    /**
+     * Ctor to access tile {@link #data}.
+     */
+    public CachedTile( IRecordState record, File basedir ) {
+        super( record );
+        this.basedir = basedir;
     }
 
     public Property<Long>       created = new Property<Long>( "created" );
@@ -61,6 +81,75 @@ public class CachedTile
     
     public Property<Double>     maxy = new Property<Double>( "maxy" );
     
-    public Property<byte[]>     data = new Property<byte[]>( "data" );
+    public Property<Integer>    filesize = new Property<Integer>( "filesize" );
+    
+    public Property<String>     filename = new Property<String>( "filename" );
+    
+    public Property<byte[]>     data = new Property<byte[]>( "data" ) {
+
+        @Override
+        public byte[] get() {
+            RandomAccessFile raf = null;
+            try {
+                raf = new RandomAccessFile( new File( basedir, filename.get() ), "r" );
+                // assuming that File#length ist faster than mem copy in ByteArrayOutputStream(?)
+                byte[] buf = new byte[(int)raf.length()];
+                raf.readFully( buf );
+                return buf;
+            }
+            catch (IOException e) {
+                throw new RuntimeException( e );
+            }
+            finally {
+                closeQuietly( raf );
+            }
+        }
+        
+        @Override
+        public RecordModel put( byte[] value ) {
+            // delete file
+            if (value == null) {
+                if (!new File( basedir, filename.get() ).delete()) {
+                    throw new RuntimeException( "Unable to delete file: " + filename.get() );
+                }
+                filesize.put( 0 );
+            }
+            // write file
+            else {
+                RandomAccessFile raf = null;
+                try {
+                    if (filename.get() == null) {
+                        filename.put( String.valueOf( filenameCount.getAndIncrement() ) );
+                    }
+                    raf = new RandomAccessFile( new File( basedir, filename.get() ), "rw" );
+                    raf.write( value );
+                    filesize.put( value.length );
+                }
+                catch (IOException e) {
+                    throw new RuntimeException( e );
+                }
+                finally {
+                    closeQuietly( raf );
+                }
+            }
+            return CachedTile.this;
+        }
+
+        protected void closeQuietly( RandomAccessFile raf ) {
+            if (raf != null) {
+                try {
+                    raf.close();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException( e );
+                }
+            }
+        }
+        
+        @Override
+        public RecordModel add( byte[] value ) {
+            throw new RuntimeException( "not supported." );
+        }
+    };
     
 }

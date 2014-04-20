@@ -41,6 +41,8 @@ public interface IRecordStore {
      */
     public void close();
     
+    public boolean isClosed();
+    
     /**
      * 
      * @throws UnsupportedOperationException If this store does not support this operation.

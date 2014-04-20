@@ -128,7 +128,8 @@ public class BufferFeaturesOperation
                     SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK );
 
             FeatureCollection features = context.features();
-            final CoordinateReferenceSystem crs = context.featureSource().getSchema().getCoordinateReferenceSystem();
+            CoordinateReferenceSystem crs = context.featureSource().getSchema().getCoordinateReferenceSystem();
+            crs = crs != null ? crs : layer.getMap().getCRS();
             final Unit<?> uom = crs.getCoordinateSystem().getAxis(0).getUnit();
 
             int featuresSize = features.size();

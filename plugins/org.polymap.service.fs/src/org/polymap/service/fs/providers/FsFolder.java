@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.IPath;
 
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
+import org.polymap.service.fs.spi.IContentDeletable;
 import org.polymap.service.fs.spi.IContentFile;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentMoveable;
@@ -44,7 +45,7 @@ import org.polymap.service.fs.spi.NotAuthorizedException;
  */
 class FsFolder
         extends DefaultContentFolder
-        implements IContentPutable, IContentWriteable, IMakeFolder, IContentMoveable {
+        implements IContentPutable, IContentWriteable, IMakeFolder, IContentMoveable, IContentDeletable {
 
     public FsFolder( String name, IPath parentPath, IContentProvider provider, File dir ) {
         super( name, parentPath, provider, dir );
@@ -99,6 +100,17 @@ class FsFolder
     public void moveTo( IPath dest, String newName )
     throws IOException, BadRequestException {
         getProvider().moveTo( this, dest, newName );
+    }
+
+    
+    @Override
+    public void delete() throws BadRequestException, NotAuthorizedException {
+        try {
+            getProvider().delete( this );
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
     }
 
     

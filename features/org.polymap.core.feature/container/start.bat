@@ -22,3 +22,4 @@ rem set PROXY='-Dhttp.proxyHost=someHost -Dhttp.proxyPort=somePort -Dhttp.proxyU
 
 eclipse.exe %ARGS% -data %WORKSPACE% -vmargs %VMARGS% %PROXY% -Dorg.osgi.service.http.port=%PORT% %LOGARGS%
 
+

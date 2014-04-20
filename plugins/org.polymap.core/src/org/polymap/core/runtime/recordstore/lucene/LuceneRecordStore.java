@@ -161,9 +161,10 @@ public final class LuceneRecordStore
         }
         
         directory = null;
-        // use mmap on 32bit Linux of index size < xxxMB
+        // use mmap on 32bit Linux of index size < 100MB
+        // more shared memory results in system stall under rare conditions
         if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
-                && FileUtils.sizeOfDirectory( indexDir ) < 1024 * 1024 * 1024) {
+                && FileUtils.sizeOfDirectory( indexDir ) < 100*1024*1024) {
             try {
                 directory = new MMapDirectory( indexDir, null );
                 open( clean );
@@ -203,8 +204,7 @@ public final class LuceneRecordStore
     }
     
     
-    protected void open( boolean clean ) 
-    throws IOException {
+    protected void open( boolean clean ) throws IOException {
         // create or clear index
         if (directory.listAll().length == 0 || clean) {
             IndexWriterConfig config = new IndexWriterConfig( VERSION, analyzer )
@@ -220,6 +220,7 @@ public final class LuceneRecordStore
     }
     
     
+    @Override
     public void close() {
         try {
             if (searcher != null) {
@@ -246,6 +247,12 @@ public final class LuceneRecordStore
     
     
     @Override
+    public boolean isClosed() {
+        return directory == null;
+    }
+
+
+    @Override
     protected void finalize() throws Throwable {
         close();
     }
@@ -262,6 +269,7 @@ public final class LuceneRecordStore
     
     
     public long storeSizeInByte() {
+        assert !isClosed() : "Store is closed already.";
         try {
             long result = 0;
             for (String name : directory.listAll()) {
@@ -291,12 +299,13 @@ public final class LuceneRecordStore
 
     @Override
     public IRecordState newRecord() {
-        assert reader != null : "Store is closed.";
+        assert !isClosed() : "Store is closed already.";
         LuceneRecordState result = new LuceneRecordState( this, new Document(), false );
         result.createId( null );
         return result;
     }
 
+    
     @Override
     public IRecordState newRecord( Object id ) {
         assert reader != null : "Store is closed.";
@@ -307,9 +316,8 @@ public final class LuceneRecordStore
 
 
     @Override
-    public IRecordState get( Object id ) 
-    throws Exception {
-        assert reader != null : "Store is closed.";
+    public IRecordState get( Object id ) throws Exception {
+        assert !isClosed() : "Store is closed already.";
         assert id instanceof String : "Given record identifier is not a String: " + id;
         
         Document doc = cache != null
@@ -330,9 +338,8 @@ public final class LuceneRecordStore
      *         {@link Document} of the recod might be shared with other records.
      * @throws Exception
      */
-    public LuceneRecordState get( int docnum, FieldSelector fieldSelector ) 
-    throws Exception {
-        assert reader != null : "Store is closed.";
+    public LuceneRecordState get( int docnum, FieldSelector fieldSelector ) throws Exception {
+        assert !isClosed() : "Store is closed already.";
 
         // if doc2id contains the docnum *and* the cache contains the id, then
         // we can create a record without accessing the underlying store
@@ -395,10 +402,11 @@ public final class LuceneRecordStore
             return Cache.ELEMENT_SIZE_UNKNOW;
         }
     }
-        
+
+    
     @Override
-    public ResultSet find( RecordQuery query )
-    throws Exception {
+    public ResultSet find( RecordQuery query ) throws Exception {
+        assert !isClosed() : "Store is closed already.";
         // SimpleQuery
         if (query instanceof SimpleQuery) {
             Query luceneQuery = null;
@@ -441,6 +449,7 @@ public final class LuceneRecordStore
         
 
         LuceneUpdater() {
+            assert !isClosed() : "Store is closed already.";
             try {
                 // Defauls:
                 //  - IndexWriterConfig#DEFAULT_RAM_BUFFER_SIZE_MB == 16MB
@@ -499,7 +508,7 @@ public final class LuceneRecordStore
 
         
         public void remove( IRecordState record ) throws Exception {
-            assert record.id() != null : "Record is not stored.";
+            assert record.id() != null : "Record is not yet stored.";
 
             Term idTerm = new Term( LuceneRecordState.ID_FIELD, (String)record.id() );
             writer.deleteDocuments( idTerm );

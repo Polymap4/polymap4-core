@@ -14,6 +14,9 @@
  */
 package org.polymap.core.runtime.recordstore.lucene;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
@@ -68,6 +71,23 @@ public final class NumericValueCoder
             }
             else if (value instanceof Double) {
                 field.setDoubleValue( (Double)value );
+            }
+            else if (value instanceof BigInteger) {
+                BigInteger bint = (BigInteger)value;
+                if (bint.bitLength() < 32) {
+                    field.setIntValue( bint.intValue() );
+                }
+                else if (bint.bitLength() < 64) {
+                    field.setLongValue( bint.longValue() );
+                }
+                else {
+                    throw new RuntimeException( "Too much bits in BigInteger: " + bint.bitLength() );
+                }
+            }
+            else if (value instanceof BigDecimal) {
+                BigDecimal bdeci = (BigDecimal)value;
+                // FIXME check double overflow
+                field.setDoubleValue( bdeci.doubleValue() );
             }
             else {
                 throw new RuntimeException( "Unknown Number type: " + value.getClass() );

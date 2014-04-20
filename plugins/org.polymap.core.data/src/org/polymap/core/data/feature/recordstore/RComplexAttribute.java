@@ -27,6 +27,7 @@ import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.GeometryType;
 import org.opengis.feature.type.Name;
 import org.opengis.feature.type.PropertyDescriptor;
+import org.opengis.feature.type.PropertyType;
 import org.opengis.filter.identity.Identifier;
 
 import org.apache.commons.logging.Log;
@@ -71,17 +72,18 @@ class RComplexAttribute
                     return Optional.absent();
                 }
                 // complex (check more special first!)
-                if (child.getType() instanceof ComplexType) {
+                PropertyType childType = child.getType();
+                if (childType instanceof ComplexType) {
                     return Optional.of( (Object)new RComplexAttribute( 
                             RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null ) );                    
                 }
                 // geometry
-                else if (child.getType() instanceof GeometryType) {
+                else if (childType instanceof GeometryType) {
                     return Optional.of( (Object)new RGeometryAttribute( 
                             RComplexAttribute.this.feature, key, (GeometryDescriptor)child, null ) );
                 }
                 // attribute
-                else if (child.getType() instanceof AttributeType) {
+                else if (childType instanceof AttributeType) {
                     return Optional.of( (Object)new RAttribute( 
                             RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null ) );
                 }
@@ -134,6 +136,7 @@ class RComplexAttribute
         for (PropertyDescriptor _descriptor : descriptors) {
             Optional<Object> prop = value.getUnchecked( _descriptor.getName().getLocalPart() );
             if (!prop.isPresent()) {
+                // skip
             }
             else if (prop.get() instanceof Collection) {
                 result.addAll( (Collection<Property>)prop.get() );

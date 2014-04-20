@@ -53,6 +53,16 @@
             name="FileUpload"
             path="/fileupload">
       </servlet>
+      <!--servlet
+            class="org.polymap.core.security.spnego.SpnegoHttpServlet"
+            name="SingleSignOn"
+            path="/spnego">
+      </servlet-->
+      <servlet
+            class="org.polymap.core.WorkbenchRedirectServlet"
+            name="Workbench Redirect"
+            path="/">
+      </servlet>
    </extension>
    <extension
          point="org.eclipse.rap.ui.branding">
@@ -168,6 +178,15 @@
       <loginModule
             class="org.polymap.core.security.LdapLoginModule"
             description="LDAP">
+      </loginModule>
+   </extension>
+   <extension
+         id="org.polymap.core.security.Krb5LoginModule"
+         name="Kerberos"
+         point="org.eclipse.equinox.security.loginModule">
+      <loginModule
+            class="org.polymap.core.security.Krb5LoginModule"
+            description="Kerberos">
       </loginModule>
    </extension>
    <extension

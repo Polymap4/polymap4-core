@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.feature.recordstore.RFeatureStore.TransactionState;
 import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
@@ -73,6 +74,9 @@ public class RDataStore
     protected QueryDialect              queryDialect;
     
     protected FeatureListenerManager    listeners = new FeatureListenerManager();
+    
+    /** The currently running tx or null. */
+    protected TransactionState          runningTx;
 
     /* Changed inside updater so no extra synch is needed. */
     private Cache<Name,FeatureType>     schemas = CacheConfig.DEFAULT.initSize( 64 ).create();
@@ -194,22 +198,21 @@ public class RDataStore
     public FeatureSource getFeatureSource( Name name ) throws IOException {
         FeatureType schema = getSchema( name );
         if (schema == null) {
-            throw new IOException( "No such schema: " + name );
+            throw new IOException( "Schema does not exist: " + name );
         }
         return new RFeatureStore( this, schema );
     }
 
 
-    public void createSchema( FeatureType schema )
-    throws IOException {
+    public void createSchema( FeatureType schema ) throws IOException {
         if (!schemaNames.get().add( schema.getName() )) {
             throw new IOException( "Schema name already exists: " + schema.getName() );                
         }
         if (schemas.putIfAbsent( schema.getName(), schema ) != null) {
             throw new IOException( "Schema name already exists: " + schema.getName() );
         }
-
-        Updater tx = store.prepareUpdate();
+        
+        Updater tx = runningTx != null ? runningTx.updater() : store.prepareUpdate();
         try {
             String schemaContent = schemaCoder.encode( schema );
             log.debug( "Created schema: " + schemaContent );
@@ -222,21 +225,24 @@ public class RDataStore
             if (schema.getName().getNamespaceURI() != null) {
                 schemaRecord.put( "namespace", schema.getName().getNamespaceURI() );
             }
+            
+//          Configuration config = new WFSConfiguration();
+//          Encoder encoder = new Encoder( config );
+//          encoder.setIndenting( true );
+//          encoder.setIndentSize( 4 );
+//          encoder.encode( schema, GML.FeatureCollectionType, System.out );
+          //encoder.setEncoding(Charset.forName( global.getCharset() ));
+
             tx.store( schemaRecord );
-            tx.apply();
-
-            //
-//            Configuration config = new WFSConfiguration();
-//            Encoder encoder = new Encoder( config );
-//            encoder.setIndenting( true );
-//            encoder.setIndentSize( 4 );
-//            encoder.encode( schema, GML.FeatureCollectionType, System.out );
-            //encoder.setEncoding(Charset.forName( global.getCharset() ));
-
+            if (runningTx == null) {
+                tx.apply();
+            }
         }
         catch (Throwable e) {
             log.debug( "", e );
-            tx.discard();
+            if (runningTx == null) {
+                tx.discard();
+            }
             if (e instanceof IOException) {
                 throw (IOException)e;
             }
@@ -292,10 +298,12 @@ public class RDataStore
                                 String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
                                 if (origName != null) {
                                     RAttribute prop = (RAttribute)feature.getProperty( origName );
-                                    if (prop.getValue() != null) {
-                                        ((RFeature)feature).state.put( desc.getName().getLocalPart(), prop.getValue() );
+                                    if (prop != null) {
+                                        if (prop.getValue() != null) {
+                                            ((RFeature)feature).state.put( desc.getName().getLocalPart(), prop.getValue() );
+                                        }
+                                        ((RFeature)feature).state.remove( prop.key.toString() );
                                     }
-                                    ((RFeature)feature).state.remove( prop.key.toString() );
                                 }
                             }
                             
@@ -309,7 +317,8 @@ public class RDataStore
                             tx.store( ((RFeature)feature).state );
                         }
                         catch (Exception e) {
-                            throw new RuntimeException( "Designing a visitor interface without Exception is not a good idea!", e );
+                            // Designing a visitor interface without Exception is not a good idea!
+                            throw new RuntimeException( "", e );
                         }
                     }
                 }, null );

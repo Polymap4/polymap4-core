@@ -14,6 +14,9 @@
  */
 package org.polymap.core.data.image.cache304;
 
+import static org.polymap.core.project.ILayer.PROP_GEORESID;
+import static org.polymap.core.project.ILayer.PROP_STYLE;
+
 import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Properties;
@@ -158,8 +161,7 @@ public class ImageCacheProcessor
             // check If-Modified-Since
             long modifiedSince = request.getIfModifiedSince();
             long lastModified = cachedTile.lastModified.get();
-            if (modifiedSince > 0 
-                    && lastModified > modifiedSince) {
+            if (modifiedSince > 0 && lastModified > modifiedSince) {
                 log.debug( "### CACHE: 304! :) -- " + timer.elapsedTime() + "ms" );
                 context.sendResponse( EncodedImageResponse.NOT_MODIFIED );
                 context.sendResponse( ProcessorResponse.EOP );
@@ -238,7 +240,7 @@ public class ImageCacheProcessor
     static class LayerListener {
     
         /** The property names of ILayer that forces the cache to deactivate. */
-        private static final Set<String>    layerModProps = Sets.newHashSet( ILayer.PROP_STYLE, ILayer.PROP_PROCS );
+        private static final Set<String>    layerModProps = Sets.newHashSet( PROP_STYLE, PROP_GEORESID, ILayer.PROP_PROCS );
                 
         private ILayer                      layer;
         
@@ -336,7 +338,7 @@ public class ImageCacheProcessor
         }                        
 
         /** 
-         * The style of the layer has changed.
+         * The style or geores or another attribute of the layer has changed.
          * <p/>
          * The cache managed style information for each tile, so it is
          * not strictly necessary to deactivate the cache. However, it

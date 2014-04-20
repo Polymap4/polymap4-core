@@ -509,7 +509,6 @@ a.olControlZoomOut {
 /**
  * Animations
  */
-
 .olLayerGrid .olTileImage {
     /* commented out because Chromium flickers when loading tiles if "Hardware acceleration"
      * https://code.google.com/p/chromium/issues/detail?id=325236

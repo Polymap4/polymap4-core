@@ -168,17 +168,17 @@ public class LayerStatusDecorator
             }
 
             LayerStatus layerStatus = layer.getLayerStatus();
-            if (layerStatus == LayerStatus.STATUS_MISSING) {
-//                decoration.setForegroundColor( MISSING_COLOR );    
+            if (layerStatus.getCode() == LayerStatus.MISSING) {
+                decoration.setForegroundColor( MISSING_COLOR.get() );    
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_missing") );    
             }
-            else if (layerStatus == LayerStatus.STATUS_WAITING) {
+            else if (layerStatus.getCode() == LayerStatus.WAITING) {
                 ImageDescriptor ovr = ProjectPlugin.getDefault().imageDescriptor( waiting );
 //                decoration.setFont( italic );
                 decoration.addOverlay( ovr, TOP_RIGHT );
                 decoration.addSuffix( Messages.get( "LayerStatusDecorator_checking") );
             }
-            else if (layerStatus == LayerStatus.STATUS_OK) {
+            else if (layerStatus.getSeverity() == LayerStatus.OK) {
                 //
             }
             

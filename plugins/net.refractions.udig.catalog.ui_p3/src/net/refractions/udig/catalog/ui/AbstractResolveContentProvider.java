@@ -117,12 +117,18 @@ public class AbstractResolveContentProvider
         }
         display.asyncExec( new Runnable(){
         	public void run() {
-        		if (viewer instanceof TreeViewer) {
-    				TreeViewer treeViewer = (TreeViewer) viewer;
-    				treeViewer.refresh(resolve, true);
-    			}else{
-        			viewer.refresh();
-    			}
+//        		try {
+                    if (viewer instanceof TreeViewer) {
+                    	TreeViewer treeViewer = (TreeViewer) viewer;
+                    	treeViewer.refresh(resolve, true);
+                    }
+                    else {
+                    	viewer.refresh();
+                    }
+//                }
+//                catch (Exception e) {
+//                    e.printStackTrace();
+//                }
         	}
         });
     }
@@ -270,14 +276,21 @@ public class AbstractResolveContentProvider
                 for (final IResolve child : resolve.members( monitor )) {
                     children.add( child );
                     
-                    // separate jobs to fetch info to speed up operation
+                    // separate fetch jobs to speed up operation
                     UIJob infoJob = new UIJob( Messages.get( "ResolveContentProvider_connecting" ) + ": " + child ) {
                         protected void runWithException( IProgressMonitor _monitor ) throws Exception {
-                            if (child instanceof IService) {
-                                ((IService)child).getInfo( _monitor );
+                            try {
+                                if (child instanceof IService) {
+                                    ((IService)child).getInfo( _monitor );
+                                }
+                                else if (child instanceof IGeoResource) {
+                                    ((IGeoResource)child).getInfo( _monitor );
+                                }
                             }
-                            else if (child instanceof IGeoResource) {
-                                ((IGeoResource)child).getInfo( _monitor );
+                            catch (Exception e) {
+                                // suppress error dialog for just opening catalog tree;
+                                // messages displayed in status line
+                                e.printStackTrace();
                             }
                         }
                     };

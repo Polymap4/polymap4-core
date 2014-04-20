@@ -19,7 +19,7 @@ import javax.security.auth.spi.LoginModule;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
- * Preovide a preference page for the UI. 
+ * Provides a preference page in order to configure this LoginModule. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

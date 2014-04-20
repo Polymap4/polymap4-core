@@ -77,8 +77,14 @@ class JsonSchemaCoder {
         public String run() throws Exception {
             // encode CRS and default geom
             JSONObject json = new JSONObject();
-            json.put( "srs", Geometries.srs( schema.getCoordinateReferenceSystem() ) );
-            json.put( "defaultGeom", schema.getGeometryDescriptor().getLocalName() );
+            CoordinateReferenceSystem crs = schema.getCoordinateReferenceSystem();
+            if (crs != null) {
+                json.put( "srs", Geometries.srs( crs ) );
+            }
+            GeometryDescriptor geom = schema.getGeometryDescriptor();
+            if (geom != null) {
+                json.put( "defaultGeom", geom.getLocalName() );
+            }
             json.put( "isIdentified", schema.isIdentified() );
             json.put( "isSimple", schema instanceof SimpleFeatureType );
             if (schema.getName().getNamespaceURI() != null) {
@@ -140,7 +146,9 @@ class JsonSchemaCoder {
             
             if (type instanceof GeometryType) {
                 CoordinateReferenceSystem crs = ((GeometryType)type).getCoordinateReferenceSystem();
-                parent.put( "srs", Geometries.srs( crs ) );
+                if (crs != null) {
+                    parent.put( "srs", Geometries.srs( crs ) );
+                }
                 parent.put( "type", "GeometryType" );
                 
                 // FIXME for unknown reason shapefile schema seem to have something like "MultiPolygon"
@@ -187,7 +195,7 @@ class JsonSchemaCoder {
             namespace = namespace.length() == 0 ? null : namespace;
             //CoordinateReferenceSystem crs = CRS.decode( input.optString( "srs",  );
             //json.put( "isIdentified", schema.isIdentified() );
-            String defaultGeomName = input.getString( "defaultGeom" );
+            String defaultGeomName = input.optString( "defaultGeom" );
             log.info( "isSimple:" + input.optString( "isSimple" ) );
             boolean isSimple = Boolean.parseBoolean( input.optString( "isSimple", "true" ) );
             
@@ -238,7 +246,8 @@ class JsonSchemaCoder {
                 // geometry
                 else if (typeStr.equals( "GeometryType" )) {
                     CoordinateReferenceSystem crs = null;
-                    crs = Geometries.crs( descriptorJson.getString( "srs" ) );
+                    String srs = descriptorJson.optString( "srs", null );
+                    crs =  srs != null ? Geometries.crs( srs ) : null;
                     AttributeType propType = decodeAttributeType( descriptorJson );
                     
                     GeometryType geomType = factory.createGeometryType( propType.getName(),

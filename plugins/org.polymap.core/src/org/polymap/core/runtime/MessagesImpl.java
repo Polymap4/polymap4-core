@@ -150,7 +150,7 @@ public class MessagesImpl
     @Override
     public String get( String key, Object... args ) {
         Locale locale = Polymap.getSessionLocale();
-        return get( locale, key, args );
+        return get( locale != null ? locale : Locale.getDefault(), key, args );
     }
 
 

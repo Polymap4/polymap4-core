@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,6 +15,7 @@
 package org.polymap.core.data.ui.featuretable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -29,6 +30,8 @@ import org.opengis.filter.Filter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 import org.eclipse.swt.widgets.Display;
@@ -36,6 +39,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.viewers.IIndexableLazyContentProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
@@ -48,6 +52,7 @@ import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheManager;
+import org.polymap.core.ui.SelectionAdapter;
 
 /**
  * Feature content provider that performs sorting and filtering in a background Job.
@@ -135,6 +140,9 @@ class DeferredFeatureContentProvider2
             catch (InterruptedException e) {
             }
         }
+        
+        final ISelection selection = viewer.getSelection();
+
         // display LOADING_ELEMENT
         viewer.getTable().clearAll();
         viewer.getTable().setItemCount( 1 );
@@ -149,6 +157,16 @@ class DeferredFeatureContentProvider2
         updator.addJobChangeListener( new JobChangeAdapter() {
             public void done( IJobChangeEvent ev ) {
                 updator = null;
+
+                // preserve selection
+                if (selection != null && !selection.isEmpty()) {
+                    viewer.getControl().getDisplay().asyncExec( new Runnable() {
+                        public void run() {
+                            IFeatureTableElement elm = SelectionAdapter.on( selection ).first( IFeatureTableElement.class );
+                            viewer.selectElement( elm.fid(), true );
+                        }
+                    });
+                }
             }
         });
         // wait for subsequent sort/refresh request
@@ -176,16 +194,25 @@ class DeferredFeatureContentProvider2
     }
 
 
+    @Override
     public int findElement( Object search ) {
         assert search != null;
-        if (search instanceof IFeatureTableElement) {
-            int c = 0;
-            for (Object elm : sortedElements) {
-                if (search.equals( elm )) {
-                    return c;
-                }
-                ++c;
-            }
+        
+//        // wait for possible running updator
+//        // XXX this polling causes race cond with updator on sortedElements
+        Object[] currentElms = sortedElements;
+//        while (updator != null && currentElms != null) {
+//            try { Thread.sleep( 100 ); } catch (InterruptedException e) {}
+//            currentElms = sortedElements;
+//        }
+        return doFindElement( currentElms, search );
+    }
+
+
+    protected int doFindElement( Object[] elms, Object search ) {
+        assert search != null;
+        if (search instanceof IFeatureTableElement && elms != null) {
+            return Iterables.indexOf( Arrays.asList( elms ), Predicates.equalTo( search ) );
         }
         return -1;
     }
@@ -202,10 +229,10 @@ class DeferredFeatureContentProvider2
         
         UpdatorJob() {
             super( Messages.get( "FeatureTableFetcher_name" ) );
+//            setPriority( Job.LONG );
             display = viewer.getTable().getDisplay();
 //            viewer.getTable().setItemCount( 0 );
 //            viewer.firePropChange( FeatureTableViewer.PROP_CONTENT_SIZE, null, c );
-            
 //            UICallBack.activate( UpdatorJob.class.getName() );
         }
 

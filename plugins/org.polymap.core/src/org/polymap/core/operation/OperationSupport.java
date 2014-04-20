@@ -215,7 +215,8 @@ public class OperationSupport
      * @param async Indicates that the calling thread should not block execution and
      *        return imediatelly.
      * @param progress Indicates the the operation is executed inside a progress
-     *        dialog.
+     *        dialog. Make sure that the operation does not open dialogs as they might get covered up
+     *        by the progress dialog. 
      * @throws ExecutionException
      */
     public void execute( final IUndoableOperation op, boolean async, boolean progress, IJobChangeListener... listeners )

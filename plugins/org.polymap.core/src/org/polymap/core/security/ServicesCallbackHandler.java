@@ -26,8 +26,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
+ * This callback handler is used for service logins without dialog. As there is a
+ * mapping between callback handler and JAAS config the service JAAS config is always
+ * needed, even if is is almost always the same as the dialog login config.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ServicesCallbackHandler

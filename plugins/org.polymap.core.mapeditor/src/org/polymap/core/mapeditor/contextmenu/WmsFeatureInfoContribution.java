@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2012-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,10 +14,7 @@
  */
 package org.polymap.core.mapeditor.contextmenu;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -33,6 +30,8 @@ import org.geotools.data.wms.response.GetFeatureInfoResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Iterables;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -53,8 +52,8 @@ import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.WaitingAtomicReference;
 import org.polymap.core.workbench.PolymapWorkbench;
-
 
 /**
  * 
@@ -69,13 +68,12 @@ public class WmsFeatureInfoContribution
     
     private ContextMenuSite         site;
 
-    private IGeoResource            geores;
-    
-    private WebMapServer            wms;
-    
-    private List<ILayer>            checkedLayers = new ArrayList();
+    private WaitingAtomicReference<Menu> menuRef = new WaitingAtomicReference();
+
+    private int                     menuIndex;
 
 
+    @Override
     public IContextMenuContribution init( ContextMenuSite _site ) {
         this.site = _site;
 
@@ -85,27 +83,26 @@ public class WmsFeatureInfoContribution
             if (layer.isVisible()
                     && layer.getGeoResource().canResolve( WebMapServer.class )) {
                 
+                setVisible( true );
+
                 UIJob job = new UIJob( "GetFeatureInfo: " + layer.getLabel() ) {
                     protected void runWithException( IProgressMonitor monitor ) throws Exception {
                         try {
-                            geores = layer.getGeoResource();
-                            wms = geores.resolve( WebMapServer.class, null );
+                            IGeoResource geores = layer.getGeoResource();
+                            WebMapServer wms = geores.resolve( WebMapServer.class, null );
 
                             WMSCapabilities caps = wms.getCapabilities();
                             
                             // GetFeatureInfo supported?
                             if (caps.getRequest().getGetFeatureInfo() != null) {
                                 log.info( "Possible formats: " + layer.getLabel() );
-                                for (String format : caps.getRequest().getGetFeatureInfo().getFormats()) {
-                                    log.info( "    " + format );
-                                }
+                                log.info( "    " + Iterables.toString( caps.getRequest().getGetFeatureInfo().getFormats() ) );
                               
                                 // rough check if any feature is covered
-                                String plain = issueRequest( "text/plain", false );
+                                String plain = issueRequest( geores, "text/plain", false );
                                 log.info( "Plain: " + plain );
                                 if (plain.length() > 50 ) {
-                                    checkedLayers.add( layer );
-                                    setVisible( true );
+                                    awaitAndFillMenuEntry( layer, geores );
                                 }
                             }
                         }
@@ -116,7 +113,6 @@ public class WmsFeatureInfoContribution
                     }
                 };
                 job.schedule();
-                job.joinAndDispatch( 5000 );
             }
         }
         return this;
@@ -128,23 +124,38 @@ public class WmsFeatureInfoContribution
     }
 
 
+    @Override
     public void fill( Menu parent, int index ) {
-        for (final ILayer layer : checkedLayers) {
-            final String label = Messages.get( "WmsFeatureInfoContribution_label", layer.getLabel() );
-            Action action = new Action( label ) {
-                public void run() {
-                    String content = issueRequest( "text/html", true );
-                    openHelpWindow( label, content );
-                }            
-            };
-            action.setImageDescriptor( MapEditorPlugin.imageDescriptor( "icons/etool16/discovery.gif" ) );
-            new ActionContributionItem( action ).fill( parent, index );
-        }
+        this.menuRef.setAndNotify( parent );
+        this.menuIndex = index;
     }
 
     
-    protected String issueRequest( String format, boolean handleError ) {
+    protected void awaitAndFillMenuEntry( ILayer layer, final IGeoResource geores ) {
+        final String label = Messages.get( "WmsFeatureInfoContribution_label", layer.getLabel() );
+        final Action action = new Action( label ) {
+            public void run() {
+                String content = issueRequest( geores, "text/html", true );
+                openHelpWindow( label, content );
+            }            
+        };
+        action.setImageDescriptor( MapEditorPlugin.imageDescriptor( "icons/etool16/discovery.gif" ) );
+        
+        // await and actually fill menu
+        final Menu menu = menuRef.waitAndGet();
+        menu.getDisplay().asyncExec( new Runnable() {
+            public void run() {
+                if (!menu.isDisposed()) {
+                    new ActionContributionItem( action ).fill( menu, menuIndex );
+                }
+            }
+        });
+    }
+    
+    
+    protected String issueRequest( IGeoResource geores, String format, boolean handleError ) {
         try {
+            WebMapServer wms = geores.resolve( WebMapServer.class, null );
             GetMapRequest mapRequest = wms.createGetMapRequest();
             Layer wmsLayer = geores.resolve( Layer.class, null );
             mapRequest.addLayer( wmsLayer );
