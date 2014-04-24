@@ -76,8 +76,7 @@ public abstract class SessionContext {
      * 
      * @param task The task to be executed. 
      */
-    public abstract <T> T execute( final Callable<T> task ) 
-    throws Exception;
+    public abstract <T> T execute( final Callable<T> task ) throws Exception;
     
     public abstract boolean addSessionListener( ISessionListener l );
     
@@ -92,7 +91,7 @@ public abstract class SessionContext {
      */
     public abstract void setAttribute( String key, Object value );
     
-    public abstract Object getAttribute( String key );
+    public abstract <T> T getAttribute( String key );
 
     public abstract boolean isDestroyed();
     

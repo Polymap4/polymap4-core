@@ -108,29 +108,33 @@ public class RapSessionContextProvider
         }
 
 
+        @Override
         public boolean isDestroyed() {
             return serviceContext == null /*|| serviceContext.isDisposed()*/ || display.isDisposed();
         }
 
 
+        @Override
         public String getSessionKey() {
             return sessionStore.getId();
         }
 
         
+        @Override
         public <T> T sessionSingleton( Class<T> type ) {
             return SessionSingletonBase.getInstance( type );
         }
 
 
+        @Override
         public void execute( Runnable task ) {
 //            assert !isDestroyed();
             UICallBack.runNonUIThreadWithFakeContext( display, task );
         }
 
 
-        public <T> T execute( final Callable<T> task ) 
-        throws Exception {
+        @Override
+        public <T> T execute( final Callable<T> task ) throws Exception {
 //            assert !isDestroyed();
             final AtomicReference<Exception> ee = new AtomicReference();
             final AtomicReference<T> result = new AtomicReference();
@@ -154,6 +158,7 @@ public class RapSessionContextProvider
         }
 
 
+        @Override
         public boolean addSessionListener( final ISessionListener l ) {
             SessionStoreListener l2 = new SessionStoreListener() {
                 public void beforeDestroy( SessionStoreEvent event ) {
@@ -166,18 +171,21 @@ public class RapSessionContextProvider
         }
 
 
+        @Override
         public boolean removeSessionListener( ISessionListener l ) {
             SessionStoreListener l2 = listenerMap.remove( l );
             return sessionStore.removeSessionStoreListener( l2 );
         }
 
 
-        public Object getAttribute( String key ) {
+        @Override
+        public <T> T getAttribute( String key ) {
 //            assert !isDestroyed();
-            return sessionStore.getAttribute( key );
+            return (T)sessionStore.getAttribute( key );
         }
 
 
+        @Override
         public void setAttribute( String key, Object value ) {
 //            assert !isDestroyed();
             sessionStore.setAttribute( key, value );

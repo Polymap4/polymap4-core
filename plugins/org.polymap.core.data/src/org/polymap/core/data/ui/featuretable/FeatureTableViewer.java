@@ -168,7 +168,7 @@ public class FeatureTableViewer
      * @param fid
      * @param reveal
      */
-    public void selectElement( final String fid, boolean reveal ) {
+    public void selectElement( final String fid, boolean reveal, boolean fireEvent ) {
         assert fid != null;
         IFeatureTableElement search = new IFeatureTableElement() {
             @Override
@@ -206,9 +206,11 @@ public class FeatureTableViewer
                 getTable().showSelection();
             }
             // fire event
-            ISelection sel = getSelection();
-            log.debug( "getSelection(): " + sel );
-            updateSelection( sel );
+            if (fireEvent) {
+                ISelection sel = getSelection();
+                log.debug( "getSelection(): " + sel );
+                updateSelection( sel );
+            }
         }
         else {
             ISelection sel = new StructuredSelection( search );

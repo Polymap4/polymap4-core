@@ -479,7 +479,7 @@ public class FeatureSelectionView
                 LayerFeatureSelectionManager fsm = (LayerFeatureSelectionManager)ev.getSource();
                 if (fsm.getHovered() != null) {
                     viewer.removeSelectionChangedListener( FeatureSelectionView.this );
-                    viewer.selectElement( fsm.getHovered(), true );
+                    viewer.selectElement( fsm.getHovered(), true, true );
                     viewer.addSelectionChangedListener( FeatureSelectionView.this );
                 }
             }

@@ -163,7 +163,7 @@ class DeferredFeatureContentProvider2
                     viewer.getControl().getDisplay().asyncExec( new Runnable() {
                         public void run() {
                             IFeatureTableElement elm = SelectionAdapter.on( selection ).first( IFeatureTableElement.class );
-                            viewer.selectElement( elm.fid(), true );
+                            viewer.selectElement( elm.fid(), true, false );
                         }
                     });
                 }

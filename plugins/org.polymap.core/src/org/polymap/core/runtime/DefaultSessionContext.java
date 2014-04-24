@@ -51,6 +51,7 @@ public class DefaultSessionContext
         return sessionKey.hashCode();
     }
 
+
     @Override
     public boolean equals( Object obj ) {
         if (this == obj) {
@@ -82,6 +83,7 @@ public class DefaultSessionContext
     }
 
     
+    @Override
     public boolean isDestroyed() {
         return attributes == null;
     }
@@ -94,12 +96,14 @@ public class DefaultSessionContext
     }
     
     
+    @Override
     public String getSessionKey() {
         checkDestroyed();
         return sessionKey;
     }
 
     
+    @Override
     public final <T> T sessionSingleton( final Class<T> type ) {
         assert type != null;
         checkDestroyed();
@@ -129,8 +133,8 @@ public class DefaultSessionContext
     }
 
 
-    public <T> T execute( final Callable<T> task ) 
-    throws Exception {
+    @Override
+    public <T> T execute( final Callable<T> task ) throws Exception {
         checkDestroyed();
         SessionContext current = DefaultSessionContextProvider.currentContext.get();
         if (current != null) {
@@ -153,6 +157,7 @@ public class DefaultSessionContext
     }
 
     
+    @Override
     public void execute( final Runnable task ) {
         checkDestroyed();
         try {
@@ -172,6 +177,7 @@ public class DefaultSessionContext
     }
     
     
+    @Override
     public boolean addSessionListener( ISessionListener l ) {
         log.debug( "addListener(): " + l );
         checkDestroyed();
@@ -179,18 +185,21 @@ public class DefaultSessionContext
     }
 
 
+    @Override
     public boolean removeSessionListener( ISessionListener l ) {
         checkDestroyed();
         return listeners.remove( l );
     }
 
 
-    public Object getAttribute( String key ) {
+    @Override
+    public <T> T getAttribute( String key ) {
         checkDestroyed();
-        return attributes.get( key );
+        return (T)attributes.get( key );
     }
 
 
+    @Override
     public void setAttribute( String key, Object value ) {
         checkDestroyed();
         attributes.put( key, value );
