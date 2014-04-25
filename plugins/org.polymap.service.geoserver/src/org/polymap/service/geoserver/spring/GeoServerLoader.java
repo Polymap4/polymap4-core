@@ -622,7 +622,8 @@ public class GeoServerLoader
 
     
     protected String simpleName( String s ) {
-        return Stringer.on( s ).replaceUmlauts().toURIPath( "_" ).toString();
+        // FIXME make replacement configurable
+        return Stringer.on( s ).replaceUmlauts().toURIPath( "" ).toString();
     }
     
 }

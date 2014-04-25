@@ -48,11 +48,11 @@
             name="DndUpload"
             path="/dndupload">
       </servlet>
-      <servlet
+      <!--servlet
             class="org.polymap.core.security.spnego.SpnegoHttpServlet"
             name="SingleSignOn"
             path="/spnego">
-      </servlet>
+      </servlet-->
       <servlet
             class="org.polymap.core.WorkbenchRedirectServlet"
             name="Workbench Redirect"

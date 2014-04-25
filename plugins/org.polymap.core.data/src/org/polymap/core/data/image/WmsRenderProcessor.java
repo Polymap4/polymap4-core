@@ -167,8 +167,9 @@ public class WmsRenderProcessor
                 + "," + requestBBox.getMaxY() ); //$NON-NLS-1$
         // FIXME hack for LRA to support EPSG3857, see GeoServerWms
         // check to see if backend wms supports 900913 or not
-        String srs = request.getCRS().equals( "EPSG:900913" )
-                ? "EPSG:3857" : request.getCRS(); 
+        String srs = request.getCRS();
+        //String srs = request.getCRS().equals( "EPSG:900913" )
+        //        ? "EPSG:3857" : request.getCRS(); 
         getMap.setSRS( srs );
         
         //getMap.setBBox(  );
