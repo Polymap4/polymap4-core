@@ -14,6 +14,8 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -105,8 +107,7 @@ public class PipelineMapProducer
     }
 
 
-    public void writeTo( final OutputStream out )
-            throws ServiceException, IOException {
+    public void writeTo( final OutputStream out ) throws ServiceException, IOException {
         Timer timer = new Timer();
         
         // single layer? -> request ENCODED_IMAGE
@@ -118,8 +119,7 @@ public class PipelineMapProducer
 
                 ProcessorRequest request = prepareProcessorRequest(); 
                 pipeline.process( request, new ResponseHandler() {
-                    public void handle( ProcessorResponse pipeResponse )
-                            throws Exception {
+                    public void handle( ProcessorResponse pipeResponse ) throws Exception {
                         
                         HttpServletResponse response = GeoServerWms.response.get();
                         if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
@@ -258,12 +258,12 @@ public class PipelineMapProducer
     throws FactoryException {
         long modifiedSince = mapContext.getRequest().getHttpServletRequest().getDateHeader( "If-Modified-Since" );
         log.debug( "Request: If-Modified-Since: " + modifiedSince );
-        
+    
         GetMapRequest request = new GetMapRequest( 
                 null, //layers 
                 "EPSG:" + CRS.lookupEpsgCode( mapContext.getCoordinateReferenceSystem(), false ),
                 mapContext.getAreaOfInterest(), 
-                getContentType(), 
+                defaultIfEmpty( mapContext.getRequest().getFormat(), MIME_TYPE ), 
                 mapContext.getMapWidth(), 
                 mapContext.getMapHeight(),
                 modifiedSince );
