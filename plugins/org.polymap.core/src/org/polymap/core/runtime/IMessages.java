@@ -33,7 +33,7 @@ public interface IMessages {
      *
      * @param key
      * @param args If not null, then the message is formatted via {@link MessageFormat}
-     * @return The message for the given key.
+     * @return The message for the given key, or an empty String if there is no resource for that key.
      */
     String get( String key, Object... args );
     
@@ -44,7 +44,7 @@ public interface IMessages {
      * @param locale The locale to use to localize the given message.
      * @param key
      * @param args If not null, then the message is formatted via {@link MessageFormat}
-     * @return The message for the given key.
+     * @return The message for the given key, or the empty String if there is no resource for that key.
      */
     String get( Locale locale, String key, Object... args );
     

@@ -110,7 +110,8 @@ public class CachedTile
             // delete file
             if (value == null) {
                 if (!new File( basedir, filename.get() ).delete()) {
-                    throw new RuntimeException( "Unable to delete file: " + filename.get() );
+                    // just log - don't break the entire Updater run
+                    log.warn( "Unable to delete file: " + filename.get() );
                 }
                 filesize.put( 0 );
             }
