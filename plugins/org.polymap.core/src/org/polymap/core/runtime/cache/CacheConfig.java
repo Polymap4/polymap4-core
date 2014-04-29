@@ -83,7 +83,7 @@ public class CacheConfig {
      *
      * @return Newly created cache instance.
      */
-    public <K,V> Cache<K,V> create() {
+    public <K,V> Cache<K,V> createCache() {
         return CacheManager.instance().newCache( this );
     }
 }

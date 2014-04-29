@@ -79,7 +79,7 @@ public class RDataStore
     protected TransactionState          runningTx;
 
     /* Changed inside updater so no extra synch is needed. */
-    private Cache<Name,FeatureType>     schemas = CacheConfig.DEFAULT.initSize( 64 ).create();
+    private Cache<Name,FeatureType>     schemas = CacheConfig.DEFAULT.initSize( 64 ).createCache();
     
     private LazyInit<Set<Name>>         schemaNames;
     

@@ -54,7 +54,7 @@ public final class InstanceBuilder {
 
     protected static Field                      contextField;
     
-    protected static Cache<Field,List<Class>>   concerns = CacheConfig.DEFAULT.create();
+    protected static Cache<Field,List<Class>>   concerns = CacheConfig.DEFAULT.createCache();
     
     static {
         try {

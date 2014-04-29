@@ -29,6 +29,7 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.RecordQuery;
@@ -73,7 +74,8 @@ public class LuceneRecordQuery
 
 
     public ResultSet execute() throws IOException {
-        log.trace( "LUCENE: " + luceneQuery );
+        Timer timer = new Timer();
+        
         String sortKey = getSortKey();
         if (sortKey != null) {
             int sortType = SortField.STRING;
@@ -98,10 +100,12 @@ public class LuceneRecordQuery
             }
             Sort sort = new Sort( new SortField( sortKey, sortType, getSortOrder() == DESC ) );
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults(), sort );
+            log.trace( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
         else {
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults() );
+            log.trace( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
     }

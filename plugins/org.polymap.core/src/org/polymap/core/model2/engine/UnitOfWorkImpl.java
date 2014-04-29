@@ -31,7 +31,6 @@ import org.apache.commons.collections.collection.CompositeCollection;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
@@ -192,8 +191,7 @@ public class UnitOfWorkImpl
         
         return (T)loaded.get( id, new EntityCacheLoader() {
             public Entity load( Object key ) throws RuntimeException {
-                result = repo.buildEntity( compositeState, entityClass, UnitOfWorkImpl.this );
-                return result;
+                return repo.buildEntity( compositeState, entityClass, UnitOfWorkImpl.this );
             }
         });
     }
@@ -226,8 +224,12 @@ public class UnitOfWorkImpl
             public Collection execute() {
                 // transform id -> Entity
                 // XXX without this copy the collection is empty on second access
-                // making a copy might be not that bad either as it avoid querying store for every iterator
-                Collection ids = new ArrayList( delegate.find( this ) );
+                // making a copy might be not that bad either as it avoids querying store for every iterator;
+                // iterate to avoid call of size()
+                Collection ids = new ArrayList( 1024 );
+                for (Object id : delegate.find( this ) ) {
+                    ids.add( id );
+                }
                 Collection<T> found = transform( ids, new Function<Object,T>() {
                     public T apply( Object id ) {
                         return entity( entityClass, id ); 

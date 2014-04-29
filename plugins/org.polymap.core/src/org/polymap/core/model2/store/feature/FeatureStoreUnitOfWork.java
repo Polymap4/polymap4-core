@@ -71,6 +71,8 @@ import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreUnitOfWork;
+import org.polymap.core.runtime.ConcurrentReferenceHashMap;
+import org.polymap.core.runtime.ConcurrentReferenceHashMap.ReferenceType;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.PlainLazyInit;
 
@@ -97,6 +99,13 @@ public class FeatureStoreUnitOfWork
     
     /** Never evicting cache of used {@link FeatureSource} instances. */
     private LoadingCache<Class<? extends Entity>,FeatureStore> featureSources;
+    
+    /**
+     * Buffers results of {@link #find(QueryImpl)} for subsequent calls of
+     * {@link #loadEntityState(Object, Class)} in order to avoid to hit the store.
+     */
+    private Map<Object,Feature>         found = new ConcurrentReferenceHashMap( 256, 0.75f, 4, ReferenceType.STRONG, ReferenceType.SOFT, null );
+
 
     
     protected FeatureStoreUnitOfWork( StoreRuntimeContext context, FeatureStoreAdapter store ) {
@@ -130,21 +139,28 @@ public class FeatureStoreUnitOfWork
 
     @Override
     public <T extends Entity> CompositeState loadEntityState( Object id, Class<T> entityClass ) {
-        FeatureStore fs = featureSource( entityClass );
-        FeatureType schema = fs.getSchema();
-        FeatureIterator it = null;
-        try {
-            FeatureCollection features = fs.getFeatures(
-                    ff.id( Collections.singleton( ff.featureId( (String)id ) ) ) );
-            it = features.features();
-            return it.hasNext() ? new FeatureCompositeState( it.next(), this ) : null;
+        Feature feature = found.remove( id );
+        
+        if (feature == null) {
+            FeatureStore fs = featureSource( entityClass );
+            FeatureIterator it = null;
+            try {
+                FeatureCollection features = fs.getFeatures(
+                        ff.id( Collections.singleton( ff.featureId( (String)id ) ) ) );
+                it = features.features();
+                feature = it.hasNext() ? it.next() : null;
+            }
+            catch (Exception e) {
+                throw new ModelRuntimeException( e );
+            }
+            finally {
+                if (it != null) { it.close(); }
+            }
         }
-        catch (Exception e) {
-            throw new ModelRuntimeException( e );
+        else {
+            log.trace( "loadEntityState(): Feature state found." );
         }
-        finally {
-            if (it != null) { it.close(); }
-        }
+        return new FeatureCompositeState( feature, this );
     }
 
 
@@ -186,10 +202,11 @@ public class FeatureStoreUnitOfWork
             FeatureStore fs = featureSource( query.resultType() );
             FeatureType schema = fs.getSchema();
 
-            // features (just IDs) 
+            // features
             DefaultQuery featureQuery = new DefaultQuery( schema.getName().getLocalPart() );
             featureQuery.setFilter( query.expression != null ? (Filter)query.expression : Filter.INCLUDE );
-            featureQuery.setPropertyNames( new String[] {} );
+            // load all properties as we actually use the features via the #found buffer
+            //featureQuery.setPropertyNames( new String[] {} );
             featureQuery.setStartIndex( query.firstResult );
             featureQuery.setMaxFeatures( query.maxResults );
 
@@ -203,7 +220,9 @@ public class FeatureStoreUnitOfWork
                 public Iterator<String> iterator() {
                     return Iterators.transform( it, new Function<Feature,String>() {
                         public String apply( Feature input ) {
-                            return input.getIdentifier().getID();
+                            String id = input.getIdentifier().getID();
+                            found.put( id, input );
+                            return id;
                         }
                     });
                 }
