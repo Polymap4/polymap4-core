@@ -110,7 +110,8 @@ public class CachedTile
             // delete file
             if (value == null) {
                 if (!new File( basedir, filename.get() ).delete()) {
-                    throw new RuntimeException( "Unable to delete file: " + filename.get() );
+                    // just log - don't break the entire Updater run
+                    log.warn( "Unable to delete file: " + filename.get() );
                 }
                 filesize.put( 0 );
             }
@@ -151,5 +152,14 @@ public class CachedTile
             throw new RuntimeException( "not supported." );
         }
     };
+    
+    /**
+     * Returns true if {@link #data} actually contains and returns bytes. As the data of
+     * the tile is stored in separate file it might get deleted while the record in the index
+     * still remains. This is a quick check. 
+     */
+    public boolean dataExists() {
+        return new File( basedir, filename.get() ).exists();
+    }
     
 }

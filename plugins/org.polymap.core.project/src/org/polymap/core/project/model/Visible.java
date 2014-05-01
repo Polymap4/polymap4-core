@@ -41,6 +41,12 @@ public interface Visible
                 this.visible = visible;
             }
         }
+
+        @Override
+        public void setRerender( boolean rerender ) {
+            // do nothing just send the event
+        }
+
     }
     
 }

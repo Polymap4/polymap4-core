@@ -25,9 +25,15 @@ public interface Visible {
 
     public static final String      PROP_VISIBLE = "visible";
     
+    public static final String      PROP_RERENDER = "rerender";
+    
+    
     public boolean isVisible();
     
     @TransientProperty(PROP_VISIBLE)
     public void setVisible( boolean visible );
+
+    @TransientProperty(PROP_RERENDER)
+    public void setRerender( boolean rerender );
 
 }
