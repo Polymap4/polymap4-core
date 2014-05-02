@@ -465,17 +465,37 @@ public final class LuceneQueryDialect
                 throw new RuntimeException( "Comparison not supported: " + expression1 + " - " + expression2 );
             }
 
+            // fieldname and value/type
+            // Literals have correkt type, or are Strings in case of SLD
             String fieldname = prop.getPropertyName();
-
+            Object value = literal.getValue();
+            Class<?> binding = schema.getDescriptor( fieldname ).getType().getBinding();
+            if (binding == Integer.class && value instanceof String) {
+                value = Integer.valueOf( (String)value );
+            }
+            else if (binding == Long.class && value instanceof String) {
+                value = Long.valueOf( (String)value );
+            }
+            else if (binding == Float.class && value instanceof String) {
+                value = Float.valueOf( (String)value );
+            }
+            else if (binding == Double.class && value instanceof String) {
+                value = Double.valueOf( (String)value );
+            }
+            // check actual value type and binding
+            if (!binding.isAssignableFrom( value.getClass() )) {
+                throw new RuntimeException( "Unsupported literal/binding: " + value.getClass().getSimpleName() + "/" + binding.getSimpleName() );
+            }
+            
             // equals
             if (predicate instanceof PropertyIsEqualTo) {
                 return store.getValueCoders().searchQuery( 
-                        new QueryExpression.Equal( fieldname, literal.getValue() ) );
+                        new QueryExpression.Equal( fieldname, value ) );
             }
             // not equals
             if (predicate instanceof PropertyIsNotEqualTo) {
                 org.apache.lucene.search.Query arg = store.getValueCoders().searchQuery( 
-                        new QueryExpression.Equal( fieldname, literal.getValue() ) );
+                        new QueryExpression.Equal( fieldname, value ) );
                 BooleanQuery result = new BooleanQuery();
                 result.add( arg, BooleanClause.Occur.MUST_NOT );
                 return result;
@@ -483,22 +503,22 @@ public final class LuceneQueryDialect
             // ge
             else if (predicate instanceof PropertyIsGreaterThanOrEqualTo) {
                 return store.getValueCoders().searchQuery( 
-                        new QueryExpression.GreaterOrEqual( fieldname, literal.getValue() ) );
+                        new QueryExpression.GreaterOrEqual( fieldname, value ) );
             }
             // gt
             else if (predicate instanceof PropertyIsGreaterThan) {
                 return store.getValueCoders().searchQuery( 
-                        new QueryExpression.Greater( fieldname, literal.getValue() ) );
+                        new QueryExpression.Greater( fieldname, value ) );
             }
             // le
             else if (predicate instanceof PropertyIsLessThanOrEqualTo) {
                 return store.getValueCoders().searchQuery( 
-                        new QueryExpression.LessOrEqual( fieldname, literal.getValue() ) );
+                        new QueryExpression.LessOrEqual( fieldname, value ) );
             }
             // lt
             else if (predicate instanceof PropertyIsLessThan) {
                 return store.getValueCoders().searchQuery( 
-                        new QueryExpression.Less( fieldname, literal.getValue() ) );
+                        new QueryExpression.Less( fieldname, value ) );
             }
             else {
                 throw new UnsupportedOperationException( "Predicate type not supported in comparison: " + predicate.getClass() );
