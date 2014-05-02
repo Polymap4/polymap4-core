@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,7 +20,7 @@ import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.NameInStore;
 
 /**
- * Provides runtime information about a {@link Composite} type.
+ * Provides runtime information of a {@link Composite} type.
  * 
  * @see PropertyInfo
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -42,6 +42,14 @@ public interface CompositeInfo<T extends Composite> {
      * The type this Composite was declared with. 
      */
     public Class<T> getType();
+    
+//    /**
+//     * A template of the Composite. Allows typesafe access to the properties, their
+//     * names and types,
+//     * 
+//     * @return A template of the Composite.
+//     */
+//    public T getTemplate();
 
     /**
      * Collection of Mixins of this composite.
@@ -60,5 +68,13 @@ public interface CompositeInfo<T extends Composite> {
     public Collection<PropertyInfo> getProperties();
 
     public PropertyInfo getProperty( String name );
+
+//    /**
+//     * Provides information of the underlying store.
+//     *
+//     * @param adapter
+//     * @return The retrieved target object, or null if this adapter is not supported by the actual store.
+//     */
+//    public <A> A adapt( Class<A> adapter );
     
 }

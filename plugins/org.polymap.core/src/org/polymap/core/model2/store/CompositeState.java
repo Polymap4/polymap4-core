@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -45,7 +45,7 @@ public interface CompositeState {
     public StoreProperty loadProperty( PropertyInfo info );
 
     /**
-     * The backend of this CompositeState. Th eresult is returned by {@link Composite#state()}.
+     * The backend of this CompositeState. The result is returned by {@link Composite#state()}.
      */
     public Object getUnderlying();
     

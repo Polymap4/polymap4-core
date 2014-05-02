@@ -57,7 +57,7 @@ public abstract class EntityRepository {
      * @return The info object, or null if the given Class is not an Entity, Mixin or
      *         complex property in this repository.
      */
-    public abstract <T extends Composite> CompositeInfo infoOf( Class<T> compositeClass );
+    public abstract <T extends Composite> CompositeInfo<T> infoOf( Class<T> compositeClass );
     
     public abstract UnitOfWork newUnitOfWork();
     

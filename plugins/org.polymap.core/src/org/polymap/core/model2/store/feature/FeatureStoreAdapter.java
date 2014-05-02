@@ -62,7 +62,7 @@ public class FeatureStoreAdapter
         EntityRepository repo = context.getRepository();
     
         // check/create/update schemas
-        FeatureStoreUnitOfWork uow = (FeatureStoreUnitOfWork)createUnitOfWork();
+//        FeatureStoreUnitOfWork uow = (FeatureStoreUnitOfWork)createUnitOfWork();
         for (Class<? extends Entity> entityClass : repo.getConfig().getEntities()) {
             
             // is entityClass complex?

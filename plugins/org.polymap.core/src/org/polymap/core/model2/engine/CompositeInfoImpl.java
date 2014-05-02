@@ -30,6 +30,8 @@ import org.polymap.core.model2.Property;
 import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 
 /**
  * 
@@ -43,6 +45,8 @@ public final class CompositeInfoImpl
     
     /** Maps property name into PropertyInfo. */
     private Map<String,PropertyInfo>        propertyInfos = new HashMap();
+    
+    private Lazy<Composite>                 template = new LockedLazyInit();
     
     
     public CompositeInfoImpl( Class<? extends Composite> compositeClass ) {
@@ -64,13 +68,40 @@ public final class CompositeInfoImpl
     public String getNameInStore() {
         return compositeClass.getAnnotation( NameInStore.class ) != null
                 ? compositeClass.getAnnotation( NameInStore.class ).value()
-                : compositeClass.getName();
+                : getName();
     }
 
     @Override
     public Class<? extends Composite> getType() {
         return compositeClass;
     }
+
+//    @Override
+//    public Composite getTemplate() {
+//        return template.get( new Supplier<Composite>() {
+//            public Composite get() {
+//                CompositeState templateState = new CompositeState() {
+//                    @Override
+//                    public Object id() {
+//                        throw new UnsupportedOperationException( "Method id() is nout allowed for Composite templates." );
+//                    }
+//                    @Override
+//                    public StoreProperty loadProperty( PropertyInfo info ) {
+//                        throw new RuntimeException( "Method loadProperty() is nout allowed for Composite templates." );
+//                    }
+//                    @Override
+//                    public Object getUnderlying() {
+//                        throw new RuntimeException( "Method getUnderlying() is nout allowed for Composite templates." );
+//                    }
+//                };
+//                EntityRuntimeContextImpl entityContext = new EntityRuntimeContextImpl( 
+//                        templateState, EntityStatus.CREATED );
+//                InstanceBuilder builder = new InstanceBuilder( entityContext );
+//                return builder.newComposite( templateState, compositeClass );
+//
+//            }
+//        });
+//    }
 
     @Override
     public Collection<Class<? extends Composite>> getMixins() {
@@ -95,7 +126,6 @@ public final class CompositeInfoImpl
         return compositeClass.getAnnotation( Immutable.class ) != null;
     }
 
-    
     /**
      * Recursivly init {@link #propertyInfos} of the given instance and all complex
      * propertyInfos.
@@ -106,7 +136,7 @@ public final class CompositeInfoImpl
             for (Field field : superClass.getDeclaredFields()) {
                 if (Property.class.isAssignableFrom( field.getType() )) {
                     
-                    PropertyInfoImpl info = new PropertyInfoImpl( field );;
+                    PropertyInfoImpl info = new PropertyInfoImpl( field );
                     propertyInfos.put( info.getName(), info );
                 }
             }
