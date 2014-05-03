@@ -66,7 +66,7 @@ public class AddLayerToMapDropAction
         log.info( "Drop accept(): data=" + data + ", dest=" + dest + ", location=" + location );
 
         // dropping exactly ON layer is handled by AssignGeoresDropAction
-        if (location == ViewerDropLocation.ON) {
+        if (dest instanceof ILayer && location.equals( ViewerDropLocation.ON )) {
             return false;
         }
         
@@ -111,12 +111,7 @@ public class AddLayerToMapDropAction
 
     
     protected boolean checkData( Object data) {
-        if (data instanceof IGeoResource) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return data instanceof IGeoResource;
     }
 
 
