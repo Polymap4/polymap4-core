@@ -346,7 +346,7 @@ public class EventManager {
 
         private EventObject         event;
         
-        private boolean             done;
+        private volatile boolean    done;
         
         
         SessionEventDispatcher( EventObject event, Iterator<? extends EventListener> snapshot, Object[] omitHandlers ) {

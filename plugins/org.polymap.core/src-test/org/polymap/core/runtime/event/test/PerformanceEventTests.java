@@ -14,6 +14,9 @@
  */
 package org.polymap.core.runtime.event.test;
 
+import java.util.List;
+
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
@@ -40,42 +43,108 @@ public class PerformanceEventTests
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
     }
 
-    private int         count, target = 1000000;
+    private int         count, target;
     
     
     @Override
     protected void setUp() throws Exception {
-        EventManager.instance().subscribe( this );
     }
-
 
     @Override
     protected void tearDown() throws Exception {
-        EventManager.instance().unsubscribe( this );
     }
 
     
-    public synchronized void testPerformance() throws InterruptedException {
+    public void testPublishNoDelay() throws InterruptedException {
+        count = 0;
+        target = 1000000;
+        
+        // handler
+        Object handler = new Object() {
+            @EventHandler(scope=Scope.JVM)
+            public void countEvent( PerformanceTestEvent ev ) {
+                if (++count == target-1) {
+                    synchronized (this) { notifyAll(); }
+                }
+            }
+        };
+        EventManager.instance().subscribe( handler );
+
+        // loop: publish event
         Timer timer = new Timer();
         for (int i=0; i<target; i++) {
             EventManager.instance().publish( new PerformanceTestEvent( this ) );
         }
         log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
         
+        // wait for results
         while (count < target-1) {
             synchronized (this) { wait( 100 ); }
         }
         log.info( "count: " + count + " - " + timer.elapsedTime() + "ms" );
+        EventManager.instance().unsubscribe( handler );
     }
     
     
-    @EventHandler(scope=Scope.JVM)
-    public void countEvent( PerformanceTestEvent ev ) {
-        if (++count == target-1) {
-            synchronized (this) { notifyAll(); }
-        }
-    }
+    public void testPublishDelay() throws InterruptedException {
+        count = 0;
+        target = 100000;
+        
+        // handler
+        Object handler = new Object() {
+            @EventHandler(scope=Scope.JVM,delay=100)
+            public void countEvent( List<PerformanceTestEvent> evs ) {
+                log.info( "handle delayed (100ms): " + evs.size() );
+                count += evs.size();
+                if (count == target-1) {
+                    synchronized (this) { notifyAll(); }
+                }
+            }
+        };
+        EventManager.instance().subscribe( handler );
 
+        // loop: publish event
+        Timer timer = new Timer();
+        for (int i=0; i<target; i++) {
+            EventManager.instance().publish( new PerformanceTestEvent( this ) );
+        }
+        log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
+        
+        // wait for results
+        while (count < target-1) {
+            synchronized (this) { wait( 100 ); }
+        }
+        log.info( "count: " + count + " - " + timer.elapsedTime() + "ms" );
+        EventManager.instance().unsubscribe( handler );
+    }
+    
+    
+    public void testSyncPublishNoDelay() throws InterruptedException {
+        count = 0;
+        target = 100000;
+        
+        // handler
+        Object handler = new Object() {
+            @EventHandler(scope=Scope.JVM)
+            public void countEvent( PerformanceTestEvent ev ) {
+                if (++count == target-1) {
+                    synchronized (this) { notifyAll(); }
+                }
+            }
+        };
+        EventManager.instance().subscribe( handler );
+
+        // loop: publish event
+        Timer timer = new Timer();
+        for (int i=0; i<target; i++) {
+            EventManager.instance().syncPublish( new PerformanceTestEvent( this ) );
+        }
+        log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
+        Assert.assertEquals( count, target-1 );
+
+        EventManager.instance().unsubscribe( handler );
+    }
+    
     
     /**
      * 
