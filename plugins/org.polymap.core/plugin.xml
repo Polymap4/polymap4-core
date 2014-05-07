@@ -53,15 +53,11 @@
             name="SingleSignOn"
             path="/spnego">
       </servlet-->
-      <servlet
-            class="org.polymap.core.WorkbenchRedirectServlet"
-            name="Workbench Redirect"
-            path="/">
-      </servlet>
    </extension>
    <extension
          point="org.eclipse.rap.ui.branding">
       <branding
+            body="body.html"
             exitConfirmationClass="org.polymap.core.workbench.BrowserExitConfirmation"
             favicon="icons/favicon.gif"
             id="org.polymap.core.branding1"

@@ -25,8 +25,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Redirects each and every request to the Workbench (polymap). 
- *
+ * Redirects each and every request to the Workbench (polymap). This can be used by
+ * domain specific applications. It is not activated right inside the Core plugin as
+ * it causes problems with Atlas OSM Servlet and other servlets that are registered
+ * delayed.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class WorkbenchRedirectServlet

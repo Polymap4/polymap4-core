@@ -27,21 +27,16 @@ import com.google.common.collect.Iterables;
 
 import org.eclipse.rwt.lifecycle.UICallBack;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
-
-import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.SessionSingleton;
-import org.polymap.core.runtime.UIJob;
 
 /**
  * 
- *
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class DeferringListener
+abstract class DeferringListener
         extends DecoratingListener {
 
     private static Log log = LogFactory.getLog( DeferringListener.class );
@@ -97,51 +92,18 @@ class DeferringListener
         }
     }
     
+
     // instance *******************************************
     
-    private int                     delay = 3000;
+    protected int                       delay = 3000;
     
-    private int                     maxEvents = 10000;
-    
-    private Job                     job;
-    
-    private List<EventObject>       events;
-    
+    protected int                       maxEvents = 10000;
 
+    
     public DeferringListener( EventListener delegate, int delay, int maxEvents ) {
         super( delegate );
         this.delay = delay;
         this.maxEvents = maxEvents;
-    }
-
-    @Override
-    public void handleEvent( EventObject ev ) throws Exception {
-        if (events == null) {
-            events = new ArrayList( 128 );
-        }
-        events.add( ev );
-        
-        if (job == null) {
-            SessionUICallbackCounter.jobStarted();
-            
-            job = new UIJob( Messages.get( "DeferringListener_jobTitle" ) ) {
-                protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    job = null;
-
-                    final DeferredEvent dev = new DeferredEvent( DeferringListener.this, events );
-                    events = null;
-                    delegate.handleEvent( dev );
-                    
-                    SessionUICallbackCounter.jobFinished();
-                }
-            };
-            job.setSystem( true );
-            job.schedule( delay );
-        }
-        else {
-            job.cancel();
-            job.schedule( delay );
-        }
     }
 
     

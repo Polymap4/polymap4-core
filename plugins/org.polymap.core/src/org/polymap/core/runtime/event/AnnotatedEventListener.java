@@ -25,6 +25,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -91,14 +92,14 @@ class AnnotatedEventListener
                     // deferred
                     // XXX There is a race cond. between the UIThread and the event thread; if the UIThread
                     // completes the current request before all display events are handled then the UI
-                    // is not updated until next user request; DeferringListener handles this by activating
+                    // is not updated until next user request; JobDeferringListener handles this by activating
                     // UICallBack, improving behaviour - but not really solving in all cases; after 500ms we
                     // are quite sure that no more events are pending and UI callback can turned off
                     
                     // currenty COMMENTED OUT! see EventManger#SessionEventDispatcher
                     if (annotation.delay() > 0 /*|| annotation.display()*/) {
                         int delay = annotation.delay() > 0 ? annotation.delay() : 500;
-                        listener = new DeferringListener( listener, delay, 10000 );
+                        listener = new TimerDeferringListener( listener, delay, 10000 );
                     }
                     // filters
                     listener = new FilteringListener( listener, 

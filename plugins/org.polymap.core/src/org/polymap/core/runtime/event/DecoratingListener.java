@@ -14,6 +14,10 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.EventObject;
+
+import org.polymap.core.runtime.event.EventManager.DispatcherThread;
+
 /**
  * 
  *
@@ -29,6 +33,15 @@ abstract class DecoratingListener
         assert delegate != null;
         this.delegate = delegate;
     }
+
+
+    /**
+     * All event handling is serialized in one {@link Thread}. So this method is
+     * called from this event {@link DispatcherThread} only. There is no need to
+     * synchronize local variables.
+     */
+    @Override
+    public abstract void handleEvent( EventObject ev ) throws Exception;
 
 
     @Override

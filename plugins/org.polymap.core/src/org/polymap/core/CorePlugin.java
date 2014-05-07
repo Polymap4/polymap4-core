@@ -17,6 +17,12 @@ package org.polymap.core;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
@@ -32,6 +38,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -63,6 +70,23 @@ public class CorePlugin
 	private static CorePlugin  plugin;
 
 
+    /**
+     * A url stream handler that delegates to the default one but if it doesn't work
+     * then it returns null as the stream.
+     */
+    public final static URLStreamHandler RELAXED_HANDLER = new URLStreamHandler(){
+        @Override
+        protected URLConnection openConnection( URL u ) throws IOException {
+            try{
+                URL url=new URL(u.toString());
+                return url.openConnection();
+            }catch (MalformedURLException e){
+                return null;
+            }
+        }
+    };
+
+    
     /**
      * Registers a servlet into the URI namespace.
      * 
