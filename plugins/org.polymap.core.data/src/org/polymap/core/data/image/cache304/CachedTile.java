@@ -71,6 +71,8 @@ public class CachedTile
     
     public Property<String>     style = new Property<String>( "style" );
     
+    public Property<String>     format = new Property<String>( "format" );
+    
     public Property<String>     layerId = new Property<String>( "layerid" );
     
     public Property<Double>     minx = new Property<Double>( "minx" );

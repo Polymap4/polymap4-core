@@ -348,6 +348,8 @@ public class Cache304 {
             String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
             cachedTile.style.put( styleHash );
 
+            cachedTile.format.put( request.getFormat() );
+            
             cachedTile.layerId.put( layer.id() );
 
             ReferencedEnvelope bbox = request.getBoundingBox();
@@ -440,6 +442,9 @@ public class Cache304 {
             // style
             String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
             query.eq( CachedTile.TYPE.style.name(), styleHash );
+            
+            // format
+            query.eq( CachedTile.TYPE.format.name(), request.getFormat() );
             
             // not expired
             query.greater( CachedTile.TYPE.expires.name(), System.currentTimeMillis() );

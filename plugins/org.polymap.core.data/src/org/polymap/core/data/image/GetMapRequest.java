@@ -47,7 +47,7 @@ public class GetMapRequest
 
     private ReferencedEnvelope      bbox;
 
-    private String                  format = "image/jpeg";
+    private String                  format = "image/png";
 
     private int                     width, height;
 
