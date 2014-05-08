@@ -473,7 +473,7 @@ public final class LuceneRecordStore
                 throw new RuntimeException( e );
             }
         }
-
+        
         
         public void store( IRecordState record ) throws Exception {
             if (log.isTraceEnabled()) {
@@ -535,9 +535,10 @@ public final class LuceneRecordStore
                 double total = reader.numDocs();
                 double percent = 100d / total * deleted; 
                 if (optimizeIndex || percent > MAX_DELETED_PERCENT) {
-                    //writer.expungeDeletes( true );
+                    Timer t = new Timer();
                     writer.forceMergeDeletes( true );
-                    log.debug( "Writer optimization done. (" + timer.elapsedTime() + "ms)"  );
+                    writer.forceMerge( 1, true );
+                    log.debug( "Writer optimization done. (" + t.elapsedTime() + "ms)"  );
                 }
                 writer.close();
                 writer = null;

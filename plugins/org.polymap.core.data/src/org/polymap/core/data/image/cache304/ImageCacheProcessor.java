@@ -212,7 +212,7 @@ public class ImageCacheProcessor
         else if (r == ProcessorResponse.EOP) {
             GetMapRequest request = (GetMapRequest)context.get( "request" );
             if (cacheBuf.size() > 0) {
-                CachedTile cachedTile = Cache304.instance().put( 
+                Cache304.instance().put( 
                         request, context.getLayers(), cacheBuf.toByteArray(),
                         (Long)context.get( "created" ), props );
             }
@@ -351,7 +351,11 @@ public class ImageCacheProcessor
                 dispose();
             }
             else {
-                proc.deactivate();
+                // ClearCacheAction uses layer.setStyle( layer.getStyle() ) to reload layer
+                // check this and don't disable in this case
+                if (!ev.getPropertyName().equals( ILayer.PROP_RERENDER )) {
+                    proc.deactivate();
+                }
             }
         }                        
     }

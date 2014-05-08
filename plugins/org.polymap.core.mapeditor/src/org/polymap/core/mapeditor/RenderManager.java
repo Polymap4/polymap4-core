@@ -61,6 +61,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.PipelineHolder;
 import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.project.Visible;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.project.operations.OpenMapOperation;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
@@ -399,6 +400,11 @@ public class RenderManager {
                         }
                     }
                     else if (PROP_GEORESID.equals( ev.getPropertyName() )) {
+                        if (descriptor != null) {
+                            mapEditor.reloadLayer( descriptor );
+                        }
+                    }
+                    else if (Visible.PROP_RERENDER.equals( ev.getPropertyName() )) {
                         if (descriptor != null) {
                             mapEditor.reloadLayer( descriptor );
                         }

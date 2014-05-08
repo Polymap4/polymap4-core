@@ -25,6 +25,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -82,9 +83,12 @@ class AnnotatedEventListener
                             ? new DeferredAnnotatedMethod( m, annotation )
                             : new AnnotatedMethod( m, annotation );
 
-                    // display thread
                     EventListener listener = am;
+                    
+                    // display thread;
                     if (annotation.display()) {
+                        // if this is NOT the delegate of the DeferringListener then
+                        // check DeferringListener#SessionUICallbackCounter
                         listener = new DisplayingListener( listener );
                     }
                     
@@ -98,7 +102,7 @@ class AnnotatedEventListener
                     // currenty COMMENTED OUT! see EventManger#SessionEventDispatcher
                     if (annotation.delay() > 0 /*|| annotation.display()*/) {
                         int delay = annotation.delay() > 0 ? annotation.delay() : 500;
-                        listener = new DeferringListener( listener, delay, 10000 );
+                        listener = new TimerDeferringListener( listener, delay, 10000 );
                     }
                     // filters
                     listener = new FilteringListener( listener, 

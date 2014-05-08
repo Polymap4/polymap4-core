@@ -257,8 +257,7 @@ public class Cache304 {
 
             List<CachedTile> result = new ArrayList();
             for (IRecordState state : resultSet) {
-                CachedTile cachedTile = new CachedTile( state, dataDir );
-                result.add( cachedTile );
+                result.add( new CachedTile( state, dataDir ) );
             }
             
             // search the queue
@@ -271,6 +270,11 @@ public class Cache304 {
             if (!result.isEmpty()) {
                 CachedTile cachedTile = result.get( 0 );
                 long now = System.currentTimeMillis();
+                
+                if (!cachedTile.dataExists()) {
+                    log.warn( "Tile data file lost for: " + cachedTile.filename.get() );
+                    return null;
+                }
                 
                 // update lastAccessed() time, only if it was not already
                 // done in the last accessTimeRasterMillis
@@ -299,6 +303,7 @@ public class Cache304 {
 
 
     /**
+     * Add a new CachedTile, or update the existing tile with the given data.
      * 
      * @param request
      * @param layers
@@ -313,40 +318,48 @@ public class Cache304 {
             CachedTile cachedTile = get( request, layers, props );
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord(), dataDir );
-                cachedTile.created.put( created );
-                cachedTile.lastModified.put( created );
-                cachedTile.lastAccessed.put( created );
 
-                assert layers.size() == 1 : "put(): more than one layer in request.";
-                ILayer layer = layers.iterator().next();
-
-                int maxLivetime = Integer.parseInt( props.getProperty( 
-                        PROP_MAX_TILE_LIVETIME, 
-                        String.valueOf (DEFAULT_MAX_TILE_LIVETIME ) ) );
-                cachedTile.expires.put( created + liveTimeUnit.toMillis( maxLivetime ) );
-                
-                cachedTile.width.put( request.getWidth() );
-                cachedTile.height.put( request.getHeight() );
-
-                String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
-                cachedTile.style.put( styleHash );
-
-                cachedTile.layerId.put( layer.id() );
-                
-                ReferencedEnvelope bbox = request.getBoundingBox();
-                cachedTile.minx.put( bbox.getMinX() );
-                cachedTile.miny.put( bbox.getMinY() );
-                cachedTile.maxx.put( bbox.getMaxX() );
-                cachedTile.maxy.put( bbox.getMaxY() );
-                
-                cachedTile.data.put( data );
-                
                 // XXX there is a race cond between threads of different user sessions
                 // that request/update the same tile; so this push should have semantics
                 // of "pufIfAbsent"
                 updateQueue.push( new CacheUpdateQueue.StoreCommand( cachedTile ) );
                 updater.reSchedule();
             }
+            else {
+                // touch only if tile was already there
+                updateQueue.push( new CacheUpdateQueue.TouchCommand( cachedTile ) );
+                updater.reSchedule();                
+            }
+            cachedTile.created.put( created );
+            cachedTile.lastModified.put( created );
+            cachedTile.lastAccessed.put( created );
+
+            assert layers.size() == 1 : "put(): more than one layer in request.";
+            ILayer layer = layers.iterator().next();
+
+            int maxLivetime = Integer.parseInt( props.getProperty( 
+                    PROP_MAX_TILE_LIVETIME, 
+                    String.valueOf (DEFAULT_MAX_TILE_LIVETIME ) ) );
+            cachedTile.expires.put( created + liveTimeUnit.toMillis( maxLivetime ) );
+
+            cachedTile.width.put( request.getWidth() );
+            cachedTile.height.put( request.getHeight() );
+
+            String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
+            cachedTile.style.put( styleHash );
+
+            cachedTile.format.put( request.getFormat() );
+            
+            cachedTile.layerId.put( layer.id() );
+
+            ReferencedEnvelope bbox = request.getBoundingBox();
+            cachedTile.minx.put( bbox.getMinX() );
+            cachedTile.miny.put( bbox.getMinY() );
+            cachedTile.maxx.put( bbox.getMaxX() );
+            cachedTile.maxy.put( bbox.getMaxY() );
+
+            cachedTile.data.put( data );
+
             return cachedTile;
         }
         catch (Exception e) {
@@ -369,7 +382,7 @@ public class Cache304 {
             
             SimpleQuery query = new SimpleQuery();
             query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
-            query.setMaxResults( 100000 );
+            query.setMaxResults( 1000000 );
             ResultSet resultSet = store.find( query );
             log.debug( "Removing tiles: " + resultSet.count() );
             
@@ -429,6 +442,9 @@ public class Cache304 {
             // style
             String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
             query.eq( CachedTile.TYPE.style.name(), styleHash );
+            
+            // format
+            query.eq( CachedTile.TYPE.format.name(), request.getFormat() );
             
             // not expired
             query.greater( CachedTile.TYPE.expires.name(), System.currentTimeMillis() );

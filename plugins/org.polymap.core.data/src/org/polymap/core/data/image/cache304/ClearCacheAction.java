@@ -60,8 +60,7 @@ public class ClearCacheAction
         for (ILayer layer : selected) {
             try {
                 Cache304.instance().updateLayer( layer, null );
-                // FIXME force reload OL layer
-                layer.setStyle( layer.getStyle() );
+                layer.setRerender( true );
             }
             catch (Exception e) {
                 PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );

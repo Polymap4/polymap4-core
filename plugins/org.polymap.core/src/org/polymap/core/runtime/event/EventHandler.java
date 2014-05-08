@@ -14,23 +14,35 @@
  */
 package org.polymap.core.runtime.event;
 
+import java.util.List;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.polymap.core.runtime.UIJob;
+
 /**
  * Annotates methods that handle events published via {@link EventManager}.
- * <p>
- * <b>Parameters:</b>
- * <ul>
- * <li><b>scope</b> : (defaults to {@link Event.Scope#Session})</li>
- * <li><b>display</b> : (default to false)</li>
- * <li><b>delay</b> : (default to 0)</li>
- * </ul>
+ * <p/>
+ * The method is executed inside the dispatcher thread of the {@link EventManager}.
+ * It should return quickly. For long running task a {@link UIJob} should be created.
+ * By specifying a {@link #delay()} the method is executed inside a new Job
+ * automatically.
  * 
+ * @param scope ({@link Event.Scope#Session}) One of the {@link Event.Scope}
+ *        constants. Defaults to {@link Event.Scope#Session}.
+ * @param display (false) True specifies that the handler is to be executed inside
+ *        the {@link Display} thread. Defaults to false.
+ * @param delay (0) Specifies that the execution of this handler is to be delayed by
+ *        the given amount of milliseconds. Delayed handler have to have a {@link List} of
+ *        events as parameter. This list contains all the events that have been
+ *        catched in the delay time. Delayed handlers are always executed inside a
+ *        {@link Job} (if not marked as {@link #display()}). Defaults to 0 (no delay).
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings("javadoc")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface EventHandler {

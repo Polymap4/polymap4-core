@@ -17,6 +17,8 @@ package org.polymap.core.runtime.event;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -25,112 +27,83 @@ import com.google.common.collect.Iterables;
 
 import org.eclipse.rwt.lifecycle.UICallBack;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
-
-import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.SessionSingleton;
-import org.polymap.core.runtime.UIJob;
 
 /**
  * 
- *
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class DeferringListener
+abstract class DeferringListener
         extends DecoratingListener {
 
     private static Log log = LogFactory.getLog( DeferringListener.class );
 
     /**
-     * Counter for pending events.
+     * Counter for pending events per session.
      */
     static class SessionUICallbackCounter
             extends SessionSingleton {
-
-        public static SessionUICallbackCounter instance() {
-            return instance( SessionUICallbackCounter.class );
+        
+        public static int jobStarted( EventListener delegate ) {
+            return delegate instanceof DisplayingListener && SessionContext.current() != null ? 
+                    instance( SessionUICallbackCounter.class ).doJobStarted() : -1;
         }
         
-        private volatile int        jobCount = 0;
+        public static int jobFinished( EventListener delegate ) {
+            return delegate instanceof DisplayingListener && SessionContext.current() != null ? 
+                    instance( SessionUICallbackCounter.class ).doJobFinished() : -1;
+        }
+
+        // instance ***************************************
         
-        private volatile int        maxJobCount = 0;
+        private AtomicInteger       jobCount = new AtomicInteger( 0 );
         
-        public synchronized void jobStarted() {
-            maxJobCount++;
-            log.debug( "UICallback: counter=" + jobCount );
-            if (jobCount++ == 0) {
+        private AtomicInteger       maxJobCount = new AtomicInteger( 0 );
+        
+        protected synchronized int doJobStarted() {
+            maxJobCount.incrementAndGet();
+            log.debug( "UICallback: job started. counter=" + jobCount.get() );
+            if (jobCount.getAndIncrement() == 0) {
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.activate( "DeferredEvents" );
-                        log.debug( "UICallback: ON (counter=" + jobCount + ")" );
+                        log.debug( "UICallback: ON (counter=" + jobCount.get() + ")" );
                     }
                 });
             }
+            return jobCount.get();
         }
         
-        public synchronized void jobFinished() {
-            log.debug( "UICallback: counter=" + jobCount );
-            if (--jobCount == 0) {
-                final int temp = maxJobCount;
-                maxJobCount = 0;
+        protected synchronized int doJobFinished() {
+            log.debug( "UICallback: job finished. counter=" + jobCount.get() );
+            if (jobCount.decrementAndGet() == 0) {
+                final int max = maxJobCount.getAndSet( 0 );
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.deactivate( "DeferredEvents" );
-                        log.debug( "UICallback: OFF (counter=" + jobCount + ", max=" + temp + ")" );
+                        log.debug( "UICallback: OFF (counter=" + jobCount.get() + ", max=" + max + ")" );
                     }
                 });
             }
+            return jobCount.get();
         }
     }
     
+
     // instance *******************************************
     
-    private int                     delay = 3000;
+    protected int                       delay = 3000;
     
-    private int                     maxEvents = 10000;
-    
-    private Job                     job;
-    
-    private List<EventObject>       events;
-    
+    protected int                       maxEvents = 10000;
 
+    
     public DeferringListener( EventListener delegate, int delay, int maxEvents ) {
         super( delegate );
         this.delay = delay;
         this.maxEvents = maxEvents;
-    }
-
-    @Override
-    public void handleEvent( EventObject ev ) throws Exception {
-        if (events == null) {
-            events = new ArrayList( 128 );
-        }
-        events.add( ev );
-        
-        if (job == null) {
-            SessionUICallbackCounter.instance().jobStarted();
-            
-            job = new UIJob( Messages.get( "DeferringListener_jobTitle" ) ) {
-                protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    job = null;
-
-                    final DeferredEvent dev = new DeferredEvent( DeferringListener.this, events );
-                    events = null;
-                    delegate.handleEvent( dev );
-                    
-                    SessionUICallbackCounter.instance().jobFinished();
-                }
-            };
-            job.setUser( false );
-            job.setSystem( true );
-            job.schedule( delay );
-        }
-        else {
-            job.cancel();
-            job.schedule( delay );
-        }
     }
 
     

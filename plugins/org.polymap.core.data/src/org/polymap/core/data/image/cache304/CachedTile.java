@@ -71,6 +71,8 @@ public class CachedTile
     
     public Property<String>     style = new Property<String>( "style" );
     
+    public Property<String>     format = new Property<String>( "format" );
+    
     public Property<String>     layerId = new Property<String>( "layerid" );
     
     public Property<Double>     minx = new Property<Double>( "minx" );
@@ -152,5 +154,14 @@ public class CachedTile
             throw new RuntimeException( "not supported." );
         }
     };
+    
+    /**
+     * Returns true if {@link #data} actually contains and returns bytes. As the data of
+     * the tile is stored in separate file it might get deleted while the record in the index
+     * still remains. This is a quick check. 
+     */
+    public boolean dataExists() {
+        return new File( basedir, filename.get() ).exists();
+    }
     
 }
