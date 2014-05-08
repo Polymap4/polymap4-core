@@ -80,4 +80,10 @@ class PropertyImpl<T>
         return delegate.getInfo();
     }
 
+    @Override
+    public String toString() {
+        T value = get();
+        return "Property[name:" + getInfo().getName() + ",value=" + (value != null ? value.toString() : "null") + "]";
+    }
+    
 }

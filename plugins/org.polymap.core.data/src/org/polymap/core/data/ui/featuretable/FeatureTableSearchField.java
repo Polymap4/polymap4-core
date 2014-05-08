@@ -39,7 +39,10 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 
@@ -114,8 +117,25 @@ public class FeatureTableSearchField
         searchTxt.addModifyListener( new ModifyListener() {
             public void modifyText( ModifyEvent ev ) {
                 filterText = searchTxt.getText().toLowerCase();
-                clearBtn.setVisible( filterText.length() > 0 );
-                viewer.refresh();
+                
+                // defer refresh for 3s
+                new UIJob( "" ) {
+                    String myFilterText = filterText;
+                    @Override
+                    protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                        if (myFilterText != filterText) {
+                            log.info( "Text changed: " + myFilterText + " -> " + filterText );
+                            return;
+                        }
+                        getDisplay().asyncExec( new Runnable() {
+                            @Override
+                            public void run() {
+                                clearBtn.setVisible( filterText.length() > 0 );
+                                viewer.refresh();
+                            }
+                        });
+                    }
+                }.schedule( 2000 );
             }
         });
     }
