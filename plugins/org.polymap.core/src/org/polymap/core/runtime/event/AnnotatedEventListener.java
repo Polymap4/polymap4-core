@@ -83,16 +83,19 @@ class AnnotatedEventListener
                             ? new DeferredAnnotatedMethod( m, annotation )
                             : new AnnotatedMethod( m, annotation );
 
-                    // display thread
                     EventListener listener = am;
+                    
+                    // display thread;
                     if (annotation.display()) {
+                        // if this is NOT the delegate of the DeferringListener then
+                        // check DeferringListener#SessionUICallbackCounter
                         listener = new DisplayingListener( listener );
                     }
                     
                     // deferred
                     // XXX There is a race cond. between the UIThread and the event thread; if the UIThread
                     // completes the current request before all display events are handled then the UI
-                    // is not updated until next user request; JobDeferringListener handles this by activating
+                    // is not updated until next user request; DeferringListener handles this by activating
                     // UICallBack, improving behaviour - but not really solving in all cases; after 500ms we
                     // are quite sure that no more events are pending and UI callback can turned off
                     

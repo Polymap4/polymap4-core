@@ -47,13 +47,13 @@ abstract class DeferringListener
     static class SessionUICallbackCounter
             extends SessionSingleton {
         
-        public static int jobStarted() {
-            return SessionContext.current() != null ? 
+        public static int jobStarted( EventListener delegate ) {
+            return delegate instanceof DisplayingListener && SessionContext.current() != null ? 
                     instance( SessionUICallbackCounter.class ).doJobStarted() : -1;
         }
         
-        public static int jobFinished() {
-            return SessionContext.current() != null ? 
+        public static int jobFinished( EventListener delegate ) {
+            return delegate instanceof DisplayingListener && SessionContext.current() != null ? 
                     instance( SessionUICallbackCounter.class ).doJobFinished() : -1;
         }
 
@@ -65,12 +65,12 @@ abstract class DeferringListener
         
         protected synchronized int doJobStarted() {
             maxJobCount.incrementAndGet();
-            log.debug( "UICallback: counter=" + jobCount );
+            log.debug( "UICallback: job started. counter=" + jobCount.get() );
             if (jobCount.getAndIncrement() == 0) {
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.activate( "DeferredEvents" );
-                        log.debug( "UICallback: ON (counter=" + jobCount + ")" );
+                        log.debug( "UICallback: ON (counter=" + jobCount.get() + ")" );
                     }
                 });
             }
@@ -78,13 +78,13 @@ abstract class DeferringListener
         }
         
         protected synchronized int doJobFinished() {
-            log.debug( "UICallback: counter=" + jobCount );
+            log.debug( "UICallback: job finished. counter=" + jobCount.get() );
             if (jobCount.decrementAndGet() == 0) {
                 final int max = maxJobCount.getAndSet( 0 );
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.deactivate( "DeferredEvents" );
-                        log.debug( "UICallback: OFF (counter=" + jobCount + ", max=" + max + ")" );
+                        log.debug( "UICallback: OFF (counter=" + jobCount.get() + ", max=" + max + ")" );
                     }
                 });
             }
