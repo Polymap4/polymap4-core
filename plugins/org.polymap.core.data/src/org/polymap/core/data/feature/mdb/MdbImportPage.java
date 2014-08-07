@@ -115,7 +115,7 @@ public class MdbImportPage
 
     
     // UploadListener *************************************
-    public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
+    public void uploadStarted( String name, String contentType, int contentLength, InputStream in ) throws Exception {
         FileOutputStream out = null;
         try {
             log.info( "Uploaded: " + name );

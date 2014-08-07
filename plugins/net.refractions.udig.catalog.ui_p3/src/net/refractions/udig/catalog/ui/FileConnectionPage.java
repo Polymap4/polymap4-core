@@ -211,7 +211,7 @@ public class FileConnectionPage extends AbstractUDIGImportPage implements UDIGCo
 
         this.upload.setHandler( new IUploadHandler() {
             @Override
-            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
+            public void uploadStarted( String name, String contentType, int contentLength, InputStream in ) throws Exception {
                 //upload.reset();
                 
                 OutputStream out = null;

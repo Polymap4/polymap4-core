@@ -89,7 +89,9 @@ public class FileUploadServlet
                         String key = req.getParameter( "handler" );
                         assert key != null;
                         IUploadHandler handler = handlers.get( key );
-                        handler.uploadStarted( item.getName(), item.getContentType(), in );
+                        // for the upload field we always get just one item (which has the length of the request!?)
+                        int length = req.getContentLength();
+                        handler.uploadStarted( item.getName(), item.getContentType(), length, in );
                     }
                 }
                 finally {

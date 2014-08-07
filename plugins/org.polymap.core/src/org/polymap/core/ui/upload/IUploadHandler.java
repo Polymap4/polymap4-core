@@ -32,9 +32,12 @@ public interface IUploadHandler {
      * 
      * @param name
      * @param contentType
+     * @param contentLength The content length of the request. This is approx(!) the
+     *        size of the bytes available for reading. -1 signals that the content
+     *        length could not be determined.
      * @param in
      * @throws Exception
      */
-    public void uploadStarted( String name, String contentType, InputStream in ) throws Exception;
+    public void uploadStarted( String name, String contentType, int contentLength, InputStream in ) throws Exception;
     
 }

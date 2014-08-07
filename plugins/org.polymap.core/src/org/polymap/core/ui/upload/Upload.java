@@ -20,6 +20,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -86,7 +87,7 @@ public class Upload
         
         progress = new ProgressBar( this, SWT.HORIZONTAL );
         progress.setLayoutData( FormDataFactory.filled().left( fileUpload ).create() );
-        progress.setMaximum( 100*1024 );
+        progress.setMaximum( Integer.MAX_VALUE );
 
         label = new Label( this, SWT.NONE );
         label.setLayoutData( FormDataFactory.filled().top( 0, 5 ).left( fileUpload, 20 ).create() );
@@ -115,13 +116,15 @@ public class Upload
     }
 
     @Override
-    public void uploadStarted( final String name, final String contentType, final InputStream in ) throws Exception {
+    public void uploadStarted( final String name, final String contentType,
+            final int contentLength, final InputStream in ) throws Exception {
         assert handler != null : "No handler set for Upload.";
 
         // give the thread the proper session context (but outside UI thread)
         sessionContext.execute( new Callable() {
             public Object call() throws Exception {
-                handler.uploadStarted( name, contentType, new ProgressInputStream( in, name ) );
+                handler.uploadStarted( name, contentType, contentLength, 
+                        new ProgressInputStream( in, name, contentLength ) );
                 return null;
             }
         });
@@ -134,41 +137,56 @@ public class Upload
     class ProgressInputStream
             extends FilterInputStream {
     
-        private String name;
+        private String      name;
     
-        private int count = 0;
+        private int         count = 0;
+
+        private int         contentLength;
     
     
-        private ProgressInputStream( InputStream in, String name ) {
+        private ProgressInputStream( InputStream in, String name, int contentLength ) {
             super( in );
             this.name = name;
+            this.contentLength = contentLength > 0 ? contentLength : 10*1024*1024;
         }
     
     
         @Override
         public int read() throws IOException {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+            throw new RuntimeException( "not implemented." );
         }
     
     
         @Override
         public int read( byte[] b, int off, int len ) throws IOException {
             final int result = super.read( b, off, len );
-            count += result;
-            display.asyncExec( new Runnable() {
-                public void run() {
-                    if (result == -1) {
-                        progress.setSelection( progress.getMaximum() );
-                        UICallBack.deactivate( "upload" );
+            
+            if (progress != null && !progress.isDisposed()) {
+                display.asyncExec( new Runnable() {
+                    public void run() {
+                        count += result;
+                        // init maximum (inside UI thread)
+                        if (progress.getMaximum() == Integer.MAX_VALUE) {
+                            progress.setMaximum( contentLength );
+                        }
+                        if (result == -1) {
+                            progress.setSelection( progress.getMaximum() );
+                            UICallBack.deactivate( "upload" );
+                        }
+                        else {
+                            progress.setSelection( count );
+                        }
+                        // adjust contentLength
+                        if (count >= contentLength) {
+                            contentLength = count * 2;
+                            progress.setMaximum( contentLength );
+                        }
+                        //int percent = 100 * progress.getSelection() / progress.getMaximum();
+                        label.setText( name + " (" + FileUtils.byteCountToDisplaySize( count ) 
+                                /*+ " - " + percent + "%"*/ + ")" );
                     }
-                    else {
-                        progress.setSelection( count );
-                    }
-                    int percent = 100 * progress.getSelection() / progress.getMaximum();
-                    label.setText( name + " (" + percent + "%)" );
-                }
-            });
+                });
+            }
             return result;
         }
     }

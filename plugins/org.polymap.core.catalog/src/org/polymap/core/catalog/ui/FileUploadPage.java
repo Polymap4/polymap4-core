@@ -264,7 +264,7 @@ public class FileUploadPage
         setPageComplete( false );
         
         this.upload.setHandler( new IUploadHandler() {
-            public void uploadStarted( final String name, String contentType, final InputStream in ) throws Exception {
+            public void uploadStarted( final String name, String contentType, int contentLength, final InputStream in ) throws Exception {
                 Polymap.getSessionDisplay().asyncExec( new Runnable() {
                     public void run() {
                         try {

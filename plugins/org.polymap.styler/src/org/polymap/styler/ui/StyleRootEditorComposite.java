@@ -141,7 +141,7 @@ public class StyleRootEditorComposite
 //	    upload.setBrowseButtonText( "Browse" );
 //	    upload.setUploadButtonText( "Import" );
 	    upload.setHandler( new IUploadHandler() {
-            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
+            public void uploadStarted( String name, String contentType, int contentLength, InputStream in ) throws Exception {
                 try {
                 	StyleFactory factory = CommonFactoryFinder.getStyleFactory(GeoTools
     						.getDefaultHints());

@@ -127,7 +127,7 @@ public class CsvImportWizardPage extends WizardPage {
 //        upload.setBrowseButtonText( i18n( "CsvImportWizardPage.browse" ) );
 //        upload.setUploadButtonText( i18n( "CsvImportWizardPage.upload" ) );
         upload.setHandler( new IUploadHandler() {
-            public void uploadStarted( String name, String contentType, InputStream in ) throws Exception {
+            public void uploadStarted( String name, String contentType, int contentLength, InputStream in ) throws Exception {
                 try {
                     System.out.println( "Item name: " + name );
                     csvFilename = name;
