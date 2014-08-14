@@ -28,12 +28,25 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+
 import org.eclipse.rwt.RWT;
 import org.eclipse.rwt.internal.util.URLHelper;
 import org.eclipse.rwt.service.IServiceHandler;
+import org.eclipse.rwt.widgets.ExternalBrowser;
+
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 
 import org.polymap.core.runtime.ConcurrentReferenceHashMap;
 import org.polymap.core.runtime.ConcurrentReferenceHashMap.ReferenceType;
+import org.polymap.core.ui.FormDataFactory;
+import org.polymap.core.ui.FormLayoutFactory;
 
 /**
  * General download service for feature operation results and other content.
@@ -48,6 +61,12 @@ public class DownloadServiceHandler
 
     private static final String         SERVICE_HANDLER_ID = "org.polymap.core.data.DownloadServiceHandler";
 
+    /**
+     * The parameter used to identify the download provider.
+     * <p/>
+     * Because of a bug in SWL Label this must not be "id" :( Otherwise the created
+     * URLs could not be used in SWT Labels with {@link RWT#MARKUP_ENABLED}.
+     */
     private static final String         ID_REQUEST_PARAM = "id";
 
     static ConcurrentReferenceHashMap<String,ContentProvider>   providers 
@@ -150,7 +169,7 @@ public class DownloadServiceHandler
                 String filename = request.getParameter( "filename" );
                 String linkTarget = "../download/" 
                         + (filename != null ? filename : "polymap3_export.tmp")
-                        + "?id=" + id;
+                        + "?" + ID_REQUEST_PARAM + "=" + id;
 
                 response.setContentType( "text/html; charset=ISO-8859-1" );
 
@@ -219,6 +238,76 @@ public class DownloadServiceHandler
             log.debug( "", e );
             throw new ServletException( e );
         }
+    }
+    
+    
+    // DownloadDialog
+    
+    /**
+     * 
+     * 
+     */
+    public static class DownloadDialog
+            extends Dialog {
+
+        private String          url;
+        private String          windowName;
+        private int             windowFlags;
+        private String          msg;
+        
+        
+        public DownloadDialog( Shell parentShell, String url ) {
+            super( parentShell );
+            this.url = url;
+            this.msg = "<a href=\"" + url + "\">Link...</a>";
+            setShellStyle( SWT.RESIZE | SWT.DIALOG_TRIM | SWT.SHEET );
+        }
+
+        @SuppressWarnings("hiding")
+        public DownloadDialog openBrowserWindow( String windowName, int windowFlags ) {
+            this.windowName = windowName;
+            this.windowFlags = windowFlags;
+            return this;
+        }
+
+        public DownloadDialog setMessage( String msg ) {
+            this.msg = msg;
+            log.info( msg );
+            return this;
+        }
+        
+        @Override
+        public int open() {
+            if (windowName != null) {
+                ExternalBrowser.open( windowName, url, windowFlags );
+            }
+            return super.open();
+        }
+
+        @Override
+        protected void createButtonsForButtonBar(Composite parent) {
+            createButton( parent, IDialogConstants.CANCEL_ID, IDialogConstants.get().CANCEL_LABEL, false );
+        }
+
+        @Override
+        protected Control createDialogArea( Composite parent ) {
+            getShell().setText( "Download" );
+            getShell().setSize( 520, 350 );
+            Rectangle displaySize = getShell().getDisplay().getClientArea();
+            getShell().setLocation( (displaySize.width - 520) / 2, (displaySize.height - 350) / 2 );
+
+            Composite result = (Composite)super.createDialogArea( parent );
+            result.setLayout( FormLayoutFactory.defaults().create() );
+            
+            Label link = new Label( result, SWT.WRAP );
+            link.setText( msg );
+            // after setText() in order to prevent validation, which fails
+            link.setData( RWT.MARKUP_ENABLED, Boolean.TRUE );
+            link.setLayoutData( FormDataFactory.filled()/*.clearRight().width( 400 )*/.create() );
+            
+            return result;
+        }
+        
     }
     
 }
