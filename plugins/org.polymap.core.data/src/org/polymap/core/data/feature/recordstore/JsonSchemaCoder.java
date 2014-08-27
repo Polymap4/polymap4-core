@@ -16,6 +16,7 @@ package org.polymap.core.data.feature.recordstore;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.geotools.feature.type.FeatureTypeFactoryImpl;
@@ -115,6 +116,24 @@ class JsonSchemaCoder {
                     encode( json, (ComplexType)descriptor.getType() );
                 }
                 else if (descriptor.getType() instanceof AttributeType) {
+                    // defaultValue
+                    Object defaultValue = ((AttributeDescriptor)descriptor).getDefaultValue();
+                    if (defaultValue != null) {
+                        if (defaultValue instanceof String
+                                || defaultValue instanceof Boolean
+                                || defaultValue instanceof Integer
+                                || defaultValue instanceof Long
+                                || defaultValue instanceof Float
+                                || defaultValue instanceof Double) {
+                            json.putOpt( "defaultValue", defaultValue );                        
+                        }
+                        else if (defaultValue instanceof Date) {
+                            json.putOpt( "defaultValue", new Long( ((Date)defaultValue).getTime() ) );                        
+                        }
+                        else {
+                            throw new RuntimeException( "Default value not supported for binding: " + defaultValue.getClass().toString() );                            
+                        }
+                    }
                     encode( json, (AttributeType)descriptor.getType() );
                 }
                 else {
@@ -235,11 +254,27 @@ class JsonSchemaCoder {
                 int minOccurs = descriptorJson.getInt( "minOccurs" );
                 int maxOccurs = descriptorJson.getInt( "maxOccurs" );
                 boolean isNillable = descriptorJson.getBoolean( "isNillable" );
-                Object defaultValue = null;
+                Object defaultValue = descriptorJson.opt( "defaultValue" );
                 
                 // attribute
                 if (typeStr.equals( "AttributeType" )) {
                     AttributeType propType = decodeAttributeType( descriptorJson );
+                    if (defaultValue != null) {
+                        Class<?> binding = propType.getBinding();
+                        if (Date.class.isAssignableFrom( binding ) && defaultValue instanceof Integer) {
+                            defaultValue = new Date( (Integer)defaultValue );
+                        }
+                        else if (Date.class.isAssignableFrom( binding ) && defaultValue instanceof Long) {
+                            defaultValue = new Date( (Long)defaultValue );
+                        }
+                        else if (Long.class.isAssignableFrom( binding ) && defaultValue instanceof Integer) {
+                            defaultValue = ((Integer)defaultValue).longValue();
+                        }
+                        else if (Double.class.isAssignableFrom( binding ) && defaultValue instanceof Float) {
+                            defaultValue = ((Float)defaultValue).doubleValue();
+                        }
+                        assert binding.isAssignableFrom( defaultValue.getClass() ) : "defaultValue and binding do not match: " + defaultValue.getClass() + " -> " + binding;
+                    }
                     properties.add( factory.createAttributeDescriptor( propType, 
                             propType.getName(), minOccurs, maxOccurs, isNillable, defaultValue ) );
                 }

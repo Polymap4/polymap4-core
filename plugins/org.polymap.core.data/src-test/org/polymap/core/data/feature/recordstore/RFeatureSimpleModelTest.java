@@ -42,11 +42,11 @@ public class RFeatureSimpleModelTest
 
     private static Log log = LogFactory.getLog( RFeatureSimpleModelTest.class );
 
-//    static {
-//        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "debug" );
-//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
-//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2.store.feature", "debug" );
-//    }
+    static {
+        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
+        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2.store.feature", "debug" );
+    }
     
     protected RDataStore                ds;
 

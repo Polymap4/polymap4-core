@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
+import org.polymap.core.model2.Association;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Computed;
 import org.polymap.core.model2.ComputedProperty;
@@ -130,6 +131,9 @@ public final class InstanceBuilder {
                 if (Property.class.isAssignableFrom( field.getType() )) {
                     field.setAccessible( true );
 
+                    if (Association.class.isAssignableFrom( field.getType() )) {
+                        log.info( "Association: " + field );
+                    }
                     PropertyInfo info = compositeInfo.getProperty( field.getName() );
                     Property prop = null;
 
@@ -152,8 +156,12 @@ public final class InstanceBuilder {
                     }
                     else {
                         StoreProperty storeProp = state.loadProperty( info );
+                        // Association
+                        if (info.isAssociation()) {
+                            prop = new AssociationImpl( context, storeProp );
+                        }
                         // Composite
-                        if (Composite.class.isAssignableFrom( info.getType() )) {
+                        else if (Composite.class.isAssignableFrom( info.getType() )) {
                             prop = new CompositePropertyImpl( context, storeProp );
                         }
                         // primitive type
@@ -161,9 +169,10 @@ public final class InstanceBuilder {
                             prop = new PropertyImpl( storeProp );
                         }
                     }
-                    // always check modifications;
-                    // default value, immutable, nullable
-                    prop = new ConstraintsPropertyInterceptor( prop, (EntityRuntimeContextImpl)context );
+                    // always check modifications, default value, immutable, nullable
+                    prop = info.isAssociation()
+                            ? new ConstraintsAssociationInterceptor( prop, (EntityRuntimeContextImpl)context )
+                            : new ConstraintsPropertyInterceptor( prop, (EntityRuntimeContextImpl)context );
 
                     // concerns
                     for (PropertyConcern concern : fieldConcerns( field )) {

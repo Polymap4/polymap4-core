@@ -54,6 +54,7 @@ public interface PropertyInfo<T> {
      */
     public Class<T> getType();
 
+    public boolean isAssociation();
 
     //public CompositeInfo getDeclaringComposite();
 

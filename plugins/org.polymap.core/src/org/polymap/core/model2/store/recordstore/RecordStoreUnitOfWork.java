@@ -73,10 +73,10 @@ public class RecordStoreUnitOfWork
 
     @Override
     public <T extends Entity> CompositeState newEntityState( Object id, Class<T> entityClass ) {
-        if (id != null) {
-            throw new UnsupportedOperationException( "Not supported: preset id in newly created entity" );
-        }
-        IRecordState state = store.newRecord();
+//        if (id != null) {
+//            throw new UnsupportedOperationException( "Not supported: preset id in newly created entity" );
+//        }
+        IRecordState state = id != null ? store.newRecord( id ) : store.newRecord();
         state.put( TYPE_KEY, entityClass.getName() );
         return new RecordCompositeState( state );
     }

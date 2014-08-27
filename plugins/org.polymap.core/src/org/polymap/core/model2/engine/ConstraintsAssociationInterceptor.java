@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
+ * Copyright 2012, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,18 +14,21 @@
  */
 package org.polymap.core.model2.engine;
 
+import org.polymap.core.model2.Association;
+import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.engine.EntityRepositoryImpl.EntityRuntimeContextImpl;
 
 /**
+ *
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class ConstraintsPropertyInterceptor<T>
+final class ConstraintsAssociationInterceptor<T extends Entity>
         extends ConstraintsInterceptor<T>
-        implements Property<T> {
+        implements Association<T> {
 
-    public ConstraintsPropertyInterceptor( Property<T> delegate, EntityRuntimeContextImpl context ) {
+    public ConstraintsAssociationInterceptor( Property<T> delegate, EntityRuntimeContextImpl context ) {
         super( delegate, context );
     }
 

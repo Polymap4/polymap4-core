@@ -34,6 +34,9 @@ public class TrackableMixin
     protected Property<String>      computed;
     
     
+    /**
+     * The computed property used for {@link TrackableMixin#computed}. 
+     */
     public static class SimpleComputedProperty
             extends ComputedProperty<String> {
 

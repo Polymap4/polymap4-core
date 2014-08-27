@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -33,6 +33,14 @@ public interface StoreUnitOfWork {
 
     public <T extends Entity> CompositeState adoptEntityState( Object state, Class<T> entityClass );
 
+    /**
+     * 
+     * 
+     * @param id The identifier of the newly created entity, or null if a new
+     *        identifier is to be created by the store automatically.
+     * @param entityClass
+     * @return Newly created {@link CompositeState}.
+     */
     public <T extends Entity> CompositeState newEntityState( Object id, Class<T> entityClass );
 
     /**

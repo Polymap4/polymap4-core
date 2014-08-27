@@ -19,6 +19,7 @@ import java.lang.reflect.ParameterizedType;
 
 import javax.annotation.Nullable;
 
+import org.polymap.core.model2.Association;
 import org.polymap.core.model2.CollectionProperty;
 import org.polymap.core.model2.Computed;
 import org.polymap.core.model2.Immutable;
@@ -63,6 +64,11 @@ public class PropertyInfoImpl<T>
         return field.getAnnotation( NameInStore.class ) != null
                 ? field.getAnnotation( NameInStore.class ).value()
                 : field.getName();
+    }
+
+    @Override
+    public boolean isAssociation() {
+        return Association.class.isAssignableFrom( field.getType() );
     }
 
     @Override

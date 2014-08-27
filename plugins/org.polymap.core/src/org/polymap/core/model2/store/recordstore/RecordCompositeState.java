@@ -69,7 +69,10 @@ class RecordCompositeState
 
     @Override
     public StoreProperty loadProperty( PropertyInfo info ) {
-        if (Composite.class.isAssignableFrom( info.getType() )) {
+        if (info.isAssociation()) {
+            return new PropertyImpl( info );
+        }
+        else if (Composite.class.isAssignableFrom( info.getType() )) {
             return new CompositePropertyImpl( info );
         }
         else if (info.getMaxOccurs() > 1) {

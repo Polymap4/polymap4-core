@@ -90,7 +90,7 @@ public class FeatureStoreAdapter
                 log.info( "Checking FeatureSource: " + entitySchema.getName().getLocalPart() + " ..." ); 
                 FeatureSource fs = store.getFeatureSource( entitySchema.getName() );
                 // update
-                if (fs != null && !fs.getSchema().equals( entitySchema )) {
+                if (fs != null && !entitySchema.equals( fs.getSchema() )) {
                     try {
                         log.warn( "FeatureType has been changed: " + entitySchema.getName() + " !!!" );
                         store.updateSchema( entitySchema.getName(), entitySchema );
