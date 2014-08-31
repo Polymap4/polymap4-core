@@ -16,7 +16,6 @@
 package org.polymap.core.runtime.mp.test;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import junit.framework.TestCase;
 
@@ -44,36 +43,13 @@ public class MPTest
 
     private int                 arraySize = 1000*1000;
     
-//    private List<StringBuilder> source;
-    
-//    private List                result;
-    
     private List<Function>      procs = new ArrayList();
 
     private Timer               timer;
     
 
-//    static {
-//        log.info( "Prestarting all core threads..." );
-//        Polymap.executorService().prestartAllCoreThreads();
-//    }
-    
-
     public MPTest() {
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
-
-        timer = new Timer();
-        
-//        source = new ArrayList( arraySize );
-//        for (int i=0; i<arraySize; i++) {
-//            source.add( new StringBuilder( 
-//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) +
-//                    "source = new ArrayList( arraySize ); source = new ArrayList( arraySize ); StringBuilder sb = new StringBuilder();" + String.valueOf( i*1000 ) ) );
-//        }
-//        System.out.println( "Data created: " + timer.elapsedTime() + "ms" );
     }
     
 
@@ -87,41 +63,32 @@ public class MPTest
     }
 
 
-    public void testAsync()
-    throws Exception {
-        ForEach.executorFactory = new AsyncExecutor.AsyncFactory();
+    public void testAsync() throws Exception {
+        ForEach.defaultExecutorFactory = new AsyncExecutor.AsyncFactory();
         process();   
     }
 
 
-    public void testSync()
-    throws Exception {
-        ForEach.executorFactory = new SyncExecutor.SyncFactory();
+    public void testSync() throws Exception {
+        ForEach.defaultExecutorFactory = new SyncExecutor.SyncFactory();
         process();   
     }
 
 
     protected void process() {
-        int count = Iterables.size( ForEach.in( new SBProducer() ).chunked( arraySize/20 )
-//            .doFirst( new Parallel<StringBuilder,String>() {
-//                public StringBuilder process( String elm ) {
-//                    return new StringBuilder( elm );
-//                }
-//            })
+        int count = Iterables.size( ForEach.in( new SBProducer() ).chunked( 1000 )
             .doParallel( new UpperCase() )
             .doParallel( new LowerCase() )
             .doParallel( new UpperCase() )
             .doParallel( new LowerCase() )
             .doParallel( new Quote() ) );
-        
-        System.out.println( ForEach.executorFactory.getClass().getSimpleName() + " -- Result: " + count );
+
+        System.out.println( ForEach.defaultExecutorFactory.getClass().getSimpleName() + " -- Result: " + count );
     }
 
 
-    public void testPlain()
-    throws Exception {
-        for (Iterator<StringBuilder> it=new SBProducer().iterator(); it.hasNext(); ) {
-            StringBuilder elm = it.next();
+    public void testPlain() throws Exception {
+        for (StringBuilder elm : new SBProducer()) {
             // upperCase
             for (int i = 0; i < elm.length(); i++) {
                 char c = Character.toUpperCase( elm.charAt( i ) );
@@ -152,7 +119,6 @@ public class MPTest
             extends Producer<StringBuilder> {
 
         String          s;
-        
         
         public SBProducer() {
             StringBuilder sb = new StringBuilder( 1024 );

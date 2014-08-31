@@ -160,6 +160,8 @@ public class Upload
         @Override
         public int read( byte[] b, int off, int len ) throws IOException {
             final int result = super.read( b, off, len );
+
+//            try { Thread.sleep( 1000 ); } catch (InterruptedException e) {}
             
             if (progress != null && !progress.isDisposed()) {
                 display.asyncExec( new Runnable() {

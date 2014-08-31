@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -104,7 +104,7 @@ public class AsyncExecutor<S,T>
     /**
      * The number of currently enqueued tasks/chunks.
      */
-    private volatile int            queueSize = 0;
+    private AtomicInteger           queueSize = new AtomicInteger( 0 );
     
     private BlockingQueue<Chunk>    results = new LinkedTransferQueue();  //new ArrayBlockingQueue( queueCapacity );
     
@@ -145,7 +145,10 @@ public class AsyncExecutor<S,T>
         // put me at the end of the chain
         chain[ procs.size() ] = this;
         
-        fillPipeline();
+        // fill pipeline
+        for (int i=0; i<queueCapacity && source.hasNext(); i++) {
+            feedNextChunk();
+        }
     }
 
     
@@ -154,26 +157,11 @@ public class AsyncExecutor<S,T>
     }
 
 
-    protected void fillPipeline() {
-        while (source.hasNext() && remainingCapacity() > 0) {
-            
-            ArrayList chunk = new ArrayList( chunkSize );
-            for (int i=0; source.hasNext() && i<chunkSize; i++) {
-                chunk.add( source.next() );
-            }
-            log.debug( "Putting chunk to queue. chunkSize=" + chunk.size() + ", remainingCatacity=" + remainingCapacity() );
-            queueSize++;
-            chain[0].put( new Chunk( chunk, nextChunkNum++ ) );
-        }
-    }
-    
-    
     public boolean hasNext() {
         if (next != null) {
             return true;
         }
-        else if (currentResultChunk != null
-                && currentResultChunk.hasNext()) {
+        else if (currentResultChunk != null && currentResultChunk.hasNext()) {
             next = (T)currentResultChunk.next();
         }
         else {
@@ -182,6 +170,12 @@ public class AsyncExecutor<S,T>
                     Chunk chunk = results.poll( 100, TimeUnit.MILLISECONDS );
                     if (chunk != null) {
                         log.debug( "Took chunk from queue. chunkSize=" + chunk.elements.size() );
+                        
+                        // do this in main thread (instead in put()) to prevent #results queue
+                        // to get very big if reading is slower than processing
+                        if (source.hasNext()) {
+                            feedNextChunk();
+                        }
                     
                         currentResultChunk = chunk.elements.iterator();
                         if (currentResultChunk.hasNext()) {
@@ -216,24 +210,33 @@ public class AsyncExecutor<S,T>
     
     // ***
     protected boolean isEndOfProcessing() {
-        fillPipeline();
-        
-        return queueSize == 0 && results.size() == 0;
+        return queueSize.get() == 0 && results.size() == 0;
     }
     
     protected int remainingCapacity() {
-        return queueCapacity - queueSize;    
+        return queueCapacity - queueSize.get();    
     }
     
     protected void enqueue( Callable task ) {
-        Future future = executorService.submit( task );
+        executorService.submit( task );
     }
 
+
+    protected void feedNextChunk() {
+        ArrayList chunk = new ArrayList( chunkSize );
+        for (int i=0; source.hasNext() && i<chunkSize; i++) {
+            chunk.add( source.next() );
+        }
+        log.debug( "Putting chunk to queue. chunkSize=" + chunk.size() + ", remainingCatacity=" + remainingCapacity() );
+        queueSize.incrementAndGet();
+        chain[0].put( new Chunk( chunk, nextChunkNum++ ) );
+    }
+    
     
     public void put( Chunk chunk ) {
         try {
             results.put( chunk );
-            queueSize--;
+            queueSize.decrementAndGet();
             log.debug( "Result chunk. queueSize=" + queueSize );
         }
         catch (InterruptedException e) {
@@ -241,22 +244,22 @@ public class AsyncExecutor<S,T>
         }
     }
 
-
+    
     /**
      * 
      */
     private final class AsyncProcessorContext
             implements ProcessorContext {
 
-        int                     chainNum;
+        protected int             chainNum;
         
-        Processor               proc;
+        protected Processor       proc;
         
-        Lock                    serialProcessorLock = new ReentrantLock();
+        protected Lock            serialProcessorLock = new ReentrantLock();
         
-        Condition               inOrder = serialProcessorLock.newCondition();
+        protected Condition       inOrder = serialProcessorLock.newCondition();
         
-        int                     lastChunkNum = -1;
+        protected int             lastChunkNum = -1;
         
         
         protected AsyncProcessorContext( Processor proc, int chainNum ) {
@@ -290,8 +293,9 @@ public class AsyncExecutor<S,T>
             
             // enqueue new task
             enqueue( new Callable() {
-                public Object call()
-                throws Exception {
+                public Object call() throws Exception {
+                    log.debug( "Thread started: " + Thread.currentThread().getName() + ", chainNum=" + chainNum + ", chunkSize=" + chunk.elements.size() );
+
                     int size = chunk.elements.size();
                     for (int i=0; i<size; i++) {
                         chunk.elements.set( i, proc.delegate.apply( chunk.elements.get( i ) ) );

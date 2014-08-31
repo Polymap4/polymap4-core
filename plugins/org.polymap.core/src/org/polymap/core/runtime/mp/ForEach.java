@@ -20,6 +20,8 @@ import java.util.List;
 
 import com.google.common.base.Function;
 
+import org.polymap.core.runtime.mp.ForEachExecutor.Factory;
+
 /**
  * A <code>ForEach</code> statement allows to define several processing steps that
  * are applied to the elements of a {@link #source} collection. The processing steps
@@ -61,7 +63,7 @@ import com.google.common.base.Function;
 public class ForEach<S,T>
         implements Iterable<T> {
 
-    public static ForEachExecutor.Factory      executorFactory = new AsyncExecutor.AsyncFactory();
+    public static Factory      defaultExecutorFactory = new AsyncExecutor.AsyncFactory();
 
     /**
      * Creates a new instance for the given source elements.
@@ -92,6 +94,8 @@ public class ForEach<S,T>
    
     // instance *******************************************
 
+    private Factory         executorFactory = defaultExecutorFactory;
+    
     private Iterable<S>     source;
 
     private List<Processor> processors = new ArrayList();
@@ -109,6 +113,10 @@ public class ForEach<S,T>
         return this;
     }
 
+    public ForEach withFactory( Factory factory ) {
+        this.executorFactory = factory;
+        return this;
+    }
 
     public ForEach doParallel( Function func ) {
         Processor proc = new Processor( func );

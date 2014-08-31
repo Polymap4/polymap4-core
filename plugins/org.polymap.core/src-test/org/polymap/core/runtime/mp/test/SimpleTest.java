@@ -55,13 +55,13 @@ public class SimpleTest
 
     
     public void testAsync() {
-        ForEach.executorFactory = new AsyncExecutor.AsyncFactory();
+        ForEach.defaultExecutorFactory = new AsyncExecutor.AsyncFactory();
         process();
     }
     
     
     public void testSync() {
-        ForEach.executorFactory = new SyncExecutor.SyncFactory();
+        ForEach.defaultExecutorFactory = new SyncExecutor.SyncFactory();
         process();
     }
     

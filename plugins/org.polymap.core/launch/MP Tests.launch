@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.junit.launchconfig">
+<stringAttribute key="bad_container_name" value="/org.polymap.core/lau"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/org.polymap.core/src-test/org/polymap/core/runtime/mp/test"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="2"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+<listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
+<listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.junit.CONTAINER" value="=org.polymap.core/src-test&lt;org.polymap.core.runtime.mp.test"/>
+<booleanAttribute key="org.eclipse.jdt.junit.KEEPRUNNING_ATTR" value="false"/>
+<stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
+<stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit3"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value=""/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="org.polymap.core"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-server -Xmx256m -Xms64m -XX:+UseG1GC -XX:MaxPermSize=128m -XX:NewRatio=4 -ea -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 -XX:SoftRefLRUPolicyMSPerMB=1000 -Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog"/>
+</launchConfiguration>
