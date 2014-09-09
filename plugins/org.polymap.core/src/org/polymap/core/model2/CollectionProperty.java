@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,16 +19,17 @@ import java.util.Collection;
 import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * {@link Entity} property for {@link Collection} values.
+ * Property for {@link Collection} values.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface CollectionProperty<T>
-        extends Property<Collection<T>>, Collection<T> {
+        extends PropertyBase<T>, Collection<T> {
 
     /**
-     * For composite properties: this method allows the initialize the
-     * {@link Composite} value of this property.
+     * Creates a new element and adds it to this collection. For {@link Composite}
+     * properties: this method allows the initialize the {@link Composite} value of
+     * this property.
      * 
      * @param initializer
      * @return The value of this property, or a newly created {@link Composite} that

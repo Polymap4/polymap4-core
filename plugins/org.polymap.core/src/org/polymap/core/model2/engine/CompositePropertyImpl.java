@@ -39,8 +39,8 @@ class CompositePropertyImpl<T extends Composite>
 
     /**
      * Cache of the Composite value. As building the Composite is an expensive
-     * operation the Composite and the corresponding {@link CompositeState} cached
-     * here in contrast to primitive values.
+     * operation the Composite and the corresponding {@link CompositeState} is cached
+     * here (in contrast to primitive values).
      */
     private Object                          value;
 
@@ -80,11 +80,11 @@ class CompositePropertyImpl<T extends Composite>
 
     
     @Override
-    public T getOrCreate( ValueInitializer<T> initializer ) {
+    public T createValue( ValueInitializer<T> initializer ) {
         T result = get();
         if (result == null) {
             synchronized (this) {
-                CompositeState state = delegate.newValue();
+                CompositeState state = delegate.createValue();
                 assert state != null : "Store must not return null as newValue().";
                 InstanceBuilder builder = new InstanceBuilder( entityContext );
                 result = (T)builder.newComposite( state, getInfo().getType() );

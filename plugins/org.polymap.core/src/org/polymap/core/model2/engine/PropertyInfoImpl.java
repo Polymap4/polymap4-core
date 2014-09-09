@@ -26,6 +26,7 @@ import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
+import org.polymap.core.model2.PropertyBase;
 import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
@@ -40,7 +41,7 @@ public class PropertyInfoImpl<T>
 
     
     public PropertyInfoImpl( Field field ) {
-        assert Property.class.isAssignableFrom( field.getType() );
+        assert PropertyBase.class.isAssignableFrom( field.getType() );
         this.field = field;
     }
 

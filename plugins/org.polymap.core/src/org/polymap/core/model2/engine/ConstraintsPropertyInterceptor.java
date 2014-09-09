@@ -16,6 +16,9 @@ package org.polymap.core.model2.engine;
 
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.engine.EntityRepositoryImpl.EntityRuntimeContextImpl;
+import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
+import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
  * 
@@ -27,6 +30,53 @@ final class ConstraintsPropertyInterceptor<T>
 
     public ConstraintsPropertyInterceptor( Property<T> delegate, EntityRuntimeContextImpl context ) {
         super( delegate, context );
+    }
+
+    
+    protected Property<T> delegate() {
+        return (Property<T>)delegate;
+    }
+    
+    
+    @Override
+    public T get() {
+        T value = delegate().get();
+        
+        // check/init default value
+        if (value == null) {
+            if (defaultValue == UNINITIALIZED) {
+                // not synchronized; concurrent inits are ok here 
+                defaultValue = delegate.getInfo().getDefaultValue();
+            }
+            value = (T)defaultValue;
+        }
+        // check Nullable
+        if (value == null && !isNullable) {
+            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
+        }
+        return value;
+    }
+
+    
+    @Override
+    public void set( T value ) {
+        context.checkEviction();
+        
+        if (isImmutable) {
+            throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
+        }
+        if (!isNullable && value == null) {
+            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
+        }
+        delegate().set( value );
+        
+        context.raiseStatus( EntityStatus.MODIFIED );
+    }
+
+    
+    @Override
+    public T createValue( ValueInitializer<T> initializer ) {
+        return delegate().createValue( initializer );
     }
 
 }

@@ -16,8 +16,9 @@ package org.polymap.core.model2.engine;
 
 import org.polymap.core.model2.Association;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.Property;
 import org.polymap.core.model2.engine.EntityRepositoryImpl.EntityRuntimeContextImpl;
+import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.runtime.ModelRuntimeException;
 
 /**
  *
@@ -28,8 +29,40 @@ final class ConstraintsAssociationInterceptor<T extends Entity>
         extends ConstraintsInterceptor<T>
         implements Association<T> {
 
-    public ConstraintsAssociationInterceptor( Property<T> delegate, EntityRuntimeContextImpl context ) {
+    public ConstraintsAssociationInterceptor( Association<T> delegate, EntityRuntimeContextImpl context ) {
         super( delegate, context );
+    }
+
+    
+    protected Association<T> delegate() {
+        return (Association<T>)delegate;
+    }
+
+    
+    @Override
+    public T get() {
+        T value = delegate().get();
+        // check Nullable
+        if (value == null && !isNullable) {
+            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
+        }
+        return value;
+    }
+
+    
+    @Override
+    public void set( T value ) {
+        context.checkEviction();
+        
+        if (isImmutable) {
+            throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
+        }
+        if (!isNullable && value == null) {
+            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
+        }
+        delegate().set( value );
+        
+        context.raiseStatus( EntityStatus.MODIFIED );
     }
 
 }

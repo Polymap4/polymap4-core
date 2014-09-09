@@ -20,6 +20,7 @@ import java.util.List;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,18 +28,24 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
 import org.polymap.core.model2.Association;
+import org.polymap.core.model2.AssociationConcern;
+import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.CollectionPropertyConcern;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Computed;
 import org.polymap.core.model2.ComputedProperty;
 import org.polymap.core.model2.Concerns;
 import org.polymap.core.model2.Property;
+import org.polymap.core.model2.PropertyBase;
 import org.polymap.core.model2.PropertyConcern;
+import org.polymap.core.model2.PropertyConcernBase;
 import org.polymap.core.model2.engine.EntityRepositoryImpl.EntityRuntimeContextImpl;
 import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
 import org.polymap.core.model2.store.CompositeState;
+import org.polymap.core.model2.store.StoreCollectionProperty;
 import org.polymap.core.model2.store.StoreProperty;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
@@ -55,14 +62,25 @@ public final class InstanceBuilder {
 
     protected static Field                      contextField;
     
-    protected static Cache<Field,List<Class>>   concerns = CacheConfig.DEFAULT.createCache();
+    private static Field                        concernContextField;
+
+    private static Field                        concernDelegateField;
     
+    protected static Cache<Field,List<Class>>   concerns = CacheConfig.DEFAULT.createCache();
+
     static {
         try {
             contextField = Composite.class.getDeclaredField( "context" );
             contextField.setAccessible( true );
+
+            concernContextField = PropertyConcernBase.class.getDeclaredField( "context" );
+            concernContextField.setAccessible( true );
+            
+            concernDelegateField = PropertyConcernBase.class.getDeclaredField( "delegate" );
+            concernDelegateField.setAccessible( true );
         }
         catch (Exception e) {
+            log.error( "", e );
             throw new RuntimeException( e );
         }
     }
@@ -128,58 +146,82 @@ public final class InstanceBuilder {
         while (superClass != null) {
             // XXX cache fields
             for (Field field : superClass.getDeclaredFields()) {
-                if (Property.class.isAssignableFrom( field.getType() )) {
+                if (PropertyBase.class.isAssignableFrom( field.getType() )) {
                     field.setAccessible( true );
 
-                    if (Association.class.isAssignableFrom( field.getType() )) {
-                        log.info( "Association: " + field );
-                    }
                     PropertyInfo info = compositeInfo.getProperty( field.getName() );
-                    Property prop = null;
+                    PropertyBase prop = null;
 
-                    // Computed
-                    if (info.isComputed()) {
-                        Computed a = ((PropertyInfoImpl)info).getField().getAnnotation( Computed.class );
-                        Constructor<? extends ComputedProperty> ctor = a.value().getConstructor( PropertyInfo.class, Composite.class );
-                        ctor.setAccessible( true );
-                        prop = ctor.newInstance( info, instance );
+                    // single property
+                    if (Property.class.isAssignableFrom( field.getType() )) {
+                        // Computed
+                        if (info.isComputed()) {
+                            Computed a = ((PropertyInfoImpl)info).getField().getAnnotation( Computed.class );
+                            Constructor<? extends ComputedProperty> ctor = a.value().getConstructor( PropertyInfo.class, Composite.class );
+                            ctor.setAccessible( true );
+                            prop = ctor.newInstance( info, instance );
+                            // always check modifications, default value, immutable, nullable
+                            prop = new ConstraintsPropertyInterceptor( (Property)prop, (EntityRuntimeContextImpl)context );
+                        }
+                        else {
+                            StoreProperty storeProp = state.loadProperty( info );
+                            // Composite
+                            if (Composite.class.isAssignableFrom( info.getType() )) {
+                                prop = new CompositePropertyImpl( context, storeProp );
+                                prop = new ConstraintsPropertyInterceptor( (Property)prop, (EntityRuntimeContextImpl)context );
+                            }
+                            // primitive type
+                            else {
+                                prop = new PropertyImpl( storeProp );
+                                prop = new ConstraintsPropertyInterceptor( (Property)prop, (EntityRuntimeContextImpl)context );
+                            }
+                        }
+                        // concerns
+                        for (PropertyConcernBase concern : fieldConcerns( field, prop )) {
+                            prop = concern;
+                        }
                     }
+
+                    // Association
+                    else if (Association.class.isAssignableFrom( field.getType() )) {
+                        assert info.isAssociation();
+                        // check Computed
+                        if (info.isComputed()) {
+                            throw new UnsupportedOperationException( "Computed Association is not supported yet.");
+                        }
+                        StoreProperty storeProp = state.loadProperty( info );
+                        prop = new AssociationImpl( context, storeProp );
+                        prop = new ConstraintsAssociationInterceptor( (Association)prop, (EntityRuntimeContextImpl)context );
+                        // concerns
+                        for (PropertyConcernBase concern : fieldConcerns( field, prop )) {
+                            prop = concern;
+                        }
+                    }
+
                     // Collection
-                    else if (info.getMaxOccurs() > 1) {
-                        StoreProperty storeProp = state.loadProperty( info );
-                        prop = new CollectionPropertyImpl( storeProp );
-
-                        PropertyInfo propInfo = storeProp.getInfo();
-                        if (propInfo.isImmutable()) {
-                            throw new RuntimeException( "Concerns and constraints are not yet supported for collection properties." );
-                        }
-                    }
-                    else {
-                        StoreProperty storeProp = state.loadProperty( info );
-                        // Association
-                        if (info.isAssociation()) {
-                            prop = new AssociationImpl( context, storeProp );
-                        }
+                    else if (CollectionProperty.class.isAssignableFrom( field.getType() )) {
+                        assert info.getMaxOccurs() > 1;
+                        StoreCollectionProperty storeProp = (StoreCollectionProperty)state.loadProperty( info );
                         // Composite
-                        else if (Composite.class.isAssignableFrom( info.getType() )) {
-                            prop = new CompositePropertyImpl( context, storeProp );
+                        if (Composite.class.isAssignableFrom( info.getType() )) {
+                            prop = new CompositeCollectionPropertyImpl( context, storeProp );                            
                         }
                         // primitive type
                         else {
-                            prop = new PropertyImpl( storeProp );
+                            prop = new CollectionPropertyImpl( storeProp );
+                        }
+                        if (info.isNullable()) {
+                            throw new ModelRuntimeException( "CollectionProperty cannot be @Nullable." );
+                        }
+                        prop = new ConstraintsCollectionInterceptor( (CollectionProperty)prop, (EntityRuntimeContextImpl)context );
+                        // concerns
+                        for (PropertyConcernBase concern : fieldConcerns( field, prop )) {
+                            prop = concern;
                         }
                     }
-                    // always check modifications, default value, immutable, nullable
-                    prop = info.isAssociation()
-                            ? new ConstraintsAssociationInterceptor( prop, (EntityRuntimeContextImpl)context )
-                            : new ConstraintsPropertyInterceptor( prop, (EntityRuntimeContextImpl)context );
 
-                    // concerns
-                    for (PropertyConcern concern : fieldConcerns( field )) {
-                        prop = new ConcernPropertyInterceptor( prop, concern, instance );
-                    }
-                    
-                    // init field
+                    // set field
+                    assert prop != null : "Unable to build property instance for: " + field;
                     field.set( instance, prop );                    
                 }
             }
@@ -188,20 +230,21 @@ public final class InstanceBuilder {
     }
 
 
-    protected Iterable<PropertyConcern> fieldConcerns( final Field field ) throws Exception {
-        List<Class> types = concerns.get( field, new CacheLoader<Field,List<Class>,Exception>() {
-            @Override
+    protected Iterable<PropertyConcernBase> fieldConcerns( final Field field, final PropertyBase prop ) throws Exception {
+        List<Class> concernTypes = concerns.get( field, new CacheLoader<Field,List<Class>,Exception>() {
             public List<Class> load( Field key ) throws Exception {
                 List<Class> result = new ArrayList();
-                // Field concerns
-                Concerns fa = field.getDeclaringClass().getAnnotation( Concerns.class );
-                if (fa != null) {
-                    result.addAll( Arrays.asList( fa.value() ) );
-                }
                 // Class concerns
-                Concerns ca = field.getAnnotation( Concerns.class );
+                Concerns ca = field.getDeclaringClass().getAnnotation( Concerns.class );
                 if (ca != null) {
                     result.addAll( Arrays.asList( ca.value() ) );
+                }
+                // Field concerns
+                Concerns fa = field.getAnnotation( Concerns.class );
+                if (fa != null) {
+                    for (Class<? extends PropertyConcernBase> concern : fa.value()) {
+                        result.add( concern );
+                    }
                 }
                 return result;
             }
@@ -211,13 +254,35 @@ public final class InstanceBuilder {
             }
         } );
         
-        return Iterables.transform( types, new Function<Class,PropertyConcern>() {
-            public PropertyConcern apply( Class type ) {
+        return Iterables.transform( concernTypes, new Function<Class,PropertyConcernBase>() {
+            public PropertyConcernBase apply( Class concernType ) {
                 try {
-                    return (PropertyConcern)type.newInstance();
+                    // early check concern type
+                    if (Property.class.isAssignableFrom( field.getType() )
+                            && !PropertyConcern.class.isAssignableFrom( concernType )) {
+                        throw new ModelRuntimeException( "Concerns of Property have to extend PropertyConcern: " + concernType.getName() + " @ " + field.getName() );
+                    }
+                    else if (CollectionProperty.class.isAssignableFrom( field.getType() )
+                            && !CollectionPropertyConcern.class.isAssignableFrom( concernType )) {
+                        throw new ModelRuntimeException( "Concerns of CollectionProperty have to extend CollectionPropertyConcern: " + concernType.getName() + " @ " + field.getName() );
+                    }
+                    else if (Association.class.isAssignableFrom( field.getType() )
+                            && !AssociationConcern.class.isAssignableFrom( concernType )) {
+                        throw new ModelRuntimeException( "Concerns of Association have to extend AssociationConcern: " + concernType.getName() + " @ " + field.getName() );
+                    }
+
+                    // create concern
+                    PropertyConcernBase concern = (PropertyConcernBase)concernType.newInstance();
+                    concernContextField.set( concern, context );
+                    concernDelegateField.set( concern, prop );
+                    
+                    return concern;
+                } 
+                catch (ModelRuntimeException e) {
+                    throw e;
                 }
                 catch (Exception e) {
-                    throw new ModelRuntimeException( "Error while initializing concern: " + type, e );
+                    throw new ModelRuntimeException( "Error while initializing concern: " + concernType + " (" + e.getLocalizedMessage() + ")", e );
                 }
             }
         });

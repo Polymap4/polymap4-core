@@ -46,12 +46,6 @@ public class FeatureSimpleModelTest
 
     private static Log log = LogFactory.getLog( FeatureSimpleModelTest.class );
 
-    static {
-        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2.store.feature", "debug" );
-    }
-    
     protected ShapefileDataStore        ds;
 
     private FeatureStoreAdapter         store;

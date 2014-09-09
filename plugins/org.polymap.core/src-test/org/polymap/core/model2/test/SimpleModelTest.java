@@ -16,8 +16,6 @@ package org.polymap.core.model2.test;
 
 import java.util.Collection;
 
-import java.beans.PropertyChangeEvent;
-
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
@@ -26,8 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.UnitOfWork;
-import org.polymap.core.runtime.event.EventHandler;
-import org.polymap.core.runtime.event.EventManager;
 
 /**
  * Test for simple models: no associations, no Composite properties
@@ -38,6 +34,17 @@ public abstract class SimpleModelTest
         extends TestCase {
 
     private static final Log log = LogFactory.getLog( SimpleModelTest.class );
+
+    static {
+        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "debug" );
+//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
+//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2.store.feature", "debug" );
+//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
+//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "debug" );
+//        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.recordstore", "debug" );
+    }
+
+    // instance *******************************************
     
     protected EntityRepository      repo;
 
@@ -175,18 +182,26 @@ public abstract class SimpleModelTest
     
     
     public void testConcern() throws Exception {
-        EventManager.instance().subscribe( this );
-
         Employee employee = uow.createEntity( Employee.class, null, null );
-        employee.name.set( "Mufu" );
+
+        int getCount = InvocationCountConcern.getCount.get();
+        int setCount = InvocationCountConcern.setCount.get();
         
-        EventManager.instance().subscribe( this );
-    }
-    
-    
-    @EventHandler
-    protected void propChanged( PropertyChangeEvent ev ) {
-        log.info( "PROP CHANGE: " + ev );
+        employee.name.set( "Mufu" );
+        employee.name.get();
+        assertEquals( getCount+1, InvocationCountConcern.getCount.get() );        
+        assertEquals( setCount+1, InvocationCountConcern.setCount.get() );        
+
+        employee.firstname.set( "Mufu" );
+        employee.firstname.get();
+        assertEquals( getCount+1, InvocationCountConcern.getCount.get() );        
+        assertEquals( setCount+1, InvocationCountConcern.setCount.get() );        
+
+        // Employee does not have LogConcern
+        employee.jap.set( 1 );
+        employee.jap.get();
+        assertEquals( getCount+1, InvocationCountConcern.getCount.get() );        
+        assertEquals( setCount+1, InvocationCountConcern.setCount.get() );        
     }
     
 }

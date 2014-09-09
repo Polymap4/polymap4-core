@@ -17,11 +17,10 @@ package org.polymap.core.model2.engine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.Association;
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.Property;
 import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.PropertyInfo;
-import org.polymap.core.model2.runtime.ValueInitializer;
 import org.polymap.core.model2.store.StoreProperty;
 
 /**
@@ -30,7 +29,7 @@ import org.polymap.core.model2.store.StoreProperty;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class AssociationImpl<T extends Entity>
-        implements Property<T> {
+        implements Association<T> {
 
     private static Log log = LogFactory.getLog( AssociationImpl.class );
     
@@ -58,13 +57,6 @@ class AssociationImpl<T extends Entity>
     }
 
     
-    @Override
-    public T getOrCreate( ValueInitializer<T> initializer ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-
     @Override
     public void set( T value ) {
         Object id = value.id();

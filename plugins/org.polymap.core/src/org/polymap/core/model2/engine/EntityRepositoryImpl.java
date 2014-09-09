@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -63,22 +63,25 @@ public class EntityRepositoryImpl
         getStore().init( new StoreRuntimeContextImpl() );
         
         // init infos
-        log.info( "Initialializing Composite types:" );
+        log.debug( "Initialializing Composite types:" );
         Queue<Class<? extends Composite>> queue = new LinkedList();
         queue.addAll( Arrays.asList( config.getEntities() ) );
         
         while (!queue.isEmpty()) {
-            log.info( "    Composite type: " + queue.peek() );
-            CompositeInfoImpl info = new CompositeInfoImpl( queue.poll() );
-            infos.put( info.getType(), info );
-            
-            // mixins
-            queue.addAll( info.getMixins() );
-            
-            // Composite properties
-            for (PropertyInfo propInfo : info.getProperties()) {
-                if (Composite.class.isAssignableFrom( propInfo.getType() )) {
-                    queue.offer( propInfo.getType() );
+            Class<? extends Composite> type = queue.poll();
+            if (!infos.containsKey( type )) {
+                log.debug( "    Composite type: " + queue.peek() );
+                CompositeInfoImpl info = new CompositeInfoImpl( type );
+                infos.put( type, info );
+
+                // mixins
+                queue.addAll( info.getMixins() );
+
+                // Composite properties
+                for (PropertyInfo propInfo : info.getProperties()) {
+                    if (Composite.class.isAssignableFrom( propInfo.getType() )) {
+                        queue.offer( propInfo.getType() );
+                    }
                 }
             }
         }
@@ -181,8 +184,6 @@ public class EntityRepositoryImpl
     protected class EntityRuntimeContextImpl
             implements EntityRuntimeContext {
 
-//        private Class<? extends Entity> entityClass;
-        
         private Entity                  entity;
         
         private CompositeState          state;
@@ -197,7 +198,6 @@ public class EntityRepositoryImpl
             assert uow != null;
             assert status != null;
             
-//            this.entityClass = entityClass;
             this.state = state;
             this.status = status;
             this.uow = uow;
@@ -218,11 +218,12 @@ public class EntityRepositoryImpl
             }
         }
         
+        @Override
         public CompositeInfo getInfo() {
             return getRepository().infoOf( entity.getClass() );
         }
 
-
+        @Override
         public UnitOfWork getUnitOfWork() {
             checkEviction();
             return uow;
@@ -235,22 +236,25 @@ public class EntityRepositoryImpl
             return ((UnitOfWorkImpl)uow).delegate;
         }
 
-
+        @Override
         public EntityRepository getRepository() {
             checkEviction();
             return EntityRepositoryImpl.this;
         }
         
+        @Override
         public CompositeState getState() {
             checkEviction();
             return state;
         }
 
+        @Override
         public EntityStatus getStatus() {
             checkEviction();
             return status;
         }
 
+        @Override
         public void raiseStatus( EntityStatus newStatus ) {
             assert newStatus.status >= status.status;
             // keep created if modified after creation
@@ -260,15 +264,15 @@ public class EntityRepositoryImpl
             ((UnitOfWorkImpl)uow).raiseStatus( entity );
         }
 
+        @Override
         public void resetStatus( EntityStatus newStatus ) {
             checkEviction();
             this.status = newStatus;
         }
 
-
         @Override
         public <T extends Composite> T getCompositePart( Class<T> type ) {
-            if (Entity.class.isAssignableFrom( type )) {
+            if (type.isAssignableFrom( entity.getClass() )) {
                 return (T)entity;
             }
             else {
@@ -276,7 +280,7 @@ public class EntityRepositoryImpl
             }
         }
 
-
+        @Override
         public void methodProlog( String methodName, Object[] args ) {
             // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,15 +15,18 @@
 package org.polymap.core.model2;
 
 /**
- * 
+ * A concern intercepting a {@link Association} value.
+ * <p/>
+ * Implementations should be thread save. Instances might be instantiated
+ * on-demand, so instances cannot hold an internal state.
+ * <p/>
+ * Impl. Note: This interface does not extend {@link PropertyConcernBase} in order to
+ * be able to implemented both, {@link Property} and {@link CollectionProperty}. 
  *
+ * @see PropertyConcernBase
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Association<T extends Entity>
-        extends PropertyBase<T> {
-
-    public T get();
-
-    public void set( T value );
+public interface AssociationConcern<T extends Entity>
+        extends Association<T> {
 
 }

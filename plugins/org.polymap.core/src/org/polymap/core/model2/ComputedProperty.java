@@ -37,7 +37,7 @@ public abstract class ComputedProperty<T>
     }
 
     @Override
-    public T getOrCreate( ValueInitializer<T> initializer ) {
+    public T createValue( ValueInitializer<T> initializer ) {
         throw new RuntimeException( "not yet implemented." );
     }
 

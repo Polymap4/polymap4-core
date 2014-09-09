@@ -12,33 +12,33 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2.store;
+package org.polymap.core.model2;
 
-import org.polymap.core.model2.Association;
+import org.polymap.core.model2.runtime.EntityRuntimeContext;
 import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
- * Store backend for: primitive type, String, Date, {@link CompositeState}. Also used
- * to store the Id of an {@link Association}.
+ * Abstract base class for all property concerns.
+ * <p/>
+ * Implementations should be thread save. Instances might be instantiated on-demand
+ * and so cannot hold an internal state.
  * 
- * @param <T> primitive type, String, Date, {@link CompositeState}.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface StoreProperty<T> {
+public abstract class PropertyConcernBase<T>
+        implements PropertyBase<T> {
 
-    public T get();
+    protected EntityRuntimeContext      context;
     
-    public void set( Object value );
-
-
     /**
-     * Creates a new value for this property. For simple properties usually this is
-     * just {@link PropertyInfo#getDefaultValue()}. For {@link CompositeState} value this
-     * is a new {@link CompositeState}.
-     * 
-     * @return Newly created value for this property.
+     * The delegate of this concern. Cast this to {@link Property} or {@link CollectionProperty}.
      */
-    public T createValue();
+    protected PropertyBase              delegate;
 
-    public PropertyInfo getInfo();
+    
+    @Override
+    public PropertyInfo getInfo() {
+        return delegate.getInfo();
+    }    
+    
 }

@@ -18,12 +18,9 @@ import javax.annotation.Nullable;
 
 import org.polymap.core.model2.DefaultValue;
 import org.polymap.core.model2.Immutable;
-import org.polymap.core.model2.Property;
+import org.polymap.core.model2.PropertyBase;
 import org.polymap.core.model2.engine.EntityRepositoryImpl.EntityRuntimeContextImpl;
-import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
-import org.polymap.core.model2.runtime.ValueInitializer;
-import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.runtime.LazyInit;
 
 /**
@@ -34,28 +31,28 @@ import org.polymap.core.runtime.LazyInit;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 abstract class ConstraintsInterceptor<T>
-        implements Property<T> {
+        implements PropertyBase<T> {
 
-    protected static final Object   UNINITIALIZED = new Object();
+    protected static final Object       UNINITIALIZED = new Object();
     
-    private EntityRuntimeContextImpl context;
+    protected EntityRuntimeContextImpl  context;
     
-    private Property<T>             delegate;
+    protected PropertyBase<T>           delegate;
 
     /** Store in variable for fast access. */
-    private boolean                 isImmutable;
+    protected boolean                   isImmutable;
     
-    private boolean                 isNullable;
+    protected boolean                   isNullable;
 
     /**
      * Lazily init variable for fast access when frequently used. Don't use cool
      * {@link LazyInit} in order to save memory (one more Object per property
      * instance).
      */
-    private Object                  defaultValue = UNINITIALIZED;
+    protected Object                    defaultValue = UNINITIALIZED;
     
     
-    public ConstraintsInterceptor( Property<T> delegate, EntityRuntimeContextImpl context ) {
+    public ConstraintsInterceptor( PropertyBase<T> delegate, EntityRuntimeContextImpl context ) {
         this.delegate = delegate;
         this.context = context;
         PropertyInfo info = delegate.getInfo();
@@ -63,47 +60,9 @@ abstract class ConstraintsInterceptor<T>
         this.isNullable = info.isNullable();
     }
 
+    
     protected String fullPropName() {
         return context.getInfo().getName() + "." + getInfo().getName();
-    }
-    
-    
-    public T get() {
-        T value = delegate.get();
-        
-        // check/init default value
-        if (value == null) {
-            if (defaultValue == UNINITIALIZED) {
-                // not synchronized; concurrent inits are ok here 
-                defaultValue = delegate.getInfo().getDefaultValue();
-            }
-            value = (T)defaultValue;
-        }
-        // check Nullable
-        if (value == null && !isNullable) {
-            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
-        }
-        return value;
-    }
-
-    
-    public void set( T value ) {
-        context.checkEviction();
-        
-        if (isImmutable) {
-            throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
-        }
-        if (!isNullable && value == null) {
-            throw new ModelRuntimeException( "Property is not @Nullable: " + fullPropName() );
-        }
-        delegate.set( value );
-        
-        context.raiseStatus( EntityStatus.MODIFIED );
-    }
-
-    
-    public T getOrCreate( ValueInitializer<T> initializer ) {
-        return delegate.getOrCreate( initializer );
     }
 
 

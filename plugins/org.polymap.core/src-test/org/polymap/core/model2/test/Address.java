@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,18 +12,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2;
+package org.polymap.core.model2.test;
+
+import org.polymap.core.model2.Composite;
+import org.polymap.core.model2.Property;
 
 /**
- * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Association<T extends Entity>
-        extends PropertyBase<T> {
+public class Address
+        extends Composite {
 
-    public T get();
-
-    public void set( T value );
-
+    protected Property<String>              street;
+    
+    protected Property<Integer>             nr;
+    
 }

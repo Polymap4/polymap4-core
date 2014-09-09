@@ -43,6 +43,7 @@ public abstract class Person
     protected Property<Point>       geom;
 
     @Nullable
+    @Concerns( InvocationCountConcern.class )
     protected Property<String>      name;
 
     /** Defaults to "Ulli". Not Nullable. */

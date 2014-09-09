@@ -18,7 +18,7 @@ import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 
 /**
- * An Entity is a special kind of an {@link Composite}.
+ * An Entity is a directly instantiable {@link Composite} with an {@link #id() identifier}.
  *
  * @see Composite
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

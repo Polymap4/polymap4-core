@@ -123,7 +123,7 @@ class FeatureCompositeState
         }
         
         @Override
-        public Object newValue() {
+        public Object createValue() {
             return getInfo().getDefaultValue();
         }
 
@@ -156,7 +156,7 @@ class FeatureCompositeState
         }
 
         @Override
-        public CompositeState newValue() {
+        public CompositeState createValue() {
             // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );
         }
@@ -176,6 +176,12 @@ class FeatureCompositeState
             super( info );
         }
         
+        @Override
+        public Object createValue() {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
+        }
+
         /**
          * The value of the {@link #delegate()} property cast to {@link Collection}.
          */
@@ -183,7 +189,7 @@ class FeatureCompositeState
             if (delegateColl == null) {
                 delegateColl = (Collection)get();
                 
-                // XXX null Collection values are not allowed; init if null
+                // null Collection values are not allowed; init if null
                 if (delegateColl == null) {
                     delegateColl = new ArrayList();
                     // init value
@@ -202,28 +208,8 @@ class FeatureCompositeState
         }
 
         @Override
-        public boolean isEmpty() {
-            return delegateColl().isEmpty();
-        }
-
-        @Override
-        public boolean contains( Object o ) {
-            return delegateColl().contains( o );
-        }
-
-        @Override
         public Iterator iterator() {
             return delegateColl().iterator();
-        }
-
-        @Override
-        public Object[] toArray() {
-            return delegateColl().toArray();
-        }
-
-        @Override
-        public Object[] toArray( Object[] a ) {
-            return delegateColl().toArray( a );
         }
 
         @Override
@@ -231,35 +217,6 @@ class FeatureCompositeState
             return delegateColl().add( e );
         }
 
-        @Override
-        public boolean remove( Object o ) {
-            return delegateColl().remove( o );
-        }
-
-        @Override
-        public boolean containsAll( Collection c ) {
-            return delegateColl().containsAll( c );
-        }
-
-        @Override
-        public boolean addAll( Collection c ) {
-            return delegateColl().addAll( c );
-        }
-
-        @Override
-        public boolean removeAll( Collection c ) {
-            return delegateColl().removeAll( c );
-        }
-
-        @Override
-        public boolean retainAll( Collection c ) {
-            return delegateColl().retainAll( c );
-        }
-
-        @Override
-        public void clear() {
-            delegateColl().clear();
-        }
     }
     
 }

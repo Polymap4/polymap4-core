@@ -17,5 +17,5 @@
 <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit3"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value=""/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="org.polymap.core"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dosgi.noShutdown=true -Declipse.ignoreApp=true -server -XX:+TieredCompilation -verbosegc -Xmx512m -Xms100m -XX:+UseG1GC -XX:MaxPermSize=128m -XX:NewRatio=4 -ea -Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dosgi.noShutdown=true -Declipse.ignoreApp=true -server -ea -XX:+TieredCompilation -verbosegc -Xmx512m -Xms100m -XX:+UseG1GC -XX:MaxPermSize=128m -XX:NewRatio=4 -ea -Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog"/>
 </launchConfiguration>

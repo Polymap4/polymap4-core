@@ -14,16 +14,21 @@
  */
 package org.polymap.core.model2.test;
 
+import java.util.Collection;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Iterables;
+
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.UnitOfWork;
+import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * Test for complex models: associations, Composite properties
+ * Test for complex models: associations, Composite properties, collections
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -67,6 +72,84 @@ public abstract class ComplexModelTest
         Employee chief2 = company2.chief.get();
         log.info( "chief2: " + chief2 );
         assertNotNull( chief2 );
+    }
+    
+
+    public void testCompositeProperty() {
+        Company company = uow.createEntity( Company.class, null, null );
+        
+        Address address = company.address.get();
+        assertNull( address );
+        
+        address = company.address.createValue( new ValueInitializer<Address>() {
+            public Address initialize( Address value ) throws Exception {
+                value.street.set( "Jump" );
+                value.nr.set( 1 );
+                return value;
+            }
+        } );
+        assertNotNull( address );
+        log.info( "Address: " + address );
+        assertEquals( "Jump", company.address.get().street.get() );
+        assertEquals( 1, (int)company.address.get().nr.get() );
+
+        uow.commit();
+
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        Company company2 = uow2.entity( Company.class, company.id() );
+        Address address2 = company2.address.get();
+        assertNotNull( address2 );
+        log.info( "Address: " + address2 );
+        assertEquals( "Jump", company2.address.get().street.get() );
+        assertEquals( 1, (int)company2.address.get().nr.get() );
+    }
+
+    
+    public void testPrimitiveCollection() {
+        Company company = uow.createEntity( Company.class, null, null );
+
+        company.docs.add( "doc1" );
+        log.info( "Company: " + company );
+        assertEquals( 1, company.docs.size() );
+        assertEquals( "doc1", Iterables.get( company.docs, 0 ) );
+
+        uow.commit();
+
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        Company company2 = uow2.entity( Company.class, company.id() );
+        Collection<String> docs = company2.docs;
+        assertEquals( 1, docs.size() );
+        assertEquals( "doc1", Iterables.get( docs, 0 ) );
+    }
+    
+    
+    public void testCompositeCollection() {
+        Company company = uow.createEntity( Company.class, null, null );
+
+        assertEquals( 0, company.moreAddresses.size() );
+
+        Address address = company.moreAddresses.createElement( new ValueInitializer<Address>() {
+            public Address initialize( Address value ) throws Exception {
+                value.street.set( "Jump" );
+                value.nr.set( 1 );
+                return value;
+            }
+        } );
+        log.info( "Company: " + company );
+        log.info( "Address: " + address );
+        assertEquals( 1, company.moreAddresses.size() );
+        Address firstAddress = Iterables.get( company.moreAddresses, 0 );
+        assertEquals( "Jump", firstAddress.street.get() );
+        assertEquals( 1, (int)firstAddress.nr.get() );
+
+        uow.commit();
+
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        Company company2 = uow2.entity( Company.class, company.id() );
+        assertEquals( 1, company2.moreAddresses.size() );
+        Address firstAddress2 = Iterables.get( company2.moreAddresses, 0 );
+        assertEquals( "Jump", firstAddress2.street.get() );
+        assertEquals( 1, (int)firstAddress2.nr.get() );
     }
     
 }

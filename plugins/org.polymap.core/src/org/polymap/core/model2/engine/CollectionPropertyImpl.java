@@ -14,13 +14,13 @@
  */
 package org.polymap.core.model2.engine;
 
-import java.util.Collection;
+import java.util.AbstractCollection;
 import java.util.Iterator;
 
 import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.runtime.PropertyInfo;
 import org.polymap.core.model2.runtime.ValueInitializer;
 import org.polymap.core.model2.store.StoreCollectionProperty;
-import org.polymap.core.model2.store.StoreProperty;
 
 /**
  * 
@@ -28,76 +28,41 @@ import org.polymap.core.model2.store.StoreProperty;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class CollectionPropertyImpl<T>
-        extends PropertyImpl<Collection<T>>
+        extends AbstractCollection<T>
         implements CollectionProperty<T> {
 
-    public CollectionPropertyImpl( StoreProperty storeProp ) {
-        super( storeProp );
+    protected StoreCollectionProperty<T>    storeProp;
+    
+
+    public CollectionPropertyImpl( StoreCollectionProperty storeProp ) {
+        this.storeProp = storeProp;
     }
 
-    protected StoreCollectionProperty<T> delegate() {
-        return (StoreCollectionProperty<T>)super.delegate();
-    }
-    
     @Override
     public T createElement( ValueInitializer<T> initializer ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        throw new RuntimeException( "not yet..." );
     }
 
-    
+    @Override
+    public PropertyInfo getInfo() {
+        return storeProp.getInfo();
+    }
+
     // Collection *****************************************
     
+    @Override
     public int size() {
-        return delegate().size();
+        return storeProp.size();
     }
 
-    public boolean isEmpty() {
-        return delegate().isEmpty();
-    }
-
-    public boolean contains( Object o ) {
-        return delegate().contains( o );
-    }
-
+    @Override
     public Iterator<T> iterator() {
-        return delegate().iterator();
+        return storeProp.iterator();
     }
 
-    public Object[] toArray() {
-        return delegate().toArray();
+    @Override
+    public boolean add( T elm ) {
+        return storeProp.add( elm );
     }
-
-    public <A> A[] toArray( A[] a ) {
-        return delegate().toArray( a );
-    }
-
-    public boolean add( T e ) {
-        return delegate().add( e );
-    }
-
-    public boolean remove( Object o ) {
-        return delegate().remove( o );
-    }
-
-    public boolean containsAll( Collection<?> c ) {
-        return delegate().containsAll( c );
-    }
-
-    public boolean addAll( Collection<? extends T> c ) {
-        return delegate().addAll( c );
-    }
-
-    public boolean removeAll( Collection<?> c ) {
-        return delegate().removeAll( c );
-    }
-
-    public boolean retainAll( Collection<?> c ) {
-        return delegate().retainAll( c );
-    }
-
-    public void clear() {
-        delegate().clear();
-    }
-
+    
 }

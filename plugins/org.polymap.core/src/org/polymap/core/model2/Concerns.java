@@ -20,11 +20,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.polymap.core.model2.runtime.ModelRuntimeException;
+
 /**
- * Specifies concerns of a property or entity.
+ * Specifies concerns of a property. Can by applied to a single {@link Property} or
+ * all properties of an {@link Entity} or {@link Composite}.
  * <p/>
- * Can by applied to {@link Property} or {@link Entity}. 
- *
+ * A concern must implement {@link Property} and/or {@link CollectionProperty},
+ * depending on what kind of property it is a concern of. Wrong type of concern
+ * results in a {@link ModelRuntimeException}.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Retention( RetentionPolicy.RUNTIME )
@@ -32,6 +37,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Concerns {
 
-    public Class<? extends PropertyConcern>[] value();
+    public Class<? extends PropertyConcernBase>[] value();
     
 }

@@ -26,7 +26,7 @@ import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.Mixins;
 import org.polymap.core.model2.NameInStore;
-import org.polymap.core.model2.Property;
+import org.polymap.core.model2.PropertyBase;
 import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
@@ -134,7 +134,7 @@ public final class CompositeInfoImpl
         Class superClass = compositeClass;
         while (superClass != null) {
             for (Field field : superClass.getDeclaredFields()) {
-                if (Property.class.isAssignableFrom( field.getType() )) {
+                if (PropertyBase.class.isAssignableFrom( field.getType() )) {
                     
                     PropertyInfoImpl info = new PropertyInfoImpl( field );
                     propertyInfos.put( info.getName(), info );

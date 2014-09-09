@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -15,18 +15,17 @@
 package org.polymap.core.model2;
 
 /**
- * A concern intercepting a {@link Property} value.
+ * A concern intercepting a {@link CollectionProperty} value.
  * <p/>
  * Implementations should be thread save. Instances might be instantiated
  * on-demand, so instances cannot hold an internal state.
  * <p/>
  * Impl. Note: This interface does not extend {@link PropertyConcernBase} in order to
  * be able to implemented both, {@link Property} and {@link CollectionProperty}. 
- *
- * @see PropertyConcernBase
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PropertyConcern<T>
-        extends Property<T> {
+public interface CollectionPropertyConcern<T>
+        extends CollectionProperty<T> {
 
 }

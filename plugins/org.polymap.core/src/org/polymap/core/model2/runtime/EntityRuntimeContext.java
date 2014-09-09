@@ -23,9 +23,9 @@ import org.polymap.core.model2.store.StoreUnitOfWork;
  * The API to access the engine from within an {@link Entity}. Holds the
  * {@link EntityStatus status} of the entity.
  * <p/>
- * Implementation note: This approach is maybe not that elegant than any kind of
+ * Implementation note: This approach might not be that elegant than any kind of
  * dependency injection but it saves the memory of the references used by dependency
- * injection. Maybe later I will search for a better solution
+ * injection. Maybe later I will search for a better solution.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

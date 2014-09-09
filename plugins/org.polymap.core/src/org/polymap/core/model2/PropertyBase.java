@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,16 +14,15 @@
  */
 package org.polymap.core.model2;
 
+import org.polymap.core.model2.runtime.PropertyInfo;
+
 /**
+ * Abstract base for all property types.
  * 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Association<T extends Entity>
-        extends PropertyBase<T> {
+public abstract interface PropertyBase<T> {
 
-    public T get();
-
-    public void set( T value );
-
+    public PropertyInfo getInfo();
+    
 }

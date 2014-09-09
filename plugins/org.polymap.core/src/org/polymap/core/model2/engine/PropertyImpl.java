@@ -28,43 +28,35 @@ import org.polymap.core.model2.store.StoreProperty;
 class PropertyImpl<T>
         implements Property<T> {
 
-    private StoreProperty<T>        delegate;
+    private StoreProperty<T>        storeProp;
 
     
-    protected PropertyImpl( StoreProperty<T> underlying ) {
-        this.delegate = underlying;
+    protected PropertyImpl( StoreProperty<T> storeProp ) {
+        this.storeProp = storeProp;
     }
 
     protected StoreProperty<T> delegate() {
-        return delegate;
+        return storeProp;
     }
     
     @Override
     public T get() {
         // no cache here; the store should decide when and what to cache.
-        return delegate.get();
+        return storeProp.get();
     }
 
     @Override
-    public T getOrCreate( ValueInitializer<T> initializer ) {
-        T result = get();
-        if (result == null) {
-            synchronized (this) {
-                result = get();
-                if (result == null) {
-                    result = delegate.newValue();
-                    if (initializer != null) {
-                        try {
-                            result = initializer.initialize( result );
-                        }
-                        catch (RuntimeException e) {
-                            throw e;
-                        }
-                        catch (Exception e) {
-                            throw new ModelRuntimeException( e );
-                        }
-                    }
-                }
+    public T createValue( ValueInitializer<T> initializer ) {
+        T result = storeProp.createValue();
+        if (initializer != null) {
+            try {
+                result = initializer.initialize( result );
+            }
+            catch (RuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new ModelRuntimeException( e );
             }
         }
         return result;
@@ -72,12 +64,12 @@ class PropertyImpl<T>
 
     @Override
     public void set( T value ) {
-        delegate.set( value );
+        storeProp.set( value );
     }
 
     @Override
     public PropertyInfo getInfo() {
-        return delegate.getInfo();
+        return storeProp.getInfo();
     }
 
     @Override

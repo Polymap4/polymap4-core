@@ -35,13 +35,6 @@ public class LuceneSimpleModelTest
 
     protected IRecordStore          store;
 
-    static {
-        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.recordstore", "debug" );
-    }
-
     
     public LuceneSimpleModelTest( String name ) {
         super( name );
