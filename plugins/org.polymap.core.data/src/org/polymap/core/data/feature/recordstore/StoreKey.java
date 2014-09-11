@@ -74,7 +74,7 @@ final class StoreKey {
         return data.length();
     }
     
-    
+    @Override
     public String toString() {
         return data.toString();
     }

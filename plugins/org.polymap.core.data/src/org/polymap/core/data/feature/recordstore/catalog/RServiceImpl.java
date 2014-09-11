@@ -154,6 +154,7 @@ public class RServiceImpl
 
     
     protected RDataStore getDS() throws IOException {
+        @SuppressWarnings("unused")
         boolean changed = false;
         dsInstantiationLock.lock();
         try {

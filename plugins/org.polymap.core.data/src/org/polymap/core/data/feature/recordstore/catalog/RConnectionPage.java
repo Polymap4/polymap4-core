@@ -31,8 +31,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import org.polymap.core.data.Messages;
-import org.polymap.core.project.ui.util.SimpleFormData;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.FormDataFactory;
 
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.ui.AbstractUDIGImportPage;
@@ -67,10 +67,10 @@ public class RConnectionPage
         
         Label l = new Label( composite, SWT.NONE );
         l.setText( i18n( "dialogMsg" ) );
-        l.setLayoutData( SimpleFormData.filled().bottom( -1 ).create() );
+        l.setLayoutData( FormDataFactory.filled().bottom( -1 ).create() );
         
         Text text = new Text( composite, SWT.BORDER );
-        text.setLayoutData( SimpleFormData.filled().top( l ).bottom( -1 ).create() );
+        text.setLayoutData( FormDataFactory.filled().top( l ).bottom( -1 ).create() );
         dbname = i18n( "dbName", Polymap.instance().getUser().getName() );
         text.setText( dbname );
         text.addModifyListener( this );

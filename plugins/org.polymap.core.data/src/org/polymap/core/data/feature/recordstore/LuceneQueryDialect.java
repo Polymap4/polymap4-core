@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -116,8 +116,7 @@ public final class LuceneQueryDialect
     }
 
 
-    public int getCount( RFeatureStore fs, Query query )
-    throws IOException {
+    public int getCount( RFeatureStore fs, Query query ) throws IOException {
         // XXX handle postProcess
         Transformer transformer = new Transformer();
         RecordQuery rsQuery = transformer.transform( fs, query );
@@ -134,11 +133,10 @@ public final class LuceneQueryDialect
     }
 
 
-    public ReferencedEnvelope getBounds( RFeatureStore fs, Query query )
-    throws IOException {
+    public ReferencedEnvelope getBounds( RFeatureStore fs, Query query ) throws IOException {
         Timer timer = new Timer();
         FeatureType schema = fs.getSchema();
-        String typeName = schema.getName().getLocalPart();
+//        String typeName = schema.getName().getLocalPart();
         String geomName = schema.getGeometryDescriptor().getLocalName();
 
         // type/name query
@@ -188,8 +186,7 @@ public final class LuceneQueryDialect
     }
 
 
-    public PostProcessResultSet getFeatureStates( RFeatureStore fs, final Query query )
-    throws IOException {
+    public PostProcessResultSet getFeatureStates( RFeatureStore fs, final Query query ) throws IOException {
         try {
             Timer timer = new Timer();
             

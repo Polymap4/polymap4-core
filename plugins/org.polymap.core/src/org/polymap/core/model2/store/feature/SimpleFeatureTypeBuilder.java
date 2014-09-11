@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -38,14 +38,14 @@ class SimpleFeatureTypeBuilder
     private static Log log = LogFactory.getLog( SimpleFeatureTypeBuilder.class );
     
     
-    public SimpleFeatureTypeBuilder( Class<? extends Entity> entityClass) 
-    throws Exception {
+    public SimpleFeatureTypeBuilder( Class<? extends Entity> entityClass) throws Exception {
         super( entityClass );
     }
 
 
     public SimpleFeatureType build() throws Exception {
-        ComplexType complexType = buildComplexType( entityClass );
+        log.debug( "Entity: " + entityClass );
+        ComplexType complexType = buildComplexType( entityClass, "    " );
         
         List<AttributeDescriptor> attributes = new ArrayList( 128 );
         GeometryDescriptor geom = null;

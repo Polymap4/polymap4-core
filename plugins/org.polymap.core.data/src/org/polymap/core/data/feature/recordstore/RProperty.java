@@ -3,7 +3,7 @@
  *    http://geotools.org
  * 
  *    (C) 2002-2008, Open Source Geospatial Foundation (OSGeo)
- *    Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
+ *    Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  *    This library is free software; you can redistribute it and/or
  *    modify it under the terms of the GNU Lesser General Public
@@ -31,8 +31,8 @@ import org.polymap.core.runtime.recordstore.IRecordState;
 /**
  * Implementation of Property.
  * <p/>
- * Initially taken from GeoTools source tree in order to fix a few performance
- * issues and to implement value handling via direct access to the underlying
+ * Initially taken from GeoTools source tree in order to fix a few performance issues
+ * and to implement value handling via direct access to the underlying
  * {@link IRecordState}.
  * 
  * @author Justin Deoliveira, The Open Planning Project
@@ -57,8 +57,11 @@ abstract class RProperty
         assert descriptor != null : "Property descriptor must not be null.";
 
         this.feature = feature;
-        this.key = baseKey.appendProperty( descriptor.getName().getLocalPart() );
         this.descriptor = descriptor;
+        // FIXME hack to get collection working
+        this.key = !baseKey.toString().endsWith( String.valueOf( StoreKey.CLOSE_INDEX_SEPARATOR ) )
+                ? baseKey.appendProperty( descriptor.getName().getLocalPart() )
+                : baseKey;
 
         assert key.length() > 0;
     }

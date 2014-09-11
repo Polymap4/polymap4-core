@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -80,16 +80,19 @@ class RFeatureCollection
     }
 
     
+    @Override
     public String getID() {
         return id;
     }
 
     
+    @Override
     public FeatureType getSchema() {
         return fs.getSchema();
     }
 
 
+    @Override
     public ReferencedEnvelope getBounds() {
         try {
             return fs.getBounds( query );
@@ -100,6 +103,7 @@ class RFeatureCollection
     }
 
 
+    @Override
     public int size() {
         try {
             PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
@@ -113,13 +117,14 @@ class RFeatureCollection
     }
 
     
+    @Override
     public boolean isEmpty() {
         return size() == 0;
     }
 
 
-    public void accepts( FeatureVisitor visitor, ProgressListener progress )
-    throws IOException {
+    @Override
+    public void accepts( FeatureVisitor visitor, ProgressListener progress ) throws IOException {
         // prevent call of size() if no progress is given
         float _size = progress != null ? size() : 0;
         progress = progress != null ? progress : new NullProgressListener();
@@ -148,6 +153,7 @@ class RFeatureCollection
     }
 
     
+    @Override
     public Iterator iterator() {
         try {
             final PostProcessResultSet results = queryDialect.getFeatureStates( fs, query );
@@ -186,15 +192,18 @@ class RFeatureCollection
     }
 
     
+    @Override
     public FeatureIterator features() {
         return new DelegateFeatureIterator( this, iterator() );
     }
 
 
+    @Override
     public void close( FeatureIterator close ) {
 //        open.remove( close );
     }
 
+    @Override
     public void close( Iterator close ) {
 //        if (close != null) {
 //            open.remove( close );
@@ -202,78 +211,92 @@ class RFeatureCollection
     }
 
     
-    public void addListener( CollectionListener listener )
-    throws NullPointerException {
+    @Override
+    public void addListener( CollectionListener listener ) throws NullPointerException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
 
-    public void removeListener( CollectionListener listener )
-    throws NullPointerException {
+    @Override
+    public void removeListener( CollectionListener listener ) throws NullPointerException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
 
+    @Override
     public void purge() {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
 
+    @Override
     public boolean add( Feature obj ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
 
+    @Override
     public boolean addAll( Collection collection ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
 
+    @Override
     public boolean addAll( FeatureCollection resource ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
 
+    @Override
     public void clear() {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
 
+    @Override
     public boolean contains( Object o ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public boolean containsAll( Collection o ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public boolean remove( Object o ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public boolean removeAll( Collection c ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public boolean retainAll( Collection c ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public FeatureCollection sort( SortBy order ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public FeatureCollection subCollection( Filter filter ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public Object[] toArray() {
         throw new UnsupportedOperationException( "not yet implemented." );
     }
 
+    @Override
     public Object[] toArray( Object[] a ) {
         throw new UnsupportedOperationException( "not yet implemented." );
     }

@@ -157,7 +157,12 @@ class RecordCompositeState
             state.put( buildKey( key(), "_id_" ), "created" );
             return new RecordCompositeState( state, key() );
         }
-        
+
+        @Override
+        public void set( Object value ) {
+            throw new UnsupportedOperationException( "Setting composite property is not yet supported." );
+        }
+
     }
     
 

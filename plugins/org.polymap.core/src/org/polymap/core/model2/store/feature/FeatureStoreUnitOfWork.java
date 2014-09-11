@@ -345,8 +345,7 @@ public class FeatureStoreUnitOfWork
     }
 
 
-    protected void apply( Iterable<Entity> loaded )
-    throws IOException {  //, ConcurrentEntityModificationException {
+    protected void apply( Iterable<Entity> loaded ) throws IOException {  //, ConcurrentEntityModificationException {
         assert tx != null;
         // find created, modified, removed
         Map<Class,FeatureCollection> created = new HashMap();

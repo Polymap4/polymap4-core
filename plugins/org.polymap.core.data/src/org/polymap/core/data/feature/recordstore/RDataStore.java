@@ -88,8 +88,7 @@ public class RDataStore
     private JsonSchemaCoder             schemaCoder = new JsonSchemaCoder();
     
     
-    public RDataStore( IRecordStore store, QueryDialect queryDialect )
-    throws Exception {
+    public RDataStore( IRecordStore store, QueryDialect queryDialect ) throws Exception {
         this.store = store;
         this.queryDialect = queryDialect;
         this.queryDialect.initStore( store );
@@ -292,7 +291,7 @@ public class RDataStore
                             ((RFeature)feature).state.put( RFeature.TYPE_KEY, newName );
                             
                             // modified attribute name
-                            List<Name> origModifiedNames = new ArrayList();
+                            //List<Name> origModifiedNames = new ArrayList();
                             for (PropertyDescriptor desc : newSchema.getDescriptors()) {
                                 // set by FeatureTypeEditor/AttributeCellModifier
                                 String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
@@ -331,10 +330,12 @@ public class RDataStore
 
             IRecordState record = rs.get( 0 );
             String schemaContent = schemaCoder.encode( newSchema );
-            log.debug( "Updated schema: " + schemaContent );
             record.put( "content", schemaContent );
             record.put( "name", newName );
             tx.store( record );
+
+            log.debug( "Current schema: " + schemaCoder.encode( schema ) );
+            log.debug( "Updated schema: " + schemaContent );
 
             // update schemas cache
             schemas.remove( name );

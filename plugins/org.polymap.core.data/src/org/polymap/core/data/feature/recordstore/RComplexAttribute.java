@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import org.opengis.feature.ComplexAttribute;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -37,6 +38,7 @@ import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Iterables;
 
 import org.polymap.core.runtime.recordstore.IRecordState;
 
@@ -51,8 +53,7 @@ class RComplexAttribute
 
     private static Log log = LogFactory.getLog( RComplexAttribute.class );
 
-    private static CacheBuilder             valueCacheBuilder = CacheBuilder.newBuilder()
-            .initialCapacity( 32 ).concurrencyLevel( 1 );
+    private static CacheBuilder             valueCacheBuilder = CacheBuilder.newBuilder().initialCapacity( 32 ).concurrencyLevel( 1 );
             
     private IRecordState                    state;
     
@@ -65,33 +66,48 @@ class RComplexAttribute
         
         value = valueCacheBuilder.build( new CacheLoader<String,Optional<Object>>() {
             public Optional<Object> load( String name ) {
-                PropertyDescriptor child = getType().getDescriptor( name );
-                assert child == null || child.getMaxOccurs() == 1: "Collections of properties are not yet again implemented. (" + name + ")";
-                
+                Object result = null;
+                final PropertyDescriptor child = getType().getDescriptor( name );
+                // empty
                 if (child == null) {
                     return Optional.absent();
                 }
-                // complex (check more special first!)
-                PropertyType childType = child.getType();
-                if (childType instanceof ComplexType) {
-                    return Optional.of( (Object)new RComplexAttribute( 
-                            RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null ) );                    
+                // Collection
+                else if (child.getMaxOccurs() > 1) {
+                    StoreKey propKey = key.appendProperty( child.getName().getLocalPart() );
+                    result = new PropertyCollection( child, RComplexAttribute.this.feature.state, propKey ) {
+                        protected Property valueAt( StoreKey storeKey ) {
+                            return buildProperty( child, storeKey );
+                        }
+                    };
                 }
-                // geometry
-                else if (childType instanceof GeometryType) {
-                    return Optional.of( (Object)new RGeometryAttribute( 
-                            RComplexAttribute.this.feature, key, (GeometryDescriptor)child, null ) );
-                }
-                // attribute
-                else if (childType instanceof AttributeType) {
-                    return Optional.of( (Object)new RAttribute( 
-                            RComplexAttribute.this.feature, key, (AttributeDescriptor)child, null ) );
-                }
-                // unhandled
+                // single Property
                 else {
-                    throw new RuntimeException( "Unknown property type: " + child.getType() );
+                    result = buildProperty( child, key );
                 }
+                return result != null ? Optional.of( result ) : Optional.absent();
         }});
+    }
+
+    
+    protected <T extends RProperty> T buildProperty( PropertyDescriptor desc, StoreKey baseKey ) {
+        PropertyType propType = desc.getType();
+        // complex (check more special first!)
+        if (propType instanceof ComplexType) {
+            return (T)new RComplexAttribute( feature, baseKey, (AttributeDescriptor)desc, null );                    
+        }
+        // geometry
+        else if (propType instanceof GeometryType) {
+            return (T)new RGeometryAttribute( feature, baseKey, (GeometryDescriptor)desc, null );
+        }
+        // attribute
+        else if (propType instanceof AttributeType) {
+            return (T)new RAttribute( feature, baseKey, (AttributeDescriptor)desc, null );
+        }
+        // unhandled
+        else {
+            throw new RuntimeException( "Unknown property type: " + propType );
+        }
     }
 
     
@@ -104,46 +120,17 @@ class RComplexAttribute
     @Override
     public Collection<? extends Property> getValue() {
         return getProperties();
+//        Collection<Property> props = getProperties();
+//        return !props.isEmpty() ? props : null;
     }
 
 
-//    private Function<PropertyDescriptor,Iterator<Property>> propTransform = new Function<PropertyDescriptor,Iterator<Property>>() {
-//        public Iterator<Property> apply( PropertyDescriptor input ) {
-//            return getProperties( input.getName().getLocalPart() ).iterator();
-//        }
-//    };
-    
     @Override
     public Collection<Property> getProperties() {
-//        // Collection view
-//        return new AbstractCollection<Property>() {
-//            private Lazy<Integer>       size = new LockedLazyInit();
-//            @Override
-//            public Iterator<Property> iterator() {
-//                Iterator<PropertyDescriptor> descriptors = getType().getDescriptors().iterator();
-//                return concat( transform( descriptors, propTransform ) );
-//            }
-//            @Override
-//            public int size() {
-//                return size.get( new Supplier<Integer>() {
-//                    public Integer get() { return Iterators.size( iterator() ); }
-//                });
-//            }
-//        };
-        
         Collection<PropertyDescriptor> descriptors = getType().getDescriptors();
         List<Property> result = new ArrayList( descriptors.size() * 2 );
         for (PropertyDescriptor _descriptor : descriptors) {
-            Optional<Object> prop = value.getUnchecked( _descriptor.getName().getLocalPart() );
-            if (!prop.isPresent()) {
-                // skip
-            }
-            else if (prop.get() instanceof Collection) {
-                result.addAll( (Collection<Property>)prop.get() );
-            }
-            else {
-                result.add( (Property)prop.get() );
-            }
+            result.addAll( getProperties( _descriptor.getName() ) );
         }
         return result;
     }
@@ -162,7 +149,7 @@ class RComplexAttribute
             return Collections.EMPTY_LIST;
         }
         else if (result.get() instanceof Collection) {
-            throw new RuntimeException( "Collections of properties are not yet again implemented. (" + name + ")" );
+            return (Collection<Property>)result.get();
         }
         else {
             return Collections.singleton( (Property)result.get() ); //ImmutableList.of( result );
@@ -183,7 +170,7 @@ class RComplexAttribute
             return null;
         }
         else if (result.get() instanceof Collection) {
-            throw new RuntimeException( "Collections of properties are not yet again implemented. (" + name + ")" );
+            return Iterables.getFirst( (Collection<Property>)result.get(), null );
         }
         else {
             return (Property)result.get();

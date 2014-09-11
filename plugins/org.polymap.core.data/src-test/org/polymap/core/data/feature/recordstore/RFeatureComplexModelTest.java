@@ -60,25 +60,13 @@ public class RFeatureComplexModelTest
 
     @Override
     public void testAssociation() {
-        log.warn( "No Associations yet!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-    }
-
-
-    @Override
-    public void testCompositeProperty() {
-        log.warn( "No Composite properties yet!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-    }
-
-
-    @Override
-    public void testPrimitiveCollection() {
-        log.warn( "No Collections yet!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+        assertTrue( "No Associations yet!", false );
     }
 
 
     @Override
     public void testCompositeCollection() {
-        log.warn( "No Collections yet!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+        assertTrue( "No Composite Collections yet!", false );
     }
 
     

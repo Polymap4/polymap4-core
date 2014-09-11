@@ -14,7 +14,9 @@
  */
 package org.polymap.core.data.feature.recordstore;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import java.io.File;
@@ -25,22 +27,28 @@ import junit.framework.TestCase;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollections;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.geotools.util.Utilities;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
+import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.filter.FilterFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Iterators;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
 
-import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**
@@ -53,6 +61,8 @@ public class RFeatureStoreTests
 
     private static Log log = LogFactory.getLog( RFeatureStoreTests.class );
 
+    private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
+    
     private RDataStore              ds;
     
 
@@ -81,23 +91,38 @@ public class RFeatureStoreTests
         log.debug( "creating schema..." );
         SimpleFeatureType schema = createSimpleSchema();
         ds.createSchema( schema );
+        RFeatureStore fs = (RFeatureStore)ds.getFeatureSource( schema.getName() );        
 
+        assertEquals( 0, Iterators.size( fs.getFeatures().iterator() ) );
+
+        // add feature
         SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
         fb.set( "name", "value" );
         fb.set( "geom", null );
         FeatureCollection features = DefaultFeatureCollections.newCollection();
         features.add( fb.buildFeature( null ) );
-        
-        log.debug( "adding features..." );
-        RFeatureStore fs = (RFeatureStore)ds.getFeatureSource( schema.getName() );        
         fs.addFeatures( features );
         
-        log.debug( "iterating all features..." );
+        // check size
+        assertEquals( 1, Iterators.size( fs.getFeatures().iterator() ) );
+
+        // check properties
         fs.getFeatures().accepts( new FeatureVisitor() {
             public void visit( Feature feature ) {
-                log.info( "Feature: " + feature );
+                log.debug( "Feature: " + feature );
+                assertEquals( "value", ((SimpleFeature)feature).getAttribute( "name" ) );
+                assertEquals( null, ((SimpleFeature)feature).getAttribute( "geom" ) );
+                assertEquals( null, ((SimpleFeature)feature).getDefaultGeometry() );
             }
         }, null );
+        
+        // modify property
+        Feature feature = Iterators.getOnlyElement( fs.getFeatures().iterator() );
+        fs.modifyFeatures( (AttributeDescriptor)feature.getProperty( "name" ).getDescriptor(), 
+                "changed", ff.id( Collections.singleton( feature.getIdentifier() ) )  );
+
+        Feature feature2 = Iterators.getOnlyElement( fs.getFeatures().iterator() );
+        assertEquals( "changed", ((SimpleFeature)feature2).getAttribute( "name" ) );
     }
 
     
@@ -113,22 +138,44 @@ public class RFeatureStoreTests
         ShapefileDataStore shapeDs = (ShapefileDataStore) dataStoreFactory.createNewDataStore( params );
         FeatureSource<SimpleFeatureType, SimpleFeature> shapeFs = shapeDs.getFeatureSource();
 
-        log.debug( "creating schema..." );
+        // creating schema
         ds.createSchema( shapeFs.getSchema() );
 
-        log.debug( "adding features..." );
+        // adding features
         RFeatureStore fs = (RFeatureStore)ds.getFeatureSource( shapeFs.getSchema().getName() );        
         fs.addFeatures( shapeFs.getFeatures() );
         
-        Timer timer = new Timer();
-        log.debug( "iterating all features..." );
+        // check size
+        assertEquals( 669, fs.getFeatures().size() );
+        
+        // iterating accept
         fs.getFeatures().accepts( new FeatureVisitor() {
             public void visit( Feature feature ) {
-                boolean isGeom = feature.getDefaultGeometryProperty().getValue() instanceof Geometry;
-                //log.info( "Feature: geom: " + (feature.getDefaultGeometryProperty().getValue() instanceof Geometry) );
+                assertTrue( feature.getDefaultGeometryProperty().getValue() instanceof Geometry );
             }
         }, null );
-        log.info( "Reading all features: " + timer.elapsedTime() + "ms" );
+
+        // check feature
+        Iterator<SimpleFeature> fsIt = fs.getFeatures().iterator();
+        Iterator<SimpleFeature> shapeIt = shapeFs.getFeatures().iterator();
+        int count = 0;
+        for (;fsIt.hasNext() && shapeIt.hasNext(); count++) {
+            SimpleFeature f1 = fsIt.next();
+            SimpleFeature f2 = shapeIt.next();
+            
+            for (Property prop1 : f1.getProperties()) {
+                Property prop2 = f2.getProperty( prop1.getName() );
+                if (prop1.getValue() instanceof Geometry) {
+                    // skip
+                }
+                else {
+                    assertTrue( "Property don't match: " + prop1.getName() + ": " + prop1.getValue() + "!=" + prop2.getValue(), 
+                            Utilities.equals( prop1.getValue(), prop2.getValue() ) );
+                }
+            }
+            //assertTrue( "Features are not equal: \n" + f1 + "\n" + f2, Utilities. );
+        }
+        assertEquals( 669, count );
     }
     
 }

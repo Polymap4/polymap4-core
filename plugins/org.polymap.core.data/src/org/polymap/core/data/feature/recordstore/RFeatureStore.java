@@ -260,9 +260,6 @@ public class RFeatureStore
                     
                     String name = types[i].getLocalName();
                     // FIXME bug in SimpleFeaturePropertyAccessorFactory prevents prop name like aaa-bbb
-//                    PropertyAccessor accessor = PropertyAccessors.findPropertyAccessor( 
-//                            feature, name, Attribute.class, null );
-//                    accessor.set( feature, types[i].getLocalName(), values[i], null );
                     if (feature instanceof SimpleFeature) {
                         if (Geometry.class.isAssignableFrom( types[i].getType().getBinding() ) ) {
                             ((SimpleFeature)feature).setDefaultGeometry( values[i] );
@@ -272,6 +269,9 @@ public class RFeatureStore
                         }
                     }
                     else {
+//                      PropertyAccessor accessor = PropertyAccessors.findPropertyAccessor( 
+//                      feature, name, Attribute.class, null );
+//                      accessor.set( feature, types[i].getLocalName(), values[i], null );
                         throw new RuntimeException( "FIXME: bug in SimpleFeaturePropertyAccessorFactory prevents prop name like xxx-yyy" );
                     }
                     

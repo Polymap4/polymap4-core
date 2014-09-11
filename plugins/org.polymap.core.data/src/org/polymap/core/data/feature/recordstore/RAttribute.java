@@ -3,7 +3,7 @@
  *    http://geotools.org
  * 
  *    (C) 2002-2008, Open Source Geospatial Foundation (OSGeo)
- *    Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
+ *    Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  *    This library is free software; you can redistribute it and/or
  *    modify it under the terms of the GNU Lesser General Public
@@ -16,8 +16,6 @@
  *    Lesser General Public License for more details.
  */
 package org.polymap.core.data.feature.recordstore;
-
-import java.util.Collection;
 
 import org.geotools.feature.type.AttributeDescriptorImpl;
 import org.geotools.feature.type.Types;
@@ -55,6 +53,7 @@ class RAttribute
     public RAttribute( RFeature feature, StoreKey baseKey, AttributeDescriptor descriptor,
             Identifier id) {
         super( feature, baseKey, descriptor );
+        //assert descriptor.getMaxOccurs() == 1 : "Attribute cannot hold Collection values. (maxOccurs:" + descriptor.getMaxOccurs() + ")";
         this.id = id;
         
         // FIXME
@@ -83,35 +82,17 @@ class RAttribute
     
     
     public Object getValue() {
-        // FIXME wrong!? Collection is handled up in RComplexAttribute 
-        if (descriptor.getMaxOccurs() > 1) {
-            return new PropertyCollection( this ) {
-                protected Object valueAt( int index ) {
-                    return feature.state.get( key.appendCollectionIndex( index ).toString() );
-                }
-            };
-        }
-        // single value
-        else {
-            return feature.state.get( key.toString() );
-        }
+        return feature.state.get( key.toString() );
     }
 
     
-    public void setValue( Object newValue ) 
-    throws IllegalArgumentException, IllegalStateException {
+    public void setValue( Object newValue ) throws IllegalArgumentException, IllegalStateException {
         // null
         if (newValue == null) {
             if (!getDescriptor().isNillable()) {
                 throw new IllegalAttributeException( getDescriptor(), null, "Attribute is not nillable." );
             }
             feature.state.remove( key.toString() );
-        }
-        // collection
-        else if (newValue instanceof Collection) {
-            PropertyCollection coll = (PropertyCollection)getValue();
-            coll.clear();
-            coll.addAll( (Collection)newValue );
         }
         // single value
         else {

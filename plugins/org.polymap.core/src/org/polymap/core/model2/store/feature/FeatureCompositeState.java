@@ -18,9 +18,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.geotools.feature.AttributeImpl;
+import org.opengis.feature.Association;
+import org.opengis.feature.Attribute;
 import org.opengis.feature.ComplexAttribute;
 import org.opengis.feature.Feature;
+import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.PropertyDescriptor;
+
+import com.google.common.collect.Lists;
 
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.runtime.PropertyInfo;
@@ -47,12 +54,14 @@ class FeatureCompositeState
         this( feature, feature, suow );
     }
 
+    
     protected FeatureCompositeState( Feature feature, ComplexAttribute state, FeatureStoreUnitOfWork suow ) {
         this.feature = feature;
         this.state = state;
         this.suow = suow;
     }
 
+    
     @Override
     public Object id() {
         if (state instanceof Feature) {
@@ -63,11 +72,13 @@ class FeatureCompositeState
         }
     }
     
+    
     @Override
     public Object getUnderlying() {
         return feature;
     }
 
+    
     @Override
     public StoreProperty loadProperty( PropertyInfo info ) {
         // Collection
@@ -91,7 +102,7 @@ class FeatureCompositeState
     protected class PropertyImpl
             implements StoreProperty {
     
-        private final PropertyInfo              info;
+        protected final PropertyInfo            info;
         
         /** Cache used by {@link #delegate()}. No LazyInit in order to safe memory. */
         private org.opengis.feature.Property    delegate;
@@ -146,19 +157,39 @@ class FeatureCompositeState
 
         @Override
         public CompositeState get() {
-            ComplexAttribute propState = (ComplexAttribute)state.getProperty( getInfo().getName() ).getValue();
-            return new FeatureCompositeState( feature, propState, suow );
+            ComplexAttribute propState = (ComplexAttribute)delegate();
+
+            // FIXME getProperties() initializes all the properties which makes the
+            // cache in RComplexAttribute pretty useless
+            boolean isNull = true;
+            ArrayList<Property> stack = Lists.newArrayList( (Property)propState );
+            while (!stack.isEmpty() && isNull) {
+                Property prop = stack.remove( stack.size()-1 );
+                if (prop instanceof ComplexAttribute) {
+                    stack.addAll( ((ComplexAttribute)prop).getProperties() );
+                }
+                else if (prop instanceof Attribute) {
+                    isNull = isNull && ((Attribute)prop).getValue() == null;
+                }
+                else if (prop instanceof Association) {
+                    isNull = isNull && ((Association)prop).getValue() == null;
+                }
+                else {
+                    throw new IllegalStateException( "Unhandled Property type: " + prop.getClass().getName() );
+                }
+            }
+            return !isNull ? new FeatureCompositeState( feature, propState, suow ) : null;
         }
 
         @Override
         public void set( Object value ) {
-            throw new IllegalStateException( "Setting composite property is not allowed." );
+            throw new UnsupportedOperationException( "Setting composite property is not yet supported." );
         }
 
         @Override
         public CompositeState createValue() {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+            ComplexAttribute propState = (ComplexAttribute)delegate();
+            return new FeatureCompositeState( feature, propState, suow );
         }
     }
 
@@ -170,7 +201,7 @@ class FeatureCompositeState
             extends PropertyImpl
             implements StoreCollectionProperty {
 
-        private Collection      delegateColl;
+        private Collection<org.opengis.feature.Property>    featureProps;
         
         protected CollectionPropertyImpl( PropertyInfo info ) {
             super( info );
@@ -185,36 +216,50 @@ class FeatureCompositeState
         /**
          * The value of the {@link #delegate()} property cast to {@link Collection}.
          */
-        protected Collection delegateColl() {
-            if (delegateColl == null) {
-                delegateColl = (Collection)get();
-                
-                // null Collection values are not allowed; init if null
-                if (delegateColl == null) {
-                    delegateColl = new ArrayList();
-                    // init value
-                    set( delegateColl );
-                    // get the store dependant collection back
-                    delegateColl = (Collection)get();
-                    assert delegateColl != null;
-                }
+        protected Collection<org.opengis.feature.Property> featureProps() {
+            if (featureProps == null) {
+                featureProps = state.getProperties( info.getNameInStore() );
             }
-            return delegateColl;
+            return featureProps;
         }
 
         @Override
         public int size() {
-            return delegateColl().size();
+            return featureProps().size();
         }
 
         @Override
         public Iterator iterator() {
-            return delegateColl().iterator();
+            return new Iterator() {
+                private Iterator<org.opengis.feature.Property> it = featureProps().iterator(); 
+                
+                @Override
+                public boolean hasNext() {
+                    return it.hasNext();
+                }
+
+                @Override
+                public Object next() {
+                    if (Composite.class.isAssignableFrom( getInfo().getType() )) {
+                        return new FeatureCompositeState( feature, (ComplexAttribute)it.next(), suow );
+                    }
+                    else {
+                        return it.next().getValue();
+                    }
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException( "not yet implemented." );
+                }
+            };
         }
 
         @Override
-        public boolean add( Object e ) {
-            return delegateColl().add( e );
+        public boolean add( Object value ) {
+            PropertyDescriptor desc = state.getType().getDescriptor( info.getNameInStore() );
+            AttributeImpl prop = new AttributeImpl( value, (AttributeDescriptor)desc, null );
+            return featureProps().add( prop );
         }
 
     }

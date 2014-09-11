@@ -35,9 +35,6 @@ public class JsonSchemaCodeTest
 
     private SimpleFeatureType       schema;
     
-    // FIXME this is super bad but it gets late...
-    private static String           encoded;
-
 
     public JsonSchemaCodeTest( String name ) 
     throws NoSuchAuthorityCodeException, FactoryException {
@@ -56,16 +53,20 @@ public class JsonSchemaCodeTest
     }
 
 
-    public void testEncode() throws Exception {
-        encoded = new JsonSchemaCoder().encode( schema );
+    public void testEncodeDecode() throws Exception {
+        String encoded = new JsonSchemaCoder().encode( schema );
         System.out.println( encoded );
-    }
+        assertNotNull( encoded );
 
-    
-    public void testDecode() throws Exception {
         FeatureType schema2 = new JsonSchemaCoder().decode( encoded );
-        System.out.println( "\n\n" + schema );
-        //assertEquals( schema, schema2 );
+        System.out.println( "\n\n" + schema2 );
+        
+        // fails, not sure why
+        //assertTrue( schema.equals( schema2 ) );
+
+        String encoded2 = new JsonSchemaCoder().encode( schema2 );
+        System.out.println( encoded2 );
+        assertEquals( encoded, encoded2 );
     }
     
 }

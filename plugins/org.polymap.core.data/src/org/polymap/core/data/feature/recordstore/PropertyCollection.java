@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,44 +18,49 @@ import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.opengis.feature.Property;
+import org.opengis.feature.type.PropertyDescriptor;
+
 import org.polymap.core.runtime.recordstore.IRecordState;
 
 /**
- * Collection implementation on top of {@link IRecordState} of the feature of the
- * given {@link RProperty}. There is no in-memory cache of the values - all calls are
- * redirected to the underlying record state.
+ * Collection implementation on top of {@link IRecordState}. There is no in-memory
+ * cache of the values - all calls are redirected to the underlying record state.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class PropertyCollection<T>
+abstract class PropertyCollection<T extends Property>
         extends AbstractCollection<T>
         implements Collection<T> {
 
-    private RProperty           prop;
+    private PropertyDescriptor  desc;
+    
+    private IRecordState        state;
 
+    private StoreKey            baseKey;
+    
     private int                 size = -1;
     
-    
-    protected PropertyCollection( RProperty prop ) {
-        this.prop = prop;
+
+    public PropertyCollection( PropertyDescriptor desc, IRecordState state, StoreKey baseKey ) {
+        this.desc = desc;
+        this.state = state;
+        this.baseKey = baseKey;
     }
-    
-    
-    protected T valueAt( int index ) {
-        return prop.feature.state.get( prop.key.appendCollectionIndex( index ).toString() );
-    }
+
+
+    protected abstract T valueAt( StoreKey key );
     
     
     @Override
-    public boolean add( T value ) {
-        size(); // init size
-        if (size == prop.getDescriptor().getMaxOccurs()) {
-            throw new RuntimeException( "MaxOccurs limit reached for property: " + prop.getName() + " (" + prop.getDescriptor().getMaxOccurs() + ")" );
+    public boolean add( T prop ) {
+        if (size() >= desc.getMaxOccurs()) {
+            throw new RuntimeException( "MaxOccurs limit reached for property: " + baseKey + " (" + desc.getMaxOccurs() + ")" );
         }
         else {
             // increment size and put
-            prop.feature.state.put( prop.key.appendCollectionIndex( size++ ).toString(), value );
-            prop.feature.state.put( prop.key.appendCollectionLength().toString(), size );
+            state.put( baseKey.appendCollectionIndex( size++ ).toString(), prop.getValue() );
+            state.put( baseKey.appendCollectionLength().toString(), size );
             return true;
         }
     }
@@ -64,7 +69,7 @@ class PropertyCollection<T>
     @Override
     public int size() {
         if (size == -1) {
-            Integer value = prop.feature.state.get( prop.key.appendCollectionLength().toString() );
+            Integer value = state.get( baseKey.appendCollectionLength().toString() );
             size = value != null ? value : 0;
         }
         return size;
@@ -84,7 +89,7 @@ class PropertyCollection<T>
 
             @Override
             public T next() {
-                return valueAt( index++ );
+                return valueAt( baseKey.appendCollectionIndex( index++ ) );
             }
 
             @Override

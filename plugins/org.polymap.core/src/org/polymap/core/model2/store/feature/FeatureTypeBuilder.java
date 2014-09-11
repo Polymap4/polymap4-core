@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -27,6 +27,7 @@ import org.geotools.feature.NameImpl;
 import org.geotools.feature.type.FeatureTypeFactoryImpl;
 import org.geotools.referencing.CRS;
 import org.geotools.util.SimpleInternationalString;
+import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.ComplexType;
 import org.opengis.feature.type.FeatureType;
@@ -44,6 +45,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.polymap.core.model2.CollectionProperty;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Description;
 import org.polymap.core.model2.Entity;
@@ -53,7 +55,7 @@ import org.polymap.core.model2.engine.CompositeInfoImpl;
 import org.polymap.core.model2.engine.PropertyInfoImpl;
 
 /**
- * 
+ * Builds a {@link FeatureType} out of an {@link Entity} model.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -89,7 +91,8 @@ class FeatureTypeBuilder {
 
 
     public FeatureType build() throws Exception {
-        ComplexType complexType = buildComplexType( entityClass );
+        log.debug( "Entity: " + entityClass );
+        ComplexType complexType = buildComplexType( entityClass, "    " );
         
         // find geom
         GeometryDescriptor geom = null;
@@ -104,8 +107,7 @@ class FeatureTypeBuilder {
     }
     
     
-    protected ComplexType buildComplexType( Class<? extends Composite> compositeClass ) 
-    throws Exception {
+    protected ComplexType buildComplexType( Class<? extends Composite> compositeClass, String indent ) throws Exception {
         // fields -> properties
         Collection<PropertyDescriptor> properties = new ArrayList();
         
@@ -115,18 +117,25 @@ class FeatureTypeBuilder {
         
         while (!stack.isEmpty()) {
             Class type = stack.pop();
-            for (Field field : type.getDeclaredFields()) {
-                // super class
-                if (type.getSuperclass() != null) {
-                    stack.push( type.getSuperclass() );
-                }
+            log.debug( indent + "Composite: " + type );
 
-                // mixins
-                CompositeInfoImpl typeInfo = new CompositeInfoImpl( type );
-                stack.addAll( typeInfo.getMixins() );
-                
-                // Property and CollectionProperty
-                if (Property.class.isAssignableFrom( field.getType() )) {
+            // super class
+            if (type.getSuperclass() != null 
+                    && !Entity.class.equals( type.getSuperclass() )
+                    && !Composite.class.equals( type.getSuperclass() )) {
+                stack.push( type.getSuperclass() );
+            }
+
+            // mixins
+            CompositeInfoImpl typeInfo = new CompositeInfoImpl( type );
+            //log.debug( indent + "  " + "Mixins: " + typeInfo.getMixins() );
+            stack.addAll( typeInfo.getMixins() );
+            
+            // fields
+            for (Field field : type.getDeclaredFields()) {
+                // Property or CollectionProperty
+                if (Property.class.isAssignableFrom( field.getType() )
+                        || CollectionProperty.class.isAssignableFrom( field.getType() )) {
 
                     PropertyInfoImpl propInfo = new PropertyInfoImpl( field );
                     Class<?> binding = propInfo.getType();
@@ -139,8 +148,10 @@ class FeatureTypeBuilder {
                             || Date.class.isAssignableFrom( binding )) {
 
                         AttributeType propType = buildAttributeType( field, binding );
-                        properties.add( factory.createAttributeDescriptor( propType, 
-                                propType.getName(), 0, propInfo.getMaxOccurs(), propInfo.isNullable(), propInfo.getDefaultValue() ) );
+                        AttributeDescriptor desc = factory.createAttributeDescriptor( propType, 
+                                propType.getName(), 0, propInfo.getMaxOccurs(), propInfo.isNullable(), propInfo.getDefaultValue() );
+                        properties.add( desc );
+                        log.debug( indent + "  " + "Attribute: " + desc );
                     }
                     // geometry
                     else if (Geometry.class.isAssignableFrom( binding )) {
@@ -150,12 +161,18 @@ class FeatureTypeBuilder {
                                 propType.getBinding(), crs, propType.isIdentified(), propType.isAbstract(),
                                 propType.getRestrictions(), propType.getSuper(), propType.getDescription() );
 
-                        properties.add( factory.createGeometryDescriptor( geomType, 
-                                geomType.getName(), 0, 1, propInfo.isNullable(), propInfo.getDefaultValue() ) );
+                        GeometryDescriptor desc = factory.createGeometryDescriptor( geomType, 
+                                geomType.getName(), 0, 1, propInfo.isNullable(), propInfo.getDefaultValue() );
+                        properties.add( desc );
+                        log.debug( indent + "  " + "Geometry: " + desc );
                     }
                     // complex
                     else if (Composite.class.isAssignableFrom( binding )) {
-                        ComplexType propType = buildComplexType( (Class<? extends Composite>)binding );                    
+                        ComplexType propType = buildComplexType( (Class<? extends Composite>)binding, indent + "    " );
+                        AttributeDescriptor desc = factory.createAttributeDescriptor( propType, 
+                                nameInStore( field ), 0, propInfo.getMaxOccurs(), propInfo.isNullable(), propInfo.getDefaultValue() );
+                        properties.add( desc );
+                        log.debug( indent + "  " + "Complex Property: " + desc );
                     }
                     else {
                         throw new RuntimeException( "Property value type is not supported: " + binding );
@@ -171,30 +188,30 @@ class FeatureTypeBuilder {
         List<Filter> restrictions = null;
         AttributeType superType = null;
         Description annotation = compositeClass.getAnnotation( Description.class );
-        InternationalString description = annotation != null
-                ? SimpleInternationalString.wrap( annotation.value() )
-                : null;
+        InternationalString description = annotation != null ? SimpleInternationalString.wrap( annotation.value() ) : null;
                 
         return factory.createComplexType( name, properties, isIdentified, isAbstract, 
                 restrictions, superType, description );
     }
     
 
-    protected AttributeType buildAttributeType( Field field, Class<?> binding ) 
-    throws Exception {
-        NameInStore nameInStore = field.getAnnotation( NameInStore.class );
-        Name name = buildName( nameInStore != null ? nameInStore.value() : field.getName() );
+    protected AttributeType buildAttributeType( Field field, Class<?> binding ) throws Exception {
+        Name name = nameInStore( field );
         boolean isAbstract = false;
         List<Filter> restrictions = null;
 
         Description annotation = field.getAnnotation( Description.class );
-        InternationalString description = annotation != null
-                ? SimpleInternationalString.wrap( annotation.value() )
-                : null;
+        InternationalString description = annotation != null ? SimpleInternationalString.wrap( annotation.value() ) : null;
         
         AttributeType superType = null;
                 
         return factory.createAttributeType( name, binding, false, isAbstract, restrictions, superType, description ); 
+    }
+    
+    
+    protected Name nameInStore( Field field ) {
+        NameInStore nameInStore = field.getAnnotation( NameInStore.class );
+        return buildName( nameInStore != null ? nameInStore.value() : field.getName() );
     }
     
     

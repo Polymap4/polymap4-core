@@ -70,7 +70,7 @@ public class EntityRepositoryImpl
         while (!queue.isEmpty()) {
             Class<? extends Composite> type = queue.poll();
             if (!infos.containsKey( type )) {
-                log.debug( "    Composite type: " + queue.peek() );
+                log.debug( "    Composite type: " + type );
                 CompositeInfoImpl info = new CompositeInfoImpl( type );
                 infos.put( type, info );
 

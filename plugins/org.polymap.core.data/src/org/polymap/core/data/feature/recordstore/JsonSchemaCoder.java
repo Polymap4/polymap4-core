@@ -96,8 +96,7 @@ class JsonSchemaCoder {
         }
         
         
-        protected JSONObject encode( JSONObject parent, ComplexType type )
-        throws Exception {
+        protected JSONObject encode( JSONObject parent, ComplexType type ) throws Exception {
             parent.put( "isInline", type.isInline() );
             encode( parent, (AttributeType)type );
             parent.put( "type", "ComplexType" );
@@ -215,7 +214,7 @@ class JsonSchemaCoder {
             //CoordinateReferenceSystem crs = CRS.decode( input.optString( "srs",  );
             //json.put( "isIdentified", schema.isIdentified() );
             String defaultGeomName = input.optString( "defaultGeom" );
-            log.info( "isSimple:" + input.optString( "isSimple" ) );
+            log.debug( "isSimple:" + input.optString( "isSimple" ) );
             boolean isSimple = Boolean.parseBoolean( input.optString( "isSimple", "true" ) );
             
             ComplexType complexType = decodeComplexType( input );
@@ -294,6 +293,7 @@ class JsonSchemaCoder {
                 }
                 // complex
                 else if (typeStr.equals( "ComplexType" )) {
+                    @SuppressWarnings("unused")
                     ComplexType propType = decodeComplexType( descriptorJson );                    
                 }
                 else {
