@@ -64,7 +64,7 @@ import com.google.common.collect.Iterators;
 
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.NameInStore;
-import org.polymap.core.model2.engine.QueryImpl;
+import org.polymap.core.model2.query.Query;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
@@ -101,7 +101,7 @@ public class FeatureStoreUnitOfWork
     private LoadingCache<Class<? extends Entity>,FeatureStore> featureSources;
     
     /**
-     * Buffers results of {@link #find(QueryImpl)} for subsequent calls of
+     * Buffers results of {@link #executeQuery(QueryImpl)} for subsequent calls of
      * {@link #loadEntityState(Object, Class)} in order to avoid to hit the store.
      */
     private Map<Object,Feature>         found = new ConcurrentReferenceHashMap( 256, 0.75f, 4, ReferenceType.STRONG, ReferenceType.SOFT, null );
@@ -195,7 +195,7 @@ public class FeatureStoreUnitOfWork
 
 
     @Override
-    public Collection find( QueryImpl query ) {
+    public Collection executeQuery( Query query ) {
         assert query.expression == null || query.expression instanceof Filter : "Wrong query expression type: " + query.expression;
         try {
             // schema
@@ -251,7 +251,7 @@ public class FeatureStoreUnitOfWork
 
 
     @Override
-    public boolean eval( Object entityState, Object expression ) {
+    public boolean evaluate( Object entityState, Object expression ) {
         return ((Filter)expression).evaluate( entityState );
     }
 

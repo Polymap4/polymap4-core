@@ -16,7 +16,7 @@ package org.polymap.core.model2.runtime;
 
 import javax.annotation.Nullable;
 
-import org.polymap.core.model2.Computed;
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
@@ -71,9 +71,14 @@ public interface PropertyInfo<T> {
     public boolean isNullable();
 
     /**
-     * True if the {@link Property} is {@link Computed}.
+     * True if the {@link Property} is {@link @Computed}.
      */
     public boolean isComputed();
+
+    /**
+     * True if the {@link Property} is {@link @Queryable}.
+     */
+    public boolean isQueryable();
 
     /**
      *
@@ -81,8 +86,8 @@ public interface PropertyInfo<T> {
     public int getMaxOccurs();
     
     
-    public T getValue( Object composite );
+    public T getValue( Composite composite );
     
-    public void setValue( Object composite, T value );
+    public void setValue( Composite composite, T value );
     
 }

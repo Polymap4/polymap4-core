@@ -19,6 +19,7 @@ import static com.google.common.collect.Collections2.transform;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -31,12 +32,15 @@ import org.apache.commons.collections.collection.CompositeCollection;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.query.Query;
+import org.polymap.core.model2.query.ResultSet;
+import org.polymap.core.model2.query.grammar.BooleanExpression;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
-import org.polymap.core.model2.runtime.Query;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.model2.runtime.ValueInitializer;
 import org.polymap.core.model2.store.CompositeState;
@@ -219,15 +223,15 @@ public class UnitOfWorkImpl
 
 
     @Override
-    public <T extends Entity> Query<T> query( final Class<T> entityClass, Object expression ) {
-        return new QueryImpl( entityClass, expression ) {
-            public Collection execute() {
+    public <T extends Entity> Query<T> query( final Class<T> entityClass ) {
+        return new Query( entityClass ) {
+            public ResultSet<T> execute() {
                 // transform id -> Entity
                 // XXX without this copy the collection is empty on second access
                 // making a copy might be not that bad either as it avoids querying store for every iterator;
                 // iterate to avoid call of size()
                 Collection ids = new ArrayList( 1024 );
-                for (Object id : delegate.find( this ) ) {
+                for (Object id : delegate.executeQuery( this ) ) {
                     ids.add( id );
                 }
                 Collection<T> found = transform( ids, new Function<Object,T>() {
@@ -249,14 +253,32 @@ public class UnitOfWorkImpl
                 for (Entity entity : modified.values()) {
                     if (entity.getClass().equals( entityClass ) &&
                             (entity.status() == EntityStatus.CREATED || entity.status() == EntityStatus.MODIFIED )) {
-                        if (expression == null || delegate.eval( entity.state(), expression )) {
+                        if (expression == null) {
+                            updated.add( (T)entity );
+                        }
+                        else if (expression instanceof BooleanExpression) {
+                            if (((BooleanExpression)expression).evaluate( entity )) {
+                                updated.add( (T)entity );
+                            }
+                        }
+                        else if (delegate.evaluate( entity.state(), expression )) {
                             updated.add( (T)entity );
                         }
                     }
                 }
 
                 // result: queried + created
-                return new CompositeCollection( new Collection[] {filtered, updated} );
+                final Collection all = new CompositeCollection( new Collection[] {filtered, updated} );
+                return new ResultSet<T>() {
+                    @Override
+                    public Iterator<T> iterator() {
+                        return all.iterator();
+                    }
+                    @Override
+                    public int size() {
+                        return all.size();
+                    }
+                };
             }
         };
     }

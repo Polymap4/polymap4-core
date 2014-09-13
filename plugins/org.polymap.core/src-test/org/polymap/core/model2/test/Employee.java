@@ -16,6 +16,8 @@ package org.polymap.core.model2.test;
 
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 import org.polymap.core.model2.Defaults;
 import org.polymap.core.model2.Mixins;
 import org.polymap.core.model2.NameInStore;
@@ -36,6 +38,10 @@ public class Employee
     
     public static CompositeInfo     INFO;
 
+    public enum Rating {
+        good, topNotch;
+    }
+    
     @Defaults
     public Property<Integer>        jap;
     
@@ -47,6 +53,9 @@ public class Employee
 
     public Property<String>         nonNullable;
 
+    @Nullable
+    public Property<Rating>         rating;
+    
     /**
      * Computed property: back reference of {@link Company#employees()}.
      */

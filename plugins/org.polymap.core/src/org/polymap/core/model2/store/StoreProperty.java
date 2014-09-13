@@ -18,8 +18,8 @@ import org.polymap.core.model2.Association;
 import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
- * Store backend for: primitive type, String, Date, {@link CompositeState}. Also used
- * to store the Id of an {@link Association}.
+ * Store backend for: primitive type, String, Date, Enum, {@link CompositeState}.
+ * Also used to store the Id of an {@link Association}.
  * 
  * @param <T> primitive type, String, Date, {@link CompositeState}.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

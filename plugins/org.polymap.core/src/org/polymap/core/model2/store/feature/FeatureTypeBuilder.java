@@ -145,8 +145,12 @@ class FeatureTypeBuilder {
                             || binding.equals( String.class )
                             || Number.class.isAssignableFrom( binding )
                             || Boolean.class.isAssignableFrom( binding )
-                            || Date.class.isAssignableFrom( binding )) {
+                            || Date.class.isAssignableFrom( binding )
+                            || binding.isEnum()) {
 
+                        if (binding.isEnum()) {
+                            binding = String.class;
+                        }
                         AttributeType propType = buildAttributeType( field, binding );
                         AttributeDescriptor desc = factory.createAttributeDescriptor( propType, 
                                 propType.getName(), 0, propInfo.getMaxOccurs(), propInfo.isNullable(), propInfo.getDefaultValue() );

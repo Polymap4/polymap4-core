@@ -52,6 +52,8 @@ class RecordCompositeState
     protected IRecordState          state;
     
     protected String                baseKey;
+
+    public static final String          TYPE_KEY = "_type_";
     
     
     protected RecordCompositeState( IRecordState state ) {
@@ -118,10 +120,17 @@ class RecordCompositeState
         }
         
         public Object get() {
-            return state.get( key() );
+            Object value = state.get( key() );
+            if (value != null && info.getType().isEnum()) {
+                value = Enum.valueOf( info.getType(), (String)value );
+            }
+            return value;
         }
 
         public void set( Object value ) {
+            if (value instanceof Enum) {
+                value = ((Enum)value).toString();
+            }
             state.put( key(), value );
         }
 

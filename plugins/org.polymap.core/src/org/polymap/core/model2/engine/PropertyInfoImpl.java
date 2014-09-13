@@ -21,12 +21,14 @@ import javax.annotation.Nullable;
 
 import org.polymap.core.model2.Association;
 import org.polymap.core.model2.CollectionProperty;
+import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Computed;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyBase;
+import org.polymap.core.model2.Queryable;
 import org.polymap.core.model2.runtime.PropertyInfo;
 
 /**
@@ -88,6 +90,11 @@ public class PropertyInfoImpl<T>
     }
 
     @Override
+    public boolean isQueryable() {
+        return field.getAnnotation( Queryable.class ) != null;
+    }
+
+    @Override
     public int getMaxOccurs() {
         if (CollectionProperty.class.isAssignableFrom( field.getType() )) {
             return field.getAnnotation( MaxOccurs.class ) != null
@@ -106,9 +113,24 @@ public class PropertyInfoImpl<T>
 
     
     @Override
-    public T getValue( Object composite ) {
+    public T getValue( Composite composite ) {
         try {
-            return ((Property<T>)field.get( composite )).get();
+            if (!field.isAccessible()) { 
+                field.setAccessible( true ); 
+            }
+            PropertyBase<T> prop = (PropertyBase<T>)field.get( composite );
+            if (prop instanceof Property) {
+                return ((Property<T>)prop).get();
+            }
+            else if (prop instanceof Association) {
+                return (T)((Association)prop).get();
+            }
+            else if (prop instanceof CollectionProperty) {
+                throw new IllegalStateException( "Getting the value of a CollectionProperty via PropertyInfo is not supported.");
+            }
+            else {
+                throw new RuntimeException( "Unknown Property type: " + prop.getClass().toString() );
+            }
         }
         catch (Exception e) {
             throw new RuntimeException( e );
@@ -117,8 +139,11 @@ public class PropertyInfoImpl<T>
 
     
     @Override
-    public void setValue( Object composite, T value ) {
+    public void setValue( Composite composite, T value ) {
         try {
+            if (!field.isAccessible()) {
+                field.setAccessible( true );
+            }
             ((Property<T>)field.get( composite )).set( value );
         }
         catch (Exception e) {

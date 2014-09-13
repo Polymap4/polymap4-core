@@ -14,14 +14,13 @@
  */
 package org.polymap.core.model2.test;
 
-import java.util.Collection;
-
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.runtime.Timer;
@@ -75,7 +74,7 @@ public abstract class PerformanceTest
         // load
         timer.start();
         UnitOfWork uow2 = repo.newUnitOfWork();
-        Collection<Employee> results = uow2.query( Employee.class, null ).execute();
+        ResultSet<Employee> results = uow2.query( Employee.class ).execute();
 
         for (Employee employee : results) {
             int jap = employee.jap.get();

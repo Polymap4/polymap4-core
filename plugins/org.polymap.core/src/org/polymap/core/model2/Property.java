@@ -14,13 +14,16 @@
  */
 package org.polymap.core.model2;
 
+import java.util.Date;
+
 import javax.annotation.Nullable;
 
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * Property for simple and {@link Composite} values.
+ * Property for simple ({@link Number}, {@link Boolean}, {@link String}, {@link Date}
+ * , {@link Enum}) or {@link Composite} values.
  * <p/>
  * The property value of a newly created Entity is null unless {@link Defaults} or
  * {@link DefaultValue} was specified for this property or a {@link ValueInitializer}

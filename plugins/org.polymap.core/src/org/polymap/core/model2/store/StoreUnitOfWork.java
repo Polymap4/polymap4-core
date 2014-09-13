@@ -17,8 +17,8 @@ package org.polymap.core.model2.store;
 import java.util.Collection;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.engine.QueryImpl;
 import org.polymap.core.model2.engine.UnitOfWorkImpl;
+import org.polymap.core.model2.query.Query;
 import org.polymap.core.model2.runtime.UnitOfWork;
 
 /**
@@ -49,7 +49,7 @@ public interface StoreUnitOfWork {
      * @param entityClass
      * @return Collection of ids of the found entities.
      */
-    public Collection<Object> find( QueryImpl query );
+    public Collection<Object> executeQuery( Query query );
     
     /**
      * Evaluate the given store specific expression against the given Composite
@@ -60,7 +60,7 @@ public interface StoreUnitOfWork {
      * @param expression
      * @return True if expression is true for given entity.
      */
-    public boolean eval( Object entityState, Object expression );
+    public boolean evaluate( Object entityState, Object expression );
 
     public void prepareCommit( Iterable<Entity> loaded ) throws Exception;
     

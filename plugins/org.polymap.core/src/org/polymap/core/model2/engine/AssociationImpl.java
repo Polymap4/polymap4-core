@@ -53,7 +53,7 @@ class AssociationImpl<T extends Entity>
     @Override
     public T get() {
         Object id = storeProp.get();
-        return (T)context.getUnitOfWork().entity( getInfo().getType(), id );
+        return id != null ? (T)context.getUnitOfWork().entity( getInfo().getType(), id ) : null;
     }
 
     

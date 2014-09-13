@@ -123,11 +123,18 @@ class FeatureCompositeState
 
         @Override
         public Object get() {
-            return delegate().getValue();
+            Object value = delegate().getValue();
+            if (value != null && info.getType().isEnum()) {
+                value = Enum.valueOf( info.getType(), (String)value );
+            }
+            return value;
         }
     
         @Override
         public void set( Object value ) {
+            if (value instanceof Enum) {
+                value = ((Enum)value).toString();
+            }
             delegate().setValue( value );
             
             suow.markPropertyModified( feature, (AttributeDescriptor)delegate().getDescriptor(), value );

@@ -14,16 +14,17 @@
  */
 package org.polymap.core.model2.test;
 
-import java.util.Collection;
-
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.UnitOfWork;
+import org.polymap.core.model2.runtime.ValueInitializer;
+import org.polymap.core.model2.test.Employee.Rating;
 
 /**
  * Test for simple models: no associations, no Composite properties
@@ -114,6 +115,24 @@ public abstract class SimpleModelTest
     }
     
 
+    public void testEnum() throws Exception {
+        Employee employee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+            public Employee initialize( Employee prototype ) throws Exception {
+                prototype.rating.set( Rating.good );
+                return prototype;
+            }
+        } );
+        assertEquals( Rating.good, employee.rating.get() );
+        assertSame( Rating.good, employee.rating.get() );
+        uow.commit();
+        
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        Employee employee2 = uow2.entity( Employee.class, employee.id() );
+        assertEquals( Rating.good, employee2.rating.get() );
+        assertSame( Rating.good, employee2.rating.get() );
+    }
+    
+
     public void testNullable() throws Exception {
         Employee employee = uow.createEntity( Employee.class, null, null );
         Exception thrown = null;
@@ -143,7 +162,7 @@ public abstract class SimpleModelTest
         
         // check
         UnitOfWork uow2 = repo.newUnitOfWork();
-        Collection<Employee> results = uow2.query( Employee.class, null ).execute();
+        ResultSet<Employee> results = uow2.query( Employee.class ).execute();
         assertEquals( 11, results.size() );
 
         int previousJap = -1;

@@ -14,6 +14,8 @@
  */
 package org.polymap.core.model2.store.recordstore;
 
+import static org.polymap.core.model2.store.recordstore.RecordCompositeState.TYPE_KEY;
+
 import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
@@ -24,7 +26,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.engine.QueryImpl;
+import org.polymap.core.model2.query.Query;
+import org.polymap.core.model2.query.grammar.BooleanExpression;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
@@ -34,8 +37,10 @@ import org.polymap.core.model2.store.StoreUnitOfWork;
 import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
+import org.polymap.core.runtime.recordstore.RecordQuery;
 import org.polymap.core.runtime.recordstore.ResultSet;
 import org.polymap.core.runtime.recordstore.SimpleQuery;
+import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
 /**
  * 
@@ -45,8 +50,6 @@ import org.polymap.core.runtime.recordstore.SimpleQuery;
 public class RecordStoreUnitOfWork
         implements StoreUnitOfWork {
 
-    public static final String          TYPE_KEY = "_type_";
-    
     private final IRecordStore          store;
 
     private Updater                     tx;
@@ -89,12 +92,25 @@ public class RecordStoreUnitOfWork
 
 
     @Override
-    public Collection find( QueryImpl query ) {
-        assert query.expression == null : "Query expressions not yet supported: " + query.expression;
+    public Collection executeQuery( Query query ) {
         try {
-            // XXX cache result for subsequent loadEntityState() (?)
-            final ResultSet results = store.find( 
-                    new SimpleQuery().eq( TYPE_KEY, query.resultType().getName() ).setMaxResults( Integer.MAX_VALUE ) );
+            RecordQuery recordQuery = null;
+            if (query.expression == null) {
+                recordQuery = new SimpleQuery().eq( TYPE_KEY, query.resultType().getName() );
+            }
+            else if (query.expression instanceof BooleanExpression) {
+                // FIXME
+                recordQuery = new LuceneQueryBuilder( (LuceneRecordStore)store )
+                        .createQuery( query.resultType, (BooleanExpression)query.expression );
+            }
+            else {
+                throw new UnsupportedOperationException( "Query expression type is not supported: " 
+                        + query.expression.getClass().getSimpleName() );
+            }
+
+            recordQuery.setFirstResult( query.firstResult );
+            recordQuery.setMaxResults( query.maxResults );
+            final ResultSet results = store.find( recordQuery );
             
             return new AbstractCollection() {
                 @Override
@@ -122,7 +138,7 @@ public class RecordStoreUnitOfWork
 
 
     @Override
-    public boolean eval( Object entityState, Object expression ) {
+    public boolean evaluate( Object entityState, Object expression ) {
         throw new RuntimeException( "Query expressions not yet supported: " + expression );
     }
 

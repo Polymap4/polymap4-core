@@ -33,6 +33,9 @@ import org.polymap.core.model2.store.feature.SRS;
 public class Company
         extends Entity {
 
+    protected Property<String>              name;
+    
+    @Nullable
     protected Association<Employee>         chief;
 
     @Nullable

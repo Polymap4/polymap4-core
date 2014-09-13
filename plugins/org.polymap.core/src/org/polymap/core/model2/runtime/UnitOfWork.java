@@ -20,6 +20,8 @@ import javax.annotation.Nullable;
 
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.engine.UnitOfWorkImpl;
+import org.polymap.core.model2.query.Query;
+import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 
 /**
@@ -154,14 +156,26 @@ public interface UnitOfWork {
 
     
     /**
-     * 
+     * Creates a new query for the given {@link Entity} type. By default the returned
+     * {@link Query} returns all entities of the given type with no order. That is:
+     * <ul>
+     * <li>{@link Query#where(Object)} == null</li>
+     * <li>{@link Query#firstResult(int)} == 0</li>
+     * <li>{@link Query#maxResults(int)} == {@link Integer#MAX_VALUE}</li>
+     * </ul>
+     * <p>
+     * The {@link ResultSet} reflects all Entity/Property modifications of the
+     * corresponding {@link UnitOfWork}. That is, the query works against the states
+     * of the Entities inside the UnitOfWork - not the states in the backend store.
+     * There is no need to commit changes before executing a query. However, checking
+     * the modified Entities in-memory might be not as fast as let the backend store
+     * do an (indexed) seach.
      * 
      * @param entityClass
-     * @param expression Null indicates that all entities of the given type should be
-     *        returned when executing the query.
-     * @return Newly created {@link Query} instance that first allows to set
-     *         ordering, indexes and then executing the query against the data store.
+     * @return Newly created {@link Query} instance. It allows to set pagination and
+     *         ordering and then {@link Query#execute()} the query against the data
+     *         store.
      */
-    public <T extends Entity> Query<T> query( Class<T> entityClass, Object expression );
+    public <T extends Entity> Query<T> query( Class<T> entityClass );
 
 }
