@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,25 +12,26 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.model2;
+package org.polymap.core.model2.store;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.polymap.core.model2.engine.UnitOfWorkNested;
 
 /**
- * Specifies the maximum number of members of a {@link CollectionProperty} or
- * {@link ManyAssociation}.
- * 
+ * Implement this interface to support nested {@link UnitOfWorkNested} instances.
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@Retention( RetentionPolicy.RUNTIME )
-@Target( { ElementType.FIELD } )
-@Documented
-public @interface MaxOccurs {
-    
-    int value();
-    
+public interface CloneCompositeStateSupport
+        extends StoreUnitOfWork {
+
+    /**
+     *
+     */
+    public CompositeState cloneEntityState( CompositeState state );
+
+    /**
+     *
+     */
+    public void reincorparateEntityState( CompositeState state, CompositeState clonedState );
+
 }

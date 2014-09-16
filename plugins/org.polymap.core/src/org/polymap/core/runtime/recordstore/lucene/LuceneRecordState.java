@@ -251,8 +251,7 @@ public final class LuceneRecordState
             }
 
             public void remove() {
-                throw new UnsupportedOperationException( "remove()" );
-                //LuceneRecordState.this.remove( field.name() );
+                it.remove();
             }
         };
     }

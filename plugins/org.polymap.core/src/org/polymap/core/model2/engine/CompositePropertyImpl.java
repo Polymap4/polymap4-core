@@ -35,7 +35,7 @@ class CompositePropertyImpl<T extends Composite>
     
     private EntityRuntimeContext            entityContext;
     
-    private StoreProperty<CompositeState>   delegate;
+    private StoreProperty<CompositeState>   storeProp;
 
     /**
      * Cache of the Composite value. As building the Composite is an expensive
@@ -47,25 +47,23 @@ class CompositePropertyImpl<T extends Composite>
 
     protected CompositePropertyImpl( EntityRuntimeContext entityContext, 
             StoreProperty<CompositeState> underlying ) {
-        this.delegate = underlying;
+        this.storeProp = underlying;
         this.entityContext = entityContext;
     }
 
     
     @Override
     public T get() {
+        
+        // no synchronization, concurrent init is ok
         if (value == null) {
-            synchronized (this) {
-                if (value == null) {
-                    CompositeState state = delegate.get();
-                    if (state != null) {
-                        InstanceBuilder builder = new InstanceBuilder( entityContext );
-                        value = builder.newComposite( state, getInfo().getType() );
-                    }
-                    else {
-                        value = NULL_VALUE;
-                    }
-                }
+            CompositeState state = storeProp.get();
+            if (state != null) {
+                InstanceBuilder builder = new InstanceBuilder( entityContext );
+                value = builder.newComposite( state, getInfo().getType() );
+            }
+            else {
+                value = NULL_VALUE;
             }
         }
         return value != NULL_VALUE ? (T)value : null;
@@ -75,7 +73,7 @@ class CompositePropertyImpl<T extends Composite>
     @Override
     public void set( T value ) {
         this.value = value;
-        delegate.set( value.state() );
+        storeProp.set( value.state() );
     }
 
     
@@ -84,7 +82,7 @@ class CompositePropertyImpl<T extends Composite>
         T result = get();
         if (result == null) {
             synchronized (this) {
-                CompositeState state = delegate.createValue();
+                CompositeState state = storeProp.createValue();
                 assert state != null : "Store must not return null as newValue().";
                 InstanceBuilder builder = new InstanceBuilder( entityContext );
                 result = (T)builder.newComposite( state, getInfo().getType() );
@@ -109,7 +107,7 @@ class CompositePropertyImpl<T extends Composite>
 
     @Override
     public PropertyInfo getInfo() {
-        return delegate.getInfo();
+        return storeProp.getInfo();
     }
     
 }

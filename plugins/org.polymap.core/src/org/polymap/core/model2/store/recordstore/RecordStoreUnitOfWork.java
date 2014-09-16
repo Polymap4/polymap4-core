@@ -18,7 +18,11 @@ import static org.polymap.core.model2.store.recordstore.RecordCompositeState.TYP
 
 import java.util.AbstractCollection;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import java.io.IOException;
 
@@ -31,6 +35,7 @@ import org.polymap.core.model2.query.grammar.BooleanExpression;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
+import org.polymap.core.model2.store.CloneCompositeStateSupport;
 import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreRuntimeContext;
 import org.polymap.core.model2.store.StoreUnitOfWork;
@@ -48,7 +53,7 @@ import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class RecordStoreUnitOfWork
-        implements StoreUnitOfWork {
+        implements StoreUnitOfWork, CloneCompositeStateSupport {
 
     private final IRecordStore          store;
 
@@ -82,6 +87,37 @@ public class RecordStoreUnitOfWork
         IRecordState state = id != null ? store.newRecord( id ) : store.newRecord();
         state.put( TYPE_KEY, entityClass.getName() );
         return new RecordCompositeState( state );
+    }
+
+
+    @Override
+    public CompositeState cloneEntityState( CompositeState state ) {
+        IRecordState clonedState = store.newRecord();
+        for (Map.Entry<String,Object> entry : ((RecordCompositeState)state).state) {
+            clonedState.put( entry.getKey(), entry.getValue() );
+        }
+        return new RecordCompositeState( clonedState );
+    }
+
+
+    @Override
+    public void reincorparateEntityState( CompositeState state, CompositeState clonedState ) {
+        // just replacing the IRecordState is not possible out-of-the-box as it was newly created (wrong id) ??
+        
+        Set<String> keys = new HashSet( 128 );
+        // cloned -> state
+        for (Map.Entry<String,Object> entry : ((RecordCompositeState)clonedState).state) {
+            ((RecordCompositeState)state).state.put( entry.getKey(), entry.getValue() );
+            keys.add( entry.getKey() );
+        }
+        // check removed
+        Iterator<Map.Entry<String,Object>> it = ((RecordCompositeState)state).state.iterator();
+        while (it.hasNext()) {
+            Entry<String,Object> entry = it.next();
+            if (!keys.contains( entry.getKey() )) {
+                it.remove();
+            }
+        }
     }
 
 

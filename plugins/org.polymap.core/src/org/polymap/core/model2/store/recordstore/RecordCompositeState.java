@@ -33,6 +33,8 @@ class RecordCompositeState
     
     public static final String      KEY_DELIMITER = "/";
 
+    public static final String      TYPE_KEY = "_type_";
+    
     public static String buildKey( String... parts ) {
         // Joiner.on( KEY_DELIMITER ).skipNulls().join( baseKey, info.getNameInStore() );
         StringBuilder result = new StringBuilder( 256 );
@@ -53,8 +55,6 @@ class RecordCompositeState
     
     protected String                baseKey;
 
-    public static final String          TYPE_KEY = "_type_";
-    
     
     protected RecordCompositeState( IRecordState state ) {
         assert state != null;

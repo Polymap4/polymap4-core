@@ -35,6 +35,9 @@ import org.polymap.core.model2.runtime.ValueInitializer;
 public interface Property<T>
         extends PropertyBase<T> {
 
+    /**
+     * Returnes the value of this property.
+     */
     public T get();
 
     /**
@@ -54,7 +57,12 @@ public interface Property<T>
      *         <code>null</code>, or the current value.
      */
     public T createValue( ValueInitializer<T> initializer );
-    
+
+    /**
+     * Modifies the value of this property.
+     *
+     * @param value
+     */
     public void set( T value );
 
 }

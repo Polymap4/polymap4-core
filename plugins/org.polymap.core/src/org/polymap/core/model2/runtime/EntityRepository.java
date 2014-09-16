@@ -59,6 +59,10 @@ public abstract class EntityRepository {
      */
     public abstract <T extends Composite> CompositeInfo<T> infoOf( Class<T> compositeClass );
     
+    
+    /**
+     * Creates a new {@link UnitOfWork} for this repository.
+     */
     public abstract UnitOfWork newUnitOfWork();
     
 }

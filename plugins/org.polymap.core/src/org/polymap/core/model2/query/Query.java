@@ -38,9 +38,10 @@ public abstract class Query<T extends Entity> {
         this.resultType = resultType;
     }
 
-    
+
     /**
-     * Executes the query with its current settings against the backend store.
+     * Executes the query with its current settings. The resulting {@link ResultSet}
+     * might or might not reflect modifications done after executing the Query.
      * 
      * @see UnitOfWork#query(Class)
      * @return Newly created {@link ResultSet}.

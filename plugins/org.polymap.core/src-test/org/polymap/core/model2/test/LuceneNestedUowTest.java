@@ -28,15 +28,15 @@ import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LuceneSimpleModelTest
-        extends SimpleModelTest {
+public class LuceneNestedUowTest
+        extends NestedUowTest {
 
-    private static final Log log = LogFactory.getLog( LuceneSimpleModelTest.class );
+    private static final Log log = LogFactory.getLog( LuceneNestedUowTest.class );
 
     protected IRecordStore          store;
 
     
-    public LuceneSimpleModelTest( String name ) {
+    public LuceneNestedUowTest( String name ) {
         super( name );
     }
 

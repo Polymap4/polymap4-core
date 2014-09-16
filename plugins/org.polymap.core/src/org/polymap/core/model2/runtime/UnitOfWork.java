@@ -23,6 +23,8 @@ import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.query.Query;
 import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.store.CompositeState;
+import org.polymap.core.model2.store.StoreSPI;
 
 /**
  * A UnitOfWork helps to track entity modifications. A {@link UnitOfWork} should be
@@ -61,8 +63,10 @@ public interface UnitOfWork {
      * @param entityClass The type of the entity to find.
      * @param id The identity of the entity to find.
      * @param <T> The type of the entity to build.
-     * @return A newly created entity or a previously created instance. Returns null
-     *         if no Entity exists for the given id.
+     * @return A newly created {@link Entity} instance or a previously created,
+     *         cached instance. Returns null if no Entity exists for the given id.
+     *         Also returns null if the Entity was {@link #removeEntity(Entity)
+     *         removed} for this UnitOfWork.
      */
     public <T extends Entity> T entity( Class<T> entityClass, Object id );
 
@@ -178,4 +182,22 @@ public interface UnitOfWork {
      */
     public <T extends Entity> Query<T> query( Class<T> entityClass );
 
+    
+    /**
+     * Creates a new, nested {@link UnitOfWork}. The nested UnitOfWork reflects the
+     * Entity states of the parent UnitOfWork. Committing the nested UnitOfWork
+     * writes down the modifications to the parent without changing the underlying
+     * store. Until commit the parent UnitOfWork does not see any modification done
+     * in the nested instance.
+     * <p/>
+     * There is <b>no check for concurrent modifications</b> between the nested
+     * instances! The programmer has to make sure that the parent UnitOfWork is not
+     * modified as long as there are nested instances in use. Otherwise modifications
+     * in the parent would get <b>lost silently</b>!
+     * <p/>
+     * Nested UnitOfWork depends on the capability of the {@link StoreSPI store
+     * implementation} to clone {@link CompositeState Entity states}.
+     */
+    public UnitOfWork newUnitOfWork();
+    
 }

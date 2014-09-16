@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies the maximum number of members of a {@link CollectionProperty} or
+ * Specifies the minimum number of members of a {@link CollectionProperty} or
  * {@link ManyAssociation}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
 @Documented
-public @interface MaxOccurs {
+public @interface MinOccurs {
     
     int value();
     

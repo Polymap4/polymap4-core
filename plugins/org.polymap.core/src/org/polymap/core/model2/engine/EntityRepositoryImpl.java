@@ -20,8 +20,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-import java.lang.reflect.Field;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -145,11 +143,9 @@ public class EntityRepositoryImpl
     }
 
     
-    protected <T extends EntityRuntimeContext> T contextOfEntity( Entity entity ) {
+    protected EntityRuntimeContextImpl contextOfEntity( Entity entity ) {
         try {
-            Field f = Composite.class.getDeclaredField( "context" );
-            f.setAccessible( true );
-            return (T)f.get( entity );
+            return (EntityRuntimeContextImpl)InstanceBuilder.contextField.get( entity );
         }
         catch (RuntimeException e) {
             throw e;
@@ -233,7 +229,7 @@ public class EntityRepositoryImpl
         public StoreUnitOfWork getStoreUnitOfWork() {
             checkEviction();
             // XXX :( ???
-            return ((UnitOfWorkImpl)uow).delegate;
+            return ((UnitOfWorkImpl)uow).storeUow;
         }
 
         @Override
@@ -285,6 +281,7 @@ public class EntityRepositoryImpl
             // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );
         }
+
     }
     
 }
