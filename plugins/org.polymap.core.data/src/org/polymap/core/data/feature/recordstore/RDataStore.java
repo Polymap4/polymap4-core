@@ -182,7 +182,7 @@ public class RDataStore
     }
 
     
-    protected IRecordStore getStore() {
+    public IRecordStore getStore() {
         return store;
     }
 
