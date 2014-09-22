@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,7 +19,6 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.query.Query;
 import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
@@ -27,10 +26,10 @@ import org.polymap.core.model2.store.CompositeState;
 import org.polymap.core.model2.store.StoreSPI;
 
 /**
- * A UnitOfWork helps to track entity modifications. A {@link UnitOfWork} should be
- * used to logically group operations that modify a set of entities. These
- * modifications can then be written down to the underlying store in one atomic
- * transaction.
+ * A UnitOfWork is the one and only way to actually access Entities and to work with
+ * them. A UnitOfWork tracks all modifications. It is used to logically group
+ * operations that modify a set of entities. These modifications can then be written
+ * down to the underlying store in one atomic transaction.
  * <p/>
  * The UnitOfWork does not provide a notion of 'rolling back' aka rollback(). Before
  * {@link #prepare()}/{@link #commit()} all modifications are local to the
@@ -38,8 +37,7 @@ import org.polymap.core.model2.store.StoreSPI;
  * calling {@link #close()} the UnitOfWork can be *discarded* at any point in time.
  * There is no way to revert or 'taking back' modifications.
  * <p/>
- * Implementations should be thread-safe. In order to achieve this
- * {@link UnitOfWorkImpl} provides basic functions to track loaded entities.
+ * UnitOfWork can by safely accessed from multiple threads.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

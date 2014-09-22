@@ -330,7 +330,7 @@ public class UnitOfWorkImpl
             return new UnitOfWorkNested( repo, (CloneCompositeStateSupport)storeUow, this );
         }
         else {
-            throw new UnsupportedOperationException( "The current store backend does not support cloning states (no nested UnitOfWork)." );
+            throw new UnsupportedOperationException( "The current store backend does not support cloning states (nested UnitOfWork)." );
         }
     }
 
@@ -389,7 +389,7 @@ public class UnitOfWorkImpl
 
     @Override
     public void rollback() throws ModelRuntimeException {
-        // commit store
+        // rollback store
         storeUow.rollback();
         prepareResult = null;
         
