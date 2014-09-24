@@ -31,8 +31,7 @@ import org.polymap.core.model2.store.StoreSPI;
  * operations that modify a set of entities. These modifications can then be written
  * down to the underlying store in one atomic transaction.
  * <p/>
- * The UnitOfWork does not provide a notion of 'rolling back' aka rollback(). Before
- * {@link #prepare()}/{@link #commit()} all modifications are local to the
+ * Before {@link #prepare()}/{@link #commit()} all modifications are local to the
  * UnitOfWork. After {@link #commit()} all modifications are persitently stored. By
  * calling {@link #close()} the UnitOfWork can be *discarded* at any point in time.
  * There is no way to revert or 'taking back' modifications.
@@ -101,7 +100,7 @@ public interface UnitOfWork {
      * This methods allows a UnitOfWork to take part on a 2-phase commit protocol.
      * Calling this method sends all changes down to the underlying store but does
      * not commit the transaction. Client code does not have to use this method but
-     * call {@link #commit()} directly.
+     * can call {@link #commit()} directly.
      * <p/>
      * Client code must not call any other method than {@link #commit()} or
      * {@link #close()} after {@link #prepare()}.
@@ -128,8 +127,7 @@ public interface UnitOfWork {
      * Persistently stores all modifications that were made within this UnitOfWork.
      * If {@link #prepare()} has not been called yet then it is done by this method.
      * <p/>
-     * This does not invalidate this {@link UnitOfWork} but may flush internal
-     * caches.
+     * This does not close this {@link UnitOfWork} but may flush internal caches.
      * 
      * @throws ModelRuntimeException If {@link #prepare()} was called by this method
      *         and a exception occured.
@@ -138,8 +136,9 @@ public interface UnitOfWork {
 
     
     /**
-     * Rollback any uncommitted changes but does not close this UnitOfWork.
-     *
+     * Discards any uncommitted modifications but does not close this UnitOfWork.
+     * This may flush internal caches.
+     * 
      * @throws ModelRuntimeException
      */
     public void rollback() throws ModelRuntimeException;

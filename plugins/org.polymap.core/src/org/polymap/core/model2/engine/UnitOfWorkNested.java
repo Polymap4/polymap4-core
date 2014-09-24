@@ -185,7 +185,7 @@ public class UnitOfWorkNested
             // created
             if (entity.status() == EntityStatus.CREATED) {
                 Entity previous = parent.modified.putIfAbsent( entity.id(), entity );
-                assert previous != null;
+                assert previous == null;
             }
             // modified
             if (entity.status() == EntityStatus.MODIFIED

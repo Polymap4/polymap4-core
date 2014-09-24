@@ -61,7 +61,7 @@ public class UnitOfWorkImpl
 
     protected static final Exception        PREPARED = new Exception( "Successfully prepared for commit." );
     
-    private static AtomicInteger            idCount = new AtomicInteger( (int)System.currentTimeMillis() );
+    private static AtomicInteger            idCount = new AtomicInteger( (int)Math.abs( System.currentTimeMillis() ) );
     
     protected EntityRepositoryImpl          repo;
     
@@ -336,8 +336,7 @@ public class UnitOfWorkImpl
 
 
     @Override
-    public void prepare()
-    throws IOException, ConcurrentEntityModificationException {
+    public void prepare() throws IOException, ConcurrentEntityModificationException {
         try {
             prepareResult = null;
             storeUow.prepareCommit( modified.values() );
@@ -393,9 +392,9 @@ public class UnitOfWorkImpl
         storeUow.rollback();
         prepareResult = null;
         
-        // reset Entity status
-        loaded.clear();
+        // discard modified Entities
         modified.clear();
+        loaded.clear();
     }
 
 
