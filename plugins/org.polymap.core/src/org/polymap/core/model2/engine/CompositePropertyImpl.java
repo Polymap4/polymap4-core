@@ -110,4 +110,10 @@ class CompositePropertyImpl<T extends Composite>
         return storeProp.getInfo();
     }
     
+
+    @Override
+    public String toString() {
+        return "Property[name:" + getInfo().getName() + ",value=" + get() + "]";
+    }
+
 }

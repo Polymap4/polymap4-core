@@ -14,6 +14,7 @@
  */
 package org.polymap.core.model2.engine;
 
+import static com.google.common.base.Throwables.propagateIfPossible;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static java.util.Collections.singletonList;
@@ -54,6 +55,7 @@ public class UnitOfWorkNested
     protected UnitOfWorkNested( EntityRepositoryImpl repo, CloneCompositeStateSupport storeUow, UnitOfWorkImpl parent ) {
         super( repo, storeUow );
         this.parent = parent;
+        assert parent != null : "parent must not be null.";
     }
     
     
@@ -184,8 +186,14 @@ public class UnitOfWorkNested
         for (Entity entity : modified.values()) {
             // created
             if (entity.status() == EntityStatus.CREATED) {
-                Entity previous = parent.modified.putIfAbsent( entity.id(), entity );
-                assert previous == null;
+                // create a separate instance in the parent; same as for modified instances
+                // this allows to manage distinct status for parent and nested entity
+                CompositeState entityState = repo.contextOfEntity( entity ).getState();
+                CompositeState parentState = storeUow().cloneEntityState( entityState );
+                
+                Entity parentEntity = parent.entityForState( entity.getClass(), parentState.getUnderlying() );
+                repo.contextOfEntity( parentEntity ).raiseStatus( EntityStatus.CREATED );
+                parent.modified.putIfAbsent( parentEntity.id(), parentEntity );
             }
             // modified
             if (entity.status() == EntityStatus.MODIFIED
@@ -214,11 +222,8 @@ public class UnitOfWorkNested
             try {
                 prepare();
             }
-            catch (ModelRuntimeException e) {
-                throw e;
-            }
             catch (Exception e) {
-                throw new ModelRuntimeException( e );
+                propagateIfPossible( e, ModelRuntimeException.class );
             }
         }
         if (prepareResult != PREPARED) {

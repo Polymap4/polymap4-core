@@ -14,6 +14,7 @@
  */
 package org.polymap.core.model2.query.grammar;
 
+import org.polymap.core.model2.Association;
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.engine.TemplateProperty;
@@ -42,7 +43,7 @@ public class AssociationEquals<T extends Entity>
             throw new UnsupportedOperationException( "Composite properties is not yet supported." );
         }
         String propName = assoc.getInfo().getName();
-        Entity entity = (Entity)target.info().getProperty( propName ).getValue( target );
+        Entity entity = ((Association)target.info().getProperty( propName ).get( target )).get();
         return entity != null && children[0].evaluate( entity );
     }
     

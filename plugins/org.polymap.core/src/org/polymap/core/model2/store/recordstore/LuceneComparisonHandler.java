@@ -55,6 +55,7 @@ class LuceneComparisonHandler
         if (predicate instanceof PropertyNotEquals) {
             Query query = builder.valueCoders.searchQuery( new QueryExpression.Equal( fieldname, value ) ); 
             BooleanQuery result = new BooleanQuery();
+            result.add( LuceneQueryBuilder.ALL, BooleanClause.Occur.SHOULD );
             result.add( query, BooleanClause.Occur.MUST_NOT );
             return result;
         }

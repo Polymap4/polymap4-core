@@ -79,4 +79,10 @@ final class ConstraintsPropertyInterceptor<T>
         return delegate().createValue( initializer );
     }
 
+
+    @Override
+    public String toString() {
+        return delegate().toString();
+    }
+
 }

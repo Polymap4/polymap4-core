@@ -30,8 +30,6 @@ import org.polymap.core.model2.PropertyBase;
 import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.PropertyInfo;
-import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.LockedLazyInit;
 
 /**
  * 
@@ -46,7 +44,7 @@ public final class CompositeInfoImpl
     /** Maps property name into PropertyInfo. */
     private Map<String,PropertyInfo>        propertyInfos = new HashMap();
     
-    private Lazy<Composite>                 template = new LockedLazyInit();
+//    private Lazy<Composite>                 template = new LockedLazyInit();
     
     
     public CompositeInfoImpl( Class<? extends Composite> compositeClass ) {
@@ -56,6 +54,24 @@ public final class CompositeInfoImpl
         }
         catch (Exception e) {
             throw new ModelRuntimeException( e );
+        }
+    }
+
+    /**
+     * Recursivly init {@link #propertyInfos} of the given instance and all complex
+     * propertyInfos.
+     */
+    protected void initPropertyInfos() throws Exception {
+        Class superClass = compositeClass;
+        while (superClass != null) {
+            for (Field field : superClass.getDeclaredFields()) {
+                if (PropertyBase.class.isAssignableFrom( field.getType() )) {
+                    
+                    PropertyInfoImpl info = new PropertyInfoImpl( field );
+                    propertyInfos.put( info.getName(), info );
+                }
+            }
+            superClass = superClass.getSuperclass();
         }
     }
 
@@ -124,24 +140,6 @@ public final class CompositeInfoImpl
     @Override
     public boolean isImmutable() {
         return compositeClass.getAnnotation( Immutable.class ) != null;
-    }
-
-    /**
-     * Recursivly init {@link #propertyInfos} of the given instance and all complex
-     * propertyInfos.
-     */
-    protected void initPropertyInfos() throws Exception {
-        Class superClass = compositeClass;
-        while (superClass != null) {
-            for (Field field : superClass.getDeclaredFields()) {
-                if (PropertyBase.class.isAssignableFrom( field.getType() )) {
-                    
-                    PropertyInfoImpl info = new PropertyInfoImpl( field );
-                    propertyInfos.put( info.getName(), info );
-                }
-            }
-            superClass = superClass.getSuperclass();
-        }
     }
 
 }

@@ -57,8 +57,8 @@ public abstract class ComplexModelTest
 
 
     public void testAssociation() {
-        Company company = uow.createEntity( Company.class, null, null );
-        Employee employee = uow.createEntity( Employee.class, null, null );
+        Company company = uow.createEntity( Company.class, null );
+        Employee employee = uow.createEntity( Employee.class, null );
         company.chief.set( employee );
         
         Employee chief = company.chief.get();
@@ -76,7 +76,7 @@ public abstract class ComplexModelTest
     
 
     public void testCompositeProperty() {
-        Company company = uow.createEntity( Company.class, null, null );
+        Company company = uow.createEntity( Company.class, null );
         
         Address address = company.address.get();
         assertNull( address );
@@ -106,7 +106,7 @@ public abstract class ComplexModelTest
 
     
     public void testPrimitiveCollection() {
-        Company company = uow.createEntity( Company.class, null, null );
+        Company company = uow.createEntity( Company.class, null );
 
         company.docs.add( "doc1" );
         log.info( "Company: " + company );
@@ -124,7 +124,7 @@ public abstract class ComplexModelTest
     
     
     public void testCompositeCollection() {
-        Company company = uow.createEntity( Company.class, null, null );
+        Company company = uow.createEntity( Company.class, null );
 
         assertEquals( 0, company.moreAddresses.size() );
 

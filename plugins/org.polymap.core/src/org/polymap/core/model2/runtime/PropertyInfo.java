@@ -20,6 +20,7 @@ import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.NameInStore;
 import org.polymap.core.model2.Property;
+import org.polymap.core.model2.PropertyBase;
 
 /**
  * Provides runtime information about a {@link Property}.
@@ -85,9 +86,10 @@ public interface PropertyInfo<T> {
      */
     public int getMaxOccurs();
     
-    
-    public T getValue( Composite composite );
-    
-    public void setValue( Composite composite, T value );
+    /**
+     * Provides access to the {@link Property} instance of a given Composite. Allows
+     * to get/set the value of the property.
+     */
+    public PropertyBase<T> get( Composite composite );
     
 }

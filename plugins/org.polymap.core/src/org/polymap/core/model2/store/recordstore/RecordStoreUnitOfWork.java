@@ -71,7 +71,7 @@ public class RecordStoreUnitOfWork
     public <T extends Entity> CompositeState loadEntityState( Object id, Class<T> entityClass ) {
         try {
             IRecordState state = store.get( id );
-            return new RecordCompositeState( state );
+            return state != null ? new RecordCompositeState( state ) : null;
         }
         catch (Exception e) {
             throw new ModelRuntimeException( e );
@@ -123,6 +123,7 @@ public class RecordStoreUnitOfWork
 
     @Override
     public <T extends Entity> CompositeState adoptEntityState( Object state, Class<T> entityClass ) {
+        // XXX check if the state is valid
         return new RecordCompositeState( (IRecordState)state );
     }
 

@@ -29,6 +29,12 @@ import org.polymap.core.model2.runtime.UnitOfWork;
  */
 public interface StoreUnitOfWork {
 
+    /**
+     *
+     * @param id The identifier of the Entity.
+     * @param entityClass
+     * @return The {@link CompositeState}, or null if no entity exists for the given identifier. 
+     */
     public <T extends Entity> CompositeState loadEntityState( Object id, Class<T> entityClass );
 
     public <T extends Entity> CompositeState adoptEntityState( Object state, Class<T> entityClass );

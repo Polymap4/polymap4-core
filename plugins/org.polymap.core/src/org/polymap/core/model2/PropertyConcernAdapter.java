@@ -29,16 +29,24 @@ public abstract class PropertyConcernAdapter<T>
         return (Property<T>)delegate;
     }
 
+    @Override
     public T get() {
         return delegate().get();
     }
 
+    @Override
     public T createValue( ValueInitializer<T> initializer ) {
         return delegate().createValue( initializer );
     }
 
+    @Override
     public void set( T value ) {
         delegate().set( value );
     }
-    
+
+    @Override
+    public String toString() {
+        return delegate().toString();
+    }
+
 }

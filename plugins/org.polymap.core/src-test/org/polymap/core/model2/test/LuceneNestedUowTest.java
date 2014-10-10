@@ -19,7 +19,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.store.recordstore.RecordStoreAdapter;
-import org.polymap.core.runtime.recordstore.IRecordState;
 import org.polymap.core.runtime.recordstore.IRecordStore;
 import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
 
@@ -52,9 +51,4 @@ public class LuceneNestedUowTest
     }
 
     
-    protected Object stateId( Object state ) {
-        return ((IRecordState)state).id();    
-    }
-
-
 }

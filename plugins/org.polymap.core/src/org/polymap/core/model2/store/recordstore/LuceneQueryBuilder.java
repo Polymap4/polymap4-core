@@ -42,7 +42,7 @@ class LuceneQueryBuilder {
 
     private static Log log = LogFactory.getLog( LuceneQueryBuilder.class );
 
-    private static final Query          ALL = new MatchAllDocsQuery();
+    static final Query          ALL = new MatchAllDocsQuery();
 
     private static List<Class<? extends LuceneExpressionHandler>> handlers;
 

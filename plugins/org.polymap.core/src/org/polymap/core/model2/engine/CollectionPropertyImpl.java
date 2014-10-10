@@ -64,5 +64,10 @@ class CollectionPropertyImpl<T>
     public boolean add( T elm ) {
         return storeProp.add( elm );
     }
-    
+
+    @Override
+    public String toString() {
+        return "Property[name:" + getInfo().getName() + ",value=" + super.toString() + "]";
+    }
+
 }

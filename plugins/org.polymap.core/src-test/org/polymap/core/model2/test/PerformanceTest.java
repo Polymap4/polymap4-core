@@ -59,7 +59,7 @@ public abstract class PerformanceTest
         Timer timer = new Timer();
         int loops = 1000;
         for (int i=0; i<loops; i++) {
-            Employee employee = uow.createEntity( Employee.class, null, null );
+            Employee employee = uow.createEntity( Employee.class, null );
             employee.jap.set( i );
         }
         log.info( "Employees created: " + loops + " in " + timer.elapsedTime() + "ms" );

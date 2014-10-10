@@ -51,6 +51,7 @@ final class ConstraintsCollectionInterceptor<T>
 
     // Collection *****************************************
     
+    @Override
     public boolean add( T e ) {
         if (isImmutable) {
             throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
@@ -64,6 +65,7 @@ final class ConstraintsCollectionInterceptor<T>
         }
     }
 
+    @Override
     public boolean addAll( Collection<? extends T> c ) {
         if (isImmutable) {
             throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
@@ -77,6 +79,7 @@ final class ConstraintsCollectionInterceptor<T>
         }
     }
 
+    @Override
     public boolean remove( Object o ) {
         if (isImmutable) {
             throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
@@ -90,6 +93,7 @@ final class ConstraintsCollectionInterceptor<T>
         }
     }
 
+    @Override
     public boolean removeAll( Collection<?> c ) {
         if (isImmutable) {
             throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
@@ -103,6 +107,7 @@ final class ConstraintsCollectionInterceptor<T>
         }
     }
 
+    @Override
     public boolean retainAll( Collection<?> c ) {
         if (isImmutable) {
             throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
@@ -116,6 +121,7 @@ final class ConstraintsCollectionInterceptor<T>
         }
     }
 
+    @Override
     public Iterator<T> iterator() {
         if (!isImmutable) {
             return coll().iterator();
@@ -139,40 +145,54 @@ final class ConstraintsCollectionInterceptor<T>
         }
     }
 
+    @Override
     public int size() {
         return coll().size();
     }
 
+    @Override
     public boolean isEmpty() {
         return coll().isEmpty();
     }
 
+    @Override
     public boolean contains( Object o ) {
         return coll().contains( o );
     }
 
+    @Override
     public Object[] toArray() {
         return coll().toArray();
     }
 
+    @Override
     public <V> V[] toArray( V[] a ) {
         return coll().toArray( a );
     }
 
+    @Override
     public boolean containsAll( Collection<?> c ) {
         return coll().containsAll( c );
     }
 
+    @Override
     public void clear() {
         coll().clear();
     }
 
+    @Override
     public boolean equals( Object o ) {
         return coll().equals( o );
     }
 
+    @Override
     public int hashCode() {
         return coll().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return coll().toString();
     }
 
 }

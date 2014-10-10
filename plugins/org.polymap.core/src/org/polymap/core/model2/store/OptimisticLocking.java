@@ -16,7 +16,8 @@ package org.polymap.core.model2.store;
 
 import static java.util.Collections.singletonList;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -24,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.Entity;
-import org.polymap.core.model2.query.Query;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 
@@ -41,35 +41,24 @@ import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class OptimisticLocking
+        extends StoreDecorator
         implements StoreSPI {
 
     private static Log log = LogFactory.getLog( OptimisticLocking.class );
     
     private StoreRuntimeContext             context;
     
-    private StoreSPI                        store;
-    
     private ConcurrentMap<Object,Integer>   storeVersions = new ConcurrentHashMap( 256, 0.75f, 4 );
 
     
     public OptimisticLocking( StoreSPI store ) {
-        this.store = store;
+        super( store );
     }
 
     @Override
     public void init( @SuppressWarnings("hiding") StoreRuntimeContext context ) {
         store.init( context );
         this.context = context;
-    }
-
-    @Override
-    public void close() {
-        store.close();
-    }
-
-    @Override
-    public Object stateId( Object state ) {
-        return store.stateId( state );
     }
 
     @Override
@@ -85,38 +74,63 @@ public class OptimisticLocking
      * 
      */
     class OptimisticLockingSuow
+            extends UnitOfWorkDecorator
             implements StoreUnitOfWork {
     
-        protected StoreUnitOfWork               suow;
-
         protected ConcurrentMap<Object,Integer> loadedVersions = new ConcurrentHashMap( 256, 0.75f, 2 );
+        
+        private List<Entity>                    prepared;
 
         
         public OptimisticLockingSuow( StoreUnitOfWork suow ) {
-            this.suow = suow;
+            super( suow );
         }
 
+        
         @Override
         public void prepareCommit( Iterable<Entity> loaded ) throws Exception {
-            // check versions
+            // check only versions
+            prepared = new ArrayList( loadedVersions.size() );
             for (Entity entity : loaded) {
                 if (entity.status() == EntityStatus.MODIFIED || entity.status() == EntityStatus.REMOVED) {
                     Integer loadedVersion = loadedVersions.get( entity.id() );
-                    Integer newVersion = loadedVersion == null 
-                            ? new Integer( 1 ) 
-                            : new Integer( loadedVersion.intValue() + 1 );
-                            
-                    Integer storeVersion = storeVersions.put( entity.id(), newVersion );
+                    Integer storeVersion = storeVersions.get( entity.id() );
                     if (storeVersion != loadedVersion) {
-                        storeVersions.put( entity.id(), storeVersion );
                         throw new ConcurrentEntityModificationException( "Entity has been modified by another UnitOfWork: " + entity.id(), singletonList( entity ) );
                     }
+                    prepared.add( entity );
                 }
             }
-            //
+
+            // delegate
             suow.prepareCommit( loaded );
         }
 
+        
+        @Override
+        public void commit() {
+            assert prepared != null : "no prepareCommit() before commit()!";
+            
+            // check and set versions
+            for (Entity entity : prepared) {
+                Integer loadedVersion = loadedVersions.get( entity.id() );
+                Integer newVersion = loadedVersion == null 
+                        ? new Integer( 1 ) 
+                        : new Integer( loadedVersion.intValue() + 1 );
+
+                Integer storeVersion = storeVersions.put( entity.id(), newVersion );
+                if (storeVersion != loadedVersion) {
+                    storeVersions.put( entity.id(), storeVersion );
+                    throw new ConcurrentEntityModificationException( "Entity has been modified AFTER prepare(): " + entity.id(), singletonList( entity ) );
+                }
+            }
+            prepared = null;
+            
+            // delegate
+            suow.commit();
+        }
+
+        
         @Override
         public <T extends Entity> CompositeState loadEntityState( Object id, Class<T> entityClass ) {
             CompositeState result = suow.loadEntityState( id, entityClass );
@@ -137,35 +151,6 @@ public class OptimisticLocking
             return result;
         }
 
-        @Override
-        public <T extends Entity> CompositeState newEntityState( Object id, Class<T> entityClass ) {
-            return suow.newEntityState( id, entityClass );
-        }
-
-        @Override
-        public Collection<Object> executeQuery( Query query ) {
-            return suow.executeQuery( query );
-        }
-
-        @Override
-        public boolean evaluate( Object entityState, Object expression ) {
-            return suow.evaluate( entityState, expression );
-        }
-
-        @Override
-        public void commit() {
-            suow.commit();
-        }
-
-        @Override
-        public void close() {
-            suow.close();
-        }
-
-        @Override
-        public void rollback() {
-            suow.rollback();
-        }
     }
         
     

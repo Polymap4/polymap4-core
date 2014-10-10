@@ -67,7 +67,7 @@ public abstract class SimpleModelTest
 
 
     public void testProperties() throws Exception {    
-        Employee employee = uow.createEntity( Employee.class, null, null );
+        Employee employee = uow.createEntity( Employee.class, null );
         log.info( "Employee: id=" + employee.id() );
 //        assertEquals( employee.id(), "employee1" );
         log.info( "Employee: name=" + employee.name.get() );
@@ -108,7 +108,7 @@ public abstract class SimpleModelTest
     
     
     public void testDefaults() throws Exception {
-        Employee employee = uow.createEntity( Employee.class, null, null );
+        Employee employee = uow.createEntity( Employee.class, null );
         assertEquals( "", employee.defaultString.get() );        
         assertEquals( 0, (int)employee.jap.get() );
         assertEquals( "Ulli", employee.firstname.get() );
@@ -117,9 +117,9 @@ public abstract class SimpleModelTest
 
     public void testEnum() throws Exception {
         Employee employee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
-            public Employee initialize( Employee prototype ) throws Exception {
-                prototype.rating.set( Rating.good );
-                return prototype;
+            public Employee initialize( Employee proto ) throws Exception {
+                proto.rating.set( Rating.good );
+                return proto;
             }
         } );
         assertEquals( Rating.good, employee.rating.get() );
@@ -127,14 +127,14 @@ public abstract class SimpleModelTest
         uow.commit();
         
         UnitOfWork uow2 = repo.newUnitOfWork();
-        Employee employee2 = uow2.entity( Employee.class, employee.id() );
+        Employee employee2 = uow2.entityForState( Employee.class, employee.state() );
         assertEquals( Rating.good, employee2.rating.get() );
         assertSame( Rating.good, employee2.rating.get() );
     }
     
 
     public void testNullable() throws Exception {
-        Employee employee = uow.createEntity( Employee.class, null, null );
+        Employee employee = uow.createEntity( Employee.class, null );
         Exception thrown = null;
         try { 
             employee.jap.set( null ); 
@@ -153,7 +153,7 @@ public abstract class SimpleModelTest
     public void testCreateEmployees() throws Exception {
         // loop count greater than default query size of RecordStore
         for (int i=0; i<11; i++) {
-            Employee employee = uow.createEntity( Employee.class, null, null );
+            Employee employee = uow.createEntity( Employee.class, null );
             employee.jap.set( i );
         }
         // commit
@@ -174,7 +174,7 @@ public abstract class SimpleModelTest
 
     
     public void testMixinComputed() throws Exception {
-        Employee employee = uow.createEntity( Employee.class, null, null );
+        Employee employee = uow.createEntity( Employee.class, null );
         
         TrackableMixin trackable = employee.as( TrackableMixin.class );
         assertNotNull( trackable );
@@ -201,7 +201,7 @@ public abstract class SimpleModelTest
     
     
     public void testConcern() throws Exception {
-        Employee employee = uow.createEntity( Employee.class, null, null );
+        Employee employee = uow.createEntity( Employee.class, null );
 
         int getCount = InvocationCountConcern.getCount.get();
         int setCount = InvocationCountConcern.setCount.get();

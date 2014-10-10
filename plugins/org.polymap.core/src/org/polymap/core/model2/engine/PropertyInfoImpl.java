@@ -26,7 +26,6 @@ import org.polymap.core.model2.Computed;
 import org.polymap.core.model2.Immutable;
 import org.polymap.core.model2.MaxOccurs;
 import org.polymap.core.model2.NameInStore;
-import org.polymap.core.model2.Property;
 import org.polymap.core.model2.PropertyBase;
 import org.polymap.core.model2.Queryable;
 import org.polymap.core.model2.runtime.PropertyInfo;
@@ -111,44 +110,17 @@ public class PropertyInfoImpl<T>
         return (T)DefaultValues.valueOf( field );
     }
 
-    
     @Override
-    public T getValue( Composite composite ) {
-        try {
-            if (!field.isAccessible()) { 
-                field.setAccessible( true ); 
-            }
-            PropertyBase<T> prop = (PropertyBase<T>)field.get( composite );
-            if (prop instanceof Property) {
-                return ((Property<T>)prop).get();
-            }
-            else if (prop instanceof Association) {
-                return (T)((Association)prop).get();
-            }
-            else if (prop instanceof CollectionProperty) {
-                throw new IllegalStateException( "Getting the value of a CollectionProperty via PropertyInfo is not supported.");
-            }
-            else {
-                throw new RuntimeException( "Unknown Property type: " + prop.getClass().toString() );
-            }
+    public PropertyBase<T> get( Composite composite ) {
+        if (!field.isAccessible()) { 
+            field.setAccessible( true ); 
         }
-        catch (Exception e) {
+        try {
+            return (PropertyBase<T>)field.get( composite );
+        }
+        catch (IllegalAccessException e) {
             throw new RuntimeException( e );
         }
     }
-
     
-    @Override
-    public void setValue( Composite composite, T value ) {
-        try {
-            if (!field.isAccessible()) {
-                field.setAccessible( true );
-            }
-            ((Property<T>)field.get( composite )).set( value );
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
-    }
-
 }

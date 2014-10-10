@@ -15,6 +15,7 @@
 package org.polymap.core.model2.query.grammar;
 
 import org.polymap.core.model2.Composite;
+import org.polymap.core.model2.Property;
 import org.polymap.core.model2.engine.TemplateProperty;
 
 /**
@@ -35,7 +36,7 @@ public class PropertyNotEquals<T>
             throw new UnsupportedOperationException( "Composite properties is not yet supported." );
         }
         String propName = prop.getInfo().getName();
-        Object propValue = target.info().getProperty( propName ).getValue( target );
+        Object propValue = ((Property)target.info().getProperty( propName ).get( target )).get();
         return !value.equals( propValue );
     }
     

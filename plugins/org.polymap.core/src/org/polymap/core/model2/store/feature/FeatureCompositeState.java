@@ -56,6 +56,7 @@ class FeatureCompositeState
 
     
     protected FeatureCompositeState( Feature feature, ComplexAttribute state, FeatureStoreUnitOfWork suow ) {
+        assert feature != null && state != null && suow != null;
         this.feature = feature;
         this.state = state;
         this.suow = suow;
@@ -109,6 +110,7 @@ class FeatureCompositeState
     
     
         protected PropertyImpl( PropertyInfo info ) {
+            assert info != null;
             this.info = info;
         }
     

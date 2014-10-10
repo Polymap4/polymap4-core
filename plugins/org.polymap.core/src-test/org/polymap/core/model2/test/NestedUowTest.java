@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.Iterables;
 import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.runtime.EntityRepository;
+import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.core.model2.runtime.UnitOfWork;
 import org.polymap.core.model2.runtime.ValueInitializer;
 
@@ -55,38 +56,111 @@ public abstract class NestedUowTest
         repo.close();
     }
 
-
+    
+    /**
+     * 
+     */
     public void testModification() throws Exception {
-        Employee employee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+        Employee loadedEmployee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
             public Employee initialize( Employee prototype ) throws Exception {
-                prototype.name.set( "name" );
+                prototype.name.set( "loaded" ); 
                 return prototype;
             }
         });
+        Employee modifiedEmployee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+            public Employee initialize( Employee prototype ) throws Exception {
+                prototype.name.set( "init" ); 
+                return prototype;
+            }
+        });
+        uow.commit();
+
+        Employee createdEmployee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+            public Employee initialize( Employee prototype ) throws Exception {
+                prototype.name.set( "created" );
+                return prototype;
+            }
+        });
+        modifiedEmployee.name.set( "modified" );
         
         UnitOfWork nested = uow.newUnitOfWork();
         
         // check nested
-        Employee employee2 = nested.entity( Employee.class, employee.id() );
-        assertEquals( "name", employee2.name.get() );
+        Employee nestedLoaded = nested.entity( Employee.class, loadedEmployee.id() );
+        assertEquals( "loaded", nestedLoaded.name.get() );
+        assertEquals( EntityStatus.LOADED, nestedLoaded.status() );
+
+        Employee nestedCreated = nested.entity( Employee.class, createdEmployee.id() );
+        assertEquals( "created", nestedCreated.name.get() );
+        assertEquals( EntityStatus.LOADED, nestedCreated.status() );
+
+        Employee nestedModified = nested.entity( Employee.class, modifiedEmployee.id() );
+        assertEquals( "modified", nestedModified.name.get() );
+        assertEquals( EntityStatus.LOADED, nestedModified.status() );
 
         // modify nested
-        employee2.name.set( "nested" );
-        assertEquals( "nested", employee2.name.get() );
+        nestedLoaded.name.set( "nestedLoaded" ); assertEquals( "nestedLoaded", nestedLoaded.name.get() );
+        nestedCreated.name.set( "nestedCreated" ); assertEquals( "nestedCreated", nestedCreated.name.get() );
+        nestedModified.name.set( "nestedModified" ); assertEquals( "nestedModified", nestedModified.name.get() );
+
+        Employee innerCreated = nested.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+            public Employee initialize( Employee prototype ) throws Exception {
+                prototype.name.set( "innerCreated" );
+                return prototype;
+            }
+        });
+        assertEquals( EntityStatus.CREATED, innerCreated.status() );
         
         // check parent
-        assertEquals( "name", employee.name.get() );
-        Employee employee3 = uow.entity( Employee.class, employee.id() );
-        assertEquals( "name", employee3.name.get() );
+        assertEquals( EntityStatus.LOADED, loadedEmployee.status() );
+        assertEquals( EntityStatus.CREATED, createdEmployee.status() );
+        assertEquals( EntityStatus.MODIFIED, modifiedEmployee.status() );
+        
+        assertEquals( "loaded", loadedEmployee.name.get() );
+        assertEquals( "created", createdEmployee.name.get() );
+        assertEquals( "modified", modifiedEmployee.name.get() );
+
+        assertEquals( "loaded", uow.entity( Employee.class, loadedEmployee.id() ).name.get() );
+        assertEquals( "created", uow.entity( Employee.class, createdEmployee.id() ).name.get() );
+        assertEquals( "modified", uow.entity( Employee.class, modifiedEmployee.id() ).name.get() );
+        assertNull( uow.entity( Employee.class, innerCreated.id() ) );
         
         // commit nested
         nested.commit();
 
         // check parent again
-        assertEquals( "nested", employee3.name.get() );        
+        assertEquals( EntityStatus.MODIFIED, loadedEmployee.status() );
+        assertEquals( EntityStatus.CREATED, createdEmployee.status() );
+        assertEquals( EntityStatus.MODIFIED, modifiedEmployee.status() );
+
+        assertEquals( "nestedLoaded", loadedEmployee.name.get() );
+        assertEquals( "nestedCreated", createdEmployee.name.get() );
+        assertEquals( "nestedModified", modifiedEmployee.name.get() );
+
+        assertEquals( "nestedLoaded", uow.entity( Employee.class, loadedEmployee.id() ).name.get() );
+        assertEquals( "nestedCreated", uow.entity( Employee.class, createdEmployee.id() ).name.get() );
+        assertEquals( "nestedModified", uow.entity( Employee.class, modifiedEmployee.id() ).name.get() );
+        assertEquals( "innerCreated", uow.entity( Employee.class, innerCreated.id() ).name.get() );
+        
+        // check isolation
+        UnitOfWork uow2 = repo.newUnitOfWork();
+        assertEquals( "loaded", uow2.entity( Employee.class, loadedEmployee.id() ).name.get() );
+        assertEquals( "init", uow2.entity( Employee.class, modifiedEmployee.id() ).name.get() );
+        
+        // commit parent
+        uow.commit();
+
+        uow2 = repo.newUnitOfWork();
+        assertEquals( "nestedLoaded", uow2.entity( Employee.class, loadedEmployee.id() ).name.get() );
+        assertEquals( "nestedCreated", uow2.entity( Employee.class, createdEmployee.id() ).name.get() );
+        assertEquals( "nestedModified", uow2.entity( Employee.class, modifiedEmployee.id() ).name.get() );
+        assertEquals( "innerCreated", uow2.entity( Employee.class, innerCreated.id() ).name.get() );
     }
     
 
+    /**
+     * 
+     */
     public void testQuery() throws Exception {
         Employee parentEmployee = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
             public Employee initialize( Employee prototype ) throws Exception {

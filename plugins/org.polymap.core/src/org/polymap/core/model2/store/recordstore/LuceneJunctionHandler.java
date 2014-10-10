@@ -62,6 +62,7 @@ public class LuceneJunctionHandler
         else if (expression instanceof Negation) {
             Query arg = builder.processExpression( ((Negation)expression).children[0], resultType );
             BooleanQuery result = new BooleanQuery();
+            result.add( LuceneQueryBuilder.ALL, BooleanClause.Occur.SHOULD );
             result.add( arg, BooleanClause.Occur.MUST_NOT );
             return result;
         }

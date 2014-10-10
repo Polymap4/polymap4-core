@@ -112,7 +112,9 @@ public class UnitOfWorkImpl
     protected UnitOfWorkImpl( EntityRepositoryImpl repo, StoreUnitOfWork suow ) {
         this.repo = repo;
         this.storeUow = suow;
-        
+        assert repo != null : "repo must not be null.";
+        assert suow != null : "suow must not be null.";
+
         this.loaded = repo.getConfig().newCache();
         this.loadedMixins = repo.getConfig().newCache();
         this.modified = new ConcurrentHashMap( 1024, 0.75f, 4 );
@@ -146,7 +148,7 @@ public class UnitOfWorkImpl
 
 
     @Override
-    public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T> initializer ) {
+    public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T>... initializers ) {
         // build id; don't depend on store's ability to deliver id for newly created state
         id = id != null ? id : entityClass.getSimpleName() + "." + idCount.getAndIncrement();
 
@@ -164,8 +166,10 @@ public class UnitOfWorkImpl
         
         // initializer
         try {
-            if (initializer != null) {
-                initializer.initialize( result );
+            if (initializers != null) {
+                for (ValueInitializer<T> initializer : initializers) {
+                    initializer.initialize( result );
+                }
             }
         }
         catch (Exception e) {
@@ -184,10 +188,10 @@ public class UnitOfWorkImpl
         T result = (T)loaded.get( id, new EntityCacheLoader() {
             public Entity load( Object key ) throws RuntimeException {
                 CompositeState state = storeUow.loadEntityState( id, entityClass );
-                return repo.buildEntity( state, entityClass, UnitOfWorkImpl.this );
+                return state != null ? repo.buildEntity( state, entityClass, UnitOfWorkImpl.this ) : null;
             }
         });
-        return result.status() != EntityStatus.REMOVED ? result : null;
+        return result != null && result.status() != EntityStatus.REMOVED ? result : null;
     }
 
 
@@ -202,7 +206,7 @@ public class UnitOfWorkImpl
         if (modified.containsKey( id )) {
             throw new RuntimeException( "Entity is already modified in this UnitOfWork." );
         }
-        // load new
+        // build Entity instance
         return (T)loaded.get( id, new EntityCacheLoader() {
             public Entity load( Object key ) throws RuntimeException {
                 return repo.buildEntity( compositeState, entityClass, UnitOfWorkImpl.this );
@@ -330,7 +334,7 @@ public class UnitOfWorkImpl
             return new UnitOfWorkNested( repo, (CloneCompositeStateSupport)storeUow, this );
         }
         else {
-            throw new UnsupportedOperationException( "The current store backend does not support cloning states (nested UnitOfWork)." );
+            throw new UnsupportedOperationException( "The current store backend does not support cloning states (nested UnitOfWork): " + storeUow );
         }
     }
 

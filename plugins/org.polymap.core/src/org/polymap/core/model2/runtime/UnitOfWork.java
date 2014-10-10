@@ -43,24 +43,24 @@ import org.polymap.core.model2.store.StoreSPI;
 public interface UnitOfWork {
 
     /**
-     * Builds an {@link Entity} representation for the given state and assigns it
+     * Builds an {@link Entity} instance for the given state and assigns it
      * to this {@link UnitOfWork}.
      * 
      * @param entityClass The type of the entity to build.
      * @param state The state of the entity
      * @param <T> The type of the entity to build.
-     * @return A newly created entity or a previously created instance.
+     * @return A newly created {@link Entity} instance or a previously created instance.
      */
     public <T extends Entity> T entityForState( Class<T> entityClass, Object state );
 
 
     /**
-     * Finds the {@link Entity} with the given type and identity.
+     * Finds the {@link Entity} with the given identifier and type.
      * 
      * @param entityClass The type of the entity to find.
-     * @param id The identity of the entity to find.
+     * @param id The identifier of the entity to find.
      * @param <T> The type of the entity to build.
-     * @return A newly created {@link Entity} instance or a previously created,
+     * @return A newly loaded {@link Entity} instance or a previously created,
      *         cached instance. Returns null if no Entity exists for the given id.
      *         Also returns null if the Entity was {@link #removeEntity(Entity)
      *         removed} for this UnitOfWork.
@@ -79,12 +79,12 @@ public interface UnitOfWork {
      * @param id The identifier of the newly created entity, or null if a new
      *        identifier is to be created by the store automatically. Avoid using this
      *        as most backend stores do not support this!
-     * @param initializer Allows to init properties, especially properties that must
+     * @param initializers Allows to init properties, especially properties that must
      *        have a value because they are non-{@link Nullable} and does not a
      *        default value.
      * @return Newly created {@link Entity}.
      */
-    public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T> initializer );
+    public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T>... initializers );
 
 
     /**

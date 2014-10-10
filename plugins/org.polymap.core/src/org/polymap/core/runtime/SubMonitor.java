@@ -35,6 +35,8 @@ public class SubMonitor
 
     private String      mainTaskName;
     
+    private int         worked = 0;
+    
     
     public SubMonitor( IProgressMonitor monitor, int ticks ) {
         super( monitor, ticks );
@@ -52,4 +54,14 @@ public class SubMonitor
         super.subTask( mainTaskName + " - " + name );
     }
     
+    
+    @Override
+    public void worked( int work ) {
+        worked += work;
+        if ((++worked % 500) == 0) {
+            super.worked( 500 );
+            setTaskName( "Objekte: " + worked );
+        }
+    }
+
 }

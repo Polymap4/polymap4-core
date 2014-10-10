@@ -160,6 +160,7 @@ public class FeatureStoreUnitOfWork
         else {
             log.trace( "loadEntityState(): Feature state found." );
         }
+        assert feature != null : "Possible BUG: No feature found for id: " + id;
         return new FeatureCompositeState( feature, this );
     }
 
