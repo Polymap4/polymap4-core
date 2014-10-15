@@ -100,12 +100,12 @@ public class LuceneRecordQuery
             }
             Sort sort = new Sort( new SortField( sortKey, sortType, getSortOrder() == DESC ) );
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults(), sort );
-            log.trace( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
+            log.debug( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
         else {
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults() );
-            log.trace( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
+            log.debug( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
     }

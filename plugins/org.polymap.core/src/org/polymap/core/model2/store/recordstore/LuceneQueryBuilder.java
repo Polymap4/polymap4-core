@@ -52,6 +52,7 @@ class LuceneQueryBuilder {
         handlers.add( LuceneComparisonHandler.class );
         handlers.add( LuceneJunctionHandler.class );
         handlers.add( LuceneAssociationHandler.class );
+        handlers.add( LuceneIdHandler.class );
     }
 
     

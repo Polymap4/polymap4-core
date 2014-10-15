@@ -48,6 +48,10 @@ public abstract class SimpleQueryTest
     protected EntityRepository      repo;
 
     protected UnitOfWork            uow;
+
+    private Employee                ulli;
+
+    private Employee                az;
     
 
     public SimpleQueryTest( String name ) {
@@ -81,7 +85,7 @@ public abstract class SimpleQueryTest
 
     
     protected void createEntities() {
-        uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+        ulli = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
             public Employee initialize( Employee proto ) throws Exception {
                 proto.firstname.set( "Ulli" );
                 proto.name.set( "Philipp" );
@@ -89,7 +93,7 @@ public abstract class SimpleQueryTest
                 return proto;
             }
         });
-        uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
+        az = uow.createEntity( Employee.class, null, new ValueInitializer<Employee>() {
             public Employee initialize( Employee proto ) throws Exception {
                 proto.firstname.set( "AZ" );
                 proto.name.set( "Zimmermann" );
@@ -111,6 +115,12 @@ public abstract class SimpleQueryTest
         assertEquals( 1, rs.size() );
         assertEquals( 1, Iterables.size( rs ) );
 
+        // id
+        rs = uow.query( Employee.class ).where( Expressions.id( ulli ) ).execute();
+        assertEquals( 1, rs.size() );
+        assertEquals( 1, Iterables.size( rs ) );
+        assertEquals( "Ulli", Iterables.getOnlyElement( rs ).firstname.get() );
+        
         // matches
         rs = uow.query( Employee.class ).where( matches( wanted.firstname, "Ul*" ) ).execute();
         assertEquals( 1, rs.size() );

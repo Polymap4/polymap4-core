@@ -14,6 +14,10 @@
  */
 package org.polymap.core.model2.query;
 
+import java.util.Iterator;
+
+import com.google.common.collect.Iterators;
+
 import org.polymap.core.model2.Entity;
 
 /**
@@ -24,5 +28,18 @@ import org.polymap.core.model2.Entity;
 public interface ResultSet<T extends Entity>
         extends Iterable<T> {
 
+    public static final ResultSet EMPTY = new ResultSet() {
+        @Override
+        public Iterator iterator() {
+            return Iterators.emptyIterator();
+        }
+        @Override
+        public int size() {
+            return 0;
+        }
+    };
+    
+    // ****************************************************
+    
     public int size();
 }

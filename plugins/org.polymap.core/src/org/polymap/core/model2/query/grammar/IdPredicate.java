@@ -27,11 +27,13 @@ public class IdPredicate<T extends Entity>
 
     public Object           id;
 
+    
     public IdPredicate( Object id ) {
         assert id != null;
         this.id = id;
     }
 
+    
     @Override
     public boolean evaluate( Composite target ) {
         return target != null && ((Entity)target).id().equals( id );

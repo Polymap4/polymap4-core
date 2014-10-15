@@ -154,8 +154,7 @@ public final class LuceneRecordStore
      * @param clean
      * @throws IOException
      */
-    public LuceneRecordStore( File indexDir, boolean clean ) 
-    throws IOException {
+    public LuceneRecordStore( File indexDir, boolean clean ) throws IOException {
         if (!indexDir.exists()) {
             indexDir.mkdirs();
         }
@@ -191,8 +190,7 @@ public final class LuceneRecordStore
      * 
      * @throws IOException
      */
-    public LuceneRecordStore() 
-    throws IOException {
+    public LuceneRecordStore() throws IOException {
         directory = new RAMDirectory();
         log.info( "    RAMDirectory: " + Arrays.asList( directory.listAll() ) );
         open( true );
@@ -628,7 +626,6 @@ public final class LuceneRecordStore
             public boolean tryLock() {
                 return indexReader.tryIncRef();
             }
-
             @Override
             public boolean tryLock( long time, TimeUnit unit ) throws InterruptedException {
                 throw new RuntimeException( "not yet implemented." );
