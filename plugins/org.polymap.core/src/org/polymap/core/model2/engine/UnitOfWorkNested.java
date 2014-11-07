@@ -75,13 +75,17 @@ public class UnitOfWorkNested
                 // be faster and less memory consuming but also would introduce a lot more complexity;
                 // maybe I will later investigate a global copy-on-write cache for Entities
                 T parentEntity = parent.entity( entityClass, id );
-                CompositeState parentState = repo.contextOfEntity( parentEntity ).getState();
-                
-                CompositeState state = storeUow().cloneEntityState( parentState );
-                return repo.buildEntity( state, entityClass, UnitOfWorkNested.this );
+                if (parentEntity == null) {
+                    return null;
+                }
+                else {
+                    CompositeState parentState = repo.contextOfEntity( parentEntity ).getState();
+                    CompositeState state = storeUow().cloneEntityState( parentState );
+                    return repo.buildEntity( state, entityClass, UnitOfWorkNested.this );
+                }
             }
         });
-        return result.status() != EntityStatus.REMOVED ? result : null;
+        return result != null && result.status() != EntityStatus.REMOVED ? result : null;
     }
 
 

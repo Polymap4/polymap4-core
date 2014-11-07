@@ -144,6 +144,7 @@ public class EntityRepositoryImpl
 
     
     protected EntityRuntimeContextImpl contextOfEntity( Entity entity ) {
+        assert entity != null;
         try {
             return (EntityRuntimeContextImpl)InstanceBuilder.contextField.get( entity );
         }

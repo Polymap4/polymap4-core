@@ -144,15 +144,17 @@ public class DefaultFeatureTableColumn
         return sortable;
     }
     
-    public void setSortable( boolean sortable ) {
+    public DefaultFeatureTableColumn setSortable( boolean sortable ) {
         this.sortable = sortable;
+        return this;
     }
 
     @Override
-    public void sort( int dir ) {
+    public DefaultFeatureTableColumn sort( int dir ) {
         assert viewerColumn != null : "Add this column to the viewer before calling sort()!";
         Comparator<IFeatureTableElement> comparator = newComparator( dir );
-        viewer.sortContent( comparator, dir, viewerColumn.getColumn() );        
+        viewer.sortContent( comparator, dir, viewerColumn.getColumn() );
+        return this;
     }
     
     

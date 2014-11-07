@@ -49,6 +49,6 @@ public interface IFeatureTableColumn {
      *
      * @param dir Sort direction: {@link SWT#UP} or {@link SWT#DOWN}.
      */
-    void sort( int dir );
+    public IFeatureTableColumn sort( int dir );
 
 }

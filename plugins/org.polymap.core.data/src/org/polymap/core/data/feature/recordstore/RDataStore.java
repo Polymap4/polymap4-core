@@ -168,7 +168,7 @@ public class RDataStore
     
     public void dispose() {
         if (store != null) {
-            store.close();
+            // don't close store as it might be used by others
             store = null;
             listeners = null;
             schemas = null;

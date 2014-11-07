@@ -149,6 +149,7 @@ public class UnitOfWorkImpl
 
     @Override
     public <T extends Entity> T createEntity( Class<T> entityClass, Object id, ValueInitializer<T>... initializers ) {
+        checkOpen();
         // build id; don't depend on store's ability to deliver id for newly created state
         id = id != null ? id : entityClass.getSimpleName() + "." + idCount.getAndIncrement();
 
@@ -203,7 +204,7 @@ public class UnitOfWorkImpl
         final Object id = compositeState.id();
         
         // modified
-        if (modified.containsKey( id )) {
+        if (modified.containsKey( id ) && state != compositeState.getUnderlying()) {
             throw new RuntimeException( "Entity is already modified in this UnitOfWork." );
         }
         // build Entity instance
@@ -238,6 +239,7 @@ public class UnitOfWorkImpl
 
     @Override
     public <T extends Entity> Query<T> query( final Class<T> entityClass ) {
+        checkOpen();
         return new Query( entityClass ) {
             public ResultSet<T> execute() {
                 // we actual execute the query just once against the backend store, result ids
@@ -330,6 +332,7 @@ public class UnitOfWorkImpl
 
     @Override
     public UnitOfWork newUnitOfWork() {
+        checkOpen();
         if (storeUow instanceof CloneCompositeStateSupport) {
             return new UnitOfWorkNested( repo, (CloneCompositeStateSupport)storeUow, this );
         }
@@ -341,6 +344,7 @@ public class UnitOfWorkImpl
 
     @Override
     public void prepare() throws IOException, ConcurrentEntityModificationException {
+        checkOpen();
         try {
             prepareResult = null;
             storeUow.prepareCommit( modified.values() );
@@ -363,6 +367,7 @@ public class UnitOfWorkImpl
 
     @Override
     public void commit() throws ModelRuntimeException {
+        checkOpen();
         // prepare if not yet done
         if (prepareResult == null) {
             try {
@@ -392,6 +397,7 @@ public class UnitOfWorkImpl
 
     @Override
     public void rollback() throws ModelRuntimeException {
+        checkOpen();
         // rollback store
         storeUow.rollback();
         prepareResult = null;
@@ -425,7 +431,9 @@ public class UnitOfWorkImpl
 
     
     protected final void checkOpen() throws ModelRuntimeException {
-        assert isOpen() : "UnitOfWork is closed.";
+        if (!isOpen()) {
+            throw new IllegalStateException( "UnitOfWork is closed." );
+        }
     }
     
     

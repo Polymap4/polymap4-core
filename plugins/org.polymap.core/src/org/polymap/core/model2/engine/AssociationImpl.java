@@ -59,8 +59,7 @@ class AssociationImpl<T extends Entity>
     
     @Override
     public void set( T value ) {
-        Object id = value.id();
-        storeProp.set( id );
+        storeProp.set( value != null ? value.id() : null );
     }
 
 

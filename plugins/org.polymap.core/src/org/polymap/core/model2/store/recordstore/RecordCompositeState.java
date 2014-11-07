@@ -128,10 +128,15 @@ class RecordCompositeState
         }
 
         public void set( Object value ) {
-            if (value instanceof Enum) {
-                value = ((Enum)value).toString();
+            if (value == null) {
+                state.remove( key() );
             }
-            state.put( key(), value );
+            else if (value instanceof Enum) {
+                state.put( key(), ((Enum)value).toString() );
+            }
+            else {
+                state.put( key(), value );
+            }
         }
 
         public Object createValue() {
