@@ -102,14 +102,14 @@ public class LogConcern
 
     @Override
     public Object[] toArray() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        log( "toArray" );
+        return super.toArray();
     }
 
     @Override
     public Object[] toArray( Object[] a ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        log( "toArray" );
+        return super.toArray( a );
     }
 
     @Override

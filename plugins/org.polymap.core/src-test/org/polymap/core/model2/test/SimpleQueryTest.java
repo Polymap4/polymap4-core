@@ -20,13 +20,13 @@ import static org.polymap.core.model2.query.Expressions.matches;
 import static org.polymap.core.model2.query.Expressions.not;
 import static org.polymap.core.model2.query.Expressions.notEq;
 import static org.polymap.core.model2.query.Expressions.or;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.Iterables;
-
 import org.polymap.core.model2.query.Expressions;
 import org.polymap.core.model2.query.ResultSet;
 import org.polymap.core.model2.query.grammar.BooleanExpression;
@@ -71,7 +71,7 @@ public abstract class SimpleQueryTest
     public void testCommitted() throws Exception {
         createEntities();
         uow.commit();
-        doQueries();
+        doTestQueries();
     }
 
     
@@ -80,7 +80,19 @@ public abstract class SimpleQueryTest
      */
     public void testUncommitted() throws Exception {
         createEntities();
-        doQueries();
+        doTestQueries();
+    }
+
+    
+    public void testEqual() throws Exception {
+        createEntities();
+
+        ResultSet<Employee> rs = uow.query( Employee.class ).execute();
+        assertEquals( rs, rs );
+        
+//        ArrayList<Employee> copy = Lists.newArrayList( rs );
+//        assertEquals( copy, rs );
+//        assertEquals( rs, copy );
     }
 
     
@@ -103,7 +115,7 @@ public abstract class SimpleQueryTest
     }
     
     
-    protected void doQueries() {
+    protected void doTestQueries() {
         // all
         ResultSet<Employee> rs = uow.query( Employee.class ).execute();
         assertEquals( 2, rs.size() );

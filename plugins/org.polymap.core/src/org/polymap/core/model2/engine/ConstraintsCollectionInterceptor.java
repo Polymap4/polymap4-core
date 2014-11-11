@@ -40,6 +40,29 @@ final class ConstraintsCollectionInterceptor<T>
     }
 
     @Override
+    public boolean equals( Object o ) {
+        if (o instanceof CollectionProperty) {
+            return getInfo() == ((CollectionProperty)o).getInfo();
+        }
+        else if (o instanceof Collection) {
+            return ((Collection)o).containsAll( coll() );
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return coll().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return coll().toString();
+    }
+
+    @Override
     public T createElement( ValueInitializer<T> initializer ) {
         if (isImmutable) {
             throw new ModelRuntimeException( "Property is @Immutable: " + fullPropName() );
@@ -178,21 +201,6 @@ final class ConstraintsCollectionInterceptor<T>
     @Override
     public void clear() {
         coll().clear();
-    }
-
-    @Override
-    public boolean equals( Object o ) {
-        return coll().equals( o );
-    }
-
-    @Override
-    public int hashCode() {
-        return coll().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return coll().toString();
     }
 
 }

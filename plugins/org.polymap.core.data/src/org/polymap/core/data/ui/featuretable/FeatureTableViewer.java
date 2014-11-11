@@ -220,13 +220,14 @@ public class FeatureTableViewer
     }
 
 
-    public void addColumn( IFeatureTableColumn column ) {
+    public IFeatureTableColumn addColumn( IFeatureTableColumn column ) {
         column.setViewer( this );
         TableViewerColumn viewerColumn = column.newViewerColumn();
         viewerColumn.getColumn().setData( "name", column.getName() );
 
         available.put( column.getName(), column );
         displayed.put( column.getName(), column );
+        return column;
     }
 
     

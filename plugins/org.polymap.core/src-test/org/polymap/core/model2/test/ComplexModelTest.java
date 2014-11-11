@@ -14,14 +14,17 @@
  */
 package org.polymap.core.model2.test;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.UnitOfWork;
@@ -112,6 +115,12 @@ public abstract class ComplexModelTest
         log.info( "Company: " + company );
         assertEquals( 1, company.docs.size() );
         assertEquals( "doc1", Iterables.get( company.docs, 0 ) );
+        
+        // check equal()
+        assertTrue( company.docs.equals( company.docs ) );
+        ArrayList<String> copy = Lists.newArrayList( company.docs );
+        assertTrue( company.docs.equals( copy ) );
+        assertTrue( CollectionUtils.isEqualCollection( company.docs, copy ) );
 
         uow.commit();
 
@@ -120,6 +129,11 @@ public abstract class ComplexModelTest
         Collection<String> docs = company2.docs;
         assertEquals( 1, docs.size() );
         assertEquals( "doc1", Iterables.get( docs, 0 ) );
+
+        // equal()
+        assertTrue( company.docs.equals( company2.docs ) );
+//        assertEquals( copy, company2.docs );
+//        assertEquals( company2.docs, copy );
     }
     
     
