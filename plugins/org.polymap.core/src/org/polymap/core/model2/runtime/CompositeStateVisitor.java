@@ -56,11 +56,13 @@ public abstract class CompositeStateVisitor {
      */
     protected void visitProperty( Property prop ) { }
     
+    
     /**
      * Override this in order to visit {@link Property}s with a {@link Composite}
      * value.
      * 
-     * @return False specifies that the members of the composite will not be visited. 
+     * @return False specifies that the members of the composite will not be visited.
+     *         (default: true)
      */
     protected boolean visitCompositeProperty( Property prop ) { return true; }
 
@@ -70,11 +72,13 @@ public abstract class CompositeStateVisitor {
      */
     protected void visitCollectionProperty( CollectionProperty prop ) { }
 
+    
     /**
      * Override this in order to visit {@link CollectionProperty}s with
      * {@link Composite} values.
      * 
-     * @return False specifies that the members of the collection will not be visited. 
+     * @return False specifies that the members of the collection will not be
+     *         visited. (default: true)
      */
     protected boolean visitCompositeCollectionProperty( CollectionProperty prop ) { return true; }
 
