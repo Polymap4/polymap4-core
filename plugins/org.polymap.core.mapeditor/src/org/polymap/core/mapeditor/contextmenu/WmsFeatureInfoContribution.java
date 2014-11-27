@@ -15,6 +15,7 @@
 package org.polymap.core.mapeditor.contextmenu;
 
 import java.util.Collections;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -50,9 +51,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.runtime.BlockingReference2;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
-import org.polymap.core.runtime.WaitingAtomicReference;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -66,11 +67,11 @@ public class WmsFeatureInfoContribution
 
     private static Log log = LogFactory.getLog( WmsFeatureInfoContribution.class );
     
-    private ContextMenuSite         site;
+    private ContextMenuSite             site;
 
-    private WaitingAtomicReference<Menu> menuRef = new WaitingAtomicReference();
+    private BlockingReference2<Menu>    menuRef = new BlockingReference2();
 
-    private int                     menuIndex;
+    private int                         menuIndex;
 
 
     @Override
@@ -126,7 +127,7 @@ public class WmsFeatureInfoContribution
 
     @Override
     public void fill( Menu parent, int index ) {
-        this.menuRef.setAndNotify( parent );
+        this.menuRef.set( parent );
         this.menuIndex = index;
     }
 

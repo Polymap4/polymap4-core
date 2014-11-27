@@ -18,17 +18,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.qi4j.api.unitofwork.NoSuchEntityException;
+
 import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.IMap;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
-import org.polymap.core.runtime.WaitingAtomicReference;
+import org.polymap.core.runtime.BlockingReference2;
 
 import org.polymap.service.model.ServiceListComposite;
 
@@ -55,7 +57,7 @@ public class ServiceRepository
     
     // instance *******************************************
 
-    private WaitingAtomicReference<ServiceListComposite>   serviceList = new WaitingAtomicReference();
+    private BlockingReference2<ServiceListComposite>   serviceList = new BlockingReference2();
     
     private OperationSaveListener               operationListener;
     
@@ -66,7 +68,7 @@ public class ServiceRepository
         operationListener = new OperationSaveListener();
         OperationSupport.instance().addOperationSaveListener( operationListener );
 
-        serviceList.setAndNotify( uow.get( ServiceListComposite.class, "serviceList" ) );
+        serviceList.set( uow.get( ServiceListComposite.class, "serviceList" ) );
     }
     
     
@@ -79,7 +81,7 @@ public class ServiceRepository
 
     
     protected void legacyRemoveServices() {
-        ServiceListComposite tempServiceList = serviceList.get();        
+        ServiceListComposite tempServiceList = serviceList.waitAndGet();        
         Iterator<IProvidedService> it = tempServiceList.services().iterator();
         IProvidedService service = null;
         while (it.hasNext()) {

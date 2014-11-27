@@ -51,13 +51,17 @@ public class ImageHelper {
 
 	
     public static Image createColorRectImage( java.awt.Color color ) {
+        log.warn( "FIXME return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( color ) )" );
+        return null;
         // FIXME
-        throw new RuntimeException( "FIXME return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( color ) )" );
+        //throw new RuntimeException( "FIXME return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( color ) )" );
 	}
 	
 
     public static Image createColorRectImage( RGB rgb ) {
-        throw new RuntimeException( "FIXME return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( ColorHelper.RGB2Color( rgb ) ) )" );
+        // FIXME
+        log.warn( "FIXME return ResourceFactory.findImage( convertToSWT( createColorRectBufferedImage( color ) )" );
+        return null;
     }
 
 	
