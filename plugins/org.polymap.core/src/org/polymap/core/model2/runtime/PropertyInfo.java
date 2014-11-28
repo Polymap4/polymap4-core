@@ -90,6 +90,6 @@ public interface PropertyInfo<T> {
      * Provides access to the {@link Property} instance of a given Composite. Allows
      * to get/set the value of the property.
      */
-    public PropertyBase<T> get( Composite composite );
+    public <P extends PropertyBase<T>> P get( Composite composite );
     
 }

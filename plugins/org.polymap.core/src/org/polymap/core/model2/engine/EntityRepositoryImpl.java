@@ -20,11 +20,14 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+import java.lang.reflect.Field;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.Entity;
+import org.polymap.core.model2.query.Expressions;
 import org.polymap.core.model2.runtime.CompositeInfo;
 import org.polymap.core.model2.runtime.EntityRepository;
 import org.polymap.core.model2.runtime.EntityRepositoryConfiguration;
@@ -72,6 +75,18 @@ public class EntityRepositoryImpl
                 CompositeInfoImpl info = new CompositeInfoImpl( type );
                 infos.put( type, info );
 
+                // init static TYPE variable
+                try {
+                    Field field = type.getDeclaredField( "TYPE" );
+                    field.setAccessible( true );
+                    field.set( null, Expressions.template( type, this ) );
+                }
+                catch (NoSuchFieldException e) {
+                }
+                catch (SecurityException|IllegalAccessException e) {
+                    throw new ModelRuntimeException( e );
+                }
+                
                 // mixins
                 queue.addAll( info.getMixins() );
 

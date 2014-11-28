@@ -15,6 +15,8 @@
  */
 package org.polymap.core.data.ui.featuretable;
 
+import static com.google.common.base.Objects.firstNonNull;
+
 import java.util.Comparator;
 import java.util.Date;
 
@@ -223,12 +225,14 @@ public class DefaultFeatureTableColumn
     public Comparator<IFeatureTableElement> newComparator( int sortDir ) {
         Comparator<IFeatureTableElement> result = new Comparator<IFeatureTableElement>() {
             
-            private String  sortPropName = getName();            
-            private Class   propBinding = prop.getType().getBinding();
+            private String                  sortPropName = getName();
+            private ColumnLabelProvider     lp = getLabelProvider();
             
+            @Override
             public int compare( IFeatureTableElement elm1, IFeatureTableElement elm2 ) {
-                Object value1 = elm1.getValue( sortPropName );
-                Object value2 = elm2.getValue( sortPropName );
+                // the value from the elm or String from LabelProvider as fallback
+                Object value1 = firstNonNull( elm1.getValue( sortPropName ), lp.getText( elm1 ) );
+                Object value2 = firstNonNull( elm2.getValue( sortPropName ), lp.getText( elm2 ) );
                 
                 if (value1 == null && value2 == null) {
                     return 0;
@@ -239,13 +243,16 @@ public class DefaultFeatureTableColumn
                 else if (value2 == null) {
                     return 1;
                 }
-                else if (String.class.isAssignableFrom( propBinding )) {
+                else if (!value1.getClass().equals( value2.getClass() )) {
+                    throw new RuntimeException( "Column type do not match: " + value1.getClass().getSimpleName() + " - " + value1.getClass().getSimpleName() );
+                }
+                else if (value1 instanceof String) {
                     return ((String)value1).compareToIgnoreCase( (String)value2 );
                 }
-                else if (Number.class.isAssignableFrom( propBinding )) {
+                else if (value1 instanceof Number) {
                     return (int)(((Number)value1).doubleValue() - ((Number)value2).doubleValue());
                 }
-                else if (Date.class.isAssignableFrom( propBinding )) {
+                else if (value1 instanceof Date) {
                     return ((Date)value1).compareTo( (Date)value2 );
                 }
                 else {

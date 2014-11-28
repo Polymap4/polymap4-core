@@ -361,10 +361,18 @@ class DeferredFeatureContentProvider2
                 display.asyncExec( new Runnable() {
                     public void run() {
                         UICallBack.deactivate( UpdatorJob.class.getName() );
+                        if (sortedElements == null) {
+                            return;
+                        }
 //                        // XXX Fix the "empty" table problem
                         if (sortedElements.length > 0) {
-                            viewer.reveal( sortedElements[sortedElements.length-1] );
-                            viewer.reveal( sortedElements[0] );
+                            try {
+                                viewer.reveal( sortedElements[sortedElements.length-1] );
+                                viewer.reveal( sortedElements[0] );
+                            }
+                            catch (Exception e) {
+                                log.warn( e.toString() );
+                            }
                         }
 //                        
                         // XXX only necessary if just one element

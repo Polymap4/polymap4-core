@@ -110,13 +110,13 @@ public class PropertyInfoImpl<T>
         return (T)DefaultValues.valueOf( field );
     }
 
-    @Override
-    public PropertyBase<T> get( Composite composite ) {
+    @Override    
+    public <P extends PropertyBase<T>> P get( Composite composite ) {
         if (!field.isAccessible()) { 
             field.setAccessible( true ); 
         }
         try {
-            return (PropertyBase<T>)field.get( composite );
+            return (P)field.get( composite );
         }
         catch (IllegalAccessException e) {
             throw new RuntimeException( e );

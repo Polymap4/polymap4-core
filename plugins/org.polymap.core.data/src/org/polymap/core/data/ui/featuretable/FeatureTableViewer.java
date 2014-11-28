@@ -312,7 +312,7 @@ public class FeatureTableViewer
      * @param dir
      * @param column
      */
-    protected void sortContent( Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
+    protected void sortContent( final Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
         IContentProvider contentProvider = getContentProvider();
         // deferred
         if (contentProvider instanceof IDeferredFeatureContentProvider) {
@@ -322,7 +322,7 @@ public class FeatureTableViewer
         else {
             setComparator( new ViewerComparator( comparator ) {
                 public int compare( Viewer viewer, Object e1, Object e2 ) {
-                    return getComparator().compare( e1, e2 );
+                    return comparator.compare( (IFeatureTableElement)e1, (IFeatureTableElement)e2 );
                 }
             });
         }

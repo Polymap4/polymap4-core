@@ -17,6 +17,10 @@ package org.polymap.core.data.ui.featuretable;
 
 import org.opengis.feature.Feature;
 
+import org.eclipse.jface.viewers.LabelProvider;
+
+import org.polymap.core.data.ui.featuretable.DefaultFeatureTableColumn.DefaultCellLabelProvider;
+
 /**
  * This is the content element of a {@link FeatureTableViewer}.
  * {@link IFeatureContentProvider} provides elements of this type.
@@ -31,8 +35,18 @@ public interface IFeatureTableElement {
 
     public String fid();
     
+    
+    /**
+     * Used by {@link DefaultCellLabelProvider} for default labels and by
+     * {@link DefaultFeatureTableColumn#newComparator(int)} for sorting.
+     * 
+     * @param name
+     * @return Null signals that String from the {@link LabelProvider} is used for
+     *         sorting.
+     */
     public Object getValue( String name );
 
+    
     /**
      * Implement to support table in-place editing
      *
