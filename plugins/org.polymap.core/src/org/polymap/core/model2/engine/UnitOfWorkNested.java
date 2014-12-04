@@ -254,8 +254,10 @@ public class UnitOfWorkNested
     public void close() {
         if (isOpen()) {
             parent = null;
+            repo = null;
+            loaded = null;
+            modified = null;
         }
-        super.close();
     }
 
 }

@@ -48,17 +48,23 @@ public abstract class Composite {
         return context.getState().getUnderlying();
     }
     
-
     /**
      * 
      */
     public CompositeInfo info() {
         return context.getRepository().infoOf( getClass() );
     }
- 
 
     public String toString() {
         return getClass().getSimpleName() + "[state=" + state() + "]" ;
+    }
+    
+    /**
+     * Not supported by any Composite type other than an Entity.
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        throw new UnsupportedOperationException( "Composite (mixin or Composite property value) does not support equals()." );
     }
 
 }

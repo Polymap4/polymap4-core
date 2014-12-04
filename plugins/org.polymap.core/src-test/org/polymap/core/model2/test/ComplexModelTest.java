@@ -165,5 +165,76 @@ public abstract class ComplexModelTest
         assertEquals( "Jump", firstAddress2.street.get() );
         assertEquals( 1, (int)firstAddress2.nr.get() );
     }
+
+    
+//    public void testCompositeCollectionElementEqual() {
+//        Company company = uow.createEntity( Company.class, null );
+//        Address address = company.moreAddresses.createElement( new ValueInitializer<Address>() {
+//            public Address initialize( Address value ) throws Exception {
+//                return value;
+//            }
+//        } );
+//        Address firstAddress = Iterables.get( company.moreAddresses, 0 );
+//        assertEquals( address, firstAddress );
+//
+//        uow.commit();
+//
+//        UnitOfWork uow2 = repo.newUnitOfWork();
+//        Company company2 = uow2.entity( Company.class, company.id() );
+//        Address firstAddress2 = Iterables.get( company2.moreAddresses, 0 );
+//        assertEquals( address, firstAddress2 );
+//
+//        Address firstAddress3 = Iterables.get( company2.moreAddresses, 0 );
+//        assertEquals( firstAddress2, firstAddress3 );
+//    }
+    
+
+    public void testCompositeCollectionElementRemove() {
+        Company company = uow.createEntity( Company.class, null );
+        Address address = company.moreAddresses.createElement( new ValueInitializer<Address>() {
+            public Address initialize( Address value ) throws Exception {
+                value.street.set( "To be removed" );
+                value.nr.set( 11 );
+                return value;
+            }
+        } );
+        // check uncommited
+        log.info( "Company: " + company );
+        company.moreAddresses.remove( address );
+        log.info( "Company (removed): " + company );
+        assertEquals( 0, company.moreAddresses.size() );
+        assertEquals( 0, Iterables.size( company.moreAddresses ) );
+
+        // check commited
+        address = company.moreAddresses.createElement( new ValueInitializer<Address>() {
+            public Address initialize( Address value ) throws Exception {
+                value.street.set( "To be removed (commited)" );
+                value.nr.set( 12 );
+                return value;
+            }
+        } );
+        company.moreAddresses.createElement( new ValueInitializer<Address>() {
+            public Address initialize( Address value ) throws Exception {
+                value.street.set( "another" );
+                value.nr.set( 13 );
+                return value;
+            }
+        } );
+        company.moreAddresses.createElement( new ValueInitializer<Address>() {
+            public Address initialize( Address value ) throws Exception {
+                value.street.set( "third" );
+                value.nr.set( 14 );
+                return value;
+            }
+        } );
+
+        uow.commit();
+
+        log.info( "Company: " + company );
+        company.moreAddresses.remove( address );
+        log.info( "Company (removed, commited): " + company );
+        assertEquals( 2, company.moreAddresses.size() );
+        assertEquals( 2, Iterables.size( company.moreAddresses ) );
+    }
     
 }

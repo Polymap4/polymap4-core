@@ -14,9 +14,9 @@
  */
 package org.polymap.core.model2.engine;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,6 +38,14 @@ public class CompositeCollectionPropertyImpl<T extends Composite>
     private static Log log = LogFactory.getLog( CompositeCollectionPropertyImpl.class );
 
     private EntityRuntimeContext            entityContext;
+
+    /**
+     * Cache of the Composite value. As building the Composite is an expensive
+     * operation the Composite and the corresponding {@link CompositeState} is cached
+     * here (in contrast to primitive values).
+     * @see CompositeCollectionPropertyImpl
+     */
+    private ArrayList<T>                     cache;
 
     
     public CompositeCollectionPropertyImpl( EntityRuntimeContext entityContext, StoreCollectionProperty storeProp ) {
@@ -63,33 +71,84 @@ public class CompositeCollectionPropertyImpl<T extends Composite>
                 throw new ModelRuntimeException( e );
             }
         }
+        // update cache
+        if (cache == null) {
+            cache = new ArrayList();
+        }
+        cache.add( (T)value );
+        
         return (T)value;
     }
 
 
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            
-            private Iterator    storeIt = storeProp.iterator();
+        // XXX is there any kind of thread safety needed here?
+        
+        // cached?
+        if (cache != null) {
+            return new Iterator<T>() {
+                private Iterator<T>     cacheIt = cache.iterator();
+                private int             index = 0;
+                @Override
+                public boolean hasNext() {
+                    return cacheIt.hasNext();
+                }
+                @Override
+                public T next() {
+                    index ++;
+                    return cacheIt.next();
+                }
+                @Override
+                public void remove() {
+                    int c = 0, i = index-1;
+                    for (Iterator storeIt=storeProp.iterator(); storeIt.hasNext() && c <= i; c++) {
+                        if (c == i) {
+                            storeIt.remove();
+                        }
+                    }
+                    assert (c-1) == i;
+                    cacheIt.remove();
+                }
+            };
+        }
+        // not yet cached
+        else {
+            cache = new ArrayList();
+            return new Iterator<T>() {
+                private Iterator        storeIt = storeProp.iterator();
+                @Override
+                public boolean hasNext() {
+                    return storeIt.hasNext();
+                }
+                @Override
+                public T next() {
+                    CompositeState state = (CompositeState)storeIt.next();
+                    InstanceBuilder builder = new InstanceBuilder( entityContext );
+                    T result = (T)builder.newComposite( state, getInfo().getType() );
+                    cache.add( result );
+                    return result;
+                }
+                @Override
+                public void remove() {
+                    storeIt.remove();
+                    cache.remove( cache.size()-1 );
+                }
+            };
+        }
+    }
 
-            @Override
-            public boolean hasNext() {
-                return storeIt.hasNext();
-            }
 
-            @Override
-            public T next() {
-                CompositeState state = (CompositeState)storeIt.next();
-                InstanceBuilder builder = new InstanceBuilder( entityContext );
-                return (T)builder.newComposite( state, getInfo().getType() );
+    @Override
+    public boolean remove( Object o ) {
+        for (Iterator it=iterator(); it.hasNext(); ) {
+            if (o == it.next()) {
+                it.remove();
+                return true;
             }
-
-            @Override
-            public void remove() {
-                throw new RuntimeException( "not yet implemented." );
-            }
-        };
+        }
+        return false;
+        //return Iterables.removeIf( this, Predicates.sameAs( o ) );
     }
 
 
@@ -103,7 +162,5 @@ public class CompositeCollectionPropertyImpl<T extends Composite>
     public boolean addAll( Collection<? extends T> c ) {
         throw new RuntimeException( "not yet implemented." );
     }
-
-
 
 }

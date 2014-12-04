@@ -16,10 +16,12 @@ package org.polymap.core.model2;
 
 import org.polymap.core.model2.engine.UnitOfWorkImpl;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.model2.runtime.UnitOfWork;
 
 /**
- * An Entity is a directly instantiable {@link Composite} with an {@link #id() identifier}.
- *
+ * An Entity is a directly instantiable {@link Composite} with an {@link #id()
+ * identifier}.
+ * 
  * @see Composite
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -34,11 +36,21 @@ public abstract class Entity
         return context.getStatus();
     }
 
+    @Override
     public String toString() {
         return getClass().getSimpleName() + "[id=" + id() + ",status=" + status() + ",state=" + state() + "]" ;
     }
 
-    
+    /**
+     * By default two entities are {@link #equals(Object) equal} only if they are the
+     * same object. That is, even two {@link Entity} instances refering the same state
+     * are not equal if they were instantiated in differnet {@link UnitOfWork}s.
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        return this == obj;
+    }
+
     /**
      * Casts this entity into one of its Mixin types. Mixins are defined via the
      * {@link Mixins} annotation or at runtime. Creating runtime Mixins is not as

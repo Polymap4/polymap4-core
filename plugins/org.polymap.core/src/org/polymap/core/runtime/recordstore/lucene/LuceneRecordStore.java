@@ -475,7 +475,7 @@ public final class LuceneRecordStore
         
         public void store( IRecordState record ) throws Exception {
             if (log.isTraceEnabled()) {
-                log.trace( "    " + LuceneRecordState.ID_FIELD + ": " + record.id() ); 
+                log.trace( "STORE: " + LuceneRecordState.ID_FIELD + ": " + record.id() ); 
                 for (Map.Entry<String,Object> entry : record) {
                     log.trace( "    field: " + entry.getKey() + " = " + entry.getValue() ); 
                 }

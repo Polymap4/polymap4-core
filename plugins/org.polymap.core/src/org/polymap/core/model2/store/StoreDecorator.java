@@ -27,8 +27,11 @@ import org.polymap.core.model2.store.StoreSPI;
 import org.polymap.core.model2.store.StoreUnitOfWork;
 
 /**
- * Provides a no-op decorator for an underlying store. 
- *
+ * Provides a no-op decorator for an underlying store.
+ * <p/>
+ * Stores and {@link StoreUnitOfWork} instances should be <b>thread-safe</b>. So store
+ * decorator and their UnitOfWork implementations have to be thread-safe too!
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class StoreDecorator

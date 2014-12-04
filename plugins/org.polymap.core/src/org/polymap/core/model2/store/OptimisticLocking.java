@@ -24,13 +24,15 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.model2.engine.Messages;
 import org.polymap.core.model2.Entity;
 import org.polymap.core.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.core.model2.runtime.EntityRuntimeContext.EntityStatus;
+import org.polymap.core.runtime.IMessages;
 
 /**
- * Provides a decorator for an underlying store. This decorator implements a simple
- * check for concurrent modifications. The check fails on
+ * This {@link StoreDecorator} provides a simple check for concurrent modifications
+ * from different UnitOfWork instances in this JVM. The check fails on
  * {@link StoreUnitOfWork#prepareCommit(Iterable)}.
  * <p/>
  * This implementation holds all versions in memory and never checks the underlying
@@ -45,6 +47,8 @@ public class OptimisticLocking
         implements StoreSPI {
 
     private static Log log = LogFactory.getLog( OptimisticLocking.class );
+    
+    private static final IMessages          i18n = Messages.forPrefix( "OptimisticLocking" );
     
     private StoreRuntimeContext             context;
     
@@ -96,7 +100,9 @@ public class OptimisticLocking
                     Integer loadedVersion = loadedVersions.get( entity.id() );
                     Integer storeVersion = storeVersions.get( entity.id() );
                     if (storeVersion != loadedVersion) {
-                        throw new ConcurrentEntityModificationException( "Entity has been modified by another UnitOfWork: " + entity.id(), singletonList( entity ) );
+                        throw new ConcurrentEntityModificationException( 
+                                i18n.get( "concurrentModificationExc", entity.id(), loadedVersion, storeVersion ), 
+                                singletonList( entity ) );
                     }
                     prepared.add( entity );
                 }
@@ -121,8 +127,10 @@ public class OptimisticLocking
                 Integer storeVersion = storeVersions.put( entity.id(), newVersion );
                 if (storeVersion != loadedVersion) {
                     storeVersions.put( entity.id(), storeVersion );
-                    throw new ConcurrentEntityModificationException( "Entity has been modified AFTER prepare(): " + entity.id(), singletonList( entity ) );
+                    throw new ConcurrentEntityModificationException( i18n.get( "afterPrepareModificationExc", entity.id() ), singletonList( entity ) );
                 }
+                // update also laodedVersions for subsequent commits
+                loadedVersions.put( entity.id(), newVersion );                
             }
             prepared = null;
             
@@ -141,6 +149,7 @@ public class OptimisticLocking
             return result;
         }
 
+        
         @Override
         public <T extends Entity> CompositeState adoptEntityState( Object state, Class<T> entityClass ) {
             CompositeState result = suow.adoptEntityState( state, entityClass );

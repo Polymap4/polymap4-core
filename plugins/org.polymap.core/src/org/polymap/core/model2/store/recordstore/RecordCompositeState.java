@@ -14,7 +14,12 @@
  */
 package org.polymap.core.model2.store.recordstore;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
 
 import org.polymap.core.model2.Composite;
 import org.polymap.core.model2.runtime.PropertyInfo;
@@ -231,20 +236,52 @@ class RecordCompositeState
 
                 @Override
                 public void remove() {
-                    throw new UnsupportedOperationException( "not yet implemented." );
+                    CollectionPropertyImpl.this.remove( index );
                 }
             };
         }
 
+        public void remove( int index ) {
+            // shift down all fields above index
+            for (int i=index; i<size()-1; i++) {
+                String targetPrefix = buildCollKey( i );
+                String srcPrefix = buildCollKey( i+1 );
+
+                Iterator<Entry<String,Object>> it = state.iterator();
+                Map<String,Object> newEntries = new HashMap();
+                
+                // create new keys/values and remove old values (don't modify while iterate)
+                while (it.hasNext()) {
+                    Entry<String,Object> entry = it.next();
+                    if (entry.getKey().startsWith( srcPrefix )) {
+                        String newKey = StringUtils.replace( entry.getKey(), srcPrefix, targetPrefix );
+                        newEntries.put( newKey, entry.getValue() );
+                        it.remove();
+                    }
+                }
+                // add new entries
+                for (Entry<String,Object> entry : newEntries.entrySet()) {
+                    state.put( entry.getKey(), entry.getValue() );
+                }
+            }
+            // delete last element's/Composite's fields
+            String lastPrefix = buildCollKey( size()-1 );
+            Iterator<Entry<String,Object>> it = state.iterator();
+            while (it.hasNext()) {
+                Entry<String,Object> entry = it.next();
+                if (entry.getKey().startsWith( lastPrefix )) {
+                    it.remove();
+                }
+            }
+            // adjust size field
+            state.put( buildKey( key(), "__size__" ), size() - 1 );            
+        }
+        
         @Override
         public boolean add( Object o ) {
             state.put( buildCollKey( size() ), o );
             state.put( buildKey( key(), "__size__" ), size() + 1 );
             return true;
-        }
-
-        public boolean remove( Object o ) {
-            throw new UnsupportedOperationException( "not yet implemented." );
         }
 
     }

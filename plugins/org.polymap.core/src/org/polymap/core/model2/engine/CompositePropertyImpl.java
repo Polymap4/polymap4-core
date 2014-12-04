@@ -41,6 +41,7 @@ class CompositePropertyImpl<T extends Composite>
      * Cache of the Composite value. As building the Composite is an expensive
      * operation the Composite and the corresponding {@link CompositeState} is cached
      * here (in contrast to primitive values).
+     * @see CompositeCollectionPropertyImpl
      */
     private Object                          value;
 
