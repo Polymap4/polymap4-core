@@ -42,10 +42,11 @@ public class CompositeCollectionPropertyImpl<T extends Composite>
     /**
      * Cache of the Composite value. As building the Composite is an expensive
      * operation the Composite and the corresponding {@link CompositeState} is cached
-     * here (in contrast to primitive values).
-     * @see CompositeCollectionPropertyImpl
+     * here (in contrast to primitive values). This mimics the cache behaviour of the
+     * UnitOfWork.
      */
-    private ArrayList<T>                     cache;
+    // XXX make it a Cache!?
+    private ArrayList<T>                    cache;
 
     
     public CompositeCollectionPropertyImpl( EntityRuntimeContext entityContext, StoreCollectionProperty storeProp ) {

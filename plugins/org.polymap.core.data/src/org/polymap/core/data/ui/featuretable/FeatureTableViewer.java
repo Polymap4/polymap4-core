@@ -312,7 +312,7 @@ public class FeatureTableViewer
      * @param dir
      * @param column
      */
-    protected void sortContent( final Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
+    public void sortContent( final Comparator<IFeatureTableElement> comparator, int dir, TableColumn column ) {
         IContentProvider contentProvider = getContentProvider();
         // deferred
         if (contentProvider instanceof IDeferredFeatureContentProvider) {

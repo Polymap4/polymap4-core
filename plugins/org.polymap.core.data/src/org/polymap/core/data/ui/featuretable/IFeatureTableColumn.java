@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright 2011, Falko Bräutigam. All rights reserved.
+ * polymap.org 
+ * Copyright (C) 2011-2014, Falko Bräutigam. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -17,9 +18,12 @@ import java.util.Comparator;
 import org.eclipse.swt.SWT;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewerColumn;
 
+/**
+ * 
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ */
 public interface IFeatureTableColumn {
 
     /**
@@ -28,6 +32,8 @@ public interface IFeatureTableColumn {
      * @param viewer The viewer we are working for.
      */
     public void setViewer( FeatureTableViewer viewer );
+
+    public FeatureTableViewer getViewer();
     
     /**
      * The name of the property this column represents. The header of the
@@ -35,12 +41,13 @@ public interface IFeatureTableColumn {
      */
     public String getName();
 
-    public abstract EditingSupport getEditingSupport();
-
     public IFeatureTableColumn setLabelProvider( ColumnLabelProvider labelProvider );
 
     public ColumnLabelProvider getLabelProvider();
 
+    /**
+     * Creates the {@link TableViewerColumn} instance for this column.
+     */
     public TableViewerColumn newViewerColumn();
     
     public Comparator<IFeatureTableElement> newComparator( int sortDir );

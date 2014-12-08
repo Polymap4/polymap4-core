@@ -21,8 +21,10 @@ import javax.annotation.Nullable;
 import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * Property for {@link Collection} values.
- *
+ * A multi-value property of a {@link Composite}. Possible types are simple values (
+ * {@link Number}, {@link Boolean}, {@link String}, {@link Date}, {@link Enum}) or
+ * {@link Composite} values.
+ * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface CollectionProperty<T>

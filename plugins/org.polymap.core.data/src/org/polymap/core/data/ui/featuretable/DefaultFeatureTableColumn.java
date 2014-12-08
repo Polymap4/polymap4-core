@@ -86,11 +86,18 @@ public class DefaultFeatureTableColumn
         this.prop = prop;
     }
 
+    @Override
     public void setViewer( FeatureTableViewer viewer ) {
         this.viewer = viewer;
         this.editingSupport = editing ? new DefaultEditingSupport( viewer ) : null;
     }
     
+    @Override
+    public FeatureTableViewer getViewer() {
+        return viewer;
+    }
+
+    @Override
     public String getName() {
         return prop.getName().getLocalPart();
     }

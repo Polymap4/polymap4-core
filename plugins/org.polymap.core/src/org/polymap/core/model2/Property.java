@@ -22,8 +22,9 @@ import org.polymap.core.model2.runtime.ModelRuntimeException;
 import org.polymap.core.model2.runtime.ValueInitializer;
 
 /**
- * Property for simple ({@link Number}, {@link Boolean}, {@link String}, {@link Date}
- * , {@link Enum}) or {@link Composite} values.
+ * A single property of a {@link Composite}. Possible types are simple values (
+ * {@link Number}, {@link Boolean}, {@link String}, {@link Date}, {@link Enum}) or
+ * {@link Composite} values.
  * <p/>
  * The property value of a newly created Entity is null unless {@link Defaults} or
  * {@link DefaultValue} was specified for this property or a {@link ValueInitializer}
