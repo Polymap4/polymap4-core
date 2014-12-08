@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime.recordstore.lucene;
 
+import static org.apache.commons.lang.StringUtils.abbreviate;
+
 import java.util.Date;
 import java.util.Iterator;
 
@@ -100,12 +102,12 @@ public class LuceneRecordQuery
             }
             Sort sort = new Sort( new SortField( sortKey, sortType, getSortOrder() == DESC ) );
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults(), sort );
-            log.debug( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
+            log.debug( "LUCENE: " + abbreviate( luceneQuery.toString(), 256 ) + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
         else {
             TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults() );
-            log.debug( "LUCENE: " + luceneQuery + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
+            log.debug( "LUCENE: " + abbreviate( luceneQuery.toString(), 256 ) + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
             return new LuceneResultSet( topDocs.scoreDocs );
         }
     }

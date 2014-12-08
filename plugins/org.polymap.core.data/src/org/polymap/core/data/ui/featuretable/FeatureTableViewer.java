@@ -162,6 +162,11 @@ public class FeatureTableViewer
     }
 
     
+    public void clearSelection() {
+        getTable().deselectAll();    
+    }
+    
+    
     /**
      * Selects the element with the given feature id.
      * 

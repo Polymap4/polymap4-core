@@ -16,6 +16,8 @@ package org.polymap.core.model2.store.recordstore;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.index.Term;
@@ -91,7 +93,7 @@ class LuceneQueryBuilder {
         else {
             result = typeQuery;
         }
-        log.debug( "    LUCENE query: [" + result.toString() + "]" );
+        log.debug( "    LUCENE: [" + StringUtils.abbreviate( result.toString(), 256 ) + "]" );
         return new LuceneRecordQuery( store, result );
     }
 
