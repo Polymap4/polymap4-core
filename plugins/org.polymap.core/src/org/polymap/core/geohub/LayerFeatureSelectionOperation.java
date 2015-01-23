@@ -16,10 +16,8 @@ package org.polymap.core.geohub;
 
 import java.beans.PropertyChangeListener;
 
-import org.opengis.filter.Filter;
-
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
@@ -29,8 +27,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.geohub.LayerFeatureSelectionManager.MODE;
 import org.polymap.core.Messages;
+import org.polymap.core.geohub.LayerFeatureSelectionManager.MODE;
 
 /**
  * 

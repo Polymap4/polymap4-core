@@ -29,8 +29,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.mp.ForEach.Processor;

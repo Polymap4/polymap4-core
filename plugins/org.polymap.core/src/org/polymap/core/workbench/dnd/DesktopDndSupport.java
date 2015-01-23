@@ -15,8 +15,9 @@
 package org.polymap.core.workbench.dnd;
 
 import java.util.List;
-import org.apache.commons.logging.Log;
+
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.SessionSingleton;

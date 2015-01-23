@@ -17,13 +17,6 @@ package org.polymap.core.runtime.mp.test;
 
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.TestCase;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.mp.AsyncExecutor;

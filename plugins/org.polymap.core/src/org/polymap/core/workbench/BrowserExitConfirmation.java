@@ -14,12 +14,11 @@
  */
 package org.polymap.core.workbench;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
-import org.eclipse.rap.ui.branding.IExitConfirmation;
 
 import org.polymap.core.Messages;
 import org.polymap.core.operation.OperationSupport;

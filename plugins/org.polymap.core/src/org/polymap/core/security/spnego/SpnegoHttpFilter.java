@@ -18,11 +18,12 @@
 
 package org.polymap.core.security.spnego;
 
+import java.util.logging.Logger;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.PrivilegedActionException;
-import java.util.logging.Logger;
 
 import javax.security.auth.login.LoginException;
 import javax.servlet.Filter;

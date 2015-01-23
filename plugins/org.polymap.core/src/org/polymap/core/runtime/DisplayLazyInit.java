@@ -14,7 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.widgets.Display;
 

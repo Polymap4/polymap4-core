@@ -14,10 +14,8 @@
  */
 package org.polymap.core.runtime.i18n;
 
-import static org.apache.commons.lang.StringUtils.substringAfterLast;
-
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;

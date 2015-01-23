@@ -17,8 +17,9 @@ package org.polymap.core.runtime;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import org.apache.commons.logging.Log;
+
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 /**
  * Asynchronously execute methods in a newly created {@link Thread}.

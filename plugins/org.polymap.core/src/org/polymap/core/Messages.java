@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,9 +16,9 @@ package org.polymap.core;
 
 import java.util.ResourceBundle;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import org.eclipse.rwt.RWT;
+import org.eclipse.rap.rwt.RWT;
 
 import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.MessagesImpl;
@@ -26,9 +26,7 @@ import org.polymap.core.runtime.MessagesImpl;
 /**
  * 
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- *         <li>24.06.2009: created</li>
- * @version $Revision$
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a> 
  */
 public class Messages {
 

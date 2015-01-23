@@ -16,6 +16,8 @@ package org.polymap.core.runtime;
 
 import java.util.Locale;
 
+import java.text.MessageFormat;
+
 /**
  * 
  *

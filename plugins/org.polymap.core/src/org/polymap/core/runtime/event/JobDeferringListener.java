@@ -17,8 +17,9 @@ package org.polymap.core.runtime.event;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
-import org.apache.commons.logging.Log;
+
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;

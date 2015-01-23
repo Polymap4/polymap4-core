@@ -14,8 +14,6 @@
  */
 package org.polymap.core.security;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -26,8 +24,8 @@ import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.spi.LoginModule;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.polymap.core.security.DummyLoginModule.DummyUserPrincipal;
 

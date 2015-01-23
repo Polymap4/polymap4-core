@@ -16,7 +16,7 @@ package org.polymap.core.runtime;
 
 import java.util.concurrent.Callable;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,12 +38,12 @@ public abstract class SessionContext {
     
 
     public static void addProvider( ISessionContextProvider provider ) {
-        providers = (ISessionContextProvider[])ArrayUtils.add( providers, provider );
+        providers = ArrayUtils.add( providers, provider );
     }
     
     
     public static void removeProvider( ISessionContextProvider provider ) {
-        providers = (ISessionContextProvider[])ArrayUtils.removeElement( providers, provider );
+        providers = ArrayUtils.removeElement( providers, provider );
     }
     
     

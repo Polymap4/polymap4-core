@@ -14,8 +14,8 @@
  */
 package org.polymap.core.workbench;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ShellAdapter;
@@ -25,11 +25,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.internal.widgets.JSExecutor;
-import org.eclipse.rwt.lifecycle.IEntryPoint;
-import org.eclipse.rwt.service.ISessionStore;
 
 import org.eclipse.jface.dialogs.ErrorDialog;
 
@@ -43,6 +38,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.application.IEntryPoint;
+import org.eclipse.rap.rwt.service.ISessionStore;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;

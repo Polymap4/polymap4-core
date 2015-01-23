@@ -14,9 +14,6 @@
  */
 package org.polymap.core;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.polymap.core.model2.test.FeatureSimpleModelTest;
 import org.polymap.core.runtime.event.test.PerformanceEventTests;
 import org.polymap.core.runtime.event.test.SimpleEventTests;

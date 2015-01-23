@@ -15,8 +15,6 @@
  */
 package org.polymap.core.geohub;
 
-import org.geotools.feature.FeatureCollection;
-import org.opengis.filter.Filter;
 
 /**
  * 

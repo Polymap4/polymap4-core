@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -12,21 +12,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.security;
+package org.polymap.core.runtime.cache2;
 
-import java.security.Principal;
+import java.util.concurrent.Callable;
 
-import sun.security.acl.PrincipalImpl;
+import javax.cache.Cache;
 
 /**
- *
+ * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
-public class Authentication {
+public interface LoadingCache<K,V>
+        extends Cache<K,V> {
 
-    /** The role/group every user is in. */
-    public static final Principal       ALL = new PrincipalImpl( "ALL" );
+    public V get( K key, Callable<V> supplier );
     
 }

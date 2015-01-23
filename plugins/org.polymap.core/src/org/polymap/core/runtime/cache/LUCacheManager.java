@@ -16,14 +16,15 @@ package org.polymap.core.runtime.cache;
 
 import java.util.Map;
 import java.util.PriorityQueue;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import com.google.common.collect.MapMaker;
 

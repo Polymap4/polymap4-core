@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+ This Ant build script downloads dependency jars needed by thus bundle
+ from several maven repositories on the net. See copy.properties for
+ general settings. 
+ -->
+<project name="org.polymap.core" default="build" basedir="." 
+    xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<description>Download open source jars from the internet.</description>
+
+	<property name="lib" value="${basedir}${file.separator}lib" />
+	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
+	<property environment="env" />
+	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
+	<property file="${refresh_libs_basedir}${file.separator}copy.properties" />
+    <available property="already_downloaded" type="dir" file="${lib}" />
+
+    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+	<artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
+
+    <!--
+      Target: clean
+      -->
+	<target name="clean" description="deletes external libraries folder">
+		<delete dir="${lib}" />
+	</target>
+
+    <!--
+      Target: load_m2_deps
+      -->
+	<target name="load_m2_deps" unless="already_downloaded">
+		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
+			<localRepository refid="local.repository" />
+            <remoteRepository refid="central.repository" />
+
+            <dependency groupId="commons-io" artifactId="commons-io" version="2.4" />
+            <dependency groupId="commons-logging" artifactid="commons-logging" version="1.2" />
+            <dependency groupId="org.apache.commons" artifactid="commons-lang3" version="3.3.2" />
+            <dependency groupId="org.apache.commons" artifactid="commons-collections4" version="4.0" />
+            
+            <dependency groupId="com.google.guava" artifactId="guava" version="18.0" />
+            <dependency groupId="javax.cache" artifactId="cache-api" version="1.0.0" />
+            <dependency groupId="javax.cache" artifactId="cache-tests" version="1.0.1" />
+		</artifact:dependencies>
+	</target>
+
+    <!--
+      Target:
+      -->
+	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
+		<description>Download the jars - used by a manual "clean"</description>
+
+		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
+		<copy todir="${lib}" verbose="true" flatten="true">
+			<fileset refid="dependency.fileset" />
+		</copy>
+
+		<!-- (flat) copy downloaded source JARs (sources) to plugin directory ${libs_src_dir} -->
+		<copy todir="${libs_src_dir}" flatten="true" verbose="true">
+			<fileset refid="sources.dependency.fileset" />
+			<chainedmapper>
+				<mapper type="flatten" />
+				<globmapper from="*-sources.jar" to="*-sources.zip" />
+			</chainedmapper>
+		</copy>
+		<!-- <eclipse.refreshLocal resource="net.refractions.udig.libs/lib" depth="infinite"/>	-->
+	</target>
+
+	<target name="create" unless="already_downloaded">
+		<description>creates the lib directory if needed</description>
+		<mkdir dir="${lib}" />
+		<mkdir dir="${libs_src_dir}" />
+	</target>
+
+	<!-- Used by headless build please make sure this does everthing from clean to download and fix etc.. -->
+	<target name="full-build" depends="clean, build" description="clean and build">
+	</target>
+
+</project>

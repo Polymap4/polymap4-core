@@ -14,7 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;

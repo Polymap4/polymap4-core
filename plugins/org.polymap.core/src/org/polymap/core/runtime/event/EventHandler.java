@@ -21,6 +21,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.eclipse.swt.widgets.Display;
+
+import org.eclipse.core.runtime.jobs.Job;
+
 import org.polymap.core.runtime.UIJob;
 
 /**

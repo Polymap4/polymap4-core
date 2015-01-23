@@ -18,7 +18,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import java.lang.reflect.InvocationTargetException;
-import org.apache.commons.lang.StringUtils;
+
+import com.sun.xml.internal.ws.util.StringUtils;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 

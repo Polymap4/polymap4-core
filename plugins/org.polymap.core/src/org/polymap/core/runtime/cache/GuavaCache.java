@@ -16,8 +16,8 @@ package org.polymap.core.runtime.cache;
 
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;

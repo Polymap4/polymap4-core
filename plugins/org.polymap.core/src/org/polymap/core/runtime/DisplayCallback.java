@@ -16,7 +16,7 @@ package org.polymap.core.runtime;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.rwt.internal.lifecycle.LifeCycleUtil;
+import org.eclipse.rap.rwt.internal.lifecycle.LifeCycleUtil;
 
 /**
  * Asyncronously handles to result in {@link Display#asyncExec(Runnable) display

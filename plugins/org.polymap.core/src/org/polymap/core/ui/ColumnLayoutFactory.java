@@ -14,7 +14,6 @@
  */
 package org.polymap.core.ui;
 
-import org.eclipse.ui.forms.widgets.ColumnLayout;
 
 /**
  * 

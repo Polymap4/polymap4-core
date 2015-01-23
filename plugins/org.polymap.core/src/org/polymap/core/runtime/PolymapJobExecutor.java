@@ -23,15 +23,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import net.refractions.udig.core.internal.CorePlugin;
-
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+
+import org.polymap.core.CorePlugin;
 
 /**
  * 
@@ -53,7 +53,7 @@ public class PolymapJobExecutor
                     return Status.OK_STATUS;
                 }
                 catch (Throwable e) {
-                    return new Status( IStatus.ERROR, CorePlugin.ID, e.getLocalizedMessage(), e );
+                    return new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, e.getLocalizedMessage(), e );
                 }
             }
         };
@@ -73,7 +73,7 @@ public class PolymapJobExecutor
                     return Status.OK_STATUS;
                 }
                 catch (Throwable e) {
-                    return new Status( IStatus.ERROR, CorePlugin.ID, e.getLocalizedMessage(), e );
+                    return new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, e.getLocalizedMessage(), e );
                 }
             }
         };

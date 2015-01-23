@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
+
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.IMessages;
 

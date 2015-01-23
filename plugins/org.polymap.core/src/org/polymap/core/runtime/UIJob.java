@@ -16,16 +16,12 @@ package org.polymap.core.runtime;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.refractions.udig.ui.OffThreadProgressMonitor;
-
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.rwt.lifecycle.UICallBack;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -40,6 +36,7 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.rap.rwt.lifecycle.UICallBack;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;

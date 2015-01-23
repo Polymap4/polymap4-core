@@ -18,10 +18,6 @@
 
 package org.polymap.core.security.spnego;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.PrivilegedActionException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
@@ -29,6 +25,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.PrivilegedActionException;
 
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.kerberos.KerberosPrincipal;

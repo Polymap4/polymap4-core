@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 /**
  * Cache backed by a {@link ConcurrentHashMap} with separate thread

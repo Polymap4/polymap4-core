@@ -23,10 +23,8 @@
 
 package org.polymap.core.operation;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import net.refractions.udig.ui.OffThreadProgressMonitor;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 

@@ -30,11 +30,7 @@ import java.util.Map;
 
 import java.net.URI;
 
-import org.opengis.feature.Feature;
-import org.opengis.filter.Filter;
-
-import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureIterator;
+import com.sun.org.apache.xalan.internal.utils.FeatureManager.Feature;
 
 
 /**

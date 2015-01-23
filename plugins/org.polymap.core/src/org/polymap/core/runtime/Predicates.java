@@ -16,9 +16,8 @@ package org.polymap.core.runtime;
 
 import java.io.Serializable;
 
-import javax.annotation.Nullable;
-
 import com.google.common.base.Predicate;
+import com.sun.istack.internal.Nullable;
 
 /**
  * Static factory methods creating general purpose {@link Predicate} instances.

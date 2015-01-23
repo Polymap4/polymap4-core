@@ -20,10 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.refractions.udig.core.internal.CorePlugin;
-
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -40,6 +38,8 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import org.polymap.core.CorePlugin;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
@@ -182,7 +182,7 @@ public abstract class OperationWizard
             return doPerformFinish();
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( CorePlugin.ID, this, "Error while executing this operation.", e );
+            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, "Error while executing this operation.", e );
             return false;
         }
     }

@@ -16,8 +16,8 @@ package org.polymap.core.security;
 
 import javax.security.auth.spi.LoginModule;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 /**
  * 

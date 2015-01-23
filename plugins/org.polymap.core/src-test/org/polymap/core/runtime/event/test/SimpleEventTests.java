@@ -17,12 +17,6 @@ package org.polymap.core.runtime.event.test;
 import java.util.EventObject;
 import java.util.List;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.runtime.event.Event;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;

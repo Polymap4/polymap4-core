@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ietf.jgss.GSSException;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.polymap.core.security.spnego.SpnegoHttpFilter.Constants;
 

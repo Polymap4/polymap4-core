@@ -17,13 +17,14 @@ package org.polymap.core.operation;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Display;
 

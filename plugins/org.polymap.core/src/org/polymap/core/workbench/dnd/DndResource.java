@@ -14,8 +14,8 @@
  */
 package org.polymap.core.workbench.dnd;
 
-import org.eclipse.rwt.resources.IResource;
-import org.eclipse.rwt.resources.IResourceManager.RegisterOptions;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 /**
  * 
@@ -25,8 +25,8 @@ import org.eclipse.rwt.resources.IResourceManager.RegisterOptions;
 public class DndResource
         implements IResource {
 
-    public final String getLocation() {
-        return "org/polymap/core/workbench/dnd/dnd.js";
+    public final IPath getLocation() {
+        return new Path( "org/polymap/core/workbench/dnd/dnd.js" );
     }
 
     public final String getCharset() {

@@ -17,15 +17,16 @@ package org.polymap.core.workbench.dnd;
 import java.util.List;
 
 import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
-import org.eclipse.rwt.RWT;
-import org.eclipse.rwt.service.IServiceHandler;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.service.IServiceHandler;
 
 import org.polymap.core.runtime.Polymap;
 

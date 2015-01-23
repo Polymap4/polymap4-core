@@ -22,8 +22,8 @@
  */
 package org.polymap.core.operation.actions;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.graphics.Image;
 

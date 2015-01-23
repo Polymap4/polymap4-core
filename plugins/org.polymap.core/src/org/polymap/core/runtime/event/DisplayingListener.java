@@ -18,8 +18,8 @@ import java.util.EventObject;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Display;
 

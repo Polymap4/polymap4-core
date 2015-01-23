@@ -15,9 +15,11 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Map;
+
 import java.lang.ref.ReferenceQueue;
-import org.apache.commons.logging.Log;
+
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import com.google.common.collect.MapMaker;
 

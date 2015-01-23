@@ -14,8 +14,9 @@
  */
 package org.polymap.core.runtime;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
+
 
 /**
  * Subclasses of <code>SessionSingleton</code> provide access to a unique instance of

@@ -16,8 +16,9 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 import java.util.concurrent.Callable;
-import org.apache.commons.logging.Log;
+
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.polymap.core.runtime.SessionContext;
 

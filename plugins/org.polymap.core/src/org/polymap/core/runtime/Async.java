@@ -27,9 +27,10 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
+
+import com.sun.xml.internal.ws.util.StringUtils;
 
 /**
  * Helps to call methods of a target object asynchronously. There are several

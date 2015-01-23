@@ -26,7 +26,6 @@ import java.net.URLStreamHandler;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
-import org.geotools.util.logging.Logging;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
@@ -34,6 +33,7 @@ import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.graphics.Image;
 

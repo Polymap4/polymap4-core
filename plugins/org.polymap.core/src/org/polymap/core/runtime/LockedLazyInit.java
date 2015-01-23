@@ -14,7 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 /**
  * This {@link LazyInit} makes sure that the variable is initialized by exactly one

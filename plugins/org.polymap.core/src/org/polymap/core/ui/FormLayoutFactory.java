@@ -14,8 +14,8 @@
  */
 package org.polymap.core.ui;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;

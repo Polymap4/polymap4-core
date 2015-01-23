@@ -15,8 +15,10 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.concurrent.ConcurrentMap;
-import org.apache.commons.logging.Log;
+
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
+
 import org.polymap.core.runtime.ConcurrentReferenceHashMap;
 import org.polymap.core.runtime.ConcurrentReferenceHashMap.ReferenceType;
 

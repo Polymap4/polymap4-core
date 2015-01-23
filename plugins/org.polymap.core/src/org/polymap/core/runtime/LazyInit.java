@@ -14,7 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 /**
  * Provides a lazily initialized variable. Using a LazyInit keeps the client code
