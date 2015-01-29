@@ -2,32 +2,29 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Filesystem/WebDAV Services
 Bundle-SymbolicName: org.polymap.service.fs;singleton:=true
-Bundle-Version: 3.2.0.qualifier
+Bundle-Version: 4.0.0.qualifier
 Bundle-Activator: org.polymap.service.fs.FsPlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.equinox.http.registry;bundle-version="1.1.300",
  org.eclipse.rap.ui;bundle-version="1.3.2",
- org.polymap.core.libs;bundle-version="3.0.0",
- org.polymap.core;bundle-version="3.1.0",
- org.polymap.service;bundle-version="3.1.0",
- org.polymap.core.project;bundle-version="3.0.0",
- org.polymap.core.model;bundle-version="3.1.0",
- org.polymap.core.data;bundle-version="3.1.0",
- net.refractions.udig.catalog;bundle-version="1.2.0",
- org.polymap.core.style;bundle-version="3.1.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+ org.polymap.core;bundle-version="4.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.core.resources
 Bundle-ClassPath: .,
  lib/commons-fileupload-1.2.1.jar,
+ lib/commons-codec-1.4.jar,
  lib/slf4j-api-1.5.8.jar,
  lib/slf4j-jcl-1.5.8.jar,
  lib/mime-util-2.1.3.jar,
  lib/milton-api-1.8.0.1.jar,
- lib/milton-servlet-1.8.0.1.jar
+ lib/milton-servlet-1.8.0.1.jar,
+ lib/jdom-1.1.jar
 Bundle-Localization: plugin
 Export-Package: com.bradmcevoy.http,
  org.polymap.service.fs,
  org.polymap.service.fs.providers,
+ org.polymap.service.fs.providers.file,
  org.polymap.service.fs.spi,
  org.polymap.service.fs.webdav

@@ -25,8 +25,6 @@ package org.polymap.service.fs;
 
 import java.util.Locale;
 
-import org.eclipse.rwt.RWT;
-
 import org.polymap.core.runtime.MessagesImpl;
 
 /**
@@ -55,11 +53,6 @@ public class Messages {
 
     public static String get2( Object caller, String key, Object... args ) {
         return instance.get( caller, key, args );
-    }
-
-    public static Messages get() {
-        Class clazz = Messages.class;
-        return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
     }
 
 }

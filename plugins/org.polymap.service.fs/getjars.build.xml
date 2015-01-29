@@ -18,11 +18,9 @@
     <available property="already_downloaded" type="dir" file="${lib}" />
 
 	<!-- remote repositories as defined in copy.properties -->
-	<artifact:remoteRepository id="ettrema.repository" url="${ettremaRepository}" />
-	<artifact:remoteRepository id="central.repository" url="${central}" />
-
-	<!-- local repository i.e. folder to be used as storage for downloaded library files -->
-	<artifact:localRepository id="local.repository" path="${repo}" />
+	<artifact:remoteRepository id="ettrema.repository" url="http://milton.io/maven" />
+	<artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+	<artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 
 	<target name="clean" description="deletes external libraries folder">
 		<delete dir="${lib}" />
@@ -36,17 +34,16 @@
 		<!-- Use http://mvnrepository.com/ to look stuff up -->
 		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
 
-			<!-- local repository as defined above-->
 			<localRepository refid="local.repository" />
-
 			<remoteRepository refid="ettrema.repository" />
 			<remoteRepository refid="central.repository" />
 
-			<!-- Milton -->
-            <dependency groupId="com.ettrema" artifactId="milton-api" version="${milton.version}"/>
-            <dependency groupId="com.ettrema" artifactId="milton-servlet" version="${milton.version}"/>
+            <dependency groupId="io.milton" artifactId="milton-api" version="2.6.4"/>
+            <dependency groupId="io.milton" artifactId="milton-servlet" version="2.6.4"/>
             <!--dependency groupId="com.ettrema" artifactId="milton-json" version="${milton.version}"/-->
             <!--dependency groupId="com.ettrema" artifactId="milton-filesystem" version="${milton.version}"/-->
+
+			<dependency groupId="org.apache.maven" artifactId="super-pom" version="2.0" scope="provided" />
 			
             <dependency groupId="commons-fileupload" artifactId="commons-fileupload" version="1.2.1" />
             

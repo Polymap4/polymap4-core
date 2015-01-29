@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.service.fs.providers;
+package org.polymap.service.fs.providers.file;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ import java.nio.file.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -56,7 +56,7 @@ public class FsContentProvider
 
     private static Log log = LogFactory.getLog( FsContentProvider.class );
 
-    private List<FsFolder>          roots;
+    protected List<FsFolder>            roots;
     
     
     public FsContentProvider() {

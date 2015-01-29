@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.service.fs.providers;
+package org.polymap.service.fs.providers.file;
 
 import java.util.Date;
 import java.util.Map;
@@ -42,7 +42,7 @@ import org.polymap.service.fs.spi.Range;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class FsFile
+public class FsFile
         extends DefaultContentNode
         implements IContentFile, IContentMoveable, IContentDeletable {
 

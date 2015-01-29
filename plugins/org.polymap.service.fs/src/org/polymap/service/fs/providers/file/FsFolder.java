@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.service.fs.providers;
+package org.polymap.service.fs.providers.file;
 
 import java.util.Map;
 
@@ -43,7 +43,7 @@ import org.polymap.service.fs.spi.NotAuthorizedException;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class FsFolder
+public class FsFolder
         extends DefaultContentFolder
         implements IContentPutable, IContentWriteable, IMakeFolder, IContentMoveable, IContentDeletable {
 
