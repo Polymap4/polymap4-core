@@ -41,10 +41,7 @@ public class GuavaCacheManager
 
     private ConcurrentMap<String,Cache>     caches = new MapMaker().concurrencyLevel( 2 ).initialCapacity( 64 ).makeMap();
 
-    public enum GuavaOptionalFeature implements OptionalFeature {
-        
-    }
-    
+
     @Override
     public CachingProvider getCachingProvider() {
         // XXX Auto-generated method stub
@@ -83,7 +80,7 @@ public class GuavaCacheManager
     public <K, V, C extends Configuration<K,V>> Cache<K,V> createCache( String cacheName, C configuration )
             throws IllegalArgumentException {
         checkOpen();
-        GuavaCache result = new GuavaCache( configuration );
+        GuavaCache result = new GuavaCache( cacheName, this, configuration );
         if (caches.putIfAbsent( cacheName, result ) != null) {
             throw new IllegalArgumentException( "Name is already mapped to a cache: " + cacheName );
         }

@@ -98,7 +98,7 @@ public class HttpServiceTracker
                 log.debug( "    context: " + contextPath + " :" + servlet.getClass().getName() );
             }
             catch (Exception e) {
-                CorePlugin.logError( "Error while starting servlet extension: " + ext.getName(), log, e );
+                throw new RuntimeException( "Error while starting servlet extension: ", e );
             }
         }
     }

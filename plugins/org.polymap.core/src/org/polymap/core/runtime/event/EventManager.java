@@ -21,7 +21,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedTransferQueue;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
@@ -31,6 +31,8 @@ import org.eclipse.rap.rwt.lifecycle.PhaseId;
 import org.eclipse.rap.rwt.lifecycle.PhaseListener;
 import org.eclipse.rap.rwt.lifecycle.UICallBack;
 import org.eclipse.rap.rwt.service.ISessionStore;
+import org.eclipse.rap.rwt.service.UISessionEvent;
+import org.eclipse.rap.rwt.service.UISessionListener;
 
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
@@ -284,7 +286,7 @@ public class EventManager {
      * session might force a UICallback even if we don't have anything to render.
      */
     private class UICallbackPhaseListener
-            implements PhaseListener, SessionStoreListener {
+            implements PhaseListener, UISessionListener {
 
         public PhaseId getPhaseId() {
             return PhaseId.ANY;
@@ -320,9 +322,9 @@ public class EventManager {
         }
 
         @Override
-        public void beforeDestroy( SessionStoreEvent ev ) {
+        public void beforeDestroy( UISessionEvent ev ) {
             RWT.getLifeCycle().removePhaseListener( this );
-            ev.getSessionStore().removeSessionStoreListener( this );
+            ev.getUISession().removeUISessionListener( this );
         }
         
     }

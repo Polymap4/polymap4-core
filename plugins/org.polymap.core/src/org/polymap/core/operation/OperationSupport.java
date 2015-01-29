@@ -39,7 +39,7 @@ import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * The API and implementation of the operations system.
@@ -369,7 +369,7 @@ public class OperationSupport
                     }
                     Polymap.getSessionDisplay().asyncExec( new Runnable() {
                         public void run() {
-                            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+                            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, OperationSupport.this, e.getLocalizedMessage(), e );
                         }
                     });
                 }

@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-   <extension-point id="org.polymap.core.http.servlets" name="HttpServlets" schema="schema/servlets.exsd"/>
-   <extension-point id="org.polymap.core.data.ows.wms" name="WMS Server" schema="schema/org.polymap.core.data.ows.wms.exsd"/>
    <extension-point id="org.polymap.core.operation.concerns" name="Operation Concerns" schema="schema/operation.concerns.exsd"/>
    <extension-point id="org.polymap.core.security.AuthorizationModule" name="AuthorizationModule" schema="schema/AuthorizationModule.exsd"/>
    <extension
          point="org.eclipse.rap.ui.entrypoint">
-      <entrypoint
+      <!--entrypoint
             class="org.polymap.core.workbench.PolymapWorkbench"
             id="polymap3.core.entrypoint1"
             parameter="default">
-      </entrypoint>
+      </entrypoint-->
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -41,24 +39,6 @@
             class="net.refractions.udig.project.ui.internal.MapEditorInput"
             name="net.refractions.udig.project.internal.ui.mapEditorInput"/>
    </extension-->
-   <extension
-         point="org.polymap.core.http.servlets">
-      <servlet
-            class="org.polymap.core.workbench.dnd.DndUploadServlet"
-            name="DndUpload"
-            path="/dndupload">
-      </servlet>
-      <servlet
-            class="org.polymap.core.ui.upload.FileUploadServlet"
-            name="FileUpload"
-            path="/fileupload">
-      </servlet>
-      <!--servlet
-            class="org.polymap.core.security.spnego.SpnegoHttpServlet"
-            name="SingleSignOn"
-            path="/spnego">
-      </servlet-->
-   </extension>
    <extension
          point="org.eclipse.rap.ui.branding">
       <branding
@@ -257,19 +237,6 @@
       </concern>
    </extension>
    <extension
-         point="org.eclipse.rap.ui.resources">
-      <resource
-            class="org.polymap.core.workbench.dnd.DndResource">
-      </resource>
-   </extension>
-   <extension
-         point="org.eclipse.rap.ui.serviceHandler">
-      <serviceHandler
-            class="org.polymap.core.workbench.dnd.DndServiceHandler"
-            id="org.polymap.core.DndServiceHandler">
-      </serviceHandler>
-   </extension>
-   <extension
          point="org.eclipse.ui.cheatsheets.cheatSheetContent">
       <category
             id="org.polymap.core.cheatsheet.category"
@@ -282,6 +249,13 @@
             id="org.polymap.core.cheatsheet.welcome"
             name="%cheatsheets_welcome">
       </cheatsheet>
+   </extension>
+   <extension
+         point="org.eclipse.equinox.http.registry.servlets">
+      <servlet
+            alias="/test"
+            class="org.polymap.core.http.TestServlet">
+      </servlet>
    </extension>
 
 </plugin>

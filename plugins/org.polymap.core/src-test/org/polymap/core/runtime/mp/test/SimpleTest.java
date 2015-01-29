@@ -18,6 +18,14 @@ package org.polymap.core.runtime.mp.test;
 import java.util.Arrays;
 import java.util.List;
 
+import junit.framework.TestCase;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+
 import org.polymap.core.runtime.mp.AsyncExecutor;
 import org.polymap.core.runtime.mp.ForEach;
 import org.polymap.core.runtime.mp.SyncExecutor;

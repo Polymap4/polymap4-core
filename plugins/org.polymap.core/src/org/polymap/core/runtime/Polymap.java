@@ -221,7 +221,7 @@ public final class Polymap {
             FileOutputStream out = null;
             try {
                 log.info( "Creating default JAAS config: " + configFile.getAbsolutePath() );
-                URL defaultConfigUrl = CorePlugin.getDefault().getBundle().getEntry( jaasConfigFile );
+                URL defaultConfigUrl = CorePlugin.instance().getBundle().getEntry( jaasConfigFile );
                 out = new FileOutputStream( configFile );
                 IOUtils.copy( defaultConfigUrl.openStream(), out );
             }

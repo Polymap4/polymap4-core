@@ -38,7 +38,7 @@ import org.eclipse.core.commands.operations.OperationHistoryEvent;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * 
@@ -103,7 +103,7 @@ public class RedoAction
             operationSupport.redo();
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
     }
 

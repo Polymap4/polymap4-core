@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime.i18n;
 
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 

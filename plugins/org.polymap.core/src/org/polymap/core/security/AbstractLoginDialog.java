@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  * 

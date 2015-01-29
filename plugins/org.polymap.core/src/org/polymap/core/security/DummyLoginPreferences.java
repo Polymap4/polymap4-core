@@ -35,7 +35,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * 
@@ -78,7 +78,7 @@ public class DummyLoginPreferences
                 editor.setText( FileUtils.readFileToString( loginConfigFile, "ISO-8859-1" ) );
             }
             catch (Exception e) {
-                PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+                StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
             }
         }
 
@@ -123,7 +123,7 @@ public class DummyLoginPreferences
             FileUtils.writeStringToFile( loginConfigFile, editor.getText(), "ISO-8859-1" );
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
         return true;
     }
@@ -134,7 +134,7 @@ public class DummyLoginPreferences
             editor.setText( FileUtils.readFileToString( loginConfigFile, "ISO-8859-1" ) );
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
         super.performDefaults();
     }

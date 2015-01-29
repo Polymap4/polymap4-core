@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -29,7 +29,9 @@ import org.eclipse.rap.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rap.rwt.internal.service.ContextProvider;
 import org.eclipse.rap.rwt.internal.service.ServiceContext;
 import org.eclipse.rap.rwt.lifecycle.UICallBack;
-import org.eclipse.rap.rwt.service.ISessionStore;
+import org.eclipse.rap.rwt.service.UISession;
+import org.eclipse.rap.rwt.service.UISessionEvent;
+import org.eclipse.rap.rwt.service.UISessionListener;
 
 
 /**
@@ -64,16 +66,16 @@ public class RapSessionContextProvider
         
         private Display                     display;
 
-        private ISessionStore               sessionStore;
+        private UISession                   sessionStore;
         
-        private Map<ISessionListener,SessionStoreListener> listenerMap = new HashMap();
+        private Map<ISessionListener,UISessionListener> listenerMap = new HashMap();
 
 
         RapSessionContext( ServiceContext serviceContext ) {
             assert !serviceContext.isDisposed();
             this.serviceContext = serviceContext;
             this.display = LifeCycleUtil.getSessionDisplay();
-            this.sessionStore = serviceContext.getSessionStore();
+            this.sessionStore = serviceContext.getUISession();
             assert this.sessionStore != null;
         }
 
@@ -158,21 +160,21 @@ public class RapSessionContextProvider
 
         @Override
         public boolean addSessionListener( final ISessionListener l ) {
-            SessionStoreListener l2 = new SessionStoreListener() {
-                public void beforeDestroy( SessionStoreEvent event ) {
+            UISessionListener l2 = new UISessionListener() {
+                public void beforeDestroy( UISessionEvent event ) {
                     log.info( "beforeDestroy(): ..." );
                     l.beforeDestroy();
                 }
             };
             listenerMap.put( l, l2 );
-            return sessionStore.addSessionStoreListener( l2 );
+            return sessionStore.addUISessionListener( l2 );
         }
 
 
         @Override
         public boolean removeSessionListener( ISessionListener l ) {
-            SessionStoreListener l2 = listenerMap.remove( l );
-            return sessionStore.removeSessionStoreListener( l2 );
+            UISessionListener l2 = listenerMap.remove( l );
+            return sessionStore.removeUISessionListener( l2 );
         }
 
 
@@ -196,7 +198,7 @@ public class RapSessionContextProvider
      
         @Override
         public String toString() {
-            return "RapSessionContext[serviceContext=" + serviceContext + ", attributes=" + serviceContext.getSessionStore() + "]";
+            return "RapSessionContext[serviceContext=" + serviceContext + ", attributes=" + serviceContext.getUISession() + "]";
         }
 
     }

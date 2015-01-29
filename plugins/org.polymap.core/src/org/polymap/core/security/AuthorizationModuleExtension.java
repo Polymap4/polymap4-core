@@ -25,6 +25,7 @@ import javax.security.auth.spi.LoginModule;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 import org.eclipse.core.runtime.CoreException;

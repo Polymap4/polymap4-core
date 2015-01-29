@@ -14,8 +14,8 @@
  */
 package org.polymap.core.operation.actions;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -29,7 +29,7 @@ import org.eclipse.core.commands.operations.OperationHistoryEvent;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * 
@@ -75,7 +75,7 @@ public class RevertChangesAction
             operationSupport.revertChanges();
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
         }
     }
 

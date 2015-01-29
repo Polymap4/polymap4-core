@@ -19,13 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-
 import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -36,11 +30,9 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
-import org.eclipse.rap.rwt.lifecycle.UICallBack;
-
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * Extended Job implementation that provides:
@@ -101,7 +93,7 @@ public abstract class UIJob
     
     private Display             display;
 
-    private ProgressDialog      progressDialog;
+//    private ProgressDialog      progressDialog;
     
     private boolean             showProgress;
     
@@ -150,8 +142,7 @@ public abstract class UIJob
     }
     
     
-    protected abstract void runWithException( IProgressMonitor monitor )
-    throws Exception;
+    protected abstract void runWithException( IProgressMonitor monitor ) throws Exception;
     
 
     protected final IStatus run( final IProgressMonitor monitor ) {
@@ -159,21 +150,9 @@ public abstract class UIJob
             public void run() {
                 if (display == null || !PlatformUI.getWorkbench().isClosing()) {
                     try {
-                        executionMonitor = progressDialog != null
-                                ? progressDialog.getProgressMonitor() 
-                                : monitor;  //new OffThreadProgressMonitor( monitor, display );
-                                
+                        executionMonitor = monitor;
+                        
                         threadJob.set( UIJob.this );
-
-//                        if (showProgress && display != null) {
-//                            if (progressDialog == null) {
-//                                display.syncExec( new Runnable() {
-//                                    public void run() {
-//                                        progressDialog = new ProgressDialog( getName(), true );
-//                                    }
-//                                });
-//                            }
-//                        }
 
                         runWithException( executionMonitor );
                         
@@ -190,7 +169,7 @@ public abstract class UIJob
                         if (display != null) {
                             display.syncExec( new Runnable() {
                                 public void run() {
-                                    PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, UIJob.this,
+                                    StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, UIJob.this,
                                             i18n.get( "errorMsg", getName() ), e );
                                 }
                             });
@@ -322,144 +301,120 @@ public abstract class UIJob
     
     public final void addJobChangeListenerWithContext( final IJobChangeListener listener ) {
         super.addJobChangeListener( new IJobChangeListener() {
-            
-            // XXX use sessionContext instead of UICallBack
+            @Override
             public void sleeping( final IJobChangeEvent event ) {
-                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                    public void run() {
-                        listener.sleeping( event );    
-                    }
-                });
+                sessionContext.execute( () -> listener.sleeping( event ) );
             }
-            
+            @Override
             public void scheduled( final IJobChangeEvent event ) {
-                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                    public void run() {
-                        listener.scheduled( event );    
-                    }
-                });
+                sessionContext.execute( () -> listener.scheduled( event ) );
             }
-            
+            @Override
             public void running( final IJobChangeEvent event ) {
-                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                    public void run() {
-                        listener.running( event );    
-                    }
-                });
+                sessionContext.execute( () -> listener.running( event ) );
             }
-            
+            @Override
             public void done( final IJobChangeEvent event ) {
-                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                    public void run() {
-                        listener.done( event );    
-                    }
-                });
+                sessionContext.execute( () -> listener.done( event ) );
             }
-        
+            @Override
             public void awake( final IJobChangeEvent event ) {
-                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                    public void run() {
-                        listener.awake( event );    
-                    }
-                });
+                sessionContext.execute( () -> listener.awake( event ) );
             }
-        
+            @Override
             public void aboutToRun( final IJobChangeEvent event ) {
-                UICallBack.runNonUIThreadWithFakeContext( display, new Runnable() {
-                    public void run() {
-                        listener.aboutToRun( event );    
-                    }
-                });
+                sessionContext.execute( () -> listener.aboutToRun( event ) );
             }
         });
     }
 
 
-    /**
-     * 
-     * @deprecated Seems that this was written by udig developers just for fun, since
-     *             setUser() provides this already. I found out to late and ported
-     *             the code... well... just for fun :(
-     */
-    class ProgressDialog
-            extends ProgressMonitorDialog {
-        
-        private String              title;
-        
-        private boolean             showRunInBackground;
-        
-        private JobChangeAdapter    jobChangeAdapter;
-
-        
-        protected ProgressDialog( String title, boolean showRunInBackground ) {
-            super( display.getActiveShell() );
-            this.title = title != null
-                    ? title : Messages.get( "UIJob_ProgressDialog_title" );
-            this.showRunInBackground = showRunInBackground;
-            setCancelable( true );
-//            setBlockOnOpen( true );
-            
-            // job listener
-            this.jobChangeAdapter = new JobChangeAdapter() {
-                
-                public void aboutToRun( IJobChangeEvent ev ) {
-                    display.asyncExec( new Runnable() {
-                        public void run() {
-                            log.debug( "ProgressDialog.open(): ..." );
-                            ProgressDialog.this.aboutToRun();
-                        }
-                    });
-                }
-
-                public void done( IJobChangeEvent ev ) {
-                    display.asyncExec( new Runnable() {
-                        public void run() {
-                            log.debug( "ProgressDialog.close(): ..." );
-                            ProgressDialog.this.finishedRun();
-                            removeJobChangeListener( jobChangeAdapter );
-                        }
-                    });
-                }
-            };
-            addJobChangeListener( jobChangeAdapter );
-        }
-
-
-        public IProgressMonitor getProgressMonitor() {
-            return new OffThreadProgressMonitor( super.getProgressMonitor(), display );
-        }
-
-
-        protected void configureShell( Shell shell ) {
-            super.configureShell(shell);
-            shell.setText( title );
-        }
-
-        
-        protected void createButtonsForButtonBar( Composite parent ) {
-            if (showRunInBackground) {
-                createButton(parent, IDialogConstants.BACK_ID,
-                        Messages.get( "UIJob_ProgressDialog_runInBackground" ), true);
-            }
-            super.createButtonsForButtonBar( parent );
-        }
-
-        
-        protected void buttonPressed( int buttonId ) {
-            if (buttonId == IDialogConstants.BACK_ID) {
-                getShell().setVisible( false );
-            } 
-            else {
-                super.buttonPressed( buttonId );
-            }
-        }
-
-
-        protected void cancelPressed() {
-            UIJob.this.cancelAndInterrupt();
-            super.cancelPressed();
-        }
-        
-    }
+//    /**
+//     * 
+//     * @deprecated Seems that this was written by udig developers just for fun, since
+//     *             setUser() provides this already. I found out to late and ported
+//     *             the code... well... just for fun :(
+//     */
+//    class ProgressDialog
+//            extends ProgressMonitorDialog {
+//        
+//        private String              title;
+//        
+//        private boolean             showRunInBackground;
+//        
+//        private JobChangeAdapter    jobChangeAdapter;
+//
+//        
+//        protected ProgressDialog( String title, boolean showRunInBackground ) {
+//            super( display.getActiveShell() );
+//            this.title = title != null
+//                    ? title : Messages.get( "UIJob_ProgressDialog_title" );
+//            this.showRunInBackground = showRunInBackground;
+//            setCancelable( true );
+////            setBlockOnOpen( true );
+//            
+//            // job listener
+//            this.jobChangeAdapter = new JobChangeAdapter() {
+//                
+//                public void aboutToRun( IJobChangeEvent ev ) {
+//                    display.asyncExec( new Runnable() {
+//                        public void run() {
+//                            log.debug( "ProgressDialog.open(): ..." );
+//                            ProgressDialog.this.aboutToRun();
+//                        }
+//                    });
+//                }
+//
+//                public void done( IJobChangeEvent ev ) {
+//                    display.asyncExec( new Runnable() {
+//                        public void run() {
+//                            log.debug( "ProgressDialog.close(): ..." );
+//                            ProgressDialog.this.finishedRun();
+//                            removeJobChangeListener( jobChangeAdapter );
+//                        }
+//                    });
+//                }
+//            };
+//            addJobChangeListener( jobChangeAdapter );
+//        }
+//
+//
+//        public IProgressMonitor getProgressMonitor() {
+//            log.warn( "No OffThreadProgressMonitor after migrating to RAP2.3!" );
+//            return /*new OffThreadProgressMonitor(*/ super.getProgressMonitor()/*, display )*/;
+//        }
+//
+//
+//        protected void configureShell( Shell shell ) {
+//            super.configureShell(shell);
+//            shell.setText( title );
+//        }
+//
+//        
+//        protected void createButtonsForButtonBar( Composite parent ) {
+//            if (showRunInBackground) {
+//                createButton(parent, IDialogConstants.BACK_ID,
+//                        Messages.get( "UIJob_ProgressDialog_runInBackground" ), true);
+//            }
+//            super.createButtonsForButtonBar( parent );
+//        }
+//
+//        
+//        protected void buttonPressed( int buttonId ) {
+//            if (buttonId == IDialogConstants.BACK_ID) {
+//                getShell().setVisible( false );
+//            } 
+//            else {
+//                super.buttonPressed( buttonId );
+//            }
+//        }
+//
+//
+//        protected void cancelPressed() {
+//            UIJob.this.cancelAndInterrupt();
+//            super.cancelPressed();
+//        }
+//        
+//    }
 
 }

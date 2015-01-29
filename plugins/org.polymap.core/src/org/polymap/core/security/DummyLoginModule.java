@@ -33,10 +33,9 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.login.LoginException;
 
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
-
-import com.sun.xml.internal.ws.util.StringUtils;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.ui.IWorkbenchPreferencePage;
 

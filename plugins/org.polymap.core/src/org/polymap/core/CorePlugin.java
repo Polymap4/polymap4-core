@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright (C) 2009-2013 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,40 +14,17 @@
  */
 package org.polymap.core;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServlet;
-
 import org.osgi.framework.BundleContext;
-import org.osgi.service.http.HttpContext;
-import org.osgi.service.http.HttpService;
-import org.osgi.util.tracker.ServiceTracker;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
 
-import org.eclipse.swt.graphics.Image;
-
-import org.eclipse.jface.resource.ImageDescriptor;
-
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-
+import org.eclipse.core.runtime.Plugin;
 import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.RapSessionContextProvider;
 import org.polymap.core.runtime.SessionContext;
@@ -55,11 +32,11 @@ import org.polymap.core.runtime.SessionContext;
 /**
  * The activator class controls the plug-in life cycle
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class CorePlugin
-        extends AbstractUIPlugin {
+        extends Plugin {
 
 	private static Log log = LogFactory.getLog( CorePlugin.class );
 
@@ -87,85 +64,25 @@ public class CorePlugin
     };
 
     
-    /**
-     * Registers a servlet into the URI namespace.
-     * 
-     * @see #registerServlet(String, Servlet, Dictionary, HttpContext) 
-     * @see HttpService
-     */
-    public static void registerServlet( String alias, HttpServlet servlet, Dictionary initParams )
-    throws Exception {
-        registerServlet( alias, servlet, initParams, null );
-    }
-
-    
-    /**
-     * Registers a servlet into the URI namespace. This helper provides some
-     * convenience over raw {@link HttpService}.
-     * <p/>
-     * The {@link CorePlugin} runs a {@link ServiceTracker} for {@link HttpService}. Callers
-     * of this method don't need to check for an existing {@link HttpService}.
-     * 
-     * @see HttpService
-     */
-    public static void registerServlet( String alias, HttpServlet servlet,
-            Dictionary initParams, HttpContext context )
-            throws Exception {
-        
-        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
-        
-        initParams = initParams != null ? initParams : new Hashtable();
-        initParams.put( "alias", alias );
-        
-        httpService.registerServlet( alias, servlet, initParams, context );
+    public static CorePlugin instance() {
+    	return plugin;
     }
 
 
-    /**
-     * Unregisters a previous registration done by
-     * {@link #registerServlet(String, Servlet, Dictionary, HttpContext)} or
-     * <code>registerResources</code> methods.
-     * 
-     * @see HttpService
-     */
-    public static void unregister( HttpServlet servlet ) {
-        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
-        httpService.unregister( servletAlias( servlet ) );        
-    }
-
-    
-    /**
-     * Unregisters a previous registration done by
-     * {@link #registerServlet(String, Servlet, Dictionary, HttpContext)} or
-     * <code>registerResources</code> methods.
-     * 
-     * @see HttpService
-     */
-    public static void unregister( String alias ) {
-        HttpService httpService = getDefault().httpServiceTracker.getHttpService();
-        httpService.unregister( alias );        
-    }
-
-    
-    public static String servletAlias( HttpServlet servlet ) {
-        assert servlet != null;
-        String alias = servlet.getInitParameter( "alias" );
-        assert alias != null : "There is no 'alias' init param in this servlet.";
-        return alias;
-    }
-    
-    
 	static {
-	    try {
-            Logging.GEOTOOLS.setLoggerFactory( "org.geotools.util.logging.CommonsLoggerFactory" );
-            System.out.print( "GEOTOOLS logger set to: " + "CommonsLogger" );
-        }
-        catch (Exception e) {
-            System.out.println( "No GEOTOOLS logger: " + e );
-        }
+//	    try {
+//            Logging.GEOTOOLS.setLoggerFactory( "org.geotools.util.logging.CommonsLoggerFactory" );
+//            System.out.print( "GEOTOOLS logger set to: " + "CommonsLogger" );
+//        }
+//        catch (Exception e) {
+//            System.out.println( "No GEOTOOLS logger: " + e );
+//        }
 
         // horrible log configuration system...
+	    System.setProperty( "org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog" );
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
+        System.setProperty( "org.apache.commons.logging.simplelog.showdatetime", "false" );
+        System.setProperty( "org.apache.commons.logging.simplelog.dateTimeFormat", "HH:mm:ss" );
 
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
@@ -204,7 +121,7 @@ public class CorePlugin
         System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
         //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
 
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );
+        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );        
 	}
 
 	
@@ -214,20 +131,15 @@ public class CorePlugin
 
     private HttpServiceTracker          httpServiceTracker;
     
-    private ImageRegistryHelper         images = new ImageRegistryHelper( this );
+//    private ImageRegistryHelper         images = new ImageRegistryHelper( this );
     
 
-	public CorePlugin() {
-		log.debug( "Hello from the first POLYMAP3 plugin! :)" );
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        IWorkspaceRoot root = workspace.getRoot();
-        IPath path = root.getLocation();
-        log.info( "Workspace: " + path.toOSString() );
-	}
-
-
-    public void start( final BundleContext context )
-    throws Exception {
+    public CorePlugin() {
+        log.info( "Log system initialized" );
+    }
+    
+    
+    public void start( final BundleContext context ) throws Exception {
         super.start( context );
         log.debug( "start..." );
         plugin = this;
@@ -245,8 +157,7 @@ public class CorePlugin
     }
 
 
-    public void stop( BundleContext context )
-    throws Exception {
+    public void stop( BundleContext context ) throws Exception {
         log.debug( "stop..." );
         
         httpServiceTracker.close();
@@ -259,51 +170,19 @@ public class CorePlugin
         rapSessionContextProvider = null;
     }
 
-
-	public static CorePlugin getDefault() {
-		return plugin;
-	}
-
 	
-    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
-        return images.image( descriptor, key );
-    }
-
-    
-    public ImageDescriptor imageDescriptor( String path ) {
-        return images.imageDescriptor( path );
-    }
-
-    
-    public Image image( String path ) {
-        return images.image( path );
-    }
-
-
-    public static void logInfo( String msg ) {
-        getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );
-    }
-
-
-    public static void logError( String msg ) {
-        getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );
-    }
-
-
-    /**
-     * XXX we need a central log facility; first shot for API; should be
-     * refactored into log service package/classes
-     *
-     * @param msg
-     * @param callerLog
-     * @param e
-     */
-    public static void logError( String msg, Log callerLog, Throwable e ) {
-        if (callerLog != null) {
-            log.error( msg, e );
-        }
-        // FIXME does this make sense in RAP???
-        getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );
-    }
+//    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
+//        return images.image( descriptor, key );
+//    }
+//
+//    
+//    public ImageDescriptor imageDescriptor( String path ) {
+//        return images.imageDescriptor( path );
+//    }
+//
+//    
+//    public Image image( String path ) {
+//        return images.image( path );
+//    }
 
 }

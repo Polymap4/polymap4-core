@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.cache.CacheBuilder;
 
 /**
- * 
+ * Cache implementation based on Guava's {@link com.google.common.cache.Cache}. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -101,7 +101,7 @@ public class GuavaCache<K,V>
     @Override
     public V get( K key ) {
         checkOpen();
-        return ((com.google.common.cache.LoadingCache)delegate).getUnchecked( key );
+        return ((com.google.common.cache.LoadingCache<K,V>)delegate).getUnchecked( key );
     }
 
     @Override

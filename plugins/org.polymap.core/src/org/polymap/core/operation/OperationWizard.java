@@ -35,12 +35,14 @@ import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardPage;
 
+import org.eclipse.ui.internal.util.Util;
+
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.CorePlugin;
-import org.polymap.core.workbench.PolymapWorkbench;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * This wizard can be used by operations to gather information from the user and/or
@@ -79,7 +81,7 @@ public abstract class OperationWizard
         wizard.getDisplay().asyncExec( new Runnable() {
 
             public void run() {
-                Shell shell = PolymapWorkbench.getShellToParentOn();
+                Shell shell = Util.getShellToParentOn();
                 OperationWizardDialog dialog = new OperationWizardDialog( shell, wizard ) {
                     @Override
                     protected void setReturnCode( int code ) {
@@ -182,7 +184,7 @@ public abstract class OperationWizard
             return doPerformFinish();
         }
         catch (Exception e) {
-            PolymapWorkbench.handleError( CorePlugin.PLUGIN_ID, this, "Error while executing this operation.", e );
+            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, "Error while executing this operation.", e );
             return false;
         }
     }
