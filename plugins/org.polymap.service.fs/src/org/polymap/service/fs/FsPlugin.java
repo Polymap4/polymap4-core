@@ -22,7 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.core.runtime.Plugin;
 
 import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
@@ -34,7 +34,7 @@ import org.polymap.core.runtime.SessionContext;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FsPlugin
-        extends AbstractUIPlugin {
+        extends Plugin {
 
     private static Log log = LogFactory.getLog( FsPlugin.class );
     
@@ -56,8 +56,7 @@ public class FsPlugin
     public DefaultSessionContextProvider sessionContextProvider;
 
     
-    public void start( BundleContext context )
-    throws Exception {
+    public void start( BundleContext context ) throws Exception {
         super.start( context );
         plugin = this;
         
@@ -77,8 +76,7 @@ public class FsPlugin
     }
 
     
-    public void stop( BundleContext context )
-    throws Exception {
+    public void stop( BundleContext context ) throws Exception {
         super.stop( context );
         plugin = null;
 
