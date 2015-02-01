@@ -18,11 +18,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
+import org.eclipse.rap.rwt.internal.lifecycle.CurrentPhase;
+import org.eclipse.rap.rwt.internal.lifecycle.LifeCycleUtil;
+import org.eclipse.rap.rwt.internal.serverpush.ServerPushManager;
+import org.eclipse.rap.rwt.internal.service.ContextProvider;
 import org.eclipse.rap.rwt.widgets.WidgetUtil;
 
 /**
@@ -30,11 +36,34 @@ import org.eclipse.rap.rwt.widgets.WidgetUtil;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+/**
+ * 
+ *
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ */
+@SuppressWarnings("restriction")
 public class UIUtils {
 
     private static Log log = LogFactory.getLog( UIUtils.class );
     
     public static boolean       debug = true;
+
+    
+    /**
+     * The {@link Display} of the session of the current thread. Null, if the current
+     * thread has no session. The result is equivalent to
+     * {@link Display#getCurrent()} except that the calling thread does not have to
+     * be the UI thread of the session.
+     */
+    public static Display sessionDisplay() {
+        return LifeCycleUtil.getSessionDisplay();    
+    }
+
+
+    public static Shell shellToParentOn() {
+        return sessionDisplay().getActiveShell();
+    }
+
 
     /**
      * Set {@link RWT#CUSTOM_VARIANT} on the given control. Checks if a variant is
@@ -46,7 +75,7 @@ public class UIUtils {
      * @param control
      * @param variant
      */
-    public static void setVariant( Control control, String variant ) {
+    public static <T extends Control> T setVariant( T control, String variant ) {
 //        Optional.of( control.getData( RWT.CUSTOM_VARIANT ) ).ifPresent( 
 //                previous -> log.warn( "Control has variant: " + previous + ", new: " + variant ) );
         
@@ -60,22 +89,25 @@ public class UIUtils {
         if (debug) {
             setAttribute( control, "variant", variant );
         }
+        return control;
     }
     
     
-    public static void setTestId( Widget widget, String value ) {
+    public static <T extends Widget> T setTestId( T widget, String value ) {
         if (debug) {
             setAttribute( widget, "test-id", value );
         }
+        return widget;
     }
 
 
-    public static void setAttribute( Widget widget, String attr, String value ) {
+    public static <T extends Widget> T setAttribute( T widget, String attr, String value ) {
         if (!widget.isDisposed()) {
             String $el = widget instanceof Text ? "$input" : "$el";
             String id = WidgetUtil.getId( widget );
             exec( "rap.getObject( '", id, "' ).", $el, ".attr( '", attr, "', '", value, "' );" );
         }
+        return widget;
     }
 
 
@@ -88,5 +120,29 @@ public class UIUtils {
         JavaScriptExecutor executor = RWT.getClient().getService( JavaScriptExecutor.class );
         executor.execute( buf.toString() );
     }
+
+
+    /**
+     * 
+     * @see ServerPushManager
+     * @param id
+     */
+    public static void activateCallback( String id ) {
+        assert id != null;
+        assert ContextProvider.hasContext() && CurrentPhase.get() != null;
+        ServerPushManager.getInstance().activateServerPushFor( id );
+    }
     
+    
+    /**
+     * 
+     * @see ServerPushManager
+     * @param id
+     */
+    public static void deactivateCallback( String id ) {
+        assert id != null;
+        assert ContextProvider.hasContext();
+        ServerPushManager.getInstance().deactivateServerPushFor( id );
+    }
+
 }

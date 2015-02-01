@@ -1,25 +1,21 @@
-#!/bin/sh
+#!/bin/bash -v
 
-DIRNAME=`dirname $0`
-WORKSPACE=$DIRNAME/workspace
+# Simple start script
+#   - set working dir the INSTALLDIR (allow eclipse exe to find runtime)
+#   - find Java (hard wired)
+#   - find the workspace (hard wired)
+#   - define Java param and app params
+
+INSTALLDIR=`dirname $0`
+WORKSPACE=__no_workspace_defined__
 PORT=8080
+JAVA_HOME=/home/falko/bin/jdk1.8
 
-#export JAVA_HOME=/usr/local/jrockit-R27.2.0-jdk1.6.0/
-#export JAVA_HOME=/usr/local/jdk1.6.0_17/
+cd $INSTALLDIR
 
-# JAI
-#export JAIHOME=/home/falko/packages/jai-1_1_2_01/lib
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAIHOME
+export VMARGS='-Djava.awt.headless=true -Xverify:none -server -XX:+TieredCompilation -Xmx512m -XX:NewRatio=4 -XX:+UseG1GC -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=30 -XX:SoftRefLRUPolicyMSPerMB=1000'
+export ARGS='-console -consolelog -registryMultiLanguage -statushandler org.polymap.rhei.batik.statusHandler -debug'
+export LOGARGS='-Dorg.eclipse.equinox.http.jetty.log.stderr.threshold=info'
 
-# defaults to english, translations are used as they are are requested by the browser
-# and they are installed as Eclipse Babel packages
-export LANG=en_US.UTF-8
-
-cd $DIRNAME/bin
-export SUN_VM='-server -XX:MaxPermSize=128M -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=50'
-export VMARGS='-Xverify:none $SUN_VM -Xmx512M -Dorg.eclipse.rwt.compression=true'
-export ARGS='-console -consolelog -registryMultiLanguage'
-export LOGARGS='-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog'
-#export PROXY='-Dhttp.proxyHost=someHost -Dhttp.proxyPort=somePort -Dhttp.proxyUser=someUserName -Dhttp.proxyPassword=somePassword'
-
-./eclipse $ARGS -data $WORKSPACE -vmargs $VMARGS $PROXY -Dorg.osgi.service.http.port=$PORT $LOGARGS
+echo $WORKSPACE
+./eclipse -vm $JAVA_HOME/bin/java $ARGS -vmargs $VMARGS -Dorg.osgi.service.http.port=$PORT -data $WORKSPACE $LOGARGS

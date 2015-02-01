@@ -20,9 +20,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.ui.internal.misc.StatusUtil;
-import org.eclipse.ui.statushandlers.StatusManager;
-
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
@@ -77,16 +74,16 @@ public class StatusDispatcher {
         adapters.add( adapter );
     }
     
-    public static void handle2() {
-        StatusUtil.handleStatus( "", 0 );
-        StatusManager.getManager();
-    }
+//    public static void handle2() {
+//        StatusUtil.handleStatus( "", 0 );
+//        StatusManager.getManager();
+//    }
     
     public static void handleError( String pluginId, Object src, String msg, Throwable e ) {
         handle( new Status( IStatus.ERROR, pluginId, msg, e ), Style.SHOW, Style.LOG );
     }
 
-    public void handleError( String msg, Throwable e ) {
+    public static void handleError( String msg, Throwable e ) {
         handle( new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, msg, e ), Style.SHOW, Style.LOG );        
     }
 

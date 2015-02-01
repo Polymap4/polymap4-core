@@ -51,6 +51,7 @@ import org.polymap.core.CorePlugin;
 import org.polymap.core.security.AuthorizationModule;
 import org.polymap.core.security.ServicesCallbackHandler;
 import org.polymap.core.security.UserPrincipal;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * Static access to the runtime infrastructure.
@@ -128,6 +129,8 @@ public final class Polymap {
      * thread has no session. The result is equivalent to
      * {@link Display#getCurrent()} except that the calling thread does not have to
      * be the UI thread of the session.
+     * 
+     * @deprecated Use {@link UIUtils} instead.
      */
     public static Display getSessionDisplay() {
         return LifeCycleUtil.getSessionDisplay();
