@@ -16,17 +16,19 @@ package org.polymap.core.project;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.osgi.framework.BundleContext;
 
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.ImageRegistryHelper;
+import org.polymap.core.ui.ImageRegistryHelper;
 
 /**
  * 

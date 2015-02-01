@@ -22,9 +22,10 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.polymap.core.ImageRegistryHelper;
+import org.polymap.core.ui.ImageRegistryHelper;
 
 /**
  * 

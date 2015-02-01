@@ -11,15 +11,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.polymap.core.project;bundle-version="3.0.0",
  org.polymap.core.model;bundle-version="3.1.0",
  org.polymap.core.data;bundle-version="3.0.0",
- org.polymap.openlayers.rap.widget;bundle-version="1.0.0",
- net.refractions.udig.catalog;bundle-version="1.2.0",
- net.refractions.udig.catalog.shp;bundle-version="1.2.0",
- net.refractions.udig.catalog.wfs;bundle-version="1.2.0",
- net.refractions.udig.catalog.wms;bundle-version="1.2.0",
- net.refractions.udig.ui;bundle-version="1.2.0",
- net.refractions.udig.core;bundle-version="1.2.0",
  org.polymap.service;bundle-version="3.1.0",
- org.polymap.service.geoserver;bundle-version="3.1.0";resolution:=optional
+ org.polymap.service.geoserver;bundle-version="3.1.0";resolution:=optional,
+ org.polymap.rap.openlayers;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.mapeditor,

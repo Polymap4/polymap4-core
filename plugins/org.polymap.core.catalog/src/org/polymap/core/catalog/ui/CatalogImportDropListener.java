@@ -44,11 +44,11 @@ import org.polymap.core.catalog.operations.AddServiceOperation;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.ui.dnd.DesktopDropEvent;
+import org.polymap.core.ui.dnd.DesktopDropListener;
+import org.polymap.core.ui.dnd.FileDropEvent;
+import org.polymap.core.ui.dnd.TextDropEvent;
 import org.polymap.core.workbench.PolymapWorkbench;
-import org.polymap.core.workbench.dnd.DesktopDropEvent;
-import org.polymap.core.workbench.dnd.DesktopDropListener;
-import org.polymap.core.workbench.dnd.FileDropEvent;
-import org.polymap.core.workbench.dnd.TextDropEvent;
 
 /**
  * 

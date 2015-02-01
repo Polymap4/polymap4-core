@@ -1,19 +1,20 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Project Infrastructure and UI
+Bundle-Name: Project Model and UI
 Bundle-SymbolicName: org.polymap.core.project;singleton:=true
-Bundle-Version: 3.2.0.qualifier
+Bundle-Version: 4.0.0.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: polymap.org
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.polymap.core.project,
  org.polymap.core.project.model,
  org.polymap.core.project.operations,
  org.polymap.core.project.ui,
  org.polymap.core.project.ui.layer,
  org.polymap.core.project.ui.project,
- org.polymap.core.project.ui.util
+ org.polymap.core.project.ui.util,
+ org.polymap.core.workbench
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.ui.navigator;bundle-version="3.5.0";visibility:=reexport,
  net.refractions.udig.catalog;bundle-version="1.2.0",

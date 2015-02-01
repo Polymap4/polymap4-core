@@ -16,10 +16,10 @@ package org.polymap.core.data;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.polymap.core.ImageRegistryHelper;
 import org.polymap.core.geohub.FeatureCollectionFactory;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.ILayer;
+import org.polymap.core.ui.ImageRegistryHelper;
 
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;

@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import net.refractions.udig.catalog.CatalogPlugin;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.ui.CatalogImportDropListener;
@@ -34,8 +35,8 @@ import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.qi4j.Qi4jPlugin;
 import org.polymap.core.qi4j.QiModule;
 import org.polymap.core.qi4j.QiModuleAssembler;
+import org.polymap.core.ui.dnd.DesktopDndSupport;
 import org.polymap.core.workbench.PolymapWorkbench;
-import org.polymap.core.workbench.dnd.DesktopDndSupport;
 
 /**
  * Factory and repository for the domain model artifacts.
