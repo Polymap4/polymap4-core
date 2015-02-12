@@ -14,6 +14,7 @@
  */
 package org.polymap.core.ui;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -22,9 +23,6 @@ import org.eclipse.rap.rwt.service.ServiceHandler;
 
 /**
  * Helper for {@link ServiceHandler}s.
- * <p/>
- * Code started for RAP pre 2.3. Seems that RAP 2.3 now works with relative URI
- * anyway!?
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -64,17 +62,19 @@ public class ServiceUriBuilder {
     }
 
     public String encodedAbsoluteUri() {
-        throw new RuntimeException( "RAP 2.3 seems to work with relative URIs... not yet implemented." );
+        throw new RuntimeException( "not yet implemented." );
     }
     
     public String encodedRelativeUri() {
         String uri = buf.toString();
-        // RAP 2.3 seems to work with relative URIs anyway
+        // RAP 2.3: absolute URI without hostname:port
         if (uri.startsWith( "/" )) {
-            return RWT.getResponse().encodeURL( uri );
+            String relative = QUESTION_MARK + StringUtils.substringAfter( uri, QUESTION_MARK );
+            return RWT.getResponse().encodeURL( relative );
         }
         // convert to relative URL
         else {
+            // FIXME code from RAP... ???
             int firstSlash = uri.indexOf( "/" , uri.indexOf( "//" ) + 2 ); // first slash after double slash of "http://"
             //url.delete( 0, firstSlash + 1 ); // Result is sth like "/rap?custom_service_handler..."
             return RWT.getResponse().encodeURL( uri.substring( firstSlash, uri.length() ) );
