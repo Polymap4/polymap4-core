@@ -14,9 +14,9 @@
  */
 package org.polymap.core.runtime.cache2;
 
-import java.util.concurrent.Callable;
-
 import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.configuration.CompleteConfiguration;
 
 /**
  * 
@@ -26,6 +26,24 @@ import javax.cache.Cache;
 public interface LoadingCache<K,V>
         extends Cache<K,V> {
 
-    public V get( K key, Callable<V> supplier );
+    // Factory ********************************************
+
+    /**
+     * 
+     */
+    public static <K,V> LoadingCache<K,V> create( CacheManager cacheManager, CompleteConfiguration config ) {
+        return new LoadingCacheWrapper( cacheManager, config ); 
+    }
+
+    // Loader interface ***********************************
+    
+    public interface Loader<K,V> {
+        
+        public V load( K key );
+    }
+    
+    // interface ******************************************
+    
+    public V get( K key, Loader<K,V> supplier );
     
 }
