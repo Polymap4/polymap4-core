@@ -217,7 +217,7 @@ public final class Polymap {
         initHttpParams = new HashMap( request.getParameterMap() );
 
         String jaasConfigFile = "jaas_config.txt";
-        File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
+        File configFile = new File( new File( getWorkspacePath().toFile(), "resource" ), jaasConfigFile );
         
         // create default config
         if (!configFile.exists()) {

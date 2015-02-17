@@ -226,7 +226,7 @@ final class SpnegoFilterConfig { // NOPMD
         System.setProperty( "java.security.krb5.conf", new File( workspace, "krb5.conf" ).getAbsolutePath() );
 
         // specify login conf as a System property
-        System.setProperty( "java.security.auth.login.config", new File( workspace, "jaas_config.txt" ).getAbsolutePath() );
+        System.setProperty( "java.security.auth.login.config", new File( workspace, "resource/jaas_config.txt" ).getAbsolutePath() );
         
         // check if exists and no options specified
         doClientModule( "spnego-client" );

@@ -57,7 +57,6 @@ Export-Package: com.google.common.annotations,
  org.polymap.core.runtime.entity,
  org.polymap.core.runtime.event,
  org.polymap.core.runtime.i18n,
- org.polymap.core.runtime.mp,
  org.polymap.core.security,
  org.polymap.core.ui
 Bundle-ClassPath: .,
