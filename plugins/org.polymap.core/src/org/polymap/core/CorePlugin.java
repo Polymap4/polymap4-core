@@ -21,13 +21,20 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 import org.osgi.framework.BundleContext;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.core.runtime.Plugin;
+import org.eclipse.swt.graphics.Image;
+
+import org.eclipse.jface.resource.ImageDescriptor;
+
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+
 import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.RapSessionContextProvider;
 import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.ui.ImageRegistryHelper;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -36,7 +43,7 @@ import org.polymap.core.runtime.SessionContext;
  * @since 3.0
  */
 public class CorePlugin
-        extends Plugin {
+        extends AbstractUIPlugin {
 
 	private static Log log = LogFactory.getLog( CorePlugin.class );
 
@@ -131,7 +138,7 @@ public class CorePlugin
 
     private HttpServiceTracker          httpServiceTracker;
     
-//    private ImageRegistryHelper         images = new ImageRegistryHelper( this );
+    private ImageRegistryHelper         images = new ImageRegistryHelper( this );
     
 
     public CorePlugin() {
@@ -171,18 +178,18 @@ public class CorePlugin
     }
 
 	
-//    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
-//        return images.image( descriptor, key );
-//    }
-//
-//    
-//    public ImageDescriptor imageDescriptor( String path ) {
-//        return images.imageDescriptor( path );
-//    }
-//
-//    
-//    public Image image( String path ) {
-//        return images.image( path );
-//    }
+    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
+        return images.image( descriptor, key );
+    }
+
+    
+    public ImageDescriptor imageDescriptor( String path ) {
+        return images.imageDescriptor( path );
+    }
+
+    
+    public Image image( String path ) {
+        return images.image( path );
+    }
 
 }

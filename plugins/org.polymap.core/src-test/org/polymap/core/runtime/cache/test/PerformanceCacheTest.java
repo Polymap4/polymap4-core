@@ -18,6 +18,8 @@ import java.util.Random;
 
 import java.io.PrintStream;
 
+import junit.framework.TestCase;
+
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;

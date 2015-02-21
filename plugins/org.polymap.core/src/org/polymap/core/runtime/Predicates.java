@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -41,6 +43,26 @@ public class Predicates {
         return NOT_NULL;
     }
 
+    public static <T> Predicate<T> and( List<Predicate<T>> predicates ) {
+        return new Predicate<T>() {
+            @Override
+            public boolean test( T t ) {
+                for (Predicate predicate: predicates) {
+                    if (predicate.test( t ) == false) {
+                        return false;
+                    }
+                }
+                return true;
+                //return predicates.stream().allMatch( predicate -> predicate.test( t ) );
+            }
+        };
+    }
+
+    public static <T> Predicate<T> and( Predicate<T>... predicates ) {
+        return and( Arrays.asList( predicates ) );
+    }
+    
+    
 //    /**
 //     * Returns a predicate that evaluates to {@code true} if the object reference
 //     * being tested references the same object of the given target.

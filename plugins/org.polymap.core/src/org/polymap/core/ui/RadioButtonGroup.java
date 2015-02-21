@@ -66,7 +66,7 @@ public class RadioButtonGroup
         if (((Button)ev.getSource()).getSelection()) {
             if (selected != null) {
                 selected.setSelection( false );
-                new SelectionEvent( selected, selected, 0 ).processEvent();
+                throw new RuntimeException( "not yet: SelectionEvent( selected, selected, 0 ).processEvent();" );
                 
 //                //selected.notifyListeners( SWT.Selection, new Event() );
 //                for (Listener listener : selected.getListeners( SWT.Selection )) {
@@ -79,7 +79,8 @@ public class RadioButtonGroup
 //                        l.widgetSelected( event );
 //                    }
 //                }
-                selected = null;
+                
+//                selected = null;
             }
             selected = (Button)ev.getSource();
         }

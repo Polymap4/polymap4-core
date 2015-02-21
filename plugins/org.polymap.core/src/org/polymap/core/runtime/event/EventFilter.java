@@ -16,16 +16,14 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 
-import com.google.common.base.Predicate;
-
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface EventFilter<E extends EventObject>
-        extends Predicate<E> {
+public interface EventFilter<E extends EventObject> {
+        //extends Predicate<E> {
 
-    //public boolean apply( E ev );
+    public boolean apply( E ev );
     
 }

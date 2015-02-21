@@ -18,18 +18,14 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-
-import org.eclipse.rap.rwt.lifecycle.UICallBack;
-
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * 
@@ -67,9 +63,9 @@ abstract class DeferringListener
             maxJobCount.incrementAndGet();
             log.debug( "UICallback: job started. counter=" + jobCount.get() );
             if (jobCount.getAndIncrement() == 0) {
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                UIUtils.sessionDisplay().asyncExec( new Runnable() {
                     public void run() {
-                        UICallBack.activate( "DeferredEvents" );
+                        UIUtils.activateCallback( "DeferredEvents" );
                         log.debug( "UICallback: ON (counter=" + jobCount.get() + ")" );
                     }
                 });
@@ -81,9 +77,9 @@ abstract class DeferringListener
             log.debug( "UICallback: job finished. counter=" + jobCount.get() );
             if (jobCount.decrementAndGet() == 0) {
                 final int max = maxJobCount.getAndSet( 0 );
-                Polymap.getSessionDisplay().asyncExec( new Runnable() {
+                UIUtils.sessionDisplay().asyncExec( new Runnable() {
                     public void run() {
-                        UICallBack.deactivate( "DeferredEvents" );
+                        UIUtils.deactivateCallback( "DeferredEvents" );
                         log.debug( "UICallback: OFF (counter=" + jobCount.get() + ", max=" + max + ")" );
                     }
                 });
@@ -126,7 +122,9 @@ abstract class DeferringListener
         }
         
         public List<EventObject> events( EventFilter filter ) {
-            return ImmutableList.copyOf( Iterables.filter( events, filter ) );
+            return events.stream()
+                    .filter( ev -> filter.apply( ev ) )
+                    .collect( Collectors.toList() );
         }
     }
     

@@ -41,8 +41,8 @@ import org.eclipse.core.commands.operations.OperationHistoryEvent;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.ui.StatusDispatcher;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * 
@@ -80,7 +80,7 @@ public class SaveChangesAction
         log.debug( "History changed: ev= " + ev );
 
         if (action != null) {
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
+            UIUtils.sessionDisplay().asyncExec( new Runnable() {
                 public void run() {
                     if (operationSupport.undoHistorySize() > 0) {
                         Image image = CorePlugin.instance().imageForDescriptor( origImage, "_saveActionOrig" );

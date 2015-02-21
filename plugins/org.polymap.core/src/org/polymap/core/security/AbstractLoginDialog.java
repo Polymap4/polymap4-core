@@ -96,7 +96,8 @@ public abstract class AbstractLoginDialog
                         // prevent deadlock in UIThread
                         if (start.elapsedTime() > 60000) {
                             System.out.println( "No login. Refreshing..." );
-                            new PolymapWorkbench.Terminator().schedule();
+                            // XXX
+                            System.err.println( "No: new PolymapWorkbench.Terminator().schedule();" );
                             return;
                         }
                         try {
