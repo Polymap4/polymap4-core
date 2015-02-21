@@ -538,20 +538,13 @@
       </featureOperation>
    </extension>
    <extension
-         point="org.eclipse.rap.ui.serviceHandler">
-      <serviceHandler
-            class="org.polymap.core.data.operation.DownloadServiceHandler"
-            id="org.polymap.core.data.DownloadServiceHandler">
-      </serviceHandler>
-   </extension>
-   <extension
          point="org.polymap.core.data.reports">
       <report
             class="org.polymap.core.data.report.HtmlReportFactory"
             id="org.polymap.core.data.HtmlReports">
       </report>
    </extension>
-   <extension
+   <!--extension
          point="net.refractions.udig.catalog.ServiceExtension">
       <service
             class="org.polymap.core.data.feature.recordstore.catalog.RServiceExtension"
@@ -592,7 +585,7 @@
                class="net.refractions.udig.catalog.IResolveFolder">
          </destination>
       </action>
-   </extension>
+   </extension-->
    <!--extension
          point="net.refractions.udig.catalog.ServiceExtension">
       <service

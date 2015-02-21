@@ -11,14 +11,14 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property file="${refresh_libs_basedir}${file.separator}copy.properties" />
+	<property name="geotools.version" value="12.2" />
     <available property="already_downloaded" type="dir" file="${lib}" />
 
 	<!-- remote repositories as defined in copy.properties -->
-	<artifact:remoteRepository id="central.repository" url="${central}" />
-    <artifact:remoteRepository id="intalio.repository" url="${intaliomaven}" />
-	<!-- local repository i.e. folder to be used as storage for downloaded library files -->
-	<artifact:localRepository id="local.repository" path="${repo}" />
+	<artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+    <artifact:remoteRepository id="intalio.repository" url="http://www.intalio.org/public/maven2" />
+    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
+	<artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 
 	<target name="clean" description="deletes external libraries folder">
 		<delete dir="${lib}" />
@@ -32,15 +32,21 @@
 			<!-- local repository as defined above-->
 			<localRepository refid="local.repository" />
 			<remoteRepository refid="central.repository" />
-			<remoteRepository refid="intalio.repository" />
+            <remoteRepository refid="intalio.repository" />
+            <remoteRepository refid="geotools.repository" />
 
             <dependency groupId="com.healthmarketscience.jackcess" artifactId="jackcess" version="1.1.18" />
             <dependency groupId="org.supercsv" artifactId="SuperCSV" version="1.52" />
 
+			<dependency groupId="org.geotools" artifactId="gt-main" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-epsg-hsql" version="${geotools.version}" scope="provided" />
+            <dependency groupId="org.geotools" artifactId="gt-epsg-wkt" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
+            <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
+
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />
-
 		</artifact:dependencies>
 	</target>
 

@@ -16,7 +16,7 @@ package org.polymap.core.data.util;
 
 import org.opengis.feature.type.Name;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 

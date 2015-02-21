@@ -16,14 +16,9 @@ package org.polymap.core.data;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.polymap.core.geohub.FeatureCollectionFactory;
-import org.polymap.core.geohub.LayerFeatureSelectionManager;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.ui.ImageRegistryHelper;
 
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.feature.FeatureCollection;
-import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.osgi.framework.BundleContext;
 
@@ -64,18 +59,18 @@ public class DataPlugin
         super.start( context );
         plugin = this;
         
-        LayerFeatureSelectionManager.setFeatureCollectionFactory(
-                new FeatureCollectionFactory() {
-                    public FeatureCollection newFeatureCollection( Object layer, Filter filter ) {
-                        try {
-                            PipelineFeatureSource fs = PipelineFeatureSource.forLayer( (ILayer)layer, false );
-                            return fs.getFeatures( filter );
-                        }
-                        catch (Exception e) {
-                            throw new RuntimeException( e );
-                        }
-                    }
-                });
+//        LayerFeatureSelectionManager.setFeatureCollectionFactory(
+//                new FeatureCollectionFactory() {
+//                    public FeatureCollection newFeatureCollection( Object layer, Filter filter ) {
+//                        try {
+//                            PipelineFeatureSource fs = PipelineFeatureSource.forLayer( (ILayer)layer, false );
+//                            return fs.getFeatures( filter );
+//                        }
+//                        catch (Exception e) {
+//                            throw new RuntimeException( e );
+//                        }
+//                    }
+//                });
     }
 
 
