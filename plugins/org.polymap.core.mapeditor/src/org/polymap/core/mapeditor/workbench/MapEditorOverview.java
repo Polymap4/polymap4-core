@@ -20,12 +20,13 @@
  *
  * $Id$
  */
-package org.polymap.core.mapeditor;
+package org.polymap.core.mapeditor.workbench;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
+import org.polymap.core.mapeditor.workbench.RenderManager.RenderLayerDescriptor;
+
 import org.polymap.openlayers.rap.widget.controls.OverviewMapControl;
 
 /**

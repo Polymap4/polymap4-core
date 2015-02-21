@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.mapeditor;
+package org.polymap.core.mapeditor.workbench;
 
 import static org.polymap.core.project.ILayer.PROP_GEORESID;
 import static org.polymap.core.project.ILayer.PROP_OPACITY;
@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import java.beans.PropertyChangeEvent;
+
 import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 
@@ -49,10 +50,13 @@ import org.eclipse.rwt.service.ISettingStore;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.CorePlugin;
 import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.mapeditor.MapEditorPlugin;
+import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.mapeditor.services.SimpleWmsServer;
 import org.polymap.core.model.event.IModelChangeListener;
 import org.polymap.core.model.event.ModelChangeEvent;

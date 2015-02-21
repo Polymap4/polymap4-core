@@ -29,8 +29,9 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.polymap.core.mapeditor.MapEditor;
+
 import org.polymap.core.mapeditor.MapEditorPlugin;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.operation.OperationConcernAdapter;
 import org.polymap.core.operation.OperationInfo;
 import org.polymap.core.project.IMap;

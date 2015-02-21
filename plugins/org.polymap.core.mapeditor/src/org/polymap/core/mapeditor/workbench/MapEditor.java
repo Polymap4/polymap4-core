@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.mapeditor;
+package org.polymap.core.mapeditor.workbench;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,9 +48,9 @@ import org.eclipse.ui.part.EditorPart;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
 import org.polymap.core.mapeditor.contextmenu.ContextMenuControl;
 import org.polymap.core.mapeditor.tooling.ToolingModel;
+import org.polymap.core.mapeditor.workbench.RenderManager.RenderLayerDescriptor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 

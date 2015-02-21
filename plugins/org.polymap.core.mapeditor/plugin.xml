@@ -6,7 +6,7 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            class="org.polymap.core.mapeditor.MapEditor"
+            class="org.polymap.core.mapeditor.workbench.MapEditor"
             contributorClass="org.polymap.core.mapeditor.ui.MapEditorActionBarContributor"
             default="false"
             icon="icons/eview16/map_edit.gif"
@@ -232,7 +232,7 @@
    <extension
          point="org.eclipse.ui.elementFactories">
       <factory
-            class="org.polymap.core.mapeditor.MapEditorInput"
+            class="org.polymap.core.mapeditor.workbench.MapEditorInput"
             id="org.polymap.core.mapeditor.MapEditorInputFactory">
       </factory>
    </extension>

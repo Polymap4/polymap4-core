@@ -32,7 +32,7 @@ import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.actions.ActionDelegate;
 
-import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 
 /**
  * 

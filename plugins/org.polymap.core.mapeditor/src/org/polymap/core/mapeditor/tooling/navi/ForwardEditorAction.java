@@ -29,9 +29,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 
-import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
-import org.polymap.core.mapeditor.NavigationHistory;
+import org.polymap.core.mapeditor.workbench.MapEditor;
+import org.polymap.core.mapeditor.workbench.NavigationHistory;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;

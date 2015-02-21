@@ -22,12 +22,13 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
+
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
-import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.runtime.Polymap;
 
 /**

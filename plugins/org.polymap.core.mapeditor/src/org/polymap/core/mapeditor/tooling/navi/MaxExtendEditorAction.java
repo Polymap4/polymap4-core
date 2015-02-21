@@ -16,6 +16,7 @@ package org.polymap.core.mapeditor.tooling.navi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.eclipse.jface.action.IAction;
@@ -25,8 +26,8 @@ import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IViewPart;
 
-import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

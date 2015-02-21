@@ -21,7 +21,7 @@
  * $Id$
  */
 
-package org.polymap.core.mapeditor;
+package org.polymap.core.mapeditor.workbench;
 
 import java.util.HashSet;
 import java.util.Set;

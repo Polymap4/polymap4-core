@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH, All rights reserved.
+ * Copyright 2012-2014, Polymap GmbH, All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,7 +12,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.mapeditor.contextmenu;
+package org.polymap.core.mapeditor;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.swt.widgets.Menu;
 
@@ -28,17 +32,15 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 import org.eclipse.ui.IWorkbenchActionConstants;
 
-import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.runtime.ListenerList;
 
-import org.polymap.openlayers.rap.widget.base_types.OpenLayersMap;
-import org.polymap.openlayers.rap.widget.controls.Control;
+import org.polymap.rap.openlayers.base_types.OpenLayersMap;
+import org.polymap.rap.openlayers.controls.Control;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.1
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ContextMenuControl
         extends Control 
@@ -46,17 +48,30 @@ public class ContextMenuControl
 
     private ListenerList<ISelectionChangedListener> selectionListeners = new ListenerList();
     
-    private ISelection              selection;
+    private ISelection                  selection;
     
-    private MapEditor               mapEditor;
+    private MapViewer                   mapViewer;
+    
+    /** Providers registered via {@link #addProvider(IContextMenuProvider)}. */
+    private Set<IContextMenuProvider>   providers = new HashSet();
     
     
-    public ContextMenuControl( MapEditor mapEditor ) {
-        this.mapEditor = mapEditor;
-        setMap( mapEditor.getWidget().getMap() );
+    public ContextMenuControl( MapViewer mapViewer ) {
+        this.mapViewer = mapViewer;
+        setMap( mapViewer.getMap() );
         //super.create( "new OpenLayers.Control.ContextMenuControl();" );
     }
 
+    
+    public boolean addProvider( IContextMenuProvider... _providers ) {
+        return this.providers.addAll( Arrays.asList( _providers ) );
+    }
+    
+    
+    public boolean removeProvider( IContextMenuProvider provider ) {
+        return providers.remove( provider );
+    }
+    
     
     public void setMap( OpenLayersMap map ) {
         // hook context menu
@@ -64,17 +79,18 @@ public class ContextMenuControl
         contextMenu.setRemoveAllWhenShown( true );
         
         contextMenu.addMenuListener( new IMenuListener2() {
-            
+            @Override
             public void menuAboutToHide( IMenuManager manager ) {
-                // avois displaying the old menu when opening
+                // avoid displaying the old menu when opening
                 contextMenu.removeAll();
             }
-
+            @Override
             public void menuAboutToShow( IMenuManager manager ) {
                 // create site
                 ContextMenuSite site = new ContextMenuSite() {
-                    public MapEditor getMapEditor() {
-                        return mapEditor;
+                    @Override
+                    public MapViewer getMapViewer() {
+                        return mapViewer;
                     }
                 };
                 
@@ -88,10 +104,19 @@ public class ContextMenuControl
                 manager.add( new Separator( IContextMenuContribution.GROUP_LOW ) );
                 manager.add( new GroupMarker( IContextMenuContribution.GROUP_LOW ) );
 
-                // find extensions and add to menu
-                for (ContextMenuExtension ext : ContextMenuExtension.all()) {
-                    IContextMenuContribution item = ext.newProvider().init( site );
-                    contextMenu.appendToGroup( item.getMenuGroup(), item );
+//                // find extensions and add to menu
+//                for (ContextMenuExtension ext : ContextMenuExtension.all()) {
+//                    IContextMenuContribution item = ext.createContribution();
+//                    if (item.init( site )) {
+//                        contextMenu.appendToGroup( item.getMenuGroup(), item );
+//                    }
+//                }
+                // 
+                for (IContextMenuProvider provider : providers) {
+                    IContextMenuContribution item = provider.createContribution();
+                    if (item.init( site )) {
+                        contextMenu.appendToGroup( item.getMenuGroup(), item );
+                    }
                 }
                 
                 // additions

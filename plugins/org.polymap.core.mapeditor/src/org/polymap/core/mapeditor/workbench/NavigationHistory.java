@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.mapeditor;
+package org.polymap.core.mapeditor.workbench;
 
 import java.beans.PropertyChangeEvent;
 import org.geotools.geometry.jts.ReferencedEnvelope;

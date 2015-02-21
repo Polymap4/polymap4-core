@@ -16,6 +16,7 @@ package org.polymap.core.mapeditor.tooling;
 
 import static com.google.common.collect.Iterables.filter;
 import static org.polymap.core.mapeditor.tooling.EditorTools.hasStrictPrefix;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,10 +49,12 @@ import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.XMLMemento;
+
 import org.eclipse.core.runtime.IPath;
-import org.polymap.core.mapeditor.MapEditor;
+
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.ListenerList;

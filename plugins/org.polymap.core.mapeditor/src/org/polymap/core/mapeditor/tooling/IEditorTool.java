@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.core.runtime.IPath;
 
-import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 
 /**
  * An IEditorTool implementation provides the logic to edit the content of a

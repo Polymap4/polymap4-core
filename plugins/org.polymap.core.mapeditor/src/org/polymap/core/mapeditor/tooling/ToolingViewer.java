@@ -43,8 +43,8 @@ import org.eclipse.ui.forms.widgets.ColumnLayoutData;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.ui.ColumnLayoutFactory;
 

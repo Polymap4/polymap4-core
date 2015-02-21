@@ -17,8 +17,10 @@ package org.polymap.core.mapeditor.tooling.edit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.FeatureCollection;
@@ -45,12 +47,12 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.geohub.LayerFeatureSelectionOperation;
-import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.MapEditorPlugin;
 import org.polymap.core.mapeditor.services.JsonEncoder;
 import org.polymap.core.mapeditor.services.JsonVectorLayer;
 import org.polymap.core.mapeditor.services.SimpleJsonServer;
 import org.polymap.core.mapeditor.tooling.IEditorToolSite;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;

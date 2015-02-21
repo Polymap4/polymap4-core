@@ -23,8 +23,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 
-import org.polymap.core.mapeditor.MapEditor;
-import org.polymap.core.mapeditor.RenderManager.RenderLayerDescriptor;
+import org.polymap.core.mapeditor.workbench.MapEditor;
+import org.polymap.core.mapeditor.workbench.RenderManager.RenderLayerDescriptor;
 
 /**
  * 

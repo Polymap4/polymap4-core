@@ -17,17 +17,19 @@ package org.polymap.core.mapeditor.contextmenu;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.filter.FilterFactory2;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Point;
 
-import org.polymap.core.mapeditor.MapEditor;
 import org.polymap.core.mapeditor.Messages;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;

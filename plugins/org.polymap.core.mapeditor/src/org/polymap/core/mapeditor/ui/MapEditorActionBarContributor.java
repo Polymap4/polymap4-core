@@ -33,7 +33,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.part.EditorActionBarContributor;
 
-import org.polymap.core.mapeditor.MapEditor;
+import org.polymap.core.mapeditor.workbench.MapEditor;
 
 /**
  * 
