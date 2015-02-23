@@ -2,12 +2,16 @@
 
 ## Cache
 
-...
+Cache implementations based on javax.cache API.
 
 ## Event System
-
-...
-
+Global event based communication system. Software components can register for events and other components can send event notifications via this event bus.
+ 
+  - central event hub, subscriber does not need to know the publisher
+  - asynchronous or synchronous event propagation and handling
+  - declare event handler methods via [annotation](src/org/polymap/core/runtime/event/EventHandler.java)
+  - annotate event handling: run in Display thread, collect events, event scope
+  
 ## Session Context ([core.runtime.session](src/org/polymap/core/runtime/session))
 
 Provides a unique API to access the context of the session connected to the current thread. This is especially useful if sessions contexts are not just provided by RAP. For example if servlets or other services (GeoServer/OGC, WebDAV, etc.) running outside RAP.
