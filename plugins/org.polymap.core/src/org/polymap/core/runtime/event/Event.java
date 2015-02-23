@@ -16,7 +16,7 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 

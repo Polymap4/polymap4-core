@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 

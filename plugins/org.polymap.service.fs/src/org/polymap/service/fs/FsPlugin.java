@@ -24,9 +24,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.Plugin;
 
-import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.DefaultSessionContextProvider;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 

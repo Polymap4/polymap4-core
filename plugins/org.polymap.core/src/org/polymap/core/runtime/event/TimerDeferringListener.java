@@ -29,7 +29,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.Messages;
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * Handles delayed event publishing. {@link Timer} is used to implement the delayed

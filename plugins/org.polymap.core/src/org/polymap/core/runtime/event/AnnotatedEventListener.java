@@ -31,8 +31,8 @@ import org.apache.commons.logging.Log;
 
 import com.google.common.collect.ObjectArrays;
 
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.event.DeferringListener.DeferredEvent;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 

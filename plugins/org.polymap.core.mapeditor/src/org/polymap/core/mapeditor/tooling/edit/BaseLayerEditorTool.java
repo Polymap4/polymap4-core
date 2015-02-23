@@ -49,6 +49,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.mapeditor.tooling.DefaultEditorTool;
 import org.polymap.core.mapeditor.tooling.IEditorToolSite;
@@ -57,10 +58,10 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Layers;
 import org.polymap.core.runtime.ListenerList;
-import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

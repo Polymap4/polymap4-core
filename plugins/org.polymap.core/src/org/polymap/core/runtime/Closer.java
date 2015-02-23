@@ -42,7 +42,8 @@ public class Closer {
     
     // instance *******************************************
     
-    private List<AutoCloseable>     closeables = new ArrayList(); 
+    private List<AutoCloseable>     closeables = new ArrayList();
+    
     private List<Throwable>         exceptions = new ArrayList();
     
     
@@ -52,11 +53,11 @@ public class Closer {
 
 
     /**
-     * Runs the given Callable and {@link #close(AutoCloseable) close} all closeables
-     * specified by {@link #with(AutoCloseable...)}. All exceptions thrown during
-     * executing the given code or when closing are not rethrown but catched and
-     * collected internally.
+     * Runs the given Callable and {@link #close(AutoCloseable) closes} all closeables
+     * specified by {@link #with(AutoCloseable...)}. All exceptions thrown by the given
+     * code or during close are catched silently and collected internally.
      *
+     * @see Closer#rethrowOrWrap(Class)
      * @param exe The code to execute.
      * @return this.
      */
@@ -72,8 +73,11 @@ public class Closer {
         }
         return this;
     }
+
     
-    
+    /**
+     * See {@link #runAndClose(Callable)}.
+     */
     public Closer runAndClose( Runnable exe ) {
         return runAndClose( new Callable() {
             public Object call() throws Exception {
@@ -137,6 +141,17 @@ public class Closer {
             }
         }
         return this;
+    }
+
+    
+    /**
+     * Always returns null. This can be used to set a client variable to
+     * <code>null</code> as last step of the method chain.
+     *
+     * @return <code>null</code>.
+     */
+    public <T> T setNull() {
+        return null;
     }
     
 }

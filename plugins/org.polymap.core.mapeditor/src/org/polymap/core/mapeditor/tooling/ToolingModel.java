@@ -59,7 +59,7 @@ import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
  * Provides the tree store, event handling and most of the other basic logic of

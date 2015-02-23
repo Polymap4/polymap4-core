@@ -37,8 +37,8 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.ui.StatusDispatcher;
 
 /**

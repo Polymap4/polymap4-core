@@ -18,9 +18,9 @@ import java.util.EventListener;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.event.Event;
 import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * Register this listener type with {@link EntityStateTracker} to get informed

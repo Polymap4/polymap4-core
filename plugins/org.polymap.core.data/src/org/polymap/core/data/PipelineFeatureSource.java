@@ -34,7 +34,6 @@ import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.util.ProgressListener;
-
 import org.geotools.data.AbstractFeatureSource;
 import org.geotools.data.DataStore;
 import org.geotools.data.DefaultQuery;
@@ -70,7 +69,7 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.LayerUseCase;
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}

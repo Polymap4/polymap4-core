@@ -32,8 +32,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.polymap.core.http.HttpServiceTracker;
-import org.polymap.core.runtime.RapSessionContextProvider;
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.RapSessionContextProvider;
+import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.ui.ImageRegistryHelper;
 
 /**

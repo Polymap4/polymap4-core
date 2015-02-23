@@ -35,11 +35,11 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.polymap.core.geohub.FeatureSelectionEvent;
 import org.polymap.core.geohub.LayerFeatureSelectionManager;
 import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.event.Event;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * Tracks the state (map, extent, selected features, etc.) of each user Workbench

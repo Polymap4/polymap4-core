@@ -42,10 +42,10 @@ import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.SecurityManager;
 
-import org.polymap.core.runtime.DefaultSessionContextProvider;
-import org.polymap.core.runtime.ISessionListener;
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.session.DefaultSessionContextProvider;
+import org.polymap.core.runtime.session.ISessionListener;
+import org.polymap.core.runtime.session.SessionContext;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.FsPlugin;

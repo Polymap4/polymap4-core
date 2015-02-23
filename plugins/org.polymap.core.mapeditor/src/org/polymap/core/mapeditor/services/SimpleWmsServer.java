@@ -67,11 +67,11 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.PlainLazyInit;
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
 import org.polymap.core.runtime.cache.CacheManager;
+import org.polymap.core.runtime.session.SessionContext;
 
 import org.polymap.service.http.MapHttpServer;
 

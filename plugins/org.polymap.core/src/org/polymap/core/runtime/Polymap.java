@@ -48,6 +48,8 @@ import org.eclipse.rap.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rap.rwt.internal.service.ContextProvider;
 
 import org.polymap.core.CorePlugin;
+import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.security.AuthorizationModule;
 import org.polymap.core.security.ServicesCallbackHandler;
 import org.polymap.core.security.UserPrincipal;

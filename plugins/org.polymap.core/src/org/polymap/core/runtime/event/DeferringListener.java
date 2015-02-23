@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
-import org.polymap.core.runtime.SessionContext;
-import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.ui.UIUtils;
 
 /**

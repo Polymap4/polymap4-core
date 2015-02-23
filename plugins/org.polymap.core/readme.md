@@ -8,7 +8,11 @@
 
 ...
 
-## I18N
+## Session Context ([org.polymap.core.runtime.session](src/org/polymap/core/runtime/session))
+
+
+
+## I18N ([org.polymap.core.runtime.i18n](src/org/polymap/core/runtime/i18n))
 
 Simple API for internationalization. 
 

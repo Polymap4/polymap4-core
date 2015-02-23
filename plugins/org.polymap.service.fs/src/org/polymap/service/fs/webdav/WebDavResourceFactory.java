@@ -40,7 +40,8 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SecurityManager;
-import org.polymap.core.runtime.SessionContext;
+
+import org.polymap.core.runtime.session.SessionContext;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentDeletable;

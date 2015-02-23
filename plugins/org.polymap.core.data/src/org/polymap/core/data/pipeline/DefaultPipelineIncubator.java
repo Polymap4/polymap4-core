@@ -64,7 +64,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.runtime.ListenerList;
-import org.polymap.core.runtime.SessionSingleton;
+import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

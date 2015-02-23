@@ -59,9 +59,10 @@ import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.LayerUseCase;
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.session.SessionContext;
+
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
 import org.polymap.service.fs.spi.DefaultContentNode;

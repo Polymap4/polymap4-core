@@ -27,12 +27,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.runtime.SessionContext;
-import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
  * Provides information about modifications of a given entity or feature that might

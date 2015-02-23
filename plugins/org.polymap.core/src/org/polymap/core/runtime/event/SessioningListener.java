@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * Preserves the {@link SessionContext} of a subscribed listener

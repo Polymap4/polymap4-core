@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import java.io.IOException;
+
 import net.refractions.udig.catalog.IGeoResource;
 
 import org.geotools.data.DefaultTransaction;
@@ -64,12 +65,12 @@ import org.polymap.core.operation.IOperationSaveListener;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.entity.ConcurrentModificationException;
 import org.polymap.core.runtime.entity.EntityHandle;
 import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityStateTracker.Updater;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

@@ -29,14 +29,14 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.runtime.DefaultSessionContextProvider;
 import org.polymap.core.runtime.Polymap;
-import org.polymap.core.runtime.SessionContext;
-import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.entity.IEntityStateListener;
 import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
+import org.polymap.core.runtime.session.DefaultSessionContextProvider;
+import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
  * Provides a {@link SessionContext session context} for a service (

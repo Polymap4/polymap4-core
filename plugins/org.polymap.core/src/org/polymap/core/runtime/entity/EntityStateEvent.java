@@ -17,8 +17,8 @@ package org.polymap.core.runtime.entity;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.event.Event;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 

@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.runtime;
+package org.polymap.core.runtime.session;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +21,8 @@ import java.lang.reflect.Constructor;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+
+import org.polymap.core.runtime.ListenerList;
 
 /**
  * 

@@ -51,11 +51,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.geoserver.logging.LoggingStartupContextListener;
 
 import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Stringer;
+import org.polymap.core.runtime.session.SessionContext;
 
 import org.polymap.service.ServiceContext;
 import org.polymap.service.geoserver.spring.PipelineMapProducer;

@@ -34,8 +34,8 @@ import org.eclipse.rap.rwt.service.ISessionStore;
 import org.eclipse.rap.rwt.service.UISessionEvent;
 import org.eclipse.rap.rwt.service.UISessionListener;
 
-import org.polymap.core.runtime.SessionContext;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * Provides the central API and implementation of the event system. Classes

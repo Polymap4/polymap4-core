@@ -18,7 +18,7 @@ import java.util.Locale;
 
 import org.eclipse.core.runtime.IPath;
 
-import org.polymap.core.runtime.SessionContext;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * Provides the context of an {@link IContentProvider}.

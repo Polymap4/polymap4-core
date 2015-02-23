@@ -21,6 +21,7 @@ import java.util.zip.GZIPOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,10 +37,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.CorePlugin;
-import org.polymap.core.runtime.ISessionListener;
-import org.polymap.core.runtime.SessionContext;
-import org.polymap.core.runtime.SessionSingleton;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.session.ISessionListener;
+import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.runtime.session.SessionSingleton;
 
 import org.polymap.service.ServicesPlugin;
 

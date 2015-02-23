@@ -35,6 +35,7 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
 import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.ui.StatusDispatcher;
 
 /**
