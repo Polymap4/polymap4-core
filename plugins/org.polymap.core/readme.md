@@ -8,14 +8,14 @@
 
 ...
 
-## Session Context ([org.polymap.core.runtime.session](src/org/polymap/core/runtime/session))
+## Session Context ([core.runtime.session](src/org/polymap/core/runtime/session))
 
 Provides a unique API to access the context of the session connected to the current thread. This is especially useful if sessions contexts are not just provided by RAP. For example if servlets or other services (GeoServer/OGC, WebDAV, etc.) running outside RAP.
 
-  - [SessionContext](src/org/polymap/core/runtime/session/SessionContext): API
-  - [SessionSingleton](src/org/polymap/core/runtime/session/SessionSingleton)
+  - [SessionContext](src/org/polymap/core/runtime/session/SessionContext.java): API
+  - [SessionSingleton](src/org/polymap/core/runtime/session/SessionSingleton.java)
 
-## I18N ([org.polymap.core.runtime.i18n](src/org/polymap/core/runtime/i18n))
+## I18N ([core.runtime.i18n](src/org/polymap/core/runtime/i18n))
 
 Simple API for internationalization. 
 
