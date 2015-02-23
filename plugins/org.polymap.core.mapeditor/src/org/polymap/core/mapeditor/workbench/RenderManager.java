@@ -69,11 +69,11 @@ import org.polymap.core.project.Visible;
 import org.polymap.core.project.model.LayerComposite;
 import org.polymap.core.project.operations.OpenMapOperation;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 import org.polymap.service.ServicesPlugin;

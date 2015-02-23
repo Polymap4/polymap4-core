@@ -31,8 +31,8 @@ import org.eclipse.swt.graphics.Point;
 import org.polymap.core.mapeditor.Messages;
 import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.i18n.IMessages;
 
 /**
  * 

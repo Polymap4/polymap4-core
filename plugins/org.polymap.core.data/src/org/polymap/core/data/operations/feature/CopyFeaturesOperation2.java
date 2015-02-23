@@ -80,9 +80,9 @@ import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.ui.util.SimpleFormData;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.WeakListener;
+import org.polymap.core.runtime.i18n.IMessages;
 
 /**
  * Copy features into another layer. The type of the features and the CRS might be

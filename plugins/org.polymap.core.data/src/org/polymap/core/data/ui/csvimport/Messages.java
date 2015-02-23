@@ -26,7 +26,7 @@ package org.polymap.core.data.ui.csvimport;
 import org.eclipse.rwt.RWT;
 
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.runtime.MessagesImpl;
+import org.polymap.core.runtime.i18n.MessagesImpl;
 
 /**
  *

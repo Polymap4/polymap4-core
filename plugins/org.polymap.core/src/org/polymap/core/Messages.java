@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.eclipse.rap.rwt.RWT;
 
-import org.polymap.core.runtime.IMessages;
-import org.polymap.core.runtime.MessagesImpl;
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.runtime.i18n.MessagesImpl;
 
 /**
  * 

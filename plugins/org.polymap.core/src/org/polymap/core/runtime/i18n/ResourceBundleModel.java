@@ -36,8 +36,6 @@ import org.apache.commons.io.IOUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import org.polymap.core.runtime.MessagesImpl;
-
 /**
  * Provides a model to read and manipulate {@link ResourceBundle} and key/value based
  * maps of localized strings in general. It can be used as

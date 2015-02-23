@@ -48,8 +48,8 @@ import org.polymap.core.data.Messages;
 import org.polymap.core.model.security.ACL;
 import org.polymap.core.model.security.ACLUtils;
 import org.polymap.core.model.security.AclPermission;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

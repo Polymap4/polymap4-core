@@ -40,8 +40,8 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import org.polymap.core.Messages;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.i18n.IMessages;
 
 import sun.security.acl.PrincipalImpl;
 

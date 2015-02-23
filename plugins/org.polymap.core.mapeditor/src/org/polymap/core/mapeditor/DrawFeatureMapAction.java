@@ -32,9 +32,9 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.jface.action.ContributionItem;
 
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.event.EventFilter;
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.i18n.IMessages;
 
 import org.polymap.rhei.batik.IPanelSite;
 import org.polymap.rhei.batik.internal.Messages;

@@ -34,7 +34,7 @@ import org.eclipse.jface.layout.RowLayoutFactory;
 import org.eclipse.rap.json.JsonObject;
 
 import org.polymap.core.data.util.Geometries;
-import org.polymap.core.runtime.IMessages;
+import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 

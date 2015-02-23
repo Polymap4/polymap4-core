@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.runtime;
+package org.polymap.core.runtime.i18n;
 
 import static java.util.Collections.enumeration;
 import static java.util.Collections.list;
@@ -41,6 +41,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Joiner;
+
+import org.polymap.core.runtime.Polymap;
 
 /**
  * Provides a default implementation as a backend for the static Messages class of a

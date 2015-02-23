@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Display;
+
 import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -30,8 +31,10 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+
 import org.polymap.core.CorePlugin;
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.ui.StatusDispatcher;
 
 /**

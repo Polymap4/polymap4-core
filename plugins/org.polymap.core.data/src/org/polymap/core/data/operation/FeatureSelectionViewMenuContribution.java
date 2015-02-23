@@ -24,6 +24,7 @@ import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureSource;
 import org.geotools.feature.DefaultFeatureCollections;
 import org.geotools.feature.FeatureCollection;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -56,8 +57,8 @@ import org.polymap.core.data.ui.featureselection.FeatureSelectionView;
 import org.polymap.core.data.ui.featuretable.IFeatureTableElement;
 import org.polymap.core.data.ui.featuretable.SimpleFeatureTableElement;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**

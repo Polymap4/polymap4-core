@@ -25,7 +25,7 @@ package org.polymap.service.fs;
 
 import java.util.Locale;
 
-import org.polymap.core.runtime.MessagesImpl;
+import org.polymap.core.runtime.i18n.MessagesImpl;
 
 /**
  *

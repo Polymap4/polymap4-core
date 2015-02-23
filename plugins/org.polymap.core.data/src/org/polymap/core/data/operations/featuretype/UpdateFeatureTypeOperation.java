@@ -62,9 +62,9 @@ import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.operation.OperationWizard;
 import org.polymap.core.operation.OperationWizardPage;
 import org.polymap.core.project.ui.util.SimpleFormData;
-import org.polymap.core.runtime.IMessages;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.WeakListener;
+import org.polymap.core.runtime.i18n.IMessages;
 
 /**
  * Updates an existing {@link FeatureType}.

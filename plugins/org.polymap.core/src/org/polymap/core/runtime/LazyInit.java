@@ -28,7 +28,6 @@ import java.util.function.Supplier;
  * 
  * @see LockedLazyInit
  * @see PlainLazyInit
- * @see Atomically
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class LazyInit<T>
