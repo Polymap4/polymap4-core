@@ -4,12 +4,13 @@
 
 Cache implementations based on javax.cache API.
 
-## Event System
+## Event System [core.runtime.event](src/org/polymap/core/runtime/event))
+
 Global event based communication system. Software components can register for events and other components can send event notifications via this event bus.
  
   - central event hub, subscriber does not need to know the publisher
-  - asynchronous or synchronous event propagation and handling
-  - declare event handler methods via [annotation](src/org/polymap/core/runtime/event/EventHandler.java)
+  - asynchronous event synchronous event propagation
+  - declare event handler methods via [EventHandler](src/org/polymap/core/runtime/event/EventHandler.java) annotation
   - annotate event handling: run in Display thread, collect events, event scope
   
 ## Session Context ([core.runtime.session](src/org/polymap/core/runtime/session))
