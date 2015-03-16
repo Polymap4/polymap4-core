@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * 
@@ -40,7 +40,7 @@ class DisplayingListener
 
     public DisplayingListener( EventListener delegate ) {
         super( delegate );
-        this.display = Polymap.getSessionDisplay();
+        this.display = UIUtils.sessionDisplay();
         assert display != null;
     }
 

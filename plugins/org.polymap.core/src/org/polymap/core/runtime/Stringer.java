@@ -40,7 +40,7 @@ public final class Stringer
 
     // static factories ***********************************
     
-    public static Stringer on( String s ) {
+    public static Stringer of( String s ) {
         return new Stringer( s );    
     }
     
@@ -54,10 +54,13 @@ public final class Stringer
     private StringBuilder                   data;
     
     private Map<Class,ToStringConverter>    converters;
+
+    private String                          separator = "";
     
     
     protected Stringer( String s ) {
-        this.data = new StringBuilder( s );
+        int capacity = Math.min( 256, s.length()*2 );
+        this.data = new StringBuilder( capacity ).append( s );
     }
     
     protected Stringer( int capacity ) {
@@ -260,7 +263,13 @@ public final class Stringer
     
     // joining ********************************************
     
-    public Stringer join( String separator, Iterable args ) {
+    public Stringer separator( String separator ) {
+        this.separator = separator;
+        return this;
+    }
+    
+    
+    public Stringer join( Iterable args ) {
         int i = 0;
         for (Object arg : args ) {
             if (i++ > 0) {
@@ -272,7 +281,7 @@ public final class Stringer
     }
     
     
-    public Stringer join( String separator, Object... args ) {
+    public Stringer join( Object... args ) {
         return join( separator, ImmutableList.copyOf( args ) );
     }
     
@@ -518,7 +527,7 @@ public final class Stringer
      * Tests.
      */
     public static void main( String[] args ) throws Exception {
-        Stringer digits = Stringer.on( "0123456789" );
+        Stringer digits = Stringer.of( "0123456789" );
         check( digits.startsWith( "0" ) );
         check( digits.startsWith( "01" ) );
         check( !digits.startsWith( "001" ) );
