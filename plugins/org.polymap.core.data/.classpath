@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/gt-data-12.2.jar" sourcepath="lib/sources/gt-data-12.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-12.2.jar" sourcepath="lib/sources/gt-shapefile-12.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-kml-12.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-12.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-12.2.jar"/>
@@ -18,7 +20,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/xsd-2.6.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-pool-1.5.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-12.2.jar" sourcepath="lib/sources/gt-api-12.2-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-main-12.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-main-12.2.jar" sourcepath="lib/sources/gt-main-12.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-12.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-12.2.jar" sourcepath="lib/sources/gt-opengis-12.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-12.2.jar"/>

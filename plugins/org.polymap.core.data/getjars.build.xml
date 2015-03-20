@@ -44,6 +44,8 @@
             <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
             <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
 
+			<dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+			
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />
