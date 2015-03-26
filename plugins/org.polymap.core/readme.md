@@ -22,11 +22,20 @@ Provides a unique API to access the context of the session connected to the curr
 
 ## I18N - [core.runtime.i18n](src/org/polymap/core/runtime/i18n)
 
-Simple API for internationalization. 
+Provides a simple API for internationalization. 
 
   - translate and format messages
   - handle common key prefix
   - get messages from resource bundle (ClassLoader) or workspace file 
+
+## Config - [core.runtime.i18n](src/org/polymap/core/runtime/config)
+
+Provides a system for config style properties, avoiding getter/setter code. 
+
+  - avoid a lot of declaration/getter/setter code
+  - define a clear API to access a [Property](src/org/polymap/core/runtime/config/Property.java), which is separated from algorithm interface
+  - define special behaviour via annotations, making it part of the declaration (instead of hiding inside the set() method)
+  - concrete property instances are injected by [ConfigurationFactory](src/org/polymap/core/runtime/config/ConfigurationFactory.java) 
 
 ## Security
 

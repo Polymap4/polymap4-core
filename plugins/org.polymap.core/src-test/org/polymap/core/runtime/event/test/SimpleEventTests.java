@@ -17,7 +17,6 @@ package org.polymap.core.runtime.event.test;
 import java.util.EventObject;
 import java.util.List;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
@@ -67,12 +66,12 @@ public class SimpleEventTests
         EventManager.instance().syncPublish( new TestEvent( this ) );
         
         //Assert.assertNotNull( sessionScopeResult );
-        Assert.assertNotNull( jvmScopeResult );
-        Assert.assertNotNull( listenerResult );
+        assertNotNull( jvmScopeResult );
+        assertNotNull( listenerResult );
         
-        Assert.assertEquals( 0, count );
+        assertEquals( 0, count );
         Thread.sleep( 1500 );
-        Assert.assertEquals( target, count );
+        assertEquals( target, count );
     }
     
     

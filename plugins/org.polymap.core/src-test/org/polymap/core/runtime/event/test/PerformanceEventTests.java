@@ -18,7 +18,6 @@ import java.util.List;
 
 import java.lang.reflect.Method;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
@@ -158,7 +157,7 @@ public class PerformanceEventTests
             EventManager.instance().syncPublish( new PerformanceTestEvent( this ) );
         }
         log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
-        Assert.assertEquals( count, target );
+        assertEquals( count, target );
 
         EventManager.instance().unsubscribe( handler );
     }

@@ -115,7 +115,7 @@ public class PerformanceCacheTest
 
         public byte[] load( Object key ) throws Exception {
             byte[] result = new byte[1024];
-            Random rand = new Random();
+            //Random rand = new Random();
             for (int i=0; i<result.length; i++) {
                 //result[i] = (byte)rand.nextInt();
             }
