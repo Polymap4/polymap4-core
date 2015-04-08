@@ -28,7 +28,7 @@ Provides a simple API for internationalization.
   - handle common key prefix
   - get messages from resource bundle (ClassLoader) or workspace file 
 
-## Config - [core.runtime.i18n](src/org/polymap/core/runtime/config)
+## Config - [core.runtime.config](src/org/polymap/core/runtime/config)
 
 Provides a system for config style properties, avoiding getter/setter code. 
 

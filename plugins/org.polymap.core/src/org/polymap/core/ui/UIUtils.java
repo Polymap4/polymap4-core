@@ -14,9 +14,15 @@
  */
 package org.polymap.core.ui;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.function.Predicate;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -145,4 +151,26 @@ public class UIUtils {
         ServerPushManager.getInstance().deactivateServerPushFor( id );
     }
 
+    
+    /**
+     * Performs the given visitor on every child of the given parent. The loops stops
+     * if visitor returns false.
+     *
+     * @param parent
+     * @param visitor
+     */
+    public static final void visitChildren( Composite parent, Predicate<Control> visitor ) {
+        Deque<Control> stack = new ArrayDeque();
+        stack.addAll( Arrays.asList( parent.getChildren() ) );
+        while (!stack.isEmpty()) {
+            Control child = stack.removeLast();
+            if (visitor.test( child ) == false) {
+                break;
+            }
+            if (child instanceof Composite) {
+                stack.addAll( Arrays.asList( ((Composite)child).getChildren() ) );
+            }
+        }
+    }
+    
 }

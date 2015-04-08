@@ -154,9 +154,13 @@ public class EventManager {
     /**
      * Synchronously publish the given event. This method will not return to the
      * caller until the event is dispatched to all listeners.
-     * <p>
+     * <p/>
      * Using this method is discouraged. For normal event dispatch use the
      * asynchronous {@link #publish(EventObject)}.
+     * <p/>
+     * Beware that handlers that are invoked inside the <b>display thread</b> (see
+     * {@link EventHandler}) are not actually called before this method returnes. In
+     * other words, display handlers are not guaranteed to be called synchronously.
      * 
      * @see #publish(Event)
      * @param ev The event to dispatch.

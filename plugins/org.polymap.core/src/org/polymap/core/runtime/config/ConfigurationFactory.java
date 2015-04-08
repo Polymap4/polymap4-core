@@ -14,6 +14,10 @@
  */
 package org.polymap.core.runtime.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import java.lang.reflect.Field;
 
 /**
@@ -46,50 +50,107 @@ public class ConfigurationFactory {
             for (Field f : instance.getClass().getDeclaredFields()) {
                 if (f.getType().isAssignableFrom( Property.class )) {
                     f.setAccessible( true );
-                    Property prop = new Property2() {
-
-                        private Object      value;
-
-                        @Override
-                        public Object fset( Object newValue ) {
-                            this.value = newValue;
-                            return instance;
-                        }
-
-                        @Override
-                        public Object set( Object newValue ) {
-                            Object previous = value;
-                            value = newValue;
-                            return previous;
-                        }
-
-                        @Override
-                        public Object get() {
-                            if (value == null && f.getAnnotation( Mandatory.class ) != null) {
-                                throw new ConfigurationException( "Configuration property is @Mandatory: " + f.getName() );
-                            }
-                            DefaultValue defaultValue = f.getAnnotation( DefaultValue.class );
-                            if (value == null && defaultValue != null) {
-                                return defaultValue.value();
-                            }
-                            DefaultDouble defaultDouble = f.getAnnotation( DefaultDouble.class );
-                            if (value == null && defaultDouble != null) {
-                                return defaultDouble.value();
-                            }
-                            DefaultBoolean defaultBoolean = f.getAnnotation( DefaultBoolean.class );
-                            if (value == null && defaultBoolean != null) {
-                                return defaultBoolean.value();
-                            }
-                            return value;
-                        }
-                    };
-                    f.set( instance, prop );
+                    f.set( instance, new PropertyImpl<Object,T>( instance, f ) );
                 }
             }
             return instance;
         }
         catch (Exception e) {
             throw new ConfigurationException( e );
+        }
+    }
+
+
+    /**
+     * 
+     */
+    private static class PropertyImpl<C,T>
+            implements Property2<C,T> {
+    
+        private T           value;
+        
+        private C           instance;
+
+        private Field       f;
+    
+    
+        protected PropertyImpl( C instance, Field f ) {
+            this.instance = instance;
+            this.f = f;
+            initDefaultValue();
+        }
+
+
+        @Override
+        public C fset( T newValue ) {
+            this.value = newValue;
+            return instance;
+        }
+    
+    
+        @Override
+        public T set( T newValue ) {
+            checkValidators( newValue );
+            T previous = value;
+            value = newValue;
+            return previous;
+        }
+    
+    
+        @Override
+        public T get() {
+            if (value == null && f.getAnnotation( Mandatory.class ) != null) {
+                throw new ConfigurationException( "Configuration property is @Mandatory: " + f.getName() );
+            }
+            return value;
+        }
+        
+        
+        protected void initDefaultValue() {
+            assert value == null;
+            DefaultValue defaultValue = f.getAnnotation( DefaultValue.class );
+            if (defaultValue != null) {
+                set( (T)defaultValue.value() );
+            }
+            DefaultDouble defaultDouble = f.getAnnotation( DefaultDouble.class );
+            if (defaultDouble != null) {
+                set( (T)new Double( defaultDouble.value() ) );
+            }
+            DefaultBoolean defaultBoolean = f.getAnnotation( DefaultBoolean.class );
+            if (defaultBoolean != null) {
+                set( (T)new Boolean( defaultBoolean.value() ) );
+            }
+        }
+        
+        
+        protected void checkValidators( T checkValue ) {
+            // get annotation(s)
+            List<Check> l = new ArrayList();
+            Check check = f.getAnnotation( Check.class );
+            if (check != null) {
+                l.add( check );
+            }
+            Checks checks = f.getAnnotation( Checks.class );
+            if (checks != null) {
+                l.addAll( Arrays.asList( checks.value() ) );
+            }
+
+            // test validators
+            for (Check c : l) {
+                try {
+                    PropertyValidator validator = c.validator().newInstance();
+                    validator.args = c.args();
+                    if (validator.test( checkValue ) == false) {
+                        throw new IllegalStateException( "Property check/validator failed: " 
+                                + validator.getClass().getName() 
+                                + ", value=" + checkValue
+                                + ", args=" + Arrays.toString( validator.args ) );
+                    }
+                }
+                catch (ReflectiveOperationException e) {
+                    throw new RuntimeException( e );
+                }
+            }
         }
     }
     
