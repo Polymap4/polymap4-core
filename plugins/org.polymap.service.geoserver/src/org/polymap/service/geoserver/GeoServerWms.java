@@ -164,7 +164,7 @@ public class GeoServerWms
 
     protected void initGeoServer() throws Exception {        
         File cacheDir = GeoServerPlugin.getDefault().getCacheDir();
-        dataDir = new File( cacheDir, Stringer.on( map.getLabel() ).toFilename( "_" ).toString() );
+        dataDir = new File( cacheDir, Stringer.of( map.getLabel() ).toFilename( "_" ).toString() );
         log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
         dataDir.mkdirs();
         FileUtils.forceDeleteOnExit( dataDir );

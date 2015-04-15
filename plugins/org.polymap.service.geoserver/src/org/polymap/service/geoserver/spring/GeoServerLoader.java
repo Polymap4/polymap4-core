@@ -623,7 +623,7 @@ public class GeoServerLoader
     
     protected String simpleName( String s ) {
         // FIXME make replacement configurable
-        return Stringer.on( s ).replaceUmlauts().toURIPath( "" ).toString();
+        return Stringer.of( s ).replaceUmlauts().toURIPath( "" ).toString();
     }
     
 }

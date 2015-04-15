@@ -14,19 +14,16 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property file="${refresh_libs_basedir}${file.separator}copy.properties" />
+	<!--property file="${refresh_libs_basedir}${file.separator}copy.properties" /-->
     <available property="already_downloaded" type="dir" file="${lib}" />
 
-	<!-- remote repositories as defined in copy.properties -->
-	<artifact:remoteRepository id="geotools.repository" url="${geotoolsRepository}" />
-	<artifact:remoteRepository id="geotools.repository.snapshot" url="${geotoolsRepositorySnap}" />
+	<property name="geoserver.version" value="2.7.0" />
 
-	<artifact:remoteRepository id="central.repository" url="${central}" />
-	<artifact:remoteRepository id="jaitoolsmaven.repository" url="${jaitoolsmaven}" />
-	<artifact:remoteRepository id="geosolutionsmaven.repository" url="${geosolutionsmaven}" />
-
-	<!-- local repository i.e. folder to be used as storage for downloaded library files -->
-	<artifact:localRepository id="local.repository" path="${repo}" />
+    <!-- remote repositories as defined in copy.properties -->
+    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+    <artifact:remoteRepository id="geoserver.repository" url="http://repo.boundlessgeo.com/main" />
+    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
+    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 
 	<target name="clean" description="deletes external libraries folder">
 		<delete dir="${lib}" />
@@ -37,27 +34,21 @@
 		<!-- Use http://mvnrepository.com/ to look stuff up -->
 		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
 
-			<!-- local repository as defined above-->
-			<localRepository refid="local.repository" />
-
-			<!-- remote repositories as defined above -->
-			<!-- remoteRepository refid="udig.snapshot.repository" /-->
-
-			<remoteRepository refid="geotools.repository" />
-			<remoteRepository refid="geotools.repository.snapshot" />
-			<remoteRepository refid="central.repository" />
-			<remoteRepository refid="jaitoolsmaven.repository" />
-			<!--remoteRepository refid="geosolutionsmaven.repository" /-->
+            <!-- repositories as defined above-->
+            <localRepository refid="local.repository" />
+            <remoteRepository refid="central.repository" />
+            <remoteRepository refid="geoserver.repository" />
+            <remoteRepository refid="geotools.repository" />
 
 			<!-- GeoServer -->
-            <dependency groupId="org.geoserver" artifactId="main" version="${geoserver.version}"/>
-            <dependency groupId="org.geoserver" artifactId="wms" version="${geoserver.version}" />
-            <dependency groupId="org.geoserver" artifactId="wfs" version="${geoserver.version}" />
-            <dependency groupId="org.geoserver" artifactId="ows" version="${geoserver.version}" />
+            <dependency groupId="org.geoserver" artifactId="gs-main" version="${geoserver.version}"/>
+            <dependency groupId="org.geoserver" artifactId="gs-wms" version="${geoserver.version}" />
+            <dependency groupId="org.geoserver" artifactId="gs-wfs" version="${geoserver.version}" />
+            <dependency groupId="org.geoserver" artifactId="gs-ows" version="${geoserver.version}" />
             <!--dependency groupId="org.geoserver" artifactId="web-core" version="${geoserver.version}" /-->
 
-            <!--dependency groupId="org.geotools" artifactid="*" version="2.6.4" scope="provided" />
-            <dependency groupId="commons*" artifactid="*" version="2.6.4" scope="provided" /-->
+            <dependency groupId="org.geotools" artifactid="*" version="13.0" scope="provided" />
+            <dependency groupId="commons*" artifactid="*" version="13.0" scope="provided" />
 		</artifact:dependencies>
         
 		<restrict id="filtered.dependencies">

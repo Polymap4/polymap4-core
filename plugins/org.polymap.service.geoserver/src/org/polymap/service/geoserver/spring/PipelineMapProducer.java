@@ -14,7 +14,7 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,20 +32,11 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.vfny.geoserver.wms.GetMapProducer;
-import org.vfny.geoserver.wms.WmsException;
-import org.vfny.geoserver.wms.responses.AbstractRasterMapProducer;
-import org.vfny.geoserver.wms.responses.ImageUtils;
-import org.vfny.geoserver.wms.responses.map.gif.GIFMapProducer;
-import org.vfny.geoserver.wms.responses.map.jpeg.JPEGMapProducer;
-import org.vfny.geoserver.wms.responses.map.png.PNGMapProducer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.opengis.referencing.FactoryException;
 
-import org.geotools.map.MapLayer;
 import org.geotools.referencing.CRS;
 
 import org.geoserver.platform.ServiceException;
