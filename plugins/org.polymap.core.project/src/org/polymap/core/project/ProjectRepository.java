@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH. All righrs reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All righrs reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,26 +16,20 @@ package org.polymap.core.project;
 
 import java.net.URL;
 
-import net.refractions.udig.catalog.memory.ActiveMemoryDataStore;
-import net.refractions.udig.catalog.memory.internal.MemoryGeoResourceImpl;
-import net.refractions.udig.catalog.memory.internal.MemoryServiceImpl;
+import org.omg.CORBA.RepositoryIdHelper;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.qi4j.api.composite.TransientBuilderFactory;
-import org.qi4j.api.unitofwork.NoSuchEntityException;
-
-import org.polymap.core.model.AssocCollection;
 import org.polymap.core.operation.OperationSupport;
 import org.polymap.core.project.model.MapState;
-import org.polymap.core.project.model.TempLayerComposite;
-import org.polymap.core.qi4j.Qi4jPlugin;
-import org.polymap.core.qi4j.QiModule;
-import org.polymap.core.qi4j.QiModuleAssembler;
-import org.polymap.core.qi4j.Qi4jPlugin.Session;
-import org.polymap.core.runtime.ISessionContextProvider;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.workbench.PolymapWorkbench;
+
+import org.polymap.model2.Entity;
+import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.EntityRepository.Configuration;
 
 /**
  * Factory and repository for the domain model artifacts.
@@ -46,51 +40,38 @@ import org.polymap.core.workbench.PolymapWorkbench;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
-public class ProjectRepository
-        extends QiModule
-        implements org.polymap.core.model.Module {
+public class ProjectRepository {
 
     private static final Log log = LogFactory.getLog( ProjectRepository.class );
 
 
     /**
-     * Get or create the repository for the current user session.
+     *
      */
-    public static ProjectRepository instance() {
-        return Qi4jPlugin.Session.instance().module( ProjectRepository.class );
-    }
+    public static Lazy<ProjectRepository> instance = new LockedLazyInit( () -> new ProjectRepository() );
 
-
-    /**
-     * The global instance used outside any user session.
-     * 
-     * @deprecated The same as {@link #instance()}. Session contexts a provided by an
-     *             {@link ISessionContextProvider}.
-     * @return A newly created {@link Session} instance. It is up to the caller to
-     *         store and re-use if necessary.
-     */
-    public static final ProjectRepository globalInstance() {
-        return instance();
-    }
-    
 
     // instance *******************************************
 
+    private EntityRepository        repo;
+    
     private IMap                    rootMap;
     
     private OperationSaveListener   operationListener;
     
 
-    protected ProjectRepository( QiModuleAssembler assembler ) {
-        super( assembler );
-        log.debug( "uow: " + uow.isOpen() );
+    protected ProjectRepository() {
+        repo = EntityRepository.newConfiguration()
+                .entities.set( new Class[] {ILayer.class, IMap.class} )
+                .store.set( null )
+                .create();
         
         operationListener = new OperationSaveListener();
         OperationSupport.instance().addOperationSaveListener( operationListener );
     }
     
-    
-    protected void dispose() {
+    @Override
+    protected void close() {
         if (operationListener != null) {
             OperationSupport.instance().removeOperationSaveListener( operationListener );
             operationListener = null;

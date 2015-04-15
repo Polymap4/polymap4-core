@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.runtime.IMessages;
+import org.polymap.core.runtime.i18n.IMessages;
 
 /**
  * This special status is used to provide feedback for a Layers status. The

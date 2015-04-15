@@ -16,13 +16,10 @@ Export-Package: org.polymap.core.project,
  org.polymap.core.project.ui.util,
  org.polymap.core.workbench
 Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.rap.ui;bundle-version="2.3.1",
  org.eclipse.rap.ui.navigator;bundle-version="3.5.0";visibility:=reexport,
- net.refractions.udig.catalog;bundle-version="1.2.0",
- net.refractions.udig.ui;bundle-version="1.2.0",
- net.refractions.udig.catalog.ui;bundle-version="1.2.0",
- net.refractions.udig.core;bundle-version="1.2.0",
- org.polymap.core;bundle-version="3.0.0",
- org.polymap.core.model;bundle-version="3.1.0",
- org.polymap.core.style;bundle-version="3.0.0"
+ org.polymap.core;bundle-version="4.0.0",
+ org.polymap.model2,
+ org.polymap.core.data;bundle-version="4.0.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.polymap.core.project.ProjectPlugin

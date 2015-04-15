@@ -15,8 +15,8 @@
 package org.polymap.core.project;
 
 import java.util.List;
+
 import org.polymap.core.runtime.Callback;
-import net.refractions.udig.catalog.IGeoResource;
 
 /**
  * A resource resolver provides the logic to find the actual {@link IGeoResource} for

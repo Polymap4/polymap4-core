@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,19 +15,17 @@
 package org.polymap.core.project;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 
 import org.eclipse.core.runtime.IAdaptable;
 
-import org.polymap.core.model.AssocCollection;
-import org.polymap.core.model.Entity;
-import org.polymap.core.model.ModelProperty;
-import org.polymap.core.model.TransientProperty;
-import org.polymap.core.model.security.ACL;
-import org.polymap.core.qi4j.event.PropertyChangeSupport;
+import org.polymap.model2.Computed;
+import org.polymap.model2.Concerns;
+import org.polymap.model2.Defaults;
+import org.polymap.model2.Entity;
+import org.polymap.model2.ManyAssociation;
+import org.polymap.model2.Mixins;
+import org.polymap.model2.Property;
+import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
  * A Map contains Maps and Layers. It holds information about the rendering of the
@@ -37,60 +34,38 @@ import org.polymap.core.qi4j.event.PropertyChangeSupport;
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @since 3.0
  */
-public interface IMap
-        extends Entity, Labeled, Visible, ACL, ParentMap, IAdaptable, PropertyChangeSupport { 
+@Concerns({
+    PropertyChangeSupport.class
+})
+@Mixins({
+    Node.class,
+    Labeled.class,
+    Visible.class,
+    //ACL.class
+})
+public class IMap
+        extends Entity { 
 
-    public static final String      PROP_MAPS = "maps";
-    public static final String      PROP_LAYERS = "layers";
-    public static final String      PROP_CRSCODE = "crscode";
-    /** Fired when the map extent is changed from server side code. */
-    public static final String      PROP_EXTENT = "extent";
-    /** Fired when the map extent is changed from client side navigation event. */
-    public static final String      PROP_EXTENT_UPDATE = "extent_update";
-    public static final String      PROP_MAXEXTENT = "maxextent";
-    public static final String      PROP_MAPSTATUS = "mapstatus";
-    public static final String      PROP_RENDERSTATUS = "renderstatus";
-    
+    @Defaults
+    public ManyAssociation<ILayer>      layers;
 
-//    public String toString();
-    
-    /**
-     * The layers association.
-     */
-    public AssocCollection<ILayer> getLayers();
+    public ManyAssociation<IMap>        children;
 
-    @ModelProperty(PROP_LAYERS)
-    public boolean addLayer( ILayer layer );
-    
-    @ModelProperty(PROP_LAYERS)
-    public boolean removeLayer( ILayer layer );
-    
+    public Property<String>             srsCode;
 
-    /**
-     * The children maps association.
-     */
-    public AssocCollection<IMap> getMaps();
-
-    @ModelProperty(PROP_MAPS)
-    public boolean addMap( IMap map );
-    
-    @ModelProperty(PROP_MAPS)
-    public boolean removeMap( IMap map );
-    
-    
-    public String getCRSCode();
-
-    @ModelProperty(PROP_CRSCODE)
-    public void setCRSCode( String code )
-            throws NoSuchAuthorityCodeException, FactoryException, TransformException;
-    
-    public CoordinateReferenceSystem getCRS();
+//    @ModelProperty(PROP_CRSCODE)
+//    public void setCRSCode( String code )
+//            throws NoSuchAuthorityCodeException, FactoryException, TransformException;
+//    
+//    public CoordinateReferenceSystem getCRS();
 
 
     /**
-     * The extent property. 
+     * The current extent of the map. This fires a property event. If the
+     * map is displayed then the visual representation is refreshed reflecting
+     * the new extend. 
      */
-    public ReferencedEnvelope getExtent();
+    public Property<EnvelopeComposite>  extent;
 
     /**
      * Sets the extent of the map. This fires a property event. If the

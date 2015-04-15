@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2013-2015, Polymap GmbH. ALl rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,26 +14,20 @@
  */
 package org.polymap.core.project;
 
-import org.polymap.core.model.TransientProperty;
+import org.polymap.model2.Composite;
+import org.polymap.model2.Defaults;
+import org.polymap.model2.Property;
 
 /**
- * This general interface allows to give entities a visible state.
+ * Provides interface and mixin to give entities a label. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @since 3.0
  */
-public interface Visible {
+public class Visible
+        extends Composite {
 
-    public static final String      PROP_VISIBLE = "visible";
+    @Defaults
+    public Property<Boolean>    visible;
     
-    public static final String      PROP_RERENDER = "rerender";
-    
-    
-    public boolean isVisible();
-    
-    @TransientProperty(PROP_VISIBLE)
-    public void setVisible( boolean visible );
-
-    @TransientProperty(PROP_RERENDER)
-    public void setRerender( boolean rerender );
-
 }

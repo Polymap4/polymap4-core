@@ -14,38 +14,23 @@
  */
 package org.polymap.core.project;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.polymap.model2.Concerns;
-import org.polymap.model2.Defaults;
-import org.polymap.model2.Entity;
-import org.polymap.model2.Mixins;
+import org.polymap.model2.Composite;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
- *  
+ * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@Concerns({
-    PropertyChangeSupport.class
-})
-@Mixins({
-    Node.class,
-    Labeled.class,
-    Visible.class,
-    //ACL.class
-})
-public class ILayer
-        extends Entity {
+public class EnvelopeComposite
+        extends Composite {
 
-    private static Log log = LogFactory.getLog( ILayer.class );
+    public Property<Integer>    minX;
     
-    public Property<IGeoResource>   geores;
+    public Property<Integer>    minY;
     
-    @Defaults
-    public Property<Integer>        orderKey;
-    
+    public Property<Integer>    maxX;
+
+    public Property<Integer>    maxY;
+
 }

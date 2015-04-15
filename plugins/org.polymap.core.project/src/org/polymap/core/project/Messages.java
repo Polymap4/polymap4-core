@@ -23,10 +23,10 @@
 
 package org.polymap.core.project;
 
-import org.eclipse.rwt.RWT;
+import org.eclipse.rap.rwt.RWT;
 
-import org.polymap.core.runtime.IMessages;
-import org.polymap.core.runtime.MessagesImpl;
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.runtime.i18n.MessagesImpl;
 
 /**
  * The messages of the <code>org.polymap.core.project</code> plugin.

@@ -26,9 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FeatureStore;
-
 /**
  * The layer use case specifies the target a layer is used for. Example use
  * cases are "image", "image.print" or "feature". Depending on the use case (and

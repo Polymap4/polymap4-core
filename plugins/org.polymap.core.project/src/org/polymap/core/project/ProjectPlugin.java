@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,10 +14,10 @@
  */
 package org.polymap.core.project;
 
+import org.osgi.framework.BundleContext;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.osgi.framework.BundleContext;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -33,7 +33,7 @@ import org.polymap.core.ui.ImageRegistryHelper;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  * @since 3.0
  */
 public class ProjectPlugin
@@ -53,17 +53,6 @@ public class ProjectPlugin
 
     public static ProjectPlugin getDefault() {
         return instance;
-    }
-
-
-    /**
-     * The map that was last selected in the UI. It may no longer be selected,
-     * however operations and commands should work wirth this 'current' map.
-     * <p>
-     * Shortcut for {@link MapEditorPluginSession#getSelectedMap()}.
-     */
-    public static IMap getSelectedMap() {
-        return ProjectPluginSession.instance().getSelectedMap();
     }
 
 

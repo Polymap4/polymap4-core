@@ -16,9 +16,6 @@ package org.polymap.core.project;
 
 import java.util.Set;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
-
 /**
  * 
  *

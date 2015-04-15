@@ -27,6 +27,8 @@ import org.qi4j.api.entity.EntityComposite;
 import org.qi4j.api.mixin.Mixins;
 
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.Labeled;
+import org.polymap.core.project.Visible;
 import org.polymap.core.qi4j.QiEntity;
 import org.polymap.core.qi4j.event.ModelChangeSupport;
 import org.polymap.core.qi4j.event.PropertyChangeSupport;

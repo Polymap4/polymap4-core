@@ -15,10 +15,8 @@
 package org.polymap.core.project;
 
 import java.util.Comparator;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Static factory of utils to work with {@link ILayer}. 
@@ -37,8 +35,8 @@ public class Layers {
      */
     public static Predicate<ILayer> isVisible() {
         return new Predicate<ILayer>() {
-            public boolean apply( ILayer input ) {
-                return input.isVisible();
+            public boolean test( ILayer input ) {
+                return input.as( Visible.class ).visible.get();
             }
         };
     }
@@ -49,8 +47,8 @@ public class Layers {
      */
     public static Predicate<ILayer> hasLabel( final String label ) {
         return new Predicate<ILayer>() {
-            public boolean apply( ILayer input ) {
-                return input.getLabel().equals( label );
+            public boolean test( ILayer input ) {
+                return input.as( Labeled.class ).label.equals( label );
             }
         };
     }
@@ -58,7 +56,7 @@ public class Layers {
     public static Function<ILayer,String> asLabel() {
         return new Function<ILayer,String>() {
             public String apply( ILayer input ) {
-                return input.getLabel();
+                return input.as( Labeled.class ).label.get();
             }
         };
     }
@@ -71,16 +69,16 @@ public class Layers {
     public static Comparator<ILayer> zPrioComparator() {
         return new Comparator<ILayer>() {
             public int compare( ILayer l1, ILayer l2 ) {
-                return l1.getOrderKey() - l2.getOrderKey();
+                return l1.orderKey.get() - l2.orderKey.get();
             }
         };
     }
 
-    /**
-     * Convenience for <code>Iterables.toArray( layers, ILayer.class )</code>. 
-     */
-    public static ILayer[] toArray( Iterable<ILayer> layers ) {
-        return Iterables.toArray( layers, ILayer.class );
-    }
+//    /**
+//     * Convenience for <code>Iterables.toArray( layers, ILayer.class )</code>. 
+//     */
+//    public static ILayer[] toArray( Iterable<ILayer> layers ) {
+//        return layers.stream
+//    }
     
 }
