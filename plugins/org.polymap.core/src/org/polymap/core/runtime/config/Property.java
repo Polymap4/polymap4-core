@@ -27,4 +27,6 @@ public interface Property<T> {
     
     public T get();
     
+    public PropertyInfo info();
+    
 }

@@ -16,24 +16,19 @@ package org.polymap.core.runtime.config;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a check of the value of a {@link Property}.
+ * Denotes a {@link Property} as immutable. Once set attempts to set the value of
+ * such a Property results in a {@link ConfigurationException}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
-@Repeatable( Checks.class )
 @Documented
-public @interface Check {
+public @interface Immutable {
     
-    public Class<? extends PropertyValidator> value();
-    
-    public String[] args() default {};
-
 }

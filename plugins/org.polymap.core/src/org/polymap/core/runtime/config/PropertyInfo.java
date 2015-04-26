@@ -14,17 +14,19 @@
  */
 package org.polymap.core.runtime.config;
 
+import java.lang.annotation.Annotation;
+
 /**
- * Provides the {@link #put(Object)} method which allows to chain calls.
- * <p/>
- * C - The type of the host class.<br/>
- * T - The type of the value of this property. 
  * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Property2<C,T>
-        extends Property<T> {
+public interface PropertyInfo {
 
-    public C put( T newValue );
+    public String getName();
+    
+    public Class<?> getType();
+    
+    public <T extends Annotation> T getAnnotation( Class<T> type );
     
 }

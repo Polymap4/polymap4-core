@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a mandatory configuration property. Access without properly setting a
- * value results in an error.
+ * value results in an {@link ConfigurationException}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

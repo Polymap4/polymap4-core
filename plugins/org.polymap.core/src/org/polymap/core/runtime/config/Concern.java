@@ -22,17 +22,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a check of the value of a {@link Property}.
+ * Denotes a {@link PropertyConcern} that intercepts methods of a {@link Property}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
-@Repeatable( Checks.class )
+@Repeatable( Concerns.class )
 @Documented
-public @interface Check {
+public @interface Concern {
     
-    public Class<? extends PropertyValidator> value();
+    public Class<? extends PropertyConcern> value();
     
     public String[] args() default {};
 

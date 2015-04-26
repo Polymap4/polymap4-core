@@ -15,16 +15,20 @@
 package org.polymap.core.runtime.config;
 
 /**
- * Provides the {@link #put(Object)} method which allows to chain calls.
- * <p/>
- * C - The type of the host class.<br/>
- * T - The type of the value of this property. 
- * 
+ * Handle {@link Mandatory} properties.
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Property2<C,T>
-        extends Property<T> {
+public class MandatoryConcern<T>
+        extends DefaultPropertyConcern<T>
+        implements PropertyConcern<T> {
 
-    public C put( T newValue );
+    @Override
+    public T doGet( Object obj, Property<T> prop, T value ) {
+        if (value == null) {
+            throw new ConfigurationException( "Configuration property is @Mandatory: " + prop.info().getName() );
+        }
+        return value;
+    }
     
 }

@@ -15,16 +15,24 @@
 package org.polymap.core.runtime.config;
 
 /**
- * Provides the {@link #put(Object)} method which allows to chain calls.
- * <p/>
- * C - The type of the host class.<br/>
- * T - The type of the value of this property. 
- * 
+ * Handle {@link Immutable} properties. 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Property2<C,T>
-        extends Property<T> {
+public class ImmutableConcern<T>
+        extends DefaultPropertyConcern<T>
+        implements PropertyConcern<T> {
 
-    public C put( T newValue );
+    private boolean     initialized;
+    
+    
+    @Override
+    public T doSet( Object obj, Property<T> prop, T value ) {
+        if (initialized) {
+            throw new ConfigurationException( "Property is @Immutable: " + prop.info().getName() );
+        }
+        initialized = true;
+        return value;
+    }
     
 }

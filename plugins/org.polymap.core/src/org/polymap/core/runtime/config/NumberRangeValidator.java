@@ -33,8 +33,10 @@ public class NumberRangeValidator
             if (args.length != 2) {
                 throw new RuntimeException( getClass().getSimpleName() + ": 2 arguments are expected" );
             }
-            Number arg1 = nf.parse( args[0] );
-            Number arg2 = nf.parse( args[1] );
+            Double arg1 = nf.parse( args[0] ).doubleValue();
+            Double arg2 = nf.parse( args[1] ).doubleValue();
+            
+            value = value.doubleValue();
             
             if (((Comparable)arg1).compareTo( arg2 ) > 0) {
                 throw new RuntimeException( getClass().getSimpleName() + ": value of arg1 must be smaller than value of arg2" );
