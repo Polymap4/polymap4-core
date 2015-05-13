@@ -23,10 +23,18 @@ package org.polymap.core.runtime.config;
  */
 public interface PropertyConcern<T> {
 
+    /**
+     * Intercepts construction of a {@link Property} instance.
+     *
+     * @param obj
+     * @param prop
+     * @param value The current value of the property after default value annotations have been applied.
+     * @return The value to initialize the property with.
+     */
     public T doInit( Object obj, Property<T> prop, T value );
     
     /**
-     * Intercept invocations of {@link Property#get()}.
+     * Intercepts invocations of {@link Property#get()}.
      *
      * @param obj
      * @param prop
@@ -36,7 +44,7 @@ public interface PropertyConcern<T> {
     public T doGet( Object obj, Property<T> prop, T value );
 
     /**
-     * Intercept invocations of {@link Property#set()}.
+     * Intercepts invocations of {@link Property#set()}.
      *
      * @param obj
      * @param prop

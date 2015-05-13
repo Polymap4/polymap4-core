@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2015, Falko Bräutigam. All rights reserved.
+ * Copyright 2012, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -21,14 +21,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a mandatory configuration property. Access without prior setting a value
- * or attempting to set the value to <code>null</code> throws a
- * {@link ConfigurationException}.
  * 
+ *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
 @Documented
-public @interface Mandatory {
+public @interface DefaultString {
+
+    public String value();
+    
 }

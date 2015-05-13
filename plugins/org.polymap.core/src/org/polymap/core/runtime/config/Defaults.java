@@ -21,15 +21,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
+ * Denotes that a {@link Property} is initialized with default value:
+ * <ul>
+ * <li>Number: 0</li>
+ * <li>Date: 0</li>
+ * <li>Boolean: false</li>
+ * <li>List: new ArreayList()</li>
+ * <li>Map: new HashMap()</li>
+ * <li>Set: new HashSet()</li>
+ * </ul>
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
 @Documented
-public @interface DefaultValue {
-
-    public String value();
-    
+public @interface Defaults {
 }

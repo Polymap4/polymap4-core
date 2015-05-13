@@ -16,10 +16,18 @@ package org.polymap.core.runtime.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * 
@@ -84,6 +92,8 @@ public class ConfigurationFactory {
         protected PropertyImpl( C instance, Field f ) {
             this.instance = instance;
             this.f = f;
+            
+            //
             initDefaultValue();
 
             // init validators
@@ -115,7 +125,7 @@ public class ConfigurationFactory {
             }
             
             //
-            value = checkConcerns( "doInit", null );
+            value = checkConcerns( "doInit", value );
         }
 
         
@@ -145,17 +155,55 @@ public class ConfigurationFactory {
         
         protected void initDefaultValue() {
             assert value == null;
-            DefaultValue defaultValue = f.getAnnotation( DefaultValue.class );
-            if (defaultValue != null) {
-                set( (T)defaultValue.value() );
+            // String
+            DefaultString defaultString = f.getAnnotation( DefaultString.class );
+            if (defaultString != null) {
+                set( (T)defaultString.value() );
             }
+            // Double
             DefaultDouble defaultDouble = f.getAnnotation( DefaultDouble.class );
             if (defaultDouble != null) {
                 set( (T)new Double( defaultDouble.value() ) );
             }
+            // Boolean
             DefaultBoolean defaultBoolean = f.getAnnotation( DefaultBoolean.class );
             if (defaultBoolean != null) {
                 set( (T)new Boolean( defaultBoolean.value() ) );
+            }
+            // Defaults
+            Defaults defaults = f.getAnnotation( Defaults.class );
+            if (defaults != null) {
+                Class<?> propType = info().getType();
+                if (String.class.equals( propType )) {
+                    set( (T)"" );
+                }
+                else if (Integer.class.equals( propType )) {
+                    set( (T)new Integer( 0 ) );
+                }
+                else if (Float.class.equals( propType )) {
+                    set( (T)new Float( 0 ) );
+                }
+                else if (Double.class.equals( propType )) {
+                    set( (T)new Double( 0 ) );
+                }
+                else if (Boolean.class.equals( propType )) {
+                    set( (T)Boolean.FALSE );
+                }
+                else if (List.class.equals( propType )) {
+                    set( (T)new ArrayList() );
+                }
+                else if (Map.class.equals( propType )) {
+                    set( (T)new HashMap() );
+                }
+                else if (Set.class.equals( propType )) {
+                    set( (T)new HashSet() );
+                }
+                else if (Date.class.equals( propType )) {
+                    set( (T)new Date() );
+                }
+                else {
+                    throw new RuntimeException( "Unhandled @Defaults type: " + propType );
+                }
             }
         }
         
@@ -221,7 +269,11 @@ public class ConfigurationFactory {
 
                 @Override
                 public Class<?> getType() {
-                    return f.getType();
+                    ParameterizedType declaredType = (ParameterizedType)f.getGenericType();
+                    Type typeArg = declaredType.getActualTypeArguments()[0];
+                    return typeArg instanceof ParameterizedType
+                            ? (Class<?>)((ParameterizedType)typeArg).getRawType()
+                            : (Class<?>)typeArg;
                 }
 
                 @Override

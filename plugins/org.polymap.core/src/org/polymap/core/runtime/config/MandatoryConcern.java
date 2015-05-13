@@ -30,5 +30,13 @@ public class MandatoryConcern<T>
         }
         return value;
     }
+
+    @Override
+    public T doSet( Object obj, Property<T> prop, T value ) {
+        if (value == null) {
+            throw new ConfigurationException( "Configuration property is @Mandatory: " + prop.info().getName() );
+        }
+        return value;
+    }
     
 }
