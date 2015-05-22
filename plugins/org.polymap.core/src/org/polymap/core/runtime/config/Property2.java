@@ -15,16 +15,28 @@
 package org.polymap.core.runtime.config;
 
 /**
- * Provides the {@link #put(Object)} method which allows to chain calls.
+ * Provides the {@link #put(Object)} method which allows to chain calls for a fluent call style.
  * <p/>
- * C - The type of the host class.<br/>
+ * H - The type of the host class.<br/>
  * T - The type of the value of this property. 
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Property2<C,T>
+public interface Property2<H,T>
         extends Property<T> {
 
-    public C put( T newValue );
+    /**
+     * Attempts to set the value of this Property and allow fluent call style.
+     * 
+     * @see #set(Object)
+     * @param newValue
+     * @return The host instance to allow fluent call style. The actual return type
+     *         can be a sub-class of the host. This allows the compiler to infer the
+     *         proper type even if the Property is declared in a super class of the
+     *         actual host instance. The call may also use type witness to explicitly
+     *         hint the compiler about the return type without the need to cast the
+     *         return type.
+     */
+    public <AH extends H> AH put( T newValue );
     
 }

@@ -75,12 +75,12 @@ public class ConfigurationFactory {
     /**
      * 
      */
-    private static class PropertyImpl<C,T>
-            implements Property2<C,T> {
+    private static class PropertyImpl<H,T>
+            implements Property2<H,T>, Config<H,T> {
     
         private T                       value;
         
-        private C                       instance;
+        private H                       instance;
 
         private Field                   f;
 
@@ -89,7 +89,7 @@ public class ConfigurationFactory {
         private List<PropertyConcern>   concerns = new ArrayList( 1 );
         
         
-        protected PropertyImpl( C instance, Field f ) {
+        protected PropertyImpl( H instance, Field f ) {
             this.instance = instance;
             this.f = f;
             
@@ -130,9 +130,9 @@ public class ConfigurationFactory {
 
         
         @Override
-        public C put( T newValue ) {
+        public <AH extends H> AH put( T newValue ) {
             set( newValue );
-            return instance;
+            return (AH)instance;
         }
     
     
@@ -270,7 +270,9 @@ public class ConfigurationFactory {
                 @Override
                 public Class<?> getType() {
                     ParameterizedType declaredType = (ParameterizedType)f.getGenericType();
-                    Type typeArg = declaredType.getActualTypeArguments()[0];
+                    Type[] typeArgs = declaredType.getActualTypeArguments();
+                    // Property2 has value type as second type param
+                    Type typeArg = typeArgs[typeArgs.length-1];
                     return typeArg instanceof ParameterizedType
                             ? (Class<?>)((ParameterizedType)typeArg).getRawType()
                             : (Class<?>)typeArg;

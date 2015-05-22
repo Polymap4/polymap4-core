@@ -15,24 +15,13 @@
 package org.polymap.core.runtime.config;
 
 /**
- * A configuration property.
- * <p/>
- * T - The type of the value of this property. 
+ * A configuration property. Another name for the same thing: {@link Property2}. This
+ * helps to distinguish between model properties and config or Batik context
+ * properties.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Property<T> {
+public interface Config<H,T>
+        extends Property2<H,T> {
 
-    /**
-     * Attempts to set the value of this Property and allow fluent call style.
-     *
-     * @param newValue
-     * @return The previous value of this Property.
-     */
-    public T set( T newValue );
-
-    public T get();
-    
-    public PropertyInfo info();
-    
 }
