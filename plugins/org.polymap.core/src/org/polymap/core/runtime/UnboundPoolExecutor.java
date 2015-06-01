@@ -14,9 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -24,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
-
 
 /**
  * A thread pool executor with (nearly) unbound pool size.
@@ -58,25 +55,10 @@ public class UnboundPoolExecutor {
 
         // thread pool
         ThreadPoolExecutor executor = new ThreadPoolExecutor( procs, maxThreads,
-                180L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>(),
-                threadFactory );
+                180L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), threadFactory );
         
         // rejected? -> wait and try again
-        executor.setRejectedExecutionHandler( new RejectedExecutionHandler() {
-            Random rand = new Random();
-            public void rejectedExecution( Runnable r, ThreadPoolExecutor _executor ) {
-                do {
-                    try {
-                        Thread.sleep( rand.nextInt( 1000 ) + 100 );
-                    } 
-                    catch (InterruptedException e) {}
-                }
-                while (_executor.getActiveCount() >= maxThreads);
-
-                _executor.execute( r );
-            }
-        });
+        executor.setRejectedExecutionHandler( new RejectedExecutionHandlers.Blocking() );
         
         //executor.allowCoreThreadTimeOut( true );        
         return executor;

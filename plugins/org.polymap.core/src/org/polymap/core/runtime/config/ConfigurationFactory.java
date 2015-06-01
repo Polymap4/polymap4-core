@@ -165,6 +165,11 @@ public class ConfigurationFactory {
             if (defaultDouble != null) {
                 set( (T)new Double( defaultDouble.value() ) );
             }
+            // Int
+            DefaultInt defaultInt = f.getAnnotation( DefaultInt.class );
+            if (defaultInt != null) {
+                set( (T)new Integer( defaultInt.value() ) );
+            }
             // Boolean
             DefaultBoolean defaultBoolean = f.getAnnotation( DefaultBoolean.class );
             if (defaultBoolean != null) {
