@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -153,6 +155,32 @@ public class ConfigurationFactory {
         }
         
         
+        @Override
+        public boolean isPresent() {
+            return value != null;
+        }
+
+
+        @Override
+        public void ifPresent( Consumer<T> consumer ) {
+            if (isPresent()) {
+                consumer.accept( value );
+            }
+        }
+
+
+        @Override
+        public T orElse( T other ) {
+            return isPresent() ? get() : other;
+        }
+
+
+        @Override
+        public T orElse( Supplier<T> supplier ) {
+            return isPresent() ? get() : supplier.get();
+        }
+
+
         protected void initDefaultValue() {
             assert value == null;
             // String

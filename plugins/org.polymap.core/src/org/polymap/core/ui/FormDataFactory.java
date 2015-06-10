@@ -152,6 +152,23 @@ public class FormDataFactory {
         return this;
     }
 
+    public FormDataFactory noLeft() {
+        return clearLeft();
+    }
+    
+    public FormDataFactory noRight() {
+        return clearRight();
+    }
+    
+    public FormDataFactory noTop() {
+        return clearTop();
+    }
+    
+    public FormDataFactory noBottom() {
+        return clearBottom();
+    }
+
+    
     // left
 
     public FormDataFactory left( int num ) {

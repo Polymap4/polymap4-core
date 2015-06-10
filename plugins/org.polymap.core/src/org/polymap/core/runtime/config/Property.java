@@ -14,6 +14,9 @@
  */
 package org.polymap.core.runtime.config;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 /**
  * A configuration property.
  * <p/>
@@ -24,7 +27,7 @@ package org.polymap.core.runtime.config;
 public interface Property<T> {
 
     /**
-     * Attempts to set the value of this Property and allow fluent call style.
+     * Attempts to set the value of this Property.
      *
      * @param newValue
      * @return The previous value of this Property.
@@ -32,6 +35,14 @@ public interface Property<T> {
     public T set( T newValue );
 
     public T get();
+    
+    public boolean isPresent();
+    
+    public void ifPresent( Consumer<T> consumer );
+    
+    public T orElse( T other );
+    
+    public T orElse( Supplier<T> supplier );
     
     public PropertyInfo info();
     
