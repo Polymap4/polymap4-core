@@ -59,10 +59,12 @@
 			<dependency groupId="org.geotools" artifactId="gt-main" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-epsg-hsql" version="${geotools.version}" scope="provided" />
             <dependency groupId="org.geotools" artifactId="gt-epsg-wkt" version="${geotools.version}" />
-            <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
+
+		    <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
             <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
 
-			<dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
 			
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />

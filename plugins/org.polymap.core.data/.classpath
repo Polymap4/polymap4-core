@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/gt-geojson-13.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/common-2.6.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/picocontainer-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-13.0.jar" sourcepath="lib/sources/gt-api-13.0-sources.zip"/>
