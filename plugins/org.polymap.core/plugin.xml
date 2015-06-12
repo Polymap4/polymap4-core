@@ -43,10 +43,8 @@
          point="org.eclipse.rap.ui.branding">
       <branding
             body="resource/body.html"
-            exitConfirmationClass="org.polymap.core.workbench.BrowserExitConfirmation"
             favicon="icons/favicon.gif"
             id="org.polymap.core.branding"
-            servletName="workbench"
             themeId="org.polymap.core.theme"
             title="POLYMAP3 Workbench">
          <additionalHeaders>

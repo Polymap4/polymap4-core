@@ -76,4 +76,13 @@ public class SelectionAdapter
     public <T> Iterable<T> elementsOfType( Class<T> type ) {
         return Iterables.filter( this, type );
     }
+    
+    public Object[] asArray() {
+        return Iterators.toArray( iterator(), Object.class );
+    }
+    
+    public <T> T[] asArray( Class<T> type ) {
+        return Iterators.toArray( iterator( type ), type );
+    }
+    
 }
