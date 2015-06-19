@@ -77,10 +77,10 @@ public class ConfigurationFactory {
     /**
      * 
      */
-    private static class PropertyImpl<H,T>
-            implements Property2<H,T>, Config<H,T> {
+    private static class PropertyImpl<H,V>
+            implements Property2<H,V>, Config<H,V> {
     
-        private T                       value;
+        private V                       value;
         
         private H                       instance;
 
@@ -132,25 +132,25 @@ public class ConfigurationFactory {
 
         
         @Override
-        public <AH extends H> AH put( T newValue ) {
+        public <AH extends H> AH put( V newValue ) {
             set( newValue );
             return (AH)instance;
         }
     
     
         @Override
-        public T set( T newValue ) {
+        public V set( V newValue ) {
             newValue = checkConcerns( "doSet", newValue );
             checkValidators( newValue );
 
-            T previous = value;
+            V previous = value;
             value = newValue;
             return previous;
         }
     
     
         @Override
-        public T get() {
+        public V get() {
             return checkConcerns( "doGet", value );
         }
         
@@ -162,7 +162,7 @@ public class ConfigurationFactory {
 
 
         @Override
-        public void ifPresent( Consumer<T> consumer ) {
+        public void ifPresent( Consumer<V> consumer ) {
             if (isPresent()) {
                 consumer.accept( value );
             }
@@ -170,13 +170,13 @@ public class ConfigurationFactory {
 
 
         @Override
-        public T orElse( T other ) {
+        public V orElse( V other ) {
             return isPresent() ? get() : other;
         }
 
 
         @Override
-        public T orElse( Supplier<T> supplier ) {
+        public V orElse( Supplier<V> supplier ) {
             return isPresent() ? get() : supplier.get();
         }
 
@@ -186,53 +186,53 @@ public class ConfigurationFactory {
             // String
             DefaultString defaultString = f.getAnnotation( DefaultString.class );
             if (defaultString != null) {
-                set( (T)defaultString.value() );
+                set( (V)defaultString.value() );
             }
             // Double
             DefaultDouble defaultDouble = f.getAnnotation( DefaultDouble.class );
             if (defaultDouble != null) {
-                set( (T)new Double( defaultDouble.value() ) );
+                set( (V)new Double( defaultDouble.value() ) );
             }
             // Int
             DefaultInt defaultInt = f.getAnnotation( DefaultInt.class );
             if (defaultInt != null) {
-                set( (T)new Integer( defaultInt.value() ) );
+                set( (V)new Integer( defaultInt.value() ) );
             }
             // Boolean
             DefaultBoolean defaultBoolean = f.getAnnotation( DefaultBoolean.class );
             if (defaultBoolean != null) {
-                set( (T)new Boolean( defaultBoolean.value() ) );
+                set( (V)new Boolean( defaultBoolean.value() ) );
             }
             // Defaults
             Defaults defaults = f.getAnnotation( Defaults.class );
             if (defaults != null) {
                 Class<?> propType = info().getType();
                 if (String.class.equals( propType )) {
-                    set( (T)"" );
+                    set( (V)"" );
                 }
                 else if (Integer.class.equals( propType )) {
-                    set( (T)new Integer( 0 ) );
+                    set( (V)new Integer( 0 ) );
                 }
                 else if (Float.class.equals( propType )) {
-                    set( (T)new Float( 0 ) );
+                    set( (V)new Float( 0 ) );
                 }
                 else if (Double.class.equals( propType )) {
-                    set( (T)new Double( 0 ) );
+                    set( (V)new Double( 0 ) );
                 }
                 else if (Boolean.class.equals( propType )) {
-                    set( (T)Boolean.FALSE );
+                    set( (V)Boolean.FALSE );
                 }
                 else if (List.class.equals( propType )) {
-                    set( (T)new ArrayList() );
+                    set( (V)new ArrayList() );
                 }
                 else if (Map.class.equals( propType )) {
-                    set( (T)new HashMap() );
+                    set( (V)new HashMap() );
                 }
                 else if (Set.class.equals( propType )) {
-                    set( (T)new HashSet() );
+                    set( (V)new HashSet() );
                 }
                 else if (Date.class.equals( propType )) {
-                    set( (T)new Date() );
+                    set( (V)new Date() );
                 }
                 else {
                     throw new RuntimeException( "Unhandled @Defaults type: " + propType );
@@ -241,11 +241,11 @@ public class ConfigurationFactory {
         }
         
         
-        protected T checkConcerns( String methodName, T v ) {
+        protected V checkConcerns( String methodName, V v ) {
             try {
                 Method m = PropertyConcern.class.getMethod( methodName, new Class[] {Object.class, Property.class, Object.class} );
                 for (PropertyConcern concern : concerns) {
-                    v = (T)m.invoke( concern, new Object[] {instance, this, v} );
+                    v = (V)m.invoke( concern, new Object[] {instance, this, v} );
                 }
                 return v;
             }
@@ -258,7 +258,7 @@ public class ConfigurationFactory {
         }
 
 
-        protected void checkValidators( T checkValue ) {
+        protected void checkValidators( V checkValue ) {
             for (PropertyValidator validator: validators) {
                 if (validator.test( checkValue ) == false) {
                     throw new IllegalStateException( "Property check/validator failed: " 
@@ -293,7 +293,7 @@ public class ConfigurationFactory {
 
         @Override
         public PropertyInfo info() {
-            return new PropertyInfo() {
+            return new PropertyInfo<H,V>() {
 
                 @Override
                 public String getName() {
@@ -301,19 +301,24 @@ public class ConfigurationFactory {
                 }
 
                 @Override
-                public Class<?> getType() {
+                public Class<V> getType() {
                     ParameterizedType declaredType = (ParameterizedType)f.getGenericType();
                     Type[] typeArgs = declaredType.getActualTypeArguments();
                     // Property2 has value type as second type param
                     Type typeArg = typeArgs[typeArgs.length-1];
                     return typeArg instanceof ParameterizedType
-                            ? (Class<?>)((ParameterizedType)typeArg).getRawType()
-                            : (Class<?>)typeArg;
+                            ? (Class<V>)((ParameterizedType)typeArg).getRawType()
+                            : (Class<V>)typeArg;
                 }
 
                 @Override
                 public <A extends Annotation> A getAnnotation( Class<A> type ) {
                     return f.getAnnotation( type );
+                }
+                
+                @Override 
+                public H getHostObject() {
+                    return instance;
                 }
             };
         }

@@ -18,15 +18,19 @@ import java.lang.annotation.Annotation;
 
 /**
  * 
+ * @param <H> - The type of the host class.
+ * @param <V> - The type of the value of this property. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PropertyInfo {
+public interface PropertyInfo<H,V> {
 
     public String getName();
     
-    public Class<?> getType();
+    public Class<V> getType();
     
     public <T extends Annotation> T getAnnotation( Class<T> type );
+
+    public H getHostObject();
     
 }

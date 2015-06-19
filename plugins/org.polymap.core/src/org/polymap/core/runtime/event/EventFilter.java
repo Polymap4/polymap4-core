@@ -21,6 +21,7 @@ import java.util.EventObject;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@FunctionalInterface
 public interface EventFilter<E extends EventObject> {
         //extends Predicate<E> {
 
