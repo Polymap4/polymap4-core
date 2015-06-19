@@ -293,7 +293,7 @@ public class ConfigurationFactory {
 
         @Override
         public PropertyInfo info() {
-            return new PropertyInfo<H,V>() {
+            return new PropertyInfo/*<H,V>*/() {
 
                 @Override
                 public String getName() {
@@ -312,13 +312,13 @@ public class ConfigurationFactory {
                 }
 
                 @Override
-                public <A extends Annotation> A getAnnotation( Class<A> type ) {
+                public <T extends Annotation> T getAnnotation( Class<T> type ) {
                     return f.getAnnotation( type );
                 }
                 
                 @Override 
-                public H getHostObject() {
-                    return instance;
+                public <T extends Object> T getHostObject() {
+                    return (T)instance;
                 }
             };
         }

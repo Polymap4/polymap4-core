@@ -23,14 +23,17 @@ import java.lang.annotation.Annotation;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PropertyInfo<H,V> {
+public interface PropertyInfo/*<H,V>*/ {
 
     public String getName();
     
-    public Class<V> getType();
+    public Class<?> getType();
     
-    public <T extends Annotation> T getAnnotation( Class<T> type );
+    /**
+     * Returns the annotation of the given type, or null.
+     */
+    public <A extends Annotation> A getAnnotation( Class<A> type );
 
-    public H getHostObject();
+    public <H extends Object> H getHostObject();
     
 }
