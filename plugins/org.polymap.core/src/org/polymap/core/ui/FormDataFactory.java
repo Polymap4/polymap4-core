@@ -48,10 +48,19 @@ public class FormDataFactory {
     // static factories ***********************************
     
     /**
+     * Constructs a new instance with no attachments set. The internal {@link FormData}
+     * instance is copied from the the instance already set on the Control. All
+     * settings made on the factory are immediately applied to the Control.
+     */
+    public static FormDataFactory on( Control applyTo ) {
+        return new FormDataFactory( applyTo );
+    }
+    
+    /**
      * Equivalent of calling <code>new FormDataFactory().fill()</code>
      */
     public static FormDataFactory filled() {
-        return new FormDataFactory().fill();
+        return defaults().fill();
     }
     
     /**
@@ -59,54 +68,79 @@ public class FormDataFactory {
      * {@link FormLayout} with no attachments set.
      */
     public static FormDataFactory defaults() {
-        return new FormDataFactory();
+        return new FormDataFactory( (Control)null );
     }
     
+//    /**
+//     * Equivalent of calling <code>new FormDataFactory(defaultOffset)</code> which
+//     * produces a default {@link FormLayout} and sets the default offset for this
+//     * factory, effectivly setting extra margins.
+//     */
+//    public static FormDataFactory offset( int defaultOffset) {
+//        return new FormDataFactory( defaultOffset );
+//    }
     
-    /**
-     * Equivalent of calling <code>new FormDataFactory(defaultOffset)</code> which
-     * produces a default {@link FormLayout} and sets the default offset for this
-     * factory, effectivly setting extra margins.
-     */
-    public static FormDataFactory offset( int defaultOffset) {
-        return new FormDataFactory( defaultOffset );
+    public static FormDataFactory copy( Object other ) {
+        return defaults().doCopy( (FormData)other );
     }
-    
     
     // instance *******************************************
     
-    private FormData        formData;
+    private FormData            formData;
 
-    private int             defaultOffset;
+    private int                 defaultOffset;
+    
+    /** Optional control to set the layout data on. */
+    private Control             applyTo;
 
 
     /**
-     * Constructs a new instance with defaultOffset 0.
+     * Constructs a new instance with defaultOffset 0. The internal {@link FormData}
+     * instance is copied from the the instance already set on the Control. All
+     * settings made on the factory are immediately applied to the Control.
      */
-    public FormDataFactory() {
-        this( 0 );
+    protected FormDataFactory( Control applyTo ) {
+        this.formData = new FormData();
+        this.defaultOffset = 0;
+        this.applyTo = applyTo;
+        
+        if (applyTo != null) {
+            if (applyTo.getLayoutData() != null) {
+                doCopy( (FormData)applyTo.getLayoutData() );
+            }
+            applyTo.setLayoutData( formData );
+        }
     }
 
-    public FormDataFactory( FormData other ) {
-        this( 0 );
+    /**
+     * Constructs a new factory with values initialized from the given FormData instance. The given
+     * FormData instance is copied, its values are not changed. 
+     *
+     * @param other Formdata
+     */
+    protected FormDataFactory doCopy( FormData other ) {
         formData.bottom = other.bottom;
         formData.top = other.top;
         formData.left = other.left;
         formData.right = other.right;
         formData.width = other.width;
         formData.height = other.height;
+        return this;
     }
 
-    public FormDataFactory( int defaultOffset ) {
-        this.formData = new FormData();
+    /**
+     * Sets the default offset for this factory, effectivly setting extra margins.
+     */
+    public FormDataFactory offset( @SuppressWarnings("hiding") int defaultOffset ) {
         this.defaultOffset = defaultOffset;
+        return this;
     }
 
     public <T extends Control> T applyTo( T control ) {
         control.setLayoutData( create() );
         return control;
     }
-    
+
     /**
      * Equivalent of calling:
      * <code>left( 0 ).top( 0 ).right( 100 ).bottom( 100 )</code>
