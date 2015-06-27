@@ -60,6 +60,11 @@ public class UIUtils {
      * thread has no session. The result is equivalent to
      * {@link Display#getCurrent()} except that the calling thread does not have to
      * be the UI thread of the session.
+     * <p/>
+     * If you want to execute something in the display thread then consider using
+     * {@link UIThreadExecutor}.
+     * 
+     * @see UIThreadExecutor
      */
     public static Display sessionDisplay() {
         return LifeCycleUtil.getSessionDisplay();    
