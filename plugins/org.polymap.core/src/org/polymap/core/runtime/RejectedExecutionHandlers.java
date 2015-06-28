@@ -43,7 +43,7 @@ public class RejectedExecutionHandlers {
             extends Configurable
             implements RejectedExecutionHandler {
         
-        @DefaultInt( 1000 )
+        @DefaultInt( 100 )
         @Check( value=NumberRangeValidator.class, args={"10","100000"} )
         public Config<Blocking,Integer> sleepMillis;
         
