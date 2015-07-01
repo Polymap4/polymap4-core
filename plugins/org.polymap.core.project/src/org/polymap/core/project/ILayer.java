@@ -14,6 +14,8 @@
  */
 package org.polymap.core.project;
 
+import org.geotools.data.FeatureSource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,9 +33,10 @@ import org.polymap.model2.runtime.event.PropertyChangeSupport;
  */
 @Concerns({
     PropertyChangeSupport.class
+    // ACLCheckConcern.class
 })
 @Mixins({
-    Node.class,
+    ProjectNode.class,
     Labeled.class,
     Visible.class,
     //ACL.class
@@ -43,7 +46,11 @@ public class ILayer
 
     private static Log log = LogFactory.getLog( ILayer.class );
     
-    public Property<IGeoResource>   geores;
+    /**
+     * The handle to get the actula {@link FeatureSource} for from the currently
+     * active {@link IFeatureSourceResolver}
+     */
+    public Property<String>         featureSourceHandle;
     
     @Defaults
     public Property<Integer>        orderKey;

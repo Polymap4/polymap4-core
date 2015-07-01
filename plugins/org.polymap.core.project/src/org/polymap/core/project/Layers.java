@@ -25,10 +25,6 @@ import java.util.function.Predicate;
  */
 public class Layers {
 
-    public static LayerFinder finder( String... labels ) {
-        return new LayerFinder( labels );
-    }
-    
     /**
      * 
      * @return Newly created {@link Predicate}.

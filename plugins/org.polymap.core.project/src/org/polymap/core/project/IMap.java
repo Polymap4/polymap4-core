@@ -14,11 +14,6 @@
  */
 package org.polymap.core.project;
 
-import org.geotools.geometry.jts.ReferencedEnvelope;
-
-import org.eclipse.core.runtime.IAdaptable;
-
-import org.polymap.model2.Computed;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
@@ -31,14 +26,13 @@ import org.polymap.model2.runtime.event.PropertyChangeSupport;
  * A Map contains Maps and Layers. It holds information about the rendering of the
  * Services of the Layers.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Concerns({
     PropertyChangeSupport.class
 })
 @Mixins({
-    Node.class,
+    ProjectNode.class,
     Labeled.class,
     Visible.class,
     //ACL.class
@@ -61,59 +55,11 @@ public class IMap
 
 
     /**
-     * The current extent of the map. This fires a property event. If the
-     * map is displayed then the visual representation is refreshed reflecting
-     * the new extend. 
+     * The max extent of the map. 
      */
-    public Property<EnvelopeComposite>  extent;
-
-    /**
-     * Sets the extent of the map. This fires a property event. If the
-     * map is displayed then the visual representation is refreshed reflecting
-     * the new extend. 
-     */
-    @TransientProperty(PROP_EXTENT)
-    public ReferencedEnvelope setExtent( ReferencedEnvelope result );
-
-    /**
-     * Allow the map component to update the map extend to reflect the
-     * actual bbox currently used in the map component.
-     */
-    @TransientProperty(PROP_EXTENT_UPDATE)
-    public void updateExtent( ReferencedEnvelope extent );
-
-
-    /**
-     * The maxExtent property.
-     * 
-     * @return The envelop or null, if the map is empty and/or no extent was set
-     *         yet.
-     */
-    public ReferencedEnvelope getMaxExtent();
-
-    @ModelProperty(PROP_MAXEXTENT)
-    public void setMaxExtent( ReferencedEnvelope result );
+    public Property<EnvelopeComposite>  maxExtent;
 
     
-    /**
-     * Indication of the general status.
-     */
-    public MapStatus getMapStatus();
-    
-    @TransientProperty(PROP_MAPSTATUS)
-    public void setMapStatus( MapStatus status );
-
-
-    /**
-     * Indication of Layer status. This is used to provide feedback for
-     * a Map's rendering status.
-     */
-    public RenderStatus getRenderStatus();
-    
-    @TransientProperty(PROP_RENDERSTATUS)
-    public void setRenderStatus( RenderStatus status );
-    
-    
-    public <T> T visit( LayerVisitor<T> visitor );
+//    public <T> T visit( LayerVisitor<T> visitor );
 
 }

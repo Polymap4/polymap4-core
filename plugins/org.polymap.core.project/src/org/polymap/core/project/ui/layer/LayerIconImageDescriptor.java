@@ -49,10 +49,10 @@ class LayerIconImageDescriptor
 
     
     protected void drawCompositeImage( int width, int height ) {
-        Image baseImage = ProjectPlugin.getDefault().imageForName( "icons/obj16/layer_obj.gif" );
+        Image baseImage = ProjectPlugin.instance().imageForName( "icons/obj16/layer_obj.gif" );
         drawImage( baseImage.getImageData(), 0, 0 );
 
-        Image ovrImage = ProjectPlugin.getDefault().imageForName( "icons/ovr16/eye_ovr.png" );
+        Image ovrImage = ProjectPlugin.instance().imageForName( "icons/ovr16/eye_ovr.png" );
         drawImage( ovrImage.getImageData(), 0, 0 );
     }
 

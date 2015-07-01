@@ -121,10 +121,10 @@ public class ProjectTreeViewer
 
         public Image getImage( Object elm ) {
             if (elm instanceof IMap) {
-                return ProjectPlugin.getDefault().imageForName( "icons/obj16/map_disabled_obj.gif" );
+                return ProjectPlugin.instance().imageForName( "icons/obj16/map_disabled_obj.gif" );
             }
             else if (elm instanceof ILayer) {
-                return ProjectPlugin.getDefault().imageForName( "icons/obj16/layer_obj.gif" );
+                return ProjectPlugin.instance().imageForName( "icons/obj16/layer_obj.gif" );
             }
             return null;
         }

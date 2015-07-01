@@ -53,7 +53,7 @@ public class LayerLabelProvider
             
         public Image getImage( Object elm ) {
             if (elm instanceof ILayer) {
-                Image result = ProjectPlugin.getDefault().imageForName( "icons/obj16/layer_disabled_obj.gif" );
+                Image result = ProjectPlugin.instance().imageForName( "icons/obj16/layer_disabled_obj.gif" );
                 return result;
             }
             return null;

@@ -42,46 +42,29 @@ public class ProjectPlugin
     private static Log log = LogFactory.getLog( ProjectPlugin.class );
     
     // The plug-in ID
-    public static final String      PLUGIN_ID = "org.polymap.core.project";
+    public static final String              PLUGIN_ID = "org.polymap.core.project";
 
-    // The shared instance
-    private static ProjectPlugin    instance;
-    
-    //
-    private static IGeoResourceResolver resolver;
+    private static ProjectPlugin            instance;
     
 
-    public static ProjectPlugin getDefault() {
+    public static ProjectPlugin instance() {
         return instance;
     }
 
 
-    /**
-     *
-     * @param layer
-     * @return The resolver for the given layer.
-     */
-    public static IGeoResourceResolver geoResourceResolver( ILayer layer ) {
-        if (resolver == null) {
-            resolver = new DefaultGeoResourceResolver();
-        }
-        return resolver;
-    }
-
-
     public static Image getImage( String path ) {
-        return getDefault().imageForName( path );
+        return instance().imageForName( path );
     }
 
 
     public static void logInfo( String msg ) {
-        getDefault().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );    
+        instance().getLog().log( new Status( IStatus.INFO, PLUGIN_ID, msg ) );    
     }
 
 
     public static void logError( String msg ) {
         try {
-            getDefault().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );
+            instance().getLog().log( new Status( IStatus.ERROR, PLUGIN_ID, msg ) );
         }
         catch (Exception e) {
             // ignore

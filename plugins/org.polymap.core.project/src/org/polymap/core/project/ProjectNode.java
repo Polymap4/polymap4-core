@@ -18,11 +18,12 @@ import org.polymap.model2.Association;
 import org.polymap.model2.Composite;
 
 /**
- * Provides a mixin for {@link ILayer} and {@link IMap}. 
+ * Provides a mixin for {@link ILayer} and {@link IMap} defining therm as part of a
+ * hierarchy of maps.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class Node
+public class ProjectNode
         extends Composite {
 
     public Association<IMap>        parentMap;
