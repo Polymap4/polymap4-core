@@ -14,10 +14,6 @@
  */
 package org.polymap.core.operation;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
@@ -30,16 +26,11 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
-import org.polymap.core.CorePlugin;
-import org.polymap.core.Messages;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.session.SessionSingleton;
-import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * The API and implementation of the operations system.
@@ -96,9 +87,9 @@ public class OperationSupport
 
     private DefaultOperationHistory     history;
 
-   // private AdvancedValidationUserApprover approver;
+//    private AdvancedValidationUserApprover approver;
     
-    private List<IOperationSaveListener> saveListeners = new LinkedList();
+//    private List<IOperationSaveListener> saveListeners = new LinkedList();
     
     
     /**
@@ -113,7 +104,7 @@ public class OperationSupport
     
     protected OperationSupport() {
         // context
-        context = new ObjectUndoContext( this, "Workbench Context" );
+        context = new ObjectUndoContext( this, "Polymap Context" );
 
         // history
         history = new DefaultOperationHistory();
@@ -176,8 +167,7 @@ public class OperationSupport
     }
 
     
-    public void undo()
-    throws ExecutionException {
+    public void undo() throws ExecutionException {
         IUndoableOperation op = getUndoOperation();
         assert op != null && op.canUndo();
         
@@ -192,8 +182,7 @@ public class OperationSupport
     }
     
     
-    public void redo()
-    throws ExecutionException {
+    public void redo() throws ExecutionException {
         IUndoableOperation op = getRedoOperation();
         assert op != null && op.canRedo();
         
@@ -263,8 +252,7 @@ public class OperationSupport
     }
 
 
-    protected void run( OperationJob job, boolean async, boolean progress )
-    throws ExecutionException {
+    protected void run( OperationJob job, boolean async, boolean progress ) throws ExecutionException {
         if (progress) {
             job.setShowProgressDialog( null, true );
         }
@@ -278,7 +266,7 @@ public class OperationSupport
     }
 
     
-    /*
+    /**
      * 
      */
     abstract class OperationJob
@@ -309,112 +297,112 @@ public class OperationSupport
     }
 
     
-    // save / revert **************************************
-    
-    public void addOperationSaveListener( IOperationSaveListener listener ) {
-        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
-        newList.add( listener );
-        saveListeners = newList;
-    }
-    
-    public void prependOperationSaveListener( IOperationSaveListener listener ) {
-        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
-        newList.add( 0, listener );
-        saveListeners = newList;
-    }
-    
-    public void removeOperationSaveListener( IOperationSaveListener listener ) {
-        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
-        newList.remove( listener );
-        saveListeners = newList;        
-    }
-
-    /**
-     * Notifies all {@link IOperationSaveListener}s to persistently save
-     * changes. If successful the history of operations is disposed.
-     * 
-     * @throws Exception If the prepare save operation of any of the listeners
-     *         failed.
-     */
-    public void saveChanges()
-    throws Exception {
-        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
-            protected void runWithException( IProgressMonitor monitor ) throws Exception {
-            
-                monitor.beginTask( getName(), saveListeners.size() * 11 );
-                try {
-                    // prepare
-                    for (IOperationSaveListener listener : saveListeners) {
-                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Preparing" );
-                        listener.prepareSave( OperationSupport.this, subMon );
-                        if (monitor.isCanceled()) {
-                            throw new OperationCanceledException( "Operation wurde abgebrochen." );
-                        }
-                        subMon.done();
-                    }
-                    // commit
-                    for (IOperationSaveListener listener : saveListeners) {
-                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Committing" );
-                        listener.save( OperationSupport.this, subMon );
-                        subMon.done();
-                    }
-                    history.dispose( context, true, true, false );
-                }
-                catch (final Throwable e) {
-                    // rollback
-                    for (IOperationSaveListener listener : saveListeners) {
-                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Rolling back" );
-                        listener.rollback( OperationSupport.this, subMon );
-                        subMon.done();
-                    }
-                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                        public void run() {
-                            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, OperationSupport.this, e.getLocalizedMessage(), e );
-                        }
-                    });
-                }
-            }
-        };
-        // don't block the UI thread but use rules to prevent other
-        // operations to change things during save
-        job.setRule( new OneSaver() );
-        job.setShowProgressDialog( null, true );
-        job.schedule();
-    }
-
-
-    /**
-     * Notifies all {@link IOperationSaveListener}s to revert changes.
-     * Afterwards the history of operations is disposed.
-     */
-    public void revertChanges() {
-        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {            
-            protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                
-                List<Exception> exceptions = new ArrayList();            
-                monitor.beginTask( getName(), saveListeners.size() * 10 );
-
-                for (IOperationSaveListener listener : saveListeners) {
-                    try {
-                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Revert" );
-                        listener.revert( OperationSupport.this, subMon );
-                        subMon.done();
-                    }
-                    catch (final Exception e) {
-                        exceptions.add( e );
-                    }
-                }        
-                history.dispose( context, true, true, true );
-                
-                if (!exceptions.isEmpty()) {
-                    throw exceptions.get( 0 );
-                }
-            }
-        };
-        job.setRule( new OneSaver() );
-        job.setShowProgressDialog( null, true );
-        job.schedule();
-    }
+//    // save / revert **************************************
+//    
+//    public void addOperationSaveListener( IOperationSaveListener listener ) {
+//        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
+//        newList.add( listener );
+//        saveListeners = newList;
+//    }
+//    
+//    public void prependOperationSaveListener( IOperationSaveListener listener ) {
+//        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
+//        newList.add( 0, listener );
+//        saveListeners = newList;
+//    }
+//    
+//    public void removeOperationSaveListener( IOperationSaveListener listener ) {
+//        List<IOperationSaveListener> newList = new LinkedList( saveListeners );
+//        newList.remove( listener );
+//        saveListeners = newList;        
+//    }
+//
+//    /**
+//     * Notifies all {@link IOperationSaveListener}s to persistently save
+//     * changes. If successful the history of operations is disposed.
+//     * 
+//     * @throws Exception If the prepare save operation of any of the listeners
+//     *         failed.
+//     */
+//    public void saveChanges()
+//    throws Exception {
+//        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {
+//            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+//            
+//                monitor.beginTask( getName(), saveListeners.size() * 11 );
+//                try {
+//                    // prepare
+//                    for (IOperationSaveListener listener : saveListeners) {
+//                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Preparing" );
+//                        listener.prepareSave( OperationSupport.this, subMon );
+//                        if (monitor.isCanceled()) {
+//                            throw new OperationCanceledException( "Operation wurde abgebrochen." );
+//                        }
+//                        subMon.done();
+//                    }
+//                    // commit
+//                    for (IOperationSaveListener listener : saveListeners) {
+//                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Committing" );
+//                        listener.save( OperationSupport.this, subMon );
+//                        subMon.done();
+//                    }
+//                    history.dispose( context, true, true, false );
+//                }
+//                catch (final Throwable e) {
+//                    // rollback
+//                    for (IOperationSaveListener listener : saveListeners) {
+//                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 1, "Rolling back" );
+//                        listener.rollback( OperationSupport.this, subMon );
+//                        subMon.done();
+//                    }
+//                    Polymap.getSessionDisplay().asyncExec( new Runnable() {
+//                        public void run() {
+//                            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, OperationSupport.this, e.getLocalizedMessage(), e );
+//                        }
+//                    });
+//                }
+//            }
+//        };
+//        // don't block the UI thread but use rules to prevent other
+//        // operations to change things during save
+//        job.setRule( new OneSaver() );
+//        job.setShowProgressDialog( null, true );
+//        job.schedule();
+//    }
+//
+//
+//    /**
+//     * Notifies all {@link IOperationSaveListener}s to revert changes.
+//     * Afterwards the history of operations is disposed.
+//     */
+//    public void revertChanges() {
+//        UIJob job = new UIJob( Messages.get( "OperationSupport_saveChanges" ) ) {            
+//            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+//                
+//                List<Exception> exceptions = new ArrayList();            
+//                monitor.beginTask( getName(), saveListeners.size() * 10 );
+//
+//                for (IOperationSaveListener listener : saveListeners) {
+//                    try {
+//                        SubProgressMonitor subMon = new SubProgressMonitor( monitor, 10, "Revert" );
+//                        listener.revert( OperationSupport.this, subMon );
+//                        subMon.done();
+//                    }
+//                    catch (final Exception e) {
+//                        exceptions.add( e );
+//                    }
+//                }        
+//                history.dispose( context, true, true, true );
+//                
+//                if (!exceptions.isEmpty()) {
+//                    throw exceptions.get( 0 );
+//                }
+//            }
+//        };
+//        job.setRule( new OneSaver() );
+//        job.setShowProgressDialog( null, true );
+//        job.schedule();
+//    }
 
     
     /*

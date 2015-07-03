@@ -14,22 +14,7 @@
  */
 package org.polymap.core.operation.actions;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
-
-import org.eclipse.core.commands.operations.IOperationHistoryListener;
-import org.eclipse.core.commands.operations.OperationHistoryEvent;
-
-import org.polymap.core.CorePlugin;
 import org.polymap.core.operation.IOperationSaveListener;
-import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * 
@@ -38,50 +23,49 @@ import org.polymap.core.ui.StatusDispatcher;
  * Therefore this action is disabled yet.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
-public class RevertChangesAction
-        implements IWorkbenchWindowActionDelegate, IOperationHistoryListener {
-
-    private static Log log = LogFactory.getLog( RevertChangesAction.class );
-
-    /** The action we are working for. Can I just store this and use in modelChanged() ? */
-    private IAction                 action;
-    
-    private OperationSupport        operationSupport;
-
-    
-    public void init( IWorkbenchWindow window ) {
-        operationSupport = OperationSupport.instance();
-        operationSupport.addOperationHistoryListener( this );
-    }
-
-    
-    public void dispose() {
-        operationSupport.removeOperationHistoryListener( this );
-        
-    }
-
-
-    public void historyNotification( OperationHistoryEvent ev ) {
-        if (action != null) {
-            action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
-        }
-    }
-
-
-    public void run( IAction _action ) {
-        try {
-            operationSupport.revertChanges();
-        }
-        catch (Exception e) {
-            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-        }
-    }
-
-    
-    public void selectionChanged( IAction _action, ISelection _selection ) {
-        this.action = _action;
-    }
-    
+public class RevertChangesAction {
+//        implements IWorkbenchWindowActionDelegate, IOperationHistoryListener {
+//
+//    private static Log log = LogFactory.getLog( RevertChangesAction.class );
+//
+//    /** The action we are working for. Can I just store this and use in modelChanged() ? */
+//    private IAction                 action;
+//    
+//    private OperationSupport        operationSupport;
+//
+//    
+//    public void init( IWorkbenchWindow window ) {
+//        operationSupport = OperationSupport.instance();
+//        operationSupport.addOperationHistoryListener( this );
+//    }
+//
+//    
+//    public void dispose() {
+//        operationSupport.removeOperationHistoryListener( this );
+//        
+//    }
+//
+//
+//    public void historyNotification( OperationHistoryEvent ev ) {
+//        if (action != null) {
+//            action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
+//        }
+//    }
+//
+//
+//    public void run( IAction _action ) {
+//        try {
+//            operationSupport.revertChanges();
+//        }
+//        catch (Exception e) {
+//            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+//        }
+//    }
+//
+//    
+//    public void selectionChanged( IAction _action, ISelection _selection ) {
+//        this.action = _action;
+//    }
+//    
 }

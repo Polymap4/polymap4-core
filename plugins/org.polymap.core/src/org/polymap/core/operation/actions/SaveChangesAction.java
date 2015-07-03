@@ -22,94 +22,70 @@
  */
 package org.polymap.core.operation.actions;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.eclipse.swt.graphics.Image;
-
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.DecorationOverlayIcon;
-import org.eclipse.jface.viewers.IDecoration;
-import org.eclipse.jface.viewers.ISelection;
-
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
-
-import org.eclipse.core.commands.operations.IOperationHistoryListener;
-import org.eclipse.core.commands.operations.OperationHistoryEvent;
-
-import org.polymap.core.CorePlugin;
-import org.polymap.core.operation.OperationSupport;
-import org.polymap.core.ui.StatusDispatcher;
-import org.polymap.core.ui.UIUtils;
-
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class SaveChangesAction
-        implements IWorkbenchWindowActionDelegate, IOperationHistoryListener {
-
-    private static Log log = LogFactory.getLog( SaveChangesAction.class );
-
-    /** The action we are working for. Can I just store this and use in modelChanged() ? */
-    private IAction                 action;
-    
-    private OperationSupport        operationSupport;
-
-    private static ImageDescriptor  origImage = CorePlugin.instance().imageDescriptor( "icons/etool16/save.gif" );
-
-    
-    public void init( IWorkbenchWindow window ) {
-        operationSupport = OperationSupport.instance();
-        operationSupport.addOperationHistoryListener( this );
-    }
-
-    
-    public void dispose() {
-        operationSupport.removeOperationHistoryListener( this );
-        
-    }
-
-
-    public void historyNotification( OperationHistoryEvent ev ) {
-        log.debug( "History changed: ev= " + ev );
-
-        if (action != null) {
-            UIUtils.sessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    if (operationSupport.undoHistorySize() > 0) {
-                        Image image = CorePlugin.instance().imageForDescriptor( origImage, "_saveActionOrig" );
-                        ImageDescriptor ovr = CorePlugin.instance().imageDescriptor( "icons/ovr16/dirty_ovr2.png" );
-                        action.setImageDescriptor( new DecorationOverlayIcon( image, ovr, IDecoration.BOTTOM_RIGHT ) );
-                        //action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
-                    }
-                    else {
-                        action.setImageDescriptor( origImage );
-                        //action.setToolTipText( "Save (including open editors)" );                        
-                    }
-                }
-            });
-        }
-    }
-
-
-    public void run( IAction _action ) {
-        try {
-            operationSupport.saveChanges();
-        }
-        catch (Throwable e) {
-            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-        }
-    }
-
-    
-    public void selectionChanged( IAction _action, ISelection _selection ) {
-        this.action = _action;
-    }
-    
+public class SaveChangesAction {
+//        implements IWorkbenchWindowActionDelegate, IOperationHistoryListener {
+//
+//    private static Log log = LogFactory.getLog( SaveChangesAction.class );
+//
+//    /** The action we are working for. Can I just store this and use in modelChanged() ? */
+//    private IAction                 action;
+//    
+//    private OperationSupport        operationSupport;
+//
+//    private static ImageDescriptor  origImage = CorePlugin.instance().imageDescriptor( "icons/etool16/save.gif" );
+//
+//    
+//    public void init( IWorkbenchWindow window ) {
+//        operationSupport = OperationSupport.instance();
+//        operationSupport.addOperationHistoryListener( this );
+//    }
+//
+//    
+//    public void dispose() {
+//        operationSupport.removeOperationHistoryListener( this );
+//        
+//    }
+//
+//
+//    public void historyNotification( OperationHistoryEvent ev ) {
+//        log.debug( "History changed: ev= " + ev );
+//
+//        if (action != null) {
+//            UIUtils.sessionDisplay().asyncExec( new Runnable() {
+//                public void run() {
+//                    if (operationSupport.undoHistorySize() > 0) {
+//                        Image image = CorePlugin.instance().imageForDescriptor( origImage, "_saveActionOrig" );
+//                        ImageDescriptor ovr = CorePlugin.instance().imageDescriptor( "icons/ovr16/dirty_ovr2.png" );
+//                        action.setImageDescriptor( new DecorationOverlayIcon( image, ovr, IDecoration.BOTTOM_RIGHT ) );
+//                        //action.setToolTipText( "Operations: " + operationSupport.undoHistorySize() );
+//                    }
+//                    else {
+//                        action.setImageDescriptor( origImage );
+//                        //action.setToolTipText( "Save (including open editors)" );                        
+//                    }
+//                }
+//            });
+//        }
+//    }
+//
+//
+//    public void run( IAction _action ) {
+//        try {
+//            operationSupport.saveChanges();
+//        }
+//        catch (Throwable e) {
+//            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+//        }
+//    }
+//
+//    
+//    public void selectionChanged( IAction _action, ISelection _selection ) {
+//        this.action = _action;
+//    }
+//    
 }

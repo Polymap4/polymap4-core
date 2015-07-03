@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.core.commands.operations.IUndoableOperation;
 
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * Implements chained execution of an operation and its concerns as provided by
@@ -77,7 +77,7 @@ class OperationExecutor
             }
         }
 
-        this.display = Polymap.getSessionDisplay();
+        this.display = UIUtils.sessionDisplay();
         assert this.display != null;
     }
 
