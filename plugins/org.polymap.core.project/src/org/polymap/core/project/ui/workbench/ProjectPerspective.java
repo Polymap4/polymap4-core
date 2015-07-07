@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.project.ui;
+package org.polymap.core.project.ui.workbench;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,11 +21,9 @@ import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.IPlaceholderFolderLayout;
-import org.eclipse.ui.cheatsheets.OpenCheatSheetAction;
 
 import org.polymap.core.project.ui.layer.LayerNavigator;
 import org.polymap.core.project.ui.project.ProjectView;
-import org.polymap.core.runtime.Polymap;
 
 /**
  *
@@ -61,12 +59,12 @@ public class ProjectPerspective
 //        topRight.addView( "org.polymap.core.mapeditor.ToolingView" );
         topRight.addPlaceholder( "org.polymap.geocoder.*" );
 
-        topRight.addView( "org.eclipse.ui.cheatsheets.views.CheatSheetView" );
-        Polymap.getSessionDisplay().asyncExec( new Runnable() {
-            public void run() {
-                new OpenCheatSheetAction( "org.polymap.core.cheatsheet.welcome" ).run();
-            }
-        });
+//        topRight.addView( "org.eclipse.ui.cheatsheets.views.CheatSheetView" );
+//        Polymap.getSessionDisplay().asyncExec( new Runnable() {
+//            public void run() {
+//                new OpenCheatSheetAction( "org.polymap.core.cheatsheet.welcome" ).run();
+//            }
+//        });
 
         bottom.addPlaceholder( "org.polymap.core.data.FeatureSelectionView:*" );
         bottom.addPlaceholder( "org.polymap.*" );        

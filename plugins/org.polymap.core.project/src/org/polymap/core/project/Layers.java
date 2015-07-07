@@ -32,7 +32,7 @@ public class Layers {
     public static Predicate<ILayer> isVisible() {
         return new Predicate<ILayer>() {
             public boolean test( ILayer input ) {
-                return input.as( Visible.class ).get().visible.get();
+                return input.visible.get();
             }
         };
     }
@@ -44,7 +44,7 @@ public class Layers {
     public static Predicate<ILayer> hasLabel( final String label ) {
         return new Predicate<ILayer>() {
             public boolean test( ILayer input ) {
-                return input.as( Labeled.class ).get().label.equals( label );
+                return input.label.equals( label );
             }
         };
     }
@@ -52,7 +52,7 @@ public class Layers {
     public static Function<ILayer,String> asLabel() {
         return new Function<ILayer,String>() {
             public String apply( ILayer input ) {
-                return input.as( Labeled.class ).get().label.get();
+                return input.label.get();
             }
         };
     }

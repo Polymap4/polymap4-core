@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
-import org.polymap.model2.Entity;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.event.PropertyChangeSupport;
@@ -36,13 +35,10 @@ import org.polymap.model2.runtime.event.PropertyChangeSupport;
     // ACLCheckConcern.class
 })
 @Mixins({
-    ProjectNode.class,
-    Labeled.class,
-    Visible.class,
     //ACL.class
 })
 public class ILayer
-        extends Entity {
+        extends ProjectNode {
 
     private static Log log = LogFactory.getLog( ILayer.class );
     

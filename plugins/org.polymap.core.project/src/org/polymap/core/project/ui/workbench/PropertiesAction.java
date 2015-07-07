@@ -21,7 +21,7 @@
  * $Id$
  */
 
-package org.polymap.core.project.ui;
+package org.polymap.core.project.ui.workbench;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;

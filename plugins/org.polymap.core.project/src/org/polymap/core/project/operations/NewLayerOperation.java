@@ -23,7 +23,6 @@ import org.opengis.geometry.BoundingBox;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
-import net.refractions.udig.catalog.IGeoResource;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
@@ -38,12 +37,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import org.polymap.core.model.security.AclPermission;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.Messages;
-import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.qi4j.event.AbstractModelChangeOperation;
 import org.polymap.core.runtime.Polymap;
 
 /**
@@ -52,7 +48,6 @@ import org.polymap.core.runtime.Polymap;
  * This might open dialogs and must not be executed with progress dialog.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public class NewLayerOperation
         extends AbstractModelChangeOperation

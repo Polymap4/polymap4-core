@@ -15,7 +15,11 @@
 package org.polymap.core.project;
 
 import org.polymap.model2.Association;
-import org.polymap.model2.Composite;
+import org.polymap.model2.CollectionProperty;
+import org.polymap.model2.Defaults;
+import org.polymap.model2.Entity;
+import org.polymap.model2.Property;
+import org.polymap.model2.Queryable;
 
 /**
  * Provides a mixin for {@link ILayer} and {@link IMap} defining therm as part of a
@@ -24,7 +28,18 @@ import org.polymap.model2.Composite;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProjectNode
-        extends Composite {
+        extends Entity {
 
-    public Association<IMap>        parentMap;
+    @Queryable
+    public Property<String>             label;
+
+    @Defaults
+    @Queryable
+    public CollectionProperty<String>   keywords;
+
+    @Defaults
+    public Property<Boolean>            visible;
+
+    public Association<IMap>            parentMap;
+    
 }

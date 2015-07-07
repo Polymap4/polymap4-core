@@ -16,29 +16,26 @@ package org.polymap.core.project;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
-import org.polymap.model2.Entity;
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
- * A Map contains Maps and Layers. It holds information about the rendering of the
- * Services of the Layers.
+ * A Map contains other maps and/or {@link ILayer}s. It holds information about the
+ * rendering of the Services of the Layers.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Concerns({
     PropertyChangeSupport.class
+    // ACLCheckConcern.class
 })
 @Mixins({
-    ProjectNode.class,
-    Labeled.class,
-    Visible.class,
     //ACL.class
 })
 public class IMap
-        extends Entity { 
+        extends ProjectNode { 
 
     @Defaults
     public ManyAssociation<ILayer>      layers;

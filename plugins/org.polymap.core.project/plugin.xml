@@ -99,7 +99,7 @@
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
-            class="org.polymap.core.project.ui.ProjectPerspective"
+            class="org.polymap.core.project.ui.workbench.ProjectPerspective"
             icon="icons/eview16/project_view.gif"
             id="org.polymap.core.project.dataPerspective"
             name="%perspectives_adhoc">
@@ -157,7 +157,7 @@
             id="org.polymap.core.project.layerContribution"
             objectClass="org.polymap.core.project.ILayer">
          <action
-               class="org.polymap.core.project.ui.PropertiesAction"
+               class="org.polymap.core.project.ui.workbench.PropertiesAction"
                id="org.polymap.core.project.action.properties"
                label="%actions_properties"
                menubarPath="properties"
@@ -165,7 +165,7 @@
                tooltip="%actions_properties">
          </action>
          <action
-               class="org.polymap.core.project.ui.PropertyDialogAction"
+               class="org.polymap.core.project.ui.workbench.PropertyDialogAction"
                id="org.polymap.core.project.action.propertiesDialog"
                label="%actions_propertiesDialog"
                menubarPath="properties"
@@ -197,7 +197,7 @@
             id="org.polymap.core.project.mapContribution"
             objectClass="org.polymap.core.project.IMap">
          <action
-               class="org.polymap.core.project.ui.PropertiesAction"
+               class="org.polymap.core.project.ui.workbench.PropertiesAction"
                id="org.polymap.core.project.action.properties"
                label="%actions_properties"
                menubarPath="properties"
@@ -205,7 +205,7 @@
                tooltip="%actions_properties">
          </action>
          <action
-               class="org.polymap.core.project.ui.PropertyDialogAction"
+               class="org.polymap.core.project.ui.workbench.PropertyDialogAction"
                id="org.polymap.core.project.action.mapPropertiesDialog"
                label="%actions_propertiesDialog"
                menubarPath="properties"

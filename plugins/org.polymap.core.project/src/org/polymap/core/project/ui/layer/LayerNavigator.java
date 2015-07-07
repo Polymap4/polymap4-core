@@ -29,6 +29,7 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
+
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -44,7 +45,7 @@ import org.polymap.core.model.event.ModelChangeEvent;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.PartListenerAdapter;
+import org.polymap.core.project.ui.workbench.PartListenerAdapter;
 import org.polymap.core.ui.SelectionAdapter;
 
 /**

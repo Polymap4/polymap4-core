@@ -51,7 +51,7 @@ import org.polymap.core.project.Messages;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ProjectRepository;
 import org.polymap.core.project.operations.SetPropertyOperation;
-import org.polymap.core.project.ui.PartListenerAdapter;
+import org.polymap.core.project.ui.workbench.PartListenerAdapter;
 import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
