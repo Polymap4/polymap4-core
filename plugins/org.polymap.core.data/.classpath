@@ -10,7 +10,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-graph-13.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-main-13.0.jar" sourcepath="lib/sources/gt-main-13.0-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-13.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-13.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-13.0.jar" sourcepath="lib/sources/gt-opengis-13.0-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-13.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-13.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-13.0.jar"/>

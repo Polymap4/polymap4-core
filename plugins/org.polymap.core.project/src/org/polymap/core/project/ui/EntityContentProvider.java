@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,24 +20,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.beans.PropertyChangeEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import org.polymap.core.model.event.ModelChangeEvent;
-import org.polymap.core.model.event.IModelChangeListener;
-import org.polymap.core.project.ProjectRepository;
+import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * 
- *
+ * @deprecated Check this before use!
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public abstract class EntityContentProvider
-        implements ITreeContentProvider, IModelChangeListener {
+        implements ITreeContentProvider {
 
     private static Log log = LogFactory.getLog( EntityContentProvider.class );
 
@@ -51,7 +50,7 @@ public abstract class EntityContentProvider
     
     public void dispose() {
         if (input != null) {
-            ProjectRepository.instance().removeEntityListener( this );
+            EventManager.instance().unsubscribe( this );
         }
         input = null;
         viewer = null;
@@ -67,13 +66,14 @@ public abstract class EntityContentProvider
         dispose();
         this.input = newInput;
         if (input != null) {
-            ProjectRepository.instance().addEntityListener( this );
+            EventManager.instance().subscribe( this, ev -> {throw new RuntimeException( "not yet implemented" );} );
         }
         this.viewer = _viewer;
     }
 
 
-    public void modelChanged( ModelChangeEvent ev ) {
+    @EventHandler(delay=100)
+    public void propertyChanged( List<PropertyChangeEvent> evs ) {
         // XXX check if and which of our entities are affected
         childrenMap.clear();
         

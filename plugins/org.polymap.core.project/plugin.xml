@@ -233,12 +233,6 @@
       </objectContribution>
    </extension>
    <extension
-         point="org.polymap.core.model.moduleAssemblers">
-      <assembler
-            class="org.polymap.core.project.ProjectRepositoryAssembler">
-      </assembler>
-   </extension>
-   <extension
          point="org.eclipse.ui.decorators">
       <decorator
             adaptable="true"
@@ -376,7 +370,7 @@
          point="org.eclipse.rap.ui.navigator.navigatorContent">
       <navigatorContent
             activeByDefault="true"
-            contentProvider="org.polymap.core.project.ui.layer.LayerContentProvider"
+            contentProvider="org.polymap.core.project.ui.ProjectNodeContentProvider"
             id="org.polymap.core.project.layerContent"
             labelProvider="org.polymap.core.project.ui.layer.LayerLabelProvider"
             name="%LayerNavigator_layerContent"
@@ -444,6 +438,9 @@
             class="org.polymap.core.project.operations.CatalogOperationConcern"
             id="org.polymap.core.project.CatalogOperationConcern">
       </concern>
+   </extension>
+   <extension
+         point="org.polymap.rhei.batik.panels">
    </extension>
 
 </plugin>

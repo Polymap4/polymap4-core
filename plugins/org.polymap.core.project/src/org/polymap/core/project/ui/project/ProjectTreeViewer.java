@@ -44,7 +44,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.project.Labeled;
 import org.polymap.core.project.ProjectPlugin;
 import org.polymap.core.project.ui.EntityContentProvider;
-import org.polymap.core.project.ui.LabeledLabelProvider;
+import org.polymap.core.project.ui.ProjectNodeLabelProvider;
 
 /**
  * 
@@ -117,7 +117,7 @@ public class ProjectTreeViewer
      * 
      */
     class ProjectLabelProvider
-            extends LabeledLabelProvider {
+            extends ProjectNodeLabelProvider {
 
         public Image getImage( Object elm ) {
             if (elm instanceof IMap) {

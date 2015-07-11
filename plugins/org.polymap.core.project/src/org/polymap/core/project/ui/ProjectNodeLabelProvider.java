@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009-2015, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.project.ui;
 
 import org.apache.commons.logging.Log;
@@ -30,34 +21,22 @@ import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.LabelProvider;
-
-import org.polymap.core.project.Labeled;
+import org.polymap.core.project.ProjectNode;
 
 /**
- * A {@link LabelProvider} for {@link Labeled} models. The 'label' and 'name'
- * features are used as labels.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LabeledLabelProvider
+public class ProjectNodeLabelProvider
         extends BaseLabelProvider
         implements ILabelProvider {
 
-    private static Log log = LogFactory.getLog( LabeledLabelProvider.class );
+    private static Log log = LogFactory.getLog( ProjectNodeLabelProvider.class );
     
     
-    public Image getImage( Object elm ) {
-        return null;
-    }
-
-
     public String getText( Object elm ) {
-        if (elm instanceof Labeled) {
-            Labeled obj = (Labeled)elm;
-            return obj.getLabel();
+        if (elm instanceof ProjectNode) {
+            return ((ProjectNode)elm).label.get();
         }
         else {
             log.warn( "Element is not instanceof Labeled: " + elm );
@@ -66,8 +45,8 @@ public class LabeledLabelProvider
     }
 
 
-    public void dispose() {
-        super.dispose();
+    public Image getImage( Object elm ) {
+        return null;
     }
 
 }

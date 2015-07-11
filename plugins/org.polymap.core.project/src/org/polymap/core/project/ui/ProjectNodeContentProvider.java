@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2010, 2011 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2010-2015 Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,30 +12,26 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.project.ui.layer;
+package org.polymap.core.project.ui;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.qi4j.api.unitofwork.NoSuchEntityException;
-
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import org.polymap.core.model.AssocCollection;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.ProjectNode;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.1
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LayerContentProvider
+public class ProjectNodeContentProvider
         implements ITreeContentProvider {
 
-    private static final Log log = LogFactory.getLog( LayerContentProvider.class );
+    private static final Log log = LogFactory.getLog( ProjectNodeContentProvider.class );
     
 
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
@@ -49,37 +45,27 @@ public class LayerContentProvider
 
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
-            try {
-                AssocCollection<ILayer> layers = ((IMap)elm).getLayers();
-                return layers.toArray(new ILayer[layers.size()]);
-            }
-            catch (NoSuchEntityException e) {
-                log.debug( "getChildren(): " + e.toString() );
-            }
+            ((IMap)elm).layers.toArray();
         }
         return null;
     }
 
 
     public Object getParent( Object elm ) {
-        if (elm instanceof ILayer) {
-            try {
-                return ((ILayer)elm).getMap();
-            }
-            catch (NoSuchEntityException e) {
-            }
+        if (elm instanceof ProjectNode) {
+            return ((ProjectNode)elm).parentMap.get();
         }
         return null;
     }
 
 
-    public boolean hasChildren(Object element) {
-        return getChildren(element) != null;
+    public boolean hasChildren( Object element ) {
+        return getChildren( element ) != null;
     }
 
-    
-    public Object[] getElements(Object inputElement) {
-        return getChildren(inputElement);
+
+    public Object[] getElements( Object inputElement ) {
+        return getChildren( inputElement );
     }
     
 }

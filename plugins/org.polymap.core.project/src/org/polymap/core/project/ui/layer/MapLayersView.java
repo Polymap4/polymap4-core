@@ -86,7 +86,7 @@ import org.polymap.core.model.event.SourceClassPropertyEventFilter;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectRepository;
-import org.polymap.core.project.ui.LabeledLabelProvider;
+import org.polymap.core.project.ui.ProjectNodeLabelProvider;
 import org.polymap.core.project.ui.workbench.PartListenerAdapter;
 
 /**
@@ -495,7 +495,7 @@ public class MapLayersView
      * 
      */
     class LayersLabelProvider
-            extends LabeledLabelProvider {
+            extends ProjectNodeLabelProvider {
 
         public Image getImage( Object elm ) {
             String imageKey = (elm instanceof IMap) ? ISharedImages.IMG_OBJ_FOLDER : ISharedImages.IMG_OBJ_ELEMENT;

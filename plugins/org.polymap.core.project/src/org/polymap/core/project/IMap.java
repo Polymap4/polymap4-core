@@ -19,7 +19,6 @@ import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
  * A Map contains other maps and/or {@link ILayer}s. It holds information about the
@@ -28,11 +27,11 @@ import org.polymap.model2.runtime.event.PropertyChangeSupport;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 @Concerns({
-    PropertyChangeSupport.class
-    // ACLCheckConcern.class
+//    XXX PropertyChangeSupport.class, ManyAssociations??? 
+//    ACLCheckConcern.class
 })
 @Mixins({
-    //ACL.class
+//    ACL.class
 })
 public class IMap
         extends ProjectNode { 
