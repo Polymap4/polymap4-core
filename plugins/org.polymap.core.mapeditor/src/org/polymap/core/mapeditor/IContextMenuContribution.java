@@ -19,7 +19,7 @@ import org.eclipse.jface.action.IContributionItem;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public interface IContextMenuContribution
         extends IContributionItem {

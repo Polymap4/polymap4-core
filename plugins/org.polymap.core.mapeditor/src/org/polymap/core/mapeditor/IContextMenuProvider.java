@@ -1,5 +1,5 @@
 /*
- * polymap.org Copyright (C) 2014, Falko Br√§utigam. All rights reserved.
+ * polymap.org Copyright (C) 2014, Falko Br‰utigam. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -15,7 +15,7 @@ package org.polymap.core.mapeditor;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public interface IContextMenuProvider {
 

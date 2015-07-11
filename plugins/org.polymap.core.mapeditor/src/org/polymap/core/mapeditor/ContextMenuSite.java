@@ -36,7 +36,7 @@ import org.polymap.rhei.batik.internal.Messages;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public abstract class ContextMenuSite {
 

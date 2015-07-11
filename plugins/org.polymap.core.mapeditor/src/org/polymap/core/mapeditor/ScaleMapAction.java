@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013-2014, Falko Br√§utigam. All rights reserved.
+ * Copyright (C) 2013-2014, Falko Br‰utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -35,7 +35,7 @@ import org.polymap.rap.openlayers.base_types.OpenLayersMap;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public class ScaleMapAction
         extends ContributionItem {

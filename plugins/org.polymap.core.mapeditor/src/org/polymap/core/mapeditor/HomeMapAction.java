@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013, Falko Br√§utigam. All rights reserved.
+ * Copyright (C) 2013, Falko Br‰utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -31,13 +31,12 @@ import org.polymap.rhei.batik.BatikPlugin;
 import org.polymap.rhei.batik.IPanelSite;
 import org.polymap.rhei.batik.internal.Messages;
 
-import org.polymap.rap.openlayers.base_types.Bounds;
-import org.polymap.rap.openlayers.base_types.OpenLayersMap;
+import org.polymap.rap.openlayers.base.OlMap;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public class HomeMapAction
         extends ContributionItem {
@@ -48,15 +47,11 @@ public class HomeMapAction
 
     private IPanelSite          site;
     
-    private OpenLayersMap       map;
-
     private MapViewer           viewer;
     
     
     public HomeMapAction( MapViewer viewer ) {
         this.viewer = viewer;
-        this.site = viewer.getPanelSite();
-        this.map = viewer.getMap();
     }
 
     
@@ -68,9 +63,11 @@ public class HomeMapAction
         btn.setEnabled( true );
         btn.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent ev ) {
-                Bounds maxExtent = map.getMaxExtent();
-                map.zoomToExtent( maxExtent, true );
-                map.zoomTo( 2 );
+                Object maxExtent = viewer.maxExtent.get();
+                OlMap map = viewer.getMap();
+                throw new RuntimeException( "not yet implemented." );
+//                map.zoomToExtent( maxExtent, true );
+//                map.zoomTo( 2 );
             }
         });
     }

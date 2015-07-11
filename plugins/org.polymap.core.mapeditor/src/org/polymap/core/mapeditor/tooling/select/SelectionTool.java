@@ -208,7 +208,7 @@ public class SelectionTool
 
     
     @Override
-    public void process_event( OpenLayersObject obj, String name, final HashMap<String,String> payload ) {
+    public void process_event( OlObject obj, String name, final HashMap<String,String> payload ) {
         log.debug( "process_event() event: " + name + ", from: " + obj );
         for (Map.Entry entry : payload.entrySet()) {
             log.info( "    key: " + entry.getKey() + ", value: " + StringUtils.abbreviate( (String)entry.getValue(), 0, 60 ) );

@@ -52,7 +52,7 @@ import org.polymap.rap.openlayers.layers.WMSLayer;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public abstract class FindFeaturesMenuContribution
         extends ContributionItem

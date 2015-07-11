@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013, Falko Br√§utigam. All rights reserved.
+ * Copyright (C) 2013, Falko Br‰utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -40,7 +40,7 @@ import org.polymap.rhei.batik.IPanelSite;
 import org.polymap.rhei.batik.internal.Messages;
 
 import org.polymap.rap.openlayers.base.OpenLayersEventListener;
-import org.polymap.rap.openlayers.base.OpenLayersObject;
+import org.polymap.rap.openlayers.base.OlObject;
 import org.polymap.rap.openlayers.base_types.OpenLayersMap;
 import org.polymap.rap.openlayers.base_types.Style;
 import org.polymap.rap.openlayers.base_types.StyleMap;
@@ -53,7 +53,7 @@ import org.polymap.rap.openlayers.layers.VectorLayer;
  * {@link OrtMixin}). Feuert ein {@link PropertyChangeEvent} mit dem Namen
  * {@link #EVENT_NAME} und der Geometry als Value.
  * 
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public class DrawFeatureMapAction
         extends ContributionItem
@@ -186,7 +186,7 @@ public class DrawFeatureMapAction
 
     
     @Override
-    public void process_event( OpenLayersObject src_obj, String event_name, HashMap<String, String> payload ) {
+    public void process_event( OlObject src_obj, String event_name, HashMap<String, String> payload ) {
         try {
             log.info( "JSON: " + payload.get( "features" ) ); //$NON-NLS-1$ //$NON-NLS-2$
             FeatureJSON io = new FeatureJSON();

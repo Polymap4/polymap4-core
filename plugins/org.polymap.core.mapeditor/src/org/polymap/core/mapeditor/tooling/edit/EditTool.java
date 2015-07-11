@@ -154,7 +154,7 @@ public class EditTool
         Map<String, String> payload2 = new HashMap<String, String>();
         payload2.put( "feature", "new OpenLayers.Format.GeoJSON().write(event.feature, false)" );
         vectorLayer.getVectorLayer().events.register( new OpenLayersEventListener() {
-            public void process_event( OpenLayersObject srcObj, String eventName,
+            public void process_event( OlObject srcObj, String eventName,
                     final HashMap<String,String> _payload ) {
 
                 display.asyncExec( new Runnable() {
@@ -219,7 +219,7 @@ public class EditTool
 
     
     @Override
-    public void process_event( OpenLayersObject obj, String name, HashMap<String, String> payload ) {
+    public void process_event( OlObject obj, String name, HashMap<String, String> payload ) {
         //log.debug( "process_event() event: " + name + ", from: " + obj );
         for (Map.Entry entry : payload.entrySet()) {
             Object key = entry.getKey();

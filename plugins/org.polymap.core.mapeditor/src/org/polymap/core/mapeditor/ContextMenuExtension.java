@@ -29,7 +29,7 @@ import org.polymap.rhei.batik.BatikPlugin;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public class ContextMenuExtension 
         implements IContextMenuProvider {

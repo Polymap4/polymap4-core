@@ -214,7 +214,7 @@ public class DigitizeTool
 
     
     @Override
-    public void process_event( OpenLayersObject obj, String name, HashMap<String, String> payload ) {
+    public void process_event( OlObject obj, String name, HashMap<String, String> payload ) {
         log.debug( "process_event() event: " + name + ", from: " + obj );
         for (Map.Entry entry : payload.entrySet()) {
             Object key = entry.getKey();

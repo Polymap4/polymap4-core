@@ -40,7 +40,7 @@ import org.polymap.rap.openlayers.controls.Control;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public class ContextMenuControl
         extends Control 
