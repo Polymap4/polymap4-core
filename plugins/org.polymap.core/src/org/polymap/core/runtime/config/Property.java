@@ -14,7 +14,9 @@
  */
 package org.polymap.core.runtime.config;
 
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -36,12 +38,29 @@ public interface Property<T> {
 
     public T get();
     
+    /**
+     * @see Optional#isPresent() 
+     */
     public boolean isPresent();
     
+    /**
+     * @see Optional#fsPresent() 
+     */
     public void ifPresent( Consumer<T> consumer );
     
+    /**
+     * @see Optional#map(Function) 
+     */
+    public <U> Optional<U> map( Function<? super T, ? extends U> mapper );
+    
+    /**
+     * @see Optional#orElse(Object) 
+     */
     public T orElse( T other );
     
+    /**
+     * @see Optional#orElseGet(Supplier)
+     */
     public T orElse( Supplier<T> supplier );
     
     public PropertyInfo info();

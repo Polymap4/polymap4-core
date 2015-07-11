@@ -21,8 +21,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import java.lang.annotation.Annotation;
@@ -178,6 +180,15 @@ public class ConfigurationFactory {
         @Override
         public V orElse( Supplier<V> supplier ) {
             return isPresent() ? get() : supplier.get();
+        }
+
+
+        @Override
+        public <U> Optional<U> map( Function<? super V,? extends U> mapper ) {
+            assert mapper != null;
+            return isPresent() 
+                    ? Optional.ofNullable( mapper.apply( get() ) )
+                    : Optional.empty();
         }
 
 
