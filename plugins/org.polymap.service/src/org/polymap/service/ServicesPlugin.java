@@ -84,7 +84,7 @@ public class ServicesPlugin
      */
     public static String validPathSpec( String s ) {
         //s = s.startsWith( "/" ) ? s.substring( 1 ) : s;
-        Stringer result = Stringer.on( s ).replaceUmlauts().toURIPath( "_" );
+        Stringer result = Stringer.of( s ).replaceUmlauts().toURIPath( "_" );
         if (!result.startsWith( "/" )) {
             result.insert( 0, '/' );
         }
