@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -28,26 +28,19 @@ import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.polymap.core.catalog.model.CatalogRepository;
-
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public class CatalogPlugin
         extends AbstractUIPlugin {
 
     private static Log log = LogFactory.getLog( CatalogPlugin.class );
 
-    public static final String      PLUGIN_ID = "org.polymap.core.catalog";
+    public static final String      ID = "org.polymap.core.catalog";
 
     private static CatalogPlugin    plugin;
-    
-    private static boolean          started = false;
-
-    private CatalogRepository       repo;
     
     
     public CatalogPlugin() {

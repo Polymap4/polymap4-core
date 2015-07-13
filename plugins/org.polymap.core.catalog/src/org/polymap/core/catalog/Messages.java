@@ -14,10 +14,10 @@
  */
 package org.polymap.core.catalog;
 
-import java.text.MessageFormat;
+import org.eclipse.rap.rwt.RWT;
 
-import org.polymap.core.runtime.IMessages;
-import org.polymap.core.runtime.MessagesImpl;
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.runtime.i18n.MessagesImpl;
 
 /**
  * The messages of the <code>org.polymap.core.services</code> plugin.
@@ -26,32 +26,31 @@ import org.polymap.core.runtime.MessagesImpl;
  */
 public class Messages {
 
-    private static final String BUNDLE_NAME = CatalogPlugin.PLUGIN_ID + ".messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = CatalogPlugin.ID + ".messages"; //$NON-NLS-1$
 
-    private static final MessagesImpl instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
+    private static final MessagesImpl   instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
+    public static IMessages forPrefix( String prefix ) {
+        return instance.forPrefix( prefix );
+    }
 
+    // instance *******************************************
+    
     private Messages() {
         // prevent instantiation
     }
 
-
-    /**
-     * Find the localized message for the given key. If arguments are given, then
-     * the result message is formatted via {@link MessageFormat}.
-     *  
-     * @param key
-     * @param args If not null, then the message is formatted via
-     *        {@link MessageFormat}
-     * @return The message for the given key.
-     */
     public static String get( String key, Object... args ) {
         return instance.get( key, args );
     }
-    
 
-    public static IMessages forPrefix( String prefix ) {
-        return instance.forPrefix( prefix );
+    public static String get2( Object caller, String key, Object... args ) {
+        return instance.get( caller, key, args );
+    }
+    
+    public static Messages get() {
+        Class clazz = Messages.class;
+        return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
     }
 
 }

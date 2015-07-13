@@ -2,19 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="net.refractions.udig.catalog.ICatalog">
-      <catalog
-            class="org.polymap.core.catalog.model.CatalogImpl">
-      </catalog>
-   </extension>
-   <extension
-         id="org.polymap.core.catalog.qi4j.assambler"
-         point="org.polymap.core.model.moduleAssemblers">
-      <assembler
-            class="org.polymap.core.catalog.model.CatalogRepositoryAssembler">
-      </assembler>
-   </extension>
-   <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             adaptable="false"
@@ -117,21 +104,6 @@
                id="org.polymap.core.catalog.CatalogNewWizardAdapter">
          </newWizardShortcut>
       </perspectiveExtension>
-   </extension>
-   <extension
-         point="net.refractions.udig.catalog.ui.connectionFactory">
-      <factory
-            class="net.refractions.udig.catalog.ui.FileConnectionFactory"
-            id="org.polymap.core.catalog.openFilePage">
-      </factory>
-      <wizardPage
-            banner="icons/wizban/feature_file_wiz.gif"
-            class="org.polymap.core.catalog.ui.FileUploadPage"
-            description="%FileUploadPage_description"
-            icon="icons/etool16/file_wiz.gif"
-            id="org.polymap.core.catalog.openFilePage"
-            name="%FileUploadPage_name">
-      </wizardPage>
    </extension>
    <!--extension
          point="net.refractions.udig.catalog.resolvers">
