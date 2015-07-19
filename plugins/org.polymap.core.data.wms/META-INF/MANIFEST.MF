@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: WMS Data and Catalog
+Bundle-SymbolicName: org.polymap.core.data.wms
+Bundle-Version: 4.0.0.qualifier
+Bundle-Vendor: polymap.org
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ClassPath: lib/commons-codec-1.2.jar,
+ lib/commons-httpclient-3.1.jar,
+ lib/gt-render-13.0.jar,
+ lib/gt-wms-13.0.jar,
+ .
+Require-Bundle: org.polymap.core;bundle-version="4.0.0",
+ org.polymap.core.data;bundle-version="4.0.0",
+ org.polymap.core.catalog;bundle-version="4.0.0"
+Export-Package: org.polymap.core.data.wms.catalog

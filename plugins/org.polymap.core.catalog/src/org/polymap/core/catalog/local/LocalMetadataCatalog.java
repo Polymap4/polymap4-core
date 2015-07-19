@@ -14,11 +14,20 @@
  */
 package org.polymap.core.catalog.local;
 
+import java.util.Iterator;
+import java.util.function.Consumer;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.catalog.model.IMetadataCatalog;
+import org.polymap.core.catalog.IMetadata;
+import org.polymap.core.catalog.IUpdateableMetadata;
+import org.polymap.core.catalog.IUpdateableMetadataCatalog;
+import org.polymap.core.catalog.MetadataQuery;
 
+import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.store.StoreSPI;
 
 /**
  * 
@@ -26,7 +35,100 @@ import org.polymap.core.catalog.model.IMetadataCatalog;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class LocalMetadataCatalog
-        implements IMetadataCatalog {
+        implements IUpdateableMetadataCatalog {
 
     private static Log log = LogFactory.getLog( LocalMetadataCatalog.class );
+
+    private EntityRepository        repo;
+    
+    private UnitOfWork              uow;
+    
+    
+    public LocalMetadataCatalog( StoreSPI store ) {
+        repo = EntityRepository.newConfiguration()
+                .entities.set( new Class[] {LocalMetadata.class} )
+                .store.set( store )
+                .create();
+        
+        uow = repo.newUnitOfWork();
+    }
+    
+    
+    @Override
+    public void close() {
+        uow.close();
+        repo.close();
+    }
+    
+    
+    @Override
+    public MetadataQuery query( String query ) {
+        return new MetadataQuery() {
+            @Override
+            public ResultSet execute() {
+                // execute the query
+                org.polymap.model2.query.ResultSet<LocalMetadata> rs = uow.query( LocalMetadata.class )
+                        .maxResults( maxResults.get() )
+                        .execute();
+                
+                // build ResultSet
+                return new ResultSet() {
+                    @Override
+                    public Iterator<IMetadata> iterator() {
+                        return rs.stream().map( md -> (IMetadata)md ).iterator();
+                    }
+                    @Override
+                    public int size() {
+                        return rs.size();
+                    }
+                    @Override
+                    public void close() {
+                        rs.close();
+                    }
+                };
+            }
+        };
+    }
+
+    
+    @Override
+    public Updater prepareUpdate() {
+        return new Updater() {
+
+            private UnitOfWork  updaterUow = uow.newUnitOfWork();
+            
+            @Override
+            public void close() {
+                updaterUow.close();
+            }
+
+            @Override
+            public void commit() throws Exception {
+                updaterUow.commit();
+                // XXX check/prevent concurrent updates?
+                uow.commit();
+            }
+            
+            @Override
+            public void newEntry( Consumer<IUpdateableMetadata> initializer ) {
+                uow.createEntity( LocalMetadata.class, null, (LocalMetadata prototype) -> {
+                    initializer.accept( prototype );
+                    return prototype;
+                });
+            }
+
+            @Override
+            public void updateEntry( String identifier, Consumer<IUpdateableMetadata> updater ) {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+
+            @Override
+            public void removeEntry( String identifier ) {
+                // XXX Auto-generated method stub
+                throw new RuntimeException( "not yet implemented." );
+            }
+        };
+    }
+    
 }

@@ -14,8 +14,15 @@
  */
 package org.polymap.core.catalog.local;
 
-import org.polymap.core.catalog.model.IMetadata;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.polymap.core.catalog.IUpdateableMetadata;
+
+import org.polymap.model2.CollectionProperty;
+import org.polymap.model2.Composite;
+import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
@@ -27,13 +34,45 @@ import org.polymap.model2.Queryable;
  */
 public class LocalMetadata
         extends Entity
-        implements IMetadata {
+        implements IUpdateableMetadata {
 
     @Queryable
-    protected Property<String>      title;
+    protected Property<String>          title;
     
     @Queryable
-    protected Property<String>      description;
+    @Defaults
+    protected Property<String>          description;
+
+    @Queryable
+    @Defaults
+    protected CollectionProperty<String> keywords;
+
+    @Defaults
+    public CollectionProperty<KeyValue> connectionParams;
+
+    /**
+     * 
+     */
+    public static class KeyValue
+            extends Composite {
+
+        @Queryable
+        protected Property<String>          key;
+
+        @Queryable
+        protected Property<String>          value;
+    }
+    
+    @Override
+    public String getIdentifier() {
+        return (String)id();
+    }
+
+    @Override
+    public IUpdateableMetadata setIdentifier( String identifier ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
 
     @Override
     public String getTitle() {
@@ -41,8 +80,49 @@ public class LocalMetadata
     }
 
     @Override
+    public IUpdateableMetadata setTitle( String title ) {
+        this.title.set( title );
+        return this;
+    }
+
+    @Override
     public String getDescription() {
         return description.get();
+    }
+
+    @Override
+    public IUpdateableMetadata setDescription( String description ) {
+        this.description.set( description );
+        return this;
+    }
+
+    @Override
+    public Set<String> getKeywords() {
+        return keywords.stream().collect( Collectors.toSet() );
+    }
+    
+    @Override
+    public IUpdateableMetadata setKeywords( Set<String> keywords ) {
+        this.keywords.clear();
+        this.keywords.addAll( keywords );
+        return this;
+    }
+
+    @Override
+    public Map<String,String> getConnectionParams() {
+        return connectionParams.stream().collect( Collectors.toMap( kv -> kv.key.get(), kv -> kv.value.get() ) );
+    }
+
+    @Override
+    public IUpdateableMetadata setConnectionParams( Map<String,String> params ) {
+        this.connectionParams.clear();
+        params.entrySet().stream().forEach( entry -> 
+                connectionParams.createElement( (KeyValue kv) -> {
+                        kv.key.set( entry.getKey() );
+                        kv.value.set( entry.getValue() );
+                        return kv;
+                }));
+        return this;
     }
     
 }

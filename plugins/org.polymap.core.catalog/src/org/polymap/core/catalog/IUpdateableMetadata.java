@@ -12,17 +12,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.catalog.model;
+package org.polymap.core.catalog;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IMetadata {
+public interface IUpdateableMetadata
+        extends IMetadata {
 
-    public String getTitle();
+    public IUpdateableMetadata setIdentifier( String identifier );
     
-    public String getDescription();
+    public IUpdateableMetadata setTitle( String title );
     
+    public IUpdateableMetadata setDescription( String description );
+    
+    public IUpdateableMetadata setKeywords( Set<String> keywords );
+ 
+    public IUpdateableMetadata setConnectionParams( Map<String,String> params );
+
 }

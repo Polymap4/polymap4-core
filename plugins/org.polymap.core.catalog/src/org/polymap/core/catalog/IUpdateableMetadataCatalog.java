@@ -12,14 +12,37 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.catalog.model;
+package org.polymap.core.catalog;
+
+import java.util.function.Consumer;
 
 /**
- * Our minimal interface to a metadata catalog. Should be compliant to CSW and ISO
- * 19115.
+ * A metadata catalog that allows modifications to irs contents.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IMetadataCatalog {
+public interface IUpdateableMetadataCatalog
+        extends IMetadataCatalog {
 
+    public Updater prepareUpdate();
+    
+
+    /**
+     * 
+     */
+    public interface Updater
+            extends AutoCloseable {
+
+        void newEntry( Consumer<IUpdateableMetadata> initializer );
+        
+        void updateEntry( String identifier, Consumer<IUpdateableMetadata> updater );
+
+        void removeEntry( String identifier );
+
+        void commit() throws Exception;
+        
+        @Override
+        void close();
+    }
+    
 }

@@ -40,30 +40,28 @@ public class CatalogPlugin
 
     public static final String      ID = "org.polymap.core.catalog";
 
-    private static CatalogPlugin    plugin;
+    private static CatalogPlugin    instance;
     
     
-    public CatalogPlugin() {
+    public static CatalogPlugin instance() {
+        return instance;
     }
 
 
+    // instance *******************************************
+    
     public void start( final BundleContext context ) throws Exception {
         super.start( context );
-        plugin = this;
+        instance = this;
     }
 
 
     public void stop( BundleContext context ) throws Exception {
-        plugin = null;
+        instance = null;
         super.stop( context );
     }
 
 
-    public static CatalogPlugin getDefault() {
-        return plugin;
-    }
-
-    
     public Image imageForName( String resName ) {
         ImageRegistry images = getImageRegistry();
         Image image = images.get( resName );
