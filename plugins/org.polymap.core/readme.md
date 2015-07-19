@@ -37,6 +37,10 @@ Provides a system for config style properties, avoiding getter/setter code.
   - define special behaviour via annotations, making it part of the declaration (instead of hiding inside the set() method)
   - concrete property instances are injected by [ConfigurationFactory](src/org/polymap/core/runtime/config/ConfigurationFactory.java) 
 
+Comparable projects
+
+  - http://immutables.github.io/immutable.html (?)
+  
 ## Security
 
 ...

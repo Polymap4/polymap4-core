@@ -14,12 +14,14 @@
  */
 package org.polymap.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import org.apache.commons.logging.Log;
@@ -30,6 +32,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.eclipse.core.runtime.Plugin;
 
 import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.session.RapSessionContextProvider;
@@ -47,91 +51,65 @@ public class CorePlugin
 
 	private static Log log = LogFactory.getLog( CorePlugin.class );
 
-	// The plug-in ID
-	public static final String PLUGIN_ID = "org.polymap.core";
+    public static final String      PLUGIN_ID = "org.polymap.core";
 
-	// The shared instance
-	private static CorePlugin  plugin;
+    public static final String      DATA_DIR = "data";
+
+    private static CorePlugin       plugin;
 
 
+    public static CorePlugin instance() {
+        return plugin;
+    }
+
+
+    /**
+     * @see #getDataLocation(Bundle) 
+     */
+    public static File getDataLocation( @SuppressWarnings("hiding") Plugin plugin ) {
+       return getDataLocation( plugin.getBundle() );
+    }
+    
+    
+    /**
+     * Returns the location in the local file system of the plug-in data area for
+     * this plug-in. If the plug-in data area did not exist prior to this call, it
+     * is created.
+     * <p/>
+     * The plug-in data area is a file directory within the platform's data area
+     * where a plug-in is free to create files. The content and structure of this
+     * area is defined by the plug-in, and the particular plug-in is solely
+     * responsible for any files it puts there.
+     * 
+     * @throws IllegalStateException If the system is running with no data area
+     *         (-data @none), or when a data area has not been set yet.
+     */
+    public static File getDataLocation( Bundle bundle ) {
+        File workspace = instance().getStateLocation().toFile().getParentFile().getParentFile().getParentFile();
+        File result = new File( new File( workspace, DATA_DIR ), bundle.getSymbolicName() );
+        result.mkdirs();
+        return result;
+    }
+    
+    
     /**
      * A url stream handler that delegates to the default one but if it doesn't work
      * then it returns null as the stream.
      */
-    public final static URLStreamHandler RELAXED_HANDLER = new URLStreamHandler(){
+    public final static URLStreamHandler RELAXED_HANDLER = new URLStreamHandler() {
         @Override
-        protected URLConnection openConnection( URL u ) throws IOException {
-            try{
-                URL url=new URL(u.toString());
-                return url.openConnection();
-            }catch (MalformedURLException e){
+        protected URLConnection openConnection( URL url ) throws IOException {
+            try {
+                URL url2 = new URL( url.toString() );
+                return url2.openConnection();
+            }
+            catch (MalformedURLException e) {
                 return null;
             }
         }
     };
 
     
-    public static CorePlugin instance() {
-    	return plugin;
-    }
-
-
-	static {
-//	    try {
-//            Logging.GEOTOOLS.setLoggerFactory( "org.geotools.util.logging.CommonsLoggerFactory" );
-//            System.out.print( "GEOTOOLS logger set to: " + "CommonsLogger" );
-//        }
-//        catch (Exception e) {
-//            System.out.println( "No GEOTOOLS logger: " + e );
-//        }
-
-        // horrible log configuration system...
-	    System.setProperty( "org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog" );
-        System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
-        System.setProperty( "org.apache.commons.logging.simplelog.showdatetime", "false" );
-        System.setProperty( "org.apache.commons.logging.simplelog.dateTimeFormat", "HH:mm:ss" );
-
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.help", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
-
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.jdbc", "trace" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data", "trace" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.wfs", "trace" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.geotools.data.communication", "trace" );
-
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.cache", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.recordstore.lucene", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.model2", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.workbench.dnd", "debug" );
-
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.service.geoserver", "debug" );
-
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.RenderManager", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.services.SimpleWmsServer", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.mapeditor.tooling", "trace" );
-
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.qi4j", "debug" );
-        
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.data.entityfeature.EntitySourceProcessor", "info" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.rhei.navigator", "debug" );
-
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.biotop", "debug" );
-        
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.pipeline", "debug" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.image.cache304.ImageCacheProcessor", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.ui.csvimport", "debug" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.data.feature.recordstore", "debug" );
-
-        System.setProperty( "org.apache.commons.logging.simplelog.log.com.ettrema.http", "info" );
-        System.setProperty( "org.apache.commons.logging.simplelog.log.com.bradmcevoy", "info" );
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.service.fs", "debug" );
-
-        //System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.lka.osmtilecache", "debug" );        
-	}
-
-	
 	// instance *******************************************
 	
     private RapSessionContextProvider   rapSessionContextProvider;
