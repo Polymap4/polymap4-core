@@ -34,6 +34,15 @@ import org.polymap.core.ui.StatusDispatcher.Style;
 /**
  * Executes a given task in the UI (aka display) thread. The actual display thread is
  * determined via {@link UIUtils#sessionDisplay()}.
+ * <p/>
+ * <b>Example</b><br/>
+ * Asynchronous execution, no check if current thread is UI thread, re-throw any
+ * Exception as RuntimeException:
+ * <pre>
+ * UIThreadExecutor.async( 
+ *         () -> do something... ),
+ *         UIThreadExecutor.runtimeException() );
+ * </pre>
  */
 public class UIThreadExecutor<V>
         implements Runnable, Future<V> {
@@ -88,12 +97,25 @@ public class UIThreadExecutor<V>
      *
      * @param task The task to execute
      * @param errorHandlers
-     * @return A {@link Future} to wait for and get the result or cancel execution.
+     * @return A {@link Future} to wait for and/or get the result or cancel execution.
      */
     public static <V> UIThreadExecutor<V> async( Callable<V> task, Consumer<Throwable>... errorHandlers ) {
         UIThreadExecutor<V> executor = new UIThreadExecutor<V>( task, errorHandlers );
         UIUtils.sessionDisplay().asyncExec( executor );
         return executor;
+    }
+
+    
+    /**
+     * Executes a given task in the UI thread by calling
+     * {@link Display#asyncExec(Runnable)}.
+     *
+     * @param task The task to execute
+     * @param errorHandlers
+     * @return A {@link Future} to wait for and/or get the result or cancel execution.
+     */
+    public static <V> UIThreadExecutor<V> async( Runnable task, Consumer<Throwable>... errorHandlers ) {
+        return async( () -> { task.run(); return null; }, errorHandlers );
     }
 
     
@@ -117,12 +139,23 @@ public class UIThreadExecutor<V>
 
     
     /**
+     * Same as {@link #async(Callable, Consumer)} but checks if the current thread is
+     * the display thread. If yes thean immediately executes the task. 
+     *
+     * @see #async(Callable, Consumer)
+     */
+    public static <V> Future<V> asyncFast( Runnable task, Consumer<Throwable>... errorHandlers ) {
+        return asyncFast( () -> { task.run(); return null; }, errorHandlers );        
+    }
+    
+    
+    /**
      * Executes a given task in the UI thread by calling
      * {@link Display#syncExec(Runnable)}.
      *
      * @param task The task to execute
      * @param errorHandlers
-     * @return A {@link Future} to wait for and get the result or cancel execution.
+     * @return A {@link Future} to wait for and/or get the result or cancel execution.
      */
     public static <V> Future<V> sync( Callable<V> task, Consumer<Throwable>... errorHandlers ) {
         UIThreadExecutor<V> executor = new UIThreadExecutor<V>( task, errorHandlers );
