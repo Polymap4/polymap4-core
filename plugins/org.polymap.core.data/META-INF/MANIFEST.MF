@@ -8,7 +8,6 @@ Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.rap.rwt;bundle-version="2.3.1",
  org.eclipse.rap.ui;bundle-version="2.3.1",
  org.polymap.core;bundle-version="4.0.0",
- org.polymap.core.catalog;bundle-version="3.1.0";resolution:=optional,
  org.eclipse.rwt.widgets.codemirror;bundle-version="1.0.0";resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
