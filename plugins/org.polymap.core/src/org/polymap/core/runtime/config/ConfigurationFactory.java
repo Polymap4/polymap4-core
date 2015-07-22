@@ -55,14 +55,14 @@ public class ConfigurationFactory {
     
     
     /**
-     * Injects {@link Property} instances into the given object.
+     * Injects {@link Config} instances into the given object.
      */
     public static <T> T inject( T instance ) throws ConfigurationException {
         try {
             // init properties
             for (Class cl = instance.getClass(); cl != null; cl = cl.getSuperclass()) {
                 for (Field f : cl.getDeclaredFields()) {
-                    if (Property.class.isAssignableFrom( f.getType() )) {
+                    if (Config.class.isAssignableFrom( f.getType() )) {
                         f.setAccessible( true );
                         f.set( instance, new PropertyImpl<Object,T>( instance, f ) );
                     }
@@ -80,7 +80,7 @@ public class ConfigurationFactory {
      * 
      */
     private static class PropertyImpl<H,V>
-            implements Property2<H,V>, Config<H,V> {
+            implements Config2<H,V> {
     
         private V                       value;
         
@@ -254,7 +254,7 @@ public class ConfigurationFactory {
         
         protected V checkConcerns( String methodName, V v ) {
             try {
-                Method m = PropertyConcern.class.getMethod( methodName, new Class[] {Object.class, Property.class, Object.class} );
+                Method m = PropertyConcern.class.getMethod( methodName, new Class[] {Object.class, Config.class, Object.class} );
                 for (PropertyConcern concern : concerns) {
                     v = (V)m.invoke( concern, new Object[] {instance, this, v} );
                 }

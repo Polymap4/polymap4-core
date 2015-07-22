@@ -22,8 +22,8 @@ package org.polymap.core.runtime.config;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Property2<H,V>
-        extends Property<V> {
+public interface Config2<H,V>
+        extends Config<V> {
 
     /**
      * Attempts to set the value of this Property and allow fluent call style.

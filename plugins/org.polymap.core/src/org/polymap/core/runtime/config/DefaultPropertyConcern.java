@@ -23,17 +23,17 @@ public class DefaultPropertyConcern<T>
         implements PropertyConcern<T> {
 
     @Override
-    public T doInit( Object obj, Property<T> prop, T value ) {
+    public T doInit( Object obj, Config<T> prop, T value ) {
         return value;
     }
 
     @Override
-    public T doGet( Object obj, Property<T> prop, T value ) {
+    public T doGet( Object obj, Config<T> prop, T value ) {
         return value;
     }
 
     @Override
-    public T doSet( Object obj, Property<T> prop, T value ) {
+    public T doSet( Object obj, Config<T> prop, T value ) {
         return value;
     }
 

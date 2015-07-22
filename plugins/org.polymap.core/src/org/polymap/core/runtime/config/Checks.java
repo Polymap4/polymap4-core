@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Allows to give multiple {@link Check}s per {@link Property}.
+ * Allows to give multiple {@link Check}s per {@link Config}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

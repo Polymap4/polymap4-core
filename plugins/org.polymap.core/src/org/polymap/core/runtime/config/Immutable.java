@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a {@link Property} as immutable. Once set attempts to set the value of
+ * Denotes a {@link Config} as immutable. Once set attempts to set the value of
  * such a Property results in a {@link ConfigurationException}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>

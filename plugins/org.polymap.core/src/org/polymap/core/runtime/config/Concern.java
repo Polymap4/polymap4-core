@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a {@link PropertyConcern} that intercepts methods of a {@link Property}.
+ * Denotes a {@link PropertyConcern} that intercepts methods of a {@link Config}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.config.Check;
-import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.DefaultInt;
 import org.polymap.core.runtime.config.NumberRangeValidator;
@@ -45,17 +45,17 @@ public class RejectedExecutionHandlers {
         
         @DefaultInt( 100 )
         @Check( value=NumberRangeValidator.class, args={"10","100000"} )
-        public Config<Blocking,Integer> sleepMillis;
+        public Config2<Blocking,Integer>    sleepMillis;
         
         @DefaultInt( 1000 )
         @Check( value=NumberRangeValidator.class, args={"10","100000"} )
-        public Config<Blocking,Integer> sleepMillisIncrease;
+        public Config2<Blocking,Integer>    sleepMillisIncrease;
         
-        private Random                  rand = new Random();
+        private Random                      rand = new Random();
         
-        private Runnable                lastRejected;
+        private Runnable                    lastRejected;
         
-        private int                     rejectCount;
+        private int                         rejectCount;
         
         
         @Override

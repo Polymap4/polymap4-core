@@ -35,7 +35,7 @@ public class PropertyChangeSupport
     private static Log log = LogFactory.getLog( PropertyChangeSupport.class );
 
     @Override
-    public Object doSet( Object obj, Property prop, Object value ) {
+    public Object doSet( Object obj, Config prop, Object value ) {
         PropertyInfo info = prop.info();
         EventManager.instance().publish( new PropertyChangeEvent( 
                 info.getHostObject(), prop.info().getName(), null, value ) );

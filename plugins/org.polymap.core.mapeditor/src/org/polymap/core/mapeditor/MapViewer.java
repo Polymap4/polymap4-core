@@ -43,7 +43,6 @@ import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.DefaultPropertyConcern;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
-import org.polymap.core.runtime.config.Property;
 import org.polymap.core.runtime.i18n.IMessages;
 
 import org.polymap.rap.openlayers.base.OlEvent;
@@ -70,23 +69,19 @@ public class MapViewer<CL>
     public static final IMessages       i18n = Messages.forPrefix( "MapViewer" ); //$NON-NLS-1$
 
     @Mandatory
-    public Config<MapViewer<CL>,
-            IStructuredContentProvider> contentProvider;
+    public Config<IStructuredContentProvider> contentProvider;
     
     @Mandatory
-    public Config<MapViewer<CL>,
-            ILayerProvider<CL>>         layerProvider;
+    public Config<ILayerProvider<CL>>   layerProvider;
 
     @Mandatory
     @Concern(MapExtentConcern.class)
-    public Config<MapViewer,
-            Envelope>                   mapExtent;
+    public Config<Envelope>             mapExtent;
     
     /** Setting max extent also sets the {@link CoordinateReferenceSystem} of the map. */
     @Mandatory
     @Immutable
-    public Config<MapViewer<CL>,
-            ReferencedEnvelope>         maxExtent;
+    public Config<ReferencedEnvelope>   maxExtent;
     
     private Composite                   parent;
     
@@ -104,7 +99,7 @@ public class MapViewer<CL>
             extends DefaultPropertyConcern<Envelope> {
 
         @Override
-        public Envelope doSet( Object obj, Property<Envelope> prop, Envelope value ) {
+        public Envelope doSet( Object obj, Config<Envelope> prop, Envelope value ) {
             throw new RuntimeException( "Setting map extent is not yet implemented." );
 //            ((MapViewer)obj).olmap.view.get().center
         }

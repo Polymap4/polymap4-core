@@ -4,14 +4,6 @@
    <extension-point id="org.polymap.core.operation.concerns" name="Operation Concerns" schema="schema/operation.concerns.exsd"/>
    <extension-point id="org.polymap.core.security.AuthorizationModule" name="AuthorizationModule" schema="schema/AuthorizationModule.exsd"/>
    <extension
-         point="org.eclipse.rap.ui.entrypoint">
-      <!--entrypoint
-            class="org.polymap.core.workbench.PolymapWorkbench"
-            id="polymap3.core.entrypoint1"
-            parameter="default">
-      </entrypoint-->
-   </extension>
-   <extension
          point="org.eclipse.ui.commands">
       <category
             description="POLYMAP Workbench Kategorie"
@@ -233,27 +225,6 @@
             class="org.polymap.core.operation.LogOperationConcernFactory"
             id="org.polymap.core.LogOperationConcern">
       </concern>
-   </extension>
-   <extension
-         point="org.eclipse.ui.cheatsheets.cheatSheetContent">
-      <category
-            id="org.polymap.core.cheatsheet.category"
-            name="Workbench">
-      </category>
-      <cheatsheet
-            category="org.polymap.core.cheatsheet.category"
-            composite="false"
-            contentFile="%cheatsheets_welcomeContent"
-            id="org.polymap.core.cheatsheet.welcome"
-            name="%cheatsheets_welcome">
-      </cheatsheet>
-   </extension>
-   <extension
-         point="org.eclipse.equinox.http.registry.servlets">
-      <servlet
-            alias="/test"
-            class="org.polymap.core.http.TestServlet">
-      </servlet>
    </extension>
 
 </plugin>

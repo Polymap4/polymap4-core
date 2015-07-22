@@ -27,7 +27,7 @@ public class ImmutableConcern<T>
     
     
     @Override
-    public T doSet( Object obj, Property<T> prop, T value ) {
+    public T doSet( Object obj, Config<T> prop, T value ) {
         if (initialized) {
             throw new ConfigurationException( "Property is @Immutable: " + prop.info().getName() );
         }

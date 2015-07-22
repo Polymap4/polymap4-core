@@ -16,7 +16,7 @@ package org.polymap.core.runtime.config;
 
 /**
  * Provides a way to implement concerns or side effects of getting/setting the value
- * of a {@link Property}.
+ * of a {@link Config}.
  *
  * @see Concern
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -24,33 +24,33 @@ package org.polymap.core.runtime.config;
 public interface PropertyConcern<T> {
 
     /**
-     * Intercepts construction of a {@link Property} instance.
+     * Intercepts construction of a {@link Config} instance.
      *
      * @param obj
      * @param prop
      * @param value The current value of the property after default value annotations have been applied.
      * @return The value to initialize the property with.
      */
-    public T doInit( Object obj, Property<T> prop, T value );
+    public T doInit( Object obj, Config<T> prop, T value );
     
     /**
-     * Intercepts invocations of {@link Property#get()}.
+     * Intercepts invocations of {@link Config#get()}.
      *
      * @param obj
      * @param prop
      * @param value The current value of the property.
-     * @return The value to return to the caller of {@link Property#get()}.
+     * @return The value to return to the caller of {@link Config#get()}.
      */
-    public T doGet( Object obj, Property<T> prop, T value );
+    public T doGet( Object obj, Config<T> prop, T value );
 
     /**
-     * Intercepts invocations of {@link Property#set()}.
+     * Intercepts invocations of {@link Config#set()}.
      *
      * @param obj
      * @param prop
-     * @param value The value given to {@link Property#set(Object)}
+     * @param value The value given to {@link Config#set(Object)}
      * @return The value to set to the property.
      */
-    public T doSet( Object obj, Property<T> prop, T value );
+    public T doSet( Object obj, Config<T> prop, T value );
     
 }

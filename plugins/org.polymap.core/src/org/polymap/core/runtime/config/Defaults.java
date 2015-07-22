@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes that a {@link Property} is initialized with default value:
+ * Denotes that a {@link Config} is initialized with default value:
  * <ul>
  * <li>Number: 0</li>
  * <li>Date: 0</li>

@@ -24,7 +24,7 @@ public class MandatoryConcern<T>
         implements PropertyConcern<T> {
 
     @Override
-    public T doGet( Object obj, Property<T> prop, T value ) {
+    public T doGet( Object obj, Config<T> prop, T value ) {
         if (value == null) {
             throw new ConfigurationException( "Configuration property is @Mandatory: " + prop.info().getName() );
         }
@@ -32,9 +32,9 @@ public class MandatoryConcern<T>
     }
 
     @Override
-    public T doSet( Object obj, Property<T> prop, T value ) {
+    public T doSet( Object obj, Config<T> prop, T value ) {
         if (value == null) {
-            throw new ConfigurationException( "Configuration property is @Mandatory: " + prop.info().getName() );
+            throw new ConfigurationException( "Configuration property is @Mandatory. Set to null is not allowed: " + prop.info().getName() );
         }
         return value;
     }
