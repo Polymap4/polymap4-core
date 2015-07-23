@@ -15,43 +15,48 @@
 package org.polymap.core.catalog.resolve;
 
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.eclipse.core.runtime.IProgressMonitor;
+import java.util.Set;
 
 import org.polymap.core.catalog.IMetadata;
 
 /**
- * 
+ * Provides a 'detached' metadata that is used to resolve any connections params.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DataStoreResolver
-        implements IMetadataResourceResolver {
+public class DetachedMetadata
+        implements IMetadata {
 
-    private static Log log = LogFactory.getLog( DataStoreResolver.class );
-
+    private Map<String,String>      connectionParams;
+    
+    
+    public DetachedMetadata( Map<String,String> connectionParams ) {
+        this.connectionParams = connectionParams;
+    }
 
     @Override
-    public boolean canResolve( IMetadata metadata ) {
-        // XXX Auto-generated method stub
+    public String getIdentifier() {
         throw new RuntimeException( "not yet implemented." );
     }
 
-
     @Override
-    public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public String getTitle() {
+        return "Detached";
     }
 
-
     @Override
-    public Map<String,String> createParams( Object service ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public String getDescription() {
+        return "Detached metadata without a catalog.";
     }
 
+    @Override
+    public Set<String> getKeywords() {
+        return null;
+    }
+
+    @Override
+    public Map<String,String> getConnectionParams() {
+        return connectionParams;
+    }
+    
 }

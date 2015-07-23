@@ -53,7 +53,7 @@ public interface IMetadataResourceResolver {
      *
      * @param params
      */
-    public boolean canResolve( Map<String,String> params );
+    public boolean canResolve( IMetadata metadata );
 
     /**
      * 
@@ -63,7 +63,7 @@ public interface IMetadataResourceResolver {
      * @param params
      * @param monitor
      */
-    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) throws Exception;
+    public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception;
     
     /**
      * 

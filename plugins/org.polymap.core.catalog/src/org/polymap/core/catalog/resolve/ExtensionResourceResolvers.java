@@ -21,6 +21,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.catalog.IMetadata;
+
 /**
  * 
  *
@@ -31,17 +33,20 @@ public class ExtensionResourceResolvers
 
     private static Log log = LogFactory.getLog( ExtensionResourceResolvers.class );
 
+
     @Override
-    public boolean canResolve( Map<String,String> params ) {
+    public boolean canResolve( IMetadata metadata ) {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
+
     @Override
-    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) {
+    public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
+
 
     @Override
     public Map<String,String> createParams( Object service ) {

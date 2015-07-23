@@ -15,11 +15,13 @@
 package org.polymap.core.catalog.resolve;
 
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
@@ -49,14 +51,14 @@ public class SessionResourceResolver
 
 
     @Override
-    public boolean canResolve( Map<String,String> params ) {
+    public boolean canResolve( IMetadata metadata ) {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
 
     @Override
-    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) {
+    public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }

@@ -15,7 +15,6 @@
 package org.polymap.core.catalog.ui;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -120,9 +119,9 @@ public class MetadataContentProvider
             UIJob job = new UIJob( "Resolve service" ) {
                 @Override
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    Map<String,String> connectionParams = ((IMetadata)elm).getConnectionParams();
-                    if (resolver.canResolve( connectionParams )) {
-                        IResolvableInfo resource = resolver.resolve( connectionParams, monitor );
+                    IMetadata metadata = (IMetadata)elm;
+                    if (resolver.canResolve( metadata )) {
+                        IResolvableInfo resource = resolver.resolve( metadata, monitor );
                         Object[] children = new Object[] {resource};
                         cache.put( elm, children );
                         UIThreadExecutor.async( 

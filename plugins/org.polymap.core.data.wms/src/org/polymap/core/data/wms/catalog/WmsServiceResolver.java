@@ -21,6 +21,7 @@ import org.geotools.data.wms.WebMapServer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResolvableInfo;
 
@@ -36,15 +37,16 @@ public class WmsServiceResolver
     
     
     @Override
-    public boolean canResolve( Map<String,String> params ) {
+    public boolean canResolve( IMetadata metadata ) {
+        Map<String,String> params = metadata.getConnectionParams();
         return CONNECTION_TYPE.equals( params.get( CONNECTION_PARAM_TYPE ) )
                 && params.containsKey( CONNECTION_PARAM_URL );
     }
 
     
     @Override
-    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) throws Exception {
-        return WmsServiceInfo.of( null, params );
+    public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception {
+        return WmsServiceInfo.of( metadata, metadata.getConnectionParams() );
     }
 
     
