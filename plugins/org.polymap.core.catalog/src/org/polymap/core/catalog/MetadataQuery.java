@@ -14,7 +14,10 @@
  */
 package org.polymap.core.catalog;
 
-import org.polymap.core.runtime.config.Config;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.DefaultInt;
 
@@ -27,7 +30,7 @@ public abstract class MetadataQuery
         extends Configurable {
     
     @DefaultInt(Integer.MAX_VALUE)
-    public Config<MetadataQuery,Integer>   maxResults;
+    public Config2<MetadataQuery,Integer>   maxResults;
 
     
     public abstract ResultSet execute();
@@ -43,7 +46,12 @@ public abstract class MetadataQuery
 
         @Override
         public void close();
-   
+
+        
+        public default Stream<IMetadata> stream() {
+            return StreamSupport.stream( spliterator(), false );
+        }
+
     }
     
 }

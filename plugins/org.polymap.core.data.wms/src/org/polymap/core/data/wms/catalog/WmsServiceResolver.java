@@ -37,15 +37,14 @@ public class WmsServiceResolver
     
     @Override
     public boolean canResolve( Map<String,String> params ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        return CONNECTION_TYPE.equals( params.get( CONNECTION_PARAM_TYPE ) )
+                && params.containsKey( CONNECTION_PARAM_URL );
     }
 
     
     @Override
-    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) throws Exception {
+        return WmsServiceInfo.of( null, params );
     }
 
     

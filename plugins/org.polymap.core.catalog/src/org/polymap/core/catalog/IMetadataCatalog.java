@@ -23,6 +23,10 @@ package org.polymap.core.catalog;
 public interface IMetadataCatalog
         extends AutoCloseable {
 
+    public String getTitle();
+    
+    public String getDescription();
+    
     @Override
     public void close();
 

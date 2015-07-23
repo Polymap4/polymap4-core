@@ -55,6 +55,18 @@ public class LocalMetadataCatalog
     
     
     @Override
+    public String getTitle() {
+        return "Local catalog";
+    }
+
+
+    @Override
+    public String getDescription() {
+        return "Description...";
+    }
+
+
+    @Override
     public void close() {
         uow.close();
         repo.close();

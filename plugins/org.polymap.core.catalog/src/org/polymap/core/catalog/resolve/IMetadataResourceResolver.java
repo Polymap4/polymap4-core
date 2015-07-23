@@ -63,7 +63,7 @@ public interface IMetadataResourceResolver {
      * @param params
      * @param monitor
      */
-    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor );
+    public IResolvableInfo resolve( Map<String,String> params, IProgressMonitor monitor ) throws Exception;
     
     /**
      * 

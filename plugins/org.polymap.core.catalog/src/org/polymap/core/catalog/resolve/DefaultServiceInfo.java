@@ -34,9 +34,9 @@ public abstract class DefaultServiceInfo
 
     private static Log log = LogFactory.getLog( DefaultServiceInfo.class );
 
-    private IMetadata           metadata;
+    protected IMetadata             metadata;
     
-    private ServiceInfo         delegate;
+    protected ServiceInfo           delegate;
     
 
     public DefaultServiceInfo( IMetadata metadata, ServiceInfo delegate ) {
@@ -69,16 +69,4 @@ public abstract class DefaultServiceInfo
         return delegate.getDescription();
     }
 
-    @Override
-    public Iterable<IResourceInfo> getResources() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-
-    @Override
-    public <T> T createService() throws Exception {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
 }
