@@ -89,7 +89,7 @@ public class StatusDispatcher {
 
     public static void handle( IStatus status, Style... styles ) {
         if (adapters.isEmpty()) {
-            log.warn( "No StatusDispatcher.Adapter registered!" );
+            log.warn( "No StatusDispatcher.Adapter registered!", status.getException() );
         }
         
         if (status.getSeverity() == IStatus.ERROR) {

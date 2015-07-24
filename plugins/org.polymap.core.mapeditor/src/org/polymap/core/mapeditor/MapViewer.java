@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -50,6 +49,7 @@ import org.polymap.rap.openlayers.base.OlEventListener;
 import org.polymap.rap.openlayers.base.OlMap;
 import org.polymap.rap.openlayers.control.Control;
 import org.polymap.rap.openlayers.layer.Layer;
+import org.polymap.rap.openlayers.types.Extent;
 import org.polymap.rap.openlayers.types.Projection;
 import org.polymap.rap.openlayers.types.Projection.Units;
 import org.polymap.rap.openlayers.view.View;
@@ -93,6 +93,8 @@ public class MapViewer<CL>
     private List<CL>                    visibleLayers = new ArrayList();
     
     private Map<CL,Layer>               layers;
+    
+    private List<Control>               controls = new ArrayList();
 
     
     public static class MapExtentConcern
@@ -177,6 +179,8 @@ public class MapViewer<CL>
                 .sorted( (elm1, elm2) -> lp.getPriority( elm1 ) - lp.getPriority( elm2 ) )
                 .map( elm -> layers.get( elm ) )
                 .forEach( layer -> olmap.addLayer( layer ) );
+
+        controls.forEach( control -> olmap.addControl( control ) );
     }
 
 
@@ -198,11 +202,35 @@ public class MapViewer<CL>
         throw new RuntimeException( "not yet implemented." );
     }
     
+    
     public OlMap getMap() {
         return olmap;
     }
 
+    
+    /**
+     * The {@link CoordinateReferenceSystem} that is currently used to display the map.
+     * This is set via {@link #maxExtent}.
+     */
+    public CoordinateReferenceSystem getMapCRS() {
+        return maxExtent.get().getCoordinateReferenceSystem();
+    }
 
+    
+    public void zoomTo( Envelope extent ) {
+        if (extent instanceof ReferencedEnvelope) {
+            try {
+                extent = ((ReferencedEnvelope)extent).transform( getMapCRS(), true );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }
+        Extent olExtent = ToOlExtent.map( extent );
+        olmap.view.get().fit( olExtent, null );
+    }
+
+    
 //    public void zoomTo( ReferencedEnvelope extent ) {
 //        try {
 //            mapExtent = extent.transform( getCRS(), true );            
@@ -218,7 +246,10 @@ public class MapViewer<CL>
 
     
     public MapViewer<CL> addMapControl( Control control ) {
-        olmap.addControl( control );
+        controls.add( control );
+        if (olmap != null) {
+            olmap.addControl( control );
+        }
         return this;
     }
 

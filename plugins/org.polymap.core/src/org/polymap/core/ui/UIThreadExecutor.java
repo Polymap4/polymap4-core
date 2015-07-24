@@ -96,8 +96,10 @@ public class UIThreadExecutor<V>
      * {@link Display#asyncExec(Runnable)}.
      *
      * @param task The task to execute
-     * @param errorHandlers
-     * @return A {@link Future} to wait for and/or get the result or cancel execution.
+     * @param errorHandlers Handle exceptions. Executed in the UI thread. Build-in:
+     *        {@link #logErrorMsg(String)}, {@link #runtimeException()}
+     * @return A {@link Future} to wait for and/or get the result or cancel
+     *         execution.
      */
     public static <V> UIThreadExecutor<V> async( Callable<V> task, Consumer<Throwable>... errorHandlers ) {
         UIThreadExecutor<V> executor = new UIThreadExecutor<V>( task, errorHandlers );
@@ -111,7 +113,8 @@ public class UIThreadExecutor<V>
      * {@link Display#asyncExec(Runnable)}.
      *
      * @param task The task to execute
-     * @param errorHandlers
+     * @param errorHandlers Handle exceptions. Executed in the UI thread. Build-in:
+     *        {@link #logErrorMsg(String)}, {@link #runtimeException()}
      * @return A {@link Future} to wait for and/or get the result or cancel execution.
      */
     public static <V> UIThreadExecutor<V> async( Runnable task, Consumer<Throwable>... errorHandlers ) {
@@ -154,7 +157,8 @@ public class UIThreadExecutor<V>
      * {@link Display#syncExec(Runnable)}.
      *
      * @param task The task to execute
-     * @param errorHandlers
+     * @param errorHandlers Handle exceptions. Executed in the UI thread. Build-in:
+     *        {@link #logErrorMsg(String)}, {@link #runtimeException()}
      * @return A {@link Future} to wait for and/or get the result or cancel execution.
      */
     public static <V> Future<V> sync( Callable<V> task, Consumer<Throwable>... errorHandlers ) {

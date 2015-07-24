@@ -13,4 +13,6 @@ Bundle-ClassPath: lib/commons-codec-1.2.jar,
 Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.data;bundle-version="4.0.0",
  org.polymap.core.catalog;bundle-version="4.0.0"
-Export-Package: org.polymap.core.data.wms.catalog
+Export-Package: org.geotools.data.ows,
+ org.geotools.data.wms,
+ org.polymap.core.data.wms.catalog

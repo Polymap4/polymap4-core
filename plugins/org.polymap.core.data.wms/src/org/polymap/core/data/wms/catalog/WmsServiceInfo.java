@@ -27,6 +27,8 @@ import org.geotools.ows.ServiceException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.resolve.DefaultResourceInfo;
 import org.polymap.core.catalog.resolve.DefaultServiceInfo;
@@ -65,7 +67,7 @@ public class WmsServiceInfo
 
     
     @Override
-    public <T> T createService() throws Exception {
+    public <T> T createService( IProgressMonitor monitor ) throws Exception {
         return (T)wms;
     }
 

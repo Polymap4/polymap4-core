@@ -16,6 +16,8 @@ package org.polymap.core.catalog.resolve;
 
 import org.geotools.data.DataStore;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.runtime.StreamIterable;
 
@@ -48,6 +50,6 @@ public interface IServiceInfo
      * @return Newly created instance of the backend service (WebMapService,
      *         {@link DataStore}, etc.)
      */
-    public <T> T createService() throws Exception;
+    public <T> T createService( IProgressMonitor monitor ) throws Exception;
     
 }

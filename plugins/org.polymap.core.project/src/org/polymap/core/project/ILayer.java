@@ -14,8 +14,6 @@
  */
 package org.polymap.core.project;
 
-import org.geotools.data.FeatureSource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -43,10 +41,9 @@ public class ILayer
     private static Log log = LogFactory.getLog( ILayer.class );
     
     /**
-     * The handle to get the actula {@link FeatureSource} for from the currently
-     * active {@link IFeatureSourceResolver}
+     *
      */
-    public Property<String>         featureSourceHandle;
+    public Property<String>         resourceIdentifier;
     
     @Defaults
     public Property<Integer>        orderKey;
