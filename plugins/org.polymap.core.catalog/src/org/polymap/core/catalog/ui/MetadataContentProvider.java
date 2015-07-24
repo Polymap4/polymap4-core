@@ -14,6 +14,8 @@
  */
 package org.polymap.core.catalog.ui;
 
+import static org.polymap.core.ui.UIThreadExecutor.logErrorMsg;
+
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -52,6 +54,10 @@ public class MetadataContentProvider
 
     private static Log log = LogFactory.getLog( MetadataContentProvider.class );
     
+    public static final Object          LOADING = new Object();
+    
+    public static final Object[]        CACHE_LOADING = {LOADING};
+    
     private TreeViewer                  viewer;
     
     private Object                      input;
@@ -85,8 +91,39 @@ public class MetadataContentProvider
 
     // ILazyTreeContentProvider ***************************
 
+    /**
+     * Updates the {@link #cache} and the child count for this elm in the viewer/tree.
+     */
+    protected void updateChildren( Object elm, Object[] children, int currentChildCount  ) {
+        cache.put( elm, children );
+        
+//        if (children.length != currentChildCount) {
+            UIThreadExecutor.async( () -> { 
+                    viewer.setChildCount( elm, children.length );
+                    viewer.replace( elm, 0, children[0] );  // replace the LOADING elm 
+            }, logErrorMsg( "" ) );
+//        }
+    }
+
+    
+    protected void updateChildrenLoading( Object elm ) {
+        cache.put( elm, CACHE_LOADING );
+        viewer.setChildCount( elm, 1 );         
+    }
+    
+    
     @Override
     public void updateChildCount( Object elm, int currentChildCount ) {
+        // check cache
+        if (elm == LOADING) {
+            return;
+        }
+        Object[] cached = cache.get( elm );
+        if (cached != null && 
+                (cached.length == currentChildCount || cached == CACHE_LOADING)) {
+            return;    
+        }
+        
         // Collection of IMetadataCatalog
         if (elm instanceof Collection) {
             Object[] children = ((Collection)elm).toArray();
@@ -100,53 +137,44 @@ public class MetadataContentProvider
         }
         // IMetadataCatalog -> query
         else if (elm instanceof IMetadataCatalog) {
+            updateChildrenLoading( elm );
             UIJob job = new UIJob( "Query catalog" ) {
                 @Override
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     Object[] children = ((IMetadataCatalog)elm).query( catalogQuery ).execute().stream().toArray();
-                    cache.put( elm, children );
-                    if (children.length != currentChildCount) {
-                        UIThreadExecutor.async( 
-                                () -> viewer.setChildCount( elm, children.length ),
-                                UIThreadExecutor.logErrorMsg( "" ) );
-                    }
+                    updateChildren( elm, children, currentChildCount );
                 }
             };
-            job.schedule();
+            job.scheduleWithUIUpdate();
         }
         // IMetadata -> resolve
         else if (elm instanceof IMetadata) {
+            updateChildrenLoading( elm );
             UIJob job = new UIJob( "Resolve service" ) {
                 @Override
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     IMetadata metadata = (IMetadata)elm;
                     if (resolver.canResolve( metadata )) {
+                        // FIXME handle exceptions
                         IResolvableInfo resource = resolver.resolve( metadata, monitor );
-                        Object[] children = new Object[] {resource};
-                        cache.put( elm, children );
-                        UIThreadExecutor.async( 
-                                () -> viewer.setChildCount( elm, children.length ), 
-                                UIThreadExecutor.logErrorMsg( "" ) );                        
+                        //Thread.sleep( 3000 );
+                        updateChildren( elm, new Object[] {resource}, currentChildCount );
                     }
                 }
             };
-            job.schedule();
+            job.scheduleWithUIUpdate();
         }
         // IServiceInfo
         else if (elm instanceof IServiceInfo) {
+            updateChildrenLoading( elm );
             UIJob job = new UIJob( "Find resources" ) {
                 @Override
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     Object[] children = StreamIterable.of( ((IServiceInfo)elm).getResources() ).stream().toArray();
-                    cache.put( elm, children );
-                    if (children.length != currentChildCount) {
-                        UIThreadExecutor.async( 
-                                () -> viewer.setChildCount( elm, children.length ), 
-                                UIThreadExecutor.logErrorMsg( "" ) );                                                
-                    }
+                    updateChildren( elm, children, currentChildCount );
                 }
             };
-            job.schedule();
+            job.scheduleWithUIUpdate();
         }
         // IResourceInfo
         else if (elm instanceof IResourceInfo) {
@@ -163,8 +191,17 @@ public class MetadataContentProvider
     @Override
     public void updateElement( Object parent, int index ) {
         Object[] children = cache.get( parent );
+        if (children == null) {
+            return;
+//            updateChildCount( parent, -1 );
+//            children = cache.get( parent );
+        }
         viewer.replace( parent, index, children[index] );
-        updateChildCount( children[index], -1 );
+        
+        boolean hasChildren = !(children[index] instanceof IResourceInfo);
+        viewer.setHasChildren( children[index], hasChildren );
+        
+//        updateChildCount( children[index], -1 );
     }
 
 

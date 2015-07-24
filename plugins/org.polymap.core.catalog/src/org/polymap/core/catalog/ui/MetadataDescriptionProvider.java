@@ -52,7 +52,10 @@ public class MetadataDescriptionProvider
 
     @Override
     public String getText( Object elm ) {
-        if (elm instanceof IMetadataCatalog) {
+        if (elm == MetadataContentProvider.LOADING) {
+            return "...";
+        }
+        else if (elm instanceof IMetadataCatalog) {
             return ((IMetadataCatalog)elm).getDescription();
         }
         else if (elm instanceof IMetadata) {

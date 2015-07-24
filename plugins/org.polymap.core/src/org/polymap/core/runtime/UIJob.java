@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime;
 
+import static org.polymap.core.ui.UIThreadExecutor.runtimeException;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.LogFactory;
@@ -21,7 +23,7 @@ import org.apache.commons.logging.Log;
 
 import org.eclipse.swt.widgets.Display;
 
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.jface.operation.ModalContext;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -37,6 +39,8 @@ import org.polymap.core.Messages;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.ui.StatusDispatcher;
+import org.polymap.core.ui.UIThreadExecutor;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * Extended Job implementation that provides:
@@ -52,6 +56,7 @@ import org.polymap.core.ui.StatusDispatcher;
  * <p/>
  * Ideas and code inspired by {@link PlatformGIS}.
  *
+ * @see ModalContext
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class UIJob
@@ -66,7 +71,7 @@ public abstract class UIJob
     
     private static final NullProgressMonitor nullMonitor = new NullProgressMonitor();
     
-    private static IMessages                i18n = Messages.forClass( UIJob.class );
+    private static final IMessages          i18n = Messages.forClass( UIJob.class );
     
     
     public static UIJob forThread() {
@@ -97,13 +102,13 @@ public abstract class UIJob
     
     private Display             display;
 
-//    private ProgressDialog      progressDialog;
-    
     private boolean             showProgress;
     
     private IProgressMonitor    executionMonitor;
 
     private SessionContext      sessionContext;
+
+    private String              uiCallbackHandle;
 
 
     /**
@@ -115,15 +120,36 @@ public abstract class UIJob
     public UIJob( String name ) {
         super( name );
         this.sessionContext = SessionContext.current();
-        this.display = Polymap.getSessionDisplay();
-//        assert display != null : "Unable to determine current session/display.";
+        this.display = UIUtils.sessionDisplay();
 
         setSystem( false );
         setPriority( DEFAULT_PRIORITY );
-        
-//        sessionContext.addSessionListener( this );
     }
 
+
+    /**
+     * Makes sure that
+     * <p/>
+     * XXX Not quite sure if setSystem(false) and/or setUser(true) will so the same
+     * with a special {@link IProgressMonitor}. However, this is usefull for system
+     * threads then.
+     *
+     * @param delay
+     */
+    public void scheduleWithUIUpdate( long delay ) {
+        uiCallbackHandle = UIJob.this.toString() + "/" + UIJob.this.hashCode();
+        UIThreadExecutor.syncFast( () -> UIUtils.activateCallback( uiCallbackHandle ), runtimeException() );
+        schedule( delay );
+    }
+
+
+    /**
+     * @see #scheduleWithUIUpdate(long)
+     */
+    public void scheduleWithUIUpdate() {
+        scheduleWithUIUpdate( 0L );
+    }
+    
     
     public Display getDisplay() {
         return display;
@@ -150,43 +176,36 @@ public abstract class UIJob
     
 
     protected final IStatus run( final IProgressMonitor monitor ) {
-        sessionContext.execute( new Runnable() {
-            public void run() {
-                if (display == null || !PlatformUI.getWorkbench().isClosing()) {
-                    try {
-                        executionMonitor = monitor;
-                        
-                        threadJob.set( UIJob.this );
+        sessionContext.execute( () -> {
+            try {
+                executionMonitor = monitor;
+                threadJob.set( UIJob.this );
+                runWithException( executionMonitor );
+                resultStatus = executionMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
+            }
+            // ThreadDeath is a normal error when the thread is dying.
+            // We must propagate it in order for it to properly terminate.
+            catch (ThreadDeath e) {
+                throw e;
+            }
+            catch (final Throwable e) {
+                log.warn( "UIJob exception: ", e );
 
-                        runWithException( executionMonitor );
-                        
-                        resultStatus = executionMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
-                    }
-                    // ThreadDeath is a normal error when the thread is dying.
-                    // We must propagate it in order for it to properly terminate.
-                    catch (ThreadDeath e) {
-                        throw e;
-                    }
-                    catch (final Throwable e) {
-                        log.warn( "UIJob exception: ", e );
+                if (display != null) {
+                    // XXX use UIThreadExecutor and/or error handlers
+                    display.syncExec( () ->
+                            StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, UIJob.this, i18n.get( "errorMsg", getName() ), e ) );
+                }
 
-                        if (display != null) {
-                            display.syncExec( new Runnable() {
-                                public void run() {
-                                    StatusDispatcher.handleError( CorePlugin.PLUGIN_ID, UIJob.this,
-                                            i18n.get( "errorMsg", getName() ), e );
-                                }
-                            });
-                        }
-                        
-                        // users don't read any further if they see an 'error' sign, so make a warning
-                        resultStatus = new Status( IStatus.WARNING, CorePlugin.PLUGIN_ID,
-                                e.getLocalizedMessage() /*Messages.get( "UIJob_errormsg" )*/, e );
-                    }
-                    finally {
-                        threadJob.set( null );
-                        executionMonitor = null;
-                    }
+                // users don't read any further if they see an 'error' sign, so make a warning
+                resultStatus = new Status( IStatus.WARNING, CorePlugin.PLUGIN_ID,
+                        e.getLocalizedMessage() /*Messages.get( "UIJob_errormsg" )*/, e );
+            }
+            finally {
+                threadJob.set( null );
+                executionMonitor = null;
+                if (uiCallbackHandle != null) {
+                    UIThreadExecutor.async( () -> UIUtils.deactivateCallback( uiCallbackHandle ), runtimeException() );                    
                 }
             }
         });

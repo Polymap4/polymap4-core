@@ -185,6 +185,17 @@ public class UIThreadExecutor<V>
             return executor;
         }
     }
+    
+
+    /**
+     * Same as {@link #sync(Callable, Consumer)} but checks if the current thread is
+     * the display thread. If yes thean immediately executes the task. 
+     *
+     * @see #sync(Callable, Consumer)
+     */
+    public static <V> UIThreadExecutor<V> syncFast( Runnable task, Consumer<Throwable>... errorHandlers ) {
+        return syncFast( () -> { task.run(); return null; }, errorHandlers );        
+    }
 
     
     // instance *******************************************

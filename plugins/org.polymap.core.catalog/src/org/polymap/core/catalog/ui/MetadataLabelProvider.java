@@ -50,7 +50,10 @@ public class MetadataLabelProvider
 
     @Override
     public String getText( Object elm ) {
-        if (elm instanceof IMetadataCatalog) {
+        if (elm == MetadataContentProvider.LOADING) {
+            return "Loading...";
+        }
+        else if (elm instanceof IMetadataCatalog) {
             return ((IMetadataCatalog)elm).getTitle();
         }
         else if (elm instanceof IMetadata) {
