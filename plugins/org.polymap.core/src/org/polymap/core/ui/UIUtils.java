@@ -22,6 +22,8 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.internal.graphics.ResourceFactory;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -42,11 +44,6 @@ import org.eclipse.rap.rwt.widgets.WidgetUtil;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-/**
- * 
- *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- */
 @SuppressWarnings("restriction")
 public class UIUtils {
 
@@ -54,6 +51,12 @@ public class UIUtils {
     
     public static boolean       debug = true;
 
+    
+    public static Color getColor( int r, int g, int b ) {
+        ResourceFactory resourceFactory = ContextProvider.getApplicationContext().getResourceFactory();
+        return resourceFactory.getColor( r, g, b );
+    }
+    
     
     /**
      * The {@link Display} of the session of the current thread. Null, if the current
