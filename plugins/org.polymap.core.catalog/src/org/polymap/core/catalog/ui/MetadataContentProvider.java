@@ -157,7 +157,6 @@ public class MetadataContentProvider
                     if (resolver.canResolve( metadata )) {
                         // FIXME handle exceptions
                         IResolvableInfo resource = resolver.resolve( metadata, monitor );
-                        //Thread.sleep( 3000 );
                         updateChildren( elm, new Object[] {resource}, currentChildCount );
                     }
                 }
