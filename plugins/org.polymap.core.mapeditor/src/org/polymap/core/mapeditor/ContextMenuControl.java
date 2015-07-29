@@ -34,8 +34,7 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 
 import org.polymap.core.runtime.ListenerList;
 
-import org.polymap.rap.openlayers.base_types.OpenLayersMap;
-import org.polymap.rap.openlayers.controls.Control;
+import org.polymap.rap.openlayers.control.Control;
 
 /**
  * 

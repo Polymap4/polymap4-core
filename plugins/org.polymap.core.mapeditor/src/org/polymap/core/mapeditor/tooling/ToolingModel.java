@@ -53,8 +53,8 @@ import org.eclipse.ui.XMLMemento;
 import org.eclipse.core.runtime.IPath;
 
 import org.polymap.core.mapeditor.MapEditorPlugin;
+import org.polymap.core.mapeditor.MapViewer;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
-import org.polymap.core.mapeditor.workbench.MapEditor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.ListenerList;
@@ -78,7 +78,7 @@ public class ToolingModel {
             extends SessionSingleton
             implements IPartListener {
         
-        protected Map<MapEditor,ToolingModel> map = new HashMap();
+        protected Map<MapViewer,ToolingModel> map = new HashMap();
         
         /** Pages we have a {@link IPartListener} registered for. */
         protected Set<IWorkbenchPage>         pages = new HashSet();
@@ -87,8 +87,8 @@ public class ToolingModel {
         }
         
         public void partClosed( IWorkbenchPart part ) {
-            if (part instanceof MapEditor) {
-                MapEditor mapEditor = (MapEditor)part;
+            if (part instanceof MapViewer) {
+                MapViewer mapEditor = (MapViewer)part;
                 ToolingModel model = map.remove( mapEditor );
                 model.dispose();
             }
@@ -108,18 +108,18 @@ public class ToolingModel {
      * <p/>
      * If the model is to be used to create UI elements then 
      */
-    public static ToolingModel instance( MapEditor mapEditor ) {
+    public static ToolingModel instance( MapViewer viewer ) {
         ToolingModels models = ToolingModels.instance( ToolingModels.class );
-        ToolingModel model = models.map.get( mapEditor );
+        ToolingModel model = models.map.get( viewer );
         if (model == null) {
-            model = new ToolingModel( mapEditor );
-            models.map.put( mapEditor, model );
+            model = new ToolingModel( viewer );
+            models.map.put( viewer, model );
             
-            IWorkbenchPage page = mapEditor.getSite().getPage();
-            if (! models.pages.contains( page )) {
-                page.addPartListener( models );
-                models.pages.add( page );
-            }
+//            IWorkbenchPage page = viewer.getSite().getPage();
+//            if (! models.pages.contains( page )) {
+//                page.addPartListener( models );
+//                models.pages.add( page );
+//            }
         }
         return model;
     }
@@ -138,7 +138,7 @@ public class ToolingModel {
     /** The file backend of the {@link #memento}. */
     private File                            stateFile;
     
-    private MapEditor                       editor;
+    private MapViewer                       viewer;
 
     private IToolingToolkit                 toolkit;
     
@@ -146,17 +146,17 @@ public class ToolingModel {
     /**
      * 
      * 
-     * @param editor This editor we are working with.
+     * @param viewer This editor we are working with.
      */
-    protected ToolingModel( MapEditor editor ) {
-        this.editor = editor;
+    protected ToolingModel( MapViewer viewer ) {
+        this.viewer = viewer;
 
         // init memento
         InputStream in = null;
         try {
            // ISettingStore settingStore = RWT.getSettingStore();
 
-            String mapId = editor.getMap().id();
+            String mapId = viewer.getMap().id();
             IPath path = MapEditorPlugin.getDefault().getStateLocation();
             stateFile = new File( path.toFile(), 
                     "tooling_" + Polymap.instance().getUser().getName() + "_" + mapId + ".xml" );
@@ -389,8 +389,8 @@ public class ToolingModel {
         }
 
         @Override
-        public MapEditor getEditor() {
-            return editor;
+        public MapViewer getViewer() {
+            return viewer;
         }
 
         @Override

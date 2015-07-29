@@ -20,8 +20,8 @@ import org.eclipse.ui.IMemento;
 
 import org.eclipse.core.runtime.IPath;
 
+import org.polymap.core.mapeditor.MapViewer;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
-import org.polymap.core.mapeditor.workbench.MapEditor;
 
 /**
  * The interface a {@link IEditorTool} uses to access the tooling system. 
@@ -30,7 +30,7 @@ import org.polymap.core.mapeditor.workbench.MapEditor;
  */
 public interface IEditorToolSite {
     
-    public MapEditor getEditor();
+    public MapViewer getViewer();
     
     /**
      * The path of this tool within the hierarchy of tools.

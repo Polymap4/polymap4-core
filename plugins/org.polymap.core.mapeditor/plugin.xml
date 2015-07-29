@@ -4,58 +4,6 @@
    <extension-point id="org.polymap.core.mapeditor.mapContextMenu" name="MapContextMenu" schema="schema/org.polymap.core.mapEditor.mapContextMenu.exsd"/>
    <extension-point id="org.polymap.core.mapeditor.editorTools" name="EditorTool" schema="schema/org.polymap.core.mapeditor.editorTool.exsd"/>
    <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            class="org.polymap.core.mapeditor.workbench.MapEditor"
-            contributorClass="org.polymap.core.mapeditor.ui.MapEditorActionBarContributor"
-            default="false"
-            icon="icons/eview16/map_edit.gif"
-            id="org.polymap.core.mapeditor.MapEditor"
-            name="%Map">
-      </editor>
-   </extension>
-   <extension
-         point="org.eclipse.ui.viewActions">
-      <viewContribution
-            id="org.polymap.core.mapeditor.layersViewContribution"
-            targetID="org.polymap.core.project.MapLayersView">
-         <action
-               class="org.polymap.core.mapeditor.actions.SetLayerBoundsAction"
-               disabledIcon="icons/dlcl16/zoom_layer_co.gif"
-               enablesFor="+"
-               icon="icons/elcl16/zoom_layer_co.gif"
-               id="org.polymap.core.mapeditor.action.zoomToLayer"
-               label="%actions_zoomToLayer"
-               style="push"
-               toolbarPath="mapEditor">
-         </action>
-      </viewContribution>
-      <viewContribution
-            id="org.polymap.core.mapeditor.geoSelectionContribution"
-            targetID="org.polymap.core.data.ui.featureselection.GeoSelectionView">
-         <action
-               class="org.polymap.core.mapeditor.actions.DeleteFeaturesAction"
-               enablesFor="+"
-               icon="icons/etool16/delete_edit.gif"
-               id="org.polymap.core.mapeditor.action.deleteFeature"
-               label="label"
-               style="push"
-               toolbarPath="features"
-               tooltip="%actions_deleteFeaturesTip">
-         </action>
-         <action
-               class="org.polymap.core.mapeditor.actions.ZoomFeaturesAction"
-               enablesFor="+"
-               icon="icons/elcl16/zoom_layer_co.gif"
-               id="org.polymap.core.mapeditor.action.zoomFeatures"
-               label="label"
-               style="push"
-               toolbarPath="features"
-               tooltip="%actions_zoomFeaturesTip">
-         </action>
-      </viewContribution>
-   </extension>
-   <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             adaptable="false"
@@ -89,129 +37,6 @@
       </objectContribution>
    </extension>
    <extension
-         point="org.eclipse.ui.editorActions">
-      <editorContribution
-            id="org.polymap.core.mapeditor.MapEditorContribution"
-            targetID="org.polymap.core.mapeditor.MapEditor">
-         <!--action
-               class="org.polymap.core.mapeditor.edit.SnapEditorAction"
-               icon="icons/etool16/snap_target.gif"
-               id="org.polymap.core.mapeditor.action.snap_editor"
-               label="%actions_snap"
-               style="toggle"
-               toolbarPath="mouseMode"
-               tooltip="%actions_snap">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.edit.DeleteFeatureEditorAction"
-               icon="icons/etool16/remove_vertext_mode.gif"
-               id="org.polymap.core.mapeditor.action.deleteFeatures_editor"
-               label="%actions_deleteFeatures"
-               style="toggle"
-               toolbarPath="mouseMode"
-               tooltip="%actions_deleteFeatures">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.edit.DrawFeatureEditorAction"
-               icon="icons/etool16/new_line_mode.gif"
-               id="org.polymap.core.mapeditor.action.drawFeatures_editor"
-               label="%actions_drawFeatures"
-               style="toggle"
-               toolbarPath="mouseMode"
-               tooltip="%actions_drawFeatures">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.edit.ModifyFeatureEditorAction"
-               icon="icons/etool16/edit_vertex_mode.gif"
-               id="org.polymap.core.mapeditor.action.modifyFeatures_editor"
-               label="%actions_modifyFeatures"
-               style="toggle"
-               toolbarPath="mouseMode"
-               tooltip="%actions_modifyFeatures">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.actions.CancelEditLayersAction"
-               icon="icons/elcl16/remove_co.gif"
-               id="org.polymap.core.mapeditor.action.cancelEdit_editor"
-               label="%actions_cancelEdit"
-               style="push"
-               toolbarPath="mouseMode"
-               tooltip="%actions_cancelEdit">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.edit.ModifyFeatureAction"
-               icon="icons/etool16/edit_vertex_mode.gif"
-               id="org.polymap.core.mapeditor.action.editFeatures_editor"
-               label="%actions_editFeatures"
-               style="toggle"
-               toolbarPath="mouseMode"
-               tooltip="%actions_editFeatures">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.selection.SelectFeatureEditorAction"
-               icon="icons/etool16/layer_selectable.gif"
-               id="org.polymap.core.mapeditor.action.selectFeatures_editor"
-               label="%actions_selectFeatures"
-               style="toggle"
-               toolbarPath="mouseMode"
-               tooltip="%actions_selectFeatures">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.navigation.PanZoomEditorAction"
-               icon="icons/etool16/pan_mode.gif"
-               id="org.polymap.core.mapeditor.action.panZoom_editor"
-               label="%actions_panZoom"
-               style="toggle"
-               toolbarPath="mouseMode">
-         </action-->
-         <action
-               class="org.polymap.core.mapeditor.tooling.navi.ForwardEditorAction"
-               icon="icons/etool16/forward_nav.gif"
-               id="org.polymap.core.mapeditor.action.mapForward_editor"
-               label="%actions_mapForwardTip"
-               style="push"
-               toolbarPath="mouseMode"
-               tooltip="%actions_mapForwardTip">
-         </action>
-         <action
-               class="org.polymap.core.mapeditor.tooling.navi.BackwardEditorAction"
-               icon="icons/etool16/backward_nav.gif"
-               id="org.polymap.core.mapeditor.action.mapBack_editor"
-               label="%actions_mapBackwardTip"
-               style="push"
-               toolbarPath="mouseMode"
-               tooltip="%actions_mapBackwardTip">
-         </action>
-         <!--action
-               class="org.polymap.core.mapeditor.actions.SetLayerBoundsAction"
-               icon="icons/elcl16/zoom_layer_co.gif"
-               id="org.polymap.core.mapeditor.ZoomToLayerAction"
-               label="%actions_zoomToLayer"
-               style="push"
-               toolbarPath="mouseMode"
-               tooltip="%actions_zoomToLayer">
-         </action-->
-         <action
-               class="org.polymap.core.mapeditor.actions.RefreshMapAction"
-               icon="icons/etool16/refresh.gif"
-               id="org.polymap.core.mapeditor.action.mapRefresh_editor"
-               label="%actions_mapRefresh"
-               style="push"
-               toolbarPath="mouseMode"
-               tooltip="%actions_mapRefresh">
-         </action>
-         <action
-               class="org.polymap.core.mapeditor.tooling.navi.MaxExtendEditorAction"
-               icon="icons/etool16/zoom_extent_co.gif"
-               id="org.polymap.core.mapeditor.action.mapMaxExtent_editor"
-               label="%actions_mapMaxExtent"
-               style="push"
-               toolbarPath="mouseMode"
-               tooltip="%actions_mapMaxExtentTip">
-         </action>
-      </editorContribution>
-   </extension>
-   <extension
          point="org.polymap.core.operation.concerns">
       <concern
             class="org.polymap.core.mapeditor.operations.OpenMapConcernFactory"
@@ -235,17 +60,6 @@
             class="org.polymap.core.mapeditor.workbench.MapEditorInput"
             id="org.polymap.core.mapeditor.MapEditorInputFactory">
       </factory>
-   </extension>
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            allowMultiple="false"
-            class="org.polymap.core.mapeditor.tooling.ToolingView"
-            icon="icons/etool16/layer_selectable.gif"
-            id="org.polymap.core.mapeditor.ToolingView"
-            name="%views_tooling"
-            restorable="true">
-      </view>
    </extension>
    <extension
          point="org.polymap.core.mapeditor.editorTools">
@@ -324,24 +138,6 @@
             objectClass="org.polymap.core.project.ILayer"
             state="true">
       </decorator>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.polymap.core.project.dataPerspective">
-         <viewShortcut
-               id="org.polymap.core.mapeditor.ToolingView">
-         </viewShortcut>
-         <view
-               closeable="true"
-               id="org.polymap.core.mapeditor.ToolingView"
-               minimized="false"
-               moveable="true"
-               relationship="stack"
-               relative="net.refractions.udig.catalog.ui.CatalogView"
-               visible="true">
-         </view>
-      </perspectiveExtension>
    </extension>
    <!--extension
          point="org.eclipse.ui.decorators">

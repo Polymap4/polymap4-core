@@ -28,12 +28,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 
-import org.eclipse.rwt.graphics.Graphics;
-import org.eclipse.rwt.lifecycle.WidgetUtil;
-
 import org.eclipse.jface.preference.ColorSelector;
 
 import org.polymap.core.ui.ColumnLayoutFactory;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * Factory for UI elements used in tool panels.
@@ -47,12 +45,12 @@ public class ToolingToolkit
     
     public static final String  CUSTOM_VARIANT_VALUE = "tooling";
         
-    public static final Color   textBackground = Graphics.getColor( 0xFF, 0xFE, 0xE1 );
-    public static final Color   textBackgroundDisabled = Graphics.getColor( 0xF9, 0xF7, 0xF7 );
-    public static final Color   textBackgroundFocused = Graphics.getColor( 0xff, 0xf0, 0xd2 );
-    public static final Color   backgroundFocused = Graphics.getColor( 0xF0, 0xF0, 0xFF );
-    public static final Color   labelForeground = Graphics.getColor( 0x70, 0x70, 0x70 );
-    public static final Color   labelForegroundFocused = Graphics.getColor( 0x00, 0x00, 0x20 );
+    public static final Color   textBackground = UIUtils.getColor( 0xFF, 0xFE, 0xE1 );
+    public static final Color   textBackgroundDisabled = UIUtils.getColor( 0xF9, 0xF7, 0xF7 );
+    public static final Color   textBackgroundFocused = UIUtils.getColor( 0xff, 0xf0, 0xd2 );
+    public static final Color   backgroundFocused = UIUtils.getColor( 0xF0, 0xF0, 0xFF );
+    public static final Color   labelForeground = UIUtils.getColor( 0x70, 0x70, 0x70 );
+    public static final Color   labelForegroundFocused = UIUtils.getColor( 0x00, 0x00, 0x20 );
 
     
     @Override
@@ -88,49 +86,12 @@ public class ToolingToolkit
      *        by the control.
      */
     public <T extends Control> T adapt( T control, boolean trackFocus, boolean trackKeyboard) {
-        control.setData( WidgetUtil.CUSTOM_VARIANT, CUSTOM_VARIANT_VALUE );
-        
-//        control.setBackground( colors.getBackground() );
-//        control.setForeground( colors.getForeground() );
-        
-//        if (control instanceof ExpandableComposite) {
-//            ExpandableComposite ec = (ExpandableComposite)control;
-//            if (ec.toggle != null) {
-//                if (trackFocus)
-//                    ec.toggle.addFocusListener( visibilityHandler );
-//                if (trackKeyboard)
-//                    ec.toggle.addKeyListener( keyboardHandler );
-//            }
-//            if (ec.textLabel != null) {
-//                if (trackFocus)
-//                    ec.textLabel.addFocusListener( visibilityHandler );
-//                if (trackKeyboard)
-//                    ec.textLabel.addKeyListener( keyboardHandler );
-//            }
-//            return;
-//        }
-        
-//        if (trackFocus) {
-//            control.addFocusListener( visibilityHandler );
-//        }
-//        if (trackKeyboard) {
-//            control.addKeyListener( keyboardHandler );
-//        }
+        UIUtils.setVariant( control, CUSTOM_VARIANT_VALUE );
         return control;
     }
     
     protected Composite adapt( Composite composite ) {
-        composite.setData( WidgetUtil.CUSTOM_VARIANT, CUSTOM_VARIANT_VALUE );
-
-//        composite.setBackground( colors.getBackground() );
-//        composite.addMouseListener( new MouseAdapter() {
-//            public void mouseDown( MouseEvent e ) {
-//                ((Control)e.widget).setFocus();
-//            }
-//        } );
-//        if (composite.getParent() != null) {
-//            composite.setMenu( composite.getParent().getMenu() );
-//        }
+        UIUtils.setVariant( composite, CUSTOM_VARIANT_VALUE );
         return composite;
     }
     

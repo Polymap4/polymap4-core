@@ -161,9 +161,9 @@ public class MapViewer<CL>
         else {
             throw new RuntimeException( "Changing input is not yet supported." );
         }
-//        // maxExtent
+        // maxExtent
         View view = olmap.view.get();
-        view.extent.set( maxExtent.map( new ToOlExtent() ).get() );
+//        view.extent.set( maxExtent.map( new ToOlExtent() ).get() );
         
         // center
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();

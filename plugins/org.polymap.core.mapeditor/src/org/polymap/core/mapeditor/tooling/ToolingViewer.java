@@ -33,9 +33,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-import org.eclipse.rwt.graphics.Graphics;
-import org.eclipse.rwt.lifecycle.WidgetUtil;
-
 import org.eclipse.jface.resource.JFaceResources;
 
 import org.eclipse.ui.forms.widgets.ColumnLayoutData;
@@ -43,10 +40,11 @@ import org.eclipse.ui.forms.widgets.ColumnLayoutData;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+import org.polymap.core.mapeditor.MapViewer;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
-import org.polymap.core.mapeditor.workbench.MapEditor;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.ui.ColumnLayoutFactory;
+import org.polymap.core.ui.UIThreadExecutor;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * The default viewer for the editor tools and panels based on a {@link ToolingModel}.
@@ -67,7 +65,7 @@ public class ToolingViewer {
     private Set<ToolsPanel>     panels = new HashSet();
     
     
-    public ToolingViewer( MapEditor editor ) {
+    public ToolingViewer( MapViewer editor ) {
         model = ToolingModel.instance( editor );
 
         toolkit = new ToolingToolkit();
@@ -100,7 +98,7 @@ public class ToolingViewer {
         
         List<IEditorTool> tools = model.findTools( Path.EMPTY );
         ToolsPanel rootPanel = new ToolsPanel( Path.EMPTY, tools );
-        Composite control = rootPanel.createControl( content );
+        rootPanel.createControl( content );
 //        control.setLayoutData( new RowData( parent.getSize().x, SWT.DEFAULT ) );
 //        control.setLayoutData( SimpleFormData.filled().bottom( -1 ).create() );
         
@@ -190,7 +188,8 @@ public class ToolingViewer {
             for (final IEditorTool tool : tools) {
                 final ToolItem item = new ToolItem( tb, SWT.CHECK );
                 item.setData( "editorTool", tool );
-                item.setData( WidgetUtil.CUSTOM_VARIANT, ToolingToolkit.CUSTOM_VARIANT_VALUE );
+                UIUtils.setVariant( item.getControl(), ToolingToolkit.CUSTOM_VARIANT_VALUE );
+                //item.setData( WidgetUtil.CUSTOM_VARIANT, ToolingToolkit.CUSTOM_VARIANT_VALUE );
 
                 //item.setText( tool.getLabel() );
                 item.setToolTipText( tool.getTooltip() );
@@ -236,7 +235,7 @@ public class ToolingViewer {
             Label description = new Label( toolArea, SWT.WRAP );
             // this width defines the minimum width of the view
             description.setLayoutData( new ColumnLayoutData( 230, SWT.DEFAULT ) );
-            description.setForeground( Graphics.getColor( 0x90, 0x90, 0x90 ) );
+            description.setForeground( UIUtils.getColor( 0x90, 0x90, 0x90 ) );
             if (tool.getDescription() != null) {
                 description.setText( tool.getDescription() );
             } 
@@ -257,7 +256,7 @@ public class ToolingViewer {
             List<IEditorTool> children = model.findTools( tool.getToolPath() );
             if (!children.isEmpty()) {
                 ToolsPanel childPanel = new ToolsPanel( tool.getToolPath(), children );
-                Composite control = childPanel.createControl( toolArea );
+                childPanel.createControl( toolArea );
             }
 
             new Label( toolArea, SWT.SEPARATOR | SWT.HORIZONTAL );
@@ -265,11 +264,7 @@ public class ToolingViewer {
             content.pack();
             ToolingViewer.this.content.layout( true );
 
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    content.getParent().layout( true );
-                }
-            });
+            UIThreadExecutor.async( () -> content.getParent().layout( true ) );
         }
         
         
@@ -293,11 +288,9 @@ public class ToolingViewer {
             content.pack();
             ToolingViewer.this.content.layout( true );
 
-            Polymap.getSessionDisplay().asyncExec( new Runnable() {
-                public void run() {
-                    if (content != null) {
-                        content.getParent().layout( true );
-                    }
+            UIThreadExecutor.async( () -> {
+                if (content != null) {
+                    content.getParent().layout( true );
                 }
             });
         }
