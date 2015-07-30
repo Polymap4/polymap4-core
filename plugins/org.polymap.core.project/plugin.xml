@@ -11,116 +11,6 @@
 <plugin>
 
    <extension
-         point="org.eclipse.ui.views">
-      <category
-            id="org.polymap.core.project.ViewCategory"
-            name="%views_category">
-      </category>
-      <view
-            category="org.polymap.core.project.ViewCategory"
-            class="org.polymap.core.project.ui.project.ProjectView"
-            icon="icons/eview16/project_view.gif"
-            id="org.polymap.core.project.ProjectView"
-            name="%views_maps"
-            restorable="true">
-      </view>
-      <view
-            category="org.polymap.core.project.ViewCategory"
-            class="org.polymap.core.project.ui.layer.LayerNavigator"
-            icon="icons/eview16/layer_view.gif"
-            id="org.polymap.core.project.LayerNavigator"
-            name="%views_layers"
-            restorable="true">
-      </view>
-   </extension>
-   <extension
-         point="org.eclipse.ui.viewActions">
-      <viewContribution
-            id="org.polymap.core.project.LayerNavigatorContribution"
-            targetID="org.polymap.core.project.LayerNavigator">
-         <action
-               class="org.polymap.core.project.ui.layer.LayerVisibleStatusAction"
-               enablesFor="+"
-               icon="icons/elcl16/eye.png"
-               id="org.polymap.core.project.LayerVisibleStatusAction"
-               label="%actions_layerVisibleStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_layerVisibleStatusTip">
-         </action>
-      </viewContribution>
-      <viewContribution
-            id="org.polymap.core.project.ProjectViewContribution"
-            targetID="org.polymap.core.project.ProjectView">
-         <action
-               class="org.polymap.core.project.ui.project.MapVisibleStatusAction"
-               enablesFor="+"
-               icon="icons/elcl16/eye.png"
-               id="org.polymap.core.project.MapVisibleStatusAction"
-               label="%actions_mapVisibleStatus"
-               state="false"
-               style="toggle"
-               toolbarPath="xlayer"
-               tooltip="%actions_mapVisibleStatusTip">
-         </action>
-      </viewContribution>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.polymap.core.project.dataPerspective">
-         <view
-               id="org.polymap.core.project.ProjectView"
-               minimized="false"
-               relationship="stack"
-               visible="true">
-         </view>
-         <viewShortcut
-               id="org.polymap.core.project.ProjectView">
-         </viewShortcut>
-         <view
-               id="org.polymap.core.project.LayerNavigator"
-               minimized="false"
-               relationship="stack"
-               visible="true">
-         </view>
-         <viewShortcut
-               id="org.polymap.core.project.LayerNavigator">
-         </viewShortcut>
-         <newWizardShortcut
-               id="org.polymap.core.project.ui.NewMapWizard">
-         </newWizardShortcut>
-         <viewShortcut
-               id="org.eclipse.ui.cheatsheets.views.CheatSheetView">
-         </viewShortcut>
-      </perspectiveExtension>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectives">
-      <perspective
-            class="org.polymap.core.project.ui.workbench.ProjectPerspective"
-            icon="icons/eview16/project_view.gif"
-            id="org.polymap.core.project.dataPerspective"
-            name="%perspectives_adhoc">
-      </perspective>
-   </extension>
-   <extension
-         point="org.eclipse.ui.commands">
-      <command
-            description="%actions_addLayerToMap"
-            id="org.polymap.core.project.command.addLayerToMap"
-            name="%actions_addLayerToMap">
-      </command>
-   </extension>
-   <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            class="org.polymap.core.project.ui.AddLayerFromCatalogHandler"
-            commandId="org.polymap.core.project.command.addLayerToMap">
-      </handler>
-   </extension>
-   <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             locationURI="popup:net.refractions.udig.catalog.ui.CatalogView">
@@ -318,55 +208,6 @@
       </page>
    </extension>
    <extension
-         point="net.refractions.udig.ui.dropAction">
-      <action
-            class="org.polymap.core.project.ui.dnd.AddLayerToMapDropAction"
-            enablesFor="+"
-            name="AddLayerToMapDropAction">
-         <destination
-               class="org.polymap.core.project.ui.project.ProjectView">
-         </destination>
-         <acceptedType
-               adapt="true"
-               class="net.refractions.udig.catalog.IGeoResource">
-         </acceptedType>
-         <destination
-               class="org.polymap.core.project.IMap">
-         </destination>
-         <destination
-               class="org.polymap.core.project.ui.layer.LayerNavigator">
-         </destination>
-         <destination
-               class="org.polymap.core.project.ILayer">
-         </destination>
-      </action>
-      <action
-            class="org.polymap.core.project.ui.dnd.LayerOrderDropAction"
-            name="SortLayerDropAction">
-         <destination
-               class="org.polymap.core.project.ui.layer.LayerNavigator">
-         </destination>
-         <acceptedType
-               class="org.polymap.core.project.ILayer">
-         </acceptedType>
-         <destination
-               class="org.polymap.core.project.ILayer">
-         </destination>
-      </action>
-      <action
-            class="org.polymap.core.project.ui.dnd.AssignGeoresDropAction"
-            enablesFor="1"
-            name="AssignGeoresDropAction">
-         <acceptedType
-               adapt="true"
-               class="net.refractions.udig.catalog.IGeoResource">
-         </acceptedType>
-         <destination
-               class="org.polymap.core.project.ILayer">
-         </destination>
-      </action>
-   </extension>
-   <extension
          point="org.eclipse.rap.ui.navigator.navigatorContent">
       <navigatorContent
             activeByDefault="true"
@@ -431,16 +272,6 @@
                type="org.eclipse.ui.views.properties.IPropertySourceProvider">
          </adapter>
       </factory>
-   </extension>
-   <extension
-         point="org.polymap.core.operation.concerns">
-      <concern
-            class="org.polymap.core.project.operations.CatalogOperationConcern"
-            id="org.polymap.core.project.CatalogOperationConcern">
-      </concern>
-   </extension>
-   <extension
-         point="org.polymap.rhei.batik.panels">
    </extension>
 
 </plugin>

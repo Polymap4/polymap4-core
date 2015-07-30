@@ -14,8 +14,10 @@
  */
 package org.polymap.core.operation;
 
-import org.apache.commons.logging.LogFactory;
+import java.util.function.Consumer;
+
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.DefaultOperationHistory;
@@ -26,8 +28,10 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.ObjectUndoContext;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.session.SessionSingleton;
@@ -47,6 +51,14 @@ public class OperationSupport
 
     private static Log log = LogFactory.getLog( OperationSupport.class );
 
+//    /**
+//     * An error handler that uses the {@link StatusDispatcher} to show an error
+//     * message to the user.
+//     */
+//    public static final Consumer<Throwable> showErrorMsg( String msg ) {
+//        return e -> StatusDispatcher.handle( new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, msg, e ), Style.SHOW );
+//    }
+        
     /**
      * Scheduling rule that allows just the associated (save) Job to be executed.
      * Used for the the {@link OperationSupport#saveChanges()} job.
@@ -197,6 +209,36 @@ public class OperationSupport
     }
     
     
+    public void execute( final IUndoableOperation op, boolean async, boolean progress, Runnable... doneHandlers ) {
+        IJobChangeListener[] listeners = new IJobChangeListener[ doneHandlers.length ];
+        for (int i=0; i<doneHandlers.length; i++) {
+            Runnable handler = doneHandlers[i];
+            listeners[i] = new JobChangeAdapter() {
+                @Override
+                public void done( IJobChangeEvent ev ) {
+                    handler.run();
+                }
+            };
+        }
+        execute( op, async, progress, listeners );
+    }
+    
+    
+    public void execute( final IUndoableOperation op, boolean async, boolean progress, Consumer<IJobChangeEvent>... doneHandlers ) {
+        IJobChangeListener[] listeners = new IJobChangeListener[ doneHandlers.length ];
+        for (int i=0; i<doneHandlers.length; i++) {
+            Consumer<IJobChangeEvent> handler = doneHandlers[i];
+            listeners[i] = new JobChangeAdapter() {
+                @Override
+                public void done( IJobChangeEvent ev ) {
+                    handler.accept( ev );
+                }
+            };
+        }
+        execute( op, async, progress, listeners );
+    }
+    
+    
     /**
      * Executes the given operation inside a {@link UIJob job}.
      * 
@@ -208,8 +250,7 @@ public class OperationSupport
      *        by the progress dialog. 
      * @throws ExecutionException
      */
-    public void execute( final IUndoableOperation op, boolean async, boolean progress, IJobChangeListener... listeners )
-    throws ExecutionException {
+    public void execute( final IUndoableOperation op, boolean async, boolean progress, IJobChangeListener... listeners ) {
         OperationJob job = new OperationJob( op ) {
             protected void run() throws Exception {
                 // try to preset task name without beginTask()
@@ -252,7 +293,7 @@ public class OperationSupport
     }
 
 
-    protected void run( OperationJob job, boolean async, boolean progress ) throws ExecutionException {
+    protected void run( OperationJob job, boolean async, boolean progress ) {
         if (progress) {
             job.setShowProgressDialog( null, true );
         }

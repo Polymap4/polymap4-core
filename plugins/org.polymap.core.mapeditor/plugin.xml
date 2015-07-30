@@ -37,13 +37,6 @@
       </objectContribution>
    </extension>
    <extension
-         point="org.polymap.core.operation.concerns">
-      <concern
-            class="org.polymap.core.mapeditor.operations.OpenMapConcernFactory"
-            id="org.polymap.core.mapeditor.OpenMapConcern">
-      </concern>
-   </extension>
-   <extension
          point="org.polymap.core.mapeditor.mapContextMenu">
       <contribution
             class="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution"

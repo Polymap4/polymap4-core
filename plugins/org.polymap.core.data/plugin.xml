@@ -423,22 +423,6 @@
       </viewContribution-->
    </extension>
    <extension
-         point="org.polymap.core.operation.concerns">
-      <!--concern
-            class="org.polymap.core.data.ui.featureselection.LayerSelectableOperationConcern"
-            id="org.polymap.core.data.layerSelectableConcern">
-      </concern-->
-      <concern
-            class="org.polymap.core.data.image.cache304.CacheNewLayerOperationConcern"
-            id="org.polymap.core.data.addLayerCacheConcern">
-      </concern>
-      <concern
-            class="org.polymap.core.data.operations.feature.ShapeCRSOperationConcern"
-            id="org.polymap.core.data.ShapeCRSConcern"
-            name="Shapefile CRS">
-      </concern>
-   </extension>
-   <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             locationURI="popup:org.eclipse.ui.popup.any">

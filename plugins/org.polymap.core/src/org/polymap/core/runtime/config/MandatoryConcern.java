@@ -26,7 +26,8 @@ public class MandatoryConcern<T>
     @Override
     public T doGet( Object obj, Config<T> prop, T value ) {
         if (value == null) {
-            throw new ConfigurationException( "Configuration property is @Mandatory: " + prop.info().getName() );
+            throw new ConfigurationException( "Configuration property is @Mandatory: " 
+                    + prop.info().getHostObject().getClass().getName() + "." + prop.info().getName() );
         }
         return value;
     }
@@ -34,7 +35,9 @@ public class MandatoryConcern<T>
     @Override
     public T doSet( Object obj, Config<T> prop, T value ) {
         if (value == null) {
-            throw new ConfigurationException( "Configuration property is @Mandatory. Set to null is not allowed: " + prop.info().getName() );
+            throw new ConfigurationException( "Configuration property is @Mandatory. Set to null is not allowed: "
+                    + prop.info().getHostObject().getClass().getName() + "." + prop.info().getName() );
+
         }
         return value;
     }
