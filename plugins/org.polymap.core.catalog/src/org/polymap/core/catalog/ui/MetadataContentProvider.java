@@ -14,7 +14,7 @@
  */
 package org.polymap.core.catalog.ui;
 
-import static org.polymap.core.ui.UIThreadExecutor.logErrorMsg;
+import static org.polymap.core.runtime.UIThreadExecutor.logErrorMsg;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,8 +37,8 @@ import org.polymap.core.catalog.resolve.IResourceInfo;
 import org.polymap.core.catalog.resolve.IServiceInfo;
 import org.polymap.core.runtime.StreamIterable;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.UIThreadExecutor;
 import org.polymap.core.runtime.config.Configurable;
-import org.polymap.core.ui.UIThreadExecutor;
 
 /**
  * Content provider for {@link IMetadataCatalog} (or Collection or Array thereof as input),

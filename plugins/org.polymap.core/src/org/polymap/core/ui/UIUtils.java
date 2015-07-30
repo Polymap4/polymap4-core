@@ -39,6 +39,8 @@ import org.eclipse.rap.rwt.internal.serverpush.ServerPushManager;
 import org.eclipse.rap.rwt.internal.service.ContextProvider;
 import org.eclipse.rap.rwt.widgets.WidgetUtil;
 
+import org.polymap.core.runtime.UIThreadExecutor;
+
 /**
  * Static methods that help to work with (RWT specific) settings of the UI.
  *

@@ -17,9 +17,8 @@ package org.polymap.core.runtime;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-
 /**
- * 
+ * Static methods to support working with streams. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

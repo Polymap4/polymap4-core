@@ -42,8 +42,8 @@ import org.eclipse.core.runtime.Path;
 
 import org.polymap.core.mapeditor.MapViewer;
 import org.polymap.core.mapeditor.tooling.ToolingEvent.EventType;
+import org.polymap.core.runtime.UIThreadExecutor;
 import org.polymap.core.ui.ColumnLayoutFactory;
-import org.polymap.core.ui.UIThreadExecutor;
 import org.polymap.core.ui.UIUtils;
 
 /**

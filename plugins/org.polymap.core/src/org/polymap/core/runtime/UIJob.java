@@ -14,7 +14,7 @@
  */
 package org.polymap.core.runtime;
 
-import static org.polymap.core.ui.UIThreadExecutor.runtimeException;
+import static org.polymap.core.runtime.UIThreadExecutor.runtimeException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -39,7 +39,6 @@ import org.polymap.core.Messages;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.ui.StatusDispatcher;
-import org.polymap.core.ui.UIThreadExecutor;
 import org.polymap.core.ui.UIUtils;
 
 /**
