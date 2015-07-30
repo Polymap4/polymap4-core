@@ -32,8 +32,8 @@ import org.polymap.core.catalog.IMetadata;
  * connection params</li>
  * <li>one {@link IMetadataResourceResolvers} build {@link IServiceInfo} out of
  * connection params</li>
- * <li>{@link IServiceInfo#createService()} creates the actual backend service
- * instance</li>
+ * <li>{@link IServiceInfo#createService(IProgressMonitor)} creates the actual
+ * backend service instance</li>
  * <li>ILayer also provides resource name which allows to scan all resources of the
  * service and find the right one for that layer</li>
  * </ul>
