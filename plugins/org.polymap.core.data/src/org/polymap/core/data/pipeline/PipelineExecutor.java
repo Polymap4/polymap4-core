@@ -23,12 +23,6 @@
 
 package org.polymap.core.data.pipeline;
 
-import java.util.Set;
-
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
-
-import net.refractions.udig.catalog.IService;
 
 /**
  * Provides the SPI for executor services.
@@ -49,21 +43,13 @@ public interface PipelineExecutor {
      */
     public static interface ProcessorContext {
         
-        public IMap getMap();
-        
-        public Set<ILayer> getLayers();
-
-        public IService getService();
-
-
         /**
          * Sends a new request to the upstream processor.
          * 
          * @throws Exception Signals upstream exceptions. This depends on the
          *         executor used; clients should not catch/handle this.
          */
-        public void sendRequest( ProcessorRequest request ) 
-        throws Exception;
+        public void sendRequest( ProcessorRequest request ) throws Exception;
         
         /**
          * Send a new request the the processing chain.
@@ -71,8 +57,7 @@ public interface PipelineExecutor {
          * @throws Exception Signals upstream exceptions. This depends on the
          *         executor used; clients should not catch/handle this.
          */
-        public void sendResponse( ProcessorResponse response )
-        throws Exception;
+        public void sendResponse( ProcessorResponse response ) throws Exception;
 
 
         /**

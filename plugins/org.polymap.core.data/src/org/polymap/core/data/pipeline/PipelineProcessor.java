@@ -1,42 +1,34 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.pipeline;
 
 import java.util.Properties;
 
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.project.ILayer;
 
 /**
  * The SPI of a data pipeline processor. A pipeline processor is part of a
  * {@link Pipeline} and executed inside of a {@link PipelineExecutor}. A
  * processor can process requests, reponses or both.
- * <p>
+ * <p/>
  * A processor has to be thread-safe and stateless. The state of the processor
- * can be stored in the {@link ProcessorContext}.
+ * can be stored in its {@link ProcessorContext}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- * @since 3.0
+ * @see Produces
+ * @see Consumes
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a> 
  */
 public interface PipelineProcessor {
     
@@ -52,10 +44,4 @@ public interface PipelineProcessor {
      */
     public void init( Properties props );
     
-    public void processRequest( ProcessorRequest request, ProcessorContext context )
-            throws Exception;
-
-    public void processResponse( ProcessorResponse reponse, ProcessorContext context )
-            throws Exception;
-
 }

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,15 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.data.pipeline;
 
 import java.util.ArrayList;
@@ -29,23 +20,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import net.refractions.udig.catalog.IService;
-
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
 
 /**
  * Executes the processors in serial order inside the calling thread. 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- *         <li>20.10.2009: created</li>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class SerialPipelineExecutor
         implements PipelineExecutor {
@@ -158,18 +139,6 @@ public class SerialPipelineExecutor
 
         public Object get( String key ) {
             return procData.get( key );
-        }
-
-        public IMap getMap() {
-            return pipe.getMap();
-        }
-
-        public Set<ILayer> getLayers() {
-            return pipe.getLayers();
-        }
-        
-        public IService getService() {
-            return pipe.getService();
         }
 
         public void sendRequest( ProcessorRequest r ) {

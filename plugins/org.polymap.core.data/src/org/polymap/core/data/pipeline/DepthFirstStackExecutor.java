@@ -26,15 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import net.refractions.udig.catalog.IService;
-
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
 
 /**
  * This executor runs all processors inside the calling thread. The
@@ -134,18 +127,6 @@ public class DepthFirstStackExecutor
         public Object get( String key ) {
             assert key != null;
             return procData.get( key );
-        }
-
-        public IMap getMap() {
-            return pipe.getMap();
-        }
-
-        public Set<ILayer> getLayers() {
-            return pipe.getLayers();
-        }
-        
-        public IService getService() {
-            return pipe.getService();
         }
 
         public void sendRequest( ProcessorRequest r ) 

@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,36 +11,22 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.pipeline;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-
-import org.eclipse.jface.preference.IPreferencePage;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.data.DataPlugin;
-import org.polymap.core.project.PipelineHolder;
 
 /**
  * Provides access the data of an extension of extension point
  * <code>org.polymap.core.data.pipeline.processors</code>.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProcessorExtension {
 
@@ -126,24 +111,24 @@ public class ProcessorExtension {
         return ext.getAttribute( "propertyPage" ) != null;
     }
     
-    public ProcessorPropertyPage newPropertyPage()
-    throws CoreException {
-        return (ProcessorPropertyPage)ext.createExecutableExtension( "propertyPage" );
-    }
-
-    
-    /**
-     * The property page of a {@link ProcessorExtension}.
-     *
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
-     * @since 3.0
-     */
-    public interface ProcessorPropertyPage
-            extends IPreferencePage {
-        
-        void init( PipelineHolder holder, Properties props );
-        
-    }
+//    public ProcessorPropertyPage newPropertyPage()
+//    throws CoreException {
+//        return (ProcessorPropertyPage)ext.createExecutableExtension( "propertyPage" );
+//    }
+//
+//    
+//    /**
+//     * The property page of a {@link ProcessorExtension}.
+//     *
+//     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+//     * @version POLYMAP3 ($Revision$)
+//     * @since 3.0
+//     */
+//    public interface ProcessorPropertyPage
+//            extends IPreferencePage {
+//        
+//        void init( PipelineHolder holder, Properties props );
+//        
+//    }
     
 }

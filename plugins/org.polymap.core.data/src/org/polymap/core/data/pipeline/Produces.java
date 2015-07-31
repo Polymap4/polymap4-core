@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2009, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -14,15 +14,22 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface ProcessorResponse
-        extends ProcessorProbe {
+@Retention( RetentionPolicy.RUNTIME )
+@Target( { ElementType.METHOD } )
+@Documented
+public @interface Produces {
 
-    /** Signals the End Of Processing. */
-    public static final ProcessorResponse       EOP = new ProcessorResponse() {};
-    
+    public Class<? extends ProcessorProbe>[] value();
+
 }

@@ -1,24 +1,16 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright 2009, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.pipeline;
 
@@ -28,9 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import net.refractions.udig.catalog.IService;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -59,20 +49,13 @@ import org.polymap.core.data.image.ImageEncodeProcessor;
 import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.image.RasterRenderProcessor;
 import org.polymap.core.data.image.WmsRenderProcessor;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
-import org.polymap.core.project.LayerUseCase;
-import org.polymap.core.project.PipelineProcessorConfiguration;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.session.SessionSingleton;
-import org.polymap.core.workbench.PolymapWorkbench;
 
 /**
  *
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class DefaultPipelineIncubator
         implements IPipelineIncubator {

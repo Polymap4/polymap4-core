@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2012, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,15 +19,10 @@ import java.util.Properties;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import net.refractions.udig.catalog.IService;
-
-import org.polymap.core.project.LayerUseCase;
-
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class ProcessorDescription {
 
