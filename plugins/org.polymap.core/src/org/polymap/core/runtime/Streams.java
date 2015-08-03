@@ -15,6 +15,8 @@
 package org.polymap.core.runtime;
 
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -61,5 +63,76 @@ public class Streams {
     public static <T> Iterable<T> iterable( Stream<T> stream ) {
         return StreamIterable.of( stream );
     }
+    
+    
+    /**
+     * Handle checked exceptions in lambda {@link Function} or {@link Predicate} calls.
+     * <p/>
+     * Example:
+     * 
+     * <pre>
+     * try (ExceptionCollector<SpecificException> excs = Streams.exceptions()) {
+     *     return list.stream()
+     *             .map( o -> excs.check( () -> doSomething( o ) ) )
+     *             .filter( o -> excs.check( () -> checkSomething( o ) ) ) );
+     * }
+     * </pre>
+     * 
+     * The try-with-resources statement automatically closes the collector and throws
+     * a <code>SpecificException</code> if one of invocations of
+     * <code>excs.handle()</code> did collect an Exception. A SpecificException is
+     * thrown as checked Exception, all other Exception types are wrapped within a
+     * RuntimeException.
+     *
+     * @return Newly created {@link ExceptionCollector}
+     */
+    public static ExceptionCollector exceptions() {
+        return new ExceptionCollector();
+    }
+
+    
+    /**
+     * 
+     */
+    public static class ExceptionCollector<E extends Exception>
+            implements AutoCloseable {
+        
+        private Exception       exception;
+        
+        @Override
+        public void close() throws E {
+            if (exception != null) {
+                throw (E)exception;
+            }
+        }
+
+        public <T> T check( Callable<T> callable ) {
+            try {
+                return callable.call();
+            }
+            catch (Exception e) {
+                exception = e;
+                throw new CollectedException( e );
+            }
+        }
+        
+//        public <T> Predicate<T> collect( Predicate<? super T> predicate ) {
+//            
+//        }
+
+        /**
+         * 
+         */
+        static class CollectedException
+                extends RuntimeException {
+
+            public CollectedException( Throwable cause ) {
+                super( cause );
+            }
+            
+        }
+
+    }
+    
     
 }
