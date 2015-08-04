@@ -2,10 +2,10 @@
 <launchConfiguration type="org.eclipse.jdt.junit.launchconfig">
 <stringAttribute key="bad_container_name" value="/org.polymap.core/lau"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/org.polymap.core/src-test/org/polymap/core/CoreTests.java"/>
+<listEntry value="/org.polymap.core"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
-<listEntry value="1"/>
+<listEntry value="4"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>

@@ -44,7 +44,6 @@ import org.polymap.core.ui.ImageRegistryHelper;
  * The activator class controls the plug-in life cycle
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public class CorePlugin
         extends AbstractUIPlugin {

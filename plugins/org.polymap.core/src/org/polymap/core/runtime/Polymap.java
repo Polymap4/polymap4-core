@@ -88,7 +88,7 @@ public final class Polymap {
     
 
     /**
-     *
+     * @deprecated See {@link CorePlugin#getDataLocation(org.osgi.framework.Bundle)}
      */
     public static IPath getWorkspacePath() {
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -99,31 +99,31 @@ public final class Polymap {
 
 
     /**
-    *
-    */
-   public static File getCacheDir() {
-       File cacheDir = new File( getWorkspacePath().toFile(), "cache" );
-       cacheDir.mkdirs();
-       return cacheDir;
-   }
+     * @deprecated See {@link CorePlugin#getDataLocation(org.osgi.framework.Bundle)}
+     */
+    public static File getCacheDir() {
+        File cacheDir = new File( getWorkspacePath().toFile(), "cache" );
+        cacheDir.mkdirs();
+        return cacheDir;
+    }
 
-   /**
-    *
-    */
-   public static File getConfigDir() {
-       File configDir = new File( getWorkspacePath().toFile(), "config" );
-       configDir.mkdirs();
-       return configDir;
-   }
+    /**
+     * @deprecated See {@link CorePlugin#getDataLocation(org.osgi.framework.Bundle)}
+     */
+    public static File getConfigDir() {
+        File configDir = new File( getWorkspacePath().toFile(), "config" );
+        configDir.mkdirs();
+        return configDir;
+    }
 
-   /**
-    *
-    */
-   public static File getDataDir() {
-       File dataDir = new File( getWorkspacePath().toFile(), "data" );
-       dataDir.mkdirs();
-       return dataDir;
-   }
+    /**
+     * @deprecated See {@link CorePlugin#getDataLocation(org.osgi.framework.Bundle)}
+     */
+    public static File getDataDir() {
+        File dataDir = new File( getWorkspacePath().toFile(), "data" );
+        dataDir.mkdirs();
+        return dataDir;
+    }
 
 
     /**
