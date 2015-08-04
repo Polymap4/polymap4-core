@@ -131,7 +131,7 @@ public abstract class ServiceContext
 
                     // listen to preference changes
                     final ScopedPreferenceStore prefStore = new ScopedPreferenceStore( 
-                            new InstanceScope(), ServicesPlugin.getDefault().getBundle().getSymbolicName() );
+                            new InstanceScope(), ServicesPlugin.instance().getBundle().getSymbolicName() );
                     prefStore.addPropertyChangeListener( ServiceContext.this );
                 }
                 catch (Exception e) {

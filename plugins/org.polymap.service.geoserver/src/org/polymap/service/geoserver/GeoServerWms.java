@@ -163,7 +163,7 @@ public class GeoServerWms
 
 
     protected void initGeoServer() throws Exception {        
-        File cacheDir = GeoServerPlugin.getDefault().getCacheDir();
+        File cacheDir = GeoServerPlugin.instance().getCacheDir();
         dataDir = new File( cacheDir, Stringer.of( map.getLabel() ).toFilename( "_" ).toString() );
         log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
         dataDir.mkdirs();
@@ -223,7 +223,7 @@ public class GeoServerWms
         // schemas
         if (pathInfo != null && pathInfo.startsWith( "/schemas" )) {
             String resName = req.getPathInfo().substring( 1 );
-            URL res = GeoServerPlugin.getDefault().getBundle().getResource( resName );
+            URL res = GeoServerPlugin.instance().getBundle().getResource( resName );
             if (res != null) {
                 IOUtils.copy( res.openStream(), resp.getOutputStream() );
                 IOUtils.closeQuietly( res.openStream() );

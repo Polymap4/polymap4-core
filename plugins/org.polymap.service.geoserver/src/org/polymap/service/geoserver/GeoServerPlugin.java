@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2012 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -17,6 +17,9 @@ package org.polymap.service.geoserver;
 import java.io.File;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpService;
+import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -44,30 +47,39 @@ import org.apache.commons.logging.Log;
  */
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.core.runtime.Plugin;
 
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.CorePlugin;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class GeoServerPlugin 
-        extends AbstractUIPlugin {
+        extends Plugin {
 
     private static Log log = LogFactory.getLog( GeoServerPlugin.class );
 
-    // The plug-in ID
-	public static final String PLUGIN_ID = "org.polymap.service.geoserver";
+    public static final String ID = "org.polymap.service.geoserver";
 
-	// The shared instance
-	private static GeoServerPlugin plugin;
+    private static GeoServerPlugin      instance;
 	
-	private File                   cacheDir;
+    private File                        cacheDir;
+
+    private ServiceTracker              httpServiceTracker;
 	
 	
+    /**
+     * Returns the shared instance
+     */
+    public static GeoServerPlugin instance() {
+    	return instance;
+    }
+
+
+    // instance *******************************************
+    
     /**
      * Returns the cache directory of this plugin.
      */
@@ -78,9 +90,9 @@ public class GeoServerPlugin
     
 	public void start( BundleContext context ) throws Exception {
 		super.start( context );
-		plugin = this;
+		instance = this;
 
-		cacheDir = new File( Polymap.getCacheDir(), PLUGIN_ID );
+		cacheDir = new File( CorePlugin.getDataLocation( getBundle() ), "cache" );
         if (cacheDir.exists()) {
             log.info( "Cleaning cache dir: " + cacheDir );
             FileUtils.deleteDirectory( cacheDir );
@@ -90,26 +102,35 @@ public class GeoServerPlugin
             log.info( "Creating cache dir: " + cacheDir );
             cacheDir.mkdir();            
         }
+        
+        // start test servlet
+        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+            public Object addingService( ServiceReference reference ) {
+                HttpService httpService = (HttpService)super.addingService( reference );                
+                if (httpService != null) {
+                    throw new RuntimeException( "@joerg: hier kannst du ein Test-Servlet registrieren..." );
+                    //registerTestServlet( httpService );
+                }
+                return httpService;
+            }
+        };
+        httpServiceTracker.open();
 	}
 
 	
 	public void stop( BundleContext context ) throws Exception {
-		plugin = null;
+	    if (httpServiceTracker != null) {
+	        httpServiceTracker.close();
+	        httpServiceTracker = null;
+	    }
+	    
+		instance = null;
 		super.stop(context);
 
 		if (cacheDir.exists()) {
             log.info( "Cleaning cache dir: " + cacheDir );
             FileUtils.deleteDirectory( cacheDir );
         }
-	}
-
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
-	public static GeoServerPlugin getDefault() {
-		return plugin;
 	}
 
 }

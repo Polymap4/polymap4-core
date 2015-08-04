@@ -53,7 +53,7 @@ public class GeoServerClassLoader
         super( new URL[] {}, parent );
         this.parent = parent;
         
-        Bundle bundle = GeoServerPlugin.getDefault().getBundle();
+        Bundle bundle = GeoServerPlugin.instance().getBundle();
         for (Enumeration en=bundle.findEntries( "lib/", "*.jar", false ); en.hasMoreElements(); ) {
             URL entry = (URL)en.nextElement();
             log.debug( "JAR found: " + entry );

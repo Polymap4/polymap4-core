@@ -92,7 +92,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
-import org.polymap.core.data.pipeline.IPipelineIncubator;
+import org.polymap.core.data.pipeline.PipelineIncubator;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.project.ILayer;
@@ -134,7 +134,7 @@ public class GeoServerLoader
     
     private Map<String,ILayer>      layers = new HashMap();
     
-    private IPipelineIncubator      pipelineIncubator;
+    private PipelineIncubator      pipelineIncubator;
     
     private Cache<String,Pipeline>  pipelines;
 
