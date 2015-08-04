@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
- * 
+ * Describes the signature of a {@link PipelineProcessor}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -64,9 +64,18 @@ public class ProcessorSignature {
 //        this.responseIn.addAll( Arrays.asList( responseIn ) );
 //    }
     
-    
     public ProcessorSignature( PipelineProcessor processor ) throws PipelineIncubationException {
         this.processor = processor;
+        buildSignature( processor.getClass() );
+    }
+    
+    
+    public ProcessorSignature( Class<? extends PipelineProcessor> type ) throws PipelineIncubationException {
+        buildSignature( type );
+    }
+    
+    
+    protected void buildSignature( Class<? extends PipelineProcessor> type ) throws PipelineIncubationException {
         
         Deque<Class> deque = new ArrayDeque();
         deque.push( processor.getClass() );
@@ -135,7 +144,7 @@ public class ProcessorSignature {
     }
 
     
-    public void call( ProcessorProbe probe, ProcessorContext context ) throws Exception {
+    public void invoke( ProcessorProbe probe, ProcessorContext context ) throws Exception {
         try {
             callMap.get( probe.getClass() ).invoke( processor, new Object[] {probe, context} );
         }
@@ -181,6 +190,4 @@ public class ProcessorSignature {
                 "    ResponseOut: " + responseOut;
     }
 
-    
-    // test ***********************************************
 }

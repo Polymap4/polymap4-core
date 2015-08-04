@@ -15,11 +15,12 @@
 package org.polymap.core.data.pipeline;
 
 /**
- * Describes a data source a {@link TerminalPipelineProcessor} can handle or not. 
+ * Tagging interface for processor signatures that define the actual interface a
+ * pipeline provides to the client.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DataSourceDescription {
+public interface PipelineUsecase
+        extends PipelineProcessor {
 
-    
 }

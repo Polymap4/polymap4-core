@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2012, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -16,23 +16,21 @@ package org.polymap.core.data.pipeline;
 
 import java.util.Properties;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class ProcessorDescription {
+class ProcessorDescription<P extends PipelineProcessor> {
 
     private Class<? extends PipelineProcessor> cl;
 
-    private ProcessorSignature      signature;
+    /** Lazily inited by {@link #signature()}. */
+    private ProcessorSignature          signature;
     
-    private Properties              props;
+    private Properties                  props;
     
-    private LayerUseCase            usecase;
+    private P                           processor;
 
 
     /**
@@ -42,11 +40,9 @@ class ProcessorDescription {
      *        {@link PipelineProcessor#init(Properties)} method.
      * @param usecase 
      */
-    public ProcessorDescription( Class<? extends PipelineProcessor> cl, 
-            Properties props, LayerUseCase usecase ) {
+    public ProcessorDescription( Class<? extends PipelineProcessor> cl, Properties props ) {
         this.cl = cl;
         this.props = props;
-        this.usecase = usecase;
     }
 
 
@@ -67,7 +63,7 @@ class ProcessorDescription {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof ProcessorDescription) {
+        else if (obj instanceof ProcessorDescription) {
             ProcessorDescription rhs = (ProcessorDescription)obj;
             return cl.equals( rhs.cl );
         }
@@ -82,20 +78,9 @@ class ProcessorDescription {
     }
 
 
-    public ProcessorSignature getSignature() {
-        if (signature == null) {
-            try {
-                Method m = cl.getMethod( "signature", LayerUseCase.class );
-                if (Modifier.isStatic( m.getModifiers() )) {
-                    signature = (ProcessorSignature)m.invoke( cl, usecase );
-                }
-            }
-            catch (RuntimeException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e );
-            }
+    public ProcessorSignature signature() throws PipelineIncubationException {
+        if (signature == null) {  // no concurrent check, multi init is ok
+            signature = new ProcessorSignature( cl );
         }
         return signature;
     }
@@ -106,45 +91,62 @@ class ProcessorDescription {
     }
 
 
-    public PipelineProcessor newProcessor() {
+    public P processor() throws PipelineIncubationException {
         assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
-        try {
-            PipelineProcessor result = cl.newInstance();
-            return result;
+        if (processor == null) {  // no concurrent check, multi init ok
+            try {
+                processor = (P)cl.newInstance();
+            }
+            catch (RuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new PipelineIncubationException( "", e );
+            }
         }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+        return processor;
     }
 
-
+    
     /**
-     * In case this processor is an {@link ITerminalPipelineProcessor}, check
-     * if it can handle the given service.
-     * 
-     * @param service
-     * @throws IllegalArgumentException If this processor is not a terminal.
+     * Checks if the {@link TerminalPipelineProcessor} is compatible with (aka can handle)
+     * the given data source. 
+     *
+     * @param dsd The data source description to handle.
+     * @throws PipelineIncubationException 
      */
-    public boolean isCompatible( IService service ) {
-        assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
-        if (! ITerminalPipelineProcessor.class.isAssignableFrom( cl )) {
-            throw new IllegalArgumentException( "Processor is not a terminal: " + cl.getName() );
-        }
-        try {
-            Method m = cl.getMethod( "isCompatible", IService.class );
-            if (Modifier.isStatic( m.getModifiers() )) {
-                return (Boolean)m.invoke( cl, service );
-            }
-            else {
-                throw new IllegalStateException( "Method isCompatible() must be static." );
-            }
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+    public boolean isCompatible( DataSourceDescription dsd ) throws PipelineIncubationException {
+        return ((TerminalPipelineProcessor)processor()).isCompatible( dsd );
     }
+
+    
+//    /**
+//     * In case this processor is an {@link ITerminalPipelineProcessor}, check
+//     * if it can handle the given service.
+//     * 
+//     * @param service
+//     * @throws IllegalArgumentException If this processor is not a terminal.
+//     */
+//    public boolean isCompatible( IService service ) {
+//        assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
+//        if (! ITerminalPipelineProcessor.class.isAssignableFrom( cl )) {
+//            throw new IllegalArgumentException( "Processor is not a terminal: " + cl.getName() );
+//        }
+//        try {
+//            Method m = cl.getMethod( "isCompatible", IService.class );
+//            if (Modifier.isStatic( m.getModifiers() )) {
+//                return (Boolean)m.invoke( cl, service );
+//            }
+//            else {
+//                throw new IllegalStateException( "Method isCompatible() must be static." );
+//            }
+//        }
+//        catch (RuntimeException e) {
+//            throw e;
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException( e );
+//        }
+//    }
 
 }

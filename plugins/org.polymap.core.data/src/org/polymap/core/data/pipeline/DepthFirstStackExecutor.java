@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,13 +11,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.pipeline;
 
@@ -31,14 +23,12 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * This executor runs all processors inside the calling thread. The
- * requests/responses are passed between the processors by recursively calling
- * their handle methods. The entire execution runs inside one single JVM
- * stackframe. This allows 'depth first' semantics. The first response is send
- * to the client at the first possible stage of the pipeline.
+ * requests/responses are passed between the processors by recursively calling their
+ * handle methods. The entire execution runs inside one single JVM stackframe. This
+ * allows for 'depth first' semantics. The first response is send to the client at
+ * the first possible stage of the pipeline.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class DepthFirstStackExecutor
         implements PipelineExecutor {
@@ -57,8 +47,7 @@ public class DepthFirstStackExecutor
     private boolean                 isEop;
 
     
-    public void execute( Pipeline _pipe, ProcessorRequest _request, ResponseHandler _handler )
-    throws Exception {
+    public void execute( Pipeline _pipe, ProcessorRequest _request, ResponseHandler _handler ) throws Exception {
         this.pipe = _pipe;
         this.request = _request;
         this.handler = _handler;
@@ -66,13 +55,13 @@ public class DepthFirstStackExecutor
 
         // create contexts
         int i = 0;
-        for (PipelineProcessor proc : pipe) {
-            DepthFirstContext context = new DepthFirstContext( proc, i++ );
+        for (ProcessorDescription desc : pipe) {
+            DepthFirstContext context = new DepthFirstContext( desc, i++ );
             contexts.add( context );
         }
         // recursivly call processors
         DepthFirstContext sinkContext = contexts.get( 0 );
-        sinkContext.proc.processRequest( request, sinkContext );
+        sinkContext.procDesc.signature().invoke( request, sinkContext );
     }
 
     
@@ -94,17 +83,13 @@ public class DepthFirstStackExecutor
     
     /**
      * The processor context used by {@link DepthFirstStackExecutor}.
-     * 
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     * @version POLYMAP3 ($Revision$)
-     * @since 3.0
      */
     protected class DepthFirstContext
             implements ProcessorContext {
 
         int                     pipePos;
         
-        PipelineProcessor       proc;
+        ProcessorDescription    procDesc;
         
         /** The processor specific data. */
         Map                     procData = new HashMap();
@@ -112,9 +97,9 @@ public class DepthFirstStackExecutor
         boolean                 contextEop = false;
         
         
-        public DepthFirstContext( PipelineProcessor proc, int pipePos ) {
+        public DepthFirstContext( ProcessorDescription procDesc, int pipePos ) {
             this.pipePos = pipePos;
-            this.proc = proc;
+            this.procDesc = procDesc;
         }
 
         public Object put( String key, Object data ) {
@@ -129,22 +114,20 @@ public class DepthFirstStackExecutor
             return procData.get( key );
         }
 
-        public void sendRequest( ProcessorRequest r ) 
-        throws Exception {
+        public void sendRequest( ProcessorRequest r ) throws Exception {
             DepthFirstContext upstream = contexts.get( pipePos+1 );
-            upstream.proc.processRequest( r, upstream );
+            upstream.procDesc.signature().invoke( r, upstream );
         }
 
-        public void sendResponse( ProcessorResponse r )
-        throws Exception {
+        public void sendResponse( ProcessorResponse r ) throws Exception {
             if (pipePos > 0) {
                 DepthFirstContext downstream = contexts.get( pipePos-1 );
                 if (r != ProcessorResponse.EOP) {
-                    downstream.proc.processResponse( r, downstream );
+                    downstream.procDesc.signature().invoke( r, downstream );
                 }
                 else {
                     // send EOP 
-                    downstream.proc.processResponse( r, downstream );
+                    downstream.procDesc.signature().invoke( r, downstream );
                     // close context!?
                 }
             }

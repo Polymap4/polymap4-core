@@ -19,37 +19,15 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.CoreException;
 
-import org.polymap.core.data.DataPlugin;
-import org.polymap.core.data.feature.AddFeaturesRequest;
-import org.polymap.core.data.feature.DataSourceProcessor;
-import org.polymap.core.data.feature.FeatureRenderProcessor2;
-import org.polymap.core.data.feature.GetFeatureTypeRequest;
-import org.polymap.core.data.feature.GetFeatureTypeResponse;
-import org.polymap.core.data.feature.GetFeaturesRequest;
-import org.polymap.core.data.feature.GetFeaturesResponse;
-import org.polymap.core.data.feature.GetFeaturesSizeRequest;
-import org.polymap.core.data.feature.GetFeaturesSizeResponse;
-import org.polymap.core.data.feature.ModifyFeaturesRequest;
-import org.polymap.core.data.feature.ModifyFeaturesResponse;
-import org.polymap.core.data.feature.RemoveFeaturesRequest;
-import org.polymap.core.data.image.EncodedImageResponse;
-import org.polymap.core.data.image.GetLayerTypesRequest;
-import org.polymap.core.data.image.GetLayerTypesResponse;
-import org.polymap.core.data.image.GetLegendGraphicRequest;
-import org.polymap.core.data.image.GetMapRequest;
-import org.polymap.core.data.image.ImageDecodeProcessor;
-import org.polymap.core.data.image.ImageEncodeProcessor;
-import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.image.RasterRenderProcessor;
-import org.polymap.core.data.image.WmsRenderProcessor;
 import org.polymap.core.runtime.ListenerList;
+import org.polymap.core.runtime.Streams;
+import org.polymap.core.runtime.Streams.ExceptionCollector;
 import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
@@ -58,55 +36,31 @@ import org.polymap.core.runtime.session.SessionSingleton;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class DefaultPipelineIncubator
-        implements IPipelineIncubator {
+        implements PipelineIncubator {
 
     private static Log log = LogFactory.getLog( DefaultPipelineIncubator.class );
 
-    private static List<Class<? extends PipelineProcessor>>          transformers = new ArrayList();
+    private List<ProcessorDescription<PipelineProcessor>>         transformers = new ArrayList();
 
-    private static List<Class<? extends ITerminalPipelineProcessor>> terminals = new ArrayList();
+    private List<ProcessorDescription<TerminalPipelineProcessor>> terminals = new ArrayList();
 
 
-    static {
-        // XXX get transfomers/terminals from extensions
-        synchronized (transformers) {
-            log.info( "Initializing standard transformers..." );
-            transformers.add( ImageEncodeProcessor.class );
-            transformers.add( ImageDecodeProcessor.class );
-        }
-        synchronized (terminals) {
-            log.info( "Initializing standard terminal processors..." );
-            terminals.add( WmsRenderProcessor.class );
-            terminals.add( FeatureRenderProcessor2.class );
-            terminals.add( DataSourceProcessor.class );
-            terminals.add( RasterRenderProcessor.class );
-
-            for (ProcessorExtension ext : ProcessorExtension.allExtensions()) {
-                if (ext.isTerminal()) {
-                    try {
-                        log.debug( "    Terminal processor type found: " + ext.getId() );
-                        terminals.add( (Class<? extends ITerminalPipelineProcessor>)ext.newProcessor().getClass() );
-                    }
-                    catch (Exception e) {
-                        log.warn( e.getMessage(), e );
-                    }
-                }
-            }
-        }
+    public DefaultPipelineIncubator( ProcessorExtension... extensions ) {
+        throw new RuntimeException( "not yet..." );
     }
 
 
-//    /**
-//     * Add a {@link IPageChangedListener} to the global list of listeners of this
-//     * session.
-//     */
-//    public static void addIncubationListener( IPipelineIncubationListener l ) {
-//        Session.instance().listeners.add( l );
-//    }
-//    
-//    public static void removeIncubationListener( IPipelineIncubationListener l ) {
-//        Session.instance().listeners.remove( l );
-//    }
+    public DefaultPipelineIncubator( Class<? extends PipelineProcessor>... procTypes ) {
+        for (Class<? extends PipelineProcessor> procType : procTypes) {
+            ProcessorDescription procDesc = new ProcessorDescription( procType, null );
+            if (TerminalPipelineProcessor.class.isAssignableFrom( procType )) {
+                terminals.add( procDesc );
+            }
+            else {
+                transformers.add( procDesc );
+            }
+        }
+    }
 
 
     /**
@@ -135,23 +89,22 @@ public class DefaultPipelineIncubator
         
     }
 
-    public Pipeline newPipeline( LayerUseCase usecase, IMap map, ILayer layer, IService service )
-    throws PipelineIncubationException {
-        log.debug( "New pipeline for service: " + service );
-//        IGeoResource geores = layer.getGeoResource();
+
+    @Override
+    public Pipeline newPipeline( Class<PipelineUsecase> usecaseType, DataSourceDescription dsd,
+            PipelineProcessorConfiguration[] procConfigs) throws PipelineIncubationException {
+        ProcessorSignature usecase = new ProcessorSignature( usecaseType );
+        ProcessorDescription start = new ProcessorDescription( usecase );
 
         // terminal
-        List<ProcessorDescription> terms = findTerminals( service, usecase );
-        if (terms.isEmpty()) {
-            throw new PipelineIncubationException( "No terminal for service: " + service.getClass().getName() );
-        }
+        Iterable<ProcessorDescription<TerminalPipelineProcessor>> terms = findTerminals( usecase, dsd );
 
         // transformer chain
         LinkedList<ProcessorDescription> chain = null;
+        int termCount = 0;
         for (ProcessorDescription term : terms) {
+            termCount ++;
             chain = new LinkedList();
-            ProcessorDescription start = new ProcessorDescription( signatureForUsecase( usecase ) );
-
             if (findTransformation( start, term, usecase, chain )) {
                 break;
             }
@@ -159,56 +112,51 @@ public class DefaultPipelineIncubator
                 log.debug( "No transformer chain for terminal: " + term );
             }
         }
-        if (chain == null) {
-            throw new PipelineIncubationException( "No transformer chain for: layer=" + layer + ", usecase="  + usecase );
+        if (termCount == 0) {
+            throw new PipelineIncubationException( "No terminal for data source: " + dsd );
+        }
+        else if (chain == null) {
+            throw new PipelineIncubationException( "No transformer chain for: data source=" + dsd + ", usecase="  + usecase );
         }
 
-        // add layer specific processors
-        if (layer != null) {
-            PipelineProcessorConfiguration[] procConfigs = layer.getProcessorConfigs();
-            for (PipelineProcessorConfiguration procConfig : procConfigs) {
-                ProcessorExtension ext = ProcessorExtension.forExtensionId( procConfig.getExtensionId() );
-
-                if (ext == null) {
-                    log.warn( "No processor extension found for: " + procConfig.getExtensionId() + "!!!" );
-                    break;
-                }
-                try {
-                    PipelineProcessor processor = ext.newProcessor();
-                    ProcessorDescription candidate = new ProcessorDescription(
-                            processor.getClass(), procConfig.getConfig(), usecase );
-                    int i = 0;
-                    for (ProcessorDescription chainElm : chain) {
-                        if (candidate.getSignature().isCompatible( chainElm.getSignature() )) {
-                            log.debug( "      Insert configured processor: " + candidate.toString() + " at: " + i );
-                            chain.add( i, candidate );
-                            break;
-                        }
-                        i++;
-                    }
-                }
-                catch (CoreException e) {
-                    log.warn( e );
-                    PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
-
-                }
-            }
-        }
+//        // add layer specific processors
+//        for (PipelineProcessorConfiguration procConfig : procConfigs) {
+//            ProcessorExtension ext = ProcessorExtension.forExtensionId( procConfig.getExtensionId() );
+//
+//            if (ext == null) {
+//                log.warn( "No processor extension found for: " + procConfig.getExtensionId() + "!!!" );
+//                break;
+//            }
+//            try {
+//                PipelineProcessor processor = ext.newProcessor();
+//                ProcessorDescription candidate = new ProcessorDescription(
+//                        processor.getClass(), procConfig.getConfig(), usecase );
+//                int i = 0;
+//                for (ProcessorDescription chainElm : chain) {
+//                    if (candidate.signature().isCompatible( chainElm.signature() )) {
+//                        log.debug( "      Insert configured processor: " + candidate.toString() + " at: " + i );
+//                        chain.add( i, candidate );
+//                        break;
+//                    }
+//                    i++;
+//                }
+//            }
+//            catch (CoreException e) {
+//                log.warn( e );
+//                PolymapWorkbench.handleError( DataPlugin.PLUGIN_ID, this, e.getLocalizedMessage(), e );
+//
+//            }
+//        }
 
         // create the pipeline
-        Pipeline pipeline = new Pipeline( map, layer, service );
-        for (ProcessorDescription desc : chain) {
-            PipelineProcessor processor = desc.newProcessor();
-            Properties props = desc.getProps() != null ? desc.getProps() : new Properties();
-            if (layer != null) {
-                props.put( "layer", layer );
-            }
-            if (map != null) {
-                props.put( "map", map );
-            }
-            props.put( "service", service );
+        Pipeline pipeline = new Pipeline( usecase, dsd );
+        for (ProcessorDescription procDesc : chain) {
+            PipelineProcessor processor = procDesc.processor();
+            Properties props = procDesc.getProps() != null ? procDesc.getProps() : new Properties();
+            props.put( "usecase", usecase );
+            props.put( "service", dsd );
             processor.init( props );
-            pipeline.addLast( processor );
+            pipeline.addLast( procDesc );
         }
         
         // call listeners
@@ -220,28 +168,21 @@ public class DefaultPipelineIncubator
     }
 
 
-    protected List<ProcessorDescription> findTerminals( IService service, LayerUseCase usecase ) {
-        List<ProcessorDescription> result = new ArrayList();
-        for (ProcessorDescription desc : allTerminals( usecase )) {
-            if (desc.isCompatible( service )) {
-                log.debug( "Terminal for '" + service + "' -- " + usecase + " : " + desc );
-                result.add( desc );
-            }
+    protected Iterable<ProcessorDescription<TerminalPipelineProcessor>> findTerminals( 
+            ProcessorSignature usecase, DataSourceDescription dsd ) 
+            throws PipelineIncubationException {
+        
+        try (ExceptionCollector<PipelineIncubationException> excs = Streams.exceptions()) {
+            return Streams.iterable( terminals.stream()
+                    .filter( desc -> excs.check( () -> desc.isCompatible( dsd ) ) ) );
         }
-        return result;
     }
+    
 
-    protected List<ProcessorDescription> allTerminals( LayerUseCase usecase ) {
-        List<ProcessorDescription> result = new ArrayList( terminals.size() );
-        for (Class<? extends PipelineProcessor> cl : terminals) {
-            result.add( new ProcessorDescription( cl, null, usecase ) );
-        }
-        return result;
-    }
-
-
-    protected boolean findTransformation( ProcessorDescription from,
-            ProcessorDescription to, LayerUseCase usecase, Deque<ProcessorDescription> chain ) {
+    protected boolean findTransformation( 
+            ProcessorDescription from, ProcessorDescription to, 
+            ProcessorSignature usecase, Deque<ProcessorDescription> chain ) 
+            throws PipelineIncubationException {
         log.debug( StringUtils.repeat( "    ", chain.size() ) + "findTransformation: " + from + " => " + to + " -- " + usecase );
 
         // recursion break
@@ -250,7 +191,7 @@ public class DefaultPipelineIncubator
         }
 
         // recursion start
-        if (from.getSignature().isCompatible( to.getSignature() )) {
+        if (from.signature().isCompatible( to.signature() )) {
             chain.addLast( to );
             log.debug( StringUtils.repeat( "    ", chain.size() ) + "Transformation found: " + chain );
             return true;
@@ -258,9 +199,8 @@ public class DefaultPipelineIncubator
 
         // recursion step
         else {
-            for (ProcessorDescription desc : allTransformers( usecase )) {
-                if (from.getSignature().isCompatible( desc.getSignature() )
-                        && !chain.contains( desc )) {
+            for (ProcessorDescription desc : transformers) {
+                if (from.signature().isCompatible( desc.signature() ) && !chain.contains( desc )) {
                     chain.addLast( desc );
                     if (findTransformation( desc, to, usecase, chain )) {
                         //log.debug( "      transformation found: " + desc );
@@ -274,62 +214,53 @@ public class DefaultPipelineIncubator
     }
 
 
-    protected List<ProcessorDescription> allTransformers( LayerUseCase usecase ) {
-        List<ProcessorDescription> result = new ArrayList( transformers.size() );
-        for (Class<? extends PipelineProcessor> cl : transformers) {
-            result.add( new ProcessorDescription( cl, null, usecase ) );
-        }
-        return result;
-    }
-
-
-    /**
-     * Create a new signature for the given usecase.
-     * <p>
-     * XXX Use case and its signature are closely related. It is not a that good
-     * idea to have both separated. However, currently the {@link LayerUseCase}
-     * is part of the project bundle, which does not know about pipelines.
-     *
-     * @param usecase
-     * @return Newly created signature for the given usecase.
-     * @throws RuntimeException If no signature is found.
-     */
-    public static ProcessorSignature signatureForUsecase( LayerUseCase usecase ) {
-        // WMS request/response signature
-        if (usecase.isCompatible( LayerUseCase.ENCODED_IMAGE )) {
-            return new ProcessorSignature(
-                    new Class[] {},
-                    new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-                    new Class[] {EncodedImageResponse.class, GetLayerTypesResponse.class},
-                    new Class[] {} );
-        }
-        // upstream WMS service
-        else if (usecase.isCompatible( LayerUseCase.IMAGE )) {
-            return new ProcessorSignature(
-                    new Class[] {},
-                    new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-                    new Class[] {ImageResponse.class, GetLayerTypesResponse.class},
-                    new Class[] {} );
-        }
-        // WFS-T request/response signature (before WFS)
-        else if (usecase.isCompatible( LayerUseCase.FEATURES_TRANSACTIONAL )) {
-            return new ProcessorSignature(
-                    new Class[] {},
-                    new Class[] {ModifyFeaturesRequest.class, RemoveFeaturesRequest.class, AddFeaturesRequest.class, GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-                    new Class[] {ModifyFeaturesResponse.class, GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class},
-                    new Class[] {} );
-        }
-        // WFS request/response signature
-        else if (usecase.isCompatible( LayerUseCase.FEATURES )) {
-            return new ProcessorSignature(
-                    new Class[] {},
-                    new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-                    new Class[] {GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class},
-                    new Class[] {} );
-        }
-        else {
-            throw new RuntimeException( "No signature specified yet for usecase: " + usecase );
-        }
-    }
+//    /**
+//     * Create a new signature for the given usecase.
+//     * <p>
+//     * XXX Use case and its signature are closely related. It is not a that good
+//     * idea to have both separated. However, currently the {@link LayerUseCase}
+//     * is part of the project bundle, which does not know about pipelines.
+//     *
+//     * @param usecase
+//     * @return Newly created signature for the given usecase.
+//     * @throws RuntimeException If no signature is found.
+//     */
+//    public static ProcessorSignature signatureForUsecase( LayerUseCase usecase ) {
+//        // WMS request/response signature
+//        if (usecase.isCompatible( LayerUseCase.ENCODED_IMAGE )) {
+//            return new ProcessorSignature(
+//                    new Class[] {},
+//                    new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
+//                    new Class[] {EncodedImageResponse.class, GetLayerTypesResponse.class},
+//                    new Class[] {} );
+//        }
+//        // upstream WMS service
+//        else if (usecase.isCompatible( LayerUseCase.IMAGE )) {
+//            return new ProcessorSignature(
+//                    new Class[] {},
+//                    new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
+//                    new Class[] {ImageResponse.class, GetLayerTypesResponse.class},
+//                    new Class[] {} );
+//        }
+//        // WFS-T request/response signature (before WFS)
+//        else if (usecase.isCompatible( LayerUseCase.FEATURES_TRANSACTIONAL )) {
+//            return new ProcessorSignature(
+//                    new Class[] {},
+//                    new Class[] {ModifyFeaturesRequest.class, RemoveFeaturesRequest.class, AddFeaturesRequest.class, GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
+//                    new Class[] {ModifyFeaturesResponse.class, GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class},
+//                    new Class[] {} );
+//        }
+//        // WFS request/response signature
+//        else if (usecase.isCompatible( LayerUseCase.FEATURES )) {
+//            return new ProcessorSignature(
+//                    new Class[] {},
+//                    new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
+//                    new Class[] {GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class},
+//                    new Class[] {} );
+//        }
+//        else {
+//            throw new RuntimeException( "No signature specified yet for usecase: " + usecase );
+//        }
+//    }
 
 }

@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -53,8 +53,8 @@ public class SerialPipelineExecutor
         
         // create contexts
         int i = 0;
-        for (PipelineProcessor proc : pipe) {
-            SerialContext context = new SerialContext( proc, i++ );
+        for (ProcessorDescription procDesc : pipe) {
+            SerialContext context = new SerialContext( procDesc, i++ );
             contexts.add( context );
         }
         // first request
@@ -70,13 +70,13 @@ public class SerialPipelineExecutor
                 // process request
                 if (!context.requests.isEmpty()) {
                     ProcessorRequest r = context.requests.remove( 0 );
-                    context.proc.processRequest( r, context );
+                    context.procDesc.signature().invoke( r, context );
                     matched = true;
                 }
                 // process response
                 else if (!context.responses.isEmpty()) {
                     ProcessorResponse r = context.responses.remove( 0 );
-                    context.proc.processResponse( r, context );
+                    context.procDesc.signature().invoke( r, context );
                     matched = true;
                 }
             }
@@ -105,16 +105,13 @@ public class SerialPipelineExecutor
     
     /**
      * The processor context used by {@link SerialPipelineExecutor}.
-     * 
-     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-     *         <li>20.10.2009: created</li>
      */
     protected class SerialContext
             implements ProcessorContext {
 
         int                     pipePos;
         
-        PipelineProcessor       proc;
+        ProcessorDescription    procDesc;
         
         /** Pending request for this processor. */
         List<ProcessorRequest>  requests = new LinkedList();
@@ -128,9 +125,9 @@ public class SerialPipelineExecutor
         boolean                 contextEop = false;
         
         
-        public SerialContext( PipelineProcessor proc, int pipePos ) {
+        public SerialContext( ProcessorDescription procDesc, int pipePos ) {
             this.pipePos = pipePos;
-            this.proc = proc;
+            this.procDesc = procDesc;
         }
 
         public Object put( String key, Object data ) {

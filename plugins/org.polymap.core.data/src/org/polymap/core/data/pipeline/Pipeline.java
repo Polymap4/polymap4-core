@@ -19,14 +19,26 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Provides the API and implementation of a data processing pipeline.
+ * A data processing pipeline is a chain of processors, represented by
+ * {@link ProcessorDescription}s. A pipeline is created by a
+ * {@link PipelineIncubator} and executed by a {@link PipelineExecutor}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class Pipeline
-        implements Iterable<PipelineProcessor> {
+        implements Iterable<ProcessorDescription> {
 
-    private List<PipelineProcessor>     chain = new LinkedList();
+    private List<ProcessorDescription>  chain = new LinkedList();
+    
+    private ProcessorSignature          usecase;
+    
+    private DataSourceDescription       dsd;
+
+
+    public Pipeline( ProcessorSignature usecase, DataSourceDescription dsd ) {
+        this.usecase = usecase;
+        this.dsd = dsd;
+    }
 
 
     /**
@@ -34,8 +46,8 @@ public class Pipeline
      *
      * @param processor The processor to add.
      */
-    public void addLast( PipelineProcessor processor ) {
-        chain.add( chain.size(), processor );
+    public void addLast( ProcessorDescription procDesc ) {
+        chain.add( chain.size(), procDesc );
     }
 
 
@@ -44,17 +56,17 @@ public class Pipeline
      *
      * @param processor The processor to add.
      */
-    public void addFirst( PipelineProcessor processor ) {
-        chain.add( 0, processor );
+    public void addFirst( ProcessorDescription procDesc ) {
+        chain.add( 0,procDesc );
     }
 
 
-    public void add( int i, PipelineProcessor processor ) {
-        chain.add( i, processor );
+    public void add( int i, ProcessorDescription procDesc ) {
+        chain.add( i, procDesc );
     }
 
 
-    public PipelineProcessor get( int index ) {
+    public ProcessorDescription get( int index ) {
         assert index < chain.size();
         return chain.get( index );
     }
@@ -68,15 +80,8 @@ public class Pipeline
     /**
      * The iterator returns the processors in order from sink to source.
      */
-    public Iterator<PipelineProcessor> iterator() {
+    public Iterator<ProcessorDescription> iterator() {
         return chain.iterator();
-    }
-
-
-    public void process( ProcessorRequest request, ResponseHandler handler ) throws Exception {
-        // XXX make this a preference and/or give it an API
-        //new SerialPipelineExecutor().execute( this, request, handler );
-        new DepthFirstStackExecutor().execute( this, request, handler );
     }
 
 }

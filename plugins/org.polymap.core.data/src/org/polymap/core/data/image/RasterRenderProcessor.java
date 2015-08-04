@@ -64,7 +64,7 @@ import net.refractions.udig.catalog.IGeoResource;
 import net.refractions.udig.catalog.IService;
 import net.refractions.udig.catalog.rasterings.AbstractRasterService;
 
-import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
+import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
@@ -80,7 +80,7 @@ import org.polymap.core.project.LayerUseCase;
  * @since 3.0
  */
 public class RasterRenderProcessor
-        implements ITerminalPipelineProcessor {
+        implements TerminalPipelineProcessor {
 
     // see UDig BasisFeatureRenderer 
     

@@ -15,30 +15,22 @@
 package org.polymap.core.data.pipeline;
 
 /**
- * Provides the logic to create a {@link Pipeline} out of:
- * <ul>
- * <li>{@link IGeoResource}s (of an {@link ILayer} or {@link IMap})</li>
- * <li>processor descriptions (of an {@link ILayer} or {@link IMap})</li>
- * <li>a given {@link LayerUseCase}</li>
- * </ul>
- * The interface is the bridge between the packages
- * <code>org.polymap.core.project</code> and <code>org.polymap.core.data</code>.
+ * Provides the logic to create a {@link Pipeline} out of a {@link PipelineUsecase}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface IPipelineIncubator {
-
-    static IPipelineIncubator       instance = new DefaultPipelineIncubator();
+public interface PipelineIncubator {
 
     /**
-     * 
+     * Attempts to create a new {@link Pipeline} for the given configuration. 
+     *
+     * @param usecaseType
+     * @param dsd
+     * @param procConfigs
+     * @return Newly created {@link Pipeline} instance.
+     * @throws PipelineIncubationException
      */
-    public class PipelineUseCase {
-        
-    }
-
-    
-    public Pipeline newPipeline( PipelineUseCase usecase )
-            throws PipelineIncubationException;
+    public Pipeline newPipeline( Class<PipelineUsecase> usecaseType, DataSourceDescription dsd,
+            PipelineProcessorConfiguration[] procConfigs ) throws PipelineIncubationException;
 
 }

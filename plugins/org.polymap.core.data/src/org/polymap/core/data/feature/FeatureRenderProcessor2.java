@@ -64,7 +64,7 @@ import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.ITerminalPipelineProcessor;
+import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.ProcessorRequest;
@@ -87,7 +87,7 @@ import org.polymap.core.style.geotools.DefaultStyles;
  * @since 3.0
  */
 public class FeatureRenderProcessor2
-        implements ITerminalPipelineProcessor {
+        implements TerminalPipelineProcessor {
 
     // see UDig BasisFeatureRenderer 
     

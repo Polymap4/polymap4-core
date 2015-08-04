@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -15,11 +15,14 @@
 package org.polymap.core.data.pipeline;
 
 /**
- * Describes a data source a {@link TerminalPipelineProcessor} can handle or not. 
+ * Tagging interface for processors that produce data. A terminal processor is the
+ * start point of a {@link Pipeline}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DataSourceDescription {
+public interface TerminalPipelineProcessor
+        extends PipelineProcessor {
 
+    public boolean isCompatible( DataSourceDescription dsd );
     
 }

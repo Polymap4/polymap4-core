@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2009, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -32,6 +32,7 @@ public class ProcessorExtension {
 
     public static final String          EXTENSION_POINT_NAME = "pipeline.processors";
 
+    
     public static ProcessorExtension[] allExtensions() {
         IConfigurationElement[] elms = Platform.getExtensionRegistry()
                 .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
@@ -42,6 +43,7 @@ public class ProcessorExtension {
         }
         return result;
     }
+
     
     public static ProcessorExtension forExtensionId( String id ) {
         IConfigurationElement[] elms = Platform.getExtensionRegistry().getConfigurationElementsFor(
@@ -110,25 +112,5 @@ public class ProcessorExtension {
     public boolean hasPropertyPage() {
         return ext.getAttribute( "propertyPage" ) != null;
     }
-    
-//    public ProcessorPropertyPage newPropertyPage()
-//    throws CoreException {
-//        return (ProcessorPropertyPage)ext.createExecutableExtension( "propertyPage" );
-//    }
-//
-//    
-//    /**
-//     * The property page of a {@link ProcessorExtension}.
-//     *
-//     * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-//     * @version POLYMAP3 ($Revision$)
-//     * @since 3.0
-//     */
-//    public interface ProcessorPropertyPage
-//            extends IPreferencePage {
-//        
-//        void init( PipelineHolder holder, Properties props );
-//        
-//    }
     
 }
