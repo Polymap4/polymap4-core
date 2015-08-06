@@ -11,8 +11,7 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property name="geotools.version" value="13.0" />
-    <available property="already_downloaded" type="dir" file="${lib}" />
+	<property name="geotools.version" value="13.2" />
 
     <!--
       Bootstrap: maven jars, ant task
