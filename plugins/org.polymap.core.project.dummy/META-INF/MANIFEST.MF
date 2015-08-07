@@ -5,4 +5,11 @@ Bundle-SymbolicName: org.polymap.core.project.dummy
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.polymap.core.project
-Require-Bundle: org.polymap.model2;bundle-version="3.0.0"
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.rap.ui;bundle-version="2.3.1",
+ org.eclipse.rap.ui.navigator;bundle-version="3.5.0";resolution:=optional;visibility:=reexport,
+ org.polymap.model2;visibility:=reexport,
+ org.polymap.core;bundle-version="4.0.0",
+ org.polymap.rhei.batik;bundle-version="4.0.0",
+ org.polymap.core.data.dummy;bundle-version="1.0.0"
+

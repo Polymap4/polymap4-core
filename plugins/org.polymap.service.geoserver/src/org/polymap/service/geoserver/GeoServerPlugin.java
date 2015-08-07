@@ -111,17 +111,17 @@ public class GeoServerPlugin
             public Object addingService( ServiceReference reference ) {
                 HttpService httpService = (HttpService)super.addingService( reference );                
                 if (httpService != null) {
-                	String alias = "/wms/gstest";
-                	GeoServerServlet servlet = new org.polymap.service.geoserver.GeoServerServlet();
-                	Dictionary initparams = new Hashtable();
-                	HttpContext httpContext = httpService.createDefaultHttpContext();
-                	try {
-						httpService.registerServlet(alias, servlet, initparams, httpContext);
-					} catch (ServletException e) {
-						e.printStackTrace();
-					} catch (NamespaceException e) {
-						e.printStackTrace();
-					}
+//                	String alias = "/wms/gstest";
+//                	GeoServerServlet servlet = new org.polymap.service.geoserver.GeoServerServlet();
+//                	Dictionary initparams = new Hashtable();
+//                	HttpContext httpContext = httpService.createDefaultHttpContext();
+//                	try {
+//						httpService.registerServlet(alias, servlet, initparams, httpContext);
+//					} catch (ServletException e) {
+//						e.printStackTrace();
+//					} catch (NamespaceException e) {
+//						e.printStackTrace();
+//					}
                 }
                 return httpService;
             }
