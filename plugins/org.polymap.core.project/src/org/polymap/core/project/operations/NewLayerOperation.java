@@ -82,15 +82,18 @@ public class NewLayerOperation
     public IStatus execute( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
         try (TxProvider<UnitOfWork>.Tx localTx = tx.get().start( Propagation.REQUIRES_NEW )) {
             monitor.beginTask( getLabel(), 5 );
+            
+            IMap localMap = localTx.get().entity( map.get() );
             // create entity
-            localTx.get().createEntity( ILayer.class, null, (ILayer proto) -> {
+            layer.set( localTx.get().createEntity( ILayer.class, null, (ILayer proto) -> {
                 proto.label.set( label.get() );
                 proto.resourceIdentifier.set( resourceIdentifier.get() );
-                proto.parentMap.set( map.get() );
-                
-                map.get().layers.add( proto );
+                proto.parentMap.set( localMap );
                 return proto;
-            });
+            }));
+
+            localMap.layers.add( layer.get() );
+            localMap.label.set( map.get().label.get() );
             
 //            if (map.get().maxExtent.get() == null) {
 //                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );
