@@ -15,11 +15,10 @@
 package org.polymap.service.geoserver;
 
 import java.io.File;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpService;
-import org.osgi.util.tracker.ServiceTracker;
+import javax.servlet.ServletException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -46,15 +45,19 @@ import org.apache.commons.logging.Log;
  * $Id$
  */
 import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.core.runtime.Plugin;
-
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpContext;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
+import org.osgi.util.tracker.ServiceTracker;
 import org.polymap.core.CorePlugin;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br�utigam</a>
  */
 public class GeoServerPlugin 
         extends Plugin {
@@ -104,17 +107,21 @@ public class GeoServerPlugin
         }
         
         // start test servlet
-        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+        httpServiceTracker = new ServiceTracker<HttpService, Object>( context, HttpService.class.getName(), null ) {
             public Object addingService( ServiceReference reference ) {
                 HttpService httpService = (HttpService)super.addingService( reference );                
                 if (httpService != null) {
-                    try {
-                        // auto test
-                        httpService.registerServlet( "/wms", new GeoServerServlet(), null, null );
-                    }
-                    catch (Exception e) {
-                        throw new RuntimeException( e );
-                    }
+                	String alias = "/wms/gstest";
+                	GeoServerServlet servlet = new org.polymap.service.geoserver.GeoServerServlet();
+                	Dictionary initparams = new Hashtable();
+                	HttpContext httpContext = httpService.createDefaultHttpContext();
+                	try {
+						httpService.registerServlet(alias, servlet, initparams, httpContext);
+					} catch (ServletException e) {
+						e.printStackTrace();
+					} catch (NamespaceException e) {
+						e.printStackTrace();
+					}
                 }
                 return httpService;
             }

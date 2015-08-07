@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<!--
+ This Ant build script downloads dependency jars needed by thus bundle
+ from several maven repositories on the net. See copy.properties for
+ general settings. 
+ -->
+<project name="org.polymap.core.data.dummy" default="build" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<description>Download open source jars from the internet.</description>
+
+	<property name="lib" value="${basedir}${file.separator}lib" />
+	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
+	<property environment="env" />
+	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
+	<property name="geotools.version" value="13.2" />
+    <!--available property="already_downloaded" type="dir" file="${lib}" /-->
+
+    <!--
+      Bootstrap: maven jars, ant task
+      -->
+    <property name="maven_download_dir" value="${user.home}/.m2/repository/org/apache/maven/maven-ant-tasks/2.0.10/" />
+    <available property="bootstrapped" type="dir" file="${maven_download_dir}" />
+
+    <target name="bootstrap" unless="bootstrapped">
+        <mkdir dir="${maven_download_dir}" />
+        <get src="http://central.maven.org/maven2/org/apache/maven/maven-ant-tasks/2.0.10/maven-ant-tasks-2.0.10.jar" 
+             dest="${maven_download_dir}" />
+    </target>
+    
+    <target name="init" depends="bootstrap">
+        <taskdef uri="antlib:org.apache.maven.artifact.ant" resource="org/apache/maven/artifact/ant/antlib.xml">
+            <classpath>
+                <fileset dir="${maven_download_dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+    </target>
+    
+	<target name="clean" description="deletes external libraries folder">
+		<delete dir="${lib}" />
+	</target>
+
+	<target name="load_m2_deps" depends="init" unless="already_downloaded">
+	    <!-- remote repositories -->
+	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+	    <artifact:remoteRepository id="intalio.repository" url="http://www.intalio.org/public/maven2" />
+	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
+	    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
+
+		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
+			<localRepository refid="local.repository" />
+			<remoteRepository refid="central.repository" />
+            <remoteRepository refid="intalio.repository" />
+            <remoteRepository refid="geotools.repository" />
+
+            <dependency groupId="com.healthmarketscience.jackcess" artifactId="jackcess" version="1.1.18" />
+            <dependency groupId="net.sf.supercsv" artifactId="super-csv" version="2.3.1" />
+
+			<dependency groupId="org.geotools" artifactId="gt-main" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-epsg-hsql" version="${geotools.version}" scope="provided" />
+            <dependency groupId="org.geotools" artifactId="gt-epsg-wkt" version="${geotools.version}" />
+
+		    <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
+            <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
+
+            <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
+			
+            <dependency groupId="commons-collections" artifactId="commons-collections" version="3.2.1" scope="provided" />
+            <dependency groupId="commons-lang" artifactId="commons-lang" version="2.6" scope="provided" />
+            <dependency groupId="commons-logging" artifactId="commons-logging" version="1.0" scope="provided" />
+			
+			<!-- TODO add Spring libs -->
+		</artifact:dependencies>
+	</target>
+
+	<target name="print" depends="load_m2_deps">
+		<description>Print the dependencies the jars</description>
+
+		<!--setproxy proxyhost="10.0.16.2" proxyport="3128"/-->
+        
+		<path id="jars">
+			<fileset refid="dependency.fileset" />
+		</path>
+		<property name="myjars" refid="jars" />
+		<echo message="Jars = ${myjars}" />
+		<!--propertyregex property="listjars"
+		              input="${myjars}"
+		              regexp="\;"
+		              select="{$line.seperator}"
+		              casesensitive="false" /-->
+		<echo message="Jars = ${myjars}" />
+		<echo message="Jars = ${listjars}" />
+	</target>
+
+	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
+		<description>Download the jars - used by a manual "clean"</description>
+
+		<!-- setproxy proxyhost="10.0.16.2" proxyport="3128"/-->
+
+		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
+		<copy todir="${lib}" verbose="true" flatten="true">
+			<fileset refid="dependency.fileset" />
+		</copy>
+
+		<!-- (flat) copy downloaded source JARs (sources) to plugin directory ${libs_src_dir} -->
+		<copy todir="${libs_src_dir}" flatten="true" verbose="true">
+			<fileset refid="sources.dependency.fileset" />
+			<chainedmapper>
+				<mapper type="flatten" />
+				<globmapper from="*-sources.jar" to="*-sources.zip" />
+			</chainedmapper>
+		</copy>
+		<!-- <eclipse.refreshLocal resource="net.refractions.udig.libs/lib" depth="infinite"/>	-->
+	</target>
+
+	<target name="create" unless="already_downloaded">
+		<description>creates the lib directory if needed</description>
+		<mkdir dir="${lib}" />
+		<mkdir dir="${libs_src_dir}" />
+	</target>
+
+	<!-- Used by headless build please make sure this does everthing from clean to download and fix etc.. -->
+	<target name="full-build" depends="clean, build" description="clean and build">
+	</target>
+
+	<!-- target: extSources_to_project_classpath (manual Build of project n.r.udig/libs as trigger via ".externalToolBuilders/Refresh Libs.launch") -->
+	<target name="extSources_to_project_classpath" description="augments eclipse project .classpath file to link sources to library jars (F3 key)">
+		<!-- eclipse project .classpath file -->
+		<property name="project_classpath" value="${basedir}${file.separator}.classpath" />
+
+		<!-- prepare Path containing all source library jars from ${libs_src_dir} to be compared with library jars in RegExp of Replace -->
+		<pathconvert property="sourceJars" pathsep="|">
+			<!-- temporary Path/FileSet with all source library jars -->
+			<fileset dir="${libs_src_dir}" includes="*-sources.zip" />
+			<!-- directory containing sources archives -->
+			<globmapper handledirsep="true" from="${libs_src_dir}/*-sources.zip" to="*" />
+		</pathconvert>
+
+		<!-- update only .classpath entries WITH corresponding source library archive and NO preexisiting attributes after "path" attribute -->
+		<replaceregexp file="${project_classpath}" flags="gm" byline="true" description="default: linking all available sources archives to corresponding library jars">
+			<regexp pattern="(.* path=&quot;lib/)(${sourceJars})\.jar&quot; */&gt;" />
+			<substitution expression="\1\2\.jar&quot; sourcepath=&quot;lib/sources/\2-sources.zip&quot;/&gt;" />
+		</replaceregexp>
+
+		<!-- example to specify different source locations of special/defined library jars -->
+		<!-- overwrite/update .classpath entries WITH corresponding sources in local project "geotools_trunk XSD" -->
+		<!--    <replaceregexp file="${project_classpath}" flags="gm" byline="true">
+    		<regexp pattern="(.* path=&quot;lib/)gt-(xsd-.*)(-\d\..*)\.jar&quot; *.*/&gt;"/>
+    		<substitution expression="\1gt-\2\3.jar&quot; sourcepath=&quot;/geotools_trunk/modules/extension/xsd/\2/src/main/java&quot;/&gt;"/>
+    	</replaceregexp>
+-->
+		<echo level="info" message="updated ${project_classpath} with links to source archives" />
+	</target>
+</project>
