@@ -16,6 +16,7 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.mapeditor,
- org.polymap.core.mapeditor.contextmenu
+ org.polymap.core.mapeditor.contextmenu,
+ org.polymap.core.mapeditor.services
 Bundle-ClassPath: .
 Import-Package: org.osgi.service.http;version="1.2.1"
