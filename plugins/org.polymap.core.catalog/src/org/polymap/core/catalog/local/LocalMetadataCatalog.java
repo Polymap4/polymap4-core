@@ -15,16 +15,22 @@
 package org.polymap.core.catalog.local;
 
 import java.util.Iterator;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
+
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.IUpdateableMetadata;
 import org.polymap.core.catalog.IUpdateableMetadataCatalog;
 import org.polymap.core.catalog.MetadataQuery;
 
+
+import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.StoreSPI;
@@ -73,6 +79,20 @@ public class LocalMetadataCatalog
     }
     
     
+    @Override
+    public Optional<? extends IMetadata> entry( String identifier ) {
+        org.polymap.model2.query.ResultSet<LocalMetadata> rs = uow.query( LocalMetadata.class )
+                .where( Expressions.eq( LocalMetadata.TYPE.identifier, identifier ) )
+                .maxResults( 2 )
+                .execute();
+        
+        if (rs.size() > 1) {
+            throw new IllegalStateException( "More than one result for identifier: " + identifier );
+        }
+        return rs.stream().findFirst();
+    }
+
+
     @Override
     public MetadataQuery query( String query ) {
         return new MetadataQuery() {
@@ -124,6 +144,8 @@ public class LocalMetadataCatalog
             @Override
             public void newEntry( Consumer<IUpdateableMetadata> initializer ) {
                 uow.createEntity( LocalMetadata.class, null, (LocalMetadata prototype) -> {
+                    prototype.setIdentifier( UUID.randomUUID().toString() );
+                    log.info( "UUID: " + prototype.getIdentifier() );
                     initializer.accept( prototype );
                     return prototype;
                 });

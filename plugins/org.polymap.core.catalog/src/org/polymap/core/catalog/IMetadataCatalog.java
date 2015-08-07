@@ -14,6 +14,8 @@
  */
 package org.polymap.core.catalog;
 
+import java.util.Optional;
+
 /**
  * Our minimal interface to a metadata catalog. Should be compliant to CSW and ISO
  * 19115.
@@ -30,6 +32,8 @@ public interface IMetadataCatalog
     @Override
     public void close();
 
+    public Optional<? extends IMetadata> entry( String identifier );
+    
     public MetadataQuery query( String query );
     
 }

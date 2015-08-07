@@ -26,6 +26,7 @@ import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
+import org.polymap.model2.runtime.config.Mandatory;
 
 /**
  * 
@@ -36,6 +37,12 @@ public class LocalMetadata
         extends Entity
         implements IUpdateableMetadata {
 
+    public static LocalMetadata         TYPE;
+    
+    @Mandatory
+    @Queryable
+    protected Property<String>          identifier;
+    
     @Queryable
     protected Property<String>          title;
     
@@ -65,13 +72,13 @@ public class LocalMetadata
     
     @Override
     public String getIdentifier() {
-        return (String)id();
+        return identifier.get();
     }
 
     @Override
     public IUpdateableMetadata setIdentifier( String identifier ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        this.identifier.set( identifier );
+        return this;
     }
 
     @Override
