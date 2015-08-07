@@ -134,6 +134,12 @@ public class ConfigurationFactory {
 
         
         @Override
+        public String toString() {
+            return "Config[" + value + "]";
+        }
+
+
+        @Override
         public <AH extends H> AH put( V newValue ) {
             set( newValue );
             return (AH)instance;
@@ -249,6 +255,8 @@ public class ConfigurationFactory {
                     throw new RuntimeException( "Unhandled @Defaults type: " + propType );
                 }
             }
+            
+            
         }
         
         

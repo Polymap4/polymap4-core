@@ -291,7 +291,7 @@
             propertyPage="org.polymap.core.data.image.cache304.ImageCacheProcessorConfig">
       </processor>
    </extension>
-   <extension
+   <!--extension
          point="org.polymap.core.data.pipeline.listeners">
       <listener
             class="org.polymap.core.data.feature.buffer.InstallBufferPipelineListener"
@@ -299,7 +299,7 @@
             id="org.polymap.core.data.InstallBufferListener"
             name="InstallBufferListener">
       </listener>
-   </extension>
+   </extension-->
    <extension
          point="org.eclipse.ui.decorators">
       <decorator

@@ -30,7 +30,10 @@ public interface PipelineIncubator {
      * @return Newly created {@link Pipeline} instance.
      * @throws PipelineIncubationException
      */
-    public Pipeline newPipeline( Class<PipelineUsecase> usecaseType, DataSourceDescription dsd,
-            PipelineProcessorConfiguration[] procConfigs ) throws PipelineIncubationException;
+    public Pipeline newPipeline( 
+            Class<? extends PipelineUsecase> usecaseType, 
+            DataSourceDescription dsd,
+            PipelineProcessorConfiguration[] procConfigs ) 
+            throws PipelineIncubationException;
 
 }

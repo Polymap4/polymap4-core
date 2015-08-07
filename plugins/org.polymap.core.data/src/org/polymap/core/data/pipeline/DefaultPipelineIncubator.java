@@ -15,10 +15,12 @@
 package org.polymap.core.data.pipeline;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +33,10 @@ import org.polymap.core.runtime.Streams.ExceptionCollector;
 import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
- *
+ * Once constructed this incubator stores and re-uses terminal and transformation
+ * processors. Subsequent invocations
+ * {@link #newPipeline(Class, DataSourceDescription, PipelineProcessorConfiguration[])}
+ * will produce pipeline that may contain the same terminal or transformer instances!
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -91,9 +96,16 @@ public class DefaultPipelineIncubator
 
 
     @Override
-    public Pipeline newPipeline( Class<PipelineUsecase> usecaseType, DataSourceDescription dsd,
+    public Pipeline newPipeline( Class<? extends PipelineUsecase> usecaseType, DataSourceDescription dsd,
             PipelineProcessorConfiguration[] procConfigs) throws PipelineIncubationException {
         ProcessorSignature usecase = new ProcessorSignature( usecaseType );
+        
+        // swap requestIn/Out and reposnseIn/Out to make an emitter signature for the start processor
+        usecase.requestOut = usecase.requestIn;
+        usecase.requestIn = Collections.EMPTY_LIST;
+        usecase.responseIn = usecase.responseOut;
+        usecase.responseOut = Collections.EMPTY_LIST;
+        
         ProcessorDescription start = new ProcessorDescription( usecase );
 
         // terminal
@@ -154,7 +166,7 @@ public class DefaultPipelineIncubator
             PipelineProcessor processor = procDesc.processor();
             Properties props = procDesc.getProps() != null ? procDesc.getProps() : new Properties();
             props.put( "usecase", usecase );
-            props.put( "service", dsd );
+            props.put( "dsd", dsd );
             processor.init( props );
             pipeline.addLast( procDesc );
         }

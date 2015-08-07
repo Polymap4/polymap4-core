@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.image;
 
+import org.polymap.core.data.pipeline.PipelineUsecase;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.Produces;
@@ -25,7 +26,7 @@ import org.polymap.core.data.pipeline.Produces;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface EncodedImageProducer
-        extends TerminalPipelineProcessor {
+        extends TerminalPipelineProcessor, PipelineUsecase {
     
     @Produces(EncodedImageResponse.class)
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;

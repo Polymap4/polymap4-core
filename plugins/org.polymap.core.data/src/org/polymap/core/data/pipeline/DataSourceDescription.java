@@ -14,12 +14,25 @@
  */
 package org.polymap.core.data.pipeline;
 
+import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.Immutable;
+import org.polymap.core.runtime.config.Mandatory;
+
 /**
  * Describes a data source a {@link TerminalPipelineProcessor} can handle or not. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DataSourceDescription {
+public class DataSourceDescription
+        extends Configurable {
 
+    @Mandatory
+    @Immutable
+    public Config<Object>       service;
+
+    @Mandatory
+    @Immutable
+    public Config<String>       resourceName;
     
 }

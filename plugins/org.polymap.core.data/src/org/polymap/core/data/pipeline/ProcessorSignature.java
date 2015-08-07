@@ -76,9 +76,8 @@ public class ProcessorSignature {
     
     
     protected void buildSignature( Class<? extends PipelineProcessor> type ) throws PipelineIncubationException {
-        
         Deque<Class> deque = new ArrayDeque();
-        deque.push( processor.getClass() );
+        deque.push( type );
         
         while (!deque.isEmpty()) {
             Class cl = deque.pop();
@@ -145,6 +144,7 @@ public class ProcessorSignature {
 
     
     public void invoke( ProcessorProbe probe, ProcessorContext context ) throws Exception {
+        assert processor != null : "This ProcessorSignature was constructed from a type, not a processor instance.";
         try {
             callMap.get( probe.getClass() ).invoke( processor, new Object[] {probe, context} );
         }

@@ -80,7 +80,7 @@ class ProcessorDescription<P extends PipelineProcessor> {
 
     public ProcessorSignature signature() throws PipelineIncubationException {
         if (signature == null) {  // no concurrent check, multi init is ok
-            signature = new ProcessorSignature( cl );
+            signature = new ProcessorSignature( processor() );
         }
         return signature;
     }
