@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RDataStore
+Bundle-SymbolicName: org.polymap.core.data.recordstore
+Bundle-Version: 4.0.0.qualifier
+Bundle-Vendor: polymap.org
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.polymap.core;bundle-version="4.0.0",
+ org.polymap.core.data;bundle-version="4.0.0",
+ org.polymap.core.recordstore;bundle-version="4.0.0";visibility:=reexport
+Export-Package: org.polymap.core.data.recordstore,
+ org.polymap.core.data.recordstore.catalog,
+ org.polymap.core.data.recordstore.lucene
