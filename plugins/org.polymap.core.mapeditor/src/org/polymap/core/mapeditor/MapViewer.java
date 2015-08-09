@@ -16,12 +16,15 @@ package org.polymap.core.mapeditor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -89,8 +92,8 @@ public class MapViewer<CL>
     
     private Object                      input;
 
-    /** The currently visible layers, excluding the {@link #visibleBaseLayer}. */
-    private List<CL>                    visibleLayers = new ArrayList();
+    /** The currently visible layers. */
+    private Set<CL>                     visibleLayers = new HashSet();
     
     private Map<CL,Layer>               layers;
     
@@ -176,10 +179,13 @@ public class MapViewer<CL>
         
         // add sorted layers to the map
         layers.keySet().stream()
-                .sorted( (elm1, elm2) -> lp.getPriority( elm1 ) - lp.getPriority( elm2 ) )
+                .sorted( (elm1, elm2) -> (lp.getPriority(elm1) - lp.getPriority(elm2)) )
                 .map( elm -> layers.get( elm ) )
                 .forEach( layer -> olmap.addLayer( layer ) );
 
+        // every layer is visible by default
+        layers.keySet().stream().forEach( layer -> visibleLayers.add( layer ) );
+        
         controls.forEach( control -> olmap.addControl( control ) );
     }
 
@@ -231,20 +237,6 @@ public class MapViewer<CL>
     }
 
     
-//    public void zoomTo( ReferencedEnvelope extent ) {
-//        try {
-//            mapExtent = extent.transform( getCRS(), true );            
-//            getMap().zoomToExtent( new Bounds( 
-//                    mapExtent.getMinX(), mapExtent.getMinY(), 
-//                    mapExtent.getMaxX(), mapExtent.getMaxY() ), true );
-//            onZoomPan();
-//        }
-//        catch (Exception e) {
-//            throw new RuntimeException( e );
-//        }
-//    }
-
-    
     public MapViewer<CL> addMapControl( Control control ) {
         controls.add( control );
         if (olmap != null) {
@@ -254,24 +246,20 @@ public class MapViewer<CL>
     }
 
     
-    public MapViewer setLayerVisible( CL layer, boolean visible ) {
-        assert layers.containsKey( layer );
-        throw new RuntimeException( "Changing layer visibility is not yet supported." );
-        
-//        Layer olLayer = layers.get( layer );
-//        if (layer.isBaseLayer()) {
-//            map.setBaseLayer( layer );
-//            visibleBaseLayer = (WMSLayer)layer;
-//        } 
-//        else {
-//            layer. setVisibility( visible );
-//            if (visible) {
-//                visibleLayers.add( (WMSLayer)layer );
-//            } else {
-//                visibleLayers.remove( layer );
-//            }
-//        }
-//        return this;
+    public MapViewer setVisible( CL layer, boolean visible ) {
+        Layer olayer = layers.get( layer );
+        if (olayer != null) {
+            olayer.visible.set( visible );
+            if (visible) {
+                visibleLayers.add( layer );
+            } else {
+                visibleLayers.remove( layer );
+            }
+            return this;
+        }
+        else {
+            throw new RuntimeException( "No such layer: " + layer );
+        }
     }
     
     

@@ -19,8 +19,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Image;
 
-import org.eclipse.jface.viewers.BaseLabelProvider;
+import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ViewerCell;
+
 import org.polymap.core.project.ProjectNode;
 
 /**
@@ -28,12 +30,20 @@ import org.polymap.core.project.ProjectNode;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProjectNodeLabelProvider
-        extends BaseLabelProvider
+        extends CellLabelProvider
         implements ILabelProvider {
 
     private static Log log = LogFactory.getLog( ProjectNodeLabelProvider.class );
     
     
+    @Override
+    public void update( ViewerCell cell ) {
+        Object elm = cell.getElement();
+        cell.setText( getText( elm ) );
+    }
+
+
+    @Override
     public String getText( Object elm ) {
         if (elm instanceof ProjectNode) {
             return ((ProjectNode)elm).label.get();
@@ -45,6 +55,7 @@ public class ProjectNodeLabelProvider
     }
 
 
+    @Override
     public Image getImage( Object elm ) {
         return null;
     }

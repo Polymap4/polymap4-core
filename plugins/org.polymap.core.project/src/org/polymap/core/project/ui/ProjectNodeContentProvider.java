@@ -45,7 +45,7 @@ public class ProjectNodeContentProvider
 
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
-            ((IMap)elm).layers.toArray();
+            return ((IMap)elm).layers.toArray();
         }
         return null;
     }
