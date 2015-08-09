@@ -62,13 +62,13 @@ import javax.servlet.http.*;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class GeoServerWms
+public class GeoServerServlet
         extends HttpServlet {
 
-    private static final Log log = LogFactory.getLog( GeoServerWms.class );
+    private static final Log log = LogFactory.getLog( GeoServerServlet.class );
 
     /** First attemp to pass info to GeoServerLoader inside Spring. */
-    public static ThreadLocal<GeoServerWms> servers = new ThreadLocal();
+    public static ThreadLocal<GeoServerServlet> servers = new ThreadLocal();
     
     /**
      * XXX Bad hack. I just don't find the right way through GeoServer code
@@ -178,11 +178,11 @@ public class GeoServerWms
         dispatcher.init( new ServletConfig() {
 
             public String getInitParameter( String name ) {
-                return GeoServerWms.this.getInitParameter( name );
+                return GeoServerServlet.this.getInitParameter( name );
             }
 
             public Enumeration getInitParameterNames() {
-                return GeoServerWms.this.getInitParameterNames();
+                return GeoServerServlet.this.getInitParameterNames();
             }
 
             public ServletContext getServletContext() {

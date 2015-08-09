@@ -1,24 +1,16 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
- *
+ * Copyright (C) 2009-2015, Falko Bräutigam. All rights reserved.
+ * 
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.service.geoserver.spring;
 
@@ -80,7 +72,7 @@ import org.opengis.feature.type.Name;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.polymap.core.runtime.Stringer;
-import org.polymap.service.geoserver.GeoServerWms;
+import org.polymap.service.geoserver.GeoServerServlet;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -101,12 +93,10 @@ import org.geotools.util.Version;
  * beans {@link Catalog} and {@link GeoServer}, populating them with data from
  * an {@link IMap}.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class GeoServerLoader implements BeanPostProcessor, DisposableBean,
-		ApplicationContextAware {
+public class GeoServerLoader 
+        implements BeanPostProcessor, DisposableBean, ApplicationContextAware {
 
 	private static final Log log = LogFactory.getLog(GeoServerLoader.class);
 
@@ -254,7 +244,7 @@ public class GeoServerLoader implements BeanPostProcessor, DisposableBean,
 			geoserver = (GeoServer) bean;
 			try {
 				// find our GeoServerWms / IMap
-				 GeoServerWms service = GeoServerWms.servers.get();
+				 GeoServerServlet service = GeoServerServlet.servers.get();
 				 loadGeoServer( service );
 			} catch (Exception e) {
 				throw new RuntimeException(e);
@@ -932,7 +922,7 @@ public class GeoServerLoader implements BeanPostProcessor, DisposableBean,
 		return "MyDummyMap";
 	}
 
-	protected void loadGeoServer( GeoServerWms service ) {
+	protected void loadGeoServer( GeoServerServlet service ) {
 	 String proxyUrl = getBaseUrl();
 	 log.debug( "    proxy URL: " + proxyUrl );
 	

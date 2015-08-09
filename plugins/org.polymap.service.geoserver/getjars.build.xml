@@ -50,6 +50,7 @@
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
 	    <artifact:remoteRepository id="geoserver.repository" url="http://repo.boundlessgeo.com/main" />
 	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
+	    <artifact:remoteRepository id="geosolutions.repository" url="http://maven.geo-solutions.it" />
 	    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 		
 		<!-- we can probably replace this with a reference to a pom.xml file -->
@@ -61,6 +62,7 @@
             <remoteRepository refid="central.repository" />
             <remoteRepository refid="geoserver.repository" />
             <remoteRepository refid="geotools.repository" />
+            <!--remoteRepository refid="geosolutions.repository" /-->
 
 			<!-- GeoServer -->
             <dependency groupId="org.geoserver" artifactId="gs-main" version="${geoserver.version}"/>
@@ -71,7 +73,9 @@
 		    <!-- XXX falko: bei mir lädt er sonst falsche versionen -->
             <dependency groupId="org.springframework" artifactId="spring-expression" version="3.1.4.RELEASE" />
             <dependency groupId="org.springframework" artifactId="spring-web" version="3.1.4.RELEASE" />
-
+		    
+		    <!--dependency groupId="it.geosolutions.imageio-ext" artifactId="imageio-ext-png" version="1.1.12" /-->
+		    
             <!--dependency groupId="org.geoserver" artifactId="web-core" version="${geoserver.version}" /-->
 
             <!--dependency groupId="org.geotools" artifactid="*" version="13.0" scope="provided" /-->
@@ -100,8 +104,10 @@
               <rsel:or>
                 <!--rsel:name name="**/commons*.jar"/-->
                 <!--rsel:name name="**/gt-*.jar"/-->
-                <rsel:name name="**/imageio-*.jar"/>
-                <rsel:name name="**/geoapi*.jar"/>
+                  
+                <!--rsel:name name="**/imageio-*.jar"/>
+                <rsel:name name="**/geoapi*.jar"/-->
+                  
                 <!--rsel:name name="**/jai*.jar"/-->
                 <!--rsel:name name="**/x*.jar"/-->
               </rsel:or>

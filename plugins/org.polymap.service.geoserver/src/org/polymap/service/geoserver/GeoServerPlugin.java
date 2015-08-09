@@ -54,7 +54,7 @@ import org.polymap.core.CorePlugin;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br�utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class GeoServerPlugin 
         extends Plugin {
@@ -110,7 +110,7 @@ public class GeoServerPlugin
                 if (httpService != null) {
                     try {
                         // auto test
-                        //httpService.registerServlet( "/wms", new GeoServerWms(), null, null );
+                        httpService.registerServlet( "/wms", new GeoServerServlet(), null, null );
                     }
                     catch (Exception e) {
                         throw new RuntimeException( e );
