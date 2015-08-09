@@ -1,37 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/ezmorph-1.0.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/vecmath-1.3.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jsr-275-1.0-beta-2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-collections4-4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ecore-2.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/common-2.6.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/net.opengis.ows-13.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xsd-2.6.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xpp3-1.1.3.4.O.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jts-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.14.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ezmorph-1.0.6.jar" sourcepath="lib/sources/ezmorph-1.0.6-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-lib-2.2.3-jdk15.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/aopalliance-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/freemarker-2.3.18.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/itext-2.1.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/aopalliance-1.0.jar" sourcepath="lib/sources/aopalliance-1.0-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/freemarker-2.3.18.jar" sourcepath="lib/sources/freemarker-2.3.18-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/itext-2.1.5.jar" sourcepath="lib/sources/itext-2.1.5-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/jai_codec-1.1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jai_core-1.1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jai_imageio-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/picocontainer-1.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-ows-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-platform-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-wfs-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-wms-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/xstream-1.4.7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-aop-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-asm-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-beans-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-context-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-context-support-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-core-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-expression-3.0.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-jdbc-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-security-config-3.1.0.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-security-core-3.1.0.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-security-crypto-3.1.0.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-security-web-3.1.0.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-tx-3.1.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-web-3.0.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-webmvc-3.1.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.7.2.jar" sourcepath="lib/sources/gs-main-2.7.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-ows-2.7.2.jar" sourcepath="lib/sources/gs-ows-2.7.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-platform-2.7.2.jar" sourcepath="lib/sources/gs-platform-2.7.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-wfs-2.7.2.jar" sourcepath="lib/sources/gs-wfs-2.7.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-wms-2.7.2.jar" sourcepath="lib/sources/gs-wms-2.7.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/xstream-1.4.7.jar" sourcepath="lib/sources/xstream-1.4.7-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-aop-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-aop-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-asm-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-asm-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-beans-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-beans-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-context-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-context-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-context-support-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-context-support-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-core-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-core-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-jdbc-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-jdbc-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-security-config-3.1.0.RELEASE.jar" sourcepath="lib/sources/spring-security-config-3.1.0.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-security-core-3.1.0.RELEASE.jar" sourcepath="lib/sources/spring-security-core-3.1.0.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-security-crypto-3.1.0.RELEASE.jar" sourcepath="lib/sources/spring-security-crypto-3.1.0.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-security-web-3.1.0.RELEASE.jar" sourcepath="lib/sources/spring-security-web-3.1.0.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-tx-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-tx-3.1.4.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-webmvc-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-webmvc-3.1.4.RELEASE-sources.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="lib/gt-api-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-coverage-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-cql-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-data-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-epsg-wkt-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-geojson-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-geotiff-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-graph-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-grid-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-image-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-imagemosaic-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-jdbc-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-main-13.2.jar" sourcepath="lib/sources/gt-main-13.2-sources.zip"/>
+	<classpathentry kind="lib" path="lib/gt-metadata-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-opengis-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-process-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-process-feature-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-process-raster-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-property-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-referencing-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-render-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-shapefile-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-svg-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-transform-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-wfs-ng-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-wms-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xml-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-core-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-fes-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-filter-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-gml2-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-gml3-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-kml-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-ows-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-sld-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-wfs-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/spring-expression-3.1.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/spring-web-3.1.4.RELEASE.jar"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="output" path="build/eclipse"/>
 </classpath>

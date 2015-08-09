@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <!--extension
+         point="org.polymap.service.wms">
+      <wms
+            class="org.polymap.service.geoserver.GeoServerWms">
+      </wms>
+   </extension-->
+
+	<!-- declarative, now done in org.polymap.service.geoserver.GeoServerPlugin.start(BundleContext)
+	<extension
+	      point="org.eclipse.equinox.http.registry.servlets">
+	   <servlet
+	         alias="/"
+	         class="org.polymap.service.geoserver.GeoServerWms">
+	   </servlet>
+	</extension>
+	-->
 
 </plugin>

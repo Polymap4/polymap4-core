@@ -54,7 +54,7 @@ import org.polymap.core.CorePlugin;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Brï¿½utigam</a>
  */
 public class GeoServerPlugin 
         extends Plugin {

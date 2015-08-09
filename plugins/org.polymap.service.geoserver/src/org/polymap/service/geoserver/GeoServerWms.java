@@ -20,7 +20,6 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,21 +45,24 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.servlet.DispatcherServlet;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.geoserver.logging.LoggingStartupContextListener;
 
-import org.polymap.core.project.IMap;
+import org.polymap.core.CorePlugin;
+//import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
 import org.polymap.core.runtime.session.SessionContext;
 
-import org.polymap.service.ServiceContext;
-import org.polymap.service.geoserver.spring.PipelineMapProducer;
-import org.polymap.service.http.MapHttpServer;
+//import org.polymap.service.ServiceContext;
+//import org.polymap.service.geoserver.spring.PipelineMapProducer;
+//import org.polymap.service.http.MapHttpServer;
+
+
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 /**
  * 
@@ -69,7 +71,7 @@ import org.polymap.service.http.MapHttpServer;
  * @since 3.0
  */
 public class GeoServerWms
-        extends MapHttpServer {
+        extends /*MapHttpServer*/ HttpServlet {
 
     private static final Log log = LogFactory.getLog( GeoServerWms.class );
 
@@ -90,7 +92,7 @@ public class GeoServerWms
     
     private File                            dataDir;
     
-    private String                          sessionKey;
+//    private String                          sessionKey;
     
     
     public GeoServerWms() {
@@ -98,18 +100,18 @@ public class GeoServerWms
     }
 
 
-    protected void init( IMap _map ) {
-        assert _map != null;
-        super.init( _map );
-    }
+//    protected void init( IMap _map ) {
+//        assert _map != null;
+//        super.init( _map );
+//    }
 
 
     @Override
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
 
-        sessionKey = SessionContext.current().getSessionKey();
-        assert sessionKey != null;
+//        sessionKey = SessionContext.current().getSessionKey();
+//        assert sessionKey != null;
 
         context = new PluginServletContext( getServletContext() );
         log.debug( "initGeoServer(): contextPath=" + context.getContextPath() );
@@ -164,7 +166,7 @@ public class GeoServerWms
 
     protected void initGeoServer() throws Exception {        
         File cacheDir = GeoServerPlugin.instance().getCacheDir();
-        dataDir = new File( cacheDir, Stringer.of( map.getLabel() ).toFilename( "_" ).toString() );
+        dataDir = new File( cacheDir, Stringer.of( getMapLabel() ).toFilename( "_" ).toString() );
         log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
         dataDir.mkdirs();
         FileUtils.forceDeleteOnExit( dataDir );
@@ -211,6 +213,11 @@ public class GeoServerWms
             }
         });
     }
+    
+    protected String getMapLabel() {
+//    	return map.getLabel();
+    	return "dummy_map";
+    }
 
 
     protected void service( final HttpServletRequest req, HttpServletResponse resp )
@@ -242,15 +249,21 @@ public class GeoServerWms
                 
         try {
             // session context
-            ServiceContext.mapContext( sessionKey );
+//            ServiceContext.mapContext( sessionKey );
             response.set( resp );
             dispatcher.service( req, resp );
         }
         finally {
             Thread.currentThread().setContextClassLoader( threadLoader );
-            ServiceContext.unmapContext( false );
+//            ServiceContext.unmapContext( false );
             response.set( null );
         }
+    }
+    
+    // JRE: copied from /org.polymap.service/src/org/polymap/service/http/MapHttpServer.java
+    public String getPathSpec() {
+//        return CorePlugin.servletAlias( this );
+    	return "/wms";
     }
 
 
@@ -275,7 +288,7 @@ public class GeoServerWms
         }
 
         public void destroy() throws IOException {
-            LogFactory.release( cl );
+//            LogFactory.release( cl );
             cl.close();
             cl = null;
             delegate = null;
