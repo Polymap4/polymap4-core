@@ -108,8 +108,13 @@ public class GeoServerPlugin
             public Object addingService( ServiceReference reference ) {
                 HttpService httpService = (HttpService)super.addingService( reference );                
                 if (httpService != null) {
-                    throw new RuntimeException( "@joerg: hier kannst du ein Test-Servlet registrieren..." );
-                    //registerTestServlet( httpService );
+                    try {
+                        // auto test
+                        //httpService.registerServlet( "/wms", new GeoServerWms(), null, null );
+                    }
+                    catch (Exception e) {
+                        throw new RuntimeException( e );
+                    }
                 }
                 return httpService;
             }

@@ -470,7 +470,8 @@
       <constructor-arg ref="wms" />
     </bean>
     
-    <bean id="GeoTiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <!-- falko: es fehlt etwas aus it.geosolutions imageio -->
+    <!--bean id="GeoTiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
         <value>image/geotiff</value>
@@ -532,7 +533,7 @@
     </bean>
     <bean id="TiffMapResponse" class="org.geoserver.wms.map.TIFFMapResponse">
       <constructor-arg ref="wms" />
-    </bean>
+    </bean-->
   
     <bean id="GIFMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>

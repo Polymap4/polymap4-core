@@ -107,14 +107,14 @@
     <!-- 
         custom property editors
      -->
-    <bean id="customEditorConfigurer" 
+    <!--bean id="customEditorConfigurer" 
      class="org.springframework.beans.factory.config.CustomEditorConfigurer">
         <property name="customEditors">
           <map>
               <entry key="org.geotools.util.Version" value="org.geoserver.platform.util.VersionPropertyEditor"/>
           </map>
         </property>
-    </bean>
+    </bean-->
         
         
     <!--  dispatcher -->

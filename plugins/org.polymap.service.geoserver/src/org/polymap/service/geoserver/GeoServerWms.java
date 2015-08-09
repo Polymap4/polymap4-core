@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2009-2012 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -20,6 +20,7 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,33 +46,24 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.servlet.DispatcherServlet;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.geoserver.logging.LoggingStartupContextListener;
 
-import org.polymap.core.CorePlugin;
-//import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
-import org.polymap.core.runtime.session.SessionContext;
-
-//import org.polymap.service.ServiceContext;
-//import org.polymap.service.geoserver.spring.PipelineMapProducer;
-//import org.polymap.service.http.MapHttpServer;
-
-
-import javax.servlet.*;
 import javax.servlet.http.*;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class GeoServerWms
-        extends /*MapHttpServer*/ HttpServlet {
+        extends HttpServlet {
 
     private static final Log log = LogFactory.getLog( GeoServerWms.class );
 
@@ -95,17 +87,6 @@ public class GeoServerWms
 //    private String                          sessionKey;
     
     
-    public GeoServerWms() {
-        super();
-    }
-
-
-//    protected void init( IMap _map ) {
-//        assert _map != null;
-//        super.init( _map );
-//    }
-
-
     @Override
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
@@ -213,6 +194,7 @@ public class GeoServerWms
             }
         });
     }
+    
     
     protected String getMapLabel() {
 //    	return map.getLabel();
