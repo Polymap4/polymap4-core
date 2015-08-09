@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2010, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2010-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -13,9 +13,6 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.core.data.image.cache304;
-
-import static org.polymap.core.project.ILayer.PROP_GEORESID;
-import static org.polymap.core.project.ILayer.PROP_STYLE;
 
 import java.util.EventObject;
 import java.util.HashSet;
@@ -34,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.Sets;
 
 import org.polymap.core.data.FeatureChangeEvent;
+import org.polymap.core.data.image.EncodedImageProcessor;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
@@ -41,11 +39,10 @@ import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessor;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.event.Event;
@@ -56,42 +53,23 @@ import org.polymap.core.runtime.event.EventManager;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.1
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ImageCacheProcessor
-        implements PipelineProcessor {
+        extends EncodedImageProcessor {
 
     private static final Log log = LogFactory.getLog( ImageCacheProcessor.class );
 
-
-    private static final ProcessorSignature signature = new ProcessorSignature(
-            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-            new Class[] {EncodedImageResponse.class, GetLayerTypesResponse.class},
-            new Class[] {EncodedImageResponse.class, GetLayerTypesResponse.class}
-            );
-
-    public static ProcessorSignature signature( LayerUseCase usecase ) {
-        return signature;
-    }
-
-    
-    // instance *******************************************
-
-    private ILayer                  layer;
-    
-    private Properties              props;
-    
     private LayerListener           layerListener;
     
     private volatile boolean        active = true;
+
+    private PipelineProcessorSite   site;
     
     
-    public void init( Properties _props ) {
-        props = _props;
-        layer = (ILayer)props.get( "layer" );
-        assert layer != null;
+    @Override
+    public void init( PipelineProcessorSite site ) {
+        this.site = site;
         active = !layer.getEditable();
 
         layerListener = new LayerListener( layer, this );
@@ -125,34 +103,38 @@ public class ImageCacheProcessor
     }
 
     
-    public void processRequest( ProcessorRequest r, ProcessorContext context )
-    throws Exception {
-        // active?
-        if (!active) {
-            context.sendRequest( r );
-            return;            
-        }
-        
-        // GetMapRequest
-        if (r instanceof GetMapRequest) {
-            getMapRequest( (GetMapRequest)r, context );
-        }
-        // GetLegendGraphicRequest
-        else if (r instanceof GetLegendGraphicRequest) {
-            context.sendRequest( r );
-        }
-        // GetLayerTypes
-        else if (r instanceof GetLayerTypesRequest) {
-            context.sendRequest( r );
-        }
-        else {
-            throw new IllegalArgumentException( "Unhandled request type: " + r );
-        }
-    }
+//    public void processRequest( ProcessorRequest r, ProcessorContext context )
+//    throws Exception {
+//        // active?
+//        if (!active) {
+//            context.sendRequest( r );
+//            return;            
+//        }
+//        
+//        // GetMapRequest
+//        if (r instanceof GetMapRequest) {
+//            getMapRequest( (GetMapRequest)r, context );
+//        }
+//        // GetLegendGraphicRequest
+//        else if (r instanceof GetLegendGraphicRequest) {
+//            context.sendRequest( r );
+//        }
+//        // GetLayerTypes
+//        else if (r instanceof GetLayerTypesRequest) {
+//            context.sendRequest( r );
+//        }
+//        else {
+//            throw new IllegalArgumentException( "Unhandled request type: " + r );
+//        }
+//    }
 
-    
-    protected void getMapRequest( GetMapRequest request, ProcessorContext context )
-    throws Exception {
+
+    @Override
+    public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
+        if (!active) {
+            super.getMapRequest( request, context );
+            return;
+        }
         
         Timer timer = new Timer();
         CachedTile cachedTile = Cache304.instance().get( request, context.getLayers(), props );

@@ -21,7 +21,7 @@ import java.util.Properties;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class ProcessorDescription<P extends PipelineProcessor> {
+public class ProcessorDescription<P extends PipelineProcessor> {
 
     private Class<? extends PipelineProcessor> cl;
 

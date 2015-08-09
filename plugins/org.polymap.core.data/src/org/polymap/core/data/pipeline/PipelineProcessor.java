@@ -14,8 +14,6 @@
  */
 package org.polymap.core.data.pipeline;
 
-import java.util.Properties;
-
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
@@ -34,14 +32,8 @@ public interface PipelineProcessor {
     
     /**
      *
-     * @param props The persistent configuration properties. The following
-     * properties are always set:
-     * <ul>
-     * <li>"layer" - the {@link ILayer} of this pipeline</li>
-     * <li>"map" - the {@link IMap} of this pipeline</li>
-     * <li>"service" - the {@link IService} of this pipeline</li>
-     * </ul>
+     * @param props The persistent configuration properties.
      */
-    public void init( Properties props );
+    public void init( PipelineProcessorSite site );
     
 }

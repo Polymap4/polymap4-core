@@ -15,7 +15,6 @@
 package org.polymap.core.data.wms;
 
 import java.util.List;
-import java.util.Properties;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +44,7 @@ import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.pipeline.DataSourceDescription;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 
 /**
@@ -60,20 +60,22 @@ public class WmsRenderProcessor
     private static final ReferencedEnvelope NILL_BOX = 
             new ReferencedEnvelope( 0, 0, 0, 0, DefaultGeographicCRS.WGS84 );
 
-    private WebMapServer        wms;
+    private WebMapServer            wms;
     
-    private String              layerName;
+    private String                  layerName;
 
-    private Layer               layer;
+    private Layer                   layer;
+
+    private PipelineProcessorSite   site;
     
 
     // instance *******************************************
 
     @Override
-    public void init( Properties props ) {
-        DataSourceDescription dsd = (DataSourceDescription)props.get( "dsd" );
-        wms = (WebMapServer)dsd.service.get();
-        layerName = dsd.resourceName.get();
+    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) {
+        this.site = site;
+        wms = (WebMapServer)site.dsd.get().service.get();
+        layerName = site.dsd.get().resourceName.get();
 
         layer = wms.getCapabilities().getLayerList().stream()
                 .filter( l -> layerName.equals( l.getName() ) )

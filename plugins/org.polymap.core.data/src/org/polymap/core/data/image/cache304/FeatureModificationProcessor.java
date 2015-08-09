@@ -32,7 +32,6 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.project.LayerUseCase;
 
 /**
  * Notifies the {@link Cache304} about feature modifications.
@@ -46,21 +45,6 @@ class FeatureModificationProcessor
     private static final Log log = LogFactory.getLog( FeatureModificationProcessor.class );
 
 
-    private static final ProcessorSignature signature = new ProcessorSignature(
-            new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-            new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-            new Class[] {GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class},
-            new Class[] {GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class}
-            );
-
-    public static ProcessorSignature signature( LayerUseCase usecase ) {
-        return signature;
-    }
-
-    
-    // instance *******************************************
-    
-    
     public void init( Properties props ) {
     }
 

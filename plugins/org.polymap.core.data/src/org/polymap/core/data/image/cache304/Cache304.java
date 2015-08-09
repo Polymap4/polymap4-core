@@ -36,6 +36,7 @@ import com.google.common.base.Supplier;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
+
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -48,18 +49,18 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.cache304.CacheUpdateQueue.StoreCommand;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.runtime.recordstore.IRecordFieldSelector;
-import org.polymap.core.runtime.recordstore.IRecordState;
-import org.polymap.core.runtime.recordstore.IRecordStore;
-import org.polymap.core.runtime.recordstore.RecordQuery;
-import org.polymap.core.runtime.recordstore.ResultSet;
-import org.polymap.core.runtime.recordstore.SimpleQuery;
-import org.polymap.core.runtime.recordstore.lucene.LuceneRecordStore;
+
+import org.polymap.recordstore.IRecordFieldSelector;
+import org.polymap.recordstore.IRecordState;
+import org.polymap.recordstore.IRecordStore;
+import org.polymap.recordstore.RecordQuery;
+import org.polymap.recordstore.ResultSet;
+import org.polymap.recordstore.SimpleQuery;
+import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 /**
  * The central API and mediator of the module.

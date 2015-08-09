@@ -16,8 +16,6 @@ package org.polymap.core.data.pipeline;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
-
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
@@ -45,7 +43,7 @@ public class ProcessorSignatureTest
     public void testEncodedImageProducer() throws Exception {
         EncodedImageProcessor proc = new EncodedImageProcessor() {
             @Override
-            public void init( Properties props ) {
+            public void init( PipelineProcessorSite site ) {
                 // XXX Auto-generated method stub
                 throw new RuntimeException( "not yet implemented." );
             }

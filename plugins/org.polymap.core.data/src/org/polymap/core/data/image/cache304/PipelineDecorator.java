@@ -18,7 +18,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.polymap.core.data.pipeline.IPipelineIncubationListener;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineProcessor;
 
 /**
  * 
@@ -35,7 +34,7 @@ public class PipelineDecorator
         if (pipeline.length() == 0) {
             return;
         }
-        PipelineProcessor firstProc = pipeline.get( 0 );
+//        PipelineProcessor firstProc = pipeline.get( 0 );
         
         // XXX check compatibility instead of direct class
 

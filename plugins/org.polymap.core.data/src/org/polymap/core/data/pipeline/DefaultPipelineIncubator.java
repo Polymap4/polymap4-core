@@ -19,8 +19,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -96,8 +94,11 @@ public class DefaultPipelineIncubator
 
 
     @Override
-    public Pipeline newPipeline( Class<? extends PipelineUsecase> usecaseType, DataSourceDescription dsd,
-            PipelineProcessorConfiguration[] procConfigs) throws PipelineIncubationException {
+    public Pipeline newPipeline( 
+            Class<? extends PipelineUsecase> usecaseType, 
+            DataSourceDescription dsd,
+            PipelineProcessorConfiguration[] procConfigs) 
+            throws PipelineIncubationException {
         ProcessorSignature usecase = new ProcessorSignature( usecaseType );
         
         // swap requestIn/Out and reposnseIn/Out to make an emitter signature for the start processor
@@ -164,10 +165,10 @@ public class DefaultPipelineIncubator
         Pipeline pipeline = new Pipeline( usecase, dsd );
         for (ProcessorDescription procDesc : chain) {
             PipelineProcessor processor = procDesc.processor();
-            Properties props = procDesc.getProps() != null ? procDesc.getProps() : new Properties();
-            props.put( "usecase", usecase );
-            props.put( "dsd", dsd );
-            processor.init( props );
+            PipelineProcessorSite procSite = new PipelineProcessorSite( procDesc.getProps() );
+            procSite.usecase.set( usecase );
+            procSite.dsd.set( dsd );
+            processor.init( procSite );
             pipeline.addLast( procDesc );
         }
         
