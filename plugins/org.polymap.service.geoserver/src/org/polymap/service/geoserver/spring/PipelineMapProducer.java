@@ -1,75 +1,31 @@
-///* 
-// * polymap.org
-// * Copyright 2009,2012 Polymap GmbH. All rights reserved.
-// *
-// * This is free software; you can redistribute it and/or modify it
-// * under the terms of the GNU Lesser General Public License as
-// * published by the Free Software Foundation; either version 2.1 of
-// * the License, or (at your option) any later version.
-// *
-// * This software is distributed in the hope that it will be useful,
-// * but WITHOUT ANY WARRANTY; without even the implied warranty of
-// * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// * Lesser General Public License for more details.
-// */
-//package org.polymap.service.geoserver.spring;
-//
-//import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-//
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//
-//import java.awt.AlphaComposite;
-//import java.awt.Graphics2D;
-//import java.awt.Image;
-//import java.awt.RenderingHints;
-//import java.awt.image.BufferedImage;
-//import java.awt.image.RenderedImage;
-//import java.io.IOException;
-//import java.io.OutputStream;
-//
-//import javax.servlet.http.HttpServletResponse;
-//
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
-//
-//import org.opengis.referencing.FactoryException;
-//
-//import org.geotools.referencing.CRS;
-//
-//import org.geoserver.platform.ServiceException;
-//import org.geoserver.wms.WMS;
-//
-//import org.eclipse.core.runtime.IProgressMonitor;
-//import org.eclipse.core.runtime.jobs.Job;
-//
-//import org.polymap.core.data.image.EncodedImageResponse;
-//import org.polymap.core.data.image.GetMapRequest;
-//import org.polymap.core.data.image.ImageResponse;
-//import org.polymap.core.data.pipeline.Pipeline;
-//import org.polymap.core.data.pipeline.ProcessorRequest;
-//import org.polymap.core.data.pipeline.ProcessorResponse;
-//import org.polymap.core.data.pipeline.ResponseHandler;
-//import org.polymap.core.project.ILayer;
-//import org.polymap.core.project.LayerUseCase;
-//import org.polymap.core.runtime.Timer;
-//import org.polymap.core.runtime.UIJob;
-//import org.polymap.service.geoserver.GeoServerWms;
-//
-///**
-// * This {@link GetMapProducer} allows to use the pipelines rendering of POLYMAP
-// * via GeoServer.
-// * <p>
-// * This producer differs from the normal GeoServer {@link GetMapProducer} in that
-// * it does not actual render anything but delegates the rendering to the POLYMAP
-// * pipeline. Therefore we cannot share the code from GeoServer here.
-// * 
-// * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-// * @since 3.0
-// */
-//public class PipelineMapProducer
+/* 
+ * polymap.org
+ * Copyright (C) 2009-2015 Polymap GmbH. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
+package org.polymap.service.geoserver.spring;
+
+/**
+ * This {@link GetMapProducer} allows to use the pipelines rendering of POLYMAP
+ * via GeoServer.
+ * <p>
+ * This producer differs from the normal GeoServer {@link GetMapProducer} in that
+ * it does not actual render anything but delegates the rendering to the POLYMAP
+ * pipeline. Therefore we cannot share the code from GeoServer here.
+ * 
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @since 3.0
+ */
+public class PipelineMapProducer {
 //        extends AbstractRasterMapProducer {
 //
 //    private static final Log log = LogFactory.getLog( PipelineMapProducer.class );
@@ -287,5 +243,5 @@
 //        }
 //        log.debug( "    done. (" + timer.elapsedTime() + "ms)" );
 //    }
-//    
-//}
+    
+}

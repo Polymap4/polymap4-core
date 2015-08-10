@@ -14,8 +14,6 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,10 +24,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import java.io.File;
+import java.io.IOException;
+
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
@@ -51,6 +48,7 @@ import org.geoserver.platform.resource.Resource;
 import org.geoserver.wfs.GMLInfo;
 import org.geoserver.wfs.GMLInfo.SrsNameStyle;
 import org.geoserver.wfs.GMLInfoImpl;
+import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wfs.WFSInfo.ServiceLevel;
 import org.geoserver.wfs.WFSInfoImpl;
 import org.geoserver.wms.WMSInfoImpl;
@@ -65,24 +63,31 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.util.Version;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.polymap.core.runtime.Stringer;
-import org.polymap.service.geoserver.GeoServerServlet;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Polygon;
-import org.geoserver.wfs.WFSInfo;
-import org.geotools.util.Version;
+
+import org.eclipse.core.runtime.NullProgressMonitor;
+
+import org.polymap.core.runtime.Stringer;
+
+import org.polymap.service.geoserver.GeoServerServlet;
 
 //import org.vfny.geoserver.global.GeoserverDataDirectory;
 
