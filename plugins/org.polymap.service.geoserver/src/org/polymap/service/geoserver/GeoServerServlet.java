@@ -103,6 +103,9 @@ public class GeoServerServlet
 //            ServiceContext.mapContext( sessionKey );
             initGeoServer();
         }
+        catch (RuntimeException e) {
+            throw e;
+        }
         catch (Exception e) {
             throw new RuntimeException( e );
         }
@@ -203,7 +206,7 @@ public class GeoServerServlet
 
 
     protected void service( final HttpServletRequest req, HttpServletResponse resp )
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         
         final String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
@@ -225,10 +228,9 @@ public class GeoServerServlet
             return;
         }
         
-        // services
+        // service
         ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader( context.cl );
-                
         try {
             // session context
 //            ServiceContext.mapContext( sessionKey );

@@ -1,73 +1,36 @@
-///* 
-// * polymap.org
-// * Copyright 2009, Polymap GmbH, and individual contributors as indicated
-// * by the @authors tag.
-// *
-// * This is free software; you can redistribute it and/or modify it
-// * under the terms of the GNU Lesser General Public License as
-// * published by the Free Software Foundation; either version 2.1 of
-// * the License, or (at your option) any later version.
-// *
-// * This software is distributed in the hope that it will be useful,
-// * but WITHOUT ANY WARRANTY; without even the implied warranty of
-// * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// * Lesser General Public License for more details.
-// *
-// * You should have received a copy of the GNU Lesser General Public
-// * License along with this software; if not, write to the Free
-// * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-// * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
-// *
-// * $Id$
-// */
-//package org.polymap.service.geoserver.spring;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.Properties;
-//
-//import java.net.URI;
-//
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
-//
-//import org.opengis.feature.Feature;
-//import org.opengis.feature.Property;
-//import org.opengis.feature.simple.SimpleFeatureType;
-//import org.opengis.feature.type.FeatureType;
-//import org.opengis.feature.type.Name;
-//import org.opengis.feature.type.PropertyDescriptor;
-//import org.opengis.filter.FilterFactory;
-//
-//import org.geotools.data.DefaultQuery;
-//import org.geotools.data.Query;
-//import org.geotools.factory.CommonFactoryFinder;
-//import org.geotools.factory.GeoTools;
-//import org.geotools.feature.simple.SimpleFeatureBuilder;
-//import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-//
-//import org.polymap.core.data.feature.GetFeatureTypeRequest;
-//import org.polymap.core.data.feature.GetFeatureTypeResponse;
-//import org.polymap.core.data.feature.GetFeaturesRequest;
-//import org.polymap.core.data.feature.GetFeaturesResponse;
-//import org.polymap.core.data.feature.GetFeaturesSizeRequest;
-//import org.polymap.core.data.feature.GetFeaturesSizeResponse;
-//import org.polymap.core.data.pipeline.PipelineProcessor;
-//import org.polymap.core.data.pipeline.ProcessorRequest;
-//import org.polymap.core.data.pipeline.ProcessorResponse;
-//import org.polymap.core.data.pipeline.ProcessorSignature;
-//import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-//import org.polymap.core.project.LayerUseCase;
-//
-///**
-// * This processor sets name and namespace of the {@link FeatureType}. It is
-// * used by {@link GeoServerLoader}.
-// * 
-// * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
-// * @version POLYMAP3 ($Revision$)
-// * @since 3.0
-// */
-//public class FeatureRenameProcessor
+/* 
+ * polymap.org
+ * Copyright 2009, Polymap GmbH, and individual contributors as indicated
+ * by the @authors tag.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ *
+ * $Id$
+ */
+package org.polymap.service.geoserver.spring;
+
+import org.opengis.feature.type.FeatureType;
+
+/**
+ * This processor sets name and namespace of the {@link FeatureType}. It is
+ * used by {@link GeoServerLoader}.
+ * 
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ */
+public class FeatureRenameProcessor {
 //        implements PipelineProcessor {
 //
 //    private static final Log log = LogFactory.getLog( FeatureRenameProcessor.class );
@@ -224,4 +187,4 @@
 //        }
 //    }
 //
-//}
+}
