@@ -14,7 +14,7 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-    <available property="already_downloaded" type="dir" file="${lib}" />
+    <!--available property="already_downloaded" type="dir" file="${lib}" /-->
 
 	<property name="geoserver.version" value="2.7.2" />
 	<property name="geotools.version" value="13.2" />
