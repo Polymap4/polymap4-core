@@ -436,7 +436,7 @@
     </bean>
 
 	<!-- replaced by polymap PNGMapProducer, see below -->
-    <!-- bean id="PNGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <!--bean id="PNGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
         <value>image/png</value>
@@ -450,6 +450,7 @@
       <constructor-arg ref="wms" />
       <property name="extension" value="png"/>
     </bean-->
+
     <bean id="PNG8MapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
@@ -465,12 +466,19 @@
       <constructor-arg ref="wms" />
       <property name="extension" value="png"/>
     </bean>
-    
-    <bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
+
+    <!--bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
+      <constructor-arg ref="wms" />
+    </bean-->
+
+    <!--  
+        Polymap
+     -->
+    <bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
       <constructor-arg ref="wms" />
     </bean>
     
-    <!-- falko: es fehlt etwas aus it.geosolutions imageio -->
+    <!-- falko: kein Tiff support, keine zusätzlichen probleme ;) -->
     <!--bean id="GeoTiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
@@ -773,7 +781,7 @@
     <!-- replaces default PNGMapProducer -->
     <!-- bean id="PNGMapProducer"
         singleton="false"
-        class="org.polymap.service.geoserver.spring.PipelineMapProducer">
+        class="org.polymap.service.geoserver.spring.PipelineMapResponse">
         <constructor-arg index="0" ref="wms"/>
         <constructor-arg index="1" ref="geoServerLoader"/>
     </bean-->

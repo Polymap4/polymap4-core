@@ -15,6 +15,8 @@
 package org.polymap.service.geoserver;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -65,10 +67,6 @@ public class GeoServerPlugin
 
     private static GeoServerPlugin      instance;
 	
-    private File                        cacheDir;
-
-    private ServiceTracker              httpServiceTracker;
-	
 	
     /**
      * Returns the shared instance
@@ -79,6 +77,17 @@ public class GeoServerPlugin
 
 
     // instance *******************************************
+
+    private File                        cacheDir;
+
+    private ServiceTracker              httpServiceTracker;
+    
+    /** The base URL on the local machine (without proxy). */
+    private String                      localBaseUrl;
+    
+    /** The base URL explicitly set by the user via {@link GeneralPreferencePage}. */
+    private String                      proxyBaseUrl;
+
     
     /**
      * Returns the cache directory of this plugin.
@@ -86,7 +95,16 @@ public class GeoServerPlugin
     public File getCacheDir() {
         return cacheDir;
     }
-    
+
+    /**
+     * The configured base URL of this instance.
+     *
+     * @return The configured URL or somethong like http://localhost...
+     */
+    public String getBaseUrl() {
+        return proxyBaseUrl != null && proxyBaseUrl.length() > 0 ? proxyBaseUrl : localBaseUrl;
+    }
+
     
 	public void start( BundleContext context ) throws Exception {
 		super.start( context );
@@ -108,6 +126,20 @@ public class GeoServerPlugin
             public Object addingService( ServiceReference reference ) {
                 HttpService httpService = (HttpService)super.addingService( reference );                
                 if (httpService != null) {
+                    String protocol = "http";
+                    String port = context.getProperty( "org.osgi.service.http.port" );
+                    String hostname = "localhost";
+                    try {
+                        InetAddress.getLocalHost().getHostAddress();
+                    }
+                    catch (UnknownHostException e) {
+                        // ignore; use "localhost" then
+                    }
+
+                    // get baseUrl
+                    localBaseUrl = protocol + "://" + hostname + ":" + port;
+                    log.info( "HTTP service found on: " + localBaseUrl );
+
 //                    try {
 //                        // auto test
 //                        httpService.registerServlet( "/wms", new GeoServerServlet(), null, null );

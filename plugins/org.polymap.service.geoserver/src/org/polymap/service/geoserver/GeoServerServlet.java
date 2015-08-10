@@ -20,6 +20,7 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import javax.servlet.ServletRegistration.Dynamic;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -52,29 +54,37 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.geoserver.logging.LoggingStartupContextListener;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
+import org.polymap.core.data.pipeline.DepthFirstStackExecutor;
+import org.polymap.core.data.pipeline.Pipeline;
+import org.polymap.core.data.pipeline.PipelineExecutor;
+import org.polymap.core.data.pipeline.PipelineUsecase;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
-import javax.servlet.http.*;
+
+import org.polymap.service.geoserver.spring.PipelineMapResponse;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class GeoServerServlet
+public abstract class GeoServerServlet
         extends HttpServlet {
 
     private static final Log log = LogFactory.getLog( GeoServerServlet.class );
 
     /** First attemp to pass info to GeoServerLoader inside Spring. */
-    public static ThreadLocal<GeoServerServlet> servers = new ThreadLocal();
+    public static ThreadLocal<GeoServerServlet>     instance = new ThreadLocal();
     
     /**
      * XXX Bad hack. I just don't find the right way through GeoServer code
-     * to get HTTP response in a {@link PipelineMapProducer}.
+     * to get HTTP response in a {@link PipelineMapResponse}.
      */
-    public static ThreadLocal<HttpServletResponse> response = new ThreadLocal();
+    public static ThreadLocal<HttpServletResponse>  response = new ThreadLocal();
     
     private List<ServletContextListener>    loaders = new ArrayList();
     
@@ -85,7 +95,47 @@ public class GeoServerServlet
     private File                            dataDir;
     
 //    private String                          sessionKey;
+
+    private Cache<Object,Pipeline>          pipelines = CacheBuilder.newBuilder().concurrencyLevel( 2 ).softValues().build();
+
+
+    public abstract IMap getMap();
+
     
+    /**
+     * Actually creates a new {@link Pipeline} for the layer with the given name and
+     * usecase. Caching of the result is done by the caller.
+     * <p/>
+     * This is called inside the servlet request thread.
+     * @throws Exception 
+     */
+    protected abstract Pipeline createPipeline( ILayer layer, Class<? extends PipelineUsecase> usecase )
+            throws Exception;
+
+    
+    public Pipeline getOrCreatePipeline( final ILayer layer, Class<? extends PipelineUsecase> usecase ) 
+            throws Exception {
+        try {
+            return pipelines.get( layer.id(), () -> {
+                return createPipeline( layer, usecase );
+            });
+        }
+        catch (ExecutionException e) {
+            throw (Exception)e.getCause();
+        }
+    }
+
+    
+    /**
+     * This default implementation creates {@link DepthFirstStackExecutor}. Override
+     * this to change the executor to use.
+     *
+     * @return Newly created {@link PipelineExecutor}.
+     */
+    public PipelineExecutor createPipelineExecutor() {
+        return new DepthFirstStackExecutor();
+    }
+
     
     @Override
     public void init( ServletConfig config ) throws ServletException {
@@ -162,9 +212,9 @@ public class GeoServerServlet
         context.setAttribute( "GEOSERVER_DATA_DIR", dataDir.getAbsoluteFile() );
 
         try {
-            servers.set( this );
+            instance.set( this );
 
-            loaders.add( new LoggingStartupContextListener() );
+            //loaders.add( new LoggingStartupContextListener() );
             loaders.add( new ContextLoaderListener() );
 
             ServletContextEvent ev = new ServletContextEvent( context );
@@ -173,7 +223,7 @@ public class GeoServerServlet
             }
         }
         finally {
-            servers.set( null );
+            instance.set( null );
         }
 
         dispatcher = new DispatcherServlet();
