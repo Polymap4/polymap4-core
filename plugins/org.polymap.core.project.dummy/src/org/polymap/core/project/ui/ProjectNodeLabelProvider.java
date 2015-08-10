@@ -29,8 +29,8 @@ import org.polymap.core.project.ProjectNode;
 public class ProjectNodeLabelProvider
         extends CellLabelProvider
         implements ILabelProvider {
-
-    private static Log log = LogFactory.getLog( ProjectNodeLabelProvider.class );
+	private static final long serialVersionUID = -4146145349760939952L;
+	private static Log log = LogFactory.getLog( ProjectNodeLabelProvider.class );
     
     
     public String getText( Object elm ) {

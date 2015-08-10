@@ -1,0 +1,17 @@
+* /org.apache.log4j
+* /org.eclipse.core.filesystem
+* /org.eclipse.core.resources
+* /org.eclipse.equinox.security
+* /org.eclipse.rap.rwt.de
+* /org.eclipse.rap.ui.navigator
+* /org.polymap.core
+* /org.polymap.core.catalog
+* /org.polymap.core.data.wms
+* /org.polymap.core.project.dummy
+* /org.polymap.model2
+* /org.polymap.model2.store.recordstore
+* /org.polymap.p4
+* /org.polymap.rap.openlayers
+* /org.polymap.rap.updownload
+* /org.polymap.rhei.batik
+* /org.polymap.service.geoserver

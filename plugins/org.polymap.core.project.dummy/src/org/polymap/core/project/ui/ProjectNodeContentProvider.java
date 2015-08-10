@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2010-2015 Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2010-2015 Falko Brï¿½utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -26,7 +26,7 @@ import org.polymap.core.project.ProjectNode;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Brï¿½utigam</a>
  */
 public class ProjectNodeContentProvider
         implements ITreeContentProvider {
@@ -45,7 +45,7 @@ public class ProjectNodeContentProvider
 
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
-            return ((IMap)elm).layers.toArray();
+            ((IMap)elm).layers.toArray();
         }
         return null;
     }

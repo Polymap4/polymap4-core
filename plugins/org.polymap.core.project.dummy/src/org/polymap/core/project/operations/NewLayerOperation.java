@@ -43,7 +43,7 @@ import org.polymap.model2.runtime.UnitOfWork;
  * <p/>
  * This might open dialogs and must not be executed with progress dialog.
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br�utigam</a>
  */
 public class NewLayerOperation
         extends AbstractOperation
@@ -82,18 +82,15 @@ public class NewLayerOperation
     public IStatus execute( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
         try (TxProvider<UnitOfWork>.Tx localTx = tx.get().start( Propagation.REQUIRES_NEW )) {
             monitor.beginTask( getLabel(), 5 );
-            
-            IMap localMap = localTx.get().entity( IMap.class, map.get() );
             // create entity
-            layer.set( localTx.get().createEntity( ILayer.class, null, (ILayer proto) -> {
+            localTx.get().createEntity( ILayer.class, null, (ILayer proto) -> {
                 proto.label.set( label.get() );
                 proto.resourceIdentifier.set( resourceIdentifier.get() );
-                proto.parentMap.set( localMap );
+                proto.parentMap.set( map.get() );
+                
+                map.get().layers.add( proto );
                 return proto;
-            }));
-
-            localMap.layers.add( layer.get() );
-            localMap.label.set( map.get().label.get() );
+            });
             
 //            if (map.get().maxExtent.get() == null) {
 //                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );

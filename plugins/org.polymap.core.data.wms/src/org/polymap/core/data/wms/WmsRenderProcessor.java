@@ -14,20 +14,34 @@
  */
 package org.polymap.core.data.wms;
 
+import java.awt.Color;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.ows.Layer;
 import org.geotools.data.wms.WebMapServer;
+import org.geotools.data.wms.response.GetMapResponse;
 import org.geotools.geometry.GeneralEnvelope;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.geometry.BoundingBox;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
-
+import org.polymap.core.data.image.EncodedImageProducer;
+import org.polymap.core.data.image.EncodedImageResponse;
+import org.polymap.core.data.image.GetLayerTypesRequest;
+import org.polymap.core.data.image.GetLegendGraphicRequest;
+import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.ProcessorResponse;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
@@ -36,7 +50,7 @@ import com.vividsolutions.jts.geom.Envelope;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class WmsRenderProcessor
-        /*implements EncodedImageProducer*/ {
+        implements EncodedImageProducer {
 
     private static final Log log = LogFactory.getLog( WmsRenderProcessor.class );
 
@@ -49,117 +63,118 @@ public class WmsRenderProcessor
 
     private Layer                   layer;
 
-//    private PipelineProcessorSite   site;
+    private PipelineProcessorSite   site;
     
 
     // instance *******************************************
 
-//    @Override
-//    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) {
-//        this.site = site;
-//        wms = (WebMapServer)site.dsd.get().service.get();
-//        layerName = site.dsd.get().resourceName.get();
-//
-//        layer = wms.getCapabilities().getLayerList().stream()
-//                .filter( l -> layerName.equals( l.getName() ) )
-//                .findFirst()
-//                .orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
-//    }
+    @Override
+    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) {
+        this.site = site;
+        wms = (WebMapServer)site.dsd.get().service.get();
+        layerName = site.dsd.get().resourceName.get();
+
+        layer = wms.getCapabilities().getLayerList().stream()
+                .filter( l -> layerName.equals( l.getName() ) )
+                .findFirst()
+                .orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
+    }
 
 
-//    @Override
-//    public boolean isCompatible( DataSourceDescription dsd ) {
-//        return dsd.service.get() instanceof WebMapServer;
-//    }
+    @Override
+    public boolean isCompatible( DataSourceDescription dsd ) {
+        return dsd.service.get() instanceof WebMapServer;
+    }
 
 
-//    @Override
-//    public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
-//        // XXX Auto-generated method stub
-//        throw new RuntimeException( "not yet implemented." );
-//    }
+    @Override
+    public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
 
 
-//    @Override
-//    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
-//        throw new RuntimeException( "not yet implemented." );
-////        List<LayerType> types = getLayerTypes();
-////        context.sendResponse( new GetLayerTypesResponse( types ) );
-////        context.sendResponse( ProcessorResponse.EOP );
-//    }
+    @Override
+    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
+        throw new RuntimeException( "not yet implemented." );
+//        List<LayerType> types = getLayerTypes();
+//        context.sendResponse( new GetLayerTypesResponse( types ) );
+//        context.sendResponse( ProcessorResponse.EOP );
+    }
 
 
-//    @Override
-//    public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
-//        int width = request.getWidth();
-//        int height = request.getHeight();
-//        BoundingBox bbox = request.getBoundingBox();
-//        log.debug( "bbox=" + bbox + ", imageSize=" + width + "x" + height );
-//
-//        org.geotools.data.wms.request.GetMapRequest getMap = wms.createGetMapRequest();
-//        
-//        getMap.setFormat( request.getFormat() );
-//        getMap.setDimensions( width, height );
-//        getMap.setTransparent( true );
-//        Color color = request.getBgColor();
-//        if (color != null) {
-//            getMap.setBGColour( String.format( "#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue() ) );
+    @Override
+    public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
+        int width = request.getWidth();
+        int height = request.getHeight();
+        BoundingBox bbox = request.getBoundingBox();
+        log.debug( "bbox=" + bbox + ", imageSize=" + width + "x" + height );
+
+        org.geotools.data.wms.request.GetMapRequest getMap = wms.createGetMapRequest();
+        
+        getMap.setFormat( request.getFormat() );
+        getMap.setDimensions( width, height );
+        getMap.setTransparent( true );
+        Color color = request.getBgColor();
+        if (color != null) {
+            getMap.setBGColour( String.format( "#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue() ) );
+        }
+        //getMap.setBGColour( "0xFFFFFF" );
+        
+        BoundingBox requestBBox = bbox;
+        getMap.setBBox( requestBBox.getMinX() + "," + requestBBox.getMinY() //$NON-NLS-1$
+                + "," + requestBBox.getMaxX() //$NON-NLS-1$
+                + "," + requestBBox.getMaxY() ); //$NON-NLS-1$
+        String srs = request.getCRS();
+        getMap.setSRS( srs );
+        
+        
+//        Map sortedLayersMap = MultiValueMap.decorate( new TreeMap() );
+//        for (Iterator it=visibleLayers.referencedLayers(); it.hasNext();) {
+//            Layer layer = (Layer)availableLayers.get( it.next() );
+//            Integer layerOrder = (Integer)layerOrderMap.get( layer.getName() );
+//            // reverse order; request.addLayer() works that way
+//            Integer key = Integer.valueOf( Integer.MAX_VALUE - layerOrder.intValue() );
+//            sortedLayersMap.put( key, layer );
 //        }
-//        //getMap.setBGColour( "0xFFFFFF" );
-//        
-//        BoundingBox requestBBox = bbox;
-//        getMap.setBBox( requestBBox.getMinX() + "," + requestBBox.getMinY() //$NON-NLS-1$
-//                + "," + requestBBox.getMaxX() //$NON-NLS-1$
-//                + "," + requestBBox.getMaxY() ); //$NON-NLS-1$
-//        String srs = request.getCRS();
-//        getMap.setSRS( srs );
-//        
-//        
-////        Map sortedLayersMap = MultiValueMap.decorate( new TreeMap() );
-////        for (Iterator it=visibleLayers.referencedLayers(); it.hasNext();) {
-////            Layer layer = (Layer)availableLayers.get( it.next() );
-////            Integer layerOrder = (Integer)layerOrderMap.get( layer.getName() );
-////            // reverse order; request.addLayer() works that way
-////            Integer key = Integer.valueOf( Integer.MAX_VALUE - layerOrder.intValue() );
-////            sortedLayersMap.put( key, layer );
-////        }
-//        
-////        for (ILayer layer : layers) {
-////            IGeoResource geores = layer.getGeoResource();
-////            Layer wmsLayer = geores.resolve( org.geotools.data.ows.Layer.class, null );
-////            getMap.addLayer( wmsLayer );
-////            log.debug( "    request: layer: " + layer.getLabel() );
-////        }
-//
-//        
-//        getMap.addLayer( layer );
-//        log.debug( "    WMS URL:" + getMap.getFinalURL() );
-//        
-//        InputStream in = null;
-//        try {
-//            long start = System.currentTimeMillis();
-//            GetMapResponse wmsResponse = wms.issueRequest( getMap );
-//            log.debug( "Got repsonse (" + (System.currentTimeMillis()-start) + "ms). providing data: " + wmsResponse.getContentType() );
-//            
-//            in = wmsResponse.getInputStream();
-//            int count = 0;
-//            byte[] buf = new byte[8*1024];
-//            for (int c=in.read( buf ); c!=-1; c=in.read( buf )) {
-//                context.sendResponse( new EncodedImageResponse( buf, c ) );
-//                buf = new byte[8*2048];
-//                //log.debug( "    --->data sent: " + c );
-//                count += c;
-//            }
-//            if (count == 0) {
-//                throw new IOException( "WMSResponse is empty." );
-//            }
-//            context.sendResponse( ProcessorResponse.EOP );
-//            log.debug( "...all data send." );
+        
+//        for (ILayer layer : layers) {
+//            IGeoResource geores = layer.getGeoResource();
+//            Layer wmsLayer = geores.resolve( org.geotools.data.ows.Layer.class, null );
+//            getMap.addLayer( wmsLayer );
+//            log.debug( "    request: layer: " + layer.getLabel() );
 //        }
-//        finally {
-//            IOUtils.closeQuietly( in );
-//        }
-//    }
+
+        
+        getMap.addLayer( layer );
+        log.debug( "    WMS URL:" + getMap.getFinalURL() );
+        
+        InputStream in = null;
+        try {
+            long start = System.currentTimeMillis();
+            GetMapResponse wmsResponse = wms.issueRequest( getMap );
+            log.debug( "Got repsonse (" + (System.currentTimeMillis()-start) + "ms). providing data: " + wmsResponse.getContentType() );
+            
+            in = wmsResponse.getInputStream();
+            int count = 0;
+            byte[] buf = new byte[8*1024];
+            for (int c=in.read( buf ); c!=-1; c=in.read( buf )) {
+                context.sendResponse( new EncodedImageResponse( buf, c ) );
+                buf = new byte[8*2048];
+                //log.debug( "    --->data sent: " + c );
+                count += c;
+            }
+            if (count == 0) {
+                throw new IOException( "WMSResponse is empty." );
+            }
+            context.sendResponse( ProcessorResponse.EOP );
+            log.debug( "...all data send." );
+        }
+        finally {
+            IOUtils.closeQuietly( in );
+        }
+    }
+
     
     /**
      * Using the viewport bounds and combined wms layer extents, determines an appropriate bounding

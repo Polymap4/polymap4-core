@@ -1,0 +1,45 @@
+@startuml
+component org.apache.log4j
+component org.eclipse.core.filesystem
+component org.eclipse.core.resources
+component org.eclipse.equinox.security
+component org.polymap.core as core
+component org.polymap.core.catalog as core.catalog
+component org.polymap.core.data as core.data
+component org.polymap.core.data.wms as core.data.wms
+component org.polymap.core.mapeditor as core.mapeditor
+component org.polymap.core.project as core.project
+component org.polymap.core.project.dummy as core.project.dummy
+component org.polymap.model2 as model2
+component org.polymap.model2.store.recordstore as model2.store.recordstore
+component org.polymap.p4 as p4client
+component org.polymap.rap.openlayers as rap.openlayers
+component org.polymap.rap.updownload as rap.updownload
+component org.polymap.rhei.batik as rhei.batik
+component org.polymap.service.geoserver as geoserver
+core --> org.eclipse.equinox.security
+core --> org.eclipse.core.resources
+org.eclipse.core.resources --> org.eclipse.core.filesystem
+geoserver --> org.apache.log4j
+geoserver --> core
+geoserver --> core.data 
+note on link: This dependency \nhas been temporarily\n removed by adding\n geotools dep directly\n and mocking IMap\n and ILayer
+geoserver --> core.project 
+note on link: This dependency \nhas been temporarily\n removed by mocking IMap and ILayer
+p4client --> core
+p4client -> core.data.wms
+p4client --> core.catalog
+p4client --> core.mapeditor
+note on link: This dependency \nhas been temporarily\n removed by adding\n classes directly
+p4client --> model2
+p4client -> model2.store.recordstore
+p4client --> core.project
+note on link: This dependency \nhas been temporarily\n removed by using\n core.project.dummy
+p4client --> core.project.dummy
+p4client --> rap.updownload
+p4client --> rap.openlayers
+note on link: This dependency is actually\n consumed transitively,\n but now added directly
+p4client --> rhei.batik
+core.catalog --> core.data
+note on link: This dependency \nhas been temporarily\n removed by adding\n gt-api dep directly
+@enduml
