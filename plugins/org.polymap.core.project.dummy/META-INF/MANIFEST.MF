@@ -4,7 +4,9 @@ Bundle-Name: Dummy Project
 Bundle-SymbolicName: org.polymap.core.project.dummy
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: org.polymap.core.project
+Export-Package: org.polymap.core.project,
+ org.polymap.core.project.operations,
+ org.polymap.core.project.ui
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.ui;bundle-version="2.3.1",
  org.eclipse.rap.ui.navigator;bundle-version="3.5.0";resolution:=optional;visibility:=reexport,
