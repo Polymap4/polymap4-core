@@ -203,6 +203,14 @@ public abstract class GeoServerServlet
         dataDir = new File( cacheDir, Stringer.of( getMapLabel() ).toFilename( "_" ).toString() );
         log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
         dataDir.mkdirs();
+        // TODO: have to create styles folder here, as otherwise 
+        // org.geoserver.wms.WMSLifecycleHandler.loadFontsFromDataDirectory() 
+        // will get null at data.findStyleDir() there
+        // before such a code was executed in GeoServerLoader when creating a style 
+        // file for each layer
+        String stylesPath = dataDir.getAbsolutePath() + "/data/styles/dummy.sld";
+        File styleFile = new File(stylesPath);
+        styleFile.mkdirs();
         FileUtils.forceDeleteOnExit( dataDir );
 
         // web.xml
