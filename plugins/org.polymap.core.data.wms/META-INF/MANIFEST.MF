@@ -7,8 +7,8 @@ Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: lib/commons-codec-1.2.jar,
  lib/commons-httpclient-3.1.jar,
- lib/gt-render-13.0.jar,
- lib/gt-wms-13.0.jar,
+ lib/gt-render-13.2.jar,
+ lib/gt-wms-13.2.jar,
  .
 Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.data;bundle-version="4.0.0",

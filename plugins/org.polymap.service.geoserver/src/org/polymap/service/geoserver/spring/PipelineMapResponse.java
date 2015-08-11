@@ -87,10 +87,16 @@ public class PipelineMapResponse
         if (mapContent.layers().size() == 1) {
             Layer mapLayer = mapContent.layers().get( 0 );
             
-            ILayer layer = server.getMap().layers.stream()
-                    .filter( l -> l.label.get().equals( mapLayer.getTitle() ) )
-                    .findFirst()
-                    .orElseThrow( () -> new RuntimeException( "No such layer for title: " + mapLayer.getTitle() ) );
+            ILayer layer = null;
+            for(ILayer l : server.getMap().layers) {
+                if(l.label.get().equals( mapLayer.getTitle())) {
+                    layer = l;
+                    break;
+                }
+            }
+            if(layer == null) {
+                throw new RuntimeException( "No such layer for title: " + mapLayer.getTitle() );
+            }
             
             try {
                 Pipeline pipeline = server.getOrCreatePipeline( layer, EncodedImageProducer.class );
