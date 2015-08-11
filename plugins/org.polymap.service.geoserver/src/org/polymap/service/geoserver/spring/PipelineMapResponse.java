@@ -88,13 +88,13 @@ public class PipelineMapResponse
             Layer mapLayer = mapContent.layers().get( 0 );
             
             ILayer layer = null;
-            for(ILayer l : server.getMap().layers) {
-                if(l.label.get().equals( mapLayer.getTitle())) {
+            for (ILayer l : server.getMap().layers) {
+                if (l.label.get().equals( mapLayer.getTitle() )) {
                     layer = l;
                     break;
                 }
             }
-            if(layer == null) {
+            if (layer == null) {
                 throw new RuntimeException( "No such layer for title: " + mapLayer.getTitle() );
             }
             
