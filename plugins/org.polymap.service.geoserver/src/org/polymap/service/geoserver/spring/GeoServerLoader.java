@@ -14,16 +14,31 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.CatalogBuilder;
+import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ProjectionPolicy;
+import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.Wrapper;
+import org.geoserver.catalog.impl.AttributeTypeInfoImpl;
+import org.geoserver.catalog.impl.LayerInfoImpl;
 import org.geoserver.catalog.impl.NamespaceInfoImpl;
+import org.geoserver.catalog.impl.StyleInfoImpl;
 import org.geoserver.catalog.impl.WorkspaceInfoImpl;
 import org.geoserver.config.GeoServer;
+import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.config.impl.GeoServerInfoImpl;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.wfs.GMLInfo;
@@ -34,29 +49,32 @@ import org.geoserver.wfs.WFSInfo.ServiceLevel;
 import org.geoserver.wfs.WFSInfoImpl;
 import org.geoserver.wms.WMSInfoImpl;
 import org.geotools.data.DataStore;
-import org.geotools.data.collection.CollectionDataStore;
-import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.data.FeatureReader;
+import org.geotools.data.Query;
+import org.geotools.data.store.ContentDataStore;
+import org.geotools.data.store.ContentEntry;
+import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.Version;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
 import org.opengis.parameter.GeneralParameterValue;
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.IMap;
+import org.polymap.core.runtime.Stringer;
+import org.polymap.service.geoserver.GeoServerPlugin;
+import org.polymap.service.geoserver.GeoServerServlet;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.Stringer;
-
-import org.polymap.service.geoserver.GeoServerPlugin;
-import org.polymap.service.geoserver.GeoServerServlet;
+import com.google.common.collect.Lists;
 
 //import org.vfny.geoserver.global.GeoserverDataDirectory;
 
@@ -81,8 +99,8 @@ public class GeoServerLoader
 
 	private GeoServer                  geoserver;
 
-	// private Map<String,ILayer> layers = new HashMap();
-	//
+	 private Map<String,ILayer> layers = new HashMap();
+	
 
 
 	public GeoServerLoader( GeoServerResourceLoader resourceLoader ) {
@@ -153,11 +171,13 @@ public class GeoServerLoader
         log.info( "Loading catalog..." );
 
         IMap map = service.getMap();
+
+        CatalogBuilder catalogBuilder = new org.geoserver.catalog.CatalogBuilder( catalog );
         
         WorkspaceInfoImpl wsInfo = new WorkspaceInfoImpl();
         wsInfo.setId( (String)map.id() );
         wsInfo.setName( map.label.get() + "ws" );
-        catalog.add( wsInfo );
+        catalogBuilder.setWorkspace( wsInfo );
         log.info( "    loaded Workspace: '" + wsInfo.getName() +"'");
 
         NamespaceInfoImpl defaultNsInfo = new NamespaceInfoImpl();
@@ -167,6 +187,7 @@ public class GeoServerLoader
         // defaultNsInfo.setPrefix( "gml" );
         // defaultNsInfo.setURI( "http://www.opengis.net/gml" );
         catalog.add( defaultNsInfo );
+        
         log.debug( "    loaded Namespace: '" + defaultNsInfo.getName() +"'");
 
         for (ILayer layer : map.layers) {
@@ -213,13 +234,14 @@ public class GeoServerLoader
             dsInfo.setDescription( "DataStore of ILayer: " + layer.label.get() );
             dsInfo.setWorkspace( wsInfo );
             dsInfo.setType( "PipelineDataStore" );
+            // TODO: shouldn't be hard coded
             Map params = new HashMap();
 // FIXME           params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
             dsInfo.setConnectionParameters( params );
             dsInfo.setEnabled( true );
-            catalog.add( dsInfo );
+            catalogBuilder.setStore( dsInfo );
             log.debug( "    loaded DataStore: '" + dsInfo.getName() +"'");
-
+            
             // FeatureType
             MyFeatureTypeInfoImpl ftInfo = new MyFeatureTypeInfoImpl( catalog, (String)layer.id(), ds );
             ftInfo.setName( schema.getTypeName() );
@@ -232,8 +254,8 @@ public class GeoServerLoader
             //ftInfo.setNativeBoundingBox( map.getMaxExtent() );
             ftInfo.setNativeName( schema.getTypeName() );
             ftInfo.setProjectionPolicy( ProjectionPolicy.NONE );
-            // XXX this the "default" SRS; WFS needs this to work; shouldn't this be the "native"
-            // SRS of the data?
+//             XXX this the "default" SRS; WFS needs this to work; shouldn't this be the "native"
+//             SRS of the data?
 // FIXME            ftInfo.setSRS( layer.getCRSCode() );
 //            ReferencedEnvelope bbox = map.getMaxExtent();
 //            try {
@@ -249,50 +271,61 @@ public class GeoServerLoader
 //            }
             ftInfo.setEnabled( true );
 
-//            List<AttributeTypeInfo> attributeInfos = new ArrayList();
-//            for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
-//                AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
-//                attributeInfo.setFeatureType( ftInfo );
-//                attributeInfo.setAttribute( attribute );
-//                attributeInfo.setId( attribute.toString() );
-//            }
-//            ftInfo.setAttributes( attributeInfos );
-//            catalog.add( ftInfo );
-//            log.debug( "    loaded FeatureType: '" + ftInfo.getName() +"'");
-//
-//            // Layer
-//            LayerInfoImpl layerInfo = new LayerInfoImpl();
-//            layerInfo.setResource( ftInfo );
-//            layerInfo.setId( layer.id() );
-//            layerInfo.setName( schema.getTypeName() );
-//            layers.put( layerInfo.getName(), layer );
-//            layerInfo.setEnabled( true );
-//            layerInfo.setType( Type.VECTOR );
-//            Set styles = new HashSet();
-//
-//            StyleInfoImpl style = new StyleInfoImpl( catalog );
+            List<AttributeTypeInfo> attributeInfos = new ArrayList();
+            for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
+                AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
+                attributeInfo.setFeatureType( ftInfo );
+                attributeInfo.setAttribute( attribute );
+                attributeInfo.setId( attribute.toString() );
+            }
+            ftInfo.setAttributes( attributeInfos );
+            // set missing default values
+            catalogBuilder.initFeatureType( ftInfo );
+//            catalogBuilder.attach( ftInfo );
+            catalog.add( ftInfo );
+            log.debug( "    loaded FeatureType: '" + ftInfo.getName() +"'");
+
+            // Layer
+            LayerInfo layerInfo = catalogBuilder.buildLayer( ftInfo );
+            
+            layerInfo.setResource( ftInfo );
+            ((LayerInfoImpl) layerInfo).setId( String.valueOf(layer.id()) );
+            layerInfo.setName( schema.getTypeName() );
+            layers.put( layerInfo.getName(), layer );
+            layerInfo.setEnabled( true );
+            layerInfo.setType( PublishedType.VECTOR );
+            
+            
+            StyleInfoImpl style = new StyleInfoImpl( catalog );
 //            IStyle layerStyle = layer.getStyle();
-//            String styleName = layerStyle.getTitle() != null
-//                    ? layerStyle.getTitle() : layer.getLabel() + "-style";
-//                    style.setId( simpleName( styleName ) );
-//                    style.setName( simpleName( styleName ) );
-//
-//                    File sldFile = GeoserverDataDirectory.findStyleFile( styleName + ".sld",
-//                            true );
-//                    if (!sldFile.getParentFile().exists()) {
-//                        sldFile.getParentFile().mkdirs();
-//                    }
-//                    FileUtils.writeStringToFile( sldFile, layerStyle.createSLD( new
-//                            NullProgressMonitor() ), "UTF-8" );
-//
-//                    style.setFilename( sldFile.getName() );
-//                    catalog.add( style );
-//                    styles.add( style );
-//                    layerInfo.setStyles( styles );
-//                    layerInfo.setDefaultStyle( style );
-//                    catalog.add( layerInfo );
+            String styleName = /*layerStyle.getTitle() != null
+                    ? layerStyle.getTitle() :*/ layer.label.get() + "-style";
+                    style.setId( simpleName( styleName ) );
+                    style.setName( simpleName( styleName ) );
+
+                    File sldFile = new GeoServerDataDirectory(this.resourceLoader).config( style ).file();
+                    if (!sldFile.getParentFile().exists()) {
+                        sldFile.getParentFile().mkdirs();
+                    }
+                    FileUtils.writeStringToFile( sldFile, createLayerStyleSLD(layer.label.get()), "UTF-8" );
+
+                    style.setFilename( sldFile.getName() );
+                    catalog.add( style );
+                    layerInfo.getStyles().add( style );
+                    layerInfo.setDefaultStyle( style );
+//            catalogBuilder.initWMSLayer( wmsLayer );
+//                    catalogBuilder.attach( layerInfo );
+                    catalog.add( layerInfo );
 //                    log.debug( "    loaded Layer: '" + layerInfo.getName() +"'");
 //            }
+                    
+//              WMSLayerInfo wmsLayerInfo = catalogBuilder.buildWMSLayer( schema.getTypeName() );
+//              catalogBuilder.initWMSLayer( wmsLayerInfo );
+//              ((WMSLayerInfoImpl) wmsLayerInfo).setId( String.valueOf(layer.id()) );
+//              wmsLayerInfo.setEnabled( true );
+//              layers.put( wmsLayerInfo.getName(), layer );
+//              catalogBuilder.attach( wmsLayerInfo );
+                    
         }
     }
 
@@ -391,7 +424,7 @@ public class GeoServerLoader
      * @return a feature with the grid coverage envelope as the geometry and the grid
      *         coverage itself in the "grid" attribute.
      */
-    protected CollectionDataStore wrapCoverageLayer( ILayer layer, String typeName ) {
+    protected org.geotools.data.DataStore wrapCoverageLayer( ILayer layer, String typeName ) {
 
         // // create surrounding polygon
         // final PrecisionModel pm = new PrecisionModel();
@@ -417,24 +450,101 @@ public class GeoServerLoader
         // final LinearRing ring = gf.createLinearRing(coord);
         // final Polygon bounds = new Polygon(ring, null, gf);
 
-        SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
-        ftb.setName( typeName );
-        ftb.setNamespaceURI( NAMESPACE );
-// FIXME        ftb.add( "geom", Polygon.class, layer.getCRS() );
-        ftb.add( "layer", ILayer.class );
-        ftb.add( "params", GeneralParameterValue[].class );
-        SimpleFeatureType schema = ftb.buildFeatureType();
+//        SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
+//        ftb.setName( typeName );
+//        ftb.setNamespaceURI( NAMESPACE );
+//// FIXME        ftb.add( "geom", Polygon.class, layer.getCRS() );
+//        ftb.add( "layer", ILayer.class );
+//        ftb.add( "params", GeneralParameterValue[].class );
+//        SimpleFeatureType schema = ftb.buildFeatureType();
+//
+//        // create the feature
+//        SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
+//        fb.add( null );
+//        fb.add( layer );
+//        SimpleFeature feature = fb.buildFeature( null );
+//
+//        DefaultFeatureCollection coll = new DefaultFeatureCollection( null, null );
+//        coll.add( feature );
 
-        // create the feature
-        SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
-        fb.add( null );
-        fb.add( layer );
-        SimpleFeature feature = fb.buildFeature( null );
+//        return new CollectionDataStore( coll );
+        
+      SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
+      ftb.setName(typeName);
+      ftb.setNamespaceURI(NAMESPACE);
+//      ftb.add("geom", Polygon.class, getLayerCRS());
+      ftb.add("params", GeneralParameterValue[].class);
+      final SimpleFeatureType simpleFeatureType = ftb.buildFeatureType();
 
-        DefaultFeatureCollection coll = new DefaultFeatureCollection( null, null );
-        coll.add( feature );
+      // create the feature
+      SimpleFeatureBuilder fb = new SimpleFeatureBuilder(simpleFeatureType);
+      fb.add(null);
+      final SimpleFeature feature = fb.buildFeature(null);
 
-        return new CollectionDataStore( coll );
+      return new ContentDataStore() {
+
+          @Override
+          protected  List<Name> createTypeNames() throws IOException {
+              return Lists.newArrayList(simpleFeatureType.getName());
+          }
+
+          @Override
+          protected ContentFeatureSource createFeatureSource(
+                  ContentEntry entry) throws IOException {
+              return new ContentFeatureSource(entry, null) {
+
+                  @Override
+                  protected SimpleFeatureType buildFeatureType()
+                          throws IOException {
+                      entries.put(simpleFeatureType.getName(), entry);
+                      return simpleFeatureType;
+                  }
+
+                  @Override
+                  protected ReferencedEnvelope getBoundsInternal(Query arg0)
+                          throws IOException {
+                      return new ReferencedEnvelope();
+                  }
+
+                  @Override
+                  protected int getCountInternal(Query arg0)
+                          throws IOException {
+                      return 1;
+                  }
+
+                  @Override
+                  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(
+                          Query arg0) throws IOException {
+                      return new FeatureReader<SimpleFeatureType, SimpleFeature>() {
+                          private boolean first = true;
+
+                          @Override
+                          public void close() throws IOException {
+                          }
+
+                          @Override
+                          public SimpleFeatureType getFeatureType() {
+                              return simpleFeatureType;
+                          }
+
+                          @Override
+                          public boolean hasNext() throws IOException {
+                              return first;
+                          }
+
+                          @Override
+                          public SimpleFeature next() throws IOException,
+                                  IllegalArgumentException,
+                                  NoSuchElementException {
+                              first = false;
+                              return feature;
+                          }
+                      };
+                  }
+
+              };
+          }
+      };        
     }
 
 
@@ -614,41 +724,41 @@ public class GeoServerLoader
 //    }
 //
 //
-//    private String createLayerStyleSLD( NullProgressMonitor nullProgressMonitor ) {
-//        // copied from
-//        // http://docs.geoserver.org/stable/en/user/styling/sld-introduction.html
-//        StringBuilder sb = new StringBuilder();
-//        sb.append( "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" );
-//        sb.append( "<StyledLayerDescriptor version=\"1.0.0\"" );
-//        sb.append( "    xsi:schemaLocation=\"http://www.opengis.net/sld StyledLayerDescriptor.xsd\"" );
-//        sb.append( "    xmlns=\"http://www.opengis.net/sld\"" );
-//        sb.append( "    xmlns:ogc=\"http://www.opengis.net/ogc\"" );
-//        sb.append( "    xmlns:xlink=\"http://www.w3.org/1999/xlink\"" );
-//        sb.append( "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" );
-//        sb.append( "  <NamedLayer>" );
-//        sb.append( "    <Name>" + getMapLabel() + "</Name>" );
-//        sb.append( "    <UserStyle>" );
-//        sb.append( "      <Title>GeoServer SLD Cook Book: Simple point</Title>" );
-//        sb.append( "      <FeatureTypeStyle>" );
-//        sb.append( "        <Rule>" );
-//        sb.append( "          <PointSymbolizer>" );
-//        sb.append( "            <Graphic>" );
-//        sb.append( "              <Mark>" );
-//        sb.append( "                <WellKnownName>circle</WellKnownName>" );
-//        sb.append( "                <Fill>" );
-//        sb.append( "                  <CssParameter name=\"fill\">#FF0000</CssParameter>" );
-//        sb.append( "                </Fill>" );
-//        sb.append( "              </Mark>" );
-//        sb.append( "              <Size>6</Size>" );
-//        sb.append( "            </Graphic>" );
-//        sb.append( "          </PointSymbolizer>" );
-//        sb.append( "        </Rule>" );
-//        sb.append( "      </FeatureTypeStyle>" );
-//        sb.append( "    </UserStyle>" );
-//        sb.append( "  </NamedLayer>" );
-//        sb.append( "</StyledLayerDescriptor>" );
-//        return sb.toString();
-//    }
+    private String createLayerStyleSLD(String mapLabel ) {
+        // copied from
+        // http://docs.geoserver.org/stable/en/user/styling/sld-introduction.html
+        StringBuilder sb = new StringBuilder();
+        sb.append( "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" );
+        sb.append( "<StyledLayerDescriptor version=\"1.0.0\"" );
+        sb.append( "    xsi:schemaLocation=\"http://www.opengis.net/sld StyledLayerDescriptor.xsd\"" );
+        sb.append( "    xmlns=\"http://www.opengis.net/sld\"" );
+        sb.append( "    xmlns:ogc=\"http://www.opengis.net/ogc\"" );
+        sb.append( "    xmlns:xlink=\"http://www.w3.org/1999/xlink\"" );
+        sb.append( "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" );
+        sb.append( "  <NamedLayer>" );
+        sb.append( "    <Name>" + mapLabel + "</Name>" );
+        sb.append( "    <UserStyle>" );
+        sb.append( "      <Title>GeoServer SLD Cook Book: Simple point</Title>" );
+        sb.append( "      <FeatureTypeStyle>" );
+        sb.append( "        <Rule>" );
+        sb.append( "          <PointSymbolizer>" );
+        sb.append( "            <Graphic>" );
+        sb.append( "              <Mark>" );
+        sb.append( "                <WellKnownName>circle</WellKnownName>" );
+        sb.append( "                <Fill>" );
+        sb.append( "                  <CssParameter name=\"fill\">#FF0000</CssParameter>" );
+        sb.append( "                </Fill>" );
+        sb.append( "              </Mark>" );
+        sb.append( "              <Size>6</Size>" );
+        sb.append( "            </Graphic>" );
+        sb.append( "          </PointSymbolizer>" );
+        sb.append( "        </Rule>" );
+        sb.append( "      </FeatureTypeStyle>" );
+        sb.append( "    </UserStyle>" );
+        sb.append( "  </NamedLayer>" );
+        sb.append( "</StyledLayerDescriptor>" );
+        return sb.toString();
+    }
 //
 //
 //    private String getLayerStyleTitle() {
