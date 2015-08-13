@@ -35,6 +35,7 @@ import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.StoreInfo;
+import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.Wrapper;
 import org.geoserver.catalog.impl.AttributeTypeInfoImpl;
@@ -191,14 +192,13 @@ public class GeoServerLoader
             SimpleFeatureType schema = dsInfoDsSchema.getRight();
             MyFeatureTypeInfoImpl ftInfo = createAndAddFeatureType( catalog, catalogBuilder, defaultNsInfo, layer,
                     dsInfo, ds, schema );
-            StyleInfoImpl style = createAndAddStyle( catalog, layer );
-            createAndAddLayer( catalog, catalogBuilder, layer, schema, ftInfo, style );
+            createAndAddLayer( catalog, catalogBuilder, layer, schema, ftInfo );
         }
     }
 
 
     private void createAndAddLayer( Catalog catalog, CatalogBuilder catalogBuilder, ILayer layer,
-            SimpleFeatureType schema, MyFeatureTypeInfoImpl ftInfo, StyleInfoImpl style ) throws IOException {
+            SimpleFeatureType schema, MyFeatureTypeInfoImpl ftInfo ) throws IOException {
         LayerInfo layerInfo = catalogBuilder.buildLayer( ftInfo );
 
         layerInfo.setResource( ftInfo );
@@ -208,6 +208,13 @@ public class GeoServerLoader
         layerInfo.setEnabled( true );
         layerInfo.setType( PublishedType.VECTOR );
 
+        // have to serialize a sld file to our workspace as also the default look up
+        // tries to resolve the default style from workspace:
+        // layerInfo.setDefaultStyle( catalogBuilder.getDefaultStyle(ftInfo) );
+        // TODO: question is how to initially retrieve all required files to be placed
+        // in an local workspace, i.e. copy files from some GeoServer (Spring) jar
+        // to our workspace
+        StyleInfoImpl style = createAndAddStyle( catalog, layer );
         layerInfo.getStyles().add( style );
         layerInfo.setDefaultStyle( style );
         catalog.add( layerInfo );
@@ -366,9 +373,9 @@ public class GeoServerLoader
         // return null in org.geotools.renderer.lite.StreamingRenderer.processStylers(
         // Graphics2D, Layer, AffineTransform, CoordinateReferenceSystem, Envelope, 
         // Rectangle, String)
-        ftb.add( "polygonProperty", Polygon.class );
         // polygonProperty requires CoordinateReferenceSystem
         ftb.setCRS( DefaultGeographicCRS.WGS84 );
+        ftb.add( "polygonProperty", Polygon.class );
         ftb.add( "params", GeneralParameterValue[].class );
         final SimpleFeatureType simpleFeatureType = ftb.buildFeatureType();
 
