@@ -96,7 +96,9 @@ Bundle-ClassPath: .,
  lib/imageio-ext-streams-1.1.11.jar,
  lib/imageio-ext-tiff-1.1.11.jar,
  lib/imageio-ext-utilities-1.1.11.jar,
- lib/pngj-2.0.1.jar
+ lib/pngj-2.0.1.jar,
+ lib/commons-httpclient-3.1.jar,
+ lib/commons-codec-1.2.jar
 Export-Package: net.sf.ezmorph,
  net.sf.ezmorph.array,
  net.sf.ezmorph.bean,

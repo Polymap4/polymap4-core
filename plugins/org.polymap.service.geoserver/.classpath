@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/commons-codec-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/pngj-2.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-geocore-1.1.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-png-1.1.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-streams-1.1.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-tiff-1.1.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-utilities-1.1.11.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-web-3.1.4.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-web-3.1.4.RELEASE.jar" sourcepath="lib/sources/spring-web-3.1.4.RELEASE-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-expression-3.1.4.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/common-2.6.0.jar"/>
@@ -63,7 +65,7 @@
 	<classpathentry kind="lib" path="lib/gt-opengis-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-process-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-process-feature-13.2.jar"/>
-	<classpathentry kind="lib" path="lib/gt-process-raster-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-process-raster-13.2.jar" sourcepath="lib/sources/gt-process-raster-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-property-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-referencing-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-render-13.2.jar"/>
@@ -71,7 +73,7 @@
 	<classpathentry kind="lib" path="lib/gt-svg-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-transform-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-wfs-ng-13.2.jar"/>
-	<classpathentry kind="lib" path="lib/gt-wms-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-wms-13.2.jar" sourcepath="lib/sources/gt-wms-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-xml-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-core-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-fes-13.2.jar"/>
