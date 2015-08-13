@@ -83,7 +83,7 @@ public class NewLayerOperation
         try (TxProvider<UnitOfWork>.Tx localTx = tx.get().start( Propagation.REQUIRES_NEW )) {
             monitor.beginTask( getLabel(), 5 );
             
-            IMap localMap = localTx.get().entity( IMap.class, map.get().id() );
+            IMap localMap = localTx.get().entity( map.get() );
             // create entity
             layer.set( localTx.get().createEntity( ILayer.class, null, (ILayer proto) -> {
                 proto.label.set( label.get() );

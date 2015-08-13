@@ -173,9 +173,10 @@ public class DefaultPipelineIncubator
         }
         
         // call listeners
-        for (IPipelineIncubationListener listener : Session.instance().listeners) {
-            listener.pipelineCreated( pipeline );
-        }
+        log.info( "FIXME: Session bound Pipeline listener COMMENTED OUT!" );
+//        for (IPipelineIncubationListener listener : Session.instance().listeners) {
+//            listener.pipelineCreated( pipeline );
+//        }
 
         return pipeline;
     }

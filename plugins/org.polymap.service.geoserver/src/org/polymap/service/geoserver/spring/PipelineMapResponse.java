@@ -17,6 +17,7 @@ package org.polymap.service.geoserver.spring;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.geoserver.platform.ServiceException;
@@ -41,6 +42,7 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Timer;
+
 import org.polymap.service.geoserver.GeoServerServlet;
 
 /**
@@ -88,8 +90,9 @@ public class PipelineMapResponse
             Layer mapLayer = mapContent.layers().get( 0 );
             
             ILayer layer = null;
+            String layerName = StringUtils.substringAfterLast( mapLayer.getTitle(), ":" );
             for (ILayer l : server.getMap().layers) {
-                if (l.label.get().equals( mapLayer.getTitle() )) {
+                if (l.label.get().equals( layerName )) {
                     layer = l;
                     break;
                 }
@@ -239,7 +242,7 @@ public class PipelineMapResponse
     protected GetMapRequest prepareProcessorRequest( WMSMapContent mapContent ) throws FactoryException {
         // FIXME we need a long from the header
         String modifiedSince = mapContent.getRequest().getHttpRequestHeader( "If-Modified-Since" );
-        log.debug( "Request: If-Modified-Since: " + modifiedSince );
+        log.info( "Request: If-Modified-Since: " + modifiedSince );
     
         GetMapRequest request = new GetMapRequest( 
                 null, //layers 

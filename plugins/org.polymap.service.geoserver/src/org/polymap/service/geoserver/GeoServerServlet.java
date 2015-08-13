@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.servlet.DispatcherServlet;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -62,6 +64,7 @@ import org.polymap.core.data.pipeline.PipelineUsecase;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
+
 import org.polymap.service.geoserver.spring.PipelineMapResponse;
 
 /**
@@ -94,7 +97,7 @@ public abstract class GeoServerServlet
     
 //    private String                          sessionKey;
 
-    private Cache<Object,Pipeline>          pipelines = CacheBuilder.newBuilder().concurrencyLevel( 2 ).softValues().build();
+    private Cache<String,Pipeline>          pipelines = CacheBuilder.newBuilder().concurrencyLevel( 2 ).softValues().build();
 
 
     public abstract IMap getMap();
@@ -114,7 +117,8 @@ public abstract class GeoServerServlet
     public Pipeline getOrCreatePipeline( final ILayer layer, Class<? extends PipelineUsecase> usecase ) 
             throws Exception {
         try {
-            return pipelines.get( layer.id(), () -> {
+            String key = layer.id().toString() + usecase.getSimpleName();
+            return pipelines.get( key, () -> {
                 return createPipeline( layer, usecase );
             });
         }
@@ -289,6 +293,7 @@ public abstract class GeoServerServlet
         try {
             // session context
 //            ServiceContext.mapContext( sessionKey );
+            instance.set( this );
             response.set( resp );
             dispatcher.service( req, resp );
         }
@@ -296,6 +301,7 @@ public abstract class GeoServerServlet
             Thread.currentThread().setContextClassLoader( threadLoader );
 //            ServiceContext.unmapContext( false );
             response.set( null );
+            instance.set( null );
         }
     }
     

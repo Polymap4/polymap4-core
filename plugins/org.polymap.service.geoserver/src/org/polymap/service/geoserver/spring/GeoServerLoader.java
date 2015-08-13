@@ -14,28 +14,23 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.Triple;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogBuilder;
-import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.Keyword;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.StoreInfo;
-import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.Wrapper;
 import org.geoserver.catalog.impl.AttributeTypeInfoImpl;
@@ -57,27 +52,31 @@ import org.geoserver.wms.WMSInfoImpl;
 import org.geotools.data.DataStore;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.GeneralEnvelope;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.util.Version;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.parameter.GeneralParameterValue;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
-import org.polymap.core.runtime.Stringer;
-import org.polymap.service.geoserver.GeoServerPlugin;
-import org.polymap.service.geoserver.GeoServerServlet;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.vividsolutions.jts.geom.Polygon;
+
+import org.polymap.core.project.ILayer;
+import org.polymap.core.project.IMap;
+import org.polymap.core.runtime.Stringer;
+
+import org.polymap.service.geoserver.GeoServerPlugin;
+import org.polymap.service.geoserver.GeoServerServlet;
 
 /**
  * Initializes GeoServer configuration and catalog on startup.
@@ -492,11 +491,6 @@ public class GeoServerLoader
 
         internalLoadGeoServer( service, geoserver );
 
-        // // FIXME configure allowed EPSG codes
-        // List<String> srs = new ArrayList();
-        // srs.add( "EPSG:31468" );
-        // srs.add( "EPSG:4326" );
-
         createAndAddWMSInfo( map, geoserver );
         createAndAddWFSInfo( map, geoserver );
     }
@@ -568,7 +562,13 @@ public class GeoServerLoader
         wms.setOutputStrategy( "SPEED" );
 
         // XXX make this configurable; deliver all known EPSG codes for now :)
-        // wms.setSRS( srs );
+        // FIXME configure allowed EPSG codes
+        List<String> srs = new ArrayList();
+        srs.add( "EPSG:31468" );
+        srs.add( "EPSG:4326" );
+        srs.add( "EPSG:3857" );
+        wms.setSRS( srs );
+        
         List<Version> versions = new ArrayList<Version>();
         versions.add( new Version( "1.1.1" ) );
         versions.add( new Version( "1.3" ) );
