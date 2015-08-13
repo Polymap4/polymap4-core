@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.servlet.DispatcherServlet;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -64,7 +62,6 @@ import org.polymap.core.data.pipeline.PipelineUsecase;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
-
 import org.polymap.service.geoserver.spring.PipelineMapResponse;
 
 /**
@@ -74,19 +71,20 @@ import org.polymap.service.geoserver.spring.PipelineMapResponse;
  */
 public abstract class GeoServerServlet
         extends HttpServlet {
+    private static final long serialVersionUID = -2859693647813939503L;
 
     private static final Log log = LogFactory.getLog( GeoServerServlet.class );
 
-    /** First attemp to pass info to GeoServerLoader inside Spring. */
-    public static ThreadLocal<GeoServerServlet>     instance = new ThreadLocal();
+    /** First attempt to pass info to GeoServerLoader inside Spring. */
+    public static ThreadLocal<GeoServerServlet>     instance = new ThreadLocal<GeoServerServlet>();
     
     /**
      * XXX Bad hack. I just don't find the right way through GeoServer code
      * to get HTTP response in a {@link PipelineMapResponse}.
      */
-    public static ThreadLocal<HttpServletResponse>  response = new ThreadLocal();
+    public static ThreadLocal<HttpServletResponse>  response = new ThreadLocal<HttpServletResponse>();
     
-    private List<ServletContextListener>    loaders = new ArrayList();
+    private List<ServletContextListener>    loaders = new ArrayList<ServletContextListener>();
     
     private DispatcherServlet               dispatcher;
     
@@ -242,7 +240,7 @@ public abstract class GeoServerServlet
                 return GeoServerServlet.this.getInitParameter( name );
             }
 
-            public Enumeration getInitParameterNames() {
+            public Enumeration<String> getInitParameterNames() {
                 return GeoServerServlet.this.getInitParameterNames();
             }
 
@@ -258,8 +256,7 @@ public abstract class GeoServerServlet
     
     
     protected String getMapLabel() {
-//    	return map.getLabel();
-    	return "dummy_map";
+    	return getMap().label.get();
     }
 
 
@@ -340,7 +337,7 @@ public abstract class GeoServerServlet
             return delegate.getAttribute( name );
         }
 
-        public Enumeration getAttributeNames() {
+        public Enumeration<String> getAttributeNames() {
             return delegate.getAttributeNames();
         }
 
@@ -358,7 +355,7 @@ public abstract class GeoServerServlet
             return delegate.getInitParameter( name );
         }
 
-        public Enumeration getInitParameterNames() {
+        public Enumeration<String> getInitParameterNames() {
             return delegate.getInitParameterNames();
         }
 
@@ -420,7 +417,7 @@ public abstract class GeoServerServlet
 //            return delegate.getResourceAsStream( path );
         }
 
-        public Set getResourcePaths( String path ) {
+        public Set<String> getResourcePaths( String path ) {
             return delegate.getResourcePaths( path );
         }
 
@@ -437,11 +434,11 @@ public abstract class GeoServerServlet
             return delegate.getServletContextName();
         }
 
-        public Enumeration getServletNames() {
+        public Enumeration<String> getServletNames() {
             return delegate.getServletNames();
         }
 
-        public Enumeration getServlets() {
+        public Enumeration<Servlet> getServlets() {
             return delegate.getServlets();
         }
 

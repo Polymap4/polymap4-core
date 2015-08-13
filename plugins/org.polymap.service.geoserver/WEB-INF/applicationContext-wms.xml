@@ -436,7 +436,7 @@
     </bean>
 
 	<!-- replaced by polymap PNGMapProducer, see below -->
-    <!--bean id="PNGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <bean id="PNGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
         <value>image/png</value>
@@ -449,7 +449,7 @@
       </constructor-arg>
       <constructor-arg ref="wms" />
       <property name="extension" value="png"/>
-    </bean-->
+    </bean>
 
     <bean id="PNG8MapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
@@ -467,16 +467,16 @@
       <property name="extension" value="png"/>
     </bean>
 
-    <!--bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
+    <!-- bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
       <constructor-arg ref="wms" />
     </bean-->
 
     <!--  
         Polymap
      -->
-    <bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
+    <!-- bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
       <constructor-arg ref="wms" />
-    </bean>
+    </bean-->
     
     <!-- falko: kein Tiff support, keine zusätzlichen probleme ;) -->
     <!--bean id="GeoTiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
@@ -779,12 +779,12 @@
   
   
     <!-- replaces default PNGMapProducer -->
-    <!-- bean id="PNGMapProducer"
+    <bean id="PNGMapResponse"
         singleton="false"
         class="org.polymap.service.geoserver.spring.PipelineMapResponse">
         <constructor-arg index="0" ref="wms"/>
-        <constructor-arg index="1" ref="geoServerLoader"/>
-    </bean-->
+        <!--constructor-arg index="1" ref="geoServerLoader"/-->
+    </bean>
 
     <!-- _p3: the bridge to polymap pipeline system -->
     <!-- bean id="pipelineDataStoreFactoryInitializer" class="org.polymap.service.geoserver.spring.PipelineDataStoreFactoryInitializer">
