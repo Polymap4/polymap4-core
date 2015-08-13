@@ -362,9 +362,13 @@ public class GeoServerLoader
         SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
         ftb.setName( typeName );
         ftb.setNamespaceURI( NAMESPACE );
-        ftb.setCRS( DefaultGeographicCRS.WGS84 );
-        // ftb.add("geom", Polygon.class, getLayerCRS());
+        // required to have schema.getGeometryDescriptor() not 
+        // return null in org.geotools.renderer.lite.StreamingRenderer.processStylers(
+        // Graphics2D, Layer, AffineTransform, CoordinateReferenceSystem, Envelope, 
+        // Rectangle, String)
         ftb.add( "polygonProperty", Polygon.class );
+        // polygonProperty requires CoordinateReferenceSystem
+        ftb.setCRS( DefaultGeographicCRS.WGS84 );
         ftb.add( "params", GeneralParameterValue[].class );
         final SimpleFeatureType simpleFeatureType = ftb.buildFeatureType();
 
