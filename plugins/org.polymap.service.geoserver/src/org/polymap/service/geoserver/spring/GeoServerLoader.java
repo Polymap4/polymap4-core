@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogBuilder;
+import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.Keyword;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ProjectionPolicy;
@@ -55,6 +56,10 @@ import org.geoserver.wms.WMSInfoImpl;
 import org.geotools.data.DataStore;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.util.Version;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -70,6 +75,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * Initializes GeoServer configuration and catalog on startup.
@@ -287,7 +294,7 @@ public class GeoServerLoader
         // "native"
         // SRS of the data?
         // FIXME ftInfo.setSRS( layer.getCRSCode() );
-        // setBoundingBox( FeatureTypeInfo ftInfo)
+        setBoundingBox(ftInfo);
         ftInfo.setEnabled( true );
 
         List<AttributeTypeInfo> attributeInfos = new ArrayList();
@@ -306,19 +313,19 @@ public class GeoServerLoader
     }
 
 
-//    private void setBoundingBox( FeatureTypeInfo ftInfo ) {
-//        ReferencedEnvelope bbox = /* map.getMaxExtent() */new ReferencedEnvelope();
-//        try {
-//            GeneralEnvelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
-//            double[] lu = latlon.getLowerCorner().getCoordinate();
-//            double[] ro = latlon.getUpperCorner().getCoordinate();
-//            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
-//        }
-//        catch (Exception e) {
-//            log.warn( e );
-//            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
-//        }
-//    }
+    private void setBoundingBox( FeatureTypeInfo ftInfo ) {
+        ReferencedEnvelope bbox = /* map.getMaxExtent() */new ReferencedEnvelope();
+        try {
+            GeneralEnvelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
+            double[] lu = latlon.getLowerCorner().getCoordinate();
+            double[] ro = latlon.getUpperCorner().getCoordinate();
+            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
+        }
+        catch (Exception e) {
+            log.warn( e );
+            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
+        }
+    }
 
 
     /**
@@ -328,13 +335,13 @@ public class GeoServerLoader
     private Triple<? extends StoreInfo,? extends DataStore,? extends SimpleFeatureType> createAndAddDataStore(
             ILayer layer, CatalogBuilder catalogBuilder, Catalog catalog, WorkspaceInfo wsInfo ) throws IOException {
 
-        // DataStore
-        StoreInfo dsInfo = createAndAddDataStore( layer, catalogBuilder, catalog, wsInfo, null );
-
         // FIXME just coverage/WMS supported so far
         String typeName = simpleName( layer.label.get() );
         DataStore ds = wrapCoverageLayer( layer, typeName );
         SimpleFeatureType schema = ds.getSchema( typeName );
+
+        // DataStore
+        StoreInfo dsInfo = createAndAddDataStore( layer, catalogBuilder, catalog, wsInfo, ds );
 
         return Triple.of( dsInfo, ds, schema );
     }
@@ -355,7 +362,9 @@ public class GeoServerLoader
         SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
         ftb.setName( typeName );
         ftb.setNamespaceURI( NAMESPACE );
+        ftb.setCRS( DefaultGeographicCRS.WGS84 );
         // ftb.add("geom", Polygon.class, getLayerCRS());
+        ftb.add( "polygonProperty", Polygon.class );
         ftb.add( "params", GeneralParameterValue[].class );
         final SimpleFeatureType simpleFeatureType = ftb.buildFeatureType();
 
