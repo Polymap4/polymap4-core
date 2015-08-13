@@ -31,22 +31,19 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
-
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.collection.AdaptorFeatureCollection;
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.catalog.IService;
+
+import org.polymap.core.data.pipeline.PipelineUsecase;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.LayerUseCase;
 
 /**
  *
@@ -55,7 +52,7 @@ import org.polymap.core.project.LayerUseCase;
  * @since 3.0
  */
 public class DataSourceProcessor
-        implements TerminalPipelineProcessor {
+        implements TerminalPipelineProcessor, PipelineUsecase {
 
     private static final Log log = LogFactory.getLog( DataSourceProcessor.class );
 
@@ -67,42 +64,42 @@ public class DataSourceProcessor
     public static final int                 DEFAULT_CHUNK_SIZE = 1024;
 
 
-    public static ProcessorSignature signature( LayerUseCase usecase ) {
-        if (usecase == LayerUseCase.FEATURES_TRANSACTIONAL ) {
-            return new ProcessorSignature(
-                    new Class[] {ModifyFeaturesRequest.class, RemoveFeaturesRequest.class, AddFeaturesRequest.class, GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-                    new Class[] {},
-                    new Class[] {},
-                    new Class[] {ModifyFeaturesResponse.class, GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class}
-            );
-        }
-        else {
-            return new ProcessorSignature(
-                    new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-                    new Class[] {},
-                    new Class[] {},
-                    new Class[] {GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class}
-            );
-        }
-    }
+//    public static ProcessorSignature signature( LayerUseCase usecase ) {
+//        if (usecase == LayerUseCase.FEATURES_TRANSACTIONAL ) {
+//            return new ProcessorSignature(
+//                    new Class[] {ModifyFeaturesRequest.class, RemoveFeaturesRequest.class, AddFeaturesRequest.class, GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
+//                    new Class[] {},
+//                    new Class[] {},
+//                    new Class[] {ModifyFeaturesResponse.class, GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class}
+//            );
+//        }
+//        else {
+//            return new ProcessorSignature(
+//                    new Class[] {GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
+//                    new Class[] {},
+//                    new Class[] {},
+//                    new Class[] {GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class}
+//            );
+//        }
+//    }
 
-    public static boolean isCompatible( IService service ) {
-        // FIXME Postgres does not resolve to a DataStore!? :( Anyway, isCompatible should
-        // receive a IGeiResource instead of an IService
-        if (service.getClass().getSimpleName().equals( "PostgisService2" ) ) {
-            return true;
-        }
-        // WFS, Memory, ...
-        else {
-            try {
-                return service.resolve( DataAccess.class, null ) != null;
-            }
-            catch (IOException e) {
-                log.warn( e.getMessage() );
-            }
-        }
-        return false;
-    }
+//    public static boolean isCompatible( IService service ) {
+//        // FIXME Postgres does not resolve to a DataStore!? :( Anyway, isCompatible should
+//        // receive a IGeiResource instead of an IService
+//        if (service.getClass().getSimpleName().equals( "PostgisService2" ) ) {
+//            return true;
+//        }
+//        // WFS, Memory, ...
+//        else {
+//            try {
+//                return service.resolve( DataAccess.class, null ) != null;
+//            }
+//            catch (IOException e) {
+//                log.warn( e.getMessage() );
+//            }
+//        }
+//        return false;
+//    }
 
 
     // instance *******************************************

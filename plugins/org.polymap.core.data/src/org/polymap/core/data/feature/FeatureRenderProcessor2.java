@@ -1,26 +1,17 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
-
 package org.polymap.core.data.feature;
 
 import java.util.HashMap;
@@ -42,17 +33,12 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 
-import net.refractions.udig.catalog.IService;
-import net.refractions.udig.catalog.ITransientResolve;
-
 import org.geotools.data.FeatureSource;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.map.DefaultMapContext;
-import org.geotools.map.MapContext;
-import org.geotools.renderer.RenderListener;
-import org.geotools.renderer.lite.StreamingRenderer;
+import org.geotools.map.MapContent;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -70,12 +56,9 @@ import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.LayerUseCase;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.event.EventHandler;
-import org.polymap.core.style.geotools.DefaultStyles;
 
 /**
  * This processor renders features using the geotools {@link StreamingRenderer}.
@@ -83,8 +66,6 @@ import org.polymap.core.style.geotools.DefaultStyles;
  * {@link LayerUseCase#FEATURES}.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
  */
 public class FeatureRenderProcessor2
         implements TerminalPipelineProcessor {
@@ -93,37 +74,37 @@ public class FeatureRenderProcessor2
     
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
 
-    private static final ProcessorSignature signature = new ProcessorSignature(
-            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-            new Class[] {},
-            new Class[] {},
-            new Class[] {ImageResponse.class, GetLayerTypesResponse.class}
-            );
-
-    public static ProcessorSignature signature( LayerUseCase usecase ) {
-        return signature;
-    }
-
-    public static boolean isCompatible( IService service ) {
-        // we are compatible to everything a feature pipeline can be build for
-        if (DataSourceProcessor.isCompatible( service )) {
-            return true;
-        }
-        // FIXME hack to get biotop working
-        else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
-            return true;
-        }
-        // FIXME recognize EntityServiceImpl
-        else if (service.canResolve( ITransientResolve.class ) ) {
-            return true;
-        }
-        return false;
-    }
+//    private static final ProcessorSignature signature = new ProcessorSignature(
+//            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
+//            new Class[] {},
+//            new Class[] {},
+//            new Class[] {ImageResponse.class, GetLayerTypesResponse.class}
+//            );
+//
+//    public static ProcessorSignature signature( LayerUseCase usecase ) {
+//        return signature;
+//    }
+//
+//    public static boolean isCompatible( IService service ) {
+//        // we are compatible to everything a feature pipeline can be build for
+//        if (DataSourceProcessor.isCompatible( service )) {
+//            return true;
+//        }
+//        // FIXME hack to get biotop working
+//        else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
+//            return true;
+//        }
+//        // FIXME recognize EntityServiceImpl
+//        else if (service.canResolve( ITransientResolve.class ) ) {
+//            return true;
+//        }
+//        return false;
+//    }
     
     
     // instance *******************************************
         
-    protected LazyInit<MapContext>              mapContextRef = new CachedLazyInit( 1024 );
+    protected LazyInit<MapContent>              mapContextRef = new CachedLazyInit( 1024 );
     
     /**
      * The layers for which an {@link LayerStyleListener} was registered. Entries are
@@ -146,8 +127,7 @@ public class FeatureRenderProcessor2
     }
 
     
-    public void processRequest( ProcessorRequest r, ProcessorContext context )
-    throws Exception {
+    public void processRequest( ProcessorRequest r, ProcessorContext context ) throws Exception {
         // GetMapRequest
         if (r instanceof GetMapRequest) {
             GetMapRequest request = (GetMapRequest)r;
@@ -187,8 +167,8 @@ public class FeatureRenderProcessor2
 //        wfsLog.setLevel( Level.FINEST );
 
         // mapContext
-        MapContext mapContext = mapContextRef.get( new Supplier<MapContext>() {            
-            public MapContext get() {
+        MapContent mapContext = mapContextRef.get( new Supplier<MapContent>() {            
+            public MapContent get() {
                 log.debug( "Creating new MapContext... " );
                 // sort z-priority
                 TreeMap<String,ILayer> sortedLayers = new TreeMap();
@@ -197,7 +177,7 @@ public class FeatureRenderProcessor2
                     sortedLayers.put( uniqueOrderKey, layer );
                 }
                 // add to mapContext
-                MapContext result = new DefaultMapContext( bbox.getCoordinateReferenceSystem() );
+                MapContent result = new DefaultMapContext( bbox.getCoordinateReferenceSystem() );
                 for (ILayer layer : sortedLayers.values()) {
                     try {
                         FeatureSource fs = PipelineFeatureSource.forLayer( layer, false );

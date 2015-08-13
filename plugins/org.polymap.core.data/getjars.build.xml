@@ -65,6 +65,7 @@
 
             <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-render" version="${geotools.version}" />
 			
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />

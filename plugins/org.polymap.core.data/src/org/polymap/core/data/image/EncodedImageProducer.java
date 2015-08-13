@@ -20,8 +20,8 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
- * Provides the interface of a processor that produces responses of the 'Encoded
- * Image' use case.
+ * The interface of a processor that produces responses of the 'Encoded Image' use
+ * case.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
