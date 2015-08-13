@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
@@ -31,26 +29,23 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.util.ProgressListener;
 import org.geotools.data.AbstractFeatureSource;
 import org.geotools.data.DataStore;
-import org.geotools.data.DefaultQuery;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureReader;
-import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.data.Transaction;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
 import org.geotools.util.SimpleInternationalString;
-
-import net.refractions.udig.catalog.IGeoResource;
-import net.refractions.udig.catalog.IService;
 
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
@@ -62,13 +57,14 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
-import org.polymap.core.data.pipeline.DefaultPipelineIncubator;
+import org.polymap.core.data.pipeline.DepthFirstStackExecutor;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
+import org.polymap.core.data.pipeline.PipelineExecutor;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
-import org.polymap.core.project.ILayer;
-import org.polymap.core.project.LayerUseCase;
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.ConfigurationFactory;
+import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.runtime.session.SessionContext;
 
 /**
@@ -77,7 +73,6 @@ import org.polymap.core.runtime.session.SessionContext;
  * {@link Pipeline}, instantiated for use-case {@link LayerUseCase#FEATURES}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public class PipelineFeatureSource
         extends AbstractFeatureSource
@@ -85,63 +80,69 @@ public class PipelineFeatureSource
 
     private static final Log log = LogFactory.getLog( PipelineFeatureSource.class );
 
-    private static DefaultPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
+//    private static DefaultPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
 
 
     // static factory *************************************
 
-    /**
-     * Instantiates a new pipelined {@link FeatureSource} for the given layer.
-     * <p>
-     * This method may block execution while accessing the back-end service.
-     * 
-     * @return The newly created <code>FeatureSource</code>, or null if no
-     *         {@link FeatureSource} could be created for this layer because its is a
-     *         raster layer or no appropriate processors could be found.
-     * @throws PipelineIncubationException
-     * @throws IOException
-     * @throws IllegalStateException If the geo resource for the given layer could
-     *         not be find.
-     */
-    public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional )
-    throws PipelineIncubationException, IOException {
-        assert layer != null : "layer == null is not allowed";
-        log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
-
-        IGeoResource res = layer.getGeoResource();
-        if (res == null) {
-            throw new IllegalStateException( "Unable to find geo resource for layer: " + layer );
-        }
-        IService service = res.service( null );
-        log.debug( "service: " + service );
-
-        // create pipeline
-        LayerUseCase useCase = transactional
-                ? LayerUseCase.FEATURES_TRANSACTIONAL
-                : LayerUseCase.FEATURES;
-        Pipeline pipe = pipelineIncubator.newPipeline( useCase, layer.getMap(), layer, service );
-
-        return pipe.length() > 0
-                // create FeatureSource
-                ? new PipelineFeatureSource( pipe )
-                : null;
-    }
+//    /**
+//     * Instantiates a new pipelined {@link FeatureSource} for the given layer.
+//     * <p>
+//     * This method may block execution while accessing the back-end service.
+//     * 
+//     * @return The newly created <code>FeatureSource</code>, or null if no
+//     *         {@link FeatureSource} could be created for this layer because its is a
+//     *         raster layer or no appropriate processors could be found.
+//     * @throws PipelineIncubationException
+//     * @throws IOException
+//     * @throws IllegalStateException If the geo resource for the given layer could
+//     *         not be find.
+//     */
+//    public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional )
+//    throws PipelineIncubationException, IOException {
+//        assert layer != null : "layer == null is not allowed";
+//        log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
+//
+//        IGeoResource res = layer.getGeoResource();
+//        if (res == null) {
+//            throw new IllegalStateException( "Unable to find geo resource for layer: " + layer );
+//        }
+//        IService service = res.service( null );
+//        log.debug( "service: " + service );
+//
+//        // create pipeline
+//        LayerUseCase useCase = transactional
+//                ? LayerUseCase.FEATURES_TRANSACTIONAL
+//                : LayerUseCase.FEATURES;
+//        Pipeline pipe = pipelineIncubator.newPipeline( useCase, layer.getMap(), layer, service );
+//
+//        return pipe.length() > 0
+//                // create FeatureSource
+//                ? new PipelineFeatureSource( pipe )
+//                : null;
+//    }
 
 
     // instance *******************************************
 
-    private Pipeline            pipeline;
+    /** XXX defaults to {@link DepthFirstStackExecutor}. */
+    @Mandatory
+    public Config2<PipelineFeatureSource,PipelineExecutor>  pipelineExecutor;
+    
+    private Pipeline                pipeline;
 
-    private PipelineDataStore   store;
+    private PipelineDataStore       store;
 
-    private Transaction         tx = Transaction.AUTO_COMMIT;
+    private Transaction             tx = Transaction.AUTO_COMMIT;
 
-    private SessionContext      sessionContext = SessionContext.current();
+    private SessionContext          sessionContext = SessionContext.current();
 
 
     public PipelineFeatureSource( Pipeline pipeline ) {
-        super();
+        ConfigurationFactory.inject( this );
         this.pipeline = pipeline;
+        this.pipelineExecutor.set( new DepthFirstStackExecutor() );
+        
         // FIXME this has to be unique instance per session
         this.store = new PipelineDataStore( this );
     }
@@ -155,15 +156,15 @@ public class PipelineFeatureSource
         return pipeline;
     }
 
-    public ILayer getLayer() {
-        Set<ILayer> layers = getPipeline().getLayers();
-        assert layers.size() == 1;
-        return layers.iterator().next();
-    }
+//    public ILayer getLayer() {
+//        Set<ILayer> layers = getPipeline().getLayers();
+//        assert layers.size() == 1;
+//        return layers.iterator().next();
+//    }
 
 
-    public ReferencedEnvelope getBounds( Query query )
-            throws IOException {
+    @Override
+    public ReferencedEnvelope getBounds( Query query ) throws IOException {
         // XXX optimize getBounds via dedicated request
         log.info( "XXX: getBounds: iterating over collection!" );
         ReferencedEnvelope result = new ReferencedEnvelope();
@@ -181,12 +182,14 @@ public class PipelineFeatureSource
     }
 
 
+    @Override
     public int getCount( Query query )
             throws IOException {
         return getFeaturesSize( query );
     }
 
 
+    @Override
     public SimpleFeatureType getSchema() {
         // XXX caching schema is not allowed since the pipeline and/or processors
         // may change; maybe we could add a listener API to the pipeline
@@ -195,9 +198,8 @@ public class PipelineFeatureSource
         GetFeatureTypeRequest request = new GetFeatureTypeRequest();
         try {
             final FeatureType[] type = new FeatureType[1];
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
+            pipelineExecutor.get().execute( pipeline, request, new ResponseHandler() {
+                public void handle( ProcessorResponse r ) throws Exception {
                     GetFeatureTypeResponse response = (GetFeatureTypeResponse)r;
                     type[0] = response.getFeatureType();
                 }
@@ -213,14 +215,14 @@ public class PipelineFeatureSource
     }
 
 
-    public FeatureCollection<SimpleFeatureType, SimpleFeature> getFeatures( Query query )
-    throws IOException {
+    @Override
+    public SimpleFeatureCollection getFeatures( Query query ) throws IOException {
         log.debug( "query= " + query );
         //assert query.getFilter() != null : "No filter in query.";
         if (query.getFilter() == null) {
             log.warn( "Filter is NULL -> changing to EXCLUDE to prevent unwanted loading of all features! Use INCLUDE to get all." );
-            query = new DefaultQuery( query );
-            ((DefaultQuery)query).setFilter( Filter.EXCLUDE );
+            query = new Query( query );
+            query.setFilter( Filter.EXCLUDE );
         }
         return new AsyncPipelineFeatureCollection( this, query, sessionContext );
     }
@@ -229,15 +231,13 @@ public class PipelineFeatureSource
     /**
      * Called by {@link SyncPipelineFeatureCollection} to fetch feature chunks.
      */
-    protected void fetchFeatures( Query query, final FeatureResponseHandler handler )
-    throws Exception {
+    protected void fetchFeatures( Query query, final FeatureResponseHandler handler ) throws Exception {
         try {
             log.debug( "fetchFeatures(): maxFeatures= " + query.getMaxFeatures() );
             GetFeaturesRequest request = new GetFeaturesRequest( query );
 
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
+            pipelineExecutor.get().execute( pipeline, request, new ResponseHandler() {
+                public void handle( ProcessorResponse r ) throws Exception {
                     GetFeaturesResponse response = (GetFeaturesResponse)r;
                     handler.handle( response.getFeatures() );
                 }
@@ -273,12 +273,9 @@ public class PipelineFeatureSource
         GetFeaturesSizeRequest request = new GetFeaturesSizeRequest( query );
         try {
             final int[] result = new int[1];
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
+            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {
                     GetFeaturesSizeResponse response = (GetFeaturesSizeResponse)r;
                     result[0] = response.getSize();
-                }
             });
             return result[0];
         }
@@ -373,11 +370,9 @@ public class PipelineFeatureSource
             final List<FeatureId> fids = new ArrayList( 1024 );
             // request
             AddFeaturesRequest request = new AddFeaturesRequest( features.getSchema(), coll );
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r ) throws Exception {
-                    fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() );
-                }
-            });
+            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> 
+                    fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() )
+            );
 
             // fire event
             store.listeners.fireFeaturesAdded( getSchema().getTypeName(), tx, null, false );
@@ -397,17 +392,13 @@ public class PipelineFeatureSource
     }
 
 
-    public void removeFeatures( Filter filter )
-    throws IOException {
+    public void removeFeatures( Filter filter ) throws IOException {
         try {
             // request
             RemoveFeaturesRequest request = new RemoveFeaturesRequest( filter );
             final ModifyFeaturesResponse[] response = new ModifyFeaturesResponse[1];
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
+            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {
                     response[0] = (ModifyFeaturesResponse)r;
-                }
             });
             // fire event
             store.listeners.fireFeaturesRemoved( getSchema().getTypeName(), tx, null, false );
@@ -425,24 +416,33 @@ public class PipelineFeatureSource
     }
 
 
-    public void modifyFeatures( AttributeDescriptor type, Object value, Filter filter )
-    throws IOException {
+    @Override
+    public void modifyFeatures( Name[] attributeNames, Object[] attributeValues, Filter filter ) throws IOException {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    @Override
+    public void modifyFeatures( Name attributeName, Object attributeValue, Filter filter ) throws IOException {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    public void modifyFeatures( AttributeDescriptor type, Object value, Filter filter ) throws IOException {
         modifyFeatures( new AttributeDescriptor[] { type }, new Object[] { value }, filter );
     }
 
 
-    public void modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter )
-    throws IOException {
+    public void modifyFeatures( AttributeDescriptor[] type, Object[] value, Filter filter ) throws IOException {
         try {
             // request
             ModifyFeaturesRequest request = new ModifyFeaturesRequest( type, value, filter );
             final ModifyFeaturesResponse[] response = new ModifyFeaturesResponse[1];
-            pipeline.process( request, new ResponseHandler() {
-                public void handle( ProcessorResponse r )
-                throws Exception {
-                    response[0] = (ModifyFeaturesResponse)r;
-                }
-            });
+            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) ->
+                    response[0] = (ModifyFeaturesResponse)r
+            );
             // fire event
             log.debug( "Event: type=" + getName().getLocalPart() );
             store.listeners.fireFeaturesChanged( getName().getLocalPart(), tx, null, false );

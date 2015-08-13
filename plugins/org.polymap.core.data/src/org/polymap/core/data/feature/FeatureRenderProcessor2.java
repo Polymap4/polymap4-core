@@ -16,213 +16,133 @@ package org.polymap.core.data.feature;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
-
 import org.geotools.data.FeatureSource;
-import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
+import org.geotools.renderer.RenderListener;
+import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.base.Supplier;
-
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.image.GetLayerTypesRequest;
-import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
+import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
-import org.polymap.core.data.pipeline.ProcessorRequest;
-import org.polymap.core.data.pipeline.ProcessorResponse;
-import org.polymap.core.data.pipeline.ProcessorSignature;
-import org.polymap.core.runtime.CachedLazyInit;
-import org.polymap.core.runtime.LazyInit;
-import org.polymap.core.runtime.event.EventHandler;
+import org.polymap.core.data.pipeline.PipelineIncubator;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 
 /**
- * This processor renders features using the geotools {@link StreamingRenderer}.
- * The features are fetched through a sub pipeline for usecase
- * {@link LayerUseCase#FEATURES}.
+ * This processor renders features using the geotools {@link StreamingRenderer}. The
+ * features are fetched through a sub pipeline for usecase {@link FeaturesProducer}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a> 
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
 public class FeatureRenderProcessor2
-        implements TerminalPipelineProcessor {
+        implements TerminalPipelineProcessor, ImageProducer {
 
-    // see UDig BasisFeatureRenderer 
-    
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
+    
+    private PipelineProcessorSite           site;
 
-//    private static final ProcessorSignature signature = new ProcessorSignature(
-//            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-//            new Class[] {},
-//            new Class[] {},
-//            new Class[] {ImageResponse.class, GetLayerTypesResponse.class}
-//            );
-//
-//    public static ProcessorSignature signature( LayerUseCase usecase ) {
-//        return signature;
+
+    // XXX check style changes, if caching is used.
+//    protected LazyInit<MapContent>              mapContextRef = new CachedLazyInit( 1024 );
+    
+//    /**
+//     * The layers for which an {@link LayerStyleListener} was registered. Entries are
+//     * created in {@link #getMap(Set, int, int, ReferencedEnvelope)} and released in
+//     * {@link #finalize()}.
+//     */
+//    protected ConcurrentMap<ILayer,LayerStyleListener> watchedLayers = new ConcurrentHashMap();
+    
+    
+    @Override
+    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) throws Exception {
+        this.site = site;
+    }
+
+
+    @Override
+    public boolean isCompatible( DataSourceDescription dsd ) {
+      // we are compatible to everything a feature pipeline can be build for
+      if (new DataSourceProcessor().isCompatible( dsd )) {
+          return true;
+      }
+//      // FIXME hack to get biotop working
+//      else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
+//          return true;
+//      }
+//      // FIXME recognize EntityServiceImpl
+//      else if (service.canResolve( ITransientResolve.class ) ) {
+//          return true;
+//      }
+      return false;
+    }
+
+
+//    protected void finalize() throws Throwable {
+//        log.debug( "FINALIZE: watchedLayers: " + watchedLayers.size() );
+//        for (Map.Entry<ILayer,LayerStyleListener> entry : watchedLayers.entrySet()) {
+//            entry.getKey().removePropertyChangeListener( entry.getValue() );
+//        }
+//        mapContextRef.clear();
 //    }
-//
-//    public static boolean isCompatible( IService service ) {
-//        // we are compatible to everything a feature pipeline can be build for
-//        if (DataSourceProcessor.isCompatible( service )) {
-//            return true;
-//        }
-//        // FIXME hack to get biotop working
-//        else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
-//            return true;
-//        }
-//        // FIXME recognize EntityServiceImpl
-//        else if (service.canResolve( ITransientResolve.class ) ) {
-//            return true;
-//        }
-//        return false;
-//    }
-    
-    
-    // instance *******************************************
-        
-    protected LazyInit<MapContent>              mapContextRef = new CachedLazyInit( 1024 );
-    
-    /**
-     * The layers for which an {@link LayerStyleListener} was registered. Entries are
-     * created in {@link #getMap(Set, int, int, ReferencedEnvelope)} and released in
-     * {@link #finalize()}.
-     */
-    protected ConcurrentMap<ILayer,LayerStyleListener> watchedLayers = new ConcurrentHashMap();
-    
-    
-    public void init( Properties props ) {
-    }
 
+    
+    @Override
+    public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
+        long start = System.currentTimeMillis();
 
-    protected void finalize() throws Throwable {
-        log.debug( "FINALIZE: watchedLayers: " + watchedLayers.size() );
-        for (Map.Entry<ILayer,LayerStyleListener> entry : watchedLayers.entrySet()) {
-            entry.getKey().removePropertyChangeListener( entry.getValue() );
+        BufferedImage result = null;
+
+        // MapContent
+        log.debug( "Creating new MapContext... " );
+        MapContent mapContent = new MapContent();
+        mapContent.getViewport()
+                .setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
+        try {
+            PipelineIncubator incubator = null;
+            DataSourceDescription dsd = new DataSourceDescription( site.dsd.get() );
+            Pipeline pipeline = incubator.newPipeline( FeaturesProducer.class, dsd, null );
+            FeatureSource fs = new PipelineFeatureSource( pipeline );
+
+            Style style = new DefaultStyles().findStyle( fs );
+            mapContent.addLayer( new FeatureLayer( fs, style ) );
+
+//            // watch layer for style changes
+//            LayerStyleListener listener = new LayerStyleListener( mapContextRef );
+//            if (watchedLayers.putIfAbsent( layer, listener ) == null) {
+//                layer.addPropertyChangeListener( listener );
+//            }
         }
-        mapContextRef.clear();
-    }
-
-    
-    public void processRequest( ProcessorRequest r, ProcessorContext context ) throws Exception {
-        // GetMapRequest
-        if (r instanceof GetMapRequest) {
-            GetMapRequest request = (GetMapRequest)r;
-            
-            long start = System.currentTimeMillis();
-            Image image = getMap( context.getLayers(), request.getWidth(), request.getHeight(), request.getBoundingBox() );
-            log.debug( "   ...done: (" + (System.currentTimeMillis()-start) + "ms)." );
-
-            context.sendResponse( new ImageResponse( image ) );
-            context.sendResponse( ProcessorResponse.EOP );
+        catch (PipelineIncubationException e) {
+            log.warn( "No pipeline.", e );
         }
-//        // GetLegendGraphicRequest
-//        else if (r instanceof GetLegendGraphicRequest) {
-//            getLegendGraphic( (GetLegendGraphicRequest)r, context );
-//        }
-//        // GetLayerTypes
-//        else if (r instanceof GetLayerTypesRequest) {
-//            getLayerTypes();
-//            List<LayerType> types = getLayerTypes();
-//            context.sendResponse( new GetLayerTypesResponse( types ) );
-//            context.sendResponse( ProcessorResponse.EOP );
-//        }
-        else {
-            throw new IllegalArgumentException( "Unhandled request type: " + r );
-        }
-    }
+        log.debug( "created: " + result );
 
-    
-    public void processResponse( ProcessorResponse reponse, ProcessorContext context )
-            throws Exception {
-        throw new IllegalStateException( "This is a terminal processor." );
-    }
-
-
-    protected Image getMap( final Set<ILayer> layers, int width, int height, final ReferencedEnvelope bbox ) {
-//        Logger wfsLog = Logging.getLogger( "org.geotools.data.wfs.protocol.http" );
-//        wfsLog.setLevel( Level.FINEST );
-
-        // mapContext
-        MapContent mapContext = mapContextRef.get( new Supplier<MapContent>() {            
-            public MapContent get() {
-                log.debug( "Creating new MapContext... " );
-                // sort z-priority
-                TreeMap<String,ILayer> sortedLayers = new TreeMap();
-                for (ILayer layer : layers) {
-                    String uniqueOrderKey = String.valueOf( layer.getOrderKey() ) + layer.id();
-                    sortedLayers.put( uniqueOrderKey, layer );
-                }
-                // add to mapContext
-                MapContent result = new DefaultMapContext( bbox.getCoordinateReferenceSystem() );
-                for (ILayer layer : sortedLayers.values()) {
-                    try {
-                        FeatureSource fs = PipelineFeatureSource.forLayer( layer, false );
-                        log.debug( "        FeatureSource: " + fs );
-                        log.debug( "            fs.getName(): " + fs.getName() );
-
-                        Style style = layer.getStyle().resolve( Style.class, null );
-                        if (style == null) {
-                            log.warn( "            fs.getName(): " + fs.getName() );
-                            style = new DefaultStyles().findStyle( fs );
-                        }
-                        result.addLayer( fs, style );
-                        
-                        // watch layer for style changes
-                        LayerStyleListener listener = new LayerStyleListener( mapContextRef );
-                        if (watchedLayers.putIfAbsent( layer, listener ) == null) {
-                            layer.addPropertyChangeListener( listener );
-                        }
-                    }
-                    catch (IOException e) {
-                        log.warn( e );
-                        // FIXME set layer status and statusMessage
-                    }
-                    catch (PipelineIncubationException e) {
-                        log.warn( "No pipeline.", e );
-                    }
-                }
-                log.debug( "created: " + result );
-                return result;
-            }
-        });
-        log.debug( "using: " + mapContext );
-        
-        // render
-        
-        // Get default graphics device
-//        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//        GraphicsDevice[] screens = ge.getScreenDevices();
-//        log.info( "IMAGE: headles=" + ge.isHeadlessInstance() );
-
-        BufferedImage result = new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
+        // Render
+        result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
-//        log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
-        
+        //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
+
         try {
             StreamingRenderer renderer = new StreamingRenderer();
 
@@ -248,50 +168,65 @@ public class FeatureRenderProcessor2
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
 
             renderer.setJava2DHints( hints );
-//            g.setRenderingHints( hints );
+            // g.setRenderingHints( hints );
 
             // render params
             Map rendererParams = new HashMap();
             rendererParams.put( "optimizedDataLoadingEnabled", Boolean.TRUE );
             renderer.setRendererHints( rendererParams );
-            
-            renderer.setContext( mapContext );
-            Rectangle paintArea = new Rectangle( width, height );
-            renderer.paint( g, paintArea, bbox );
-            return result;
+
+            renderer.setMapContent( mapContent );
+            Rectangle paintArea = new Rectangle( request.getWidth(), request.getHeight() );
+            renderer.paint( g, paintArea, request.getBoundingBox() );
         }
         catch (Throwable e) {
             log.error( "Renderer error: ", e );
             drawErrorMsg( g, null, e );
-            return result;
         }
         finally {
             if (g != null) { g.dispose(); }
         }
+        log.debug( "   ...done: (" + (System.currentTimeMillis()-start) + "ms)." );
+
+        context.sendResponse( new ImageResponse( result ) );
     }
 
-    
-    /**
-     * Static class listening to changes of the Style of a layer. This does not reference
-     * the Processor, so it does not prevent the Processor from being GCed. The finalyze()
-     * of the Processor clears the listeners. 
-     */
-    public static class LayerStyleListener {
-        
-        private LazyInit        mapContextRef;
-        
-        public LayerStyleListener( LazyInit mapContextRef ) {
-            this.mapContextRef = mapContextRef;
-        }
 
-        @EventHandler
-        public void propertyChange( PropertyChangeEvent ev ) {
-            if (ev.getPropertyName().equals( ILayer.PROP_STYLE )) {
-                log.debug( "clearing: " + mapContextRef );
-                mapContextRef.clear();
-            }
-        }
+    @Override
+    public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
     }
+
+
+    @Override
+    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+//    /**
+//     * Static class listening to changes of the Style of a layer. This does not reference
+//     * the Processor, so it does not prevent the Processor from being GCed. The finalyze()
+//     * of the Processor clears the listeners. 
+//     */
+//    public static class LayerStyleListener {
+//        
+//        private LazyInit        mapContextRef;
+//        
+//        public LayerStyleListener( LazyInit mapContextRef ) {
+//            this.mapContextRef = mapContextRef;
+//        }
+//
+//        @EventHandler
+//        public void propertyChange( PropertyChangeEvent ev ) {
+//            if (ev.getPropertyName().equals( ILayer.PROP_STYLE )) {
+//                log.debug( "clearing: " + mapContextRef );
+//                mapContextRef.clear();
+//            }
+//        }
+//    }
 
     
     protected void drawErrorMsg( Graphics2D g, String msg, Throwable e ) {

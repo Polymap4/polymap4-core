@@ -22,8 +22,6 @@ import org.opengis.filter.identity.FeatureId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.project.ILayer;
-
 /**
  * 
  *
@@ -54,9 +52,9 @@ public class FeatureChangeEvent
         this.fids = fids;
     }
 
-    public ILayer getSource() {
-        return (ILayer)super.getSource();
-    }
+//    public ILayer getSource() {
+//        return (ILayer)super.getSource();
+//    }
 
     public Set<FeatureId> getFids() {
         return fids;

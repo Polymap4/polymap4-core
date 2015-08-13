@@ -14,24 +14,28 @@
  */
 package org.polymap.core.data.image;
 
-import org.polymap.core.data.pipeline.EndOfProcessing;
-import org.polymap.core.data.pipeline.PipelineUsecase;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.PipelineUsecase;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
- * The interface of a processor that produces responses of the 'Encoded Image' use
+ * The interface of a processor that produces responses of the 'Image' use
  * case.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface EncodedImageProducer
+public interface ImageProducer
         extends PipelineUsecase {
-    
-    @Produces({EncodedImageResponse.class, EndOfProcessing.class})
-    public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;
 
-    @Produces({EncodedImageResponse.class, EndOfProcessing.class})
+    //  new Class[] {},
+//  new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
+//  new Class[] {ImageResponse.class, GetLayerTypesResponse.class},
+//  new Class[] {} );
+    
+    @Produces(ImageResponse.class)
+    public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;
+    
+    @Produces(EncodedImageResponse.class)
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception;
     
     @Produces(GetLayerTypesResponse.class)

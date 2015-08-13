@@ -4,7 +4,7 @@
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -14,10 +14,9 @@
  */
 package org.polymap.core.data;
 
-import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.entity.EntityStateEvent;
-import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.event.Event;
+import org.polymap.core.runtime.event.EventHandler;
 
 /**
  * Receives {@link EntityStateEvent}s with source instanceof {@link ILayer}

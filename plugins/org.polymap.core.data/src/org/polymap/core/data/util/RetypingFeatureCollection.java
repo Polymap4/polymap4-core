@@ -46,17 +46,17 @@ public abstract class RetypingFeatureCollection<T extends FeatureType, F extends
         return targetSchema;
     }
 
-    public Iterator<F> iterator() {
-        return new RetypingIterator( delegate.iterator() );
-    }
-
-    public void close( Iterator<F> iterator ) {
-        RetypingIterator retyping = (RetypingIterator) iterator;
-        delegate.close( retyping.delegateIt );
-    }
+//    public Iterator<F> iterator() {
+//        return new RetypingIterator( delegate.iterator() );
+//    }
+//
+//    public void close( Iterator<F> iterator ) {
+//        RetypingIterator retyping = (RetypingIterator) iterator;
+//        delegate.close( retyping.delegateIt );
+//    }
 
     public FeatureIterator<F> features() {
-        return new DelegateFeatureIterator<F>(this, iterator());
+        throw new RuntimeException( "FIXME: return new DelegateFeatureIterator<F>( this, features() );" );
     }
 
     public void close( FeatureIterator<F> iterator ) {

@@ -12,17 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.feature;
-
-import org.polymap.core.data.pipeline.PipelineUsecase;
+package org.polymap.core.data.pipeline;
 
 /**
- * The interface of a processor that produces responses of the 'non-transactional
- * feature' use case.
+ * Signals the end of processing of chunked responses.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface FeatureProducer
-        extends PipelineUsecase {
-
+public class EndOfProcessing
+        implements ProcessorResponse {
 }

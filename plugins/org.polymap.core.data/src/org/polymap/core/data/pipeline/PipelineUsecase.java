@@ -20,7 +20,7 @@ package org.polymap.core.data.pipeline;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PipelineUsecase
+public abstract interface PipelineUsecase
         extends PipelineProcessor {
 
 }

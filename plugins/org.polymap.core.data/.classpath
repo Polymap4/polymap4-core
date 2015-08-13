@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/gt-cql-13.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-13.2.jar" sourcepath="lib/sources/gt-render-13.2-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-cql-13.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jai_codec-1.1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jai_imageio-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-13.2.jar" sourcepath="lib/sources/gt-api-13.2-sources.zip"/>
@@ -47,7 +47,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jackcess-1.1.18.jar" sourcepath="lib/sources/jackcess-1.1.18-sources.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="org/polymap/core/data/feature/buffer/|org/polymap/core/data/feature/filter/|org/polymap/core/data/feature/lucene/|org/polymap/core/data/feature/mdb/|org/polymap/core/data/feature/memory/|org/polymap/core/data/feature/typeeditor/|org/polymap/core/data/image/cache304/|org/polymap/core/data/operation/|org/polymap/core/data/operations/|org/polymap/core/data/report/|org/polymap/core/data/ui/|org/polymap/core/data/ui/csvimport/|org/polymap/core/data/ui/featureselection/|org/polymap/core/data/ui/featuretypeeditor/" kind="src" path="src"/>
 	<classpathentry kind="src" path="src-test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry kind="output" path="build/eclipse"/>

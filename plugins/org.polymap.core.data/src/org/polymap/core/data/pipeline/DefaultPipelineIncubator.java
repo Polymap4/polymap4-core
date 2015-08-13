@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -164,12 +165,17 @@ public class DefaultPipelineIncubator
         // create the pipeline
         Pipeline pipeline = new Pipeline( usecase, dsd );
         for (ProcessorDescription procDesc : chain) {
-            PipelineProcessor processor = procDesc.processor();
-            PipelineProcessorSite procSite = new PipelineProcessorSite( procDesc.getProps() );
-            procSite.usecase.set( usecase );
-            procSite.dsd.set( dsd );
-            processor.init( procSite );
-            pipeline.addLast( procDesc );
+            try {
+                PipelineProcessor processor = procDesc.processor();
+                PipelineProcessorSite procSite = new PipelineProcessorSite( procDesc.getProps() );
+                procSite.usecase.set( usecase );
+                procSite.dsd.set( dsd );
+                processor.init( procSite );
+                pipeline.addLast( procDesc );
+            }
+            catch (Exception e) {
+                throw new PipelineIncubationException( e.getMessage(), e );
+            }
         }
         
         // call listeners

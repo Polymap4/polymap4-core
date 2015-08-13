@@ -35,4 +35,13 @@ public class DataSourceDescription
     @Immutable
     public Config<String>       resourceName;
     
+    
+    public DataSourceDescription() {
+    }
+
+    public DataSourceDescription( DataSourceDescription other ) {
+        service.set( other.service.get() );
+        resourceName.set( other.resourceName.get() );    
+    }
+    
 }

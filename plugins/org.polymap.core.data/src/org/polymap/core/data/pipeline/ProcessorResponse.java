@@ -22,7 +22,7 @@ package org.polymap.core.data.pipeline;
 public interface ProcessorResponse
         extends ProcessorProbe {
 
-    /** Signals the End Of Processing. */
-    public static final ProcessorResponse       EOP = new ProcessorResponse() {};
+    /** Signals the End Of Processing of chunked responses. */
+    public static final ProcessorResponse       EOP = new EndOfProcessing();
     
 }

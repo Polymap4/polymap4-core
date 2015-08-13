@@ -15,6 +15,7 @@
 package org.polymap.core.data.wms;
 
 import java.util.List;
+
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +47,7 @@ import org.polymap.core.data.pipeline.DataSourceDescription;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
+import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 
 /**
  * 
@@ -53,7 +55,7 @@ import org.polymap.core.data.pipeline.ProcessorResponse;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class WmsRenderProcessor
-        implements EncodedImageProducer {
+        implements TerminalPipelineProcessor, EncodedImageProducer {
 
     private static final Log log = LogFactory.getLog( WmsRenderProcessor.class );
 
@@ -72,7 +74,7 @@ public class WmsRenderProcessor
     // instance *******************************************
 
     @Override
-    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) {
+    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) throws Exception {
         this.site = site;
         wms = (WebMapServer)site.dsd.get().service.get();
         layerName = site.dsd.get().resourceName.get();
@@ -111,7 +113,7 @@ public class WmsRenderProcessor
         int width = request.getWidth();
         int height = request.getHeight();
         BoundingBox bbox = request.getBoundingBox();
-        log.debug( "bbox=" + bbox + ", imageSize=" + width + "x" + height );
+        log.info( "bbox=" + bbox + ", imageSize=" + width + "x" + height );
 
         org.geotools.data.wms.request.GetMapRequest getMap = wms.createGetMapRequest();
         

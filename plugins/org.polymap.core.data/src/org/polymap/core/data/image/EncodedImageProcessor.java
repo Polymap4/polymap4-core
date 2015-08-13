@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.image;
 
+import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
@@ -35,6 +36,11 @@ public abstract class EncodedImageProcessor
     @Produces(EncodedImageResponse.class)
     public void encodedImageResponse( EncodedImageResponse response, ProcessorContext context ) throws Exception {
         context.sendResponse( response );
+    }
+    
+    @Produces(EndOfProcessing.class)
+    public void endOfProcessing( EndOfProcessing eop, ProcessorContext context ) throws Exception {
+        context.sendResponse( eop );
     }
     
     @Produces(GetLegendGraphicRequest.class)

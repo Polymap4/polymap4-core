@@ -33,7 +33,8 @@ public interface PipelineProcessor {
     /**
      *
      * @param props The persistent configuration properties.
+     * @throws Exception
      */
-    public void init( PipelineProcessorSite site );
-    
+    public void init( PipelineProcessorSite site ) throws Exception;
+
 }

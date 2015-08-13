@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -22,16 +23,12 @@ import java.util.concurrent.BlockingQueue;
 
 import java.io.IOException;
 
-import org.geotools.data.DefaultQuery;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -43,7 +40,6 @@ import org.polymap.core.runtime.session.SessionContext;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 class AsyncPipelineFeatureCollection
         extends AbstractPipelineFeatureCollection
@@ -51,7 +47,7 @@ class AsyncPipelineFeatureCollection
 
     private static final Log log = LogFactory.getLog( AsyncPipelineFeatureCollection.class );
 
-    protected static final List<Feature>    END_OF_RESPONSE = ListUtils.EMPTY_LIST;
+    protected static final List<Feature>    END_OF_RESPONSE = Collections.EMPTY_LIST;
     
     protected static final int              DEFAULT_QUEUE_SIZE = 5;  //2560 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
@@ -76,16 +72,21 @@ class AsyncPipelineFeatureCollection
         fs.addFeatureListener( this );
     }
 
+
+    @Override
     protected Iterator openIterator() {
         log.debug( "..." );
         return new AsyncPipelineIterator();
     }
 
+    
     protected void closeIterator( Iterator it ) {
         log.debug( "close= " + it );
         ((AsyncPipelineIterator)it).close();
     }
 
+    
+    @Override
     public int size() {
         if (size < 0) {
             size = fs.getFeaturesSize( query );
@@ -93,6 +94,8 @@ class AsyncPipelineFeatureCollection
         return size;
     }
 
+    
+    @Override
     public ReferencedEnvelope getBounds() {
         if (bounds == null) {
             try {
@@ -118,12 +121,12 @@ class AsyncPipelineFeatureCollection
     }
 
 
-    @Override
-    public FeatureCollection<SimpleFeatureType,SimpleFeature> subCollection( Filter filter ) {
-        DefaultQuery subQuery = new DefaultQuery( query );
-        subQuery.setFilter( DataPlugin.ff.and( query.getFilter(), filter ) );
-        return new AsyncPipelineFeatureCollection( fs, subQuery, sessionContext ); 
-    }
+//    @Override
+//    public FeatureCollection<SimpleFeatureType,SimpleFeature> subCollection( Filter filter ) {
+//        DefaultQuery subQuery = new DefaultQuery( query );
+//        subQuery.setFilter( DataPlugin.ff.and( query.getFilter(), filter ) );
+//        return new AsyncPipelineFeatureCollection( fs, subQuery, sessionContext ); 
+//    }
 
 
     /**
@@ -153,22 +156,19 @@ class AsyncPipelineFeatureCollection
                 public void run() {
                     try {
                         fs.fetchFeatures( query, new FeatureResponseHandler() {
-                            public void handle( List<Feature> features )
-                            throws Exception {
+                            public void handle( List<Feature> features ) throws Exception {
                                 if (checkEnd()) {
                                     //log.info( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() );
                                     queue.put( features );
                                     Thread.yield();
                                 }
                             }
-                            public void endOfResponse()
-                            throws Exception {
+                            public void endOfResponse() throws Exception {
                                 if (checkEnd()) {
                                     queue.put( END_OF_RESPONSE );
                                 }
                             }
-                            boolean checkEnd() 
-                            throws InterruptedException {
+                            boolean checkEnd() throws InterruptedException {
                                 // FIXME cancel job immediately
                                 return queue != null;
                             }
@@ -209,6 +209,7 @@ class AsyncPipelineFeatureCollection
             buffer = null;
         }
         
+        @Override
         public boolean hasNext() {
             if (bufferIt != null && bufferIt.hasNext()) {
                 return true;
@@ -250,6 +251,7 @@ class AsyncPipelineFeatureCollection
             }
         }
 
+        @Override
         public Object next() {
             if (!hasNext()) {
                 throw new NoSuchElementException( "No such element." );
@@ -257,6 +259,7 @@ class AsyncPipelineFeatureCollection
             return bufferIt.next();
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
