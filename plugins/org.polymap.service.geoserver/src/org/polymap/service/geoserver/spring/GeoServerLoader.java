@@ -294,7 +294,7 @@ public class GeoServerLoader
         // "native"
         // SRS of the data?
         // FIXME ftInfo.setSRS( layer.getCRSCode() );
-        setBoundingBox(ftInfo);
+//        setBoundingBox(ftInfo);
         ftInfo.setEnabled( true );
 
         List<AttributeTypeInfo> attributeInfos = new ArrayList();
@@ -313,19 +313,19 @@ public class GeoServerLoader
     }
 
 
-    private void setBoundingBox( FeatureTypeInfo ftInfo ) {
-        ReferencedEnvelope bbox = /* map.getMaxExtent() */new ReferencedEnvelope();
-        try {
-            GeneralEnvelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
-            double[] lu = latlon.getLowerCorner().getCoordinate();
-            double[] ro = latlon.getUpperCorner().getCoordinate();
-            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
-        }
-        catch (Exception e) {
-            log.warn( e );
-            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
-        }
-    }
+//    private void setBoundingBox( FeatureTypeInfo ftInfo ) {
+//        ReferencedEnvelope bbox = /* map.getMaxExtent() */new ReferencedEnvelope();
+//        try {
+//            GeneralEnvelope latlon = CRS.transform( bbox, DefaultGeographicCRS.WGS84 );
+//            double[] lu = latlon.getLowerCorner().getCoordinate();
+//            double[] ro = latlon.getUpperCorner().getCoordinate();
+//            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( lu[0], ro[0], lu[1], ro[1], CRS.decode( "EPSG:4326" ) ) );
+//        }
+//        catch (Exception e) {
+//            log.warn( e );
+//            ftInfo.setLatLonBoundingBox( new ReferencedEnvelope( DefaultGeographicCRS.WGS84 ) );
+//        }
+//    }
 
 
     /**
