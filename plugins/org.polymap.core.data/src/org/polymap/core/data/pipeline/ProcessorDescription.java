@@ -108,6 +108,11 @@ public class ProcessorDescription<P extends PipelineProcessor> {
     }
 
     
+    public Class<? extends PipelineProcessor> processorType() {
+        return cl;
+    }
+
+
     /**
      * Checks if the {@link TerminalPipelineProcessor} is compatible with (aka can handle)
      * the given data source. 

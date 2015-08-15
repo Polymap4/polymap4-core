@@ -16,16 +16,16 @@ package org.polymap.core.data.feature;
 
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.data.pipeline.PipelineUsecase;
+import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
- * The 'non-transactional feature' pipeline use case.
+ * Defines the WFS non-transactionel pipeline usecase.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface FeaturesProducer
-        extends PipelineUsecase {
+        extends PipelineProcessor {
 
 //  new Class[] {},
 //  new Class[] {ModifyFeaturesRequest.class, RemoveFeaturesRequest.class, AddFeaturesRequest.class, GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},

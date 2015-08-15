@@ -14,18 +14,20 @@
  */
 package org.polymap.core.data.image;
 
+import java.awt.Image;
+
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.data.pipeline.PipelineUsecase;
+import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
- * The interface of a processor that produces responses of the 'Image' use
- * case.
+ * Basically the WMS pipeline usecase but produce {@link Image} instances instead of
+ * {@link EncodedImageProducer}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface ImageProducer
-        extends PipelineUsecase {
+        extends PipelineProcessor {
 
     //  new Class[] {},
 //  new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
@@ -35,7 +37,7 @@ public interface ImageProducer
     @Produces(ImageResponse.class)
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;
     
-    @Produces(EncodedImageResponse.class)
+    @Produces(ImageResponse.class)
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception;
     
     @Produces(GetLayerTypesResponse.class)

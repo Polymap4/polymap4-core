@@ -15,18 +15,21 @@
 package org.polymap.core.data.pipeline;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.feature.FeatureRenderProcessor2;
 import org.polymap.core.data.image.EncodedImageProcessor;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.image.ImageEncodeProcessor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
@@ -43,19 +46,27 @@ public class ProcessorSignatureTest
     public void testEncodedImageProducer() throws Exception {
         EncodedImageProcessor proc = new EncodedImageProcessor() {
             @Override
-            public void init( PipelineProcessorSite site ) {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
+            public void init( PipelineProcessorSite site ) { }
         };
         ProcessorSignature signature = new ProcessorSignature( proc );
-        log.info( "Signature" + signature );
         assertTrue( equals( signature.requestIn, GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class ) );
         assertTrue( equals( signature.requestOut, GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class ) );
-        assertTrue( equals( signature.responseIn, EncodedImageResponse.class, GetLayerTypesResponse.class ) );
-        assertTrue( equals( signature.responseOut, EncodedImageResponse.class, GetLayerTypesResponse.class ) );
+        assertTrue( equals( signature.responseIn, EncodedImageResponse.class, EndOfProcessing.class, GetLayerTypesResponse.class ) );
+        assertTrue( equals( signature.responseOut, EncodedImageResponse.class, EndOfProcessing.class, GetLayerTypesResponse.class ) );
 
         signature.invoke( new GetMapRequest( null, null, null, null, 0, 0, 0 ), new TestProcessorContext() );
+    }
+
+
+    public void testImageEncodeCompatibelFeatureRender() throws Exception {
+        ImageEncodeProcessor proc1 = new ImageEncodeProcessor();
+        FeatureRenderProcessor2 proc2 = new FeatureRenderProcessor2();
+        
+        ProcessorSignature sig1 = new ProcessorSignature( proc1 );
+        ProcessorSignature sig2 = new ProcessorSignature( proc2 );
+        log.info( "ImageEncode:\n" + sig1 );
+        log.info( "FeatureRender:\n" + sig2 );
+        assertTrue( sig1.isCompatible( sig2 ) );
     }
 
     
@@ -63,7 +74,7 @@ public class ProcessorSignatureTest
             implements ProcessorContext {
         @Override
         public void sendRequest( ProcessorRequest request ) throws Exception {
-            throw new RuntimeException( "not yet implemented." );
+            assertTrue( request instanceof GetMapRequest );
         }
         @Override
         public void sendResponse( ProcessorResponse response ) throws Exception {
@@ -80,8 +91,8 @@ public class ProcessorSignatureTest
     }
 
     
-    protected boolean equals( List l, Object... elms ) {
-        return l.containsAll( Arrays.asList( elms ) ) && l.size() == elms.length;
+    protected boolean equals( Set s, Object... elms ) {
+        return s.containsAll( Arrays.asList( elms ) ) && s.size() == elms.length;
     }
     
 }

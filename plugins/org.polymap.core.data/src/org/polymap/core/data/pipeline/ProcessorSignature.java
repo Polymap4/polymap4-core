@@ -15,13 +15,14 @@
 package org.polymap.core.data.pipeline;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,13 +41,13 @@ public class ProcessorSignature {
 
     private static Log log = LogFactory.getLog( ProcessorSignature.class );
 
-    protected List<Class<? extends ProcessorRequest>>   requestIn = new ArrayList();
+    protected Set<Class<? extends ProcessorRequest>>    requestIn = new HashSet();
     
-    protected List<Class<? extends ProcessorRequest>>   requestOut = new ArrayList();
+    protected Set<Class<? extends ProcessorRequest>>    requestOut = new HashSet();
     
-    protected List<Class<? extends ProcessorResponse>>  responseIn = new ArrayList();
+    protected Set<Class<? extends ProcessorResponse>>   responseIn = new HashSet();
     
-    protected List<Class<? extends ProcessorResponse>>  responseOut = new ArrayList();
+    protected Set<Class<? extends ProcessorResponse>>   responseOut = new HashSet();
     
     protected Map<Class,Method>                         callMap = new HashMap( 32 );
     
@@ -158,7 +159,7 @@ public class ProcessorSignature {
 
     
     /**
-     * Returns true if the given processor can be chained behind the receiver.
+     * Returns true if the given processor can be chained after the receiver.
      * 
      * @param rhs
      */
@@ -184,10 +185,10 @@ public class ProcessorSignature {
 
     @Override
     public String toString() {
-        return "RequestIn: " + requestIn + "\n" +
-                "    RequestOut: " + requestOut + "\n" +
-                "    ResponseIn: " + responseIn + "\n" +
-                "    ResponseOut: " + responseOut;
+        return "    RequestIn: " + requestIn.stream().map( cl -> cl.getSimpleName() ).collect( Collectors.toList() ) + "\n" +
+                "    RequestOut: " + requestOut.stream().map( cl -> cl.getSimpleName() ).collect( Collectors.toList() ) + "\n" +
+                "    ResponseIn: " + responseIn.stream().map( cl -> cl.getSimpleName() ).collect( Collectors.toList() ) + "\n" +
+                "    ResponseOut: " + responseOut.stream().map( cl -> cl.getSimpleName() ).collect( Collectors.toList() );
     }
 
 }

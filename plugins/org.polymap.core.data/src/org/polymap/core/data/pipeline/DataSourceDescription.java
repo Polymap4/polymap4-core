@@ -20,7 +20,7 @@ import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 
 /**
- * Describes a data source a {@link TerminalPipelineProcessor} can handle or not. 
+ * Describes a data source a {@link TerminalPipelineProcessor} can handle, or not. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -42,6 +42,11 @@ public class DataSourceDescription
     public DataSourceDescription( DataSourceDescription other ) {
         service.set( other.service.get() );
         resourceName.set( other.resourceName.get() );    
+    }
+
+    @Override
+    public String toString() {
+        return "DataSourceDescription[service=" + service.get() + ", resourceName=" + resourceName.get() + "]";
     }
     
 }

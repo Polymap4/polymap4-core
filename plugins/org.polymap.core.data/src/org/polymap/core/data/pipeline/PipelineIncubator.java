@@ -15,7 +15,8 @@
 package org.polymap.core.data.pipeline;
 
 /**
- * Provides the logic to create a {@link Pipeline} out of a {@link PipelineUsecase}.
+ * Provides the logic to create a {@link Pipeline} out of a usecase defined by a
+ * {@link PipelineProcessor} interface.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -24,14 +25,14 @@ public interface PipelineIncubator {
     /**
      * Attempts to create a new {@link Pipeline} for the given configuration. 
      *
-     * @param usecaseType
+     * @param usecaseType A processor interface that defines the interface of the pipeline. 
      * @param dsd
      * @param procConfigs
      * @return Newly created {@link Pipeline} instance.
      * @throws PipelineIncubationException
      */
     public Pipeline newPipeline( 
-            Class<? extends PipelineUsecase> usecaseType, 
+            Class<? extends PipelineProcessor> usecaseType,
             DataSourceDescription dsd,
             PipelineProcessorConfiguration[] procConfigs ) 
             throws PipelineIncubationException;

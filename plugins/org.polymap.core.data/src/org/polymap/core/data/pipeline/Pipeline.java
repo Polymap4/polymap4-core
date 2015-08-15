@@ -17,6 +17,7 @@ package org.polymap.core.data.pipeline;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A data processing pipeline is a chain of processors, represented by
@@ -80,8 +81,15 @@ public class Pipeline
     /**
      * The iterator returns the processors in order from sink to source.
      */
+    @Override
     public Iterator<ProcessorDescription> iterator() {
         return chain.iterator();
     }
 
+
+    @Override
+    public String toString() {
+        return "Pipeline" + chain.stream().map( procDesc -> procDesc.processorType().getSimpleName() ).collect( Collectors.toList() );
+    }
+    
 }

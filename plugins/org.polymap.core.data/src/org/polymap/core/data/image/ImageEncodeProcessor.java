@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.geotools.image.ImageWorker;
 
+import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
@@ -53,26 +54,16 @@ public class ImageEncodeProcessor
 
     private static final Log log = LogFactory.getLog( ImageEncodeProcessor.class );
 
-//    private static final ProcessorSignature signature = new ProcessorSignature(
-//            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-//            new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-//            new Class[] {ImageResponse.class, GetLayerTypesResponse.class},
-//            new Class[] {EncodedImageResponse.class, GetLayerTypesResponse.class}
-//            );
-//
-//    public static ProcessorSignature signature( LayerUseCase usecase ) {
-//        return signature;
-//    }
-
     public static final String[]    FORMATS = { "image/png", "image/jpeg" };
 
     
     @Override
-    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) throws Exception {
+    public void init( PipelineProcessorSite site ) throws Exception {
     }
 
 
     @Override
+    @Produces(GetMapRequest.class)
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         String requestFormat = request.getFormat();
         if (!ArrayUtils.contains( FORMATS, requestFormat)) {
@@ -84,18 +75,26 @@ public class ImageEncodeProcessor
 
     
     @Override
+    @Produces(GetLegendGraphicRequest.class)
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
     
     
     @Override
+    @Produces(GetLayerTypesRequest.class)
     public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
 
     
-    @Produces(EncodedImageResponse.class)
+    @Produces(GetLayerTypesResponse.class)
+    public void getLayerTypesResponse( GetLayerTypesResponse response, ProcessorContext context ) throws Exception {
+        context.sendResponse( response );
+    }
+
+    
+    @Produces({EncodedImageResponse.class, EndOfProcessing.class})
     public void encodeImageResponse( ImageResponse response, ProcessorContext context ) throws Exception {
         Timer timer = new Timer();
 

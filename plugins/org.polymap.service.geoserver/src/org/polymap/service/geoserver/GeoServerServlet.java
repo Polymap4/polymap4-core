@@ -60,7 +60,7 @@ import com.google.common.cache.CacheBuilder;
 import org.polymap.core.data.pipeline.DepthFirstStackExecutor;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor;
-import org.polymap.core.data.pipeline.PipelineUsecase;
+import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
@@ -110,11 +110,11 @@ public abstract class GeoServerServlet
      * This is called inside the servlet request thread.
      * @throws Exception 
      */
-    protected abstract Pipeline createPipeline( ILayer layer, Class<? extends PipelineUsecase> usecase )
+    protected abstract Pipeline createPipeline( ILayer layer, Class<? extends PipelineProcessor> usecase )
             throws Exception;
 
     
-    public Pipeline getOrCreatePipeline( final ILayer layer, Class<? extends PipelineUsecase> usecase ) 
+    public Pipeline getOrCreatePipeline( final ILayer layer, Class<? extends PipelineProcessor> usecase ) 
             throws Exception {
         try {
             String key = layer.id().toString() + usecase.getSimpleName();

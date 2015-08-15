@@ -15,18 +15,17 @@
 package org.polymap.core.data.image;
 
 import org.polymap.core.data.pipeline.EndOfProcessing;
-import org.polymap.core.data.pipeline.PipelineUsecase;
+import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
- * The interface of a processor that produces responses of the 'Encoded Image' use
- * case.
+ * Defines the WMS pipeline usecase.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface EncodedImageProducer
-        extends PipelineUsecase {
+        extends PipelineProcessor {
     
     @Produces({EncodedImageResponse.class, EndOfProcessing.class})
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;

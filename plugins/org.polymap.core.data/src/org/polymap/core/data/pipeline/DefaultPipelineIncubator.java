@@ -96,17 +96,22 @@ public class DefaultPipelineIncubator
 
     @Override
     public Pipeline newPipeline( 
-            Class<? extends PipelineUsecase> usecaseType, 
+            Class<? extends PipelineProcessor> usecaseType, 
             DataSourceDescription dsd,
             PipelineProcessorConfiguration[] procConfigs) 
             throws PipelineIncubationException {
         ProcessorSignature usecase = new ProcessorSignature( usecaseType );
         
+        assert !usecase.requestIn.isEmpty()
+                && usecase.requestOut.isEmpty()
+                && !usecase.responseOut.isEmpty()
+                && usecase.responseIn.isEmpty() : "PipelineUsecase must have requestIn and reponseOut only.";
+                
         // swap requestIn/Out and reposnseIn/Out to make an emitter signature for the start processor
         usecase.requestOut = usecase.requestIn;
-        usecase.requestIn = Collections.EMPTY_LIST;
+        usecase.requestIn = Collections.EMPTY_SET;
         usecase.responseIn = usecase.responseOut;
-        usecase.responseOut = Collections.EMPTY_LIST;
+        usecase.responseOut = Collections.EMPTY_SET;
         
         ProcessorDescription start = new ProcessorDescription( usecase );
 
