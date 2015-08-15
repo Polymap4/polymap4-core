@@ -73,7 +73,7 @@ public class WmsServiceInfo
 
 
     @Override
-    public Iterable<IResourceInfo> getResources() {
+    public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) {
         return StreamIterable.of( wms.getCapabilities().getLayerList().stream()
                 .map( layer -> wms.getInfo( layer ) )
                 .map( info -> new WmsResourceInfo( WmsServiceInfo.this, info ) ) );

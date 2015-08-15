@@ -36,15 +36,18 @@ public interface IServiceInfo
     
     /**
      * All resources of this service.
+     * <p/>
+     * This may <b>block</b> execution until backend service is available and/or
+     * connected.
      *
      * @return  Usually a {@link StreamIterable}.
      */
-    public Iterable<IResourceInfo> getResources();
+    public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) throws Exception;
     
     /**
      * 
      * <p/>
-     * This usually <b>blocks</b> execution until backend service is available and/or
+     * This may <b>block</b> execution until backend service is available and/or
      * connected.
      *
      * @return Newly created instance of the backend service (WebMapService,

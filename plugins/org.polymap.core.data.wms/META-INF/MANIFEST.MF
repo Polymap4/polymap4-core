@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: WMS Data and Catalog
+Bundle-Name: WMS data and catalog
 Bundle-SymbolicName: org.polymap.core.data.wms
 Bundle-Version: 4.0.0.qualifier
 Bundle-Vendor: polymap.org

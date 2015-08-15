@@ -159,6 +159,9 @@ public class MetadataContentProvider
                         IResolvableInfo resource = resolver.resolve( metadata, monitor );
                         updateChildren( elm, new Object[] {resource}, currentChildCount );
                     }
+                    else {
+                        updateChildren( elm, new Object[] {"Unable to resolve the service."}, currentChildCount );                        
+                    }
                 }
             };
             job.scheduleWithUIUpdate();
@@ -169,7 +172,7 @@ public class MetadataContentProvider
             UIJob job = new UIJob( "Find resources" ) {
                 @Override
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    Object[] children = StreamIterable.of( ((IServiceInfo)elm).getResources() ).stream().toArray();
+                    Object[] children = StreamIterable.of( ((IServiceInfo)elm).getResources( monitor ) ).stream().toArray();
                     updateChildren( elm, children, currentChildCount );
                 }
             };
