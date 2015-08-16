@@ -25,10 +25,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.CountingOutputStream;
-import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,13 +38,12 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.FeatureStateTracker;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.operations.feature.CsvExporter;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.entity.IEntityHandleable;
-import org.polymap.core.runtime.entity.IEntityStateListener;
-import org.polymap.core.runtime.entity.EntityStateTracker;
 import org.polymap.core.runtime.entity.EntityStateEvent;
 import org.polymap.core.runtime.entity.EntityStateEvent.EventType;
+import org.polymap.core.runtime.entity.EntityStateTracker;
+import org.polymap.core.runtime.entity.IEntityHandleable;
+import org.polymap.core.runtime.entity.IEntityStateListener;
 
 import org.polymap.service.fs.spi.BadRequestException;
 import org.polymap.service.fs.spi.DefaultContentFolder;
