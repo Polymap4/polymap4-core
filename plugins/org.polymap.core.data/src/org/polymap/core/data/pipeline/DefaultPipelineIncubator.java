@@ -175,6 +175,7 @@ public class DefaultPipelineIncubator
                 PipelineProcessorSite procSite = new PipelineProcessorSite( procDesc.getProps() );
                 procSite.usecase.set( usecase );
                 procSite.dsd.set( dsd );
+                procSite.incubator.set( this );
                 processor.init( procSite );
                 pipeline.addLast( procDesc );
             }

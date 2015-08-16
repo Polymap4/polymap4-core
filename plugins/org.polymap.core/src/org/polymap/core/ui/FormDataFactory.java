@@ -53,6 +53,7 @@ public class FormDataFactory {
      * settings made on the factory are immediately applied to the Control.
      */
     public static FormDataFactory on( Control applyTo ) {
+        assert applyTo != null;
         return new FormDataFactory( applyTo );
     }
     

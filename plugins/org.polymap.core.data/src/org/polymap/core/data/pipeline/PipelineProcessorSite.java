@@ -37,6 +37,9 @@ public class PipelineProcessorSite
     @Immutable
     public Config<DataSourceDescription>    dsd;
 
+    @Immutable
+    public Config<PipelineIncubator>        incubator;
+
     private Properties                      props;
     
     

@@ -209,7 +209,7 @@ public class OperationSupport
     }
     
     
-    public void execute( final IUndoableOperation op, boolean async, boolean progress, Runnable... doneHandlers ) {
+    public void execute3( final IUndoableOperation op, boolean async, boolean progress, Runnable... doneHandlers ) {
         IJobChangeListener[] listeners = new IJobChangeListener[ doneHandlers.length ];
         for (int i=0; i<doneHandlers.length; i++) {
             Runnable handler = doneHandlers[i];
@@ -224,7 +224,7 @@ public class OperationSupport
     }
     
     
-    public void execute( final IUndoableOperation op, boolean async, boolean progress, Consumer<IJobChangeEvent>... doneHandlers ) {
+    public void execute2( final IUndoableOperation op, boolean async, boolean progress, Consumer<IJobChangeEvent>... doneHandlers ) {
         IJobChangeListener[] listeners = new IJobChangeListener[ doneHandlers.length ];
         for (int i=0; i<doneHandlers.length; i++) {
             Consumer<IJobChangeEvent> handler = doneHandlers[i];

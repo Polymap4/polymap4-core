@@ -208,17 +208,13 @@ public class NewLayerOperation
 
     @Override
     public IStatus redo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
-
 
     @Override
     public IStatus undo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
-
 
     @Override
     public boolean canUndo() {
@@ -229,6 +225,5 @@ public class NewLayerOperation
     public boolean canRedo() {
         return false;
     }
-
 
 }

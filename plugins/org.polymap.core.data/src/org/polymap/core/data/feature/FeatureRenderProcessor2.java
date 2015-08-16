@@ -118,7 +118,7 @@ public class FeatureRenderProcessor2
         mapContent.getViewport()
                 .setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
         try {
-            PipelineIncubator incubator = null;
+            PipelineIncubator incubator = site.incubator.get();
             DataSourceDescription dsd = new DataSourceDescription( site.dsd.get() );
             Pipeline pipeline = incubator.newPipeline( FeaturesProducer.class, dsd, null );
             FeatureSource fs = new PipelineFeatureSource( pipeline );

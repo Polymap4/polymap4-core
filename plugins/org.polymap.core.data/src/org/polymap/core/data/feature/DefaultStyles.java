@@ -40,7 +40,7 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 /**
- * Provides default styles. 
+ * Simple default feature rendering styles. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -53,15 +53,10 @@ public class DefaultStyles {
     protected FilterFactory       filterFactory = CommonFactoryFinder.getFilterFactory( null );
     
 
-    public DefaultStyles() {
-        super();
-    }
-    
     public Style createStyleWithFTS() {
-    	Style style = styleFactory.createStyle();
-    	FeatureTypeStyle fts = styleFactory.createFeatureTypeStyle(new Rule[]{});
-        style.featureTypeStyles().add(fts);
-
+        Style style = styleFactory.createStyle();
+        FeatureTypeStyle fts = styleFactory.createFeatureTypeStyle( new Rule[] {} );
+        style.featureTypeStyles().add( fts );
     	return style;
     }
 
@@ -70,7 +65,6 @@ public class DefaultStyles {
         FeatureType schema = fs.getSchema();
         log.debug( "    geometry type: " + schema.getGeometryDescriptor() );
         
-        Color baseColor = Color.RED;
         Style style = createStyleWithFTS();
 
         try {
@@ -173,28 +167,24 @@ public class DefaultStyles {
         Graphic gr = styleFactory.createDefaultGraphic();
 
         Mark mark = styleFactory.getCircleMark();
-
-        mark.setStroke(styleFactory.createStroke(
-                filterFactory.literal(Color.BLUE), filterFactory.literal(1)));
-
-        mark.setFill(styleFactory.createFill(filterFactory.literal(Color.CYAN)));
+        mark.setStroke( styleFactory.createStroke( filterFactory.literal( Color.RED ), filterFactory.literal( 1.5 ) ) );
+        mark.setFill( styleFactory.createFill( filterFactory.literal( Color.YELLOW ) ) );
 
         gr.graphicalSymbols().clear();
-        gr.graphicalSymbols().add(mark);
-        gr.setSize(filterFactory.literal(5));
+        gr.graphicalSymbols().add( mark );
+        gr.setSize( filterFactory.literal( 8 ) );
 
         /*
-         * Setting the geometryPropertyName arg to null signals that we want to
-         * draw the default geometry of features
+         * Setting the geometryPropertyName arg to null signals that we want to draw
+         * the default geometry of features
          */
-        PointSymbolizer sym = styleFactory.createPointSymbolizer(gr, null);
+        PointSymbolizer sym = styleFactory.createPointSymbolizer( gr, null );
 
         Rule rule = styleFactory.createRule();
-        rule.symbolizers().add(sym);
-        rule.setName("Rule for PointSymbolizer");
-        
-        style.featureTypeStyles().get(0).rules().add(rule);
-        
+        rule.symbolizers().add( sym );
+        rule.setName( "Rule for PointSymbolizer" );
+
+        style.featureTypeStyles().get( 0 ).rules().add( rule );
         return style;
     }
 
