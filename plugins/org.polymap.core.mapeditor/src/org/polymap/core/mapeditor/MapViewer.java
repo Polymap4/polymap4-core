@@ -267,7 +267,12 @@ public class MapViewer<CL>
         return visibleLayers.contains( layer );
     }
 
-
+    
+    public Iterable<CL> getLayers() {
+        return layers.keySet();
+    }
+    
+    
     @Override
     public void handleEvent( OlEvent ev ) {
         // XXX Auto-generated method stub
