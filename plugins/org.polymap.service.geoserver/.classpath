@@ -62,12 +62,12 @@
 	<classpathentry kind="lib" path="lib/gt-jdbc-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-main-13.2.jar" sourcepath="lib/sources/gt-main-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-metadata-13.2.jar"/>
-	<classpathentry kind="lib" path="lib/gt-opengis-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-opengis-13.2.jar" sourcepath="lib/sources/gt-opengis-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-process-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-process-feature-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-process-raster-13.2.jar" sourcepath="lib/sources/gt-process-raster-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-property-13.2.jar"/>
-	<classpathentry kind="lib" path="lib/gt-referencing-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-referencing-13.2.jar" sourcepath="lib/sources/gt-referencing-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-render-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-shapefile-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-svg-13.2.jar"/>
@@ -77,7 +77,7 @@
 	<classpathentry kind="lib" path="lib/gt-xml-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-core-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-fes-13.2.jar"/>
-	<classpathentry kind="lib" path="lib/gt-xsd-filter-13.2.jar"/>
+	<classpathentry kind="lib" path="lib/gt-xsd-filter-13.2.jar" sourcepath="lib/sources/gt-xsd-filter-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-gml2-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-gml3-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-xsd-ows-13.2.jar"/>

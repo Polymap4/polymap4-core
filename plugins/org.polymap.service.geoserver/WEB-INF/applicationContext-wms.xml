@@ -306,8 +306,12 @@
       	<constructor-arg ref="wms" />
 	</bean>
 	
-	<bean id="getMapKvpReader"
+	<!-- bean id="getMapKvpReader"
 		class="org.geoserver.wms.map.GetMapKvpRequestReader">
+        <constructor-arg ref="wms"/>
+	</bean-->
+	<bean id="getMapKvpReader"
+		class="org.polymap.service.geoserver.spring.MyGetMapKvpRequestReader">
         <constructor-arg ref="wms"/>
 	</bean>
 	<bean id="getFeatureInfoKvpReader"
