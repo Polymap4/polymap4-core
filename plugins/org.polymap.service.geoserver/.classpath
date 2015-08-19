@@ -68,8 +68,6 @@
 	<classpathentry kind="lib" path="lib/gt-process-raster-13.2.jar" sourcepath="lib/sources/gt-process-raster-13.2-sources.zip"/>
 	<classpathentry kind="lib" path="lib/gt-property-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-referencing-13.2.jar" sourcepath="lib/sources/gt-referencing-13.2-sources.zip"/>
-	<classpathentry kind="lib" path="lib/gt-render-13.2.jar"/>
-	<classpathentry kind="lib" path="lib/gt-shapefile-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-svg-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-transform-13.2.jar"/>
 	<classpathentry kind="lib" path="lib/gt-wfs-ng-13.2.jar"/>

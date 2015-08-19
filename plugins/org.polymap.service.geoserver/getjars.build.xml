@@ -73,8 +73,11 @@
 		    <!-- XXX falko: bei mir lädt er sonst falsche versionen -->
             <dependency groupId="org.springframework" artifactId="spring-expression" version="3.1.4.RELEASE" />
             <dependency groupId="org.springframework" artifactId="spring-web" version="3.1.4.RELEASE" />
-		    
-		    <!--dependency groupId="it.geosolutions.imageio-ext" artifactId="imageio-ext-png" version="1.1.12" /-->
+
+            <dependency groupId="org.geotools" artifactId="gt-render" version="${geotools.version}" scope="provided" />
+            <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" scope="provided" />
+
+			<!--dependency groupId="it.geosolutions.imageio-ext" artifactId="imageio-ext-png" version="1.1.12" /-->
 		    
             <!--dependency groupId="org.geoserver" artifactId="web-core" version="${geoserver.version}" /-->
 
