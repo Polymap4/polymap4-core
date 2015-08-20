@@ -25,8 +25,7 @@ Bundle-ClassPath: .,
  lib/milton-api-1.8.0.1.jar,
  lib/milton-servlet-1.8.0.1.jar
 Bundle-Localization: plugin
-Export-Package: com.bradmcevoy.http,
- org.polymap.service.fs,
+Export-Package: org.polymap.service.fs,
  org.polymap.service.fs.providers,
  org.polymap.service.fs.providers.file,
  org.polymap.service.fs.spi,
