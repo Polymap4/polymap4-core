@@ -1,10 +1,10 @@
-# Polymap4 Core System
+## Polymap4 core system
 
-The Polymap4 Core System contains all the Eclipse plugins to build the basic GIS client based on Eclipse/RAP.
+Provides basic building blocks for GIS applications based on [Eclipse/RAP](http://eclipse.org/rap).
 
   - [Runtime](plugins/org.polymap.core) - Cache, Event System, Session Management, Config, etc.
   - [Data](plugins/org.polymap.core.data) - Geospatial data management based on [GeoTools](http://geotools.org)
-  - [MapEditor](plugins/org.polymap.core.mapeditor) - Map editor based on [OpenLayers](/Polymap4/polymap4-rap/)
+  - [MapEditor](plugins/org.polymap.core.mapeditor) - Map viewer/editor based on [OpenLayers](/Polymap4/polymap4-rap/)
   - [Project](plugins/org.polymap.core.project) - Projects, layers, meta-data
   - [Catalog](plugins/org.polymap.core.catalog) - Catalog system
   - [Service](plugins/org.polymap.service) - Service infrastructure
