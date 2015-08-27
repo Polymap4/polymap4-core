@@ -21,16 +21,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.Principal;
 
 import javax.security.auth.Subject;
-import javax.security.auth.login.LoginException;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -42,16 +35,11 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.equinox.security.auth.ILoginContext;
-import org.eclipse.equinox.security.auth.LoginContextFactory;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rap.rwt.internal.service.ContextProvider;
 
 import org.polymap.core.CorePlugin;
-import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.runtime.session.SessionSingleton;
-import org.polymap.core.security.AuthorizationModule;
-import org.polymap.core.security.ServicesCallbackHandler;
 import org.polymap.core.security.UserPrincipal;
 import org.polymap.core.ui.UIUtils;
 
@@ -66,9 +54,9 @@ public final class Polymap {
 
     private static Log log = LogFactory.getLog( Polymap.class );
 
-    public static final String      DEFAULT_LOGIN_CONFIG = "Workbench";
-    /** The name of the service JAAS login config. See {@link ServicesCallbackHandler}. */
-    public static final String      SERVICES_LOGIN_CONFIG = "Services";
+//    public static final String      DEFAULT_LOGIN_CONFIG = "Workbench";
+//    /** The name of the service JAAS login config. See {@link ServicesCallbackHandler}. */
+//    public static final String      SERVICES_LOGIN_CONFIG = "Services";
     
     static {
         // set the default locale to 'en' as all of our message_xx.properties
@@ -211,200 +199,6 @@ public final class Polymap {
     }
 
 
-    /**
-     * Logging in using default JAAS config.
-     */
-    public void login() {
-        HttpServletRequest request = RWT.getRequest();
-        initHttpParams = new HashMap( request.getParameterMap() );
-
-        String jaasConfigFile = "jaas_config.txt";
-        File configFile = new File( new File( getWorkspacePath().toFile(), "resource" ), jaasConfigFile );
-        
-        // create default config
-        if (!configFile.exists()) {
-            FileOutputStream out = null;
-            try {
-                log.info( "Creating default JAAS config: " + configFile.getAbsolutePath() );
-                URL defaultConfigUrl = CorePlugin.instance().getBundle().getEntry( jaasConfigFile );
-                out = new FileOutputStream( configFile );
-                IOUtils.copy( defaultConfigUrl.openStream(), out );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( "Unable to create default jaas_config.txt in workspace.", e );
-            }
-            finally {
-                IOUtils.closeQuietly( out );
-            }
-        }
-
-        // create secureContext
-        try {
-            secureContext = LoginContextFactory.createContext( DEFAULT_LOGIN_CONFIG, configFile.toURI().toURL() );
-        }
-        catch (MalformedURLException e) {
-            throw new RuntimeException( "Should never happen.", e );
-        }
-        
-        // login
-        for (boolean loggedIn=false; !loggedIn; ) {
-            try {
-                secureContext.login();
-                
-                subject = secureContext.getSubject();
-                principals = new HashSet( subject.getPrincipals() );
-                
-                // find user
-                for (Principal principal : principals) {
-                    if (principal instanceof UserPrincipal) {
-                        user = (UserPrincipal)principal;
-                        break;
-                    }
-                }
-                if (user == null) {
-                    throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
-                }
-                
-                // allow to access the instance directly via current session (find user for example)
-                SessionContext.current().setAttribute( "user", user );
-            
-                // add roles of user to principals
-                Set<AuthorizationModule> authModules = subject.getPrivateCredentials( AuthorizationModule.class );
-                if (authModules.size() != 1) {
-                    throw new RuntimeException( "No AuthorizationModule specified. Is jaas_config.txt correct?" );
-                }
-                principals.addAll( authModules.iterator().next().rolesOf( subject ) );
-                
-                loggedIn = true;
-            } 
-            catch (LoginException e) {
-                log.warn( "Login error: " + e.getLocalizedMessage(), e );
-//                // FIXME causes zombie threads?
-//                // XXX translation
-//                IStatus status = new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, "Login fehlgeschlagen.", e );
-//                ErrorDialog.openError( null, "Achtung", "Login fehlgeschlagen", status );
-            }
-        }
-    }
-
-    
-    public void login( String username, String passwd ) throws LoginException {
-        // init params are not available in services
-        initHttpParams = new HashMap();
-
-        String jaasConfigFile = "jaas_config.txt";
-        File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
-
-        ServicesCallbackHandler.challenge( username, passwd );
-        
-        // create secureContext
-        try {
-            secureContext = LoginContextFactory.createContext( SERVICES_LOGIN_CONFIG, configFile.toURI().toURL() );
-        }
-        catch (MalformedURLException e) {
-            throw new RuntimeException( "Should never happen.", e );
-        }
-        
-        // login
-        secureContext.login();
-        subject = secureContext.getSubject();
-        principals = new HashSet( subject.getPrincipals() );
-
-        // find user
-        for (Principal principal : principals) {
-            if (principal instanceof UserPrincipal) {
-                user = (UserPrincipal)principal;
-                break;
-            }
-        }
-        if (user == null) {
-            throw new LoginException( "Es wurde kein Nutzer in der Konfiguration gefunden" );
-        }
-        
-        // add roles of user to principals
-        log.info( "Subject: " + subject );
-        Set<AuthorizationModule> authModules = subject.getPrivateCredentials( AuthorizationModule.class );
-        if (authModules.size() != 1) {
-            throw new RuntimeException( "No AuthorizationModule specified." );
-        }
-        principals.addAll( authModules.iterator().next().rolesOf( subject ) );
-
-//        subject.getPrivateCredentials().add( Display.getCurrent() );
-//        subject.getPrivateCredentials().add( SWT.getPlatform() );        
-
-        // allow to access the instance directly via current session (find user for example)
-        SessionContext.current().setAttribute( "user", user );
-    }
-
-
-    public boolean validatePassword( String username, String passwd ) {
-        String jaasConfigFile = "jaas_config.txt";
-        File configFile = new File( getWorkspacePath().toFile(), jaasConfigFile );
-
-        ServicesCallbackHandler.challenge( username, passwd );
-        
-        // create secureContext
-        try {
-            ILoginContext sc = LoginContextFactory.createContext( SERVICES_LOGIN_CONFIG, configFile.toURI().toURL() );
-            sc.login();
-            return true;
-        }
-        catch (MalformedURLException e) {
-            throw new RuntimeException( "Should never happen.", e );
-        }
-        catch (LoginException e) {
-            return false;
-        }
-    }
-    
-
-    public void logout() {
-        if (secureContext != null) {
-            try {
-                secureContext.logout();
-                secureContext = null;
-                subject = null;
-                principals = null;
-                user = null;
-            }
-            catch (LoginException e) {
-                log.warn( "Login error: " + e.getLocalizedMessage(), e );
-            }
-        }
-    }
-    
-    
-    public void addPrincipal( Principal principal ) {
-        principals.add( principal );
-        if (principal instanceof UserPrincipal) {
-            user = (UserPrincipal)principal;
-        }
-    }
-    
-    
-    public Set<Principal> getPrincipals() {
-        assert principals != null : "getPrincipals(): called after logout!";
-        return principals;
-    }
-
-    
-    public Principal getUser() {
-        assert principals != null : "getUser(): called after logout!";
-        return user;
-    }
-
-
-    public Subject getSubject() {
-        assert principals != null : "getSubject(): called after logout!";
-        return subject;    
-    }
-
-
-    public void setUser( UserPrincipal userPrincipal ) {
-        this.user = userPrincipal;
-    }
-    
-    
     /**
      * 
      *

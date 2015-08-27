@@ -190,7 +190,7 @@
          point="org.eclipse.equinox.security.callbackHandlerMapping">
       <callbackHandlerMapping
             callbackHandlerId="org.polymap.core.security.LoginDialogCallbackHandler"
-            configName="Workbench">
+            configName="Application">
       </callbackHandlerMapping>
    </extension>
    <extension

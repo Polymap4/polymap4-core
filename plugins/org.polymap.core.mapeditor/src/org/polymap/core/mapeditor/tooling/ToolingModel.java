@@ -60,6 +60,7 @@ import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.session.SessionSingleton;
+import org.polymap.core.security.SecurityContext;
 
 /**
  * Provides the tree store, event handling and most of the other basic logic of
@@ -159,7 +160,7 @@ public class ToolingModel {
             String mapId = viewer.getMap().id();
             IPath path = MapEditorPlugin.getDefault().getStateLocation();
             stateFile = new File( path.toFile(), 
-                    "tooling_" + Polymap.instance().getUser().getName() + "_" + mapId + ".xml" );
+                    "tooling_" + SecurityContext.instance().getUser().getName() + "_" + mapId + ".xml" );
             log.info( "State file: " +  stateFile.getAbsolutePath() );
 
             if (stateFile.exists()) {

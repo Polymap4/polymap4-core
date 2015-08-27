@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -19,13 +19,10 @@ import java.util.Set;
 
 import java.security.Principal;
 
-import org.polymap.core.runtime.Polymap;
-
 /**
- * Provides basic security checks.
+ * Provides basic security checks against the {@link SecurityContext}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public final class SecurityUtils {
 
@@ -50,7 +47,7 @@ public final class SecurityUtils {
 
     
     public static boolean isAdmin() {
-        return isAdmin( Polymap.instance().getPrincipals() );
+        return isAdmin( SecurityContext.instance().getPrincipals() );
     }
 
     
@@ -65,7 +62,7 @@ public final class SecurityUtils {
     
     
     public static boolean isUserInGroup( String group ) {
-        return isInGroup( Polymap.instance().getPrincipals(), group );
+        return isInGroup( SecurityContext.instance().getPrincipals(), group );
     }
     
 }
