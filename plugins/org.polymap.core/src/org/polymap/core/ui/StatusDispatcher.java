@@ -26,7 +26,9 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.CorePlugin;
 
 /**
- * Common API to log and/or display status information to the UI.
+ * Common API to log and/or display status information of exceptional situations to
+ * the UI. Different UI frameworks (Workbench, Batik, MD) can provide their
+ * specific implementation for handling.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -70,6 +72,12 @@ public class StatusDispatcher {
     
     private static List<Adapter>        adapters = new CopyOnWriteArrayList();
     
+
+    /**
+     * Register the given service provider. This method should not be called by client code.
+     *
+     * @param adapter
+     */
     public static void registerAdapter( Adapter adapter ) {
         adapters.add( adapter );
     }
@@ -108,7 +116,7 @@ public class StatusDispatcher {
     
     
     /**
-     * 
+     * The service provider interface.
      */
     public interface Adapter {
     
