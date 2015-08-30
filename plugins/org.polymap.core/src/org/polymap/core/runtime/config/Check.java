@@ -23,6 +23,11 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a check of the value of a {@link Config}.
+ * <p/>
+ * <b>Example:</b>
+ * <pre>
+ *     @Check(value=NumberRangeValidator.class, args={"0","1"})
+ * </pre>
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

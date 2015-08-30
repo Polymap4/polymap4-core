@@ -16,100 +16,68 @@ package org.polymap.core.runtime;
 
 import java.util.function.Supplier;
 
-import org.polymap.core.runtime.cache.Cache;
-import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.cache.CacheManager;
-import org.polymap.core.runtime.cache.EvictionAwareCacheLoader;
+import java.lang.ref.SoftReference;
+
 import org.polymap.core.runtime.cache.EvictionListener;
 
 /**
  * Provides a pseudo-persistent lazily initialized variable. Ones initialized the
- * value is stored in a global {@link Cache}. The cache may decide to evict this value
+ * value is stored in a {@link SoftReference}. The cache may decide to evict this value
  * at any time if memory is low (or for any other reason). In this case the next access
  * triggers the supplier again.
- * <p/>
- * Concurrent access is synchronized by the cache's internal mechanism.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class CachedLazyInit<T>
         extends LazyInit<T> {
-
-    /**
-     * The global cache. Use hashCode()/Integer as key to allow the instance to be
-     * GC'ed - and {@link #clear()} the value from cache.
-     */
-    private static final Cache<Integer,Object>   cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
-
-    /**
-     * Store the hashKey to prevent call to hashCode and auto-boxing on each access.
-     */
-    private Integer                 cacheKey = hashCode();
     
-    private int                     elementSize;
-    
-    
-    /**
-     * 
-     * @param elementSize The size of the value in the cache in bytes.
-     */
-    public CachedLazyInit( int elementSize ) {
-        super();
-        this.elementSize = elementSize;
-    }
+    private volatile SoftReference<T>       ref;
 
     /**
      * 
      * @param elementSize The size of the value in the cache in bytes.
      * @param supplier
      */
-    public CachedLazyInit( int elementSize, Supplier<T> supplier ) {
+    public CachedLazyInit( Supplier<T> supplier ) {
         super( supplier );
-        this.elementSize = elementSize;
     }
 
     /**
      * This ctor allows to preset the value. This can be used if the value is
      * available when initialized but may be reclaimed during processing.
-     * 
-     * @param elementSize The size of the value in the cache in bytes.
-     * @param supplier
      */
-    public CachedLazyInit( T value, int elementSize, Supplier<T> supplier ) {
+    public CachedLazyInit( T value, Supplier<T> supplier ) {
         super( supplier );
-        cache.putIfAbsent( cacheKey, value, elementSize );
-        this.elementSize = elementSize;
+        ref = new SoftReference( value );
     }
 
     @Override
     @SuppressWarnings("hiding")
     public T get( final Supplier<T> supplier ) {
-        return (T)cache.get( cacheKey, new EvictionAwareCacheLoader<Integer,Object,RuntimeException>() {
-            @Override
-            public Object load( Integer key ) throws RuntimeException {
-                return supplier.get();
+        // make a strong reference to keep value from GC'ed during method
+        T value = ref != null ? ref.get() : null;
+        
+        if (value == null) {
+            synchronized (this) {
+                value = ref != null ? ref.get() : null;
+                if (value == null) {
+                    ref = new SoftReference( this.supplier.get() );
+                }
             }
-            @Override
-            public int size() throws RuntimeException {
-                return elementSize;
-            }
-            @Override
-            public EvictionListener evictionListener() {
-                return supplier instanceof EvictionSupplier
-                        ? ((EvictionSupplier)supplier).evictionListener() 
-                        : null;
-            }
-        });
+        }
+        return value;
     }
 
     @Override
     public void clear() {
-        cache.remove( cacheKey );
+        ref = null;
     }
 
     @Override
     public boolean isInitialized() {
-        return cache.get( cacheKey ) != null;
+        // avoid race cond between the check and the call
+        SoftReference<T> localRef = ref;
+        return localRef != null && localRef.get() != null;
     }
 
     @Override

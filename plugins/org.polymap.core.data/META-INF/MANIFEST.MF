@@ -11,7 +11,8 @@ Require-Bundle: org.eclipse.rap.rwt;bundle-version="2.3.1",
  org.eclipse.rwt.widgets.codemirror;bundle-version="1.0.0";resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Export-Package: com.vividsolutions.jts,
+Export-Package: com.objectplanet.image,
+ com.vividsolutions.jts,
  com.vividsolutions.jts.algorithm,
  com.vividsolutions.jts.algorithm.distance,
  com.vividsolutions.jts.algorithm.locate,
