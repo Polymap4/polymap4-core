@@ -19,8 +19,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+
 import org.polymap.core.CorePlugin;
 
 /**
@@ -69,7 +71,6 @@ public class StatusDispatcher {
     }
     
     private static List<Adapter>        adapters = new CopyOnWriteArrayList();
-    private static List<Adapter2>        adapters2 = new CopyOnWriteArrayList();
     
 
     /**
@@ -80,11 +81,7 @@ public class StatusDispatcher {
     public static void registerAdapter( Adapter adapter ) {
         adapters.add( adapter );
     }
-
-    public static void registerAdapter( Adapter2 adapter2 ) {
-        adapters2.add( adapter2 );
-    }
-
+    
 //    public static void handle2() {
 //        StatusUtil.handleStatus( "", 0 );
 //        StatusManager.getManager();
@@ -94,25 +91,9 @@ public class StatusDispatcher {
         handle( new Status( IStatus.ERROR, pluginId, msg, e ), Style.SHOW, Style.LOG );
     }
 
-    public static void handleError( Object src, String msg, Throwable e ) {
-        handle( src, new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, msg, e ), Style.SHOW, Style.LOG );        
-    }
-
     public static void handleError( String msg, Throwable e ) {
         handle( new Status( IStatus.ERROR, CorePlugin.PLUGIN_ID, msg, e ), Style.SHOW, Style.LOG );        
     }
-    
-    public static void handleWarning( String pluginId, Object src, String msg, Throwable e ) {
-        handle( new Status( IStatus.WARNING, pluginId, msg, e ), Style.SHOW, Style.LOG );
-    }
-
-    public static void handleWarning( Object src, String msg, Throwable e ) {
-        handle( src, new Status( IStatus.WARNING, CorePlugin.PLUGIN_ID, msg, e ), Style.SHOW, Style.LOG );        
-    }
-
-    public static void handleWarning( String msg, Throwable e ) {
-        handle( new Status( IStatus.WARNING, CorePlugin.PLUGIN_ID, msg, e ), Style.SHOW, Style.LOG );        
-    }    
 
     public static void handle( IStatus status, Style... styles ) {
         if (adapters.isEmpty()) {
@@ -132,35 +113,7 @@ public class StatusDispatcher {
             }
         });
     }
-
-    public static void handle( Object src, IStatus status, Style... styles ) {
-        if (adapters.isEmpty() && adapters2.isEmpty()) {
-            String message = "No StatusDispatcher.Adapter registered!";
-            if(status.getException() == null) {
-                log.warn( message);
-            } else {
-                log.warn( message, status.getException() );
-            }
-        }
-        
-        if (status.getSeverity() == IStatus.ERROR) {
-            String message = status.getMessage();
-            if(status.getException() == null) {
-                log.error( message );
-            } else {
-                log.error( message, status.getException() );
-            }            
-        }
-        
-        adapters2.stream().forEach( adapter -> {
-            try {
-                adapter.handle( src, status, styles );
-            }
-            catch (Throwable e) {
-                log.error( "Unhandled exception while processing status: ", e );
-            }
-        });
-    }
+    
     
     /**
      * The service provider interface.
@@ -171,16 +124,4 @@ public class StatusDispatcher {
         
     }
     
-    public interface Adapter2 {
-        
-        public void handle( Object src, IStatus status, Style... styles );
-        
-    }
-
-    /**
-     * @param adapter
-     */
-    public static void unregisterAdapter( Adapter2 adapter2 ) {
-        adapters2.remove( adapter2 );
-    }
 }
