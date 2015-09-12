@@ -209,6 +209,10 @@ public class OperationSupport
     }
     
     
+    /**
+     * 
+     *@see #execute(IUndoableOperation, boolean, boolean, IJobChangeListener...)
+     */
     public void execute3( final IUndoableOperation op, boolean async, boolean progress, Runnable... doneHandlers ) {
         IJobChangeListener[] listeners = new IJobChangeListener[ doneHandlers.length ];
         for (int i=0; i<doneHandlers.length; i++) {
@@ -224,6 +228,10 @@ public class OperationSupport
     }
     
     
+    /**
+     * 
+     *@see #execute(IUndoableOperation, boolean, boolean, IJobChangeListener...)
+     */
     public void execute2( final IUndoableOperation op, boolean async, boolean progress, Consumer<IJobChangeEvent>... doneHandlers ) {
         IJobChangeListener[] listeners = new IJobChangeListener[ doneHandlers.length ];
         for (int i=0; i<doneHandlers.length; i++) {
@@ -240,7 +248,7 @@ public class OperationSupport
     
     
     /**
-     * Executes the given operation inside a {@link UIJob job}.
+     * Executes the given operation inside an {@link UIJob job}.
      * 
      * @param op
      * @param async Indicates that the calling thread should not block execution and

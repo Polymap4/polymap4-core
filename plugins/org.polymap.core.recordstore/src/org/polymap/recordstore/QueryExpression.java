@@ -74,6 +74,12 @@ public abstract class QueryExpression {
         public boolean evaluate( IRecordState record ) {
             return value.equals( record.get( key ) );
         }
+
+        @Override
+        public String toString() {
+            return "Equal[key=" + key + ", value=" + value + "]";
+        }
+        
     }
 
 
