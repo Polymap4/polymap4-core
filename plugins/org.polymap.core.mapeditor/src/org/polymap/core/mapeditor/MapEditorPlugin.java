@@ -64,6 +64,14 @@ public class MapEditorPlugin
         return getDefault().images.image( resource );
     }
 
+
+    /**
+     * Use this to create frequently used images used by this plugin.
+     */
+    public static ImageRegistryHelper images() {
+        return getDefault().images;
+    }
+
     
     // instance *******************************************
     
@@ -80,6 +88,5 @@ public class MapEditorPlugin
         plugin = null;
         super.stop( context );
     }
-
 
 }

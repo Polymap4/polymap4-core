@@ -16,12 +16,16 @@ package org.polymap.core.ui;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.PlainLazyInit;
 
 /**
  * Provides helper methods to work with the {@link ImageRegistry} of an
@@ -33,7 +37,9 @@ public class ImageRegistryHelper {
 
     private static Log log = LogFactory.getLog( ImageRegistryHelper.class );
 
-    private AbstractUIPlugin        plugin;
+    protected AbstractUIPlugin          plugin;
+    
+    protected Lazy<ImageRegistry>       registry = new PlainLazyInit( () -> plugin.getImageRegistry() );
 
     
     public ImageRegistryHelper( AbstractUIPlugin plugin ) {
@@ -42,17 +48,11 @@ public class ImageRegistryHelper {
     }
 
 
-    public ImageRegistry getImageRegistry() {
-        return plugin.getImageRegistry();
-    }
-    
-
     public Image image( ImageDescriptor imageDescriptor, String key ) {
-        ImageRegistry images = getImageRegistry();
-        Image image = images.get( key );
+        Image image = registry.get().get( key );
         if (image == null || image.isDisposed()) {
-            images.put( key, imageDescriptor );
-            image = images.get( key );
+            registry.get().put( key, imageDescriptor );
+            image = registry.get().get( key );
         }
         return image;
     }
@@ -62,15 +62,23 @@ public class ImageRegistryHelper {
         return image( imageDescriptor( path ), path );
     }
 
-    
+
+    /**
+     * 
+     * <p/>
+     * Do not use this to create an {@link Image} instance from it. Use
+     * {@link #image(String)} for that!
+     *
+     * @param path
+     * @return Cached or newly created instance.
+     */
     public ImageDescriptor imageDescriptor( String path ) {
         assert path != null;
-        ImageRegistry images = getImageRegistry();
-        ImageDescriptor image = images.getDescriptor( path );
+        ImageDescriptor image = registry.get().getDescriptor( path );
         if (image == null) {
             String pluginId = plugin.getBundle().getSymbolicName();
             image = AbstractUIPlugin.imageDescriptorFromPlugin( pluginId, path );
-            images.put( path, image );
+            registry.get().put( path, image );
         }
         return image;
     }

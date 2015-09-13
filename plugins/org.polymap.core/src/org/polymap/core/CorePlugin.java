@@ -27,14 +27,9 @@ import org.osgi.framework.BundleContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.graphics.Image;
-
-import org.eclipse.jface.resource.ImageDescriptor;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.runtime.Plugin;
-
 import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.session.RapSessionContextProvider;
 import org.polymap.core.runtime.session.SessionContext;
@@ -56,6 +51,20 @@ public class CorePlugin
 
     private static CorePlugin       plugin;
 
+
+//    static {
+//        ThemeManager.STANDARD_RESOURCE_LOADER = new ResourceLoader() {
+//            @Override
+//            public InputStream getResourceAsStream( String resName ) throws IOException {
+//                log.info( "Loading: " + resName );
+//                InputStream result = ThemeManager.class.getClassLoader().getResourceAsStream( resName );
+//                if (result == null) {
+//                    log.info( "   not found!!!" );                    
+//                }
+//                return result;
+//            }
+//        };
+//    }
 
     public static CorePlugin instance() {
         return plugin;
@@ -109,6 +118,14 @@ public class CorePlugin
     };
 
     
+    /**
+     * Use this to create frequently used images used by this plugin.
+     */
+    public static ImageRegistryHelper images() {
+        return instance().images;
+    }
+    
+    
 	// instance *******************************************
 	
     private RapSessionContextProvider   rapSessionContextProvider;
@@ -153,20 +170,5 @@ public class CorePlugin
         SessionContext.removeProvider( rapSessionContextProvider );
         rapSessionContextProvider = null;
     }
-
 	
-    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
-        return images.image( descriptor, key );
-    }
-
-    
-    public ImageDescriptor imageDescriptor( String path ) {
-        return images.imageDescriptor( path );
-    }
-
-    
-    public Image image( String path ) {
-        return images.image( path );
-    }
-
 }

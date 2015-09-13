@@ -4,7 +4,7 @@
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -34,14 +34,12 @@ import org.polymap.core.ui.ImageRegistryHelper;
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public class ProjectPlugin
         extends AbstractUIPlugin {
 
     private static Log log = LogFactory.getLog( ProjectPlugin.class );
     
-    // The plug-in ID
     public static final String              PLUGIN_ID = "org.polymap.core.project";
 
     private static ProjectPlugin            instance;
@@ -49,11 +47,6 @@ public class ProjectPlugin
 
     public static ProjectPlugin instance() {
         return instance;
-    }
-
-
-    public static Image getImage( String path ) {
-        return instance().imageForName( path );
     }
 
 
@@ -71,11 +64,20 @@ public class ProjectPlugin
         }    
     }
 
+
+    /**
+     * Use this to create frequently used images used by this plugin.
+     */
+    public static ImageRegistryHelper images() {
+        return instance().images;
+    }
+
     
     // instance *******************************************
     
     private ImageRegistryHelper     images = new ImageRegistryHelper( this );
 
+    
     public void start( BundleContext context ) throws Exception {
         super.start( context );
         instance = this;
@@ -89,16 +91,17 @@ public class ProjectPlugin
     }
 
 
-    public Image imageForDescriptor( ImageDescriptor descriptor, String key ) {
-        return images.image( descriptor, key );
-    }
-
-    
+    /**
+     * @deprecated Use {@link #images()} instead.
+     */
     public Image imageForName( String resName ) {
         return images.image( resName );
     }
 
     
+    /**
+     * @deprecated Use {@link #images()} instead.
+     */
     public ImageDescriptor imageDescriptor( String path ) {
         return images.imageDescriptor( path );
     }    
