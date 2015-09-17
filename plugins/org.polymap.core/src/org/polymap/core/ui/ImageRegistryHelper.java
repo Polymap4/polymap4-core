@@ -14,6 +14,8 @@
  */
 package org.polymap.core.ui;
 
+import java.util.function.Supplier;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,12 +26,10 @@ import org.eclipse.jface.resource.ImageRegistry;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.PlainLazyInit;
-
 /**
  * Provides helper methods to work with the {@link ImageRegistry} of an
- * {@link AbstractUIPlugin}.
+ * {@link AbstractUIPlugin}. This intended to be used a static member of the plugin
+ * implementation.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -39,7 +39,12 @@ public class ImageRegistryHelper {
 
     protected AbstractUIPlugin          plugin;
     
-    protected Lazy<ImageRegistry>       registry = new PlainLazyInit( () -> plugin.getImageRegistry() );
+    /**
+     * {@link AbstractUIPlugin#getImageRegistry()} returnes the {@link ImageRegistry}
+     * of the current UI session! Hence, if the {@link ImageRegistryHelper} is to be
+     * used a static member, we cannot cache the instance.
+     */
+    protected Supplier<ImageRegistry>   registry = () -> plugin.getImageRegistry();
 
     
     public ImageRegistryHelper( AbstractUIPlugin plugin ) {
