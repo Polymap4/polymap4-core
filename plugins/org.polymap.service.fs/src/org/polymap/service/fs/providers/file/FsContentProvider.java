@@ -91,6 +91,7 @@ public class FsContentProvider
             if (!dir.exists()) {
                 throw new IllegalArgumentException( "Directory does not exists: " + dir );
             }
+            @SuppressWarnings("unused")
             String role = params[1].trim();
             String alias = params.length > 2 ? params[2].trim() : dir.getName();
             

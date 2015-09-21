@@ -163,7 +163,7 @@ public class WebDavServer
             log.debug( "Auth: " + auth );
             
             // map/create session context
-            final HttpSession session = req.getSession( true );
+            req.getSession( true );
             if (auth != null) {
                 contextProvider.mapContext( auth.getUser(), true );
                 log.debug( "SessionContext: " + SessionContext.current() );
