@@ -14,17 +14,17 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.CollectionResource;
+import io.milton.resource.MoveableResource;
+import io.milton.http.SecurityManager;
+
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.MoveableResource;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 import org.eclipse.core.runtime.IPath;
 
@@ -49,6 +49,7 @@ public class WebDavMoveableResource
         super( contentManager, node, securityManager );
     }
 
+    @Override
     public void moveTo( CollectionResource dest, String newName )
             throws ConflictException, NotAuthorizedException, BadRequestException {
         try {
@@ -63,5 +64,5 @@ public class WebDavMoveableResource
             throw new BadRequestException( this, e.getMessage() );
         }        
     }
-    
+
 }

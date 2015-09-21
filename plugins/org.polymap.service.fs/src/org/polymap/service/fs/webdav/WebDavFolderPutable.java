@@ -14,6 +14,16 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Auth;
+import io.milton.http.Request;
+import io.milton.http.Request.Method;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.PutableResource;
+import io.milton.resource.Resource;
+import io.milton.http.SecurityManager;
+
 import java.util.Date;
 import java.util.List;
 
@@ -22,16 +32,6 @@ import java.io.InputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.PutableResource;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFile;

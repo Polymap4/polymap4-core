@@ -19,8 +19,6 @@ import java.util.Map;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.bradmcevoy.http.GetableResource;
-
 /**
  * A content file with size and type.
  * <p/>

@@ -14,6 +14,16 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.config.HttpManagerBuilder;
+import io.milton.http.Auth;
+import io.milton.http.Filter;
+import io.milton.http.HttpManager;
+import io.milton.http.Request;
+import io.milton.http.ResourceFactory;
+import io.milton.http.Response;
+import io.milton.http.SecurityManager;
+
+import java.util.List;
 import java.util.Locale;
 
 import java.io.IOException;
@@ -32,15 +42,6 @@ import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.AuthenticationService;
-import com.bradmcevoy.http.CompressingResponseHandler;
-import com.bradmcevoy.http.HttpManager;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.ResourceFactory;
-import com.bradmcevoy.http.Response;
-import com.bradmcevoy.http.SecurityManager;
 
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.session.DefaultSessionContextProvider;
@@ -103,27 +104,31 @@ public class WebDavServer
         try {
             this.config = _config;
             
-//            Map<String,String> users = new HashMap();
-//            users.put( "admin", "admin" );
-//            users.put( "falko", "." );
-            securityManager = new SecurityManagerAdapter( "POLYMAP3 WebDAV" );
+            securityManager = new SecurityManagerAdapter( "Polymap4 WebDAV" );
             
+            HttpManagerBuilder builder = new HttpManagerBuilder();
             resourceFactory = new WebDavResourceFactory( securityManager, "webdav" );
+            builder.setResourceFactory( resourceFactory );
             
-            AuthenticationService authService = new AuthenticationService();
-            BalkonCacheControl cacheControl = new BalkonCacheControl( false );
+//            AuthenticationService authService = new AuthenticationService();
+//            builder.setAuthenticationService( authService );
             
-            BalkonWebDavResponseHandler defaultHandler = new BalkonWebDavResponseHandler( authService );
-            defaultHandler.setCacheControl( cacheControl );
+            // Milton2 seems to handle 304 correctly by itself
+//            BalkonCacheControl cacheControl = new BalkonCacheControl( false );
+//            BalkonWebDavResponseHandler defaultHandler = new BalkonWebDavResponseHandler( authService );
+//            defaultHandler.setCacheControl( cacheControl );
 
-            CompressingResponseHandler compressHandler = 
-                    new CompressingResponseHandler( defaultHandler );
-            compressHandler.setMaxMemorySize( 1024*1024 );
-            compressHandler.setCacheControlHelper( cacheControl );
+            // compression should be done on an other layer
+//            CompressingResponseHandler compressHandler = 
+//                    new CompressingResponseHandler( defaultHandler );
+//            compressHandler.setMaxMemorySize( 1024*1024 );
+//            compressHandler.setCacheControlHelper( cacheControl );
+//            builder.setResourceHandlerHelper( compressHandler ); 
 
-            httpManager = new HttpManager( resourceFactory, compressHandler, authService );
-            httpManager.addFilter( 0, new PreAuthenticationFilter( 
-                    httpManager.getResponseHandler(), securityManager ) );
+            builder.init();
+            List<Filter> filters = builder.getFilters();
+            filters.add( 0, new PreAuthenticationFilter( builder.getHttp11ResponseHandler(), securityManager ) );
+            httpManager = builder.buildHttpManager();
         }
         catch (Throwable ex) {
             log.error( "Exception while starting", ex );
@@ -149,8 +154,8 @@ public class WebDavServer
         DefaultSessionContextProvider contextProvider = FsPlugin.getDefault().sessionContextProvider;
         
         try {
-            Request request = new com.bradmcevoy.http.ServletRequest( req, req.getServletContext() );
-            Response response = new com.bradmcevoy.http.ServletResponse( resp );
+            Request request = new io.milton.servlet.ServletRequest( req, servletRequest.getServletContext() );
+            Response response = new io.milton.servlet.ServletResponse( resp );
             threadRequest.set( request );
             threadResponse.set( response );
 
@@ -193,7 +198,7 @@ public class WebDavServer
      * @return The specified user.
      */
     public static Principal createNewSession( final Principal user ) {
-        HttpServletRequest req = com.bradmcevoy.http.ServletRequest.getRequest();
+        HttpServletRequest req = io.milton.servlet.ServletRequest.getRequest();
         final HttpSession session = req.getSession();
   
         // HTTP session timeout: 30min

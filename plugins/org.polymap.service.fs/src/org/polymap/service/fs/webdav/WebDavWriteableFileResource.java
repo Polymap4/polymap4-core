@@ -14,17 +14,17 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.FileItem;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.PostableResource;
+import io.milton.http.SecurityManager;
+
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.FileItem;
-import com.bradmcevoy.http.PostableResource;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFile;

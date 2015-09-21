@@ -14,7 +14,7 @@
  */
 package org.polymap.service.fs.webdav;
 
-import com.bradmcevoy.http.Auth;
+import io.milton.http.Auth;
 
 import org.polymap.service.fs.spi.IContentNode;
 

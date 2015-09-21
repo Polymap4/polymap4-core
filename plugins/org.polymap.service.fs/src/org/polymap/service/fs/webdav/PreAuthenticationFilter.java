@@ -1,24 +1,25 @@
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Auth;
+import io.milton.http.AuthenticationHandler;
+import io.milton.http.Filter;
+import io.milton.http.FilterChain;
+import io.milton.http.Request;
+import io.milton.http.Request.Method;
+import io.milton.http.Response;
+import io.milton.http.SecurityManager;
+import io.milton.http.http11.Http11ResponseHandler;
+import io.milton.http.http11.auth.NonceProvider;
+import io.milton.http.http11.auth.SecurityManagerBasicAuthHandler;
+import io.milton.http.http11.auth.SecurityManagerDigestAuthenticationHandler;
+import io.milton.resource.Resource;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.AuthenticationHandler;
-import com.bradmcevoy.http.Filter;
-import com.bradmcevoy.http.FilterChain;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.Response;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.http11.Http11ResponseHandler;
-import com.bradmcevoy.http.http11.auth.SecurityManagerBasicAuthHandler;
-import com.bradmcevoy.http.http11.auth.SecurityManagerDigestAuthenticationHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A filter to perform authentication before resource location.
@@ -30,61 +31,66 @@ import com.bradmcevoy.http.http11.auth.SecurityManagerDigestAuthenticationHandle
  * null when used with this filter. This approach allows these handlers to be used
  * with the post-resource-location approach.
  * <p/>
- * The This is taken from
- * {@link com.bradmcevoy.http.http11.auth.PreAuthenticationFilter}. The only
- * difference is that it provides an {@link DummyResource} with the realm so that the
- * above is not true for getRealm().
+ * The This is taken from {@link io.milton.http.http11.auth.PreAuthenticationFilter}.
+ * The only difference is that it provides an {@link DummyResource} with the realm so
+ * that the above is not true for getRealm().
  */
 public class PreAuthenticationFilter 
         implements Filter {
 
-    private static Log log = LogFactory.getLog( PreAuthenticationFilter.class );
-
+    private static final Logger log = LoggerFactory.getLogger( PreAuthenticationFilter.class );
     private static final ThreadLocal<Request> tlRequest = new ThreadLocal<Request>();
-
-    private final Http11ResponseHandler       responseHandler;
-
+    private final Http11ResponseHandler responseHandler;
     private final List<AuthenticationHandler> authenticationHandlers;
-    
-    private final SecurityManager             securityManager;
-
+    private SecurityManager securityManager;
 
     public static Request getCurrentRequest() {
         return tlRequest.get();
     }
 
+    public PreAuthenticationFilter( Http11ResponseHandler responseHandler, List<AuthenticationHandler> authenticationHandlers ) {
+        this.responseHandler = responseHandler;
+        this.authenticationHandlers = authenticationHandlers;
+    }
 
     public PreAuthenticationFilter( Http11ResponseHandler responseHandler, SecurityManager securityManager ) {
+        assert responseHandler != null;
         this.responseHandler = responseHandler;
-        this.authenticationHandlers = new ArrayList<AuthenticationHandler>();
         this.securityManager = securityManager;
-        
+        this.authenticationHandlers = new ArrayList<AuthenticationHandler>();
         authenticationHandlers.add( new SecurityManagerBasicAuthHandler( securityManager ) );
         authenticationHandlers.add( new SecurityManagerDigestAuthenticationHandler( securityManager ) );
     }
 
+    public PreAuthenticationFilter( Http11ResponseHandler responseHandler, SecurityManager securityManager, NonceProvider np) {
+        this.responseHandler = responseHandler;
+        this.securityManager = securityManager;
+        this.authenticationHandlers = new ArrayList<AuthenticationHandler>();
+        authenticationHandlers.add( new SecurityManagerBasicAuthHandler( securityManager ) );
+        authenticationHandlers.add( new SecurityManagerDigestAuthenticationHandler( np, securityManager ) );
+    }
 
+
+    @Override
     public void process( FilterChain chain, Request request, Response response ) {
         log.trace( "process" );
         try {
             tlRequest.set( request );
             Object authTag = authenticate( request );
-            if (authTag != null) {
+            if( authTag != null ) {
                 request.getAuthorization().setTag( authTag );
                 chain.process( request, response );
-            }
-            else {
+            } else {
                 responseHandler.respondUnauthorised( new DummyResource(), response, request );
             }
-        }
-        finally {
+        } finally {
             tlRequest.remove();
         }
     }
 
     
     /*
-     * Fake Resource that provides the real to the AuthenticationHandler only.
+     * Fake Resource that provides the realm to the AuthenticationHandler only.
      */
     class DummyResource
             implements Resource {
@@ -115,8 +121,7 @@ public class PreAuthenticationFilter
 
         public String getUniqueId() {
             return "DummyResource";
-        }
-        
+        }    
     }
 
     
@@ -128,35 +133,32 @@ public class PreAuthenticationFilter
      * Returns null if no handlers support the request
      *
      * @param request
+     * @return
      */
     public Object authenticate( Request request ) {
-        for (AuthenticationHandler h : authenticationHandlers) {
-            if (h.supports( null, request )) {
+        for( AuthenticationHandler h : authenticationHandlers ) {
+            if( h.supports( null, request ) ) {
                 Object o = h.authenticate( null, request );
-                if (o == null) {
+                if( o == null ) {
                     log.warn( "authentication failed by AuthenticationHandler:" + h.getClass() );
                 }
                 return o;
             }
         }
 
-        if (request.getAuthorization() == null) {
+        if( request.getAuthorization() == null ) {
             // note that this is completely normal, so just TRACE
-            if (log.isTraceEnabled()) {
-                log.debug( "No AuthenticationHandler supports this request - no authorisation given in request" );
+            if( log.isTraceEnabled() ) {
+                log.trace( "No AuthenticationHandler supports this request - no authorisation given in request" );
             }
-        }
-        else {
-            // authorisation was present in the request, but no handlers accepted it
-            // - probably a config problem
-            if (log.isWarnEnabled()) {
-                log.warn( "No AuthenticationHandler supports this request with scheme:"
-                        + request.getAuthorization().getScheme() );
+        } else {
+            // authorisation was present in the request, but no handlers accepted it - probably a config problem
+            if( log.isWarnEnabled() ) {
+                log.warn( "No AuthenticationHandler supports this request with scheme:" + request.getAuthorization().getScheme() );
             }
         }
         return null;
     }
-
 
     /**
      * Generates a list of http authentication challenges, one for each
@@ -168,9 +170,8 @@ public class PreAuthenticationFilter
     public List<String> getChallenges( Request request ) {
         List<String> challenges = new ArrayList<String>();
 
-        for (AuthenticationHandler h : authenticationHandlers) {
-            String ch = h.getChallenge( null, request );
-            challenges.add( ch );
+        for( AuthenticationHandler h : authenticationHandlers ) {
+            h.appendChallenges(null, request, challenges);            
         }
         return challenges;
     }

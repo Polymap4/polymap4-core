@@ -14,6 +14,15 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Range;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.CollectionResource;
+import io.milton.resource.GetableResource;
+import io.milton.resource.PropFindableResource;
+import io.milton.resource.Resource;
+import io.milton.http.SecurityManager;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,18 +30,12 @@ import java.util.Map;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.Range;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.eclipse.core.runtime.IPath;
+
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFolder;
 import org.polymap.service.fs.spi.IContentNode;

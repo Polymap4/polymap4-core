@@ -14,6 +14,20 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Request;
+import io.milton.http.ResourceFactory;
+import io.milton.resource.CollectionResource;
+import io.milton.resource.DeletableResource;
+import io.milton.resource.GetableResource;
+import io.milton.resource.MakeCollectionableResource;
+import io.milton.resource.MoveableResource;
+import io.milton.resource.PostableResource;
+import io.milton.resource.PropFindableResource;
+import io.milton.resource.PutableResource;
+import io.milton.resource.ReplaceableResource;
+import io.milton.resource.Resource;
+import io.milton.http.SecurityManager;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,20 +40,6 @@ import java.lang.reflect.Proxy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.DeletableResource;
-import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.MakeCollectionableResource;
-import com.bradmcevoy.http.MoveableResource;
-import com.bradmcevoy.http.PostableResource;
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.PutableResource;
-import com.bradmcevoy.http.ReplaceableResource;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.ResourceFactory;
-import com.bradmcevoy.http.SecurityManager;
 
 import org.polymap.core.runtime.session.SessionContext;
 

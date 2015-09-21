@@ -14,12 +14,12 @@
  */
 package org.polymap.service.fs.spi;
 
+import io.milton.http.FileItem;
+
 import java.util.Map;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import com.bradmcevoy.http.FileItem;
 
 /**
  * 

@@ -14,12 +14,12 @@
  */
 package org.polymap.service.fs.webdav;
 
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.MakeCollectionableResource;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.CollectionResource;
+import io.milton.resource.MakeCollectionableResource;
+import io.milton.http.SecurityManager;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFolder;

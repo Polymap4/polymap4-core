@@ -14,11 +14,12 @@
  */
 package org.polymap.service.fs.webdav;
 
-import com.bradmcevoy.http.AuthenticationService;
-import com.bradmcevoy.http.http11.CacheControlHelper;
-import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
-import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
-
+import io.milton.http.http11.CacheControlHelper;
+import io.milton.http.http11.DefaultHttp11ResponseHandler;
+import io.milton.http.http11.Http11ResponseHandler;
+import io.milton.http.webdav.DefaultWebDavResponseHandler;
+import io.milton.http.webdav.PropFindXmlGenerator;
+import io.milton.http.webdav.ResourceTypeHelper;
 
 /**
  * 
@@ -28,8 +29,9 @@ import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 public class BalkonWebDavResponseHandler
         extends DefaultWebDavResponseHandler {
 
-    public BalkonWebDavResponseHandler( AuthenticationService authService ) {
-        super( authService );
+    public BalkonWebDavResponseHandler( Http11ResponseHandler wrapped, ResourceTypeHelper resourceTypeHelper,
+            PropFindXmlGenerator propFindXmlGenerator ) {
+        super( wrapped, resourceTypeHelper, propFindXmlGenerator );
     }
 
     public void setCacheControl( CacheControlHelper cacheControl ) {

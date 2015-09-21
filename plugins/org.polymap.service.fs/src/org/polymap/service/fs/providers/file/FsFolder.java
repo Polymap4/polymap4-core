@@ -14,13 +14,13 @@
  */
 package org.polymap.service.fs.providers.file;
 
+import io.milton.http.FileItem;
+
 import java.util.Map;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-import com.bradmcevoy.http.FileItem;
 
 import org.eclipse.core.runtime.IPath;
 

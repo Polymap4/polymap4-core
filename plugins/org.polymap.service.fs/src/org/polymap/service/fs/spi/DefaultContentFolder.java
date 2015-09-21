@@ -14,6 +14,8 @@
  */
 package org.polymap.service.fs.spi;
 
+import io.milton.http.XmlWriter;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -25,7 +27,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bradmcevoy.http.XmlWriter;
 import org.eclipse.core.runtime.IPath;
 
 /**

@@ -14,6 +14,13 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Range;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.GetableResource;
+import io.milton.resource.PropFindableResource;
+import io.milton.http.SecurityManager;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -22,13 +29,6 @@ import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.Range;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentFile;

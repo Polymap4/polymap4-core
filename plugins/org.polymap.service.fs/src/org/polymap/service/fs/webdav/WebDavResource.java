@@ -14,15 +14,16 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Auth;
+import io.milton.http.SecurityManager;
+import io.milton.http.Request;
+import io.milton.http.Request.Method;
+import io.milton.resource.Resource;
+
 import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.Request.Method;
 
 import org.polymap.service.fs.ContentManager;
 import org.polymap.service.fs.spi.IContentNode;

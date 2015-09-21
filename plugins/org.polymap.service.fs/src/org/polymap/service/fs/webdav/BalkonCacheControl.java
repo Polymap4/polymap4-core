@@ -14,15 +14,15 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Auth;
+import io.milton.http.Response;
+import io.milton.http.http11.CacheControlHelper;
+import io.milton.resource.GetableResource;
+
 import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.Response;
-import com.bradmcevoy.http.http11.CacheControlHelper;
 
 /**
  * Generates Cache-Control reponse headers.

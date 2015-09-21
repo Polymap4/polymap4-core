@@ -14,18 +14,18 @@
  */
 package org.polymap.service.fs.webdav;
 
+import io.milton.http.Auth;
+import io.milton.http.SecurityManager;
+import io.milton.http.Request;
+import io.milton.http.Request.Method;
+import io.milton.http.http11.auth.DigestResponse;
+import io.milton.resource.Resource;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.SecurityManager;
-import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.http11.auth.DigestResponse;
 
 import org.polymap.core.security.SecurityContext;
 import org.polymap.core.security.UserPrincipal;
@@ -60,14 +60,20 @@ public class SecurityManagerAdapter
     }
 
     public Object authenticate( String user, String passwd ) {
-        HttpServletRequest req = com.bradmcevoy.http.ServletRequest.getRequest();
+        HttpServletRequest req = io.milton.servlet.ServletRequest.getRequest();
         final HttpSession session = req.getSession();
 
         UserPrincipal sessionUser = (UserPrincipal)session.getAttribute( "sessionUser" );
         if (sessionUser == null) {
             log.info( "WebDAV login: " + user /*+ "/" + passwd*/ );
             SecurityContext sc = SecurityContext.instance();
-            if (sc.login( user, passwd )) {
+            if (sc.isLoggedIn()) {
+                log.info( "Already logged in as: " + sc.getUser().getName() );                
+                sessionUser = (UserPrincipal)sc.getUser();
+                session.setAttribute( "sessionUser", sessionUser );
+                return WebDavServer.createNewSession( sessionUser );
+            }
+            else if (sc.login( user, passwd )) {
                 sessionUser = (UserPrincipal)sc.getUser();
                 session.setAttribute( "sessionUser", sessionUser );
                 return WebDavServer.createNewSession( sessionUser );
