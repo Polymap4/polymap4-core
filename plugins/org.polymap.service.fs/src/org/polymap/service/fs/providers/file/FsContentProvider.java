@@ -34,7 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.security.SecurityUtils;
 
 import org.polymap.service.fs.spi.BadRequestException;
@@ -102,7 +101,7 @@ public class FsContentProvider
 
     public List<? extends IContentNode> getChildren( IPath path ) {
         // check admin
-        if (!SecurityUtils.isAdmin( Polymap.instance().getPrincipals())) {
+        if (!SecurityUtils.isAdmin()) {
             return null;
         }
         

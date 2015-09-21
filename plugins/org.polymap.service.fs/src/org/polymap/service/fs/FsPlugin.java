@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.Plugin;
 
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.CorePlugin;
 import org.polymap.core.runtime.session.DefaultSessionContextProvider;
 import org.polymap.core.runtime.session.SessionContext;
 
@@ -61,7 +61,7 @@ public class FsPlugin
         plugin = this;
         
         // init cacheDir
-        cacheDir = new File( Polymap.getCacheDir(), PLUGIN_ID );
+        cacheDir = new File( CorePlugin.getDataLocation( this ), "cache" );
         log.info( "Cleaning cache dir: " + cacheDir.getAbsolutePath() + " ..." );
         FileUtils.deleteDirectory( cacheDir );
         cacheDir.mkdirs();

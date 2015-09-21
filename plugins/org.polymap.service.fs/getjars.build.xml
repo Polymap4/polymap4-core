@@ -59,8 +59,12 @@
 			<remoteRepository refid="ettrema.repository" />
 			<remoteRepository refid="central.repository" />
 
-            <dependency groupId="io.milton" artifactId="milton-api" version="2.6.4.0"/>
-            <dependency groupId="io.milton" artifactId="milton-server-ce" version="2.6.4.0"/>
+            <dependency groupId="com.ettrema" artifactId="milton-api" version="1.8.0.1"/>
+            <dependency groupId="com.ettrema" artifactId="milton-servlet" version="1.8.0.1"/>
+            
+		    <!--dependency groupId="io.milton" artifactId="milton-api" version="2.6.4.0"/>
+            <dependency groupId="io.milton" artifactId="milton-server-ce" version="2.6.4.0"/-->
+		    
             <!--dependency groupId="com.ettrema" artifactId="milton-json" version="${milton.version}"/-->
             <!--dependency groupId="com.ettrema" artifactId="milton-filesystem" version="${milton.version}"/-->
 

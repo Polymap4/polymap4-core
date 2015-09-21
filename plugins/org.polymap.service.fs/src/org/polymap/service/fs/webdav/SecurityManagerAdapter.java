@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -14,7 +14,6 @@
  */
 package org.polymap.service.fs.webdav;
 
-import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -28,11 +27,11 @@ import com.bradmcevoy.http.SecurityManager;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
 
-import org.polymap.core.runtime.Polymap;
+import org.polymap.core.security.SecurityContext;
 import org.polymap.core.security.UserPrincipal;
 
 /**
- * Adapter to the POLYMAP authentication.
+ * Adapter to the {@link SecurityContext} authentication.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -66,16 +65,15 @@ public class SecurityManagerAdapter
 
         UserPrincipal sessionUser = (UserPrincipal)session.getAttribute( "sessionUser" );
         if (sessionUser == null) {
-            try {
-                log.info( "WebDAV login: " + user /*+ "/" + passwd*/ );
-                Polymap.instance().login( user, passwd );
-                
-                sessionUser = (UserPrincipal)Polymap.instance().getUser();
+            log.info( "WebDAV login: " + user /*+ "/" + passwd*/ );
+            SecurityContext sc = SecurityContext.instance();
+            if (sc.login( user, passwd )) {
+                sessionUser = (UserPrincipal)sc.getUser();
                 session.setAttribute( "sessionUser", sessionUser );
                 return WebDavServer.createNewSession( sessionUser );
             }
-            catch (LoginException e) {
-                log.warn( "", e );
+            else {
+                log.warn( "Login failed." );
                 return null;
             }
         }
