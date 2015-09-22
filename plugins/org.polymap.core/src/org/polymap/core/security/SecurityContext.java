@@ -185,6 +185,12 @@ public class SecurityContext
     }
 
 
+    public UserPrincipal loginTrusted( String username ) {
+        user = new UserPrincipal( username );
+        return (UserPrincipal)user;
+    }
+
+    
 //    public boolean validatePassword( String username, String passwd ) {
 //        try {
 //            ServicesCallbackHandler.challenge( username, passwd );
@@ -238,9 +244,7 @@ public class SecurityContext
         return subject;    
     }
 
-
-    public void setUser( UserPrincipal userPrincipal ) {
-        this.user = userPrincipal;
+    public boolean isLoggedIn() {
+        return subject != null;
     }
-
 }

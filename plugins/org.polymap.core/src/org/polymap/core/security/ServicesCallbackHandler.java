@@ -46,9 +46,8 @@ public class ServicesCallbackHandler
 
     
     // instance *******************************************
-    
+
     public void handle( Callback[] callbacks ) throws IOException, UnsupportedCallbackException {
-        
         String[] userPasswd = challenge.get();
         challenge.set( null );
         
