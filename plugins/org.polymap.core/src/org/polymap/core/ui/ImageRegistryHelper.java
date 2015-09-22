@@ -53,6 +53,13 @@ public class ImageRegistryHelper {
     }
 
 
+    /**
+     * 
+     *
+     * @param imageDescriptor
+     * @param key
+     * @return Newly created are cached image. Must no be used outside current user session!
+     */
     public Image image( ImageDescriptor imageDescriptor, String key ) {
         Image image = registry.get().get( key );
         if (image == null || image.isDisposed()) {
@@ -63,6 +70,12 @@ public class ImageRegistryHelper {
     }
 
 
+    /**
+     * 
+     *
+     * @param path
+     * @return Newly created are cached image. Must no be used outside current user session!
+     */
     public Image image( String path ) {
         return image( imageDescriptor( path ), path );
     }
@@ -75,7 +88,7 @@ public class ImageRegistryHelper {
      * {@link #image(String)} for that!
      *
      * @param path
-     * @return Cached or newly created instance.
+     * @return Newly created are cached image. Must no be used outside current user session!
      */
     public ImageDescriptor imageDescriptor( String path ) {
         assert path != null;
