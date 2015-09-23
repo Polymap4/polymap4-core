@@ -33,6 +33,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.PlainLazyInit;
+
 /**
  * 
  *
@@ -40,6 +43,20 @@ import java.lang.reflect.Type;
  */
 public class ConfigurationFactory {
 
+    private static final Lazy<Method>       doGet = new PlainLazyInit( () -> doMethod( "doGet" ) ); 
+    private static final Lazy<Method>       doSet = new PlainLazyInit( () -> doMethod( "doSet" ) ); 
+    private static final Lazy<Method>       doInit = new PlainLazyInit( () -> doMethod( "doInit" ) ); 
+    
+    private static Method doMethod( String name ) {
+        try {
+            return PropertyConcern.class.getDeclaredMethod( name, new Class[] {Object.class, Config.class, Object.class} );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+    }
+    
+    
     /**
      * Creates a new configuration of the given type.
      */
@@ -129,7 +146,7 @@ public class ConfigurationFactory {
             }
             
             //
-            value = checkConcerns( "doInit", value );
+            value = checkConcerns( doInit.get(), value );
         }
 
         
@@ -148,7 +165,7 @@ public class ConfigurationFactory {
     
         @Override
         public V set( V newValue ) {
-            newValue = checkConcerns( "doSet", newValue );
+            newValue = checkConcerns( doSet.get(), newValue );
             checkValidators( newValue );
 
             V previous = value;
@@ -159,7 +176,7 @@ public class ConfigurationFactory {
     
         @Override
         public V get() {
-            return checkConcerns( "doGet", value );
+            return checkConcerns( doGet.get(), value );
         }
         
         
@@ -260,9 +277,8 @@ public class ConfigurationFactory {
         }
         
         
-        protected V checkConcerns( String methodName, V v ) {
+        protected V checkConcerns( Method m, V v ) {
             try {
-                Method m = PropertyConcern.class.getMethod( methodName, new Class[] {Object.class, Config.class, Object.class} );
                 for (PropertyConcern concern : concerns) {
                     v = (V)m.invoke( concern, new Object[] {instance, this, v} );
                 }
