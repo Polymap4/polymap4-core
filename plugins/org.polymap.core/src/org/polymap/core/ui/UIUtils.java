@@ -163,13 +163,13 @@ public class UIUtils {
 
     
     /**
-     * Performs the given visitor on every child of the given parent. The loops stops
-     * if visitor returns false.
+     * Performs the given visitor recursivly on every child of the given parent. The
+     * loops stops if visitor returns false.
      *
      * @param parent
      * @param visitor
      */
-    public static final void visitChildren( Composite parent, Predicate<Control> visitor ) {
+    public static void visitChildren( Composite parent, Predicate<Control> visitor ) {
         Deque<Control> stack = new ArrayDeque();
         stack.addAll( Arrays.asList( parent.getChildren() ) );
         while (!stack.isEmpty()) {
@@ -179,6 +179,19 @@ public class UIUtils {
             }
             if (child instanceof Composite) {
                 stack.addAll( Arrays.asList( ((Composite)child).getChildren() ) );
+            }
+        }
+    }
+    
+    
+    /**
+     * Disposes all children of the given parent. Checks if childs are already
+     * disposed.
+     */
+    public static void disposeChildren( Composite parent ) {
+        for (Control child : parent.getChildren()) {
+            if (!child.isDisposed()) {
+                child.dispose();
             }
         }
     }
