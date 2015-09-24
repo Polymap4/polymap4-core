@@ -28,7 +28,6 @@ import org.polymap.core.catalog.IMetadataCatalog;
 import org.polymap.core.catalog.resolve.IResolvableInfo;
 import org.polymap.core.catalog.resolve.IResourceInfo;
 import org.polymap.core.catalog.resolve.IServiceInfo;
-import org.polymap.core.ui.UIUtils;
 
 /**
  * Default label provider for: {@link IMetadataCatalog}, {@link IMetadata},
@@ -46,7 +45,6 @@ public class MetadataDescriptionProvider
     public void update( ViewerCell cell ) {
         Object elm = cell.getElement();
         cell.setText( getText( elm ) );
-        cell.setForeground( UIUtils.getColor( 150, 150, 150 ) );
     }
 
 
