@@ -14,6 +14,8 @@
  */
 package org.polymap.core.operation;
 
+import java.util.concurrent.Callable;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -36,6 +38,43 @@ public abstract class DefaultOperation
     public DefaultOperation( String label ) {
         super( label );
     }
+    
+    protected abstract IStatus doExecute( IProgressMonitor monitor, IAdaptable info ) throws Exception;
+    
+    protected IStatus doUndo( IProgressMonitor monitor, IAdaptable info ) throws Exception {
+        throw new RuntimeException( "not implemented." );        
+    }
+    
+    protected IStatus doRedo( IProgressMonitor monitor, IAdaptable info ) throws Exception {
+        throw new RuntimeException( "not implemented." );        
+    }
+
+    private IStatus handleException( Callable<IStatus> task ) throws ExecutionException {
+        try {
+            return task.call();
+        }
+        catch (ExecutionException e) {
+            throw e;
+        }        
+        catch (Exception e) {
+            throw new ExecutionException( e.getMessage(), e );
+        }        
+    }
+    
+    @Override
+    public final IStatus execute( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
+        return handleException( () -> doExecute( monitor, info ) );
+    }
+
+    @Override
+    public final IStatus redo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
+        return handleException( () -> doRedo( monitor, info ) );
+    }
+
+    @Override
+    public final IStatus undo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
+        return handleException( () -> doUndo( monitor, info ) );
+    }
 
     @Override
     public boolean canRedo() {
@@ -45,16 +84,6 @@ public abstract class DefaultOperation
     @Override
     public boolean canUndo() {
         return false;
-    }
-
-    @Override
-    public IStatus redo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        throw new RuntimeException( "not implemented." );
-    }
-
-    @Override
-    public IStatus undo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        throw new RuntimeException( "not implemented." );
     }
     
 }
