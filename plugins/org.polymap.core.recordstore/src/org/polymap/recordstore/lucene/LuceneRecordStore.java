@@ -210,27 +210,32 @@ public final class LuceneRecordStore
         this.config = config;
         
         File indexDir = config.indexDir.get();
-        if (!indexDir.exists()) {
-            indexDir.mkdirs();
+        if (indexDir == null) {
+            directory = new RAMDirectory();
+            log.info( "    RAMDirectory: " + Arrays.asList( directory.listAll() ) );            
+            open( config.clean.get() );
         }
-        
-        directory = null;
-        // use mmap on 32bit Linux of index size < 100MB
-        // more shared memory results in system stall under rare conditions
-        if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
-                && FileUtils.sizeOfDirectory( indexDir ) < 100*1024*1024) {
-            try {
-                directory = new MMapDirectory( indexDir, null );
+        else {
+            if (!indexDir.exists()) {
+                indexDir.mkdirs();
+            }
+            directory = null;
+            // use mmap on 32bit Linux of index size < 100MB
+            // more shared memory results in system stall under rare conditions
+            if (Constants.LINUX && !Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED
+                    && FileUtils.sizeOfDirectory( indexDir ) < 100*1024*1024) {
+                try {
+                    directory = new MMapDirectory( indexDir, null );
+                    open( config.clean.get() );
+                }
+                catch (OutOfMemoryError e) {
+                    log.info( "Unable to mmap index: falling back to default.");
+                }
+            }
+            if (searcher == null) {
+                directory = FSDirectory.open( indexDir );
                 open( config.clean.get() );
             }
-            catch (OutOfMemoryError e) {
-                log.info( "Unable to mmap index: falling back to default.");
-            }
-        }
-        
-        if (searcher == null) {
-            directory = FSDirectory.open( indexDir );
-            open( config.clean.get() );
         }
 
         // init cache (if configured)
@@ -239,13 +244,14 @@ public final class LuceneRecordStore
             cache = cacheManager.createCache( "LuceneRecordStore-" + hashCode(), new MutableConfiguration()
                     .setReadThrough( true )
                     .setCacheLoaderFactory( () -> loader ) );
+            doc2id = cacheManager.createCache( "LuceneRecordStore-doc2id-" + hashCode(), new MutableConfiguration() );
         }
 
         // init ExecutorService
         executor = Optional.ofNullable( config.executor.get() ).orElse( defaultExecutor );
         
-        log.info( "Database: " + indexDir.getAbsolutePath()
-                + "\n    size: " + FileUtils.sizeOfDirectory( indexDir )
+        log.info( "Database: " + (indexDir != null ? indexDir.getAbsolutePath() : "RAM")
+                + "\n    size: " + (indexDir != null ? FileUtils.sizeOfDirectory( indexDir ) : "-")
                 + "\n    using: " + directory.getClass().getSimpleName()
                 + "\n    files in directry: " + Arrays.asList( directory.listAll() )
                 + "\n    cache: " + (cache != null ? cache.getClass().getSimpleName() : "none")
