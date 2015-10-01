@@ -63,7 +63,11 @@ public class DepthFirstStackExecutor
         DepthFirstContext sinkContext = contexts.get( 0 );
         sinkContext.procDesc.signature().invoke( request, sinkContext );
     }
+    
 
+    protected DepthFirstContext createDepthFirstContext( ProcessorDescription desc, int i ) {
+        return new DepthFirstContext( desc, i );
+    }
     
     protected void handleResponse( ProcessorResponse r ) {
         // FIXME this try/catch must be done somewhere else
@@ -137,5 +141,4 @@ public class DepthFirstStackExecutor
         }
         
     }
-
 }
