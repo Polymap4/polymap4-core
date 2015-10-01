@@ -81,7 +81,7 @@ public class FsFolder
 
     
     public IContentFile createNew( String newName, InputStream in, Long length, String contentType )
-    throws IOException, NotAuthorizedException, BadRequestException {
+            throws IOException, NotAuthorizedException, BadRequestException {
         return getProvider().createNew( this, newName, in );
     }
 
@@ -119,8 +119,8 @@ public class FsFolder
      * {@link #getDescription(String)}.
      */
     public String processForm( Map<String,String> params, Map<String,FileItem> files )
-    throws IOException, NotAuthorizedException, BadRequestException {
-        
+            throws IOException, NotAuthorizedException, BadRequestException {
+        assert !files.isEmpty() : "No files, should we parse params?";
         for (FileItem item : files.values()) {
             createNew( item.getName(), item.getInputStream(), item.getSize(), "text/plain" );
         }

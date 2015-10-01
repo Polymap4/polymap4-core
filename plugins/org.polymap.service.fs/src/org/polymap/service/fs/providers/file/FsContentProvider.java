@@ -141,7 +141,8 @@ public class FsContentProvider
      * @return Newly created {@link FsFile} reflecting the created file.
      */
     public IContentFile createNew( FsFolder folder, String newName, InputStream in )
-    throws IOException, NotAuthorizedException, BadRequestException {
+            throws IOException, NotAuthorizedException, BadRequestException {
+        assert newName != null;
         OutputStream fileOut = null;
         try {
             File f = new File( folder.getDir(), newName );

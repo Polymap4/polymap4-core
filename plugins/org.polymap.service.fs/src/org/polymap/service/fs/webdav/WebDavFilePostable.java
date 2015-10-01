@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2015, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -64,7 +64,7 @@ class WebDavFilePostable
 
 
     public void replaceContent( InputStream in, Long length )
-    throws BadRequestException, ConflictException, NotAuthorizedException {
+            throws BadRequestException, ConflictException, NotAuthorizedException {
         log.info( "length: " + length );
         try {
             node.replaceContent( in, length );
@@ -84,7 +84,7 @@ class WebDavFilePostable
 
 
     public String processForm( Map<String,String> params, Map<String,FileItem> files )
-    throws BadRequestException, NotAuthorizedException, ConflictException {
+            throws BadRequestException, NotAuthorizedException, ConflictException {
         log.info( "params: " + params );
         log.info( "files: " + files );
         try {
@@ -156,8 +156,7 @@ class WebDavFilePostable
     }
 
 
-    public void sendContent( OutputStream out, Range range, Map<String, String> params,
-            String contentType )
+    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType )
             throws IOException, NotAuthorizedException, BadRequestException {
         throw new RuntimeException( "Method must not be called." );
     }
