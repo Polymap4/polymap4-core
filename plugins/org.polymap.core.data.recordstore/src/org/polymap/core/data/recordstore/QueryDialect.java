@@ -41,19 +41,16 @@ public abstract class QueryDialect {
 
     public abstract void initStore( IRecordStore store );
     
-    public abstract int getCount( RFeatureStore fs, Query query )
-    throws IOException;
+    public abstract int getCount( RFeatureStore fs, Query query ) throws IOException;
 
-    public abstract ReferencedEnvelope getBounds( RFeatureStore fs, Query query )
-    throws IOException;
+    public abstract ReferencedEnvelope getBounds( RFeatureStore fs, Query query ) throws IOException;
     
-    public abstract PostProcessResultSet getFeatureStates( RFeatureStore fs, Query query )
-    throws IOException;
+    public abstract PostProcessResultSet getFeatureStates( RFeatureStore fs, Query query ) throws IOException;
 
     /**
      * 
      */
-    interface PostProcessResultSet
+    public interface PostProcessResultSet
             extends Iterable<IRecordState> {
         
         public boolean postProcess( Feature feature );

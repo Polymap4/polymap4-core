@@ -14,9 +14,10 @@
  */
 package org.polymap.core.data.recordstore;
 
+import static org.polymap.core.data.Features.iterable;
+
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import java.io.File;
@@ -28,8 +29,8 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.feature.DefaultFeatureCollections;
-import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
@@ -45,13 +46,13 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
 
-import org.polymap.core.data.recordstore.LuceneQueryDialect;
 import org.polymap.core.data.recordstore.RDataStore;
 import org.polymap.core.data.recordstore.RFeatureStore;
+import org.polymap.core.data.recordstore.lucene.LuceneQueryDialect;
 
 import org.polymap.recordstore.lucene.LuceneRecordStore;
 
@@ -97,18 +98,18 @@ public class RFeatureStoreTests
         ds.createSchema( schema );
         RFeatureStore fs = (RFeatureStore)ds.getFeatureSource( schema.getName() );        
 
-        assertEquals( 0, Iterators.size( fs.getFeatures().iterator() ) );
+        assertEquals( 0, Iterables.size( iterable( fs.getFeatures() ) ) );
 
         // add feature
         SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
         fb.set( "name", "value" );
         fb.set( "geom", null );
-        FeatureCollection features = DefaultFeatureCollections.newCollection();
+        DefaultFeatureCollection features = new DefaultFeatureCollection();
         features.add( fb.buildFeature( null ) );
         fs.addFeatures( features );
         
         // check size
-        assertEquals( 1, Iterators.size( fs.getFeatures().iterator() ) );
+        assertEquals( 1, Iterables.size( iterable( fs.getFeatures() ) ) );
 
         // check properties
         fs.getFeatures().accepts( new FeatureVisitor() {
@@ -121,11 +122,11 @@ public class RFeatureStoreTests
         }, null );
         
         // modify property
-        Feature feature = Iterators.getOnlyElement( fs.getFeatures().iterator() );
+        Feature feature = Iterables.getOnlyElement( iterable( fs.getFeatures() ) );
         fs.modifyFeatures( (AttributeDescriptor)feature.getProperty( "name" ).getDescriptor(), 
                 "changed", ff.id( Collections.singleton( feature.getIdentifier() ) )  );
 
-        Feature feature2 = Iterators.getOnlyElement( fs.getFeatures().iterator() );
+        Feature feature2 = Iterables.getOnlyElement( iterable( fs.getFeatures() ) );
         assertEquals( "changed", ((SimpleFeature)feature2).getAttribute( "name" ) );
     }
 
@@ -160,8 +161,8 @@ public class RFeatureStoreTests
         }, null );
 
         // check feature
-        Iterator<SimpleFeature> fsIt = fs.getFeatures().iterator();
-        Iterator<SimpleFeature> shapeIt = shapeFs.getFeatures().iterator();
+        FeatureIterator<SimpleFeature> fsIt = fs.getFeatures().features();
+        FeatureIterator<SimpleFeature> shapeIt = shapeFs.getFeatures().features();
         int count = 0;
         for (;fsIt.hasNext() && shapeIt.hasNext(); count++) {
             SimpleFeature f1 = fsIt.next();

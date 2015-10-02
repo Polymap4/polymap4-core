@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.recordstore;
+package org.polymap.core.data.recordstore.lucene;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +76,10 @@ import org.apache.lucene.search.TermQuery;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
-import org.polymap.core.data.recordstore.lucene.GeometryValueCoder;
+import org.polymap.core.data.recordstore.QueryDialect;
+import org.polymap.core.data.recordstore.RDataStore;
+import org.polymap.core.data.recordstore.RFeature;
+import org.polymap.core.data.recordstore.RFeatureStore;
 import org.polymap.core.runtime.Timer;
 
 import org.polymap.recordstore.IRecordFieldSelector;
@@ -110,19 +113,26 @@ public final class LuceneQueryDialect
         (store).getValueCoders().addValueCoder( new GeometryValueCoder() );
     }
 
+    
+    protected IRecordStore rs( RFeatureStore fs ) {
+        return ((RDataStore)fs.getDataStore()).getStore();
+    }
 
+    
+    @Override
     public QueryCapabilities getQueryCapabilities() {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
 
+    @Override
     public int getCount( RFeatureStore fs, Query query ) throws IOException {
         // XXX handle postProcess
         Transformer transformer = new Transformer();
         RecordQuery rsQuery = transformer.transform( fs, query );
         try {
-            ResultSet resultSet = fs.ds.getStore().find( rsQuery );
+            ResultSet resultSet = rs( fs ).find( rsQuery );
             return resultSet.count();
         }
         catch (IOException e) {
@@ -134,6 +144,7 @@ public final class LuceneQueryDialect
     }
 
 
+    @Override
     public ReferencedEnvelope getBounds( RFeatureStore fs, Query query ) throws IOException {
         Timer timer = new Timer();
         FeatureType schema = fs.getSchema();
@@ -150,7 +161,7 @@ public final class LuceneQueryDialect
             // MinX
             String fieldName = geomName+GeometryValueCoder.FIELD_MINX;
             rsQuery.sort( fieldName, RecordQuery.ASC, Double.class );
-            ResultSet resultSet = fs.ds.getStore().find( rsQuery );
+            ResultSet resultSet = rs( fs ).find( rsQuery );
             if (resultSet.count() == 0) {
                 return ReferencedEnvelope.EVERYTHING;
             }
@@ -159,19 +170,19 @@ public final class LuceneQueryDialect
             // MaxX
             fieldName = geomName+GeometryValueCoder.FIELD_MAXX;
             rsQuery.sort( fieldName, RecordQuery.DESC, Double.class );
-            resultSet = fs.ds.getStore().find( rsQuery );
+            resultSet = rs( fs ).find( rsQuery );
             double maxX = resultSet.get( 0 ).get( fieldName );
 
             // MinY
             fieldName = geomName+GeometryValueCoder.FIELD_MINY;
             rsQuery.sort( fieldName, RecordQuery.ASC, Double.class );
-            resultSet = fs.ds.getStore().find( rsQuery );
+            resultSet = rs( fs ).find( rsQuery );
             double minY = resultSet.get( 0 ).get( fieldName );
 
             // MaxX
             fieldName = geomName+GeometryValueCoder.FIELD_MAXY;
             rsQuery.sort( fieldName, RecordQuery.DESC, Double.class );
-            resultSet = fs.ds.getStore().find( rsQuery );
+            resultSet = rs( fs ).find( rsQuery );
             double maxY = resultSet.get( 0 ).get( fieldName );
 
             log.debug( "Bounds: ... (" + timer.elapsedTime() + "ms)" );
@@ -187,6 +198,7 @@ public final class LuceneQueryDialect
     }
 
 
+    @Override
     public PostProcessResultSet getFeatureStates( RFeatureStore fs, final Query query ) throws IOException {
         try {
             Timer timer = new Timer();
@@ -220,7 +232,7 @@ public final class LuceneQueryDialect
                 });
             }
             
-            final ResultSet results = fs.ds.getStore().find( rsQuery );
+            final ResultSet results = rs( fs ).find( rsQuery );
             log.debug( "    non-processed results: " + results.count() + " ( " + timer.elapsedTime() + "ms)" );
             
             return new PostProcessResultSet() {
@@ -291,7 +303,7 @@ public final class LuceneQueryDialect
             }
             //log.debug( "LUCENE: " + luceneQuery );
 
-            RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)fs.ds.store, luceneQuery );
+            RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)rs( fs ), luceneQuery );
             if (query.getStartIndex() != null && query.getStartIndex() > 0) {
                 result.setFirstResult( query.getStartIndex() );
             }

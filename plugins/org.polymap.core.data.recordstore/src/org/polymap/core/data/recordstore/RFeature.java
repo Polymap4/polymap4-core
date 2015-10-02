@@ -40,7 +40,7 @@ import org.polymap.recordstore.IRecordState;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-class RFeature
+public class RFeature
         extends RComplexAttribute
         implements Feature {
 

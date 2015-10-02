@@ -11,8 +11,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.Messages;
-import org.polymap.core.data.recordstore.LuceneQueryDialect;
 import org.polymap.core.data.recordstore.RDataStore;
+import org.polymap.core.data.recordstore.lucene.LuceneQueryDialect;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;

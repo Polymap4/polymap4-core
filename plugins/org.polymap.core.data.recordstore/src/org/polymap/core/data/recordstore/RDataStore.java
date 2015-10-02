@@ -39,13 +39,11 @@ import org.opengis.filter.FilterFactory2;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.recordstore.RFeatureStore.TransactionState;
-import org.polymap.core.data.ui.featuretypeeditor.FeatureTypeEditor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.cache.Cache;
@@ -69,6 +67,9 @@ public class RDataStore
     private static Log log = LogFactory.getLog( RDataStore.class );
 
     public static final FilterFactory2  ff = CommonFactoryFinder.getFilterFactory2( null );
+
+    // FIXME this was from FeatureTypeEditor; see comments on usage
+    private static final String         ORIG_NAME_KEY = "_orig_name_";
 
     protected IRecordStore              store;
     
@@ -95,27 +96,25 @@ public class RDataStore
         this.queryDialect.initStore( store );
         
         // lazy load schemaNames
-        this.schemaNames = new CachedLazyInit( 10*1024, new Supplier<Set<Name>>() {
-            public Set<Name> get() {
-                try {
-                    ResultSet rs = RDataStore.this.store.find ( 
-                            new SimpleQuery().setMaxResults( 10000 ).eq( "type", "FeatureType" ) );
-                    
-                    HashSet result = new HashSet( rs.count()*2 );
-                    
-                    for (IRecordState entry : rs) {
-                        String namespace = entry.get( "namespace" );
-                        String localpart = entry.get( "name" );
-                        Name name = namespace == null ? new NameImpl( namespace, localpart ) : new NameImpl( localpart );
-                        if (!result.add( name )) {
-                            throw new IllegalStateException( "Name already loaded: " + name );
-                        }
+        this.schemaNames = new CachedLazyInit( () -> {
+            try {
+                ResultSet rs = RDataStore.this.store.find ( 
+                        new SimpleQuery().setMaxResults( 10000 ).eq( "type", "FeatureType" ) );
+
+                HashSet result = new HashSet( rs.count()*2 );
+
+                for (IRecordState entry : rs) {
+                    String namespace = entry.get( "namespace" );
+                    String localpart = entry.get( "name" );
+                    Name name = namespace == null ? new NameImpl( namespace, localpart ) : new NameImpl( localpart );
+                    if (!result.add( name )) {
+                        throw new IllegalStateException( "Name already loaded: " + name );
                     }
-                    return result;
                 }
-                catch (Exception e) {
-                    throw new RuntimeException( e );
-                }
+                return result;
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
             }
         });
     }
@@ -211,7 +210,9 @@ public class RDataStore
     }
 
 
+    @Override
     public void createSchema( FeatureType schema ) throws IOException {
+        assert schema != null : "schema is null";
         if (!schemaNames.get().add( schema.getName() )) {
             throw new IOException( "Schema name already exists: " + schema.getName() );                
         }
@@ -270,7 +271,7 @@ public class RDataStore
             boolean namesModified = false;
             for (PropertyDescriptor desc : newSchema.getDescriptors()) {
                 // set by FeatureTypeEditor/AttributeCellModifier
-                String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
+                String origName = (String)desc.getUserData().get( ORIG_NAME_KEY );
                 if (origName != null) {
                     namesModified = true;
                 }
@@ -302,7 +303,7 @@ public class RDataStore
                             //List<Name> origModifiedNames = new ArrayList();
                             for (PropertyDescriptor desc : newSchema.getDescriptors()) {
                                 // set by FeatureTypeEditor/AttributeCellModifier
-                                String origName = (String)desc.getUserData().get( FeatureTypeEditor.ORIG_NAME_KEY );
+                                String origName = (String)desc.getUserData().get( ORIG_NAME_KEY );
                                 if (origName != null) {
                                     RAttribute prop = (RAttribute)feature.getProperty( origName );
                                     if (prop != null) {
