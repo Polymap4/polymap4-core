@@ -100,12 +100,14 @@ public class FormDataFactory {
      * instance is copied from the the instance already set on the Control. All
      * settings made on the factory are immediately applied to the Control.
      */
-    protected FormDataFactory( Control applyTo ) {
+    protected FormDataFactory( Control applyTo ) {        
         this.formData = new FormData();
         this.defaultOffset = 0;
         this.applyTo = applyTo;
         
         if (applyTo != null) {
+            assert applyTo.getParent().getLayout() instanceof FormLayout : "Parent has wrong layout set: " + applyTo.getParent().getLayout().getClass().getName();
+            
             if (applyTo.getLayoutData() != null) {
                 doCopy( (FormData)applyTo.getLayoutData() );
             }
@@ -138,6 +140,9 @@ public class FormDataFactory {
     }
 
     public <T extends Control> T applyTo( T control ) {
+        assert control != null : "Control must not be null.";
+        assert control.getParent().getLayout() instanceof FormLayout : "Parent has wrong layout set: " + control.getParent().getLayout().getClass().getName();
+        
         control.setLayoutData( create() );
         return control;
     }

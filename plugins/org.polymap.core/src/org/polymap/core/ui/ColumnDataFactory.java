@@ -16,6 +16,7 @@ package org.polymap.core.ui;
 
 import org.eclipse.swt.widgets.Control;
 
+import org.eclipse.ui.forms.widgets.ColumnLayout;
 import org.eclipse.ui.forms.widgets.ColumnLayoutData;
 
 /**
@@ -76,6 +77,8 @@ public class ColumnDataFactory {
         this.applyTo = applyTo;
         
         if (applyTo != null) {
+            assert applyTo.getParent().getLayout() instanceof ColumnLayout : "Parent has wrong layout set: " + applyTo.getParent().getLayout().getClass().getName();
+            
             if (applyTo.getLayoutData() != null) {
                 doCopy( (ColumnLayoutData)applyTo.getLayoutData() );
             }
@@ -113,5 +116,13 @@ public class ColumnDataFactory {
 
     public ColumnLayoutData create() {
         return data;
+    }
+    
+    public <T extends Control> T  applyTo( T control ) {
+        assert applyTo != null : "Control must not be null.";
+        assert applyTo.getParent().getLayout() instanceof ColumnLayout : "Parent has wrong layout set: " + applyTo.getParent().getLayout().getClass().getName();
+
+        control.setLayoutData( create() );
+        return control;
     }
 }
