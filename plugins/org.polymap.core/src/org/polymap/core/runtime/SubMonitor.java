@@ -20,6 +20,9 @@ import org.apache.commons.logging.Log;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.DefaultInt;
+
 /**
  * Extends {@link SubProgressMonitor} as follows:
  * <ul>
@@ -33,9 +36,18 @@ public class SubMonitor
 
     private static Log log = LogFactory.getLog( SubMonitor.class );
 
-    private String      mainTaskName;
+    public static SubMonitor on( IProgressMonitor monitor, int ticks ) {
+        return new SubMonitor( monitor, ticks );
+    }
     
-    private int         worked = 0;
+    // instance *******************************************
+    
+    @DefaultInt( 1 )
+    public Config2<SubMonitor,Integer>  updateDelayCount;
+    
+    private String                      mainTaskName;
+    
+    private int                         worked = 0;
     
     
     public SubMonitor( IProgressMonitor monitor, int ticks ) {
@@ -58,10 +70,27 @@ public class SubMonitor
     @Override
     public void worked( int work ) {
         worked += work;
-        if ((++worked % 500) == 0) {
-            super.worked( 500 );
-            setTaskName( "Objekte: " + worked );
+        if ((++worked % updateDelayCount.get()) == 0) {
+            super.worked( updateDelayCount.get() );
+            //setTaskName( "Objekte: " + worked );
         }
     }
 
+    
+    public <E extends Exception> void complete( Task<E> task ) throws Exception {
+        try { 
+            task.execute( this );
+        }
+        finally {
+            done();
+        }
+    }
+    
+    
+    @FunctionalInterface
+    public interface Task<E extends Exception> {
+        
+        public void execute( SubMonitor monitor ) throws E;
+        
+    }
 }
