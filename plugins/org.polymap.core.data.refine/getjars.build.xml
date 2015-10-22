@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+ This Ant build script downloads dependency jars needed by this bundle
+ from several maven repositories on the net. 
+ -->
+<project name="org.polymap.core.data.refine" default="build" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<description>Download open source jars from the internet.</description>
+
+	<property name="lib" value="${basedir}${file.separator}lib" />
+	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
+	<property environment="env" />
+	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
+    <available property="already_downloaded" type="dir" file="${lib}" />
+
+    <!--
+      Bootstrap: maven jars, ant task
+      -->
+    <property name="maven_download_dir" value="${user.home}/.m2/repository/org/apache/maven/maven-ant-tasks/2.1.3/" />
+    <available property="bootstrapped" type="dir" file="${maven_download_dir}" />
+
+    <target name="bootstrap" unless="bootstrapped">
+        <mkdir dir="${maven_download_dir}" />
+        <get src="http://central.maven.org/maven2/org/apache/maven/maven-ant-tasks/2.1.3/maven-ant-tasks-2.1.3,jar" 
+             dest="${maven_download_dir}" />
+    </target>
+    
+    <target name="init" depends="bootstrap">
+        <taskdef uri="antlib:org.apache.maven.artifact.ant" resource="org/apache/maven/artifact/ant/antlib.xml">
+            <classpath>
+                <fileset dir="${maven_download_dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+    </target>
+    
+	<target name="clean" description="deletes external libraries folder">
+		<delete dir="${lib}" />
+	</target>
+
+	<target name="load_m2_deps" depends="init" unless="already_downloaded">
+	    <!-- remote repositories -->
+	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+
+		<artifact:dependencies filesetId="dependency.fileset" useScope="runtime" cacheDependencyRefs="true">
+			<remoteRepository refid="central.repository" />
+		    <pom file="refine-deps.xml"/>
+		</artifact:dependencies>
+	</target>
+
+	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
+		<description>Download the jars - used by a manual "clean"</description>
+
+		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
+		<copy todir="${lib}" verbose="true" flatten="true">
+			<fileset refid="dependency.fileset" />
+		</copy>
+		<!-- <eclipse.refreshLocal resource="net.refractions.udig.libs/lib" depth="infinite"/>	-->
+	</target>
+
+	<target name="create" unless="already_downloaded">
+		<description>creates the lib directory if needed</description>
+		<mkdir dir="${lib}" />
+	</target>
+
+	<!-- Used by headless build please make sure this does everthing from clean to download and fix etc.. -->
+	<target name="full-build" depends="clean, build" description="clean and build">
+	</target>
+</project>
