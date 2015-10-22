@@ -15,14 +15,26 @@
 package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
+import java.util.function.Function;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class TypeEventFilter<E extends EventObject>
+public class TypeEventFilter<E extends EventObject>
         implements EventFilter<E> {
+    
+    public static <T extends EventObject> TypeEventFilter<T> ifType( Class<T> type, Function<T,Boolean> check ) {
+        return new TypeEventFilter<T>( type ) {
+            @Override
+            public boolean apply( T ev ) {
+                return super.apply( ev ) ? check.apply( ev ) : false;
+            }
+        };
+    }
+    
+    // instance *******************************************
     
     private Class<E>            type;
 
@@ -33,7 +45,7 @@ final class TypeEventFilter<E extends EventObject>
     }
 
     @Override
-    public boolean apply( EventObject ev ) {
+    public boolean apply( E ev ) {
         return type.isAssignableFrom( ev.getClass() );
     }
 

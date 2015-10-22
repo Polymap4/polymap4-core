@@ -15,6 +15,7 @@
 package org.polymap.core.ui;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
@@ -55,14 +56,14 @@ public class SelectionAdapter
         return Iterators.filter( iterator(), type );
     }
 
-    public Object first() {
+    public Optional<?> first() {
         Iterator it = iterator();
-        return it.hasNext() ? it.next() : null;
+        return it.hasNext() ? Optional.of( it.next() ) : Optional.empty();
     }
 
-    public <T> T first( Class<T> type ) {
+    public <T> Optional<T> first( Class<T> type ) {
         Iterator<T> it = iterator( type );
-        return it.hasNext() ? it.next() : null;
+        return it.hasNext() ? Optional.of( it.next() ) : Optional.empty();
     }
 
     public int size() {
