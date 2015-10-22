@@ -61,7 +61,8 @@ public class CachedLazyInit<T>
             synchronized (this) {
                 value = ref != null ? ref.get() : null;
                 if (value == null) {
-                    ref = new SoftReference( this.supplier.get() );
+                    value = supplier.get();
+                    ref = new SoftReference( value );
                 }
             }
         }
