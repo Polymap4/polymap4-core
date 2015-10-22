@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<!--
+ This Ant build script downloads dependency jars needed by this bundle
+ from several maven repositories on the net. 
+ -->
+<project name="org.polymap.core.data.refine" default="build" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<description>Download open source jars from the internet.</description>
+
+	<property name="lib" value="${basedir}${file.separator}lib" />
+	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
+	<property environment="env" />
+	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
+    <available property="already_downloaded" type="dir" file="${lib}" />
+
+    <!--
+      Bootstrap: maven jars, ant task
+      -->
+    <property name="maven_download_dir" value="${user.home}/.m2/repository/org/apache/maven/maven-ant-tasks/2.1.3/" />
+    <available property="bootstrapped" type="dir" file="${maven_download_dir}" />
+
+    <target name="bootstrap" unless="bootstrapped">
+        <mkdir dir="${maven_download_dir}" />
+        <get src="http://central.maven.org/maven2/org/apache/maven/maven-ant-tasks/2.1.3/maven-ant-tasks-2.1.3,jar" 
+             dest="${maven_download_dir}" />
+    </target>
+    
+    <target name="init" depends="bootstrap">
+        <taskdef uri="antlib:org.apache.maven.artifact.ant" resource="org/apache/maven/artifact/ant/antlib.xml">
+            <classpath>
+                <fileset dir="${maven_download_dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+    </target>
+    
+	<target name="clean" description="deletes external libraries folder">
+		<delete dir="${lib}" />
+	</target>
+
+	<target name="load_m2_deps" depends="init" unless="already_downloaded">
+	    <!-- remote repositories -->
+	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+
+		<artifact:dependencies filesetId="dependency.fileset" useScope="runtime" cacheDependencyRefs="true">
+			<remoteRepository refid="central.repository" />
+		    <pom file="refine-deps.xml"/>
+			<dependency groupId="org.apache.ant" artifactId="ant" version="1.8.0" /> <!-- ant-tools not on central-->
+			<!--dependency groupId="" artifactId="arithcode" version="1.1" /-->
+			<dependency groupId="edu.mit.simile" artifactId="butterfly" version="1.0"/> <!-- 1.0.1 is not on central-->
+			
+			<dependency groupId="org.clojure" artifactId="clojure" version="1.5.1" /><!-- 1.5.1-slim -->
+			<dependency groupId="commons-codec" artifactId="commons-codec" version="1.6" />
+			<dependency groupId="commons-collections" artifactId="commons-collections" version="3.2.1" />
+			<dependency groupId="commons-fileupload" artifactId="commons-fileupload" version="1.2.1" />
+			<dependency groupId="commons-io" artifactId="commons-io" version="1.4" />
+			<dependency groupId="commons-lang" artifactId="commons-lang" version="2.5" />
+			<dependency groupId="commons-logging" artifactId="commons-logging" version="1.1.1" />
+			<dependency groupId="dom4j" artifactId="dom4j" version="1.6.1" />
+			<dependency groupId="org.apache.httpcomponents" artifactId="fluent-hc" version="4.2.5" />
+			<dependency groupId="com.google.guava" artifactId="guava" version="13.0" />
+			<dependency groupId="org.apache.httpcomponents" artifactId="httpclient" version="4.2.5" />
+			<dependency groupId="org.apache.httpcomponents" artifactId="httpcore" version="4.2.4" />
+			<dependency groupId="org.apache.httpcomponents" artifactId="httpmime" version="4.2.5" />
+			<dependency groupId="com.ibm.icu" artifactId="icu4j" version="4.6.1" /> <!--4.2.1-->
+			<dependency groupId="org.codehaus.jackson" artifactId="jackson-core-asl" version="1.9.12" />
+			<dependency groupId="org.slf4j" artifactId="jcl-over-slf4j" version="1.7.12" /><!--1.5.6-->
+			<!--dependency groupId="" artifactId="jrdf" version="0.5.6" /-->
+			<dependency groupId="org.json" artifactId="json" version="20141113" />
+			<dependency groupId="org.jsoup" artifactId="jsoup" version="1.4.1" />
+			<dependency groupId="com.metaweb" artifactId="lessen" version="1.0" /> <!--lessen trunk-r8-->
+			<dependency groupId="log4j" artifactId="log4j" version="1.2.17" /><!--1.2.15-->
+			<!--dependency groupId="org.marc4j" artifactId="marc4j" version="2.4" / https://github.com/marc4j/marc4j/releases-->
+			<dependency groupId="org.apache.odftoolkit" artifactId="odfdom-java" version="0.8.10-incubating" /><!--0.8.7-->
+			<dependency groupId="au.com.bytecode" artifactId="opencsv" version="2.4" /><!--2.4-SNAPSHOT--> 
+			<dependency groupId="org.apache.poi" artifactId="poi" version="3.13" /> <!--3.13-20150929-->
+			<dependency groupId="org.apache.poi" artifactId="poi-ooxml" version="3.13" />
+			<dependency groupId="org.apache.poi" artifactId="poi-ooxml-schemas" version="3.13" />
+			<dependency groupId="xml-resolver" artifactId="xml-resolver" version="1.2" /><!-- resolver -->
+			<dependency groupId="rhino" artifactId="js" version="1.7R2" />
+			<!--dependency groupId="" artifactId="secondstring" version="20100303" / http://secondstring.sourceforge.net/-->
+			<dependency groupId="xalan" artifactId="serializer" version="2.7.1"/>
+			<dependency groupId="oauth.signpost" artifactId="signpost-commonshttp4" version="1.2.1.2" />
+			<dependency groupId="oauth.signpost" artifactId="signpost-core" version="1.2.1.2" />
+			<dependency groupId="org.slf4j" artifactId="slf4j-api" version="1.7.12" /><!--1.5.6-->
+			<dependency groupId="org.slf4j" artifactId="slf4j-log4j12" version="1.7.12" /><!--1.5.6-->
+			<dependency groupId="org.apache.velocity" artifactId="velocity" version="1.5" />
+			<!--dependency groupId="edu.mit.smile" artifactId="vicino" version="1.1" /-->
+			<dependency groupId="xerces" artifactId="xercesImpl" version="2.11.0" />
+			<dependency groupId="xml-apis" artifactId="xml-apis" version="1.4.01"/>
+			<dependency groupId="org.apache.xmlbeans" artifactId="xmlbeans" version="2.3.0" />
+			
+		</artifact:dependencies>
+	</target>
+
+	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
+		<description>Download the jars - used by a manual "clean"</description>
+
+		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
+		<copy todir="${lib}" verbose="true" flatten="true">
+			<fileset refid="dependency.fileset" />
+		</copy>
+		<!-- <eclipse.refreshLocal resource="net.refractions.udig.libs/lib" depth="infinite"/>	-->
+	</target>
+
+	<target name="create" unless="already_downloaded">
+		<description>creates the lib directory if needed</description>
+		<mkdir dir="${lib}" />
+	</target>
+
+	<!-- Used by headless build please make sure this does everthing from clean to download and fix etc.. -->
+	<target name="full-build" depends="clean, build" description="clean and build">
+	</target>
+</project>

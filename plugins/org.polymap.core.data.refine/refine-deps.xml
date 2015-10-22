@@ -1,0 +1,172 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.polymap4</groupId>
+	<artifactId>refine-dependencies</artifactId>
+	<version>2.6.1-SNAPSHOT</version>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant</artifactId>
+			<version>1.8.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.ant</groupId>
+					<artifactId>ant-launcher</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency> <!-- ant-tools not on central -->
+		<!--dependency <groupId></groupId><artifactId>arithcode</artifactId><version>1.1 
+			/ -->
+		<dependency>
+			<groupId>edu.mit.simile</groupId>
+			<artifactId>butterfly</artifactId>
+			<version>1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>oro</groupId>
+					<artifactId>oro</artifactId>
+				</exclusion>
+                <exclusion>
+                    <groupId>edu.mit.simile</groupId>
+                    <artifactId>tracer</artifactId>
+                </exclusion>
+			</exclusions>
+		</dependency> <!-- 1.0.1 is not on central -->
+
+		<dependency>
+			<groupId>org.clojure</groupId>
+			<artifactId>clojure</artifactId>
+			<version>1.5.1</version>
+		</dependency><!-- 1.5.1-slim -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>fluent-hc</artifactId>
+			<version>4.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>13.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>4.6.1</version>
+		</dependency> <!--4.2.1 -->
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>1.9.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.5.6</version>
+		</dependency><!--1.5.6 -->
+		<!--dependency <groupId></groupId><artifactId>jrdf</artifactId><version>0.5.6 
+			/ -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20141113</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+
+		<!--dependency <groupId>org.marc4j</groupId><artifactId>marc4j</artifactId><version>2.4 
+			/ https://github.com/marc4j/marc4j/releases -->
+		<dependency>
+			<groupId>org.apache.odftoolkit</groupId>
+			<artifactId>odfdom-java</artifactId>
+			<version>0.8.10-incubating</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.odftoolkit</groupId>
+					<artifactId>taglets</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.rootdev</groupId>
+					<artifactId>java-rdfa</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-validator</groupId>
+					<artifactId>commons-validator</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency><!--0.8.7 -->
+		<!--  dependency>
+			<groupId>au.com.bytecode</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>2.4</version>
+		</dependency--><!--2.4-SNAPSHOT is incompatible with 2.4 -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.13</version>
+			<exclusions>
+				<exclusion>
+					<groupId>stax</groupId>
+					<artifactId>stax-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency><!--3.13-20150929 -->
+		<dependency>
+			<groupId>xml-resolver</groupId>
+			<artifactId>xml-resolver</artifactId>
+			<version>1.2</version>
+		</dependency><!-- resolver -->
+		<!--dependency <groupId></groupId><artifactId>secondstring</artifactId><version>20100303 
+			/ http://secondstring.sourceforge.net/ -->
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>serializer</artifactId>
+			<version>2.7.1</version>
+		</dependency>
+		<dependency>
+			<groupId>oauth.signpost</groupId>
+			<artifactId>signpost-commonshttp4</artifactId>
+			<version>1.2.1.2</version>
+		</dependency>
+
+		<!--dependency> <groupId>edu.mit.smile</groupId><artifactId>vicino</artifactId><version>1.1</version> 
+			/ -->
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.4.01</version>
+		</dependency>
+	</dependencies>
+</project>

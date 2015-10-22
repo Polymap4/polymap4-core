@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" configuration-policy="require" immediate="true" name="org.polymap.core.data.refine">
+   <implementation class="org.polymap.core.data.refine.RefineServiceImpl"/>
+   <service>
+      <provide interface="org.polymap.core.data.refine.RefineService"/>
+   </service>
+</scr:component>
