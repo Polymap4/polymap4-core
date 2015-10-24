@@ -661,7 +661,7 @@ public final class LuceneRecordStore
                     doc2id.clear();
                 }
                 
-                log.debug( "COMMIT: " + timer.elapsedTime() + "ms" );
+                log.info( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

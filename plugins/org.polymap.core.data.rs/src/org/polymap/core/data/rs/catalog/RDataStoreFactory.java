@@ -73,8 +73,7 @@ public class RDataStoreFactory {
     }
 
     
-    public RDataStore createDataStore( Map<String, Serializable> params )
-    throws Exception {
+    public RDataStore createDataStore( Map<String, Serializable> params ) throws Exception {
         assert baseDirectory != null;
         String database = (String)DATABASE.lookUp( params );
 
@@ -86,8 +85,7 @@ public class RDataStoreFactory {
     }
 
     
-    public RDataStore createNewDataStore( Map<String, Serializable> params )
-    throws Exception {
+    public RDataStore createNewDataStore( Map<String, Serializable> params ) throws Exception {
         assert baseDirectory != null;
         String database = (String)DATABASE.lookUp( params );
 
@@ -102,8 +100,7 @@ public class RDataStoreFactory {
     }
 
     
-    protected RDataStore createDataStore( File dir ) 
-    throws Exception {
+    protected RDataStore createDataStore( File dir ) throws Exception {
         return stores.get( dir, new CacheLoader<File,RDataStore,Exception>() {
             public RDataStore load( File key ) throws Exception {
                 LuceneRecordStore store = new LuceneRecordStore( key, false );

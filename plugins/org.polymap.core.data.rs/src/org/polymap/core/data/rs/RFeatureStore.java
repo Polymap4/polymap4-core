@@ -17,18 +17,26 @@ package org.polymap.core.data.rs;
 import static java.util.Arrays.stream;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-import org.geotools.data.DataStore;
+import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureReader;
+import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.data.QueryCapabilities;
+import org.geotools.data.ResourceInfo;
 import org.geotools.data.Transaction;
 import org.geotools.data.Transaction.State;
 import org.geotools.factory.CommonFactoryFinder;
@@ -45,6 +53,7 @@ import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,7 +75,7 @@ import org.polymap.recordstore.IRecordStore.Updater;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class RFeatureStore
-        extends AbstractFeatureSource
+        //extends AbstractFeatureSource
         implements FeatureStore, FeatureFactory {
 
     private static Log log = LogFactory.getLog( RFeatureStore.class );
@@ -90,24 +99,94 @@ public class RFeatureStore
         this.schema = schema;
     }
 
+
+    // FeatureSource **************************************
+    
+    /**
+     * Returns the same name than the feature type (ie,
+     * {@code getSchema().getName()} to honor the simple feature land common
+     * practice of calling the same both the Features produces and their types
+     * 
+     * @see FeatureSource#getName()
+     */
+    @Override
+    public Name getName() {
+        return getSchema().getName();
+    }
+    
+    public String getTypeName() {
+        return getName().getLocalPart();
+    }
+
+    @Override
+    public ResourceInfo getInfo() {
+        return new ResourceInfo(){
+            @Override
+            public ReferencedEnvelope getBounds() {
+                try {
+                    return RFeatureStore.this.getBounds();
+                } 
+                catch (IOException e) {
+                    throw new RuntimeException( e );
+                }
+            }
+            @Override
+            public CoordinateReferenceSystem getCRS() {
+                return RFeatureStore.this.getSchema().getCoordinateReferenceSystem();
+            }
+            @Override
+            public String getDescription() {
+                return null;
+            }
+            @Override
+            public Set<String> getKeywords() {
+                return Arrays.stream( new String[] {"features", getName()} ).collect( Collectors.toSet() );
+            }
+            @Override
+            public String getName() {
+                return RFeatureStore.this.getTypeName();
+            }
+            @Override
+            public URI getSchema() {
+                try {
+                    Name name = RFeatureStore.this.getSchema().getName();
+                    return new URI( name.getNamespaceURI() );
+                } 
+                catch (URISyntaxException e) {
+                    throw new RuntimeException( e );
+                }                
+            }
+            @Override
+            public String getTitle() {
+                Name name = RFeatureStore.this.getSchema().getName();
+                return name.getLocalPart();
+            }            
+        };
+    }
+
+    @Override
+    public Set getSupportedHints() {
+        return Collections.EMPTY_SET;
+    }
+
     @Override
     public FeatureType getSchema() {
         return schema;
     }
 
-    public RDataStore getDataAccess() {
-        return ds;
-    }
-    
     @Override
-    public DataStore getDataStore() {
-        throw new RuntimeException( "Frankly, I don't have any glue what to return here :(" );
-        //return (DataStore)ds;
+    public DataAccess getDataStore() {
+        return ds;
     }
 
     @Override
     public QueryCapabilities getQueryCapabilities() {
         return ds.queryDialect.getQueryCapabilities();
+    }
+
+    @Override
+    public ReferencedEnvelope getBounds() throws IOException {
+        return getBounds( getSchema() != null ? new Query( getTypeName() ) : Query.ALL );
     }
 
     @Override
@@ -118,6 +197,16 @@ public class RFeatureStore
     @Override
     public int getCount( Query query ) throws IOException {
         return ds.queryDialect.getCount( this, query );
+    }
+
+    @Override
+    public FeatureCollection getFeatures( Filter filter ) throws IOException {
+        return getFeatures( new Query( getTypeName(), filter ) );
+    }
+    
+    @Override
+    public FeatureCollection getFeatures() throws IOException {
+        return getFeatures( Filter.INCLUDE );
     }
 
     @Override
@@ -149,6 +238,7 @@ public class RFeatureStore
     
     // FeatureStore ***************************************
     
+    @Override
     public List addFeatures( FeatureCollection features ) throws IOException {
         final List<FeatureId> fids = new ArrayList();
 
@@ -363,6 +453,7 @@ public class RFeatureStore
     }
 
 
+    @Override
     public void setTransaction( Transaction tx ) {
         this.tx = tx;
         if (tx != Transaction.AUTO_COMMIT) {

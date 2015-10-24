@@ -115,7 +115,7 @@ public final class LuceneQueryDialect
 
     
     protected IRecordStore rs( RFeatureStore fs ) {
-        return ((RDataStore)fs.getDataAccess()).getStore();
+        return ((RDataStore)fs.getDataStore()).getStore();
     }
 
     

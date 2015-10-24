@@ -408,7 +408,7 @@ public class RDataStore
             info = new ServiceInfo() {
     
                 public String getDescription() {
-                    return "POLYMAP3 record store powered by Lucene";
+                    return "POLYMAP4 record store powered by Lucene";
                 }
     
                 public Set<String> getKeywords() {
@@ -436,8 +436,7 @@ public class RDataStore
     
                 @Override
                 public String getTitle() {
-                    // XXX Auto-generated method stub
-                    throw new RuntimeException( "not yet implemented." );
+                    return "Local database";
                 }
             };
         }
