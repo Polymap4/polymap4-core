@@ -66,18 +66,22 @@ public class Streams {
     
     
     /**
-     * Handle checked exceptions in lambda {@link Function} or {@link Predicate} calls.
+     * Handle checked exceptions in lambda {@link Function} or {@link Predicate}
+     * calls.
      * <p/>
-     * Example:
+     * <b>Example:</b>
      * 
      * <pre>
-     * try (ExceptionCollector<SpecificException> excs = Streams.exceptions()) {
+     * try (ExceptionCollector&lt;SpecificException or ?&gt; excs = Streams.exceptions()) {
      *     return list.stream()
      *             .map( o -> excs.check( () -> doSomething( o ) ) )
      *             .filter( o -> excs.check( () -> checkSomething( o ) ) ) );
      * }
      * </pre>
      * 
+     * You <b>must</b> specify a type param in order to make things work. If unsure
+     * use <b>?</b> type parameter.
+     * <p/>
      * The try-with-resources statement automatically closes the collector and throws
      * a <code>SpecificException</code> if one of invocations of
      * <code>excs.handle()</code> did collect an Exception. A SpecificException is

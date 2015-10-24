@@ -62,6 +62,9 @@ public class MetadataLabelProvider
         else if (elm instanceof IResolvableInfo) {
             return ((IResolvableInfo)elm).getTitle();
         }
+        else if (elm instanceof String) {
+            return (String)elm;  // error message
+        }
         else {
             throw new RuntimeException( "Unknown element type: " +  elm );
         }

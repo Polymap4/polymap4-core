@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Br√§utigam. All rights reserved.
+ * Copyright (C) 2015, Falko Br‰utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,30 +12,31 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.shapefile.catalog;
+package org.polymap.core.data.rs.catalog;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.geotools.data.shapefile.ShapefileDataStore;
+import java.io.File;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResolvableInfo;
+import org.polymap.core.data.rs.RDataStore;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
-public class ShapefileServiceResolver
+public class RServiceResolver
         implements IMetadataResourceResolver {
 
-    public static final String      CONNECTION_TYPE = "Shapefile";
+    public static final String      CONNECTION_TYPE = "RDataStore";
     
-    
+
     @Override
     public boolean canResolve( IMetadata metadata ) {
         Map<String,String> params = metadata.getConnectionParams();
@@ -46,13 +47,13 @@ public class ShapefileServiceResolver
     
     @Override
     public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception {
-        return ShapefileServiceInfo.of( metadata, metadata.getConnectionParams() );
+        return RServiceInfo.of( metadata, metadata.getConnectionParams() );
     }
 
     
     @Override
     public Map<String,String> createParams( Object service ) {
-        assert service instanceof ShapefileDataStore : "Service has to be an instanceof ShapefileDataStore.";
+        assert service instanceof RDataStore : "Service has to be an instanceof RDataStore.";
 //        ShapefileDataStore ds = (ShapefileDataStore)service;
         
         Map<String,String> result = new HashMap();
@@ -65,10 +66,10 @@ public class ShapefileServiceResolver
     }
 
     
-    public static Map<String,String> createParams( String serviceUrl ) {
+    public static Map<String,String> createParams( File storeDir ) {
         Map<String,String> result = new HashMap();
         result.put( CONNECTION_PARAM_TYPE, CONNECTION_TYPE );
-        result.put( CONNECTION_PARAM_URL, serviceUrl );
+        result.put( CONNECTION_PARAM_URL, storeDir.toURI().toString() );
         return result;
     }
     

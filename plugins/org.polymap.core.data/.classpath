@@ -6,7 +6,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jai_imageio-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-13.2.jar" sourcepath="lib/sources/gt-api-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-13.2.jar" sourcepath="lib/sources/gt-coverage-13.2-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-data-13.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-data-13.2.jar" sourcepath="lib/sources/gt-data-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-13.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-geojson-13.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-graph-13.2.jar"/>

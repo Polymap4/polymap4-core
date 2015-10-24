@@ -155,9 +155,15 @@ public class MetadataContentProvider
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
                     IMetadata metadata = (IMetadata)elm;
                     if (resolver.canResolve( metadata )) {
-                        // FIXME handle exceptions
-                        IResolvableInfo resource = resolver.resolve( metadata, monitor );
-                        updateChildren( elm, new Object[] {resource}, currentChildCount );
+                        try {
+                            IResolvableInfo resource = resolver.resolve( metadata, monitor );
+                            updateChildren( elm, new Object[] {resource}, currentChildCount );
+                        }
+                        catch (Exception e) {
+                            // FIXME handle exceptions
+                            log.warn( "", e );
+                            throw new RuntimeException( e );
+                        }
                     }
                     else {
                         updateChildren( elm, new Object[] {"Unable to resolve the service."}, currentChildCount );                        
