@@ -32,10 +32,6 @@ import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 
-import org.polymap.rhei.batik.tx.TxProvider;
-import org.polymap.rhei.batik.tx.TxProvider.Completion;
-import org.polymap.rhei.batik.tx.TxProvider.Propagation;
-
 import org.polymap.model2.runtime.UnitOfWork;
 
 /**
@@ -51,9 +47,13 @@ public class NewLayerOperation
 
     private static Log log = LogFactory.getLog( NewLayerOperation.class );
 
+    /**
+     * The UnitOfWork to work with. This UnitOfWork is committed/rolled back and
+     * closed by this operation.
+     */
     @Mandatory
     @Immutable
-    public Config2<NewLayerOperation,TxProvider<UnitOfWork>.Tx> tx;
+    public Config2<NewLayerOperation,UnitOfWork>    uow;
     
     @Mandatory
     @Immutable
@@ -80,12 +80,12 @@ public class NewLayerOperation
 
     @Override
     public IStatus execute( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        try (TxProvider<UnitOfWork>.Tx localTx = tx.get().start( Propagation.REQUIRES_NEW )) {
+        try {
             monitor.beginTask( getLabel(), 5 );
             
-            IMap localMap = localTx.get().entity( map.get() );
+            IMap localMap = uow.get().entity( map.get() );
             // create entity
-            layer.set( localTx.get().createEntity( ILayer.class, null, (ILayer proto) -> {
+            layer.set( uow.get().createEntity( ILayer.class, null, (ILayer proto) -> {
                 proto.label.set( label.get() );
                 proto.resourceIdentifier.set( resourceIdentifier.get() );
                 proto.parentMap.set( localMap );
@@ -99,10 +99,14 @@ public class NewLayerOperation
 //                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );
 //            }
             
-            localTx.endTx( Completion.COMMIT );
+            uow.get().commit();
         }
         catch (Throwable e) {
+            uow.get().rollback();
             throw new ExecutionException( e.getMessage(), e );
+        }
+        finally {
+            uow.get().close();
         }
         
 //        try {
