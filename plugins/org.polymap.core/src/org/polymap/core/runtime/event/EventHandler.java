@@ -51,9 +51,25 @@ import org.polymap.core.runtime.UIJob;
 @Target(ElementType.METHOD)
 public @interface EventHandler {
     
+    /**
+     * One of the {@link Event.Scope} constants. Defaults to
+     * {@link Event.Scope#Session}.
+     */
     Event.Scope scope() default Event.Scope.Session;
     
+    
+    /**
+     * True specifies that the handler is to be executed asynchronously inside the
+     * {@link Display} thread. Defaults to false.
+     */
     boolean display() default false;
 
+    /**
+     * Specifies that the execution of this handler is to be delayed by the given
+     * amount of milliseconds. Delayed handler have to have a {@link List} of events
+     * as parameter. This list contains all the events that have been catched in the
+     * delay time. Delayed handlers are always executed inside a {@link Job} (if not
+     * marked as {@link #display()}). Defaults to 0 (no delay).
+     */
     int delay() default 0;
 }

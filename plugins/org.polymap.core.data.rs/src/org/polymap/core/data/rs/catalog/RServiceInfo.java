@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.io.File;
 import java.net.URL;
 
+import org.geotools.data.FeatureSource;
 import org.geotools.data.ResourceInfo;
 
 import org.apache.commons.logging.Log;
@@ -86,6 +87,11 @@ public class RServiceInfo
         }
     }
 
+    
+    public IResourceInfo resource( FeatureSource fs ) {
+        return new RResourceInfo( this, fs.getInfo() );
+    }
+    
     
     /**
      * 
