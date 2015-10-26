@@ -202,6 +202,7 @@ public class RDataStore
 
     @Override
     public FeatureSource getFeatureSource( Name name ) throws IOException {
+        assert name != null : "Name must not be null.";
         FeatureType schema = getSchema( name );
         if (schema == null) {
             throw new IOException( "Schema does not exist: " + name );
