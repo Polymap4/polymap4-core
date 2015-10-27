@@ -14,12 +14,20 @@
  */
 package org.polymap.core.project;
 
+import java.util.EventObject;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.runtime.event.EventManager;
+
 import org.polymap.model2.Association;
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
+import org.polymap.model2.runtime.Lifecycle;
 
 /**
  * Provides a mixin for {@link ILayer} and {@link IMap} defining therm as part of a
@@ -27,8 +35,11 @@ import org.polymap.model2.Queryable;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ProjectNode
-        extends Entity {
+public abstract class ProjectNode
+        extends Entity
+        implements Lifecycle {
+
+    private static Log log = LogFactory.getLog( ProjectNode.class );
 
     @Queryable
     public Property<String>             label;
@@ -41,5 +52,36 @@ public class ProjectNode
     public Property<Boolean>            visible;
 
     public Association<IMap>            parentMap;
+
     
+    @Override
+    public void onLifecycleChange( State state ) {
+        if (state == State.AFTER_COMMIT) {
+            log.info( "Lifecycle: " + this );
+            EventManager.instance().publish( new ProjectNodeCommittedEvent( this ) );
+        }
+    }
+
+
+    /**
+     * 
+     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+     */
+    public static class ProjectNodeCommittedEvent
+            extends EventObject {
+
+        public ProjectNodeCommittedEvent( ProjectNode source ) {
+            super( source );
+        }
+
+        @Override
+        public ProjectNode getSource() {
+            return (ProjectNode)super.getSource();
+        }
+
+        public <T extends ProjectNode> T getEntity() {
+            return (T)super.getSource();
+        }
+        
+    }
 }

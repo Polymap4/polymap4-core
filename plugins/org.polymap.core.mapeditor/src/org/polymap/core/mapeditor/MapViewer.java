@@ -15,13 +15,11 @@
 package org.polymap.core.mapeditor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -95,7 +93,7 @@ public class MapViewer<CL>
     /** The currently visible layers. */
     private Set<CL>                     visibleLayers = new HashSet();
     
-    private Map<CL,Layer>               layers;
+    private Map<CL,Layer>               layers = new HashMap();
     
     private List<Control>               controls = new ArrayList();
 
@@ -151,7 +149,7 @@ public class MapViewer<CL>
 
     @Override
     public void refresh() {
-        throw new RuntimeException( "not yet implemented." );
+        readLayers();
     }
 
 
@@ -172,24 +170,41 @@ public class MapViewer<CL>
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();
         view.center.set( ToOlCoordinate.map( center ) );
         
+        // read layers from contentProvider
+        readLayers();
+
+        // every layer is visible by default
+        layers.keySet().stream().forEach( layer -> visibleLayers.add( layer ) );
+        
+        // add controls
+        controls.forEach( control -> olmap.addControl( control ) );
+    }
+
+    
+    /**
+     * Read layers from {@link #contentProvider}.
+     */
+    protected void readLayers() {
+        // remove current layers
+        for (Layer layer : layers.values()) {
+            olmap.removeLayer( layer );
+        }
+        layers.clear();
+        
         // build layers map
         ILayerProvider<CL> lp = layerProvider.get();
-        layers = Arrays.stream( contentProvider.get().getElements( input ) )
-                .collect( Collectors.toMap( elm -> (CL)elm, elm -> lp.getLayer( (CL)elm ) ) );
+        for (Object elm : contentProvider.get().getElements( input )) {
+            layers.put( (CL)elm, lp.getLayer( (CL)elm ) );
+        }
         
         // add sorted layers to the map
         layers.keySet().stream()
                 .sorted( (elm1, elm2) -> (lp.getPriority(elm1) - lp.getPriority(elm2)) )
                 .map( elm -> layers.get( elm ) )
                 .forEach( layer -> olmap.addLayer( layer ) );
-
-        // every layer is visible by default
-        layers.keySet().stream().forEach( layer -> visibleLayers.add( layer ) );
-        
-        controls.forEach( control -> olmap.addControl( control ) );
     }
 
-
+    
     protected void createMap() {
         String srs = Geometries.srs( maxExtent.get().getCoordinateReferenceSystem() );
         // XXX

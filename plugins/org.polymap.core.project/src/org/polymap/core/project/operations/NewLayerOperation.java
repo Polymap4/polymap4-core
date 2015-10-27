@@ -93,7 +93,8 @@ public class NewLayerOperation
             }));
 
             localMap.layers.add( layer.get() );
-            localMap.label.set( map.get().label.get() );
+            // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
+            localMap.label.set( localMap.label.get() );
             
 //            if (map.get().maxExtent.get() == null) {
 //                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );
