@@ -45,6 +45,7 @@
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
 	    <artifact:remoteRepository id="intalio.repository" url="http://www.intalio.org/public/maven2" />
 	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
+	    <artifact:remoteRepository id="redhat.repository" url="https://maven.repository.redhat.com/earlyaccess/" />
 	    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 
 		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
@@ -52,6 +53,7 @@
 			<remoteRepository refid="central.repository" />
             <remoteRepository refid="intalio.repository" />
             <remoteRepository refid="geotools.repository" />
+            <remoteRepository refid="redhat.repository" />
 
             <dependency groupId="com.healthmarketscience.jackcess" artifactId="jackcess" version="1.1.18" />
             <dependency groupId="org.supercsv" artifactId="SuperCSV" version="1.52" />
@@ -66,7 +68,9 @@
             <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-render" version="${geotools.version}" />
 			
-            <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
+            <dependency groupId="org.geotools" artifactId="gt-brewer" version="${geotools.version}" />
+
+			<dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />
 		</artifact:dependencies>
