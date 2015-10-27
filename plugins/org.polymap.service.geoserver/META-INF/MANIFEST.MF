@@ -111,4 +111,5 @@ Export-Package: net.sf.ezmorph,
  net.sf.json.test,
  net.sf.json.util,
  net.sf.json.xml,
+ org.geoserver.catalog,
  org.polymap.service.geoserver

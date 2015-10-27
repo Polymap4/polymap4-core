@@ -23,6 +23,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
@@ -30,10 +31,8 @@ import org.geotools.renderer.RenderListener;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
@@ -58,6 +57,8 @@ public class FeatureRenderProcessor2
         implements TerminalPipelineProcessor, ImageProducer {
 
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
+
+    public static String PROVIDED_STYLE = "PROVIDED_STYLE";
     
     private PipelineProcessorSite           site;
 
@@ -123,7 +124,13 @@ public class FeatureRenderProcessor2
             Pipeline pipeline = incubator.newPipeline( FeaturesProducer.class, dsd, null );
             FeatureSource fs = new PipelineFeatureSource( pipeline );
 
-            Style style = new DefaultStyles().findStyle( fs );
+            Style style;
+            Object providedStyleObj = context.get( PROVIDED_STYLE ); 
+            if( providedStyleObj instanceof Style) {
+                style = (Style) providedStyleObj;
+            } else {
+                style = new DefaultStyles().findStyle( fs );
+            }
             mapContent.addLayer( new FeatureLayer( fs, style ) );
 
 //            // watch layer for style changes
