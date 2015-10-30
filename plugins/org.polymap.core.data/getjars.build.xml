@@ -43,7 +43,6 @@
 	<target name="load_m2_deps" depends="init" unless="already_downloaded">
 	    <!-- remote repositories -->
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
-	    <artifact:remoteRepository id="intalio.repository" url="http://www.intalio.org/public/maven2" />
 	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
 	    <artifact:remoteRepository id="redhat.repository" url="https://maven.repository.redhat.com/earlyaccess/" />
 	    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
@@ -51,7 +50,6 @@
 		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
 			<localRepository refid="local.repository" />
 			<remoteRepository refid="central.repository" />
-            <remoteRepository refid="intalio.repository" /> 
             <remoteRepository refid="redhat.repository" />
             <remoteRepository refid="geotools.repository" />
 
