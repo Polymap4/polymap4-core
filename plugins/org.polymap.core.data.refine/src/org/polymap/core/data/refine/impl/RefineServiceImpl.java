@@ -270,6 +270,7 @@ public class RefineServiceImpl
     @Override
     public void updateOptions( ImportingJob job, FormatAndOptions options ) {
         try {
+//            log.info( "updating job " + options );
             RefineResponse response = createResponse();
             Map<String,String> params = Maps.newHashMap();
             params.put( "jobID", String.valueOf( job.id ) );
@@ -279,7 +280,7 @@ public class RefineServiceImpl
             params.put( "options", options.toString() );
             command( ImportingControllerCommand.class ).doPost( createRequest( params ), response );
 
-            log.info( "updated job " + job.updating + "; " + options );
+            log.info( "updated job " + options );
             //
             // ImportResponse resp = new ImportResponse();
             // resp.setJob( job );

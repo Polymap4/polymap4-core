@@ -17,7 +17,7 @@ package org.polymap.core.data.refine.impl;
 import org.json.JSONObject;
 
 public class CSVFormatAndOptions
-        extends FormatAndOptions {
+        extends LineBasedFormatAndOptions {
 
     public static CSVFormatAndOptions createDefault() {
         try {
@@ -56,14 +56,13 @@ public class CSVFormatAndOptions
     }
 
 
-    public void setHeaderLines( int headLine ) {
-        put("headerLines", headLine);
+    public String quoteCharacter() {
+        return store().optString( "quoteCharacter" );
     }
 
 
-    public String headerLines() {
-        return store().optString("headerLines");
+    public void setQuoteCharacter( String quoteCharacter ) {
+        put( "quoteCharacter", quoteCharacter );
     }
-
 
 }
