@@ -14,6 +14,8 @@
  */
 package org.polymap.core.runtime;
 
+import static org.apache.commons.lang3.ArrayUtils.toArray;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -37,13 +39,26 @@ import org.polymap.core.ui.StatusDispatcher.Style;
  * Executes a given task in the UI (aka display) thread. The actual display thread is
  * determined via {@link UIUtils#sessionDisplay()}.
  * <p/>
- * <b>Example</b><br/>
+ * <b>Examples:</b><br/>
  * Asynchronous execution, no check if current thread is UI thread, re-throw any
  * Exception as RuntimeException:
+ * 
  * <pre>
  * UIThreadExecutor.async( 
  *         () -> do something... ),
  *         UIThreadExecutor.runtimeException() );
+ * </pre>
+ * 
+ * {@link #runtimeException()} is the default exception handler. It is used if no
+ * other handler is given. So above code can be written as:
+ * 
+ * <pre>
+ * UIThreadExecutor.async( () -> do something... ) );
+ * </pre>
+ * 
+ * Using <b>static import</b> it becomes:
+ * <pre>
+ * async( () -> do something... ) );
  * </pre>
  */
 public class UIThreadExecutor<V>
@@ -215,7 +230,7 @@ public class UIThreadExecutor<V>
     
     public UIThreadExecutor( Callable<V> task, Consumer<Throwable>... errorHandlers  ) {
         this.task = task;
-        this.errorHandlers = errorHandlers;
+        this.errorHandlers = errorHandlers.length > 0 ? errorHandlers : toArray( runtimeException() );
     }
 
     @Override
