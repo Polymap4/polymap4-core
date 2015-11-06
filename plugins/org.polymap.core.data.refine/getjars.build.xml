@@ -42,7 +42,7 @@
 	    <!-- remote repositories -->
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
 
-		<artifact:dependencies filesetId="dependency.fileset" useScope="runtime" cacheDependencyRefs="true">
+		<artifact:dependencies filesetId="dependency.fileset" useScope="runtime">
 			<remoteRepository refid="central.repository" />
 		    <pom file="refine-deps.xml"/>
 		</artifact:dependencies>
