@@ -124,4 +124,17 @@ public class StatusDispatcher {
         
     }
     
+    
+    /**
+     * 
+     */
+    public static class LogAdapter
+            implements Adapter {
+
+        @Override
+        public void handle( IStatus status, Style... styles ) {
+            log.warn( status.getMessage(), status.getException() );
+        }
+    }
+    
 }
