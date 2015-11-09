@@ -42,11 +42,23 @@
 	<target name="clean" description="deletes external libraries folder">
 		<delete dir="${lib}" />
 	</target>
+	
+	<target name="initNexus" description="use Nexus public repository that mirrors the real repos" if="nexusURL">
+	    <artifact:remoteRepository id="central.repository" url="${nexusURL}" />
+	    <artifact:remoteRepository id="ettrema.repository" url="${nexusURL}" />
+	</target>
+	
+	<target name="initRemoteMavenRepos" description="use real Maven repositories directly" unless="nexusURL">
+	    <!-- remote repositories as defined in copy.properties -->
+	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
+	    <artifact:remoteRepository id="ettrema.repository" url="http://milton.io/maven" />
+	</target>
 
-	<target name="load_m2_deps" depends="init, create" unless="already_downloaded">
+	<target name="initMavenRepos" description="init Maven repositories to use when downloading artifacts" 
+			depends="initNexus, initRemoteMavenRepos" />	
+
+	<target name="load_m2_deps" depends="init, create, initMavenRepos" unless="already_downloaded">
 		<!-- remote repositories as defined in copy.properties -->
-		<artifact:remoteRepository id="ettrema.repository" url="http://milton.io/maven" />
-		<artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
 		<artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
         
         <!-- setproxy proxyhost="46.4.28.8" proxyport="3128" /-->

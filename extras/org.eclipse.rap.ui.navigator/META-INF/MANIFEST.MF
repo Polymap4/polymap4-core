@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Version: 3.5.0.201005241113
+Bundle-Version: 3.5.1.qualifier
 Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-ManifestVersion: 2

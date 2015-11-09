@@ -16,7 +16,8 @@ Export-Package: org.apache.lucene.analysis,
  org.apache.lucene.util,
  org.polymap.recordstore,
  org.polymap.recordstore.lucene
-Require-Bundle: org.polymap.core;bundle-version="4.0.0"
+Require-Bundle: org.polymap.core;bundle-version="4.0.0",
+ org.junit;bundle-version="4.11.0";resolution:=optional
 Bundle-ClassPath: lib/lucene-core-3.6.2.jar,
  lib/lucene-queryparser-3.6.2.jar,
  .

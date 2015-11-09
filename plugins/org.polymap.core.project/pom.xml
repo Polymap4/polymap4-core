@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.polymap</groupId>
+		<artifactId>org.polymap.parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>org.polymap.core.project</artifactId>
+	<packaging>eclipse-plugin</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-compiler-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>org/polymap/core/project/operations/NewMapOperation.java</exclude>
+						<exclude>org/polymap/core/project/operations/OpenMapOperation.java</exclude>
+						<exclude>org/polymap/core/project/operations/OperationLabelConcern.java</exclude>
+						<exclude>org/polymap/core/project/operations/RemoveLayerOperation.java</exclude>
+						<exclude>org/polymap/core/project/operations/RemoveMapOperation.java</exclude>
+						<exclude>org/polymap/core/project/operations/SetLayerBoundsOperation.java</exclude>
+						<exclude>org/polymap/core/project/operations/SetProcessorConfigurationsOperation.java</exclude>
+						<exclude>org/polymap/core/project/operations/SetPropertyOperation.java</exclude>
+						<exclude>org/polymap/core/project/ui/EntityModificationDecorator.java</exclude>
+						<exclude>org/polymap/core/project/ui/dnd/**/*.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/LayerLabelProvider.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/LayerStatusDecorator.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/LayerStatusLineAdapter.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/LayerVisibleStatusAction.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/MapLayersView.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/RemoveLayerAction.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/SortLayerDropAction.java</exclude>
+						<exclude>org/polymap/core/project/ui/layer/ZPriorityLayerSorter.java</exclude>
+						<exclude>org/polymap/core/project/ui/project/**/*.java</exclude>
+						<exclude>org/polymap/core/project/ui/properties/**/*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<version>4.0.0-SNAPSHOT</version>
+</project>
