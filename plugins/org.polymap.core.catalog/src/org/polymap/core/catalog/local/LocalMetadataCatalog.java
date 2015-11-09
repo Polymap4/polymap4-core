@@ -159,8 +159,11 @@ public class LocalMetadataCatalog
 
             @Override
             public void removeEntry( String identifier ) {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
+                entry( identifier ).ifPresent( e -> { 
+                    if(e instanceof LocalMetadata) {
+                        uow.removeEntity( (LocalMetadata) e );
+                    }
+                });
             }
         };
     }
