@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013-2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2013-2015, Falko Brï¿½utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -59,7 +59,7 @@ import org.polymap.rap.openlayers.view.View;
  * Provides a JFace style {@link Viewer} on an OpenLayers map.
  * 
  * @param <CL> The type of the layers the content providers returns.
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Brï¿½utigam</a>
  */
 public class MapViewer<CL>
         extends Viewer
@@ -198,6 +198,7 @@ public class MapViewer<CL>
         }
         
         // add sorted layers to the map
+        // TODO: race condition, each addLayer should wait until the layer added before has appeared
         layers.keySet().stream()
                 .sorted( (elm1, elm2) -> (lp.getPriority(elm1) - lp.getPriority(elm2)) )
                 .map( elm -> layers.get( elm ) )
