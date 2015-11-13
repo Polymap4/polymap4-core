@@ -220,7 +220,8 @@ public class MapViewer<CL>
 
     @Override
     public Composite getControl() {
-        throw new RuntimeException( "not yet implemented." );
+        assert olmap != null : "Call setInput() first."; 
+        return olmap.getControl();
     }
     
     
