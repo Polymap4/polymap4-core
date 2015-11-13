@@ -72,4 +72,12 @@ public interface IMetadataResourceResolver {
      */
     public Map<String,String> createParams( Object service );
     
+    
+//    /**
+//     * 
+//     */
+//    public class UrlParam
+//            extends Configurable {
+//        
+//    }
 }

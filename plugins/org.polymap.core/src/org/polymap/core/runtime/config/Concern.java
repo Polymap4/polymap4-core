@@ -32,8 +32,18 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Concern {
     
+    /**
+     * @deprecated Not yet supported.
+     */
+    public enum Intercept {
+        PreCall, PostCall    
+    }
+    
     public Class<? extends PropertyConcern> value();
     
-    public String[] args() default {};
+    /** @deprecated Not yet supported. */
+    public Intercept intercept() default Intercept.PreCall;
+    
+    //public String[] args() default {};
 
 }

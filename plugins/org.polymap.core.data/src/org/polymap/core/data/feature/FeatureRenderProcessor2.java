@@ -148,11 +148,18 @@ public class FeatureRenderProcessor2
 
             // error handler
             renderer.addRenderListener( new RenderListener() {
+                @Override
                 public void featureRenderer( SimpleFeature feature ) {
                 }
+                @Override
                 public void errorOccurred( Exception e ) {
-                    log.error( "Renderer error: ", e );
-                    drawErrorMsg( g, "Fehler bei der Darstellung.", e );
+                    if (e.getMessage().contains( "Error transforming bbox" )) {
+                        log.warn( "Renderer: " + e.getMessage() );
+                    }
+                    else {
+                        log.error( "Renderer error: ", e );
+                        drawErrorMsg( g, "Fehler bei der Darstellung.", e );
+                    }
                 }
             });
 
