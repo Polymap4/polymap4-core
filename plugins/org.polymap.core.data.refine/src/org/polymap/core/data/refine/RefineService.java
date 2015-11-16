@@ -7,6 +7,7 @@ import org.polymap.core.data.refine.impl.FormatAndOptions;
 import org.polymap.core.data.refine.impl.ImportResponse;
 
 import com.google.refine.importing.ImportingJob;
+import com.google.refine.model.Project;
 
 public interface RefineService {
 
@@ -18,4 +19,6 @@ public interface RefineService {
 
 
     void updateOptions( ImportingJob job, FormatAndOptions options );
+    
+    Project createProject(ImportingJob job, FormatAndOptions options);
 }

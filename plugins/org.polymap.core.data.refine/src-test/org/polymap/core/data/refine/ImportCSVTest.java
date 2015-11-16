@@ -26,6 +26,7 @@ import com.google.refine.commands.importing.ImportingControllerCommand;
 import com.google.refine.commands.project.GetModelsCommand;
 import com.google.refine.commands.row.GetRowsCommand;
 import com.google.refine.model.ColumnModel;
+import com.google.refine.model.Project;
 import com.google.refine.model.Row;
 
 public class ImportCSVTest {
@@ -190,6 +191,12 @@ public class ImportCSVTest {
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,;;;;;;;;;;;",
                 rows.get( 0 ).cells.get( 0 ).value );
         assertEquals( 100, rows.size() );
+        
+        Project project = service.createProject( response.job(), options );
+        rows = project.rows;
+        assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,;;;;;;;;;;;",
+                rows.get( 0 ).cells.get( 0 ).value );
+        assertEquals( 471, rows.size() );
     }
 
 

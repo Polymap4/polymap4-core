@@ -2,6 +2,8 @@ package org.polymap.core.data.refine.impl;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,7 +25,9 @@ import com.google.refine.commands.Command;
 import com.google.refine.commands.importing.ImportingControllerCommand;
 import com.google.refine.importing.ImportingJob;
 import com.google.refine.importing.ImportingManager;
+import com.google.refine.importing.ImportingUtilities;
 import com.google.refine.io.FileProjectManager;
+import com.google.refine.model.Project;
 
 public class RefineServiceImpl
         implements RefineService {
@@ -235,6 +239,7 @@ public class RefineServiceImpl
             // JSONObject updateFormatAndOptionsResponse = new JSONObject(
             // response.result().toString() );
 
+            
             log.info( "imported " + job + "; " + options.store() );
             ImportResponse<T> resp = new ImportResponse<T>();
             resp.setJob( job );
@@ -292,6 +297,32 @@ public class RefineServiceImpl
         catch (Exception e) {
             throw new RuntimeException( e );
         }
+    }
+    
+    public Project createProject(ImportingJob job, FormatAndOptions options) {
+        String projectName = "" + System.currentTimeMillis();
+        options.put( "projectName", projectName );
+        List<Exception> exceptions = new LinkedList<Exception>();
+        
+        // TODO synchronous call
+        job.updating = true;
+        ImportingUtilities.createProject(job, options.format(), options.store(), exceptions, false);
+        while (job.updating) {
+            System.out.println( "creating project" );
+            try {
+                Thread.currentThread().sleep( 1000 );
+            }
+            catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        
+        // cancel the job
+        ImportingManager.disposeJob(job.id);
+        
+        long projectId = ProjectManager.singleton.getProjectID( projectName );
+        return ProjectManager.singleton.getProject( projectId );
     }
 
 }

@@ -23,7 +23,7 @@ public class CSVFormatAndOptions
         try {
             return new CSVFormatAndOptions( new JSONObject(
                     "{\"encoding\":\"ISO-8859-1\",\"separator\":\"\\t\",\"ignoreLines\":-1,\"headerLines\":1,\"skipDataLines\":0,\"limit\":-1,\"storeBlankRows\":false,"
-                            + "\"guessCellValueTypes\":true,\"processQuotes\":true,\"storeBlankCellsAsNulls\":true,\"includeFileSources\":false}" ) );
+                            + "\"guessCellValueTypes\":false,\"processQuotes\":true,\"storeBlankCellsAsNulls\":true,\"includeFileSources\":false}" ) );
         }
         catch (Exception e) {
             throw new RuntimeException( e );
