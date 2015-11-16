@@ -11,6 +11,5 @@
 	<classpathentry exported="true" kind="lib" path="lib/cache-api-1.0.0.jar" sourcepath="lib/sources/cache-api-1.0.0-sources.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry kind="output" path="build/eclipse"/>
 </classpath>

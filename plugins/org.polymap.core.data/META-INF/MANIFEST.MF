@@ -8,7 +8,7 @@ Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.rap.rwt;bundle-version="2.3.1",
  org.eclipse.rap.ui;bundle-version="2.3.1",
  org.polymap.core;bundle-version="4.0.0",
- org.eclipse.rwt.widgets.codemirror;bundle-version="1.0.0";resolution:=optional
+ org.junit;resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.objectplanet.image,

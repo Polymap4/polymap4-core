@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.polymap</groupId>
+		<artifactId>org.polymap.parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>org.polymap.core.data</artifactId>
+	<packaging>eclipse-plugin</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-compiler-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>org/polymap/core/data/feature/buffer/**/*.java</exclude>
+						<exclude>org/polymap/core/data/feature/filter/**/*.java</exclude>
+						<exclude>org/polymap/core/data/feature/lucene/**/*.java</exclude>
+						<exclude>org/polymap/core/data/feature/mdb/**/*.java</exclude>
+						<exclude>org/polymap/core/data/feature/memory/**/*.java</exclude>
+						<exclude>org/polymap/core/data/feature/typeeditor/**/*.java</exclude>
+						<exclude>org/polymap/core/data/image/cache304/**/*.java</exclude>
+						<exclude>org/polymap/core/data/operation/**/*.java</exclude>
+						<exclude>org/polymap/core/data/operations/**/*.java</exclude>
+						<exclude>org/polymap/core/data/report/**/*.java</exclude>
+						<exclude>org/polymap/core/data/ui/**/*.java</exclude>
+						<exclude>org/polymap/core/data/ui/csvimport/**/*.java</exclude>
+						<exclude>org/polymap/core/data/ui/featureselection/**/*.java</exclude>
+						<exclude>org/polymap/core/data/ui/featuretypeeditor/**/*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<version>4.0.0-SNAPSHOT</version>
+</project>
