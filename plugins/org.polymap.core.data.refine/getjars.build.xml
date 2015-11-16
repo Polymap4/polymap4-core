@@ -51,7 +51,7 @@
 			depends="initNexus, initRemoteMavenRepos" />	
 
 	<target name="load_m2_deps" depends="init, initMavenRepos" unless="already_downloaded">
-		<artifact:dependencies filesetId="dependency.fileset" useScope="runtime" cacheDependencyRefs="true">
+		<artifact:dependencies filesetId="dependency.fileset" useScope="runtime">
 			<remoteRepository refid="central.repository" />
 		    <pom file="refine-deps.xml"/>
 		</artifact:dependencies>

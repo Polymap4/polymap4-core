@@ -40,6 +40,9 @@
 		<delete dir="${lib}" />
 	</target>
 	
+    <!--
+      Maven repos: mapzone.io/nexus or remote repos
+      -->
 	<target name="initNexus" description="use Nexus public repository that mirrors the real repos" if="nexusURL">
 	    <artifact:remoteRepository id="central.repository" url="${nexusURL}" />
 	    <artifact:remoteRepository id="geotools.repository" url="${nexusURL}" />
@@ -47,7 +50,6 @@
 	</target>
 	
 	<target name="initRemoteMavenRepos" description="use real Maven repositories directly" unless="nexusURL">
-	    <!-- remote repositories as defined in copy.properties -->
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
 	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
 	    <artifact:remoteRepository id="redhat.repository" url="https://maven.repository.redhat.com/earlyaccess/" />
@@ -85,25 +87,6 @@
 		</artifact:dependencies>
 	</target>
 
-	<target name="print" depends="load_m2_deps">
-		<description>Print the dependencies the jars</description>
-
-		<!--setproxy proxyhost="10.0.16.2" proxyport="3128"/-->
-        
-		<path id="jars">
-			<fileset refid="dependency.fileset" />
-		</path>
-		<property name="myjars" refid="jars" />
-		<echo message="Jars = ${myjars}" />
-		<!--propertyregex property="listjars"
-		              input="${myjars}"
-		              regexp="\;"
-		              select="{$line.seperator}"
-		              casesensitive="false" /-->
-		<echo message="Jars = ${myjars}" />
-		<echo message="Jars = ${listjars}" />
-	</target>
-
 	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
 		<description>Download the jars - used by a manual "clean"</description>
 
@@ -135,32 +118,4 @@
 	<target name="full-build" depends="clean, build" description="clean and build">
 	</target>
 
-	<!-- target: extSources_to_project_classpath (manual Build of project n.r.udig/libs as trigger via ".externalToolBuilders/Refresh Libs.launch") -->
-	<target name="extSources_to_project_classpath" description="augments eclipse project .classpath file to link sources to library jars (F3 key)">
-		<!-- eclipse project .classpath file -->
-		<property name="project_classpath" value="${basedir}${file.separator}.classpath" />
-
-		<!-- prepare Path containing all source library jars from ${libs_src_dir} to be compared with library jars in RegExp of Replace -->
-		<pathconvert property="sourceJars" pathsep="|">
-			<!-- temporary Path/FileSet with all source library jars -->
-			<fileset dir="${libs_src_dir}" includes="*-sources.zip" />
-			<!-- directory containing sources archives -->
-			<globmapper handledirsep="true" from="${libs_src_dir}/*-sources.zip" to="*" />
-		</pathconvert>
-
-		<!-- update only .classpath entries WITH corresponding source library archive and NO preexisiting attributes after "path" attribute -->
-		<replaceregexp file="${project_classpath}" flags="gm" byline="true" description="default: linking all available sources archives to corresponding library jars">
-			<regexp pattern="(.* path=&quot;lib/)(${sourceJars})\.jar&quot; */&gt;" />
-			<substitution expression="\1\2\.jar&quot; sourcepath=&quot;lib/sources/\2-sources.zip&quot;/&gt;" />
-		</replaceregexp>
-
-		<!-- example to specify different source locations of special/defined library jars -->
-		<!-- overwrite/update .classpath entries WITH corresponding sources in local project "geotools_trunk XSD" -->
-		<!--    <replaceregexp file="${project_classpath}" flags="gm" byline="true">
-    		<regexp pattern="(.* path=&quot;lib/)gt-(xsd-.*)(-\d\..*)\.jar&quot; *.*/&gt;"/>
-    		<substitution expression="\1gt-\2\3.jar&quot; sourcepath=&quot;/geotools_trunk/modules/extension/xsd/\2/src/main/java&quot;/&gt;"/>
-    	</replaceregexp>
--->
-		<echo level="info" message="updated ${project_classpath} with links to source archives" />
-	</target>
 </project>
