@@ -22,7 +22,7 @@ import java.util.EventObject;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-final class SourceEventFilter<E extends EventObject>
+public final class SourceEventFilter<E extends EventObject>
         implements EventFilter<E> {
     
     /** Compares event source via {@link Object#equals(Object)}. */
