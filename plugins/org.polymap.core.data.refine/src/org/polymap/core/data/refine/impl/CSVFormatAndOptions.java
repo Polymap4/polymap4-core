@@ -20,11 +20,12 @@ public class CSVFormatAndOptions extends LineBasedFormatAndOptions {
 
     public static CSVFormatAndOptions createDefault() {
         try {
-            return new CSVFormatAndOptions(new JSONObject(
-                    "{\"encoding\":\"UTF-8\",\"separator\":\"\\t\",\"ignoreLines\":-1,\"headerLines\":1,\"skipDataLines\":0,\"limit\":-1,\"storeBlankRows\":false,"
-                            + "\"guessCellValueTypes\":false,\"processQuotes\":true,\"storeBlankCellsAsNulls\":true,\"includeFileSources\":false}"));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            return new CSVFormatAndOptions( new JSONObject(
+                    "{\"separator\":\"\\t\",\"ignoreLines\":-1,\"headerLines\":1,\"skipDataLines\":0,\"limit\":-1,\"storeBlankRows\":false,"
+                            + "\"guessCellValueTypes\":false,\"processQuotes\":true,\"storeBlankCellsAsNulls\":true,\"includeFileSources\":false}" ) );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
         }
     }
 
