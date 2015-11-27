@@ -1,0 +1,7 @@
+eclipse.preferences.version=1
+formatter_profile=_SMB
+formatter_settings_version=12
+org.eclipse.jdt.ui.ignorelowercasenames=true
+org.eclipse.jdt.ui.importorder=java.util;java;javax;org;org.apache;org.qi4j;com;org.eclipse.swt;org.eclipse.rwt;org.eclipse.jface;org.eclipse.ui;org.eclipse;org.polymap.core;org.polymap.rhei;org.polymap.service;org.polymap;
+org.eclipse.jdt.ui.ondemandthreshold=22
+org.eclipse.jdt.ui.staticondemandthreshold=99
