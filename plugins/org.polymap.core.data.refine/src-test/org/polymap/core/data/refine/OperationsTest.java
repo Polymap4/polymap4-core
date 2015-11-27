@@ -34,9 +34,10 @@ public class OperationsTest {
         File tmp = File.createTempFile( "foo", ".csv" );
         Files.copy( wohngebiete, tmp );
         ImportResponse<CSVFormatAndOptions> response = service.importFile( tmp,
-                CSVFormatAndOptions.createDefault() );
+                CSVFormatAndOptions.createDefault(), null );
         assertEquals( ";", response.options().separator() );
-
+        assertEquals( "ISO-8859-1", response.options().encoding() );
+        
         // get the loaded models
         ColumnModel columns = response.job().project.columnModel;
         assertEquals( 12, columns.columns.size() );
@@ -44,13 +45,13 @@ public class OperationsTest {
         List<Row> rows = response.job().project.rows;
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,",
                 rows.get( 0 ).cells.get( 0 ).value );
-        assertEquals( 100, rows.size() );
+        assertEquals( 471, rows.size() );
         assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, Räume u.Fläche d.Wohn.,",
                 rows.get( 1 ).cells.get( 0 ).value );
 
         CSVFormatAndOptions options = response.options();
         options.setSeparator( "\\t" );
-        service.updateOptions( response.job(), options );
+        service.updateOptions( response.job(), options, null );
         
 //        Map<String, String> params = Maps.newHashMap();
 //        String columnToRemove = columns.columns.get( 2 ).getName();

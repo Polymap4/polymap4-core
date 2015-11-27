@@ -60,7 +60,7 @@ public class ImportCSVTest {
                 this.getClass().getResource( "/data/wohngebiete_sachsen.csv" ).getFile() );
         
         response = service.importStream( new FileInputStream( wohngebiete ),
-                "wohngebiete_sachsen.csv", "text/csv", CSVFormatAndOptions.createDefault() );
+                "wohngebiete_sachsen.csv", "text/csv", CSVFormatAndOptions.createDefault(), null );
         assertTrue( response.toString().startsWith( "{\"code\":\"ok\"" ) );
         JSONObject jsonResponse = new JSONObject( response.toString() );
 
@@ -167,7 +167,7 @@ public class ImportCSVTest {
         File tmp = File.createTempFile( "foo", ".csv" );
         Files.copy( wohngebiete, tmp );
         ImportResponse<CSVFormatAndOptions> response = service.importFile( tmp,
-                CSVFormatAndOptions.createDefault() );
+                CSVFormatAndOptions.createDefault(), null );
         assertEquals( ";", response.options().separator() );
 
         // get the loaded models
@@ -177,22 +177,22 @@ public class ImportCSVTest {
         List<Row> rows = response.job().project.rows;
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,",
                 rows.get( 0 ).cells.get( 0 ).value );
-        assertEquals( 100, rows.size() );
+        assertEquals( 471, rows.size() );
         assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, Räume u.Fläche d.Wohn.,",
                 rows.get( 1 ).cells.get( 0 ).value );
 
         CSVFormatAndOptions options = response.options();
         options.setSeparator( "\\t" );
-        service.updateOptions( response.job(), options );
+        service.updateOptions( response.job(), options, null );
         columns = response.job().project.columnModel;
         assertEquals( 1, columns.columns.size() );
 
         rows = response.job().project.rows;
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,;;;;;;;;;;;",
                 rows.get( 0 ).cells.get( 0 ).value );
-        assertEquals( 100, rows.size() );
+        assertEquals( 471, rows.size() );
         
-        Project project = service.createProject( response.job(), options );
+        Project project = service.createProject( response.job(), options, null );
         rows = project.rows;
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,;;;;;;;;;;;",
                 rows.get( 0 ).cells.get( 0 ).value );
@@ -207,7 +207,7 @@ public class ImportCSVTest {
                 this.getClass().getResource( "/data/movies-condensed.tsv" ).getFile() );
         ImportResponse<CSVFormatAndOptions> response = service.importStream(
                 new FileInputStream( wohngebiete ), "wohngebiete_sachsen.csv", "text/csv",
-                CSVFormatAndOptions.createDefault() );
+                CSVFormatAndOptions.createDefault(), null );
         assertEquals( "\\t", response.options().separator() );
 
         // get the loaded models
@@ -226,8 +226,9 @@ public class ImportCSVTest {
         File wohngebiete = new File(
                 this.getClass().getResource( "/data/example-utf8.tsv" ).getFile() );
         ImportResponse<CSVFormatAndOptions> response = service.importFile( wohngebiete,
-                CSVFormatAndOptions.createDefault() );
+                CSVFormatAndOptions.createDefault(), null );
         assertEquals( "\\t", response.options().separator() );
+        assertEquals( "UTF-8", response.options().encoding() );
 
         // get the loaded models
         ColumnModel columns = response.job().project.columnModel;
@@ -247,7 +248,7 @@ public class ImportCSVTest {
         // rowsResponse = service.post( GetRowsCommand.class, params );
         // JSONObject rowsResponseBefore = new JSONObject( rowsResponse.toString() );
 
-        service.updateOptions( response.job(), response.options() );
+        service.updateOptions( response.job(), response.options(), null );
 
         rows = response.job().project.rows;
         assertEquals( 2, rows.size() );
