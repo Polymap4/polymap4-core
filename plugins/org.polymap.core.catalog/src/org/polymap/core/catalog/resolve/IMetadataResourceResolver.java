@@ -60,7 +60,7 @@ public interface IMetadataResourceResolver {
      * <p/>
      * This usually <b>blocks</b> execution until backend service is available and/or connected.
      * 
-     * @param params
+     * @param metadata
      * @param monitor
      */
     public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception;

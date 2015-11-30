@@ -45,6 +45,8 @@ public class ImageRegistryHelper {
      * used a static member, we cannot cache the instance.
      */
     protected Supplier<ImageRegistry>   registry = () -> plugin.getImageRegistry();
+    
+    protected Object                    registryLock = new Object();
 
     
     public ImageRegistryHelper( AbstractUIPlugin plugin ) {
