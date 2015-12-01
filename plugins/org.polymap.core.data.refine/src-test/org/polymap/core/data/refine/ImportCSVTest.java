@@ -149,7 +149,7 @@ public class ImportCSVTest {
         // assertNull( jsonResponse.getJSONArray( "rows" ).getJSONArray( 0
         // ).getJSONArray( 1 ),
         // JSONUtil.getObject( jsonResponse, "rows[0].cells[1]" ) );
-        assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, Räume u.Fläche d.Wohn.,",
+        assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, R�ume u.Fl�che d.Wohn.,",
                 JSONUtil.getString( jsonResponse, "rows[1].cells[0].v", null ) );
 
         assertEquals( new Integer( 100 ), JSONUtil.getInteger( jsonResponse, "total", null ) );
