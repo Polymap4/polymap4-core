@@ -45,7 +45,7 @@ public class OperationsTest {
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,",
                 rows.get( 0 ).cells.get( 0 ).value );
         assertEquals( 100, rows.size() );
-        assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, R√§ume u.Fl√§che d.Wohn.,",
+        assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, R‰ume u.Fl‰che d.Wohn.,",
                 rows.get( 1 ).cells.get( 0 ).value );
 
         CSVFormatAndOptions options = response.options();
