@@ -16,54 +16,60 @@ package org.polymap.core.data.refine.impl;
 
 import org.json.JSONObject;
 
-public class CSVFormatAndOptions
-        extends FormatAndOptions {
+public class CSVFormatAndOptions extends LineBasedFormatAndOptions {
 
     public static CSVFormatAndOptions createDefault() {
         try {
             return new CSVFormatAndOptions( new JSONObject(
-                    "{\"encoding\":\"ISO-8859-1\",\"separator\":\"\\t\",\"ignoreLines\":-1,\"headerLines\":1,\"skipDataLines\":0,\"limit\":-1,\"storeBlankRows\":false,"
-                            + "\"guessCellValueTypes\":true,\"processQuotes\":true,\"storeBlankCellsAsNulls\":true,\"includeFileSources\":false}" ) );
+                    "{\"separator\":\"\\t\",\"ignoreLines\":-1,\"headerLines\":1,\"skipDataLines\":0,\"limit\":-1,\"storeBlankRows\":false,"
+                            + "\"guessCellValueTypes\":false,\"processQuotes\":true,\"storeBlankCellsAsNulls\":true,\"includeFileSources\":false}" ) );
         }
         catch (Exception e) {
             throw new RuntimeException( e );
         }
     }
 
-
-    public CSVFormatAndOptions( JSONObject jsonObject ) {
-        super( jsonObject );
+    public void putAll(JSONObject newValues) {
+        super.putAll(newValues);
+        // disable quote character during import
+        setQuoteCharacter("\0");
+        put("storeBlankRows", false);
+//        setProcessQuotes(false);
     }
 
+    public CSVFormatAndOptions(JSONObject jsonObject) {
+        super(jsonObject);
+    }
 
     public String encoding() {
-        return store().optString( "encoding" );
+        return store().optString("encoding");
     }
 
-
-    public void setEncoding( String encoding ) {
-        put( "encoding", encoding );
+    public void setEncoding(String encoding) {
+        put("encoding", encoding);
     }
-
 
     public String separator() {
-        return store().optString( "separator" );
+        return store().optString("separator");
     }
 
-
-    public void setSeparator( String separator ) {
-        put( "separator", separator );
+    public void setSeparator(String separator) {
+        put("separator", separator);
     }
 
-
-    public void setHeaderLines( int headLine ) {
-        put("headerLines", headLine);
+    public String quoteCharacter() {
+        return store().optString("quoteCharacter");
     }
 
-
-    public String headerLines() {
-        return store().optString("headerLines");
+    public void setQuoteCharacter(String quoteCharacter) {
+        put("quoteCharacter", quoteCharacter);
     }
 
+    public boolean processQuotes() {
+        return store().optBoolean("processQuotes");
+    }
 
+    public void setProcessQuotes(boolean processQuotes) {
+        put("processQuotes", processQuotes);
+    }
 }

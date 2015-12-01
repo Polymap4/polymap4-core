@@ -171,6 +171,8 @@ public class FilebasedImportingController
         JSONArray fileSelectionIndexes = new JSONArray();
         JSONUtilities.safePut( config, "fileSelection", fileSelectionIndexes );
 
+        EncodingGuesser.guess( job );
+        
         String bestFormat = ImportingUtilities.autoSelectFiles( job, retrievalRecord,
                 fileSelectionIndexes );
         bestFormat = ImportingUtilities.guessBetterFormat( job, bestFormat );

@@ -23,7 +23,7 @@ import org.polymap.core.data.refine.impl.ExcelFormatAndOptions.SheetRecord;
 import com.google.common.collect.Lists;
 
 public class ExcelFormatAndOptions
-        extends FormatAndOptions {
+        extends LineBasedFormatAndOptions {
 
     public class SheetRecord {
 
@@ -74,20 +74,15 @@ public class ExcelFormatAndOptions
     }
 
 
-    public void setHeaderLines( int headLine ) {
-        put( "headerLines", headLine );
-    }
-
-
-    public String headerLines() {
-        return store().optString( "headerLines" );
-    }
-
-
-    public void setSheets( int sheet ) {
+    public void setSheet( int sheet ) {
         JSONArray sheets = new JSONArray();
         sheets.put( sheet );
         store().put( "sheets", sheets );
+    }
+
+
+    public int sheets() {
+        return Integer.parseInt( store().optString( "sheets", "0" ) );
     }
 
 }

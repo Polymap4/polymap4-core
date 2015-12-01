@@ -2,6 +2,8 @@ package org.polymap.core.data.refine.impl;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,9 +13,12 @@ import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.json.JSONObject;
+import org.polymap.core.data.refine.Messages;
 import org.polymap.core.data.refine.RefineService;
 import org.polymap.core.data.refine.json.JSONUtil;
+import org.polymap.core.runtime.SubMonitor;
 
 import com.google.common.collect.Maps;
 import com.google.common.net.HttpHeaders;
@@ -23,7 +28,9 @@ import com.google.refine.commands.Command;
 import com.google.refine.commands.importing.ImportingControllerCommand;
 import com.google.refine.importing.ImportingJob;
 import com.google.refine.importing.ImportingManager;
+import com.google.refine.importing.ImportingUtilities;
 import com.google.refine.io.FileProjectManager;
+import com.google.refine.model.Project;
 
 public class RefineServiceImpl
         implements RefineService {
@@ -175,7 +182,7 @@ public class RefineServiceImpl
 
 
     private <T extends FormatAndOptions> ImportResponse<T> importData( RefineRequest request,
-            T options ) {
+            T options, IProgressMonitor monitor ) {
         try {
             // create the job
             ImportingJob job = ImportingManager.createJob();
@@ -191,14 +198,13 @@ public class RefineServiceImpl
 
             // get-importing-job-status bis done
 
-            log.info( "JOB:" + job.getOrCreateDefaultConfig().toString() );
+            log.info( "JOB:" + job.getOrCreateDefaultConfig() );
 
             // initialize the parser ui
             String format = JSONUtil.getString( job.getOrCreateDefaultConfig(),
                     "retrievalRecord.files[0].format", null );
-            // String encoding = JSONUtil.getString( job.getOrCreateDefaultConfig(),
-            // "retrievalRecord.files[0].declaredEncoding", null );
 
+            // TODO wait monitor here
             while (format == null) {
                 Thread.sleep( 100 );
                 format = JSONUtil.getString( job.getOrCreateDefaultConfig(),
@@ -212,19 +218,11 @@ public class RefineServiceImpl
             params.put( "format", format );
             command( ImportingControllerCommand.class ).doPost( createRequest( params ), response );
             JSONObject initializeParserUiResponse = new JSONObject( response.result().toString() );
-            // if ("\\t".equals(
-            // JSONUtil.getString( initializeParserUiResponse, "options.separator",
-            // null ) )) {
-            // // separator is not one of , or , try some more separator
-            // }
-            // update/initialize all options and create the project
             options.putAll( initializeParserUiResponse.getJSONObject( "options" ) );
             options.setFormat( format );
-            //options.put( "guessCellValueTypes", true );
-            // options.setEncoding( encoding );
 
-            // try to find the best separator, with the most columns in the resulting
-            // model.
+            // try to find the best separator, with the most columns in the
+            // resulting model.
             params.clear();
             params.put( "jobID", String.valueOf( job.id ) );
             params.put( "subCommand", "update-format-and-options" );
@@ -232,8 +230,6 @@ public class RefineServiceImpl
             params.put( "format", format );
             params.put( "options", options.toString() );
             command( ImportingControllerCommand.class ).doPost( createRequest( params ), response );
-            // JSONObject updateFormatAndOptionsResponse = new JSONObject(
-            // response.result().toString() );
 
             log.info( "imported " + job + "; " + options.store() );
             ImportResponse<T> resp = new ImportResponse<T>();
@@ -249,27 +245,34 @@ public class RefineServiceImpl
 
 
     @Override
-    public <T extends FormatAndOptions> ImportResponse<T> importFile( File file, T options ) {
+    public <T extends FormatAndOptions> ImportResponse<T> importFile( File file, T options,
+            IProgressMonitor monitor ) {
         Map<String,String> params = Maps.newHashMap();
         params.put( HttpHeaders.CONTENT_TYPE,
                 MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType( file ) );
         return importData( new RefineRequest( params, Maps.newHashMap(), file, file.getName() ),
-                options );
+                options, monitor );
     }
 
 
     @Override
     public <T extends FormatAndOptions> ImportResponse<T> importStream( InputStream in,
-            String fileName, String mimeType, T options ) {
+            String fileName, String mimeType, T options, IProgressMonitor monitor ) {
         Map<String,String> params = Maps.newHashMap();
         params.put( HttpHeaders.CONTENT_TYPE, mimeType );
-        return importData( new RefineRequest( params, Maps.newHashMap(), in, fileName ), options );
+        return importData( new RefineRequest( params, Maps.newHashMap(), in, fileName ), options,
+                monitor );
     }
 
 
     @Override
-    public void updateOptions( ImportingJob job, FormatAndOptions options ) {
+    public void updateOptions( ImportingJob job, FormatAndOptions options,
+            IProgressMonitor monitor ) {
         try {
+            if (monitor != null) {
+                monitor.beginTask( Messages.get( "start.updateOptions" ), 100 );
+            }
+            log.info( "updating job " + options );
             RefineResponse response = createResponse();
             Map<String,String> params = Maps.newHashMap();
             params.put( "jobID", String.valueOf( job.id ) );
@@ -279,18 +282,75 @@ public class RefineServiceImpl
             params.put( "options", options.toString() );
             command( ImportingControllerCommand.class ).doPost( createRequest( params ), response );
 
-            log.info( "updated job " + job.updating + "; " + options );
-            //
-            // ImportResponse resp = new ImportResponse();
-            // resp.setJob( job );
-            // resp.setProject( job.project );
-            // resp.setOptions( options );
-            //
-            // return resp;
+            while (job.updating) {
+
+                log.info( "updating: " + job.getOrCreateDefaultConfig() );
+                try {
+                    Thread.currentThread().sleep( 10 );
+                }
+                catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+
+            log.info( "updated job " + job.getOrCreateDefaultConfig() );
+            if (monitor != null) {
+                monitor.done();
+            }
         }
         catch (Exception e) {
             throw new RuntimeException( e );
         }
+    }
+
+
+    @Override
+    public Project createProject( ImportingJob job, FormatAndOptions options,
+            IProgressMonitor monitor ) {
+        // SubMonitor subMonitor = SubMonitor.on(monitor, 1);
+        // TODO wieso?
+        // subMonitor.updateDelayCount.set(1);
+        if (monitor != null) {
+            monitor.beginTask( Messages.get( "start.createProject" ), 100 );
+        }
+
+        String projectName = "" + System.currentTimeMillis();
+        options.put( "projectName", projectName );
+        List<Exception> exceptions = new LinkedList<Exception>();
+
+        job.updating = true;
+        ImportingUtilities.createProject( job, options.format(), options.store(), exceptions,
+                false );
+        int work = 1;
+        while (job.updating) {
+            // log.info("updating: " + job.getOrCreateDefaultConfig());
+            JSONObject progress = (JSONObject)job.getOrCreateDefaultConfig().get( "progress" );
+            log.info( "updating progress: " + progress );
+            if (monitor != null) {
+                if (progress != null) {
+                    monitor.worked( progress.getInt( "percent" ) );
+                }
+                else {
+                    monitor.worked( work++ );
+                }
+            }
+            try {
+                Thread.currentThread().sleep( 100 );
+            }
+            catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        // cancel the job
+        ImportingManager.disposeJob( job.id );
+        if (monitor != null) {
+            monitor.done();
+        }
+        long projectId = ProjectManager.singleton.getProjectID( projectName );
+        return ProjectManager.singleton.getProject( projectId );
     }
 
 }

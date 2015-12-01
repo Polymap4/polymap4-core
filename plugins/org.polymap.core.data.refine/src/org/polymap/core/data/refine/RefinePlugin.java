@@ -18,7 +18,7 @@ public class RefinePlugin extends AbstractUIPlugin {
 	private static Log log = LogFactory.getLog(RefinePlugin.class);
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.polymap.core.data.refine"; //$NON-NLS-1$
+	public static final String ID = "org.polymap.core.data.refine"; //$NON-NLS-1$
 
 	// The shared instance
 	private static RefinePlugin plugin;
