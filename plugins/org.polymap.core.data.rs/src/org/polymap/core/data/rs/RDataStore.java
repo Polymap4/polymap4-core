@@ -17,6 +17,7 @@ package org.polymap.core.data.rs;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import java.io.IOException;
@@ -44,12 +45,6 @@ import com.google.common.collect.ImmutableList;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.rs.RFeatureStore.TransactionState;
-import org.polymap.core.runtime.CachedLazyInit;
-import org.polymap.core.runtime.LazyInit;
-import org.polymap.core.runtime.cache.Cache;
-import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.cache.UnknownSizeCacheLoader;
-
 import org.polymap.recordstore.IRecordState;
 import org.polymap.recordstore.IRecordStore;
 import org.polymap.recordstore.IRecordStore.Updater;
@@ -80,11 +75,6 @@ public class RDataStore
     /** The currently running tx or null. */
     protected TransactionState          runningTx;
 
-    /* Changed inside updater so no extra synch is needed. */
-    private Cache<Name,FeatureType>     schemas = CacheConfig.DEFAULT.initSize( 64 ).createCache();
-    
-    private LazyInit<Set<Name>>         schemaNames;
-    
     private ServiceInfo                 info;
 
     private JsonSchemaCoder             schemaCoder = new JsonSchemaCoder();
@@ -93,76 +83,57 @@ public class RDataStore
     public RDataStore( IRecordStore store, QueryDialect queryDialect ) throws Exception {
         this.store = store;
         this.queryDialect = queryDialect;
-        this.queryDialect.initStore( store );
-        
-        // lazy load schemaNames
-        this.schemaNames = new CachedLazyInit( () -> {
-            try {
-                ResultSet rs = RDataStore.this.store.find ( 
-                        new SimpleQuery().setMaxResults( 10000 ).eq( "type", "FeatureType" ) );
-
-                HashSet result = new HashSet( rs.count()*2 );
-
-                for (IRecordState entry : rs) {
-                    String namespace = entry.get( "namespace" );
-                    String localpart = entry.get( "name" );
-                    Name name = namespace == null ? new NameImpl( namespace, localpart ) : new NameImpl( localpart );
-                    if (!result.add( name )) {
-                        throw new IllegalStateException( "Name already loaded: " + name );
-                    }
-                }
-                return result;
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e );
-            }
-        });
+        this.queryDialect.initStore( store );        
     }
 
-    
-    public FeatureType getSchema( Name name ) {
-        if (!schemaNames.get().contains( name )) {
-            return null;
-        }
-        return schemas.get( name, new UnknownSizeCacheLoader<Name,FeatureType,RuntimeException>() {
-            public FeatureType load( Name key ) {
-                try {
-                    // query the store
-                    assert key.getLocalPart() != null;
-                    SimpleQuery query = new SimpleQuery().setMaxResults( 1 )
-                             .eq( "type", "FeatureType" )
-                             .eq( "name", key.getLocalPart() );
-                    if (key.getNamespaceURI() != null) {
-                        query.eq( "namespace", key.getNamespaceURI() );
-                    }
-                    ResultSet rs = store.find( query );
-                    assert rs.count() == 1 : "Illegal size of result set: " + rs.count();
-                    IRecordState entry = rs.iterator().next();
-                    
-                    FeatureType schema = schemaCoder.decode( (String)entry.get( "content" ) );
-                    log.debug( "Decoded schema: " + schema );
-                    return schema;
 
-//                    // check if schema is simple; build SimpleFeatureType for compatibility
-//                    // This is needed as long as pipeline does not fully support complex types
-//                    SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
-//                    ftb.setName( schema.getName() );
-//                    for (PropertyDescriptor prop : schema.getDescriptors()) {
-//                        if (prop instanceof GeometryDescriptor) {
-//                            ftb.add( prop.getName().getLocalPart(), prop.getType().getBinding(),
-//                                    ((GeometryDescriptor)prop).getCoordinateReferenceSystem() );                    
-//                        }
-//                        else {
-//                            ftb.add( prop.getName().getLocalPart(), prop.getType().getBinding() );
-//                        }
-//                    }
-//                    return ftb.buildFeatureType();
-                }
-                catch (Exception e) {
-                    throw new RuntimeException( e );
-                }
+    @Override
+    public FeatureType getSchema( Name name ) throws IOException {
+        return loadSchema( name ).orElseThrow( () -> new RuntimeException( "No such schema: " + name ) );
+    }
+    
+    
+    protected Optional<FeatureType> loadSchema( Name name ) throws IOException {
+        // result is not cached; query should be fast enough, if not then it is not
+        // fast enough for querying features too; besides, caching schemas is bit
+        // difficult as the names might not be unique; the current implementation
+        // matches a name without a namespace with all schemas with *and* without
+        // name
+        assert name != null : "Name must not be null.";
+        try {
+            // query the store
+            assert name.getLocalPart() != null;
+            SimpleQuery query = new SimpleQuery().setMaxResults( 1 )
+                    .eq( "type", "FeatureType" )
+                    .eq( "name", name.getLocalPart() );
+            if (name.getNamespaceURI() != null) {
+                query.eq( "namespace", name.getNamespaceURI() );
             }
-        });
+            ResultSet rs = store.find( query );
+            int rsCount = rs.count();
+            if (rsCount > 1) {
+                throw new RuntimeException( "Illegal size of result set: " + rsCount );
+            }
+            else if (rsCount == 0) {
+                return Optional.empty();
+            }
+            else {
+                IRecordState entry = rs.iterator().next();
+
+                FeatureType schema = schemaCoder.decode( (String)entry.get( "content" ) );
+                log.debug( "Decoded schema: " + schema );
+                return Optional.of( schema );
+            }
+        }
+        catch (IOException e) {
+            throw e;
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IOException( e );
+        }
     }
 
     
@@ -178,7 +149,6 @@ public class RDataStore
             // don't close store as it might be used by others
             store = null;
             listeners = null;
-            schemas = null;
         }
     }
 
@@ -196,17 +166,34 @@ public class RDataStore
 
     @Override
     public List<Name> getNames() throws IOException {
-        return ImmutableList.copyOf( schemaNames.get() );
+        // no cache. keeps impl simple and straight forward.
+        // see #loadSchema()
+        try {
+            ResultSet rs = RDataStore.this.store.find ( 
+                    new SimpleQuery().setMaxResults( 1000 ).eq( "type", "FeatureType" ) );
+
+            HashSet result = new HashSet( rs.count()*2 );
+
+            for (IRecordState entry : rs) {
+                String namespace = entry.get( "namespace" );
+                String localpart = entry.get( "name" );
+                Name name = namespace == null ? new NameImpl( namespace, localpart ) : new NameImpl( localpart );
+                if (!result.add( name )) {
+                    throw new IllegalStateException( "Name already loaded: " + name );
+                }
+            }
+            return ImmutableList.copyOf( result );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
 
     @Override
     public FeatureSource getFeatureSource( Name name ) throws IOException {
-        assert name != null : "Name must not be null.";
-        FeatureType schema = getSchema( name );
-        if (schema == null) {
-            throw new IOException( "Schema does not exist: " + name );
-        }
+        FeatureType schema = loadSchema( name )
+                .orElseThrow( () ->  new IOException( "Schema does not exist: " + name ) );
         return new RFeatureStore( this, schema );
     }
 
@@ -216,12 +203,8 @@ public class RDataStore
         assert schema != null : "schema is null";
         assert schema.getName() != null : "schema.getName() is null";
         
-        log.info( "" +  schemaNames.get() );
-        if (!schemaNames.get().add( schema.getName() )) {
+        if (loadSchema( schema.getName() ).isPresent() ) {
             throw new IOException( "Schema name already exists: " + schema.getName() );                
-        }
-        if (schemas.putIfAbsent( schema.getName(), schema ) != null) {
-            throw new IOException( "Schema name already exists: " + schema.getName() );
         }
         
         Updater tx = runningTx != null ? runningTx.updater() : store.prepareUpdate();
@@ -246,6 +229,7 @@ public class RDataStore
           //encoder.setEncoding(Charset.forName( global.getCharset() ));
 
             tx.store( schemaRecord );
+            
             if (runningTx == null) {
                 tx.apply();
             }
@@ -350,10 +334,6 @@ public class RDataStore
             log.debug( "Current schema: " + schemaCoder.encode( schema ) );
             log.debug( "Updated schema: " + schemaContent );
 
-            // update schemas cache
-            schemas.remove( name );
-            //schemas.put( newSchema.getName(), newSchema );
-            
             tx.apply();
         }
         catch (Throwable e) {
@@ -365,13 +345,6 @@ public class RDataStore
 
 
     public void deleteSchema( FeatureType schema, IProgressMonitor monitor ) {
-        if (!schemaNames.get().remove( schema.getName() )) {
-            throw new IllegalArgumentException( "Schema does not exist: " + schema.getName() );                
-        }
-        if (schemas.putIfAbsent( schema.getName(), schema ) != null) {
-            throw new IllegalArgumentException( "Schema does not exist: " + schema.getName() );
-        }
-
         // remove features
         try {
             RFeatureStore fs = (RFeatureStore)getFeatureSource( schema.getName() );
@@ -390,9 +363,9 @@ public class RDataStore
                     .eq( "name", schema.getName().getLocalPart() )
                     .eq( "namespace", schema.getName().getNamespaceURI() ) );
 
+            assert rs.count() == 1 : "Illegal number of schemas found: " + rs.count();
             tx.remove( rs.get( 0 ) );
             
-            schemas.remove( schema.getName() );
             tx.apply();
         }
         catch (Throwable e) {

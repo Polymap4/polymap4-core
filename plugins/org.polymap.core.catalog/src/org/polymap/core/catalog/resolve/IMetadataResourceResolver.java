@@ -22,9 +22,9 @@ import org.polymap.core.catalog.IMetadata;
 
 /**
  * Creates an {@link IServiceInfo} service out of connection params provided by an
- * {@link IMetadata} instance. It is the link between the matedata and the data.
- * <p/>
- * Resolving a backend service instance from a layer contains the following step.
+ * {@link IMetadata} instance. It is the link between the matadata and the data.
+ * <p>
+ * Resolving a backend service instance from a layer contains the following steps:
  * <ul>
  * <li>ILayer provides UID of the {@link IMetadata} entry in the catalog</li>
  * <li>{@link IMetadata} provides connection params</li>
@@ -37,6 +37,7 @@ import org.polymap.core.catalog.IMetadata;
  * <li>ILayer also provides resource name which allows to scan all resources of the
  * service and find the right one for that layer</li>
  * </ul>
+ * </p>
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
