@@ -61,15 +61,6 @@ public abstract class ProjectNode
     @Queryable
     public CollectionProperty<String>   keywords;
 
-//    /**
-//     * True if the layer is visible in the map. This property is not persistent. The
-//     * value is valid for the current {@link SessionContext}.
-//     */
-//    @DefaultValue( "true" )
-//    @Computed( SessionProperty.class )
-//    @Concerns( PropertyChangeSupport.class )
-//    public Property<Boolean>            visible;
-
     public Association<IMap>            parentMap;
 
     
@@ -160,43 +151,6 @@ public abstract class ProjectNode
         }
     }
 
-
-    
-//    /**
-//     * 
-//     */
-//    static class SessionState
-//            extends SessionSingleton {
-//        
-//        public static SessionState instance() {
-//            return instance( SessionState.class );
-//        }
-//        
-//        /** (Entity.id(),propName) -> value */
-//        ConcurrentMap<Pair<Object,String>,Object>   values = new ConcurrentHashMap();
-//    }
-//    
-//    
-//    /**
-//     * 
-//     */
-//    public static class SessionProperty
-//            extends ComputedProperty {
-//
-//        @Override
-//        public Object get() {
-//            Pair<Object,String> key = ImmutablePair.of( ((Entity)composite).id(), info.getName() );
-//            return SessionState.instance().values.get( key );
-//        }
-//
-//        @Override
-//        public void set( Object value ) {
-//            Pair<Object,String> key = ImmutablePair.of( ((Entity)composite).id(), info.getName() );
-//            SessionState.instance().values.put( key, value );
-//        }
-//        
-//    }
-    
 
     /**
      * 
