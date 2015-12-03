@@ -14,23 +14,34 @@
  */
 package org.polymap.core.project;
 
+import static org.polymap.model2.query.Expressions.and;
+import static org.polymap.model2.query.Expressions.eq;
 import java.util.EventObject;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.security.SecurityContext;
 
 import org.polymap.model2.Association;
 import org.polymap.model2.CollectionProperty;
+import org.polymap.model2.Concerns;
+import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
+import org.polymap.model2.PropertyConcern;
+import org.polymap.model2.PropertyConcernAdapter;
 import org.polymap.model2.Queryable;
+import org.polymap.model2.query.Expressions;
+import org.polymap.model2.query.ResultSet;
+import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.Lifecycle;
+import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
- * Provides a mixin for {@link ILayer} and {@link IMap} defining therm as part of a
+ * Provides a mixin for {@link ILayer} and {@link IMap} defining them as part of a
  * hierarchy of maps.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -41,6 +52,8 @@ public abstract class ProjectNode
 
     private static Log log = LogFactory.getLog( ProjectNode.class );
 
+    // instance *******************************************
+    
     @Queryable
     public Property<String>             label;
 
@@ -48,8 +61,14 @@ public abstract class ProjectNode
     @Queryable
     public CollectionProperty<String>   keywords;
 
-    @Defaults
-    public Property<Boolean>            visible;
+//    /**
+//     * True if the layer is visible in the map. This property is not persistent. The
+//     * value is valid for the current {@link SessionContext}.
+//     */
+//    @DefaultValue( "true" )
+//    @Computed( SessionProperty.class )
+//    @Concerns( PropertyChangeSupport.class )
+//    public Property<Boolean>            visible;
 
     public Association<IMap>            parentMap;
 
@@ -57,15 +76,130 @@ public abstract class ProjectNode
     @Override
     public void onLifecycleChange( State state ) {
         if (state == State.AFTER_COMMIT) {
-            log.info( "Lifecycle: " + this );
             EventManager.instance().publish( new ProjectNodeCommittedEvent( this ) );
         }
     }
 
+    
+    /**
+     * 
+     */
+    protected <N extends ProjectNode,U extends UserSettings> 
+            U findUserSettings( Class<U> userSettingsType, Association<N> backAssoc ) {
+        
+        String username = SecurityContext.instance().getUser().getName();
+        
+        // give every instance its own UnitOfWork; so modifications can be
+        // AutoCommit without interfering with the main UnitOfWork
+        EntityRepository repo = context.getRepository();
+        UnitOfWork uow = repo.newUnitOfWork();
+        
+        U template = Expressions.template( userSettingsType, repo );
+        ResultSet<U> rs = uow.query( userSettingsType )
+                .where( and(
+                        Expressions.is( backAssoc, (N)ProjectNode.this ),
+                        eq( template.username, username ) ) )
+                .maxResults( 2 )
+                .execute();
+        assert rs.size() >= 0 || rs.size() <= 1 : "Illegal result set size: " + rs.size();
+        
+        // not found
+        if (rs.size() == 0) {
+            U result = uow.createEntity( userSettingsType, null, (U proto) -> {
+                ProjectNode localNode = uow.entity( ProjectNode.this );
+                ((Association)backAssoc.info().get( proto )).set( localNode );
+                proto.username.set( username );
+                return proto;
+            });
+            uow.commit();
+            return uow.entity( result );
+        }
+        // found
+        else {
+            return rs.stream().findAny().get();
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    public static class UserSettings
+            extends Entity {
+
+        protected Property<String>       username;
+        
+        /**
+         * True if the layer is visible in the map.
+         */
+        @DefaultValue( "true" )
+        @Concerns( {PropertyChangeSupport.class, AutoCommit.class} )
+        public Property<Boolean>         visible;
+        
+        
+//        public void autoCommit( Consumer<ProjectNodeUser> task ) {
+//            task.accept( this );
+//            // every instance has its own UnitOfWork; see ProjectNode#userSetting()
+//            context.getUnitOfWork().commit();
+//        }
+    }
+
+    
+    /**
+     * 
+     */
+    public static class AutoCommit
+            extends PropertyConcernAdapter
+            implements PropertyConcern {
+
+        @Override
+        public void set( Object value ) {
+            super.set( value );            
+            // every instance has its own UnitOfWork; see ProjectNode#userSetting()
+            context.getUnitOfWork().commit();
+        }
+    }
+
+
+    
+//    /**
+//     * 
+//     */
+//    static class SessionState
+//            extends SessionSingleton {
+//        
+//        public static SessionState instance() {
+//            return instance( SessionState.class );
+//        }
+//        
+//        /** (Entity.id(),propName) -> value */
+//        ConcurrentMap<Pair<Object,String>,Object>   values = new ConcurrentHashMap();
+//    }
+//    
+//    
+//    /**
+//     * 
+//     */
+//    public static class SessionProperty
+//            extends ComputedProperty {
+//
+//        @Override
+//        public Object get() {
+//            Pair<Object,String> key = ImmutablePair.of( ((Entity)composite).id(), info.getName() );
+//            return SessionState.instance().values.get( key );
+//        }
+//
+//        @Override
+//        public void set( Object value ) {
+//            Pair<Object,String> key = ImmutablePair.of( ((Entity)composite).id(), info.getName() );
+//            SessionState.instance().values.put( key, value );
+//        }
+//        
+//    }
+    
 
     /**
      * 
-     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
      */
     public static class ProjectNodeCommittedEvent
             extends EventObject {

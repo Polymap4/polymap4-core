@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2010, 2011 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2010-2015 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -17,8 +17,6 @@ package org.polymap.core.project.ui.layer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.qi4j.api.unitofwork.NoSuchEntityException;
-
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -26,12 +24,13 @@ import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.ui.PlatformUI;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+import org.polymap.core.project.ProjectNode;
 import org.polymap.core.project.ProjectPlugin;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class LayerLabelProvider
         extends DecoratingLabelProvider {
@@ -68,19 +67,11 @@ public class LayerLabelProvider
 
 
         public String getText( Object elm ) {
-            try {
-                if (elm instanceof ILayer) {
-                    return ((ILayer)elm).getLabel();
-                }
-                else if (elm instanceof IMap) {
-                    return ((IMap)elm).getLabel();
-                }
-                else {
-                    return elm.toString();
-                }
+            if (elm instanceof ProjectNode) {
+                return ((ProjectNode)elm).label.get();
             }
-            catch (NoSuchEntityException e) {
-                return "<deleted>";
+            else {
+                return elm.toString();
             }
         }
         

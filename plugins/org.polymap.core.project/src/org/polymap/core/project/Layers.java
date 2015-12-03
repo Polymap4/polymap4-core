@@ -32,7 +32,7 @@ public class Layers {
     public static Predicate<ILayer> isVisible() {
         return new Predicate<ILayer>() {
             public boolean test( ILayer input ) {
-                return input.visible.get();
+                return input.userSettings.get().visible.get();
             }
         };
     }

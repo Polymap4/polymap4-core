@@ -17,6 +17,11 @@ package org.polymap.core.project;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
+import org.polymap.core.security.SecurityContext;
+
+import org.polymap.model2.Association;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Mixins;
@@ -47,5 +52,31 @@ public class ILayer
     
     @Defaults
     public Property<Integer>        orderKey;
+    
+    /**
+     * The user settings for this ProjectNode and the current user/session (
+     * {@link SecurityContext#getUser()}).
+     * <p/>
+     * The instance is queried initially and then cached.
+     */
+    public Lazy<LayerUserSettings>  userSettings = new LockedLazyInit( () -> 
+            findUserSettings( LayerUserSettings.class, LayerUserSettings.TYPE.layer ) );
+
+    
+    /**
+     * 
+     */
+    public static class LayerUserSettings
+            extends UserSettings {
+
+        public static LayerUserSettings TYPE;
+
+        /**
+         * This Entity belongs to the UnitOfWork of the {@link LayerUserSettings}, so
+         * don't equals() with other ILayer nor modify properties.
+         */
+        public Association<ILayer>      layer;
+        
+    }
     
 }
