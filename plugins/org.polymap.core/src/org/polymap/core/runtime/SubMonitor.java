@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
 import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.DefaultInt;
 
 /**
@@ -52,6 +53,7 @@ public class SubMonitor
     
     public SubMonitor( IProgressMonitor monitor, int ticks ) {
         super( monitor, ticks );
+        ConfigurationFactory.inject( this );
     }
 
 
