@@ -121,7 +121,8 @@ public abstract class ProjectNode
         protected Property<String>       username;
         
         /**
-         * True if the layer is visible in the map.
+         * True if the layer is visible in the map. Setting this property usually triggers
+         * some map refresh in the application.
          */
         @DefaultValue( "true" )
         @Concerns( {PropertyChangeSupport.class, AutoCommit.class} )
