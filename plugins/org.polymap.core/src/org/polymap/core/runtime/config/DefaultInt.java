@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Br√§utigam. All rights reserved.
+ * Copyright 2012-2016, Falko Br‰utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
