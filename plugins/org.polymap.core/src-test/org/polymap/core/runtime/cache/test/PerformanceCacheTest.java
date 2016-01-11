@@ -45,7 +45,7 @@ public class PerformanceCacheTest
 
     protected void setUp() throws Exception {
         //cache = CacheManager.instance().newCache( CacheConfig.DEFAULT );
-        cache = Soft2CacheManager.instance().newCache( CacheConfig.DEFAULT
+        cache = Soft2CacheManager.instance().newCache( CacheConfig.defaults()
                 .initSize( 1000000 ).concurrencyLevel( 8 ) );
     }
 
@@ -72,14 +72,7 @@ public class PerformanceCacheTest
         while (timer.elapsedTime() < 10000) {
             log.println( "adding 1000 to " + cache.size() );
             for (int i=0; i<1000; i++) {
-                cache.get( new Object(), new CacheLoader<Object,byte[],Exception>() {
-                    public byte[] load( Object key ) throws Exception {
-                        return new byte[1024];
-                    }
-                    public int size() throws Exception {
-                        return 1024;
-                    }
-                });
+                cache.get( new Object(), key -> new byte[1024] );
                 count++;
             }
             Thread.sleep( 100 );
@@ -121,6 +114,7 @@ public class PerformanceCacheTest
             }
             return result;
         }
+        
         public int size() throws Exception {
             return 1024;
         }

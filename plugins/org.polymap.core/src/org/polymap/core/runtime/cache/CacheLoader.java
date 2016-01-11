@@ -19,17 +19,22 @@ package org.polymap.core.runtime.cache;
  * @see EvictionAwareCacheLoader
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface CacheLoader<K,V,E extends Throwable> {
+@FunctionalInterface
+public interface CacheLoader<K,V,E extends Exception> {
 
     public V load( K key ) throws E;
 
 
     /**
-     * Returns the size of the last element returned by {@link #load(Object)}.
+     * Returns the size of the last element returned by {@link #load(Object)}. This
+     * is an optional operation. The result value is ignored by most cache
+     * implementations.
      * 
      * @return The size in Bytes of the element previously created by this loader.
      * @throws Exception
      */
-    public int size() throws E;
+    public default int size() throws E {
+        return Cache.ELEMENT_SIZE_UNKNOW;
+    }
     
 }

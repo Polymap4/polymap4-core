@@ -15,9 +15,6 @@ import org.polymap.core.data.rs.RDataStore;
 import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.CacheManager;
-
 import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 /**
@@ -29,8 +26,7 @@ public class RDataStoreFactory {
 
     private static Log log = LogFactory.getLog( RDataStoreFactory.class );
 
-    private static Cache<File,RDataStore>   stores = CacheManager.instance().newCache(
-            CacheConfig.DEFAULT.initSize( 64 ) );
+    private static Cache<File,RDataStore>   stores = CacheConfig.defaults().initSize( 64 ).createCache();
     
     /** parameter for database type */
     public static final Param       DBTYPE = new Param( "dbtype", String.class, "Type", true, "recordstore" );
@@ -101,8 +97,7 @@ public class RDataStoreFactory {
 
     
     protected RDataStore createDataStore( File dir ) throws Exception {
-        return stores.get( dir, new CacheLoader<File,RDataStore,Exception>() {
-            public RDataStore load( File key ) throws Exception {
+        return stores.get( dir, (File key) -> {
                 LuceneRecordStore store = new LuceneRecordStore( key, false );
 
 //                Cache<Object,Document> documentCache = CacheManager.instance().newCache( 
@@ -111,10 +106,6 @@ public class RDataStoreFactory {
                 log.info( "### NO CACHE ACTIVATED! ###" );
 
                 return new RDataStore( store, new LuceneQueryDialect() );    
-            }
-            public int size() throws Exception {
-                return -1;
-            }
         });
     }
     

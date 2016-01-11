@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.Path;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.CacheManager;
 import org.polymap.core.runtime.cache.EvictionAware;
 import org.polymap.core.runtime.cache.EvictionListener;
 import org.polymap.core.runtime.session.SessionContext;
@@ -165,8 +164,7 @@ public class ContentManager {
         this.username = username;
         this.locale = locale;
 
-        this.nodes = CacheManager.instance().newCache( 
-                CacheConfig.DEFAULT.initSize( 256 ).concurrencyLevel( 4 ) );
+        this.nodes = CacheConfig.defaults().initSize( 256 ).concurrencyLevel( 4 ).createCache();
 
 //        // eviction listener -> node.dispose()
 //        nodes.addEvictionListener( new CacheEvictionListener<IPath,Map<String,IContentNode>>() {
@@ -285,9 +283,9 @@ public class ContentManager {
             
             // get/create
             lastResult = nodes.get( initPath, new CacheLoader<IPath,CachedNode,RuntimeException>() {
-
-                int memSize = 1024;
+                private int memSize = 1024;
                 
+                @Override
                 public CachedNode load( IPath key ) throws RuntimeException {
                     CachedNode result = new CachedNode();
 
@@ -306,6 +304,7 @@ public class ContentManager {
                     return result;
                 }
 
+                @Override
                 public int size() throws RuntimeException {
                     return memSize;
                 }

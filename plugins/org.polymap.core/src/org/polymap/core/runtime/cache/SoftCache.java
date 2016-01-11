@@ -51,7 +51,7 @@ final class SoftCache<K,V>
         this.name = name != null ? name : String.valueOf( cacheCounter++ );
         this.config = config;
         
-        this.entries = new ConcurrentReferenceHashMap( config.initSize, 0.75f, config.concurrencyLevel,
+        this.entries = new ConcurrentReferenceHashMap( config.initSize.get(), 0.75f, config.concurrencyLevel.get(),
                 ReferenceType.STRONG, ReferenceType.SOFT, null );
     }
 
@@ -83,7 +83,7 @@ final class SoftCache<K,V>
     }
 
     
-    public <E extends Throwable> V get( K key, CacheLoader<K,V,E> loader ) throws E {
+    public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
         
@@ -100,7 +100,7 @@ final class SoftCache<K,V>
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
-        return putIfAbsent( key, value, config.elementMemSize );
+        return putIfAbsent( key, value, config.elementMemSize.get() );
     }
     
     
@@ -152,7 +152,7 @@ final class SoftCache<K,V>
     }
 
 
-    public boolean addEvictionListener( CacheEvictionListener listener ) {
+    public boolean addEvictionListener( EvictionListener listener ) {
         throw new UnsupportedOperationException( "CacheEvictionListener is not supported." );
 //        if (listeners == null) {
 //            listeners = new ListenerList();
@@ -161,7 +161,7 @@ final class SoftCache<K,V>
     }
 
     
-    public boolean removeEvictionListener( CacheEvictionListener listener ) {
+    public boolean removeEvictionListener( EvictionListener listener ) {
         throw new UnsupportedOperationException( "CacheEvictionListener is not supported." );
 //        return listeners != null ? listeners.remove( listener ) : false;
     }

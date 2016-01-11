@@ -19,7 +19,7 @@ package org.polymap.core.runtime.cache;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface EvictionAwareCacheLoader<K,V,E extends Throwable>
+public interface EvictionAwareCacheLoader<K,V,E extends Exception>
         extends CacheLoader<K,V,E> {
     
     public EvictionListener evictionListener();

@@ -182,7 +182,7 @@ public class LUCacheManager
         public long checkMemory() {
             Timer timer = new Timer();
             MemoryUsage heap = memBean.getHeapMemoryUsage();
-            MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
+            //MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
 
             long memUsedGoal = (long)(heap.getMax() * 0.70);
             long maxFree = heap.getMax() - memUsedGoal;

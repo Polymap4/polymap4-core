@@ -48,7 +48,7 @@ final class LUCache<K,V>
 
     private ConcurrentMap<K,CacheEntry<V>> entries;
 
-    private ListenerList<CacheEvictionListener> listeners;
+    private ListenerList<EvictionListener> listeners;
     
     private CacheConfig                 config;
     
@@ -58,7 +58,7 @@ final class LUCache<K,V>
         this.name = name != null ? name : String.valueOf( cacheCounter++ );
         this.config = config;
         
-        this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );
+        this.entries = new ConcurrentHashMap( config.initSize.get(), 0.75f, config.concurrencyLevel.get() );
 
 //        this.entries = new MapMaker()
 //                .initialCapacity( config.initSize )
@@ -96,7 +96,7 @@ final class LUCache<K,V>
     }
 
     
-    public <E extends Throwable> V get( K key, CacheLoader<K,V,E> loader ) throws E {
+    public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
         
@@ -108,7 +108,7 @@ final class LUCache<K,V>
             V value = loader.load( key );
             int memSize = loader.size();
             if (value != null) {
-                entry = new CacheEntry( value, memSize != ELEMENT_SIZE_UNKNOW ? memSize : config.elementMemSize );
+                entry = new CacheEntry( value, memSize != ELEMENT_SIZE_UNKNOW ? memSize : config.elementMemSize.get() );
                 CacheEntry<V> previous = entries.putIfAbsent( key, entry );
                 return previous == null
                         ? entry.value()
@@ -122,7 +122,7 @@ final class LUCache<K,V>
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
-        return putIfAbsent( key, value, config.elementMemSize );
+        return putIfAbsent( key, value, config.elementMemSize.get() );
     }
     
     
@@ -181,7 +181,7 @@ final class LUCache<K,V>
     }
 
     
-    public boolean addEvictionListener( CacheEvictionListener listener ) {
+    public boolean addEvictionListener( EvictionListener listener ) {
         if (listeners == null) {
             listeners = new ListenerList();
         }
@@ -189,15 +189,15 @@ final class LUCache<K,V>
     }
 
     
-    public boolean removeEvictionListener( CacheEvictionListener listener ) {
+    public boolean removeEvictionListener( EvictionListener listener ) {
         return listeners != null ? listeners.remove( listener ) : false;
     }
     
     
     void fireEvictionEvent( K key, V value ) {
         if (listeners != null) {
-            for (CacheEvictionListener l : listeners.getListeners()) {
-                l.onEviction( key, value );
+            for (EvictionListener l : listeners.getListeners()) {
+                l.onEviction( key );
             }
         }
     }

@@ -14,70 +14,73 @@
  */
 package org.polymap.core.runtime.cache;
 
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.DefaultInt;
+import org.polymap.core.runtime.config.Mandatory;
+
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class CacheConfig {
-    
-    public static final int         DEFAULT_ELEMENT_SIZE = 1024 * 10;
-    
-    public static final int         DEFAULT_CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors() * 4;
-    
-    public static final int         DEFAULT_INIT_SIZE = 1024;
+public class CacheConfig
+        extends Configurable
+        implements Cloneable {
     
     /**
      * The {@link CacheConfig} with all values set to default.
-     * <ul>
-     * <li>{@link #elementMemSize}: 10Kb
-     * <li>{@link #concurrencyLevel}: 2 x available processors
-     * <li>{@link #initSize}: 1024
-     * </ul>
      */
-    public static final CacheConfig DEFAULT = new CacheConfig();
+    public static final CacheConfig defaults() {
+        return new CacheConfig();
+    }
 
     
     // instance *******************************************
     
-    protected int                   elementMemSize = DEFAULT_ELEMENT_SIZE;
+    @Mandatory
+    @DefaultInt( 1024 )
+    public Config2<CacheConfig,Integer> elementMemSize;
     
-    protected int                   concurrencyLevel = DEFAULT_CONCURRENCY_LEVEL;
+    @Mandatory
+    @DefaultInt( 4 )
+    public Config2<CacheConfig,Integer> concurrencyLevel;
     
-    protected int                   initSize = DEFAULT_INIT_SIZE;
+    @Mandatory
+    @DefaultInt( 1024 )
+    public Config2<CacheConfig,Integer> initSize;
+    
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return defaults()
+                .concurrencyLevel.put( concurrencyLevel.get() )
+                .initSize.put( initSize.get() )
+                .elementMemSize.put( elementMemSize.get() );
+        
+    }
 
     
     /**
-     * Creates a new cache config with default value.
+     * See {@link #concurrencyLevel}.
+     * @see #concurrencyLevel
      */
-    protected CacheConfig() {
-    }
-    
-    protected CacheConfig( CacheConfig other ) {
-        this.concurrencyLevel = other.concurrencyLevel;
-        this.initSize = other.initSize;
-        this.elementMemSize = other.elementMemSize;
-        
-    }
-    
-    public CacheConfig defaultElementSize( int value ) {
-        CacheConfig result = new CacheConfig( this );
-        result.elementMemSize = value;
-        return result;
-    }
-
     public CacheConfig concurrencyLevel( int value ) {
-        CacheConfig result = new CacheConfig( this );
-        result.concurrencyLevel = value;
-        return result;
+        concurrencyLevel.set( value );
+        return this;
     }
     
+    
+    /**
+     * See {@link #concurrencyLevel}.
+     * @see #concurrencyLevel
+     */
     public CacheConfig initSize( int value ) {
-        CacheConfig result = new CacheConfig( this );
-        result.initSize = value;
-        return result;
+        initSize.set( value );
+        return this;
     }
 
+    
     /**
      * Same as calling <code>CacheManager.instance().newCache( this )</code>.
      *
@@ -86,4 +89,5 @@ public class CacheConfig {
     public <K,V> Cache<K,V> createCache() {
         return CacheManager.instance().newCache( this );
     }
+    
 }

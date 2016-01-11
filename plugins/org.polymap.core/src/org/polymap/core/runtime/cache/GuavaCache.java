@@ -15,15 +15,13 @@
 package org.polymap.core.runtime.cache;
 
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
-
-import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.cache.GuavaCacheManager.CacheEntry;
 
 /**
@@ -43,14 +41,9 @@ final class GuavaCache<K,V>
 
     private CacheConfig                             config;
 
-    private com.google.common.cache.CacheLoader<K,V> loaderWapper;
-    
-    /** FIXME this works for single threads only; ThreadLocal seems to big overhead(?) */
-    private CacheLoader<K,V,? extends Throwable>    currentLoader;
-
     private com.google.common.cache.Cache<K,V>      cache;
     
-    private ListenerList<CacheEvictionListener>     listeners;
+//    private ListenerList<EvictionListener>          listeners;
     
 
     GuavaCache( GuavaCacheManager manager, String name, CacheConfig config ) {
@@ -58,42 +51,26 @@ final class GuavaCache<K,V>
         this.name = name != null ? name : String.valueOf( hashCode() );
         this.config = config;
         
-        loaderWapper = new com.google.common.cache.CacheLoader<K,V>() {
-            public V load( K key ) throws Exception {
-                try {
-                    V result = currentLoader.load( key );
-                    GuavaCache.this.manager.event( CacheEntry.ADDED, GuavaCache.this, key, result );
-                    return result;
-                }
-                catch (Exception e) {
-                    throw e;
-                }
-                catch (Throwable e) {
-                    throw new RuntimeException( e );
-                }
-            }
-        };
-        
-        RemovalListener<K,V> removalListener = new RemovalListener<K,V>() {
-            public void onRemoval( RemovalNotification<K,V> notification ) {
-                // fire event
-                if (notification.wasEvicted() && listeners != null) {
-                    for (CacheEvictionListener l : listeners.getListeners()) {
-                        l.onEviction( notification.getKey(), notification.getValue() );
-                    }
-                }
-                // manager
-                GuavaCache.this.manager.event( CacheEntry.REMOVED, GuavaCache.this, 
-                        notification.getKey(), notification.getValue() );
-            }
-        };
+//        RemovalListener<K,V> removalListener = new RemovalListener<K,V>() {
+//            public void onRemoval( RemovalNotification<K,V> notification ) {
+//                // fire event
+//                if (notification.wasEvicted() && listeners != null) {
+//                    for (EvictionListener l : listeners.getListeners()) {
+//                        l.onEviction( notification.getKey()/*, notification.getValue()*/ );
+//                    }
+//                }
+//                // manager
+//                GuavaCache.this.manager.event( CacheEntry.REMOVED, GuavaCache.this, 
+//                        notification.getKey(), notification.getValue() );
+//            }
+//        };
         
         cache = CacheBuilder.newBuilder()
-                .concurrencyLevel( config.concurrencyLevel )
-                .initialCapacity( config.initSize )
+                .concurrencyLevel( config.concurrencyLevel.get() )
+                .initialCapacity( config.initSize.get() )
                 .softValues()
-                .removalListener( removalListener )
-                .build( loaderWapper );
+//                .removalListener( removalListener )
+                .build();
         
     }
 
@@ -120,7 +97,7 @@ final class GuavaCache<K,V>
         assert key != null : "Null keys are not allowed.";
         assert cache != null : "Cache is closed.";
 
-        V result = cache.asMap().get( key );
+        V result = cache.getIfPresent( key );
         
         manager.event( CacheEntry.ACCESSED, this, key, result );
         
@@ -128,33 +105,27 @@ final class GuavaCache<K,V>
     }
 
     
-    public <E extends Throwable> V get( K key, CacheLoader<K,V,E> loader ) throws E {
+    public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
         assert key != null : "Null keys are not allowed.";
         assert cache != null : "Cache is closed.";
-        
-        assert currentLoader == null || currentLoader == loader;
+
         try {
-            currentLoader = loader;
-            throw new RuntimeException( "FIXME - port to new Guava version!" );
-//            V result = cache.get( key );
-//
-//            manager.event( CacheEntry.ACCESSED, this, key, result );
-//            
-//            return result;
+            return cache.get( key, new Callable<V>() {
+                @Override
+                public V call() throws Exception {
+                    return loader.load( key );
+                }
+            });
         }
-        // XXX for the google cache the loader *always* returns a value
-        catch (NullPointerException e) {
-            return null;
+        catch (ExecutionException e) {
+            throw (E)e.getCause(); 
         }
-//        catch (ExecutionException e) {
-//            throw new CacheException( e );
-//        }
     }
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
         manager.event( CacheEntry.ADDED, this, key, value );
-        return putIfAbsent( key, value, config.elementMemSize );
+        return putIfAbsent( key, value, config.elementMemSize.get() );
     }
     
     
@@ -201,16 +172,16 @@ final class GuavaCache<K,V>
     }
 
     
-    public boolean addEvictionListener( CacheEvictionListener listener ) {
-        if (listeners == null) {
-            listeners = new ListenerList();
-        }
-        return listeners.add( listener );
-    }
-
-    
-    public boolean removeEvictionListener( CacheEvictionListener listener ) {
-        return listeners != null ? listeners.remove( listener ) : false;
-    }
+//    public boolean addEvictionListener( EvictionListener listener ) {
+//        if (listeners == null) {
+//            listeners = new ListenerList();
+//        }
+//        return listeners.add( listener );
+//    }
+//
+//    
+//    public boolean removeEvictionListener( EvictionListener listener ) {
+//        return listeners != null ? listeners.remove( listener ) : false;
+//    }
     
 }

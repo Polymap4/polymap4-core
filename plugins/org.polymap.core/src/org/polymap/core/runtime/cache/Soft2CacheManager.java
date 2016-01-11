@@ -96,7 +96,7 @@ public class Soft2CacheManager
     class QueueChecker
             extends Thread {
 
-        int count;
+        private int         count = 0;
         
         public QueueChecker() {
             super( "Soft2Cache.QueueChecker" );
@@ -109,27 +109,28 @@ public class Soft2CacheManager
                 try {
                     count ++;
                     
-                    CacheEntry entry = (CacheEntry)refQueue.remove( 3*60*1000 );
+                    CacheEntry entry = (CacheEntry)refQueue.remove( 5*60*1000 );
                     
                     // timeout? -> periodic GC
                     if (entry == null) {
                         // use spare time to reclaim heap and system memory (G1GC); 
                         // plus check SoftReferences -XX:SoftRefLRUPolicyMSPerMB
                         System.gc();
-                        continue;
                     }
-                    
-                    if (count % 1000 == 0) {
-                        log.debug( "[Soft2Cache: 1000 entries reclaimed by GC; total: " + count + "]" );
-                    }
+                    else {                    
+                        entry.cache().removeEntry( entry.key(), entry );
 
-                    boolean removed = entry.cache().removeEntry( entry.key(), entry );
-                    
-                    // XXX If it could not be removed then there are 2 cases:
-                    //   1. user has explictly remove meanwhile
-                    //   2. it was removed because get() == null
-                    // for 1. the following eviction event is not expected by client code                    
-                    entry.fireEvictionEvent();
+                        //log.debug( "reclaimed: " + entry.key() );
+                        if (count % 1000 == 0) {
+                            log.info( "1000 entries reclaimed by GC; total: " + count + ", cache size: " + entry.cache().size() );
+                        }
+
+                        // XXX If it could not be removed then there are 2 cases:
+                        //   1. user has explictly remove meanwhile
+                        //   2. it was removed because get() == null
+                        // for 1. the following eviction event is not expected by client code                    
+                        entry.fireEvictionEvent();
+                    }
                 }
                 catch (InterruptedException e) {
                 }

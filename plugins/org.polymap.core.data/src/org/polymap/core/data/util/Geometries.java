@@ -30,8 +30,6 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.cache.CacheLoader;
-import org.polymap.core.runtime.cache.CacheManager;
 
 /**
  * Provides static helper methods that work with {@link Geometry}, {@link CRS} and
@@ -43,11 +41,9 @@ public class Geometries {
 
     private static Log log = LogFactory.getLog( Geometries.class );
     
-    private static Cache<String,CoordinateReferenceSystem>  crsCache = CacheManager.instance().newCache( 
-            CacheConfig.DEFAULT.initSize( 32 ).concurrencyLevel( 4 ).defaultElementSize( 1024 ) );
+    private static Cache<String,CoordinateReferenceSystem>  crsCache = CacheConfig.defaults().initSize( 32 ).createCache();
  
-    private static Cache<TransformKey,MathTransform>        transformCache = CacheManager.instance().newCache( 
-            CacheConfig.DEFAULT.initSize( 32 ).concurrencyLevel( 4 ).defaultElementSize( 1024 ) );
+    private static Cache<TransformKey,MathTransform>        transformCache = CacheConfig.defaults().initSize( 32 ).createCache();
  
     
     /**
@@ -59,20 +55,14 @@ public class Geometries {
      * @throws NoSuchAuthorityCodeException If the code could not be understood.
      * @throws FactoryException if the CRS creation failed for an other reason.
      */
-    public static CoordinateReferenceSystem crs( final String code ) 
-    throws Exception {
-        return crsCache.get( code, new CacheLoader<String,CoordinateReferenceSystem,Exception>() {
-            public CoordinateReferenceSystem load( String key ) throws Exception {
-                try {
-                    return CRS.decode( code );
-                }
-                catch (Exception e) {
-                    return CRS.parseWKT( code );
-                }
+    public static CoordinateReferenceSystem crs( final String code ) throws Exception {
+        return crsCache.get( code, key -> {
+            try {
+                return CRS.decode( code );
             }
-            public int size() throws Exception {
-                return Cache.ELEMENT_SIZE_UNKNOW;
-            }            
+            catch (Exception e) {
+                return CRS.parseWKT( code );
+            }
         });
     }
 
@@ -149,14 +139,7 @@ public class Geometries {
     public static MathTransform transform( final CoordinateReferenceSystem source, final CoordinateReferenceSystem target )
     throws Exception {
         TransformKey key = new TransformKey( source, target );
-        return transformCache.get( key, new CacheLoader<TransformKey,MathTransform,Exception>() {
-            public MathTransform load( TransformKey _key ) throws Exception {
-                return CRS.findMathTransform( source, target );
-            }
-            public int size() throws Exception {
-                return Cache.ELEMENT_SIZE_UNKNOW;
-            }            
-        });        
+        return transformCache.get( key, _key -> CRS.findMathTransform( source, target ) );        
     }
     
     

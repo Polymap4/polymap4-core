@@ -14,7 +14,10 @@
  */
 package org.polymap.core.runtime.cache;
 
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -23,8 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.runtime.Timer;
 
 /**
  * Cache backed by a {@link ConcurrentHashMap} with separate thread
@@ -55,7 +60,7 @@ final class Soft2Cache<K,V>
         this.name = name != null ? name : String.valueOf( cacheCounter.getAndIncrement() );
         this.config = config;
         
-        this.entries = new ConcurrentHashMap( config.initSize, 0.75f, config.concurrencyLevel );
+        this.entries = new ConcurrentHashMap( config.initSize.get(), 0.75f, config.concurrencyLevel.get() );
     }
 
     
@@ -87,7 +92,7 @@ final class Soft2Cache<K,V>
     }
 
     
-    public <E extends Throwable> V get( K key, CacheLoader<K,V,E> loader ) throws E {
+    public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
                 
@@ -114,7 +119,7 @@ final class Soft2Cache<K,V>
 
     
     public V putIfAbsent( K key, V value ) throws CacheException {
-        return putIfAbsent( key, value, config.elementMemSize, null );
+        return putIfAbsent( key, value, config.elementMemSize.get(), null );
     }
     
     
@@ -123,12 +128,11 @@ final class Soft2Cache<K,V>
     }
     
     
-    V putIfAbsent( K key, V value, int memSize, EvictionListener l ) 
-    throws CacheException {
+    V putIfAbsent( K key, V value, int memSize, EvictionListener l ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
         assert entries != null : "Cache is closed.";
         
-        memSize = memSize > 0 ? memSize : config.elementMemSize;
+        memSize = memSize > 0 ? memSize : config.elementMemSize.get();
 
         CacheEntry<K,V> entry = new CacheEntry<K,V>( this, key, value, memSize, l );
         CacheEntry<K,V> previous = entries.putIfAbsent( key, entry );
@@ -191,6 +195,7 @@ final class Soft2Cache<K,V>
                     
                     private CacheEntry<K,V>             next;
                     
+                    @Override
                     public boolean hasNext() {
                         // find next, un-reclaimed entry
                         while ((next == null || next.value() == null) && it.hasNext()) {
@@ -199,11 +204,13 @@ final class Soft2Cache<K,V>
                         return next != null;
                     }
                     
+                    @Override
                     public V next() {
                         assert next != null;
                         try { return next.value(); } finally { next = null; }
                     }
                     
+                    @Override
                     public void remove() {
                         it.remove();
                     }
@@ -231,11 +238,6 @@ final class Soft2Cache<K,V>
         
         private Soft2Cache          cache;
         
-        /** Use short instead of int, saving 2 bytes of memory. */
-//        private short               sizeInKB = -1;
-        
-//        private volatile int        accessed = accessCounter++;
-        
         
         CacheEntry( Soft2Cache cache, K key, V value, int elementSize, EvictionListener l ) {
             super( value, cache.manager.refQueue );
@@ -245,6 +247,7 @@ final class Soft2Cache<K,V>
 
             this.cache = cache;
             this.key = key;
+            
             if (value instanceof EvictionAware) {
                 evictionListener = ((EvictionAware)value).newListener();
             }
@@ -252,14 +255,8 @@ final class Soft2Cache<K,V>
                 assert evictionListener == null;
                 evictionListener = l;
             }
-//            this.sizeInKB = (short)(elementSize / 1024);
-//            assert sizeInKB > 0 : "elementSize=" + elementSize + " -> sizeInKB=" + sizeInKB;
         }
 
-        void dispose() {
-//            accessed = -1;
-        }
-        
         void fireEvictionEvent() {
             if (evictionListener != null) {
                 evictionListener.onEviction( key );
@@ -276,21 +273,39 @@ final class Soft2Cache<K,V>
         
         public V value() {
             accessCounter++;
-//            accessed = accessCounter++;
-//            if (accessed <= 0) {
-//                throw new CacheException( "Access counter exceeded!" );
-//            }
             return get();
         }
+    }
 
-//        public int accessed() {
-//            return accessed;
-//        }
+
+    /**
+     * Performance test.
+     */
+    public static void main( String[] args ) {
+        test( new Soft2CacheManager().newCache( CacheConfig.defaults() ) );
+        test( new SoftCacheManager().newCache( CacheConfig.defaults() ) );
+        test( new GuavaCacheManager().newCache( CacheConfig.defaults() ) );
+    }
+
+    
+    public static void test( Cache<Integer,byte[]> cache ) {
+        System.out.println( "\n*** " + cache.getClass().getSimpleName() + " ****************************" );
+        Timer timer = new Timer();
+        int loops = 10000000;
+        Random random = new Random( 0 );
         
-//        public int size() {
-//            assert sizeInKB != -1;
-//            return 1024*sizeInKB;
-//        }
+        CacheLoader2<Integer,byte[]> loader = key -> new byte[1024];
+        
+        for (int i=0; i<loops; i++) {
+            double gausian = Math.abs( random.nextGaussian() );
+            Integer key = (int)( gausian * 40000 );
+            cache.get( key, loader );
+        }
+        long time = timer.elapsedTime();
+        Runtime rt = Runtime.getRuntime();
+        System.out.println( "Mem: total:" + byteCountToDisplaySize( rt.totalMemory() ) + " / free: " + byteCountToDisplaySize( rt.freeMemory() ) );
+        System.out.println( "Cache size: " + cache.size() + " -> " + (cache.size()/1000) + "MB" );
+        System.out.println( "Loops: " + loops + " in " + time + "ms -> " + (1000f*loops/time) + "/s");
     }
 
 }
