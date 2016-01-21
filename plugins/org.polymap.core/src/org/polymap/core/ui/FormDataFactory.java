@@ -106,7 +106,7 @@ public class FormDataFactory {
         this.applyTo = applyTo;
         
         if (applyTo != null) {
-            assert applyTo.getParent().getLayout() instanceof FormLayout : "Parent has wrong layout set: " + applyTo.getParent().getLayout().getClass().getName();
+            assert applyTo.getParent().getLayout() instanceof FormLayout : "Parent has wrong layout set: " + applyTo.getParent().getLayout();
             
             if (applyTo.getLayoutData() != null) {
                 doCopy( (FormData)applyTo.getLayoutData() );

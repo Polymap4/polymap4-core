@@ -157,7 +157,9 @@ public class LogImpl
             }
             
             for (int i=0; i<e.length; i++) {
-                e[i].printStackTrace( System.err );
+                if (e[i] != null) {
+                    e[i].printStackTrace( System.err );
+                }
             }
         }
     }

@@ -97,7 +97,7 @@ public class UIUtils {
         
         Object previous = control.getData( RWT.CUSTOM_VARIANT );
         if (previous != null) {
-            log.info( "Control: " + control.hashCode() + ", previous variant: " + previous + ", new: " + variant );
+            log.debug( "Control: " + control.hashCode() + ", previous variant: " + previous + ", new: " + variant );
         }
         
         control.setData( RWT.CUSTOM_VARIANT, variant );
