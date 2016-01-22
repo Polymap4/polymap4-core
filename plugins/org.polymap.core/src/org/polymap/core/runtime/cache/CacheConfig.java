@@ -20,7 +20,6 @@ import org.polymap.core.runtime.config.DefaultInt;
 import org.polymap.core.runtime.config.Mandatory;
 
 /**
- * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -30,6 +29,11 @@ public class CacheConfig
     
     /**
      * The {@link CacheConfig} with all values set to default.
+     * <ul>
+     * <li>{@link #initSize} = 1024</li>
+     * <li>{@link #concurrencyLevel} = 4</li>
+     * <li>{@link #elementMemSize} = 1024</li>
+     * </ul>
      */
     public static final CacheConfig defaults() {
         return new CacheConfig();

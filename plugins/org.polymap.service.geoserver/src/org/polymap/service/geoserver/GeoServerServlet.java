@@ -54,9 +54,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 import org.polymap.core.data.pipeline.DepthFirstStackExecutor;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor;
@@ -64,6 +61,8 @@ import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
 
 import org.polymap.service.geoserver.spring.PipelineMapResponse;
 
@@ -97,7 +96,7 @@ public abstract class GeoServerServlet
     
 //    private String                          sessionKey;
 
-    private Cache<String,Pipeline>          pipelines = CacheBuilder.newBuilder().concurrencyLevel( 2 ).softValues().build();
+    private Cache<String,Pipeline>          pipelines = CacheConfig.defaults().initSize( 128 ).createCache();
 
 
     public abstract IMap getMap();
@@ -118,7 +117,7 @@ public abstract class GeoServerServlet
             throws Exception {
         try {
             String key = layer.id().toString() + usecase.getSimpleName();
-            return pipelines.get( key, () -> {
+            return pipelines.get( key, k -> {
                 return createPipeline( layer, usecase );
             });
         }

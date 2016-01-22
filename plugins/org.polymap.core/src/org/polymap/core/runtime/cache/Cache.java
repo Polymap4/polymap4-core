@@ -56,7 +56,17 @@ public interface Cache<K,V> {
      */
     public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E;
 
+    
+//    public default V get( K key, Callable<V> loader ) throws Exception {
+//        return get( key, new CacheLoader<K,V,Exception>() {
+//            @Override
+//            public V load( @SuppressWarnings("hiding") K key ) throws Exception {
+//                return loader.call();
+//            }
+//        });
+//    }
 
+    
     /**
      * The cache element for the given key, or null if there is no such element in
      * the cache.

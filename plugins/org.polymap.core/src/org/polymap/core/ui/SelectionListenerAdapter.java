@@ -12,16 +12,35 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.runtime.cache;
+package org.polymap.core.ui;
+
+import java.util.function.Consumer;
+
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 
 /**
- * A loader that does not throw a checked exception. This allows to use a lambda
- * expression for loaders that does not throw a checked exception.
+ * Allows to use lambda function as {@link SelectionListener}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@FunctionalInterface
-public interface CacheLoader2<K,V>
-        extends CacheLoader<K,V,RuntimeException> {
+public class SelectionListenerAdapter
+        implements SelectionListener {
+
+    private Consumer<SelectionEvent>    task;
+    
+    public SelectionListenerAdapter( Consumer<SelectionEvent> task ) {
+        this.task = task;
+    }
+
+    @Override
+    public void widgetSelected( SelectionEvent ev ) {
+        task.accept( ev );
+    }
+
+    @Override
+    public void widgetDefaultSelected( SelectionEvent ev ) {
+        task.accept( ev );
+    }
 
 }
