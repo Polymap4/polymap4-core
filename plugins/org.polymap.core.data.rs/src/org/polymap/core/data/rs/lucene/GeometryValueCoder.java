@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2016, Falko Br‰utigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -42,7 +42,7 @@ import org.polymap.recordstore.lucene.NumericValueCoder;
  * should be post-processed to make sure that the geometry <b>actually</b> intersects
  * the bbox. The search just checks that the bounds of the geometry intersect the bbox!
  * 
- * @author <a href="http://www.polymap.de">Falko Br√§utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Br‰utigam</a>
  */
 public final class GeometryValueCoder
         implements LuceneValueCoder {

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2012-2014, Falko Brï¿½utigam. All rights reserved.
+ * Copyright (C) 2012-2014, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -95,7 +95,7 @@ import org.polymap.recordstore.lucene.LuceneRecordStore;
 /**
  * Transformation from GeoTools {@link Query} to {@link LuceneRecordQuery}.
  *
- * @author <a href="http://www.polymap.de">Falko Brï¿½utigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public final class LuceneQueryDialect
         extends QueryDialect {
