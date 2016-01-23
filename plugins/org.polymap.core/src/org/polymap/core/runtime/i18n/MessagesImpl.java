@@ -47,6 +47,33 @@ import org.polymap.core.runtime.Polymap;
 /**
  * Provides a default implementation as a backend for the static Messages class of a
  * bundle/plugin.
+ * <p/>
+ * <b>Example declaration:</b>
+ * <pre>
+ * public class Messages {
+ *   private static final String       BUNDLE_NAME = Plugin.ID + ".messages";
+ *   private static final MessagesImpl instance = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
+ *   
+ *   public static IMessages forPrefix( String prefix ) {
+ *       return instance.forPrefix( prefix );
+ *   }
+ *
+ *   private Messages() { // prevent instantiation }
+ *
+ *   public static String get( String key, Object... args ) {
+ *      return instance.get( key, args );
+ *   }
+ *   // more specific methods
+ * }
+ * </pre>
+ * <p/>
+ * <b>Example usage:</b>
+ * <pre>
+ *     // class specific prefix
+ *     private static final IMessages i18n = Messages.forPrefix( "ImportPanel" );
+ *     ...
+ *     i18n.get( "title" )  // gets/inserts "ImportPanel_title" from the messages file
+ * </pre>
  * 
  * @see ResourceBundle
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
