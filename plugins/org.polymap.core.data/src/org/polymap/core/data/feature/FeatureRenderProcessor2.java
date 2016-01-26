@@ -191,6 +191,7 @@ public class FeatureRenderProcessor2
             drawErrorMsg( g, null, e );
         }
         finally {
+            mapContent.dispose();
             if (g != null) { g.dispose(); }
         }
         log.debug( "   ...done: (" + (System.currentTimeMillis()-start) + "ms)." );

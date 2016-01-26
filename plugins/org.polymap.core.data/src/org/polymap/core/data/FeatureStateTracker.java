@@ -23,7 +23,7 @@ import org.polymap.core.runtime.entity.EntityStateTracker;
  * <p/>
  * Register a listener if you want to get informed about feature changes in any
  * session of this VM. This does refer to changes of an underlying data store only!
- * For local changes see {@link LayerFeatureBufferManager}. This differs from GeoTools
+ * For local changes see {@link UnitOfWork}. This differs from GeoTools
  * {@link FeatureListener} as... you know.
  * <ul>
  * <li>processing is done inside a Job so that it does not block current thread</li>

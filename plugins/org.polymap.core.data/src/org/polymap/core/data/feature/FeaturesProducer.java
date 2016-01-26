@@ -14,23 +14,20 @@
  */
 package org.polymap.core.data.feature;
 
+import org.geotools.data.FeatureStore;
+
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
- * Defines the WFS non-transactionel pipeline usecase.
+ * Defines the transactional WFS ({@link FeatureStore}) pipeline usecase.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface FeaturesProducer
         extends PipelineProcessor {
-
-//  new Class[] {},
-//  new Class[] {ModifyFeaturesRequest.class, RemoveFeaturesRequest.class, AddFeaturesRequest.class, GetFeatureTypeRequest.class, GetFeaturesRequest.class, GetFeaturesSizeRequest.class},
-//  new Class[] {ModifyFeaturesResponse.class, GetFeatureTypeResponse.class, GetFeaturesResponse.class, GetFeaturesSizeResponse.class},
-//  new Class[] {} );
 
     @Produces(ModifyFeaturesResponse.class)
     public void modifyFeaturesRequest( ModifyFeaturesRequest request, ProcessorContext context ) throws Exception;

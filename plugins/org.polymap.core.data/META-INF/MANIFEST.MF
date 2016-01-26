@@ -322,6 +322,7 @@ Export-Package: com.objectplanet.image,
  org.polymap.core.data.feature,
  org.polymap.core.data.image,
  org.polymap.core.data.pipeline,
+ org.polymap.core.data.unitofwork,
  org.polymap.core.data.util,
  org.supercsv.io,
  org.supercsv.prefs

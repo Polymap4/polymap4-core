@@ -300,7 +300,7 @@ public class PipelineFeatureSource
     // FeatureStore ***************************************
 
     public void setTransaction( Transaction transaction ) {
-        log.warn( "PipelinedFeatureSource: no transaction support as updates are bufferd by LayerFeatureBufferManager!" );
+        throw new RuntimeException( "PipelinedFeatureSource: no transaction support as updates are bufferd by *LayerFeatureBufferManager*!" );
     }
 
 

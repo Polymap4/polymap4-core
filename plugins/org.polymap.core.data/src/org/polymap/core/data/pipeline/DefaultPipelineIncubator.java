@@ -198,7 +198,9 @@ public class DefaultPipelineIncubator
             ProcessorSignature usecase, DataSourceDescription dsd ) 
             throws PipelineIncubationException {
         
-        try (ExceptionCollector<PipelineIncubationException> excs = Streams.exceptions()) {
+        try (
+            ExceptionCollector<PipelineIncubationException> excs = Streams.exceptions()
+        ){
             return Streams.iterable( terminals.stream()
                     .filter( desc -> excs.check( () -> desc.isCompatible( dsd ) ) ) );
         }

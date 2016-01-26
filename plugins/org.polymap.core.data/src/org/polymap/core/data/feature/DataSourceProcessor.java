@@ -61,7 +61,7 @@ public class DataSourceProcessor
 
     // instance *******************************************
 
-    private DataAccess               ds;
+    private DataAccess              ds;
     
     private FeatureSource           fs;
 
