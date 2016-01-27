@@ -14,7 +14,6 @@
  */
 package org.polymap.core.runtime.cache;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.LogFactory;
@@ -56,13 +55,15 @@ final class SoftCache<K,V>
     }
 
     
+    @Override
     public String getName() {
         return name;
     }
 
     
+    @Override
     public void dispose() {
-        if (entries != null) {
+        if (!isDisposed()) {
             clear();
             entries = null;
             manager.disposeCache( this );
@@ -70,22 +71,31 @@ final class SoftCache<K,V>
     }
 
     
+    @Override
     public boolean isDisposed() {
         return entries == null;
     }
     
     
+    protected V checkResult( V result ) {
+        assert result != null : "";
+        return result;
+    }
+    
+    
+    @Override
     public V get( K key ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
 
         return entries.get( key );
     }
 
     
+    @Override
     public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         
         V entry = entries.get( key );
         if (entry == null) {
@@ -98,56 +108,56 @@ final class SoftCache<K,V>
         return entry;
     }
 
-    
+    @Override
     public V putIfAbsent( K key, V value ) throws CacheException {
-        return putIfAbsent( key, value, config.elementMemSize.get() );
+        V result = putIfAbsent( key, value, config.elementMemSize.get() );
+        assert result != null;
+        return result;
     }
     
     
     public V putIfAbsent( K key, V value, int elementMemSize ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         assert elementMemSize > 0;
 
         return entries.putIfAbsent( key, value );
     }
     
     
+    @Override
     public V remove( K key ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
 
         return entries.remove( key );
     }
 
     
+    @Override
     public int size() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         return entries.size();
     }
 
     
-    public Iterable<Map.Entry<K,V>> entries() {
-        assert entries != null : "Cache is closed.";
-        return entries.entrySet();
-    }
-
-    
+    @Override
     public void clear() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         entries.clear();
     }
 
     
+    @Override
     public Iterable<V> values() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         return entries.values();
     }
 
     
     @Override
     public Set<K> keySet() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         return entries.keySet();
     }
 

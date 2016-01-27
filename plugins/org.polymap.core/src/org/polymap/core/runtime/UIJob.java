@@ -44,7 +44,7 @@ import org.polymap.core.ui.UIUtils;
 /**
  * Extended Job implementation that provides:
  * <ul>
- * <li>implicite handling of (RWT) {@link SessionContext}</li>
+ * <li>implicite handling of {@link SessionContext}</li>
  * <li>support for progress dialog</li>
  * <li>wrapping monitor into {@link OffThreadProgressMonitor}</li>
  * <li>simplified exception handling</li>

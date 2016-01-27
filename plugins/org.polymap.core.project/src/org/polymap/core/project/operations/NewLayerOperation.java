@@ -35,7 +35,7 @@ import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.model2.runtime.UnitOfWork;
 
 /**
- *
+ * Creates a new {@link ILayer} inside the given {@link #uow UnitOfWork}.
  * <p/>
  * This might open dialogs and must not be executed with progress dialog.
  *

@@ -54,13 +54,22 @@ public class FutureJobAdapter<V>
     @Override
     public V get() throws InterruptedException, ExecutionException {
         job.join();
-        V result = (V)job.getProperty( RESULT_VALUE_NAME );
-        return result != null ? result : (V)job.getResult();
+        
+        IStatus jobResult = job.getResult();
+        if (jobResult.isOK()) {
+            V result = (V)job.getProperty( RESULT_VALUE_NAME );
+            return result != null ? result : (V)job.getResult();
+        }
+        else if (jobResult.getSeverity() == IStatus.CANCEL) {
+            throw new InterruptedException( "Job was canceled by user." );
+        }
+        else {
+            throw new ExecutionException( jobResult.getException() );
+        }
     }
 
     @Override
-    public V get( long timeout, TimeUnit unit )
-    throws InterruptedException, ExecutionException, TimeoutException {
+    public V get( long timeout, TimeUnit unit ) throws InterruptedException, ExecutionException, TimeoutException {
         throw new RuntimeException( "not yet implemented." );
     }
 

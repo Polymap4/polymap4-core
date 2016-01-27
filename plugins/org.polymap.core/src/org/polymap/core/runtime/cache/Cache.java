@@ -92,17 +92,17 @@ public interface Cache<K,V> {
     public V putIfAbsent( K key, V value ) throws CacheException;
 
     
-    /**
-     * Add the given element to cache, if it is <b>not</b> yet in the cache.
-     * <p/>
-     * Consider using {@link #get(Object, CacheLoader)} instead.
-     * 
-     * @see #get(Object, CacheLoader)
-     * @param elementMemSize The size of the given element in memory.
-     * @return The element for the given key, or null if the key was <b>not</b> yet
-     *         in the cache.
-     */
-    public V putIfAbsent( K key, V value, int elementMemSize ) throws CacheException;
+//    /**
+//     * Add the given element to cache, if it is <b>not</b> yet in the cache.
+//     * <p/>
+//     * Consider using {@link #get(Object, CacheLoader)} instead.
+//     * 
+//     * @see #get(Object, CacheLoader)
+//     * @param elementMemSize The size of the given element in memory.
+//     * @return The element for the given key, or null if the key was <b>not</b> yet
+//     *         in the cache.
+//     */
+//    public V putIfAbsent( K key, V value, int elementMemSize ) throws CacheException;
     
     
     public V remove( K key ) throws CacheException;

@@ -22,10 +22,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -63,14 +63,16 @@ final class Soft2Cache<K,V>
         this.entries = new ConcurrentHashMap( config.initSize.get(), 0.75f, config.concurrencyLevel.get() );
     }
 
-    
+
+    @Override
     public String getName() {
         return name;
     }
 
     
+    @Override
     public void dispose() {
-        if (entries != null) {
+        if (!isDisposed()) {
             clear();
             entries = null;
             manager.disposeCache( this );
@@ -78,59 +80,87 @@ final class Soft2Cache<K,V>
     }
 
     
+    @Override
     public boolean isDisposed() {
         return entries == null;
     }
     
     
-    public V get( K key ) throws CacheException {
-        assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
-
-        CacheEntry<K,V> entry = entries.get( key );
+    protected V value( CacheEntry<K,V> entry ) {
         return entry != null ? entry.value() : null;
     }
-
     
-    public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
+    
+    @Override
+    public V get( K key ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
-                
-        CacheEntry<K,V> entry = entries.get( key );
-        V value = entry != null ? entry.value() : null;
-        if (value != null) {
-            return value;
-        }
-        else {
-            // we do not prevent threads from concurrently creating a value for the
-            // same key! but we make sure that just one value is retuned to all threads
-            value = loader.load( key );
-            int memSize = loader.size();
-            EvictionListener listener = loader instanceof EvictionAwareCacheLoader ? 
-                    ((EvictionAwareCacheLoader)loader).evictionListener() : null;
+        assert !isDisposed() : "Cache is disposed.";
 
-            if (value != null) {
-                V previous = putIfAbsent( key, value, memSize, listener );
-                value = previous != null ? previous : value;
+        return value( entries.get( key ) );
+    }
+
+
+    /**
+     * 
+     */
+    class Loader<E extends Exception>
+            implements Function<K,CacheEntry<K,V>> {
+        
+        CacheLoader<K,V,E>      loader;
+        
+        protected Loader( CacheLoader<K,V,E> loader ) {
+            this.loader = loader;
+        }
+
+        @Override
+        public CacheEntry<K,V> apply( K key ) {
+            try {
+                V value = loader.load( key );
+                int memSize = loader.size();
+                EvictionListener l = loader instanceof EvictionAwareCacheLoader ? 
+                        ((EvictionAwareCacheLoader)loader).evictionListener() : null;
+                return new CacheEntry( Soft2Cache.this, key, value, memSize, l );
             }
-            return value;
+            catch (RuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                // FIXME Handle checked Exception defined by CacheLoader
+                throw new RuntimeException( e );
+            }
         }
     }
 
     
+    @Override
+    public <E extends Exception> V get( K key, CacheLoader<K,V,E> loader ) throws E {
+        assert key != null : "Null keys are not allowed.";
+        assert !isDisposed() : "Cache is disposed.";
+                
+        V value = null;
+        // do until entry with non-reclaimed value is found
+        while (value == null) {
+            CacheEntry<K,V> entry = entries.computeIfAbsent( key, new Loader( loader ) );
+            value = value( entry );
+        }
+        return value;        
+    }
+
+    
+    @Override
     public V putIfAbsent( K key, V value ) throws CacheException {
         return putIfAbsent( key, value, config.elementMemSize.get(), null );
     }
     
     
-    public V putIfAbsent( K key, V value, int memSize ) throws CacheException {
-        return putIfAbsent( key, value, memSize, null );
-    }
+//    public V putIfAbsent( K key, V value, int memSize ) throws CacheException {
+//        return putIfAbsent( key, value, memSize, null );
+//    }
     
     
-    V putIfAbsent( K key, V value, int memSize, EvictionListener l ) throws CacheException {
+    protected V putIfAbsent( K key, V value, int memSize, EvictionListener l ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         
         memSize = memSize > 0 ? memSize : config.elementMemSize.get();
 
@@ -140,7 +170,7 @@ final class Soft2Cache<K,V>
         // previous entry reclaimed?
         if (previous != null) {
             value = previous.value();
-            // and was not reclaimed -> return it
+            // not reclaimed -> return it
             if (value != null) {
                 return value;
             }
@@ -153,37 +183,37 @@ final class Soft2Cache<K,V>
     }
     
     
+    @Override
     public V remove( K key ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
 
-        CacheEntry<K,V> entry = entries.remove( key );
-        return entry != null ? entry.value() : null;
+        return value( entries.remove( key ) );
     }
 
     
     boolean removeEntry( K key, CacheEntry entry ) throws CacheException {
         assert key != null : "Null keys are not allowed.";
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
 
         return entries.remove( key, entry );
     }
 
     
     public int size() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         return entries.size();
     }
 
     
     public void clear() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         entries.clear();
     }
 
     
     public Iterable<V> values() {
-        assert entries != null : "Cache is closed.";
+        assert !isDisposed() : "Cache is disposed.";
         
         // the returned iterator should be aware of reclaimed entries
         // and needs to support remove()!
@@ -197,7 +227,7 @@ final class Soft2Cache<K,V>
                     
                     @Override
                     public boolean hasNext() {
-                        // find next, un-reclaimed entry
+                        // find next, non-reclaimed entry
                         while ((next == null || next.value() == null) && it.hasNext()) {
                             next = it.next();
                         }
@@ -222,6 +252,7 @@ final class Soft2Cache<K,V>
     
     @Override
     public Set<K> keySet() {
+        assert !isDisposed() : "Cache is disposed.";
         return entries.keySet();
     }
 
@@ -284,7 +315,7 @@ final class Soft2Cache<K,V>
     public static void main( String[] args ) {
         test( new Soft2CacheManager().newCache( CacheConfig.defaults() ) );
         test( new SoftCacheManager().newCache( CacheConfig.defaults() ) );
-        test( new GuavaCacheManager().newCache( CacheConfig.defaults() ) );
+//        test( new GuavaCacheManager().newCache( CacheConfig.defaults() ) );
     }
 
     
@@ -299,8 +330,13 @@ final class Soft2Cache<K,V>
         for (int i=0; i<loops; i++) {
             double gausian = Math.abs( random.nextGaussian() );
             Integer key = (int)( gausian * 40000 );
-            cache.get( key, loader );
+            assert cache.get( key, loader ) != null;
         }
+        
+        for (byte[] value : cache.values()) {
+            assert value != null;
+        }
+        
         long time = timer.elapsedTime();
         Runtime rt = Runtime.getRuntime();
         System.out.println( "Mem: total:" + byteCountToDisplaySize( rt.totalMemory() ) + " / free: " + byteCountToDisplaySize( rt.freeMemory() ) );
