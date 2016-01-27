@@ -18,13 +18,16 @@ import java.util.EventListener;
 import java.util.List;
 
 import org.polymap.core.runtime.event.EventHandler;
+
+import org.geotools.data.FeatureListener;
+
 import org.polymap.core.runtime.event.Event;
 
 /**
  * Provides a convenience declaration of an {@link EventHandler} method that
  * receives {@link FeatureChangeEvent}s, within display thread and delayed for 3s.
  * 
- * @see EventManager
+ * @deprecated {@link FeatureListener}
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface FeatureChangeListener

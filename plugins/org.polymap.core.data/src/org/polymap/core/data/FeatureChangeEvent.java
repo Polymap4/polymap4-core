@@ -17,6 +17,7 @@ package org.polymap.core.data;
 import java.util.EventObject;
 import java.util.Set;
 
+import org.geotools.data.FeatureEvent;
 import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
@@ -24,7 +25,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * 
- *
+ * @deprecated {@link FeatureEvent}
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureChangeEvent 

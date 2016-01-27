@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import org.geotools.data.DefaultTransaction;
+import org.geotools.data.FeatureEvent;
+import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
 import org.geotools.factory.CommonFactoryFinder;
@@ -45,12 +47,13 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.event.EventManager;
 
 /**
  * A UnitOfWork tracks modifications of a set of {@link Feature} instances. Modified
  * features are held in memory until all modifications are committed in a single
- * {@link Transaction}. On commit it automatically finds modified properties and
- * and updates {@link FeatureStore} accordingly.
+ * {@link Transaction}. On commit it automatically finds modified properties and and
+ * updates {@link FeatureStore} accordingly.
  * <p/>
  * <b>Usage:</b>
  * <ul>
@@ -67,13 +70,18 @@ import org.polymap.core.runtime.cache.Cache;
  * strategy might be memory consuming but it is also a robust way to check concurrent
  * changes that does not depend on a timestamp in the data type.
  * <p/>
+ * <b>Events</b> of type {@link FeatureEvent.Type#COMMIT} and
+ * {@link FeatureEvent.Type#ROLLBACK} are passed to {@link EventManager}. This makes
+ * it easy to get informed about commit/rollback.
+ * <p/>
  * TODO Automatically track features requested from (Pipeline)FeatureStore.
  * <p/>
  * TODO Optimized write back logic for {@link RFeatureStore}.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class UnitOfWork {
+public class UnitOfWork 
+        implements AutoCloseable, FeatureListener {
 
     /* 
      * XXX Currently the original state of an modified feature is requested from the
@@ -112,9 +120,29 @@ public class UnitOfWork {
         assert fs != null : "Param must not be null: fs";
         this.fs = fs;
         this.layerTimestamp = System.currentTimeMillis();
+        
+        fs.addFeatureListener( this );
     }
 
     
+    @Override
+    public void close() throws Exception {
+        fs.removeFeatureListener( this );
+    }
+
+
+    @Override
+    protected void finalize() throws Throwable {
+        close();
+    }
+
+
+    @Override
+    public void changed( FeatureEvent ev ) {
+        EventManager.instance().publish( ev );
+    }
+
+
     public void track( Feature feature ) {
         assert fs.getSchema().equals( feature.getType() );
         assert !modified.containsKey( feature.getIdentifier() );

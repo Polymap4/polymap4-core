@@ -35,11 +35,14 @@ import org.opengis.filter.identity.FeatureId;
 import org.opengis.util.ProgressListener;
 import org.geotools.data.AbstractFeatureSource;
 import org.geotools.data.DataStore;
+import org.geotools.data.FeatureEvent;
+import org.geotools.data.FeatureEvent.Type;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
 import org.geotools.data.Transaction;
+import org.geotools.data.Transaction.State;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -250,10 +253,18 @@ public class PipelineFeatureSource
 
     // FeatureStore ***************************************
 
+    @Override
     public void setTransaction( Transaction tx ) {
         try {
             TransactionRequest request = new TransactionRequest( tx );
             pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {});
+            
+            this.tx = tx;
+            if (tx != Transaction.AUTO_COMMIT) {
+                if (tx.getState( store ) == null) {
+                    tx.putState( store, new TransactionState() );
+                }
+            }
         }
         catch (RuntimeException e) {
             throw e;
@@ -263,7 +274,31 @@ public class PipelineFeatureSource
         }
     }
 
+    
+    /**
+     * 
+     */
+    class TransactionState
+            implements State {
+        @Override
+        public void commit() throws IOException {
+            store.listeners.fireEvent( getName().getLocalPart(), tx, 
+                    new FeatureEvent( PipelineFeatureSource.this, Type.COMMIT, null, null ) );
+        }
+        @Override
+        public void rollback() throws IOException {
+            store.listeners.fireEvent( getName().getLocalPart(), tx, 
+                    new FeatureEvent( PipelineFeatureSource.this, Type.ROLLBACK, null, null ) );
+        }
+        @Override
+        public void setTransaction( Transaction transaction ) {
+        }
+        @Override
+        public void addAuthorization( String AuthID ) throws IOException {
+        }
+    }
 
+    
     public List<FeatureId> addFeatures( FeatureCollection features ) throws IOException {
         return addFeatures( features, new NullProgressListener() );
     }
