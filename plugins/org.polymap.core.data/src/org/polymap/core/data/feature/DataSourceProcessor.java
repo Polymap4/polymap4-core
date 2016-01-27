@@ -56,7 +56,7 @@ public class DataSourceProcessor
      * results quickly and minimize synchronization later. So this defines the the
      * <b>MAX_CHUNK_SIZE</b> now.
      */
-    public static final int                 DEFAULT_CHUNK_SIZE = 1024;
+    public static final int         DEFAULT_CHUNK_SIZE = 1024;
 
 
     // instance *******************************************
@@ -76,6 +76,12 @@ public class DataSourceProcessor
     public void init( PipelineProcessorSite site ) throws Exception {
         ds = (DataAccess)site.dsd.get().service.get();
         fs = ds.getFeatureSource( new NameImpl( site.dsd.get().resourceName.get() ) );
+    }
+
+
+    @Override
+    public void setTransactionRequest( TransactionRequest request, ProcessorContext context ) throws Exception {
+        ((FeatureStore)fs).setTransaction( request.tx.get() );
     }
 
 

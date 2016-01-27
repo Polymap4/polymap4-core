@@ -37,6 +37,7 @@ import com.vividsolutions.jts.geom.Envelope;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings("deprecation")
 public class PipelineDataStore
         extends AbstractDataStore
         implements DataStore {
@@ -51,57 +52,53 @@ public class PipelineDataStore
     }
 
     
-    public PipelineFeatureSource getFeatureSource() {
-        return fs;
-    }
+//    @Override
+//    public PipelineFeatureSource getFeatureSource() {
+//        return fs;
+//    }
     
     
-    protected FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( String typeName )
-            throws IOException {
+    @Override
+    protected FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( String typeName ) throws IOException {
         return new DelegateFeatureReader( fs.getSchema(), fs.getFeatures().features() );
     }
 
     
-    public FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( Query query, Transaction transaction )
-            throws IOException {
+    @Override
+    public FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( Query query, Transaction transaction ) throws IOException {
         return new DelegateFeatureReader( fs.getSchema(), fs.getFeatures( query ).features() );
     }
 
     
-    protected FeatureWriter<SimpleFeatureType,SimpleFeature> createFeatureWriter(String typeName, Transaction transaction)
+    @Override
+    protected FeatureWriter<SimpleFeatureType,SimpleFeature> createFeatureWriter( String typeName, Transaction transaction)
             throws IOException {
         return new FeatureWriter<SimpleFeatureType,SimpleFeature>() {
-
             @Override
             public SimpleFeatureType getFeatureType() {
                 // XXX Auto-generated method stub
                 throw new RuntimeException( "not yet implemented." );
             }
-
             @Override
             public SimpleFeature next() throws IOException {
                 // XXX Auto-generated method stub
                 throw new RuntimeException( "not yet implemented." );
             }
-
             @Override
             public void remove() throws IOException {
                 // XXX Auto-generated method stub
                 throw new RuntimeException( "not yet implemented." );
             }
-
             @Override
             public void write() throws IOException {
                 // XXX Auto-generated method stub
                 throw new RuntimeException( "not yet implemented." );
             }
-
             @Override
             public boolean hasNext() throws IOException {
                 // XXX Auto-generated method stub
                 throw new RuntimeException( "not yet implemented." );
             }
-
             @Override
             public void close() throws IOException {
                 // XXX Auto-generated method stub
@@ -111,8 +108,8 @@ public class PipelineDataStore
     }
 
     
-    public SimpleFeatureType getSchema( String _typeName )
-            throws IOException {
+    @Override
+    public SimpleFeatureType getSchema( String _typeName ) throws IOException {
         assert _typeName != null : "typeName must not be null.";
 //        if (fs.getSchema().getTtypeName.equals( _typeName ) ) {
             return fs.getSchema();
@@ -123,14 +120,14 @@ public class PipelineDataStore
     }
 
     
-    public String[] getTypeNames()
-            throws IOException {
+    @Override
+    public String[] getTypeNames() throws IOException {
         return new String[] {fs.getSchema().getTypeName()};
     }
 
     
-    protected ReferencedEnvelope getBounds( Query query )
-            throws IOException {
+    @Override
+    protected ReferencedEnvelope getBounds( Query query ) throws IOException {
         if (query.getFilter() == Filter.EXCLUDE) {
             return new ReferencedEnvelope( new Envelope(), 
                     getSchema( query.getTypeName() ).getCoordinateReferenceSystem());
@@ -141,45 +138,9 @@ public class PipelineDataStore
     }
 
 
-    protected int getCount( Query query )
-            throws IOException {
+    @Override
+    protected int getCount( Query query ) throws IOException {
         return fs.getCount( query );
     }
-
-
-//    /**
-//     * 
-//     *
-//     */
-//    class PipelineFeatureReader
-//            implements FeatureReader<SimpleFeatureType, SimpleFeature> {
-//
-//        public boolean hasNext()
-//                throws IOException {
-//            // XXX Auto-generated method stub
-//            throw new RuntimeException( "not yet implemented." );
-//        }
-//
-//
-//        public SimpleFeature next()
-//                throws IOException, IllegalArgumentException, NoSuchElementException {
-//            // XXX Auto-generated method stub
-//            throw new RuntimeException( "not yet implemented." );
-//        }
-//
-//
-//        public void close()
-//                throws IOException {
-//            // XXX Auto-generated method stub
-//            throw new RuntimeException( "not yet implemented." );
-//        }
-//
-//
-//        public SimpleFeatureType getFeatureType() {
-//            // XXX Auto-generated method stub
-//            throw new RuntimeException( "not yet implemented." );
-//        }
-//
-//    }
     
 }

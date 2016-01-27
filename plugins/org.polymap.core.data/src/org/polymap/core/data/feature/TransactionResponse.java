@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2016, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2016, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,28 +14,14 @@
  */
 package org.polymap.core.data.feature;
 
-import org.opengis.filter.Filter;
-
-import org.polymap.core.data.pipeline.ProcessorRequest;
+import org.polymap.core.data.pipeline.ProcessorResponse;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class RemoveFeaturesRequest
-        implements ProcessorRequest {
-
-    private Filter                  filter;
-    
-
-    public RemoveFeaturesRequest( Filter filter ) {
-        super();
-        this.filter = filter;
-    }
-
-    public Filter getFilter() {
-        return filter;
-    }
+public class TransactionResponse
+        implements ProcessorResponse {
 
 }

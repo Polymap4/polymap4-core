@@ -57,6 +57,7 @@ import org.polymap.core.data.feature.GetFeaturesSizeResponse;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.ModifyFeaturesResponse;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
+import org.polymap.core.data.feature.TransactionRequest;
 import org.polymap.core.data.pipeline.DepthFirstStackExecutor;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor;
@@ -74,56 +75,12 @@ import org.polymap.core.runtime.session.SessionContext;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings("deprecation")
 public class PipelineFeatureSource
         extends AbstractFeatureSource
         implements FeatureStore<SimpleFeatureType,SimpleFeature> {
 
     private static final Log log = LogFactory.getLog( PipelineFeatureSource.class );
-
-//    private static DefaultPipelineIncubator pipelineIncubator = new DefaultPipelineIncubator();
-
-
-    // static factory *************************************
-
-//    /**
-//     * Instantiates a new pipelined {@link FeatureSource} for the given layer.
-//     * <p>
-//     * This method may block execution while accessing the back-end service.
-//     * 
-//     * @return The newly created <code>FeatureSource</code>, or null if no
-//     *         {@link FeatureSource} could be created for this layer because its is a
-//     *         raster layer or no appropriate processors could be found.
-//     * @throws PipelineIncubationException
-//     * @throws IOException
-//     * @throws IllegalStateException If the geo resource for the given layer could
-//     *         not be find.
-//     */
-//    public static PipelineFeatureSource forLayer( ILayer layer, boolean transactional )
-//    throws PipelineIncubationException, IOException {
-//        assert layer != null : "layer == null is not allowed";
-//        log.debug( "layer: " + layer + ", label= " + layer.getLabel() + ", visible= " + layer.isVisible() );
-//
-//        IGeoResource res = layer.getGeoResource();
-//        if (res == null) {
-//            throw new IllegalStateException( "Unable to find geo resource for layer: " + layer );
-//        }
-//        IService service = res.service( null );
-//        log.debug( "service: " + service );
-//
-//        // create pipeline
-//        LayerUseCase useCase = transactional
-//                ? LayerUseCase.FEATURES_TRANSACTIONAL
-//                : LayerUseCase.FEATURES;
-//        Pipeline pipe = pipelineIncubator.newPipeline( useCase, layer.getMap(), layer, service );
-//
-//        return pipe.length() > 0
-//                // create FeatureSource
-//                ? new PipelineFeatureSource( pipe )
-//                : null;
-//    }
-
-
-    // instance *******************************************
 
     /** XXX defaults to {@link DepthFirstStackExecutor}. */
     @Mandatory
@@ -155,12 +112,6 @@ public class PipelineFeatureSource
     public Pipeline getPipeline() {
         return pipeline;
     }
-
-//    public ILayer getLayer() {
-//        Set<ILayer> layers = getPipeline().getLayers();
-//        assert layers.size() == 1;
-//        return layers.iterator().next();
-//    }
 
 
     @Override
@@ -299,8 +250,17 @@ public class PipelineFeatureSource
 
     // FeatureStore ***************************************
 
-    public void setTransaction( Transaction transaction ) {
-        throw new RuntimeException( "PipelinedFeatureSource: no transaction support as updates are bufferd by *LayerFeatureBufferManager*!" );
+    public void setTransaction( Transaction tx ) {
+        try {
+            TransactionRequest request = new TransactionRequest( tx );
+            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {});
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
 

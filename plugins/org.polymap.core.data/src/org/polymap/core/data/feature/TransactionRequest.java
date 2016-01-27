@@ -14,28 +14,30 @@
  */
 package org.polymap.core.data.feature;
 
-import org.opengis.filter.Filter;
+import org.geotools.data.Transaction;
 
 import org.polymap.core.data.pipeline.ProcessorRequest;
+import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.Immutable;
+import org.polymap.core.runtime.config.Mandatory;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class RemoveFeaturesRequest
+public class TransactionRequest
+        extends Configurable
         implements ProcessorRequest {
 
-    private Filter                  filter;
+    @Immutable
+    @Mandatory
+    public Config<Transaction>      tx;
     
 
-    public RemoveFeaturesRequest( Filter filter ) {
-        super();
-        this.filter = filter;
-    }
-
-    public Filter getFilter() {
-        return filter;
+    public TransactionRequest( Transaction tx ) {
+        this.tx.set( tx );
     }
 
 }

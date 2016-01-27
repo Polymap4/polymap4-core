@@ -29,6 +29,9 @@ import org.polymap.core.data.pipeline.Produces;
 public interface FeaturesProducer
         extends PipelineProcessor {
 
+    @Produces(TransactionResponse.class)
+    public void setTransactionRequest( TransactionRequest request, ProcessorContext context ) throws Exception;
+    
     @Produces(ModifyFeaturesResponse.class)
     public void modifyFeaturesRequest( ModifyFeaturesRequest request, ProcessorContext context ) throws Exception;
     
