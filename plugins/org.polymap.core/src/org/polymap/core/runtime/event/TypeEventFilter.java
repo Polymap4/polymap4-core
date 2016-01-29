@@ -25,6 +25,13 @@ import java.util.function.Function;
 public class TypeEventFilter<E extends EventObject>
         implements EventFilter<E> {
     
+    /**
+     * Creates an {@link EventFilter} that checks the type of an event.
+     *
+     * @param type The type to check event for.
+     * @param check This check is performed *if* event has proper type.
+     * @return Newly created event filter instance.
+     */
     public static <T extends EventObject> TypeEventFilter<T> ifType( Class<T> type, Function<T,Boolean> check ) {
         return new TypeEventFilter<T>( type ) {
             @Override

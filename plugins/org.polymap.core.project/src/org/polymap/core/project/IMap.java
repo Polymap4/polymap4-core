@@ -15,6 +15,7 @@
 package org.polymap.core.project;
 
 import org.polymap.model2.Concerns;
+import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Mixins;
@@ -42,6 +43,7 @@ public class IMap
 
     public ManyAssociation<IMap>        children;
 
+    @DefaultValue( "EPSG:3857" )
     public Property<String>             srsCode;
 
 //    @ModelProperty(PROP_CRSCODE)
