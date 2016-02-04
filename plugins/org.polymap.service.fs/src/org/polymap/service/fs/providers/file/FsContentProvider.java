@@ -100,6 +100,7 @@ public class FsContentProvider
     }
 
 
+    @Override
     public List<? extends IContentNode> getChildren( IPath path ) {
         // check admin
         if (!SecurityUtils.isAdmin()) {
@@ -113,7 +114,8 @@ public class FsContentProvider
 
         // folder
         IContentFolder parent = getSite().getFolder( path );
-        if (parent instanceof FsFolder) {
+        // check exact class because CmsFolder is instanceof FsFolder too
+        if (parent.getClass().equals( FsFolder.class )) {
             File[] files = ((FsFolder)parent).getDir().listFiles();
             List<IContentNode> result = new ArrayList( files.length );
             
@@ -124,7 +126,6 @@ public class FsContentProvider
                 else if (f.isDirectory()) {
                     result.add( new FsFolder( f.getName(), parent.getPath(), this, f ) );                    
                 }
-            
             }
             return result;
         }
@@ -182,7 +183,7 @@ public class FsContentProvider
 
 
     public void moveTo( IContentNode src, IPath dest, String newName )
-    throws BadRequestException, IOException {
+            throws BadRequestException, IOException {
         FsFolder destFolder = (FsFolder)getSite().getFolder( dest );
         File destFile = new File( destFolder.getDir(), newName );
 

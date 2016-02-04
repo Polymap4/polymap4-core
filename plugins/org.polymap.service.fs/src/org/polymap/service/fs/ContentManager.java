@@ -295,7 +295,7 @@ public class ContentManager {
                             for (IContentNode child : children) {
                                 IContentNode old = result.put( child.getName(), child );
                                 if (old != null) {
-                                    log.warn( "Child node name already exists: " + child.getName() );
+                                    log.warn( "!!! Child node name already exists: " + child.getName() + "!!!" );
                                 }
                                 memSize += child.getSizeInMemory();
                             }

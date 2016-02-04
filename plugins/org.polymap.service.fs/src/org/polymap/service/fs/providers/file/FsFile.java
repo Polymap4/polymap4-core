@@ -57,6 +57,7 @@ public class FsFile
         super( source.getName(), parentPath, provider, source );
     }
 
+    @Override
     public FsContentProvider getProvider() {
         return (FsContentProvider)super.getProvider();
     }
@@ -65,10 +66,12 @@ public class FsFile
         return (File)getSource();
     }
     
+    @Override
     public Long getContentLength() {
         return getFile().length();
     }
 
+    @Override
     public String getContentType( String accepts ) {
         if (contentType == null) {
             try {
@@ -88,8 +91,9 @@ public class FsFile
         return contentType;
     }
 
+    @Override
     public void sendContent( OutputStream out, Range range, Map<String,String> params, String acceptedContentType )
-    throws IOException, BadRequestException {
+            throws IOException, BadRequestException {
         FileInputStream in = null;
         try {
             in = new FileInputStream( getFile() );
