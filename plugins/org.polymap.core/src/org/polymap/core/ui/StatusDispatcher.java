@@ -97,11 +97,8 @@ public class StatusDispatcher {
 
     public static void handle( IStatus status, Style... styles ) {
         if (adapters.isEmpty()) {
-            log.warn( "No StatusDispatcher.Adapter registered!", status.getException() );
-        }
-        
-        if (status.getSeverity() == IStatus.ERROR) {
-            log.error( status.getMessage(), status.getException() );
+            log.warn( "No StatusDispatcher.Adapter registered! Status: -->", status.getException() );
+            return;
         }
         
         adapters.stream().forEach( adapter -> {
@@ -131,9 +128,16 @@ public class StatusDispatcher {
     public static class LogAdapter
             implements Adapter {
 
+        private static Log log2 = LogFactory.getLog( LogAdapter.class );
+
         @Override
         public void handle( IStatus status, Style... styles ) {
-            log.warn( status.getMessage(), status.getException() );
+            switch (status.getSeverity()) {
+                case IStatus.ERROR: log2.error( status.getMessage(), status.getException() ); break;
+                case IStatus.WARNING: log2.warn( status.getMessage(), status.getException() ); break;
+                case IStatus.INFO: log2.info( status.getMessage(), status.getException() ); break;
+                case IStatus.OK: log2.info( status.getMessage(), status.getException() ); break;
+            }
         }
     }
     
