@@ -411,6 +411,12 @@ public final class LuceneRecordStore
     @Override
     public IRecordState newRecord( Object id ) {
         assert reader != null : "Store is closed.";
+        
+        // FIXME fails for entities that are removed in this UnitOfWork
+        try { assert get( id ) == null : "Id already exists: " + id; }
+        catch (AssertionError e) { throw e; }
+        catch (Exception e) { throw new RuntimeException( e ); }
+        
         LuceneRecordState result = new LuceneRecordState( this, new Document(), false );
         result.createId( id );
         return result;
