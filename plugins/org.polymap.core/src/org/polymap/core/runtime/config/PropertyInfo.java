@@ -20,9 +20,9 @@ import java.lang.annotation.Annotation;
  * 
  * @param <H> - The type of the host class.
  * @param <V> - The type of the value of this property. 
- *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings("javadoc")
 public interface PropertyInfo/*<H,V>*/ {
 
     public String getName();
