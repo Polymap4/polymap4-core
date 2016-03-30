@@ -26,6 +26,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 
@@ -49,6 +50,7 @@ import org.polymap.rap.openlayers.base.OlEvent;
 import org.polymap.rap.openlayers.base.OlEventListener;
 import org.polymap.rap.openlayers.base.OlMap;
 import org.polymap.rap.openlayers.control.Control;
+import org.polymap.rap.openlayers.interaction.Interaction;
 import org.polymap.rap.openlayers.layer.Layer;
 import org.polymap.rap.openlayers.types.Extent;
 import org.polymap.rap.openlayers.types.Projection;
@@ -96,6 +98,8 @@ public class MapViewer<CL>
     private Map<CL,Layer>               layers = new HashMap();
     
     private List<Control>               controls = new ArrayList();
+    
+    private List<Interaction>           interactions = Lists.newArrayList();
 
     
     public static class MapExtentConcern
@@ -178,6 +182,9 @@ public class MapViewer<CL>
         
         // add controls
         controls.forEach( control -> olmap.addControl( control ) );
+
+        // add interactions
+        interactions.forEach( interaction -> olmap.addInteraction( interaction ) );
     }
 
     
@@ -257,6 +264,14 @@ public class MapViewer<CL>
         controls.add( control );
         if (olmap != null) {
             olmap.addControl( control );
+        }
+        return this;
+    }
+    
+    public MapViewer<CL> addMapInteraction( final Interaction interaction ) {
+        interactions.add( interaction );
+        if (olmap != null) {
+            olmap.addInteraction( interaction );
         }
         return this;
     }
