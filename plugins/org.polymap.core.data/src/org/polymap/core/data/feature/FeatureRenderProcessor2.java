@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2016, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -53,7 +53,7 @@ import org.polymap.core.runtime.Lazy;
  * This processor renders features using the geotools {@link StreamingRenderer}. The
  * features are fetched through a sub pipeline for usecase {@link FeaturesProducer}.
  * 
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class FeatureRenderProcessor2
         implements TerminalPipelineProcessor, ImageProducer {
@@ -62,29 +62,11 @@ public class FeatureRenderProcessor2
     
     private PipelineProcessorSite       site;
     
-    public Lazy<Pipeline>              pipeline;
+    private Lazy<Pipeline>              pipeline;
 
     private Lazy<FeatureSource>         fs;
 
     private Lazy<Style>                 style = new CachedLazyInit( () -> new DefaultStyles().findStyle( fs.get() ) );
-
-    // XXX check style changes, if caching is used.
-//    protected LazyInit<MapContent>              mapContextRef = new CachedLazyInit( 1024 );
-    
-//    /**
-//     * The layers for which an {@link LayerStyleListener} was registered. Entries are
-//     * created in {@link #getMap(Set, int, int, ReferencedEnvelope)} and released in
-//     * {@link #finalize()}.
-//     */
-//    protected ConcurrentMap<ILayer,LayerStyleListener> watchedLayers = new ConcurrentHashMap();
-//    
-//    protected void finalize() throws Throwable {
-//        log.debug( "FINALIZE: watchedLayers: " + watchedLayers.size() );
-//        for (Map.Entry<ILayer,LayerStyleListener> entry : watchedLayers.entrySet()) {
-//            entry.getKey().removePropertyChangeListener( entry.getValue() );
-//        }
-//        mapContextRef.clear();
-//    }
 
     
     @Override
@@ -120,7 +102,6 @@ public class FeatureRenderProcessor2
     }
 
 
-    
     @Override
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         long start = System.currentTimeMillis();
@@ -247,6 +228,11 @@ public class FeatureRenderProcessor2
         if (e != null) {
             g.drawString( e.toString(), 10, 30 );
         }
+    }
+
+
+    public Pipeline pipeline() {
+        return pipeline.get();
     }
     
 }
