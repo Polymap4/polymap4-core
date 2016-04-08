@@ -125,4 +125,17 @@ public class ColumnDataFactory {
         control.setLayoutData( create() );
         return control;
     }
+    
+    /**
+     * Gets the control given to {@link #on(Control)}. This allows chaining calls as
+     * in the following example. <b>Example</b>
+     * 
+     * <pre>
+     * Label label = FormDataFactory.on( new Label( parent, SWT.NONE ) ).left( 0 ).top( 0 ).control();
+     * </pre>
+     */
+    public <T extends Control> T control() {
+        return (T)applyTo;
+    }
+
 }
