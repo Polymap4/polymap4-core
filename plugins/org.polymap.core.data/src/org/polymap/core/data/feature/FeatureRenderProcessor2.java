@@ -231,6 +231,9 @@ public class FeatureRenderProcessor2
     }
 
 
+    /**
+     * The pipeline used by this processor. This is created on demand and cached.
+     */
     public Pipeline pipeline() {
         return pipeline.get();
     }
