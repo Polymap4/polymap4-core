@@ -147,13 +147,14 @@ public class ProcessorSignature {
     public void invoke( ProcessorProbe probe, ProcessorContext context ) throws Exception {
         assert processor != null : "This ProcessorSignature was constructed from a type, not a processor instance.";
         try {
-            callMap.get( probe.getClass() ).invoke( processor, new Object[] {probe, context} );
+            Method m = callMap.get( probe.getClass() );
+            if (m == null) {
+                throw new IllegalStateException( "No method for: " + probe.getClass().getName() );
+            }
+            m.invoke( processor, new Object[] {probe, context} );
         }
         catch (InvocationTargetException e) {
             throw (Exception)e.getTargetException();
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
         }
     }
 

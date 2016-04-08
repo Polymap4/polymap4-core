@@ -47,8 +47,8 @@ public class PipelineProcessorSite
         this.props = props;
     }
 
-    public String getProperty( String key ) {
-        throw new RuntimeException( "" );
+    public <T> T getProperty( String key ) {
+        return (T)props.get( key );
     }
     
     public Iterable<String> propertyKeys() {

@@ -91,7 +91,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
     }
 
 
-    public P processor() throws PipelineIncubationException {
+    public P processor() throws PipelineIncubationException { 
         assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
         if (processor == null) {  // no concurrent check, multi init ok
             try {

@@ -58,7 +58,7 @@ public class Pipeline
      * @param processor The processor to add.
      */
     public void addFirst( ProcessorDescription procDesc ) {
-        chain.add( 0,procDesc );
+        chain.add( 0, procDesc );
     }
 
 

@@ -43,10 +43,11 @@ import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.DataSourceDescription;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.pipeline.PipelineIncubator;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
+import org.polymap.core.runtime.CachedLazyInit;
+import org.polymap.core.runtime.Lazy;
 
 /**
  * This processor renders features using the geotools {@link StreamingRenderer}. The
@@ -59,8 +60,13 @@ public class FeatureRenderProcessor2
 
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
     
-    private PipelineProcessorSite           site;
+    private PipelineProcessorSite       site;
+    
+    public Lazy<Pipeline>              pipeline;
 
+    private Lazy<FeatureSource>         fs;
+
+    private Lazy<Style>                 style = new CachedLazyInit( () -> new DefaultStyles().findStyle( fs.get() ) );
 
     // XXX check style changes, if caching is used.
 //    protected LazyInit<MapContent>              mapContextRef = new CachedLazyInit( 1024 );
@@ -71,32 +77,7 @@ public class FeatureRenderProcessor2
 //     * {@link #finalize()}.
 //     */
 //    protected ConcurrentMap<ILayer,LayerStyleListener> watchedLayers = new ConcurrentHashMap();
-    
-    
-    @Override
-    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) throws Exception {
-        this.site = site;
-    }
-
-
-    @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
-      // we are compatible to everything a feature pipeline can be build for
-      if (new DataSourceProcessor().isCompatible( dsd )) {
-          return true;
-      }
-//      // FIXME hack to get biotop working
-//      else if (service.getClass().getSimpleName().equals( "BiotopService" ) ) {
-//          return true;
-//      }
-//      // FIXME recognize EntityServiceImpl
-//      else if (service.canResolve( ITransientResolve.class ) ) {
-//          return true;
-//      }
-      return false;
-    }
-
-
+//    
 //    protected void finalize() throws Throwable {
 //        log.debug( "FINALIZE: watchedLayers: " + watchedLayers.size() );
 //        for (Map.Entry<ILayer,LayerStyleListener> entry : watchedLayers.entrySet()) {
@@ -107,38 +88,57 @@ public class FeatureRenderProcessor2
 
     
     @Override
+    public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) throws Exception {
+        this.site = site;
+        
+        // pipeline
+        this.pipeline = new CachedLazyInit( () -> {
+            try {
+                PipelineIncubator incubator = site.incubator.get();
+                DataSourceDescription dsd = new DataSourceDescription( site.dsd.get() );
+                return incubator.newPipeline( FeaturesProducer.class, dsd, null );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }            
+        });
+        
+        // fs
+        this.fs = new CachedLazyInit( () -> {
+            return new PipelineFeatureSource( pipeline.get() );
+        });
+    }
+
+
+    @Override
+    public boolean isCompatible( DataSourceDescription dsd ) {
+        // we are compatible to everything a feature pipeline can be build for
+        if (new DataSourceProcessor().isCompatible( dsd )) {
+            return true;
+        }
+        return false;
+    }
+
+
+    
+    @Override
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         long start = System.currentTimeMillis();
-
-        BufferedImage result = null;
 
         // MapContent
         log.debug( "Creating new MapContext... " );
         MapContent mapContent = new MapContent();
-        mapContent.getViewport()
-                .setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
-        try {
-            PipelineIncubator incubator = site.incubator.get();
-            DataSourceDescription dsd = new DataSourceDescription( site.dsd.get() );
-            Pipeline pipeline = incubator.newPipeline( FeaturesProducer.class, dsd, null );
-            FeatureSource fs = new PipelineFeatureSource( pipeline );
-
-            Style style = new DefaultStyles().findStyle( fs );
-            mapContent.addLayer( new FeatureLayer( fs, style ) );
+        mapContent.getViewport().setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
+        mapContent.addLayer( new FeatureLayer( fs.get(), style.get() ) );
 
 //            // watch layer for style changes
 //            LayerStyleListener listener = new LayerStyleListener( mapContextRef );
 //            if (watchedLayers.putIfAbsent( layer, listener ) == null) {
 //                layer.addPropertyChangeListener( listener );
 //            }
-        }
-        catch (PipelineIncubationException e) {
-            log.warn( "No pipeline.", e );
-        }
-        log.debug( "created: " + result );
 
         // Render
-        result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
+        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
         //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );

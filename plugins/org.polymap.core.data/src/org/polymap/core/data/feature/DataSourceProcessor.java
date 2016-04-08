@@ -66,6 +66,20 @@ public class DataSourceProcessor
     private FeatureSource           fs;
 
     
+//    public DataSourceProcessor() {
+//    }
+//
+//
+//    /**
+//     * Directly init this instance, ignoring {@link #init(PipelineProcessorSite)}.
+//     * 
+//     * @param fs
+//     */
+//    public DataSourceProcessor( FeatureSource fs ) {
+//        this.fs = fs;
+//    }
+
+
     @Override
     public boolean isCompatible( DataSourceDescription dsd ) {
         return dsd.service.get() instanceof DataAccess;
@@ -74,8 +88,10 @@ public class DataSourceProcessor
 
     @Override
     public void init( PipelineProcessorSite site ) throws Exception {
-        ds = (DataAccess)site.dsd.get().service.get();
-        fs = ds.getFeatureSource( new NameImpl( site.dsd.get().resourceName.get() ) );
+        if (fs == null) {
+            ds = (DataAccess)site.dsd.get().service.get();
+            fs = ds.getFeatureSource( new NameImpl( site.dsd.get().resourceName.get() ) );
+        }
     }
 
 
@@ -150,8 +166,8 @@ public class DataSourceProcessor
         int currentChunkSize = 64;
         ArrayList<Feature> chunk = new ArrayList( currentChunkSize );
         try (
-                FeatureIterator it = fc.features();
-            ) {
+            FeatureIterator it = fc.features();
+        ){
             while (it.hasNext() ) {
                 Feature feature = (Feature)it.next();
 
