@@ -1,13 +1,12 @@
 package org.polymap.core.data.refine.impl;
 
 import com.google.refine.importing.ImportingJob;
-import com.google.refine.model.Project;
 
 public class ImportResponse<T extends FormatAndOptions> {
 
-    private ImportingJob     job;
+    private ImportingJob job;
 
-    private T options;
+    private T            options;
 
 
     public void setJob( ImportingJob job ) {

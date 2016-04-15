@@ -1,11 +1,12 @@
 package org.polymap.core.data.refine.impl;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -18,6 +19,7 @@ public class RefineResponse
 
     private int                sc;
 
+    @SuppressWarnings("unused")
     private String             charset;
 
     private Map<String,String> headers = Maps.newHashMap();

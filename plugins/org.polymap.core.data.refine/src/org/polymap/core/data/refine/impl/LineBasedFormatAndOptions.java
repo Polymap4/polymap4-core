@@ -16,7 +16,7 @@ public class LineBasedFormatAndOptions
 
 
     public int headerLines() {
-        return Integer.parseInt(store().optString( "headerLines", "1" ));
+        return Integer.parseInt( store().optString( "headerLines", "1" ) );
     }
 
 
@@ -26,7 +26,7 @@ public class LineBasedFormatAndOptions
 
 
     public int ignoreLines() {
-        return Integer.parseInt(store().optString( "ignoreLines", "0" ));
+        return Integer.parseInt( store().optString( "ignoreLines", "0" ) );
     }
 
 
@@ -36,7 +36,7 @@ public class LineBasedFormatAndOptions
 
 
     public int skipDataLines() {
-        return Integer.parseInt(store().optString( "skipDataLines", "0" ));
+        return Integer.parseInt( store().optString( "skipDataLines", "0" ) );
     }
 
 }

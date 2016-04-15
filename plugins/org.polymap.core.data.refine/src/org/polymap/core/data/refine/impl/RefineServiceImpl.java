@@ -1,7 +1,5 @@
 package org.polymap.core.data.refine.impl;
 
-import java.io.File;
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -9,16 +7,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import java.io.File;
+import java.io.InputStream;
+
 import javax.activation.MimetypesFileTypeMap;
+
+import org.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.json.JSONObject;
-import org.polymap.core.data.refine.Messages;
-import org.polymap.core.data.refine.RefineService;
-import org.polymap.core.data.refine.json.JSONUtil;
-import org.polymap.core.runtime.SubMonitor;
 
 import com.google.common.collect.Maps;
 import com.google.common.net.HttpHeaders;
@@ -31,6 +28,12 @@ import com.google.refine.importing.ImportingManager;
 import com.google.refine.importing.ImportingUtilities;
 import com.google.refine.io.FileProjectManager;
 import com.google.refine.model.Project;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+
+import org.polymap.core.data.refine.Messages;
+import org.polymap.core.data.refine.RefineService;
+import org.polymap.core.data.refine.json.JSONUtil;
 
 public class RefineServiceImpl
         implements RefineService {
@@ -77,7 +80,7 @@ public class RefineServiceImpl
 
         service.scheduleWithFixedDelay( () -> {
             ProjectManager.singleton.save( false );
-        } , AUTOSAVE_PERIOD, AUTOSAVE_PERIOD, TimeUnit.MINUTES );
+        }, AUTOSAVE_PERIOD, AUTOSAVE_PERIOD, TimeUnit.MINUTES );
 
         log.trace( "< initialize" );
     }

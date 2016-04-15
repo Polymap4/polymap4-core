@@ -1,7 +1,5 @@
 package org.polymap.core.data.refine.impl;
 
-import java.util.Iterator;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,6 +11,7 @@ public class FormatAndOptions {
     public static FormatAndOptions createDefault() {
         return new FormatAndOptions( new JSONObject() );
     }
+
 
     public FormatAndOptions( JSONObject jsonObject ) {
         store = jsonObject;
@@ -49,14 +48,15 @@ public class FormatAndOptions {
         put( "format", format );
     }
 
+
     @SuppressWarnings("unchecked")
     public void putAll( JSONObject newValues ) {
         newValues.keys().forEachRemaining( key -> {
             try {
-                store.put( (String)key, newValues.get( (String)key ));
+                store.put( (String)key, newValues.get( (String)key ) );
             }
             catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException( e );
             }
         } );
     }

@@ -22,7 +22,7 @@ import org.polymap.core.runtime.i18n.MessagesImpl;
  */
 public class Messages {
 
-    private static final String       BUNDLE_NAME = RefinePlugin.ID + ".messages";                                       //$NON-NLS-1$
+    private static final String       BUNDLE_NAME = RefinePlugin.ID + ".messages";                                   //$NON-NLS-1$
 
     private static final MessagesImpl instance    = new MessagesImpl( BUNDLE_NAME, Messages.class.getClassLoader() );
 
@@ -42,7 +42,7 @@ public class Messages {
     /**
      * @param key the message key
      * @param args objects for inserting into the message
-     * @return the localized message based on Polymap.getSessionLocale() 
+     * @return the localized message based on Polymap.getSessionLocale()
      */
     public static String get( String key, Object... args ) {
         return instance.get( key, args );
@@ -52,11 +52,11 @@ public class Messages {
     public static String get2( Object caller, String key, Object... args ) {
         return instance.get( caller, key, args );
     }
-//
-//
-//    public static Messages get() {
-//        Class clazz = Messages.class;
-//        return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
-//    }
+    //
+    //
+    // public static Messages get() {
+    // Class clazz = Messages.class;
+    // return (Messages)RWT.NLS.getISO8859_1Encoded( BUNDLE_NAME, clazz );
+    // }
 
 }

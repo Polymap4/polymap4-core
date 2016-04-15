@@ -4,20 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+import java.util.Map;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.polymap.core.data.refine.impl.CSVFormatAndOptions;
-import org.polymap.core.data.refine.impl.ImportResponse;
-import org.polymap.core.data.refine.impl.RefineServiceImpl;
-import org.polymap.core.data.refine.json.JSONUtil;
 
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -29,11 +26,14 @@ import com.google.refine.model.ColumnModel;
 import com.google.refine.model.Project;
 import com.google.refine.model.Row;
 
+import org.polymap.core.data.refine.impl.CSVFormatAndOptions;
+import org.polymap.core.data.refine.impl.ImportResponse;
+import org.polymap.core.data.refine.impl.RefineServiceImpl;
+import org.polymap.core.data.refine.json.JSONUtil;
+
 public class ImportCSVTest {
 
     private RefineServiceImpl service;
-
-    private Object            rowsResponse;
 
 
     @Before
@@ -58,7 +58,7 @@ public class ImportCSVTest {
 
         File wohngebiete = new File(
                 this.getClass().getResource( "/data/wohngebiete_sachsen.csv" ).getFile() );
-        
+
         response = service.importStream( new FileInputStream( wohngebiete ),
                 "wohngebiete_sachsen.csv", "text/csv", CSVFormatAndOptions.createDefault(), null );
         assertTrue( response.toString().startsWith( "{\"code\":\"ok\"" ) );
@@ -191,7 +191,7 @@ public class ImportCSVTest {
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,;;;;;;;;;;;",
                 rows.get( 0 ).cells.get( 0 ).value );
         assertEquals( 471, rows.size() );
-        
+
         Project project = service.createProject( response.job(), options, null );
         rows = project.rows;
         assertEquals( "Baugenehmigungen: Neue Wohn-u.Nichtwohngeb. einschl. Wohnh.,;;;;;;;;;;;",

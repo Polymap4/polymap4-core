@@ -1,60 +1,57 @@
 /*
-
-Copyright 2011, Google Inc.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-    * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-    * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,           
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY           
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-*/
+ * 
+ * Copyright 2011, Google Inc. All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer. Redistributions in binary form must
+ * reproduce the above copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the
+ * distribution. Neither the name of Google Inc. nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
 
 package com.google.refine.importing;
 
+import java.util.Properties;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.polymap.core.data.refine.impl.RefineRequest;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.common.io.Files;
 import com.google.refine.commands.HttpUtilities;
 import com.google.refine.importing.ImportingUtilities.Progress;
 import com.google.refine.util.JSONUtilities;
 import com.google.refine.util.ParsingUtilities;
+
+import org.polymap.core.data.refine.impl.RefineRequest;
 
 public class FilebasedImportingController
         extends DefaultImportingController {
@@ -133,7 +130,7 @@ public class FilebasedImportingController
     // HttpServletResponse, Properties, ImportingJob, JSONObject)
     private void loadDataAndPrepareJob( RefineRequest request, HttpServletResponse response,
             Properties parameters, final ImportingJob job, JSONObject config )
-                    throws IOException, ServletException {
+            throws IOException, ServletException {
 
         JSONObject retrievalRecord = new JSONObject();
         JSONUtilities.safePut( config, "retrievalRecord", retrievalRecord );
@@ -172,7 +169,7 @@ public class FilebasedImportingController
         JSONUtilities.safePut( config, "fileSelection", fileSelectionIndexes );
 
         EncodingGuesser.guess( job );
-        
+
         String bestFormat = ImportingUtilities.autoSelectFiles( job, retrievalRecord,
                 fileSelectionIndexes );
         bestFormat = ImportingUtilities.guessBetterFormat( job, bestFormat );
@@ -192,7 +189,7 @@ public class FilebasedImportingController
     // Properties, File, JSONObject, Progress)
     private void retrieveContentFromRefineRequest( RefineRequest request, Properties parameters,
             File rawDataDir, JSONObject retrievalRecord, final Progress progress )
-                    throws Exception {
+            throws Exception {
         JSONArray fileRecords = new JSONArray();
         JSONUtilities.safePut( retrievalRecord, "files", fileRecords );
         if (request.stream() == null && request.file() == null) {
@@ -215,12 +212,12 @@ public class FilebasedImportingController
         JSONUtilities.safePut( fileRecord, "fileName", targetFile.getName() );
         JSONUtilities.safePut( fileRecord, "location",
                 ImportingUtilities.getRelativePath( targetFile, rawDataDir ) );
-                //
-                // progress.setProgress(
-                // "Saving file " + file.getName() + " locally (" +
-                // NumberFormat.getIntegerInstance().format( fileSize ) + " bytes)",
-                // calculateProgressPercent( update.totalExpectedSize,
-                // update.totalRetrievedSize ) );
+        //
+        // progress.setProgress(
+        // "Saving file " + file.getName() + " locally (" +
+        // NumberFormat.getIntegerInstance().format( fileSize ) + " bytes)",
+        // calculateProgressPercent( update.totalExpectedSize,
+        // update.totalRetrievedSize ) );
 
         // if base was a file simply use them, otherwise copy the stream into the new
         // targetFile

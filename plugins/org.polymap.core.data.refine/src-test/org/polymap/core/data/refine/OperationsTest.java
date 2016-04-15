@@ -2,18 +2,20 @@ package org.polymap.core.data.refine;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.util.List;
+
+import java.io.File;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.polymap.core.data.refine.impl.CSVFormatAndOptions;
-import org.polymap.core.data.refine.impl.ImportResponse;
-import org.polymap.core.data.refine.impl.RefineServiceImpl;
 
 import com.google.common.io.Files;
 import com.google.refine.model.ColumnModel;
 import com.google.refine.model.Row;
+
+import org.polymap.core.data.refine.impl.CSVFormatAndOptions;
+import org.polymap.core.data.refine.impl.ImportResponse;
+import org.polymap.core.data.refine.impl.RefineServiceImpl;
 
 public class OperationsTest {
 
@@ -37,7 +39,7 @@ public class OperationsTest {
                 CSVFormatAndOptions.createDefault(), null );
         assertEquals( ";", response.options().separator() );
         assertEquals( "ISO-8859-1", response.options().encoding() );
-        
+
         // get the loaded models
         ColumnModel columns = response.job().project.columnModel;
         assertEquals( 12, columns.columns.size() );
@@ -52,14 +54,14 @@ public class OperationsTest {
         CSVFormatAndOptions options = response.options();
         options.setSeparator( "\\t" );
         service.updateOptions( response.job(), options, null );
-        
-//        Map<String, String> params = Maps.newHashMap();
-//        String columnToRemove = columns.columns.get( 2 ).getName();
-//        params.put( "columnName", columnToRemove );
-//        params.put( "project", "" + response.job().project.id );
-//        service.post( ReorderRowsCommand.class, params );
-//        
-//        columns = response.job().project.columnModel;
-//        assertEquals( 11, columns.columns.size() );
+
+        // Map<String, String> params = Maps.newHashMap();
+        // String columnToRemove = columns.columns.get( 2 ).getName();
+        // params.put( "columnName", columnToRemove );
+        // params.put( "project", "" + response.job().project.id );
+        // service.post( ReorderRowsCommand.class, params );
+        //
+        // columns = response.job().project.columnModel;
+        // assertEquals( 11, columns.columns.size() );
     }
 }

@@ -68,7 +68,8 @@ public final class JSONUtil {
     }
 
 
-    public static Integer getInteger( JSONObject container, String keysAsString, Integer defaultValue ) throws JSONException {
+    public static Integer getInteger( JSONObject container, String keysAsString, Integer defaultValue )
+            throws JSONException {
         container = findContainer( container, keysAsString );
         if (container == null) {
             return defaultValue;

@@ -1,7 +1,6 @@
 /*
- * polymap.org 
- * Copyright (C) @year@ individual contributors as indicated by the @authors tag. 
- * All rights reserved.
+ * polymap.org Copyright (C) @year@ individual contributors as indicated by
+ * the @authors tag. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -18,7 +17,6 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.polymap.core.data.refine.impl.ExcelFormatAndOptions.SheetRecord;
 
 import com.google.common.collect.Lists;
 
@@ -34,7 +32,6 @@ public class ExcelFormatAndOptions
 
         public SheetRecord( String name, int rows ) {
             this.name = name;
-            // TODO Auto-generated constructor stub
             this.rows = rows;
         }
 
