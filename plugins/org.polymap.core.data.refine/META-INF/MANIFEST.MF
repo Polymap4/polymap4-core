@@ -60,3 +60,4 @@ Bundle-ClassPath: lib-refine/arithcode-1.1.jar,
  lib/xmlbeans-2.6.0.jar,
  lib-refine/opencsv-2.4-SNAPSHOT.jar,
  lib/icu4j-56.1.jar
+Bundle-ActivationPolicy: lazy
