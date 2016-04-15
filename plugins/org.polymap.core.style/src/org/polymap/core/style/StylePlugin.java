@@ -14,29 +14,18 @@
  */
 package org.polymap.core.style;
 
-import java.util.HashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpService;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-
-import org.eclipse.core.runtime.IPath;
-
-import org.polymap.core.runtime.Polymap;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class StylePlugin 
+public class StylePlugin
         extends AbstractUIPlugin {
 
     private static Log log = LogFactory.getLog( StylePlugin.class );
