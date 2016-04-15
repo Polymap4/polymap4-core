@@ -3,12 +3,14 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Style Framework
 Bundle-SymbolicName: org.polymap.core.style;singleton:=true
 Bundle-Version: 4.0.0.qualifier
-Bundle-Activator: org.polymap.core.style.StylePlugin
+Bundle-Activator: org.polymap.core.style.test.StylePlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.model2;bundle-version="3.0.0",
- org.polymap.core.data;bundle-version="4.0.0"
+ org.polymap.core.data;bundle-version="4.0.0",
+ org.polymap.core.recordstore,
+ org.polymap.model2.store.recordstore
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Export-Package: org.polymap.core.style
+Export-Package: org.polymap.core.style.test
 Import-Package: org.osgi.service.http;version="1.2.1"

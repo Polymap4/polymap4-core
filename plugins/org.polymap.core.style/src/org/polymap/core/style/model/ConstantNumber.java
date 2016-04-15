@@ -15,6 +15,7 @@
 package org.polymap.core.style.model;
 
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.TypedValueInitializer;
 
 /**
  * Describes a constant number as style property value.
@@ -24,6 +25,22 @@ import org.polymap.model2.Property;
 public class ConstantNumber
         extends StylePropertyValue {
 
+    /**
+     * Initializes a newly created instance with default values.
+     */
+    public static TypedValueInitializer<ConstantNumber> defaults( int value ) {
+        return new TypedValueInitializer<ConstantNumber>() {
+            @Override
+            public ConstantNumber initialize( ConstantNumber proto ) throws Exception {
+                proto.value.set( value );
+                return proto;
+            }
+        };
+    }
+    
+
+    // instance *******************************************
+    
     public Property<Number>             value;
     
 }

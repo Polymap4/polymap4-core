@@ -14,10 +14,8 @@
  */
 package org.polymap.core.style.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.TypedValueInitializer;
 
 /**
  * Simple point style. Roughly modelling: 
@@ -31,8 +29,18 @@ import org.polymap.model2.Property;
 public class PointStyle
         extends Style {
 
-    private static Log log = LogFactory.getLog( PointStyle.class );
-  
+    /**
+     * Initializes a newly created instance with default values.
+     */
+    @SuppressWarnings("hiding")
+    public static final TypedValueInitializer<PointStyle> defaults = new TypedValueInitializer<PointStyle>() {
+        @Override
+        public PointStyle initialize( PointStyle proto ) throws Exception {
+            Style.defaults.initialize( proto );
+            return proto;
+        }
+    };
+
     public Property<StylePropertyValue>     strokeWidth;
     
     public Property<StylePropertyValue>     strokeColor;

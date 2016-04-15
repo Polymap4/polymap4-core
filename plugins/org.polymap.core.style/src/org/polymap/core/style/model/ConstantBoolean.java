@@ -28,7 +28,7 @@ public class ConstantBoolean
     /**
      * 
      */
-    public static TypedValueInitializer<ConstantBoolean> defaultsTrue = new TypedValueInitializer<ConstantBoolean>() {
+    public static final TypedValueInitializer<ConstantBoolean> defaultsTrue = new TypedValueInitializer<ConstantBoolean>() {
         @Override
         public ConstantBoolean initialize( ConstantBoolean proto ) throws Exception {
             proto.value.set( true );
@@ -39,7 +39,7 @@ public class ConstantBoolean
     /**
      * 
      */
-    public static TypedValueInitializer<ConstantBoolean> defaultsFalse = new TypedValueInitializer<ConstantBoolean>() {
+    public static final TypedValueInitializer<ConstantBoolean> defaultsFalse = new TypedValueInitializer<ConstantBoolean>() {
         @Override
         public ConstantBoolean initialize( ConstantBoolean proto ) throws Exception {
             proto.value.set( true );

@@ -14,11 +14,9 @@
  */
 package org.polymap.core.style.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Entity;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * 
@@ -28,7 +26,18 @@ import org.polymap.model2.Entity;
 public class FeatureStyle
         extends Entity {
 
-    private static Log log = LogFactory.getLog( FeatureStyle.class );
+    public static FeatureStyle          TYPE;
+    
+
+    /**
+     * Initializes a newly created instance with default values.
+     */
+    public static ValueInitializer<FeatureStyle> defaults = (FeatureStyle proto) -> {
+        return proto;
+    };
+
+    
+    // instance *******************************************
     
     public CollectionProperty<Style>    styles;
     

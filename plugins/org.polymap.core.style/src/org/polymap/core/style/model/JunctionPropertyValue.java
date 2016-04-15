@@ -30,8 +30,8 @@ public class JunctionPropertyValue
 
     public Property<Junction>       junction;
     
-    public Property<Style>      op1;
+    public Property<Style>          op1;
 
-    public Property<Style>      op2;
+    public Property<Style>          op2;
 
 }

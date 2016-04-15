@@ -14,8 +14,12 @@
  */
 package org.polymap.core.style.model;
 
+import org.opengis.feature.Feature;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
@@ -23,7 +27,9 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.TypedValueInitializer;
 
 /**
- * 
+ * Describes the visual representation of the {@link Geometry} of a {@link Feature}.
+ * This is <b>not tied</b> to any particular backend (SLD, OpenLayers) in mind. It
+ * rather models the "user experience" we want to achieve.
  *
  * @author Falko Bräutigam
  */
@@ -32,9 +38,10 @@ public abstract class Style
 
     private static Log log = LogFactory.getLog( Style.class );
     
-    public static Style                 TYPE;
-    
-    public static TypedValueInitializer<Style> defaults = new TypedValueInitializer<Style>() {
+    /**
+     * Initializes a newly created instance with default values.
+     */
+    public static final TypedValueInitializer<Style> defaults = new TypedValueInitializer<Style>() {
         @Override
         public Style initialize( Style proto ) throws Exception {
             proto.active.createValue( ConstantBoolean.defaultsTrue );
