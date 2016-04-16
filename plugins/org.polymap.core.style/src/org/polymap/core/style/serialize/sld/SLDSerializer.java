@@ -14,26 +14,128 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.util.List;
+
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.styling.FeatureTypeStyle;
+import org.geotools.styling.Graphic;
+import org.geotools.styling.Mark;
+import org.geotools.styling.PointSymbolizer;
+import org.geotools.styling.Rule;
+import org.geotools.styling.SLDTransformer;
+import org.geotools.styling.Style;
+import org.geotools.styling.StyleFactory;
+import org.opengis.filter.FilterFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Iterables;
+
+import org.polymap.core.style.model.FeatureStyle;
+import org.polymap.core.style.model.PointStyle;
+import org.polymap.core.style.model.StyleGroup;
+import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
 
 /**
+ * Creates {@link org.geotools.styling.Style} out of a {@link FeatureStyle}
+ * description.
+ * <p/>
+ * <b>Transform the resulting Style into SLD:</b>
+ * <pre>
+ *   {@link SLDTransformer} styleTransform = new {@link SLDTransformer}();
+ *   String xml = styleTransform.transform( style );
+ * </pre>
  * 
- *
  * @author Falko Bräutigam
  */
 public class SLDSerializer
-        extends FeatureStyleSerializer {
+        extends FeatureStyleSerializer<Style> {
 
     private static Log log = LogFactory.getLog( SLDSerializer.class );
 
+    public static final StyleFactory        sf = CommonFactoryFinder.getStyleFactory( null );
+    
+    public static final FilterFactory       ff = CommonFactoryFinder.getFilterFactory( null );
+
+    /** The result of this serializer. */
+    private Style                           sld;
+    
 
     @Override
-    public void serialize( Context context ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public Style serialize( Context context ) {
+        FeatureStyle featureStyle = context.featureStyle();
+
+        PointStyle ps = (PointStyle)Iterables.getOnlyElement( featureStyle.styles.get().members );
+        PointStyleSerializer serializer = new PointStyleSerializer();
+        serializer.serialize( ps );
+        
+        buildSLD();
+        return sld;
+    }
+    
+    
+    /**
+     * Creates {@link org.geotools.styling.Style} in 3 steps:
+     * <ol>
+     * <li>gather scale and filter descriptions from {@link StyleGroup} hierarchy
+     * </li>
+     * 
+     * <li>transform {@link StylePropertyValue} descriptors into a flat list of
+     * {@link SymbolizerDescriptor} instances ("Ausmultiplizieren")</li>
+     * 
+     * <li>transform into {@link FeatureTypeStyle} and {@link Rule} instances</li>
+     * </ol>
+     */
+    protected void buildSLD() {
+        sld = sf.createStyle();
+
+        // 1: gather scale and filter descriptions from {@link StyleGroup} hierarchy
+        // XXX yet to be done
+        
+        // 2: create flat list of SymbolizerDescriptor instances
+        List<SymbolizerDescriptor> descriptors = null;
+
+        // 3: transform into FeatureTypeStyle and Rule instances
+        for (SymbolizerDescriptor descriptor : descriptors) {
+            if (descriptor instanceof PointSymbolizerDescriptor) {
+                sld.featureTypeStyles().add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
+            }
+            else {
+                throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
+            }
+        }
+    }
+
+
+    protected FeatureTypeStyle buildPointStyle( PointSymbolizerDescriptor descriptor ) {
+        FeatureTypeStyle result = sf.createFeatureTypeStyle( new Rule[] {} );
+        
+        Graphic gr = sf.createDefaultGraphic();
+
+        Mark mark = sf.getCircleMark();
+        mark.setStroke( sf.createStroke( 
+                ff.literal( descriptor.strokeColor.get() ), 
+                ff.literal( descriptor.strokeWidth.get() ) ) );
+        //mark.setFill( sf.createFill( ff.literal( Color.YELLOW ) ) );
+
+        gr.graphicalSymbols().clear();
+        gr.graphicalSymbols().add( mark );
+        gr.setSize( ff.literal( 8 ) );
+
+        /*
+         * Setting the geometryPropertyName arg to null signals that we want to draw
+         * the default geometry of features
+         */
+        PointSymbolizer sym = sf.createPointSymbolizer( gr, null );
+
+        Rule rule = sf.createRule();
+        rule.symbolizers().add( sym );
+        rule.setName( "Rule for PointSymbolizer" );
+        result.rules().add( rule );
+        
+        return result;
     }
     
 }

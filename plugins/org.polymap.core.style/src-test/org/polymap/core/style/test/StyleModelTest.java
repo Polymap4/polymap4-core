@@ -75,7 +75,7 @@ public class StyleModelTest {
         FeatureStyle fs = uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults );
         
         // point
-        PointStyle point = fs.styles.createElement( PointStyle.defaults );
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
         assertTrue( point.active.get() instanceof ConstantBoolean );
         
         point.strokeWidth.createValue( ConstantNumber.defaults( 5 ) );

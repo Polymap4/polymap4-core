@@ -23,9 +23,9 @@ import org.polymap.core.style.model.FeatureStyle;
  *
  * @author Falko Bräutigam
  */
-public abstract class FeatureStyleSerializer {
+public abstract class FeatureStyleSerializer<T> {
 
-    public abstract void serialize( Context context );
+    public abstract T serialize( Context context );
     
     
     /**

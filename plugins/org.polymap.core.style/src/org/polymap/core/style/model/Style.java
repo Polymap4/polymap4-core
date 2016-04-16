@@ -28,8 +28,8 @@ import org.polymap.model2.runtime.TypedValueInitializer;
 
 /**
  * Describes the visual representation of the {@link Geometry} of a {@link Feature}.
- * This is <b>not tied</b> to any particular backend (SLD, OpenLayers) in mind. It
- * rather models the "user experience" we want to achieve.
+ * This is <b>not tied</b> to any particular backend (SLD, OpenLayers). It rather
+ * models the "user experience" we want to achieve.
  *
  * @author Falko Bräutigam
  */

@@ -17,6 +17,7 @@ package org.polymap.core.style.serialize.sld;
 import java.util.Collections;
 import java.util.List;
 import org.polymap.core.style.model.ConstantNumber;
+import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyValue;
 
 /**
@@ -26,6 +27,9 @@ import org.polymap.core.style.model.StylePropertyValue;
  */
 public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V> {
 
+    /**
+     * See {@link #doHandle(StylePropertyValue, SymbolizerDescriptor, Setter)}.
+     */
     public static List<SymbolizerDescriptor> handle( StylePropertyValue spv, SymbolizerDescriptor sd, Setter setter ) {
         if (spv instanceof ConstantNumber) {
             return new ConstantNumberHandler().doHandle( (ConstantNumber)spv, sd, setter );
@@ -34,6 +38,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
             throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
         }
     }
+
     
     // SPI ************************************************
     
@@ -42,6 +47,14 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
         void set( SD sd, V value );
     }
     
+    
+    /**
+     * Converts the given {@link Style} property value into actual values in the
+     * given {@link SymbolizerDescriptor} using the given setter. The given symbolizer
+     * might be cloned in order to implement complex styling.
+     *
+     * @return List of resulting symbolizers.
+     */
     public abstract List<SymbolizerDescriptor> doHandle( SPV spv, SymbolizerDescriptor sd, Setter<SymbolizerDescriptor,V> setter );
     
 

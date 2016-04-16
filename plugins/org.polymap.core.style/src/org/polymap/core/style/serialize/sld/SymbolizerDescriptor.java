@@ -14,6 +14,8 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import org.geotools.styling.FeatureTypeStyle;
+import org.geotools.styling.Rule;
 import org.opengis.filter.Filter;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,9 +28,11 @@ import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.style.model.Style;
 
 /**
- * Zwischenschritt beim Serialisieren: sammelt alle Einstellungen, um aus einem {@link Style} einen
- * SLD-Symbolizer zu machen. Hilft beim "Ausmultiplizieren", in dem er einfach zu kopieren ist, wobei bei
- * jedem Schritt mehr Properties gesetzt werden.
+ * Zwischenschritt beim Serialisieren: sammelt alle Einstellungen, um aus einem
+ * {@link Style} einen SLD-Symbolizer zu machen. Hilft beim "Ausmultiplizieren", in
+ * dem er einfach zu kopieren ist, wobei bei jedem Schritt mehr Properties gesetzt
+ * werden. Diese Klasse verbirgt die Komplexität von {@link FeatureTypeStyle} und
+ * {@link Rule}.
  *
  * @author Falko Bräutigam
  */
