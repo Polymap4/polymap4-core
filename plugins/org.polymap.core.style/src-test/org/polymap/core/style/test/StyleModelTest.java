@@ -15,6 +15,11 @@
 package org.polymap.core.style.test;
 
 import static org.junit.Assert.assertTrue;
+
+import javax.xml.transform.TransformerException;
+
+import org.geotools.styling.SLDTransformer;
+import org.geotools.styling.Style;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,6 +34,8 @@ import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.StyleRepository;
+import org.polymap.core.style.serialize.FeatureStyleSerializer;
+import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 import org.polymap.model2.runtime.UnitOfWork;
 
@@ -71,7 +78,7 @@ public class StyleModelTest {
 
 
     @Test
-    public void test() {
+    public void test() throws TransformerException {
         FeatureStyle fs = uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults );
         
         // point
@@ -79,6 +86,17 @@ public class StyleModelTest {
         assertTrue( point.active.get() instanceof ConstantBoolean );
         
         point.strokeWidth.createValue( ConstantNumber.defaults( 5 ) );
+        
+        // SLD
+        Style sld = new SLDSerializer().serialize( new FeatureStyleSerializer.Context() {
+            @Override
+            public FeatureStyle featureStyle() { return fs; }
+        });
+        SLDTransformer styleTransform = new SLDTransformer();
+        styleTransform.setIndentation( 4 );
+        styleTransform.setOmitXMLDeclaration( false );
+        String xml = styleTransform.transform( sld );
+        log.info( "SLD: " + xml );
     }
     
 }

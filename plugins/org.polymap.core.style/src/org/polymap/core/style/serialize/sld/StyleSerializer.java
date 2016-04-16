@@ -25,8 +25,13 @@ import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
 
 /**
- * 
+ * Serializes a particular {@link Style} into a flat list of
+ * {@link SymbolizerDescriptor} instances. The resulting list represents the
+ * cross-product of all complex filter and/or scale definitions specified via
+ * {@link StylePropertyValue} types. Those different {@link StylePropertyValue} types
+ * are handled by corresponding {@link StylePropertyValueHandler} types.
  *
+ * @param <S>
  * @author Falko Bräutigam
  */
 public abstract class StyleSerializer<S extends Style> {
@@ -36,20 +41,40 @@ public abstract class StyleSerializer<S extends Style> {
     protected List<SymbolizerDescriptor>    descriptors = new ArrayList();
     
     
-    public abstract void serialize( S style );
+    public List<SymbolizerDescriptor> serialize( S style ) {
+        assert descriptors == null;
+        try {
+            descriptors = new ArrayList();
+            doSerialize( style );
+            return descriptors;
+        }
+        finally {
+            descriptors = null;
+        }
+    }
+    
+    protected abstract SymbolizerDescriptor createDescriptor();
+    
+    protected abstract void doSerialize( S style );
     
     
     /**
+     * Sets the value in all current {@link #descriptors} using the given setter.
+     * <p/>
      * Here goes the magic of multiplying style descriptors :)
      *
      * @param spv
      * @param setter
      */
     protected void setValue( StylePropertyValue spv, Setter setter ) {
-        List<SymbolizerDescriptor> updated = new ArrayList( descriptors.size() * 2 );
+        if (descriptors.isEmpty()) {
+            descriptors.add( createDescriptor() );
+        }
+        List<SymbolizerDescriptor> updated = new ArrayList( descriptors.size() );
         for (SymbolizerDescriptor sd : descriptors) {
             updated.addAll( StylePropertyValueHandler.handle( spv, sd, setter ) );
         }
+        this.descriptors = updated;
     }    
     
 }

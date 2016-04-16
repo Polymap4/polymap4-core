@@ -21,7 +21,7 @@ import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
 
 /**
- * 
+ * Serialize {@link PointStyle}.
  *
  * @author Falko Bräutigam
  */
@@ -32,8 +32,14 @@ public class PointStyleSerializer
 
 
     @Override
-    public void serialize( PointStyle style ) {
-        // XXX setter should be inline
+    protected SymbolizerDescriptor createDescriptor() {
+        return new PointSymbolizerDescriptor();
+    }
+
+
+    @Override
+    public void doSerialize( PointStyle style ) {
+        // XXX setter definition should be inline; I don't get it to compile :(
         Setter<PointSymbolizerDescriptor,Integer> setter = (sd,value) -> sd.strokeWidth.set( value );
         setValue( style.strokeWidth.get(), setter );
     }

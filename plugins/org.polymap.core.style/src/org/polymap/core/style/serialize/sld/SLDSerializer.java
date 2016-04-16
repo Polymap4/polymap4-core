@@ -63,19 +63,6 @@ public class SLDSerializer
     private Style                           sld;
     
 
-    @Override
-    public Style serialize( Context context ) {
-        FeatureStyle featureStyle = context.featureStyle();
-
-        PointStyle ps = (PointStyle)Iterables.getOnlyElement( featureStyle.styles.get().members );
-        PointStyleSerializer serializer = new PointStyleSerializer();
-        serializer.serialize( ps );
-        
-        buildSLD();
-        return sld;
-    }
-    
-    
     /**
      * Creates {@link org.geotools.styling.Style} in 3 steps:
      * <ol>
@@ -88,16 +75,20 @@ public class SLDSerializer
      * <li>transform into {@link FeatureTypeStyle} and {@link Rule} instances</li>
      * </ol>
      */
-    protected void buildSLD() {
-        sld = sf.createStyle();
+    @Override
+    public Style serialize( Context context ) {
+        FeatureStyle featureStyle = context.featureStyle();
 
-        // 1: gather scale and filter descriptions from {@link StyleGroup} hierarchy
-        // XXX yet to be done
+        // XXX 1: gather scale and filter descriptions from StyleGroup hierarchy
+        // ...
         
         // 2: create flat list of SymbolizerDescriptor instances
-        List<SymbolizerDescriptor> descriptors = null;
-
+        PointStyle ps = (PointStyle)Iterables.getOnlyElement( featureStyle.members() );
+        PointStyleSerializer serializer = new PointStyleSerializer();
+        List<SymbolizerDescriptor> descriptors = serializer.serialize( ps );
+        
         // 3: transform into FeatureTypeStyle and Rule instances
+        sld = sf.createStyle();
         for (SymbolizerDescriptor descriptor : descriptors) {
             if (descriptor instanceof PointSymbolizerDescriptor) {
                 sld.featureTypeStyles().add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
@@ -106,6 +97,7 @@ public class SLDSerializer
                 throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
             }
         }
+        return sld;
     }
 
 
