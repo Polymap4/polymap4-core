@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-13.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-13.2.jar" sourcepath="lib/sources/gt-render-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-13.2.jar"/>
@@ -16,7 +17,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-13.2.jar" sourcepath="lib/sources/gt-opengis-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-13.2.jar" sourcepath="lib/sources/gt-referencing-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-13.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-13.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-13.2.jar" sourcepath="lib/sources/gt-xsd-core-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-fes-13.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-13.2.jar" sourcepath="lib/sources/gt-xsd-filter-13.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml2-13.2.jar"/>
