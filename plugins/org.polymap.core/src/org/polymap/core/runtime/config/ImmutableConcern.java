@@ -14,8 +14,6 @@
  */
 package org.polymap.core.runtime.config;
 
-import java.util.Objects;
-
 /**
  * Handle {@link Immutable} properties. 
  *
@@ -25,7 +23,7 @@ public class ImmutableConcern<T>
         extends DefaultPropertyConcern<T>
         implements PropertyConcern<T> {
 
-    private boolean     modified;
+    private boolean         modified;
     
     
     @Override
@@ -33,9 +31,10 @@ public class ImmutableConcern<T>
         if (modified) {
             throw new ConfigurationException( "Property is @Immutable: " + prop.info().getName() + " current value: " + value );
         }
-        if (!Objects.equals( prop.get(), value )) {
+        // XXX cases problems
+//        if (!Objects.equals( prop.get(), value )) {
             modified = true;
-        }
+//        }
         return value;
     }
     
