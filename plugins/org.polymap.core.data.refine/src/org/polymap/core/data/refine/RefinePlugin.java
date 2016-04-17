@@ -47,7 +47,6 @@ public class RefinePlugin
         super.start( context );
         plugin = this;
 
-        File refineDir = new File( CorePlugin.getDataLocation( getBundle() ), "refine" );
         // ServiceReference configAdminReference =
         // context.getServiceReference(ConfigurationAdmin.class.getName());
         // ConfigurationAdmin configAdmin = (ConfigurationAdmin)
@@ -58,7 +57,8 @@ public class RefinePlugin
         // Object>();
         // properties.put(RefineServiceImpl.PARAM_BASEDIR, refineDir);
         // config.update(properties);
-        service = RefineServiceImpl.INSTANCE( refineDir );
+        service = RefineServiceImpl
+                .INSTANCE( new File( System.getProperty( "java.io.tmpdir" ), System.getProperty( "user.name" ) ) );
         reference = context.registerService( RefineService.class, service, null )
                 .getReference();
     }

@@ -38,7 +38,8 @@ public class ImportCSVTest {
 
     @Before
     public void setUp() {
-        service = RefineServiceImpl.INSTANCE( new File( System.getProperty( "java.io.tmpdir" ) ) );
+        service = RefineServiceImpl
+                .INSTANCE( new File( System.getProperty( "java.io.tmpdir" ), System.getProperty( "user.name" ) ) );
     }
 
 

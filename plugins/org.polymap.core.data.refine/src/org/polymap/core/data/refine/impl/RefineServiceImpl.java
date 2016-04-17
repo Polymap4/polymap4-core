@@ -67,14 +67,14 @@ public class RefineServiceImpl
         log.info( "Starting " + FULLNAME + "..." );
 
         log.trace( "> initialize" );
-        FileProjectManager.initialize( baseDir );
+        FileProjectManager.initialize( new File( baseDir, "refine" ) );
         // only used to call servlet.getTempDir() later on
 
         ImportingManagerRegistry.initialize( new RefineServlet() {
 
             @Override
             public File getTempDir() {
-                return new File( System.getProperty( "java.io.tmpdir" ) );
+                return new File( baseDir, "tmp" );
             }
         } );
 
