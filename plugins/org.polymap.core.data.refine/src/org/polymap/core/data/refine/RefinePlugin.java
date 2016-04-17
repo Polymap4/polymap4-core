@@ -2,12 +2,14 @@ package org.polymap.core.data.refine;
 
 import java.io.File;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.polymap.core.CorePlugin;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+
 import org.polymap.core.data.refine.impl.RefineServiceImpl;
 
 /**
@@ -57,8 +59,14 @@ public class RefinePlugin
         // Object>();
         // properties.put(RefineServiceImpl.PARAM_BASEDIR, refineDir);
         // config.update(properties);
+        StringBuffer tmpDir = new StringBuffer( System.getProperty( "java.io.tmpdir" ) );
+        if (System.getProperty( "user.name" ) != null) {
+            tmpDir.append( File.separatorChar ).append( System.getProperty( "user.name" ) );
+        }
+        tmpDir.append( File.separatorChar ).append( "refine" ).append( File.separatorChar ).append( this.hashCode() );
         service = RefineServiceImpl
-                .INSTANCE( new File( System.getProperty( "java.io.tmpdir" ), System.getProperty( "user.name" ) ) );
+                .INSTANCE(
+                        new File( tmpDir.toString() ) );
         reference = context.registerService( RefineService.class, service, null )
                 .getReference();
     }

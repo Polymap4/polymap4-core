@@ -38,8 +38,13 @@ public class ImportCSVTest {
 
     @Before
     public void setUp() {
+        StringBuffer tmpDir = new StringBuffer( System.getProperty( "java.io.tmpdir" ) );
+        if (System.getProperty( "user.name" ) != null) {
+            tmpDir.append( File.separatorChar ).append( System.getProperty( "user.name" ) );
+        }
+        tmpDir.append( File.separatorChar ).append( this.hashCode() ).append( File.separatorChar ).append( "refine" );
         service = RefineServiceImpl
-                .INSTANCE( new File( System.getProperty( "java.io.tmpdir" ), System.getProperty( "user.name" ) ) );
+                .INSTANCE( new File( tmpDir.toString() ) );
     }
 
 
@@ -150,7 +155,7 @@ public class ImportCSVTest {
         // assertNull( jsonResponse.getJSONArray( "rows" ).getJSONArray( 0
         // ).getJSONArray( 1 ),
         // JSONUtil.getObject( jsonResponse, "rows[0].cells[1]" ) );
-        assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, R�ume u.Fl�che d.Wohn.,",
+        assertEquals( "neue Wohngeb. mit 1 od.2 Wohnungen, Räume u.Fläche d.Wohn.,",
                 JSONUtil.getString( jsonResponse, "rows[1].cells[0].v", null ) );
 
         assertEquals( new Integer( 100 ), JSONUtil.getInteger( jsonResponse, "total", null ) );

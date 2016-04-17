@@ -67,9 +67,8 @@ public class RefineServiceImpl
         log.info( "Starting " + FULLNAME + "..." );
 
         log.trace( "> initialize" );
-        FileProjectManager.initialize( new File( baseDir, "refine" ) );
+        FileProjectManager.initialize( new File( baseDir, "workspace" ) );
         // only used to call servlet.getTempDir() later on
-
         ImportingManagerRegistry.initialize( new RefineServlet() {
 
             @Override
