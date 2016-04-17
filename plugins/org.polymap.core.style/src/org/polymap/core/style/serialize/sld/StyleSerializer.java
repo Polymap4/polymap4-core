@@ -39,7 +39,7 @@ public abstract class StyleSerializer<S extends Style,SD extends SymbolizerDescr
 
     private static Log log = LogFactory.getLog( StyleSerializer.class );
     
-    protected List<SD>      descriptors = new ArrayList();
+    protected List<SD>      descriptors;
     
     
     public List<SD> serialize( S style ) {

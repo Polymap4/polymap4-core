@@ -126,7 +126,12 @@ public class SLDSerializer
         Rule rule = sf.createRule();
         rule.setName( descriptor.description.get() );
         rule.symbolizers().add( sym );
-        rule.setFilter( descriptor.filter.get() );
+        
+        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
+        descriptor.scale.ifPresent( scale -> {
+            rule.setMinScaleDenominator( scale.getLeft() );
+            rule.setMaxScaleDenominator( scale.getRight() );
+        });
 
         return sf.createFeatureTypeStyle( new Rule[] { rule } );
     }
