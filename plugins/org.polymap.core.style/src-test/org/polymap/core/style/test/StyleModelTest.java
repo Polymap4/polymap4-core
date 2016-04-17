@@ -94,7 +94,6 @@ public class StyleModelTest {
                 .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
                 .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
         
-        
         // serialize
         Style sld = new SLDSerializer().serialize( new FeatureStyleSerializer.Context() {
             @Override
