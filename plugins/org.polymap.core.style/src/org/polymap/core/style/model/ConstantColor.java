@@ -14,8 +14,11 @@
  */
 package org.polymap.core.style.model;
 
+import java.awt.Color;
+
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.TypedValueInitializer;
 
 /**
  * 
@@ -25,6 +28,23 @@ import org.polymap.model2.Property;
 public class ConstantColor
         extends StylePropertyValue {
 
+    /**
+     * Initializes a newly created instance with default values.
+     */
+    public static TypedValueInitializer<ConstantColor> defaults( int r, int g, int b ) {
+        return new TypedValueInitializer<ConstantColor>() {
+            @Override
+            public ConstantColor initialize( ConstantColor proto ) throws Exception {
+                proto.r.set( r );
+                proto.g.set( g );
+                proto.b.set( b );
+                return proto;
+            }
+        };
+    }
+
+    // instance *******************************************
+    
     @Concerns( NumberConcern.class )
     @NumberConcern.Range( from=0, to=255 )
     public Property<Integer>            r;
@@ -36,5 +56,10 @@ public class ConstantColor
     @Concerns( NumberConcern.class )
     @NumberConcern.Range( from=0, to=255 )
     public Property<Integer>            b;
+    
+    
+    public Color color() {
+        return new Color( r.get(), g.get(), b.get() );
+    }
     
 }

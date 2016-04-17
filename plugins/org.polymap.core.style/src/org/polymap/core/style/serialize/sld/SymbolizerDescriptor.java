@@ -14,9 +14,11 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Rule;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
@@ -24,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
-import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.style.model.Style;
 
 /**
@@ -42,22 +43,37 @@ public abstract class SymbolizerDescriptor
 
     private static Log log = LogFactory.getLog( SymbolizerDescriptor.class );
 
-    @Immutable
+    public static final FilterFactory       ff = CommonFactoryFinder.getFilterFactory( null );
+
     public Config<Pair<Integer,Integer>>    scale;
     
-    @Immutable
     public Config<Filter>                   filter;
 
-    @Immutable
     public Config<Integer>                  zIndex;
 
     
     @Override
-    protected SymbolizerDescriptor clone() throws CloneNotSupportedException {
-        SymbolizerDescriptor clone = (SymbolizerDescriptor)super.clone();
-        clone.scale.set( scale.get() );
-        clone.filter.set( filter.get() );
-        return clone;
+    protected SymbolizerDescriptor clone() {
+        try {
+            SymbolizerDescriptor clone = (SymbolizerDescriptor)super.clone();
+            clone.scale.set( scale.get() );
+            clone.filter.set( filter.get() );
+            return clone;
+        }
+        catch (CloneNotSupportedException e) {
+            throw new RuntimeException( e );
+        }
+    }
+    
+    
+    /**
+     * Append (AND) the given filter to the currently set {@link #filter} of this
+     * descriptor.
+     */
+    public void filterAnd( Filter f ) {
+        Filter current = filter.get();
+        filter.set( current == null || current.equals( Filter.INCLUDE )
+                ? f : ff.and( current, f ) );
     }
     
 }

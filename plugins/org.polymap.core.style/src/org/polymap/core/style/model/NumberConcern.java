@@ -33,8 +33,12 @@ public class NumberConcern<T extends Number>
     
     @Override
     public void set( T value ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        Range a = (Range)info().getAnnotation( Range.class );
+        assert a != null : "Missing NumberConcern.Range annotation on property: " + info().getName();
+        if (value.intValue() < a.from() || value.intValue() > a.to()) {
+            throw new IllegalArgumentException( "Property range: " + value + "outside: " + a.from() + "-" + a.to() + " for property: " + info().getName() );
+        }
+        super.set( value );
     }
 
     

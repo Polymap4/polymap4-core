@@ -16,7 +16,10 @@ package org.polymap.core.style.serialize.sld;
 
 import java.awt.Color;
 
+import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.DefaultDouble;
+import org.polymap.core.runtime.config.NumberRangeValidator;
 
 /**
  * 
@@ -30,15 +33,19 @@ public class PointSymbolizerDescriptor
     
     public Config<Color>                strokeColor;
     
-    public Config<Integer>              strokeOpacity;
+    @DefaultDouble( 1 )
+    @Check( value=NumberRangeValidator.class, args={"0","1"} )
+    public Config<Double>               strokeOpacity;
     
     public Config<Color>                fillColor;
     
-    public Config<Integer>              fillOpacity;
+    @DefaultDouble( 1 )
+    @Check( value=NumberRangeValidator.class, args={"0","1"} )
+    public Config<Double>               fillOpacity;
 
     
     @Override
-    protected PointSymbolizerDescriptor clone() throws CloneNotSupportedException {
+    protected PointSymbolizerDescriptor clone() {
         PointSymbolizerDescriptor clone = (PointSymbolizerDescriptor)super.clone();
         clone.strokeWidth.set( strokeWidth.get() );
         clone.strokeColor.set( strokeColor.get() );

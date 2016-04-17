@@ -14,11 +14,12 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.awt.Color;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.PointStyle;
-import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
 
 /**
  * Serialize {@link PointStyle}.
@@ -26,22 +27,24 @@ import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
  * @author Falko Bräutigam
  */
 public class PointStyleSerializer
-        extends StyleSerializer<PointStyle> {
+        extends StyleSerializer<PointStyle,PointSymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( PointStyleSerializer.class );
 
 
     @Override
-    protected SymbolizerDescriptor createDescriptor() {
+    protected PointSymbolizerDescriptor createDescriptor() {
         return new PointSymbolizerDescriptor();
     }
 
 
     @Override
     public void doSerialize( PointStyle style ) {
-        // XXX setter definition should be inline; I don't get it to compile :(
-        Setter<PointSymbolizerDescriptor,Integer> setter = (sd,value) -> sd.strokeWidth.set( value );
-        setValue( style.strokeWidth.get(), setter );
+        setValue( style.strokeWidth.get(), (PointSymbolizerDescriptor sd, Integer value) -> sd.strokeWidth.set( value ) );
+        setValue( style.strokeOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.strokeOpacity.set( value ) );
+        setValue( style.strokeColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.strokeColor.set( value ) );
+        setValue( style.fillColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.fillColor.set( value ) );
+        setValue( style.fillOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.fillOpacity.set( value ) );
     }
     
 }

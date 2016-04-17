@@ -31,17 +31,18 @@ import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
  * {@link StylePropertyValue} types. Those different {@link StylePropertyValue} types
  * are handled by corresponding {@link StylePropertyValueHandler} types.
  *
- * @param <S>
+ * @param <S> The input style type.
+ * @param <SD> The output symbolizer descriptor.
  * @author Falko Bräutigam
  */
-public abstract class StyleSerializer<S extends Style> {
+public abstract class StyleSerializer<S extends Style,SD extends SymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( StyleSerializer.class );
     
-    protected List<SymbolizerDescriptor>    descriptors = new ArrayList();
+    protected List<SD>      descriptors = new ArrayList();
     
     
-    public List<SymbolizerDescriptor> serialize( S style ) {
+    public List<SD> serialize( S style ) {
         assert descriptors == null;
         try {
             descriptors = new ArrayList();
@@ -53,7 +54,7 @@ public abstract class StyleSerializer<S extends Style> {
         }
     }
     
-    protected abstract SymbolizerDescriptor createDescriptor();
+    protected abstract SD createDescriptor();
     
     protected abstract void doSerialize( S style );
     
@@ -66,13 +67,15 @@ public abstract class StyleSerializer<S extends Style> {
      * @param spv
      * @param setter
      */
-    protected void setValue( StylePropertyValue spv, Setter setter ) {
+    protected <V extends Object> void setValue( StylePropertyValue spv, Setter<SD,V> setter ) {
+        
         if (descriptors.isEmpty()) {
             descriptors.add( createDescriptor() );
         }
-        List<SymbolizerDescriptor> updated = new ArrayList( descriptors.size() );
+        
+        List<SD> updated = new ArrayList( descriptors.size() );
         for (SymbolizerDescriptor sd : descriptors) {
-            updated.addAll( StylePropertyValueHandler.handle( spv, sd, setter ) );
+            updated.addAll( StylePropertyValueHandler.handle( spv, (SD)sd, setter ) );
         }
         this.descriptors = updated;
     }    

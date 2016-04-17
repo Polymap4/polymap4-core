@@ -28,7 +28,7 @@ public class ConstantNumber
     /**
      * Initializes a newly created instance with default values.
      */
-    public static TypedValueInitializer<ConstantNumber> defaults( int value ) {
+    public static TypedValueInitializer<ConstantNumber> defaults( Number value ) {
         return new TypedValueInitializer<ConstantNumber>() {
             @Override
             public ConstantNumber initialize( ConstantNumber proto ) throws Exception {

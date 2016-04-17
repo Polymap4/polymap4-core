@@ -85,7 +85,7 @@ public class SLDSerializer
         // 2: create flat list of SymbolizerDescriptor instances
         PointStyle ps = (PointStyle)Iterables.getOnlyElement( featureStyle.members() );
         PointStyleSerializer serializer = new PointStyleSerializer();
-        List<SymbolizerDescriptor> descriptors = serializer.serialize( ps );
+        List<? extends SymbolizerDescriptor> descriptors = serializer.serialize( ps );
         
         // 3: transform into FeatureTypeStyle and Rule instances
         sld = sf.createStyle();
@@ -109,7 +109,9 @@ public class SLDSerializer
         Mark mark = sf.getCircleMark();
         mark.setStroke( sf.createStroke( 
                 ff.literal( descriptor.strokeColor.get() ), 
-                ff.literal( descriptor.strokeWidth.get() ) ) );
+                ff.literal( descriptor.strokeWidth.get() ),
+                ff.literal( descriptor.strokeOpacity.get() ) ) );
+        
         //mark.setFill( sf.createFill( ff.literal( Color.YELLOW ) ) );
 
         gr.graphicalSymbols().clear();

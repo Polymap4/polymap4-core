@@ -16,12 +16,17 @@ package org.polymap.core.style.serialize.sld;
 
 import java.util.Collections;
 import java.util.List;
+
+import java.awt.Color;
+
+import org.polymap.core.style.model.ConstantColor;
 import org.polymap.core.style.model.ConstantNumber;
+import org.polymap.core.style.model.ConstantNumbersFromFilter;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyValue;
 
 /**
- * Create actual values out of an {@link StylePropertyValue} descriptor.
+ * Handles one {@link StylePropertyValue} descriptor and provides it with actual values.
  *
  * @author Falko Bräutigam
  */
@@ -30,9 +35,16 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
     /**
      * See {@link #doHandle(StylePropertyValue, SymbolizerDescriptor, Setter)}.
      */
-    public static List<SymbolizerDescriptor> handle( StylePropertyValue spv, SymbolizerDescriptor sd, Setter setter ) {
+    public static <SD extends SymbolizerDescriptor,V extends Object> 
+    List<SD> handle( StylePropertyValue spv, SD sd, Setter<SD,V> setter ) {
         if (spv instanceof ConstantNumber) {
-            return new ConstantNumberHandler().doHandle( (ConstantNumber)spv, sd, setter );
+            return new ConstantNumberHandler().doHandle( (ConstantNumber)spv, sd, (Setter<SD,Number>)setter );
+        }
+        else if (spv instanceof ConstantNumbersFromFilter) {
+            return new ConstantNumbersFromFilterHandler().doHandle( (ConstantNumbersFromFilter)spv, sd, (Setter<SD,Number>)setter );
+        }
+        else if (spv instanceof ConstantColor) {
+            return new ConstantColorHandler().doHandle( (ConstantColor)spv, sd, (Setter<SD,Color>)setter );
         }
         else {
             throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
@@ -43,7 +55,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
     // SPI ************************************************
     
     @FunctionalInterface
-    public interface Setter<SD extends SymbolizerDescriptor,V> {
+    public interface Setter<SD extends SymbolizerDescriptor,V extends Object> {
         void set( SD sd, V value );
     }
     
@@ -55,7 +67,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
      *
      * @return List of resulting symbolizers.
      */
-    public abstract List<SymbolizerDescriptor> doHandle( SPV spv, SymbolizerDescriptor sd, Setter<SymbolizerDescriptor,V> setter );
+    public abstract <SD extends SymbolizerDescriptor> List<SD> doHandle( SPV spv, SD sd, Setter<SD,V> setter );
     
 
     /**
@@ -65,10 +77,22 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
             extends StylePropertyValueHandler<ConstantNumber,Number> {
 
         @Override
-        public List<SymbolizerDescriptor> doHandle( ConstantNumber constantNumber, 
-                SymbolizerDescriptor sd, Setter<SymbolizerDescriptor,Number> setter ) {
-            
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantNumber constantNumber, SD sd, Setter<SD,Number> setter ) {
             setter.set( sd, constantNumber.value.get() );
+            return Collections.singletonList( sd );
+        }
+    }
+
+    
+    /**
+     * ConstantColor
+     */
+    static class ConstantColorHandler
+            extends StylePropertyValueHandler<ConstantColor,Color> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantColor constantColor, SD sd, Setter<SD,Color> setter ) {
+            setter.set( sd, constantColor.color() );
             return Collections.singletonList( sd );
         }
     }

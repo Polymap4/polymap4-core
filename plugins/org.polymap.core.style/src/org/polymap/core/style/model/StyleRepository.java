@@ -58,6 +58,7 @@ public class StyleRepository
                         AttributeValue.class, 
                         ConstantColor.class, 
                         ConstantNumber.class,
+                        ConstantNumbersFromFilter.class,
                         ConstantBoolean.class,
                         PointStyle.class} )
                 .store.set( 
