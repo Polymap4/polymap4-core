@@ -102,8 +102,6 @@ public class SLDSerializer
 
 
     protected FeatureTypeStyle buildPointStyle( PointSymbolizerDescriptor descriptor ) {
-        FeatureTypeStyle result = sf.createFeatureTypeStyle( new Rule[] {} );
-        
         Graphic gr = sf.createDefaultGraphic();
 
         Mark mark = sf.getCircleMark();
@@ -124,12 +122,13 @@ public class SLDSerializer
          */
         PointSymbolizer sym = sf.createPointSymbolizer( gr, null );
 
+        // Rule
         Rule rule = sf.createRule();
+        rule.setName( descriptor.description.get() );
         rule.symbolizers().add( sym );
-        rule.setName( "Rule for PointSymbolizer" );
-        result.rules().add( rule );
-        
-        return result;
+        rule.setFilter( descriptor.filter.get() );
+
+        return sf.createFeatureTypeStyle( new Rule[] { rule } );
     }
     
 }

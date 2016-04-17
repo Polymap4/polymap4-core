@@ -19,6 +19,7 @@ import java.awt.Color;
 import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.DefaultDouble;
+import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.NumberRangeValidator;
 
 /**
@@ -29,16 +30,21 @@ import org.polymap.core.runtime.config.NumberRangeValidator;
 public class PointSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
+    @Immutable
     public Config<Integer>              strokeWidth;
     
+    @Immutable
     public Config<Color>                strokeColor;
     
+    @Immutable
     @DefaultDouble( 1 )
     @Check( value=NumberRangeValidator.class, args={"0","1"} )
     public Config<Double>               strokeOpacity;
     
+    @Immutable
     public Config<Color>                fillColor;
     
+    @Immutable
     @DefaultDouble( 1 )
     @Check( value=NumberRangeValidator.class, args={"0","1"} )
     public Config<Double>               fillOpacity;
@@ -46,13 +52,7 @@ public class PointSymbolizerDescriptor
     
     @Override
     protected PointSymbolizerDescriptor clone() {
-        PointSymbolizerDescriptor clone = (PointSymbolizerDescriptor)super.clone();
-        clone.strokeWidth.set( strokeWidth.get() );
-        clone.strokeColor.set( strokeColor.get() );
-        clone.strokeOpacity.set( strokeOpacity.get() );
-        clone.fillColor.set( fillColor.get() );
-        clone.fillOpacity.set( fillOpacity.get() );
-        return clone;
+        return (PointSymbolizerDescriptor)super.clone();
     }
 
 }
