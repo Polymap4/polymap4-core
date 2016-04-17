@@ -14,6 +14,8 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.util.Objects;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
@@ -93,7 +95,11 @@ public abstract class SymbolizerDescriptor
     
     
     protected <T> void copy( Config<T> from, Config<T> to ) {
-        from.ifPresent( v -> to.set( v ) );
+        T newValue = from.get();
+        // prevent exceptions for @Immutable properties
+        if (!Objects.equals( newValue, to.get() )) {
+            to.set( newValue );
+        }
     }
     
     
