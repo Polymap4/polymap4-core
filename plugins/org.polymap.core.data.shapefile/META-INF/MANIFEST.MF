@@ -5,8 +5,8 @@ Bundle-SymbolicName: org.polymap.core.data.shapefile
 Bundle-Version: 4.0.0.qualifier
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ClassPath: lib/gt-shapefile-13.2.jar,
- .
+Bundle-ClassPath: .,
+ lib/gt-shapefile-13.2.p4_1.jar
 Export-Package: org.geotools.data.shapefile,
  org.geotools.data.shapefile.dbf,
  org.geotools.data.shapefile.fid,
