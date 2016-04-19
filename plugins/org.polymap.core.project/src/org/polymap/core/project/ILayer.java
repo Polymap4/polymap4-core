@@ -25,6 +25,7 @@ import org.polymap.model2.Association;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Mixins;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
@@ -49,7 +50,13 @@ public class ILayer
      *
      */
     public Property<String>         resourceIdentifier;
-    
+   
+   /**
+    *
+    */
+    @Nullable
+    public Property<String>         styleIdentifier;
+
     @Defaults
     public Property<Integer>        orderKey;
     

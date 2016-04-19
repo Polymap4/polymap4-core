@@ -77,8 +77,10 @@ public class DeleteLayerOperation
             }
             // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
             map.label.set( map.label.get() );
-            
+
+            // FIXME remove is not implemented (?)
             assert !map.layers.contains( localLayer );
+            
             uow.get().removeEntity( localLayer );
             monitor.worked( 1 );
             

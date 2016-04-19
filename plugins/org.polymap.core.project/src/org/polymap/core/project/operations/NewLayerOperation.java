@@ -67,6 +67,9 @@ public class NewLayerOperation
     @Immutable
     public Config2<NewLayerOperation,String>        resourceIdentifier;
     
+    @Immutable
+    public Config2<NewLayerOperation,String>        styleIdentifier;
+    
     /** Newly created layer */
     @Immutable
     public Config2<NewLayerOperation,ILayer>        layer;
@@ -89,17 +92,14 @@ public class NewLayerOperation
                 proto.label.set( label.get() );
                 proto.resourceIdentifier.set( resourceIdentifier.get() );
                 proto.parentMap.set( localMap );
+                styleIdentifier.ifPresent( id -> proto.styleIdentifier.set( id ) );
                 return proto;
             }));
 
             localMap.layers.add( layer.get() );
             // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
             localMap.label.set( localMap.label.get() );
-            
-//            if (map.get().maxExtent.get() == null) {
-//                ReferencedEnvelope layerBBox = SetLayerBoundsOperation.obtainBoundsFromResources( layer, map.getCRS(), monitor );
-//            }
-            
+                        
             uow.get().commit();
         }
         catch (Throwable e) {

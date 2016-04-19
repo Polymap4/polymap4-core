@@ -38,6 +38,7 @@ public class IMap
 
     public static IMap                  TYPE;
     
+    // XXX make it BidiAssociationConcern
     @Defaults
     public ManyAssociation<ILayer>      layers;
 
