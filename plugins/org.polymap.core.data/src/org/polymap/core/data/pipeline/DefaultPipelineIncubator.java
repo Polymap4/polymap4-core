@@ -172,7 +172,7 @@ public class DefaultPipelineIncubator
         for (ProcessorDescription procDesc : chain) {
             try {
                 PipelineProcessor processor = procDesc.processor();
-                PipelineProcessorSite procSite = new PipelineProcessorSite( procDesc.getProps() );
+                PipelineProcessorSite procSite = createProcessorSite( procDesc );
                 procSite.usecase.set( usecase );
                 procSite.dsd.set( dsd );
                 procSite.incubator.set( this );
@@ -191,6 +191,11 @@ public class DefaultPipelineIncubator
 //        }
 
         return pipeline;
+    }
+
+
+    protected PipelineProcessorSite createProcessorSite( ProcessorDescription procDesc ) {
+        return new PipelineProcessorSite( procDesc.getProps() );
     }
 
 

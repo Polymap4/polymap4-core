@@ -14,6 +14,7 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -28,7 +29,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
     /** Lazily inited by {@link #signature()}. */
     private ProcessorSignature          signature;
     
-    private Properties                  props;
+    private Map<String,Object>          props;
     
     private P                           processor;
 
@@ -40,7 +41,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
      *        {@link PipelineProcessor#init(Properties)} method.
      * @param usecase 
      */
-    public ProcessorDescription( Class<? extends PipelineProcessor> cl, Properties props ) {
+    public ProcessorDescription( Class<? extends PipelineProcessor> cl, Map<String,Object> props ) {
         this.cl = cl;
         this.props = props;
     }
@@ -86,7 +87,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
     }
 
     
-    public Properties getProps() {
+    public Map<String,Object> getProps() {
         return props;
     }
 

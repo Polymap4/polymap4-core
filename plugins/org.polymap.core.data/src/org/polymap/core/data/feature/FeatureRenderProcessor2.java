@@ -16,6 +16,8 @@ package org.polymap.core.data.feature;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -59,6 +61,9 @@ public class FeatureRenderProcessor2
         implements TerminalPipelineProcessor, ImageProducer {
 
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
+
+    /** Site property key to retrieve {@link #style}. */
+    public static final String          STYLE_SUPPLIER = "styleSupplier";
     
     private PipelineProcessorSite       site;
     
@@ -66,12 +71,19 @@ public class FeatureRenderProcessor2
 
     private Lazy<FeatureSource>         fs;
 
-    private Lazy<Style>                 style = new CachedLazyInit( () -> new DefaultStyles().findStyle( fs.get() ) );
+    private Supplier<Style>             style;  // = new CachedLazyInit( () -> new DefaultStyles().findStyle( fs.get() ) );
 
     
     @Override
     public void init( @SuppressWarnings("hiding") PipelineProcessorSite site ) throws Exception {
         this.site = site;
+        
+        // styleSupplier
+        style = site.getProperty( STYLE_SUPPLIER );
+        if (style == null) {
+            log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
+            style = () -> new DefaultStyles().findStyle( fs.get() );
+        }
         
         // pipeline
         this.pipeline = new CachedLazyInit( () -> {

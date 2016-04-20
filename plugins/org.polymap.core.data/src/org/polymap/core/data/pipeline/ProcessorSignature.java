@@ -30,6 +30,8 @@ import java.lang.reflect.Method;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Throwables;
+
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
@@ -154,7 +156,7 @@ public class ProcessorSignature {
             m.invoke( processor, new Object[] {probe, context} );
         }
         catch (InvocationTargetException e) {
-            throw (Exception)e.getTargetException();
+            throw Throwables.propagate( e.getTargetException() );
         }
     }
 

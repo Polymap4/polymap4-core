@@ -14,8 +14,8 @@
  */
 package org.polymap.core.data.pipeline;
 
-import java.util.Properties;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Immutable;
@@ -40,11 +40,13 @@ public class PipelineProcessorSite
     @Immutable
     public Config<PipelineIncubator>        incubator;
 
-    private Properties                      props;
+    private Map<String,Object>              props = new HashMap();
     
     
-    public PipelineProcessorSite( Properties props ) {
-        this.props = props;
+    public PipelineProcessorSite( Map<String,Object> props ) {
+        if (props != null) {
+            this.props.putAll( props );
+        }
     }
 
     public <T> T getProperty( String key ) {
