@@ -21,7 +21,7 @@ import java.awt.Color;
 
 import org.polymap.core.style.model.ConstantColor;
 import org.polymap.core.style.model.ConstantNumber;
-import org.polymap.core.style.model.ConstantNumbersFromFilter;
+import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyValue;
 
@@ -40,8 +40,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
         if (spv instanceof ConstantNumber) {
             return new ConstantNumberHandler().doHandle( (ConstantNumber)spv, sd, (Setter<SD,Number>)setter );
         }
-        else if (spv instanceof ConstantNumbersFromFilter) {
-            return new ConstantNumbersFromFilterHandler().doHandle( (ConstantNumbersFromFilter)spv, sd, (Setter<SD,Number>)setter );
+        else if (spv instanceof FilterMappedNumbers) {
+            return new FilterMappedNumbersHandler().doHandle( (FilterMappedNumbers)spv, sd, (Setter<SD,Number>)setter );
         }
         else if (spv instanceof ConstantColor) {
             return new ConstantColorHandler().doHandle( (ConstantColor)spv, sd, (Setter<SD,Color>)setter );
@@ -78,8 +78,13 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue,V
 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantNumber constantNumber, SD sd, Setter<SD,Number> setter ) {
-            setter.set( sd, constantNumber.value.get() );
-            return Collections.singletonList( sd );
+            try {
+                setter.set( sd, (Number)constantNumber.value.get() );
+                return Collections.singletonList( sd );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e.getMessage() + " : " + constantNumber.info().getName(), e );
+            }
         }
     }
 

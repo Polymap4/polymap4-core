@@ -17,6 +17,9 @@ package org.polymap.core.style.serialize;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.style.model.FeatureStyle;
 
 /**
@@ -32,18 +35,18 @@ public abstract class FeatureStyleSerializer<T> {
     /**
      * 
      */
-    public static abstract class Context {
+    public static class Context
+            extends Configurable {
         
-        protected IProgressMonitor      monitor = new NullProgressMonitor();
+        @Mandatory
+        public Config2<Context,IProgressMonitor>    monitor;
         
-        protected Context() {}
+        @Mandatory
+        public Config2<Context,FeatureStyle>        featureStyle;
         
-        public IProgressMonitor monitor() {
-            return monitor;
+        public Context() {
+            monitor.set( new NullProgressMonitor() );
         }
-
-        public abstract FeatureStyle featureStyle();
-
     }
 
 }

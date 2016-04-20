@@ -17,11 +17,7 @@ package org.polymap.core.style.test;
 import static org.junit.Assert.assertTrue;
 import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
 
-import org.geotools.styling.SLDTransformer;
-import org.geotools.styling.Style;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -31,14 +27,10 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.style.model.ConstantBoolean;
 import org.polymap.core.style.model.ConstantColor;
 import org.polymap.core.style.model.ConstantNumber;
-import org.polymap.core.style.model.ConstantNumbersFromFilter;
 import org.polymap.core.style.model.FeatureStyle;
+import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.StyleRepository;
-import org.polymap.core.style.serialize.FeatureStyleSerializer;
-import org.polymap.core.style.serialize.sld.SLDSerializer;
-
-import org.polymap.model2.runtime.UnitOfWork;
 
 /**
  * 
@@ -65,47 +57,28 @@ public class StyleModelTest {
 
     // instance *******************************************
     
-    private UnitOfWork          uow;
-
-    @Before
-    public void setUp() throws Exception {
-        uow = repo.newUnitOfWork();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        uow.close();
-    }
-
-
     @Test
     public void test() throws Exception {
-        FeatureStyle fs = uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults );
+        FeatureStyle fs = repo.newfeatureStyle();
         
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
-        assertTrue( point.active.get() instanceof ConstantBoolean );
+        assertTrue( point.activeIf.get() instanceof ConstantBoolean );
         
         point.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
         point.strokeColor.createValue( ConstantColor.defaults( 100, 100, 100 ) );
-        point.strokeWidth.createValue( ConstantNumber.defaults( 5 ) );
-        point.strokeOpacity.createValue( ConstantNumbersFromFilter.defaults() )
+        point.strokeWidth.createValue( ConstantNumber.defaults( 5.0 ) );
+        point.strokeOpacity.createValue( FilterMappedNumbers.defaults() )
                 .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
                 .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
         
-        // serialize
-        Style sld = new SLDSerializer().serialize( new FeatureStyleSerializer.Context() {
-            @Override
-            public FeatureStyle featureStyle() { return fs; }
-        });
-        
-        // SLD
-        SLDTransformer styleTransform = new SLDTransformer();
-        styleTransform.setIndentation( 4 );
-        styleTransform.setOmitXMLDeclaration( false );
-        String xml = styleTransform.transform( sld );
-        log.info( "SLD: " + xml );
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+
+        point.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
     
 }

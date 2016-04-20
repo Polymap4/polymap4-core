@@ -67,7 +67,7 @@ public abstract class StyleSerializer<S extends Style,SD extends SymbolizerDescr
      * @param spv
      * @param setter
      */
-    protected <V extends Object> void setValue( StylePropertyValue spv, Setter<SD,V> setter ) {
+    protected <V extends Object> void setValue( StylePropertyValue<V> spv, Setter<SD,V> setter ) {
         
         if (descriptors.isEmpty()) {
             descriptors.add( createDescriptor() );

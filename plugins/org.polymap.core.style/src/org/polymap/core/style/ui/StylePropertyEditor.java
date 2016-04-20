@@ -20,8 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-
 import org.polymap.core.style.model.StylePropertyValue;
 
 /**
@@ -43,16 +41,11 @@ abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
     public abstract String label();
     
     
-    public Control createContents( Composite parent ) {
-        Composite contents = new Composite( parent, SWT.BORDER );
-        return contents;
-    }
-
-    
     /**
-     * Creates a control that displays the current value of this editor.
+     * Creates a control that displays the current value of this editor and a way for
+     * the user to modify the value.
      */
-    public Composite createValueContents( Composite parent ) {
+    public Composite createContents( Composite parent ) {
         Composite contents = new Composite( parent, SWT.BORDER );
         contents.setLayout( new FillLayout( SWT.HORIZONTAL ) );
         return contents;

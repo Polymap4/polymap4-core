@@ -20,9 +20,10 @@ import org.polymap.model2.Composite;
  * Describes the value of a style property. Values can be a simple constant value or
  * a complex composite of multiple values and settings.
  *
+ * @param <T> The actual target type of this value.
  * @author Falko Bräutigam
  */
-public abstract class StylePropertyValue
+public abstract class StylePropertyValue<T>
         extends Composite {
 
 }

@@ -14,12 +14,27 @@
  */
 package org.polymap.core.style.model;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import java.io.File;
 import java.io.IOException;
 
+import javax.xml.transform.TransformerException;
+
+import org.geotools.styling.SLDTransformer;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
+import org.polymap.core.style.serialize.sld.SLDSerializer;
+
+import org.polymap.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.runtime.locking.OptimisticLocking;
@@ -28,7 +43,16 @@ import org.polymap.recordstore.IRecordStore;
 import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 /**
- * 
+ * Local repository of {@link FeatureStyle} instances.
+ * <p/>
+ * Every instance runs within its own {@link UnitOfWork}. An instance can be passed
+ * around, it keeps stable for its entiry lifetime. However,
+ * {@link FeatureStyle#store()} might {@link ConcurrentEntityModificationException
+ * fail} because of concurrent modification.
+ * <p/>
+ * {@link #serializedFeatureStyle(String, Class) Serialized} versions of the styles
+ * are cached by the repo. There is exactly one current serialized version per style
+ * format at any given time.
  *
  * @author Falko Bräutigam
  */
@@ -37,7 +61,9 @@ public class StyleRepository
 
     private static Log log = LogFactory.getLog( StyleRepository.class );
     
-    private EntityRepository        repo;
+    private EntityRepository                    repo;
+    
+    private Cache<Pair<String,String>,Optional> serialized = CacheConfig.defaults().createCache();
 
     
     /**
@@ -55,15 +81,14 @@ public class StyleRepository
         repo = EntityRepository.newConfiguration()
                 .entities.set( new Class[] {
                         FeatureStyle.class, 
-                        AttributeValue.class, 
                         ConstantColor.class, 
                         ConstantNumber.class,
-                        ConstantNumbersFromFilter.class,
+                        FilterMappedNumbers.class,
+                        //ScaleMappedNumbers.class,
                         ConstantBoolean.class,
                         PointStyle.class} )
                 .store.set( 
                         new OptimisticLocking(
-                        //new FulltextIndexer( fulltextIndex, new TypeFilter( Waldbesitzer.class ), newArrayList( wbTransformer ),
                         new RecordStoreAdapter( store ) ) )
                 .create();
     }
@@ -77,8 +102,70 @@ public class StyleRepository
     }
 
 
-    public UnitOfWork newUnitOfWork() {
-        return repo.newUnitOfWork();
+    public FeatureStyle newfeatureStyle() {
+        UnitOfWork uow = repo.newUnitOfWork();
+        return uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults( this, uow ) );
+    }
+
+    
+    public Optional<FeatureStyle> featureStyle( String id ) {
+        UnitOfWork uow = repo.newUnitOfWork();
+        Optional<FeatureStyle> result = Optional.ofNullable( uow.entity( FeatureStyle.class, id ) );
+        result.ifPresent( fs -> fs.uow = uow );
+        return result;
+    }
+    
+
+    /**
+     * The serialized version of the {@link FeatureStyle} with the given id. The
+     * result ist cached until next time the style is stored.
+     *
+     * @param id The id of the {@link FeatureStyle} to serialize. The instance has to
+     *        be <b>stored</b>.
+     * @param targetType The target type of the serialization.
+     * @return The serialized version, or {@link Optional#empty()} no style exists
+     *         for the given id.
+     * @throws RuntimeException If targetType is not supported.
+     */
+    public <T> Optional<T> serializedFeatureStyle( String id, Class<T> targetType ) {
+        return serialized.get( Pair.of( id, targetType.getName() ), key -> {
+            T result = null;
+            FeatureStyle fs = featureStyle( id ).orElse( null );
+            if (fs != null) {
+                Context sc = new Context().featureStyle.put( fs );
+                
+                // geotools.styling.Style
+                if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
+                    result = (T)new SLDSerializer().serialize( sc );
+                }
+                // String/SLD
+                else if (String.class.isAssignableFrom( targetType )) {
+                    org.geotools.styling.Style style = new SLDSerializer().serialize( sc );
+                    try {
+                        SLDTransformer styleTransform = new SLDTransformer();
+                        styleTransform.setIndentation( 4 );
+                        styleTransform.setOmitXMLDeclaration( false );
+                        result = (T)styleTransform.transform( style );
+                    }
+                    catch (TransformerException e) {
+                        throw new RuntimeException( "Unable to transform style.", e );
+                    }
+                }
+                else {
+                    throw new RuntimeException( "Unhandled serialization result type: " + targetType );
+                }
+            }
+            return Optional.ofNullable( result );
+        });
+    }
+
+
+    protected void updated( FeatureStyle updated ) {
+        List<Pair<String,String>> invalid = serialized.keySet().stream()
+                .filter( key -> key.getLeft().equals( updated.id() ) )
+                .collect( Collectors.toList() );
+        
+        invalid.forEach( key -> serialized.remove( key ) );
     }
     
 }

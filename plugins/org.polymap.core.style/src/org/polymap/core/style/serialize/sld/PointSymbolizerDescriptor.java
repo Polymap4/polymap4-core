@@ -31,7 +31,7 @@ public class PointSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<Integer>              strokeWidth;
+    public Config<Double>               strokeWidth;
     
     @Immutable
     public Config<Color>                strokeColor;

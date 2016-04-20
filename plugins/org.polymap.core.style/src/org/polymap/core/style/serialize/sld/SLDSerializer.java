@@ -77,7 +77,7 @@ public class SLDSerializer
      */
     @Override
     public Style serialize( Context context ) {
-        FeatureStyle featureStyle = context.featureStyle();
+        FeatureStyle featureStyle = context.featureStyle.get();
 
         // XXX 1: gather scale and filter descriptions from StyleGroup hierarchy
         // ...

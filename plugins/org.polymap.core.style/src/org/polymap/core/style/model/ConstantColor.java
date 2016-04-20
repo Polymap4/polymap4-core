@@ -18,7 +18,7 @@ import java.awt.Color;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.TypedValueInitializer;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * 
@@ -26,13 +26,13 @@ import org.polymap.model2.runtime.TypedValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantColor
-        extends StylePropertyValue {
+        extends StylePropertyValue<Color> {
 
     /**
      * Initializes a newly created instance with default values.
      */
-    public static TypedValueInitializer<ConstantColor> defaults( int r, int g, int b ) {
-        return new TypedValueInitializer<ConstantColor>() {
+    public static ValueInitializer<ConstantColor> defaults( int r, int g, int b ) {
+        return new ValueInitializer<ConstantColor>() {
             @Override
             public ConstantColor initialize( ConstantColor proto ) throws Exception {
                 proto.r.set( r );

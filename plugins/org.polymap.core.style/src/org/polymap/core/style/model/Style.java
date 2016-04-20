@@ -24,7 +24,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.TypedValueInitializer;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * Describes the visual representation of the {@link Geometry} of a {@link Feature}.
@@ -41,22 +41,22 @@ public abstract class Style
     /**
      * Initializes a newly created instance with default values.
      */
-    public static final TypedValueInitializer<Style> defaults = new TypedValueInitializer<Style>() {
+    public static final ValueInitializer<Style> defaults = new ValueInitializer<Style>() {
         @Override
         public Style initialize( Style proto ) throws Exception {
-            proto.active.createValue( ConstantBoolean.defaultsTrue );
+            proto.activeIf.createValue( ConstantBoolean.defaultsTrue );
             return proto;
         }
     };
     
 
     /**
-     * Describes the activity, or visibility, of this style. The value might be a
-     * constant or a complex filter expression.
+     * Describes the condition that makes this style is active/visible. The value
+     * might be a constant or a complex filter expression.
      * <p/>
      * Defaults to: {@link ConstantBoolean#defaultsTrue}
      */
-    public Property<StylePropertyValue>     active;
+    public Property<StylePropertyValue>     activeIf;
 
     /**
      * This allows to bring structure to the (possibly many) styles of an

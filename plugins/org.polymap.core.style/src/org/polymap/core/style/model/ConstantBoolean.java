@@ -15,7 +15,7 @@
 package org.polymap.core.style.model;
 
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.TypedValueInitializer;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * Provides a constant number as style property value.
@@ -23,12 +23,12 @@ import org.polymap.model2.runtime.TypedValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantBoolean
-        extends StylePropertyValue {
+        extends StylePropertyValue<Boolean> {
 
     /**
      * 
      */
-    public static final TypedValueInitializer<ConstantBoolean> defaultsTrue = new TypedValueInitializer<ConstantBoolean>() {
+    public static final ValueInitializer<ConstantBoolean> defaultsTrue = new ValueInitializer<ConstantBoolean>() {
         @Override
         public ConstantBoolean initialize( ConstantBoolean proto ) throws Exception {
             proto.value.set( true );
@@ -39,7 +39,7 @@ public class ConstantBoolean
     /**
      * 
      */
-    public static final TypedValueInitializer<ConstantBoolean> defaultsFalse = new TypedValueInitializer<ConstantBoolean>() {
+    public static final ValueInitializer<ConstantBoolean> defaultsFalse = new ValueInitializer<ConstantBoolean>() {
         @Override
         public ConstantBoolean initialize( ConstantBoolean proto ) throws Exception {
             proto.value.set( true );

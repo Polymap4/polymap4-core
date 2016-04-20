@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.Collections2;
 
 import org.polymap.model2.CollectionProperty;
-import org.polymap.model2.runtime.TypedValueInitializer;
+import org.polymap.model2.runtime.ValueInitializer;
 import org.polymap.model2.test.Timer;
 
 /**
@@ -42,10 +42,10 @@ import org.polymap.model2.test.Timer;
  *
  * @author Falko Bräutigam
  */
-public class ConstantNumbersFromFilter
-        extends StylePropertyValue {
+public class FilterMappedNumbers<T extends Number>
+        extends StylePropertyValue<T> {
 
-    private static Log log = LogFactory.getLog( ConstantNumbersFromFilter.class );
+    private static Log log = LogFactory.getLog( FilterMappedNumbers.class );
 
     public static final Configuration   ENCODE_CONFIG = new org.geotools.filter.v1_1.OGCConfiguration();
     public static final Charset         ENCODE_CHARSET = Charset.forName( "UTF-8" );
@@ -53,10 +53,10 @@ public class ConstantNumbersFromFilter
     /**
      * Initializes a newly created instance with default values.
      */
-    public static TypedValueInitializer<ConstantNumbersFromFilter> defaults() {
-        return new TypedValueInitializer<ConstantNumbersFromFilter>() {
+    public static <R extends Number> ValueInitializer<FilterMappedNumbers<R>> defaults() {
+        return new ValueInitializer<FilterMappedNumbers<R>>() {
             @Override
-            public ConstantNumbersFromFilter initialize( ConstantNumbersFromFilter proto ) throws Exception {
+            public FilterMappedNumbers<R> initialize( FilterMappedNumbers<R> proto ) throws Exception {
                 return proto;
             }
         };
@@ -83,7 +83,7 @@ public class ConstantNumbersFromFilter
     }
     
     
-    public ConstantNumbersFromFilter add( Number number, Filter filter ) throws IOException {
+    public FilterMappedNumbers add( T number, Filter filter ) throws IOException {
         // number
         values.add( number );
         

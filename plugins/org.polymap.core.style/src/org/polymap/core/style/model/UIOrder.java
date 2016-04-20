@@ -14,16 +14,23 @@
  */
 package org.polymap.core.style.model;
 
-import org.polymap.model2.Property;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Describes a feature attribute as style property value.
+ * Denotes the position in the user interface of the anotated
+ * {@link StylePropertyValue}.
  *
  * @author Falko Bräutigam
  */
-public class AttributeValue
-        extends StylePropertyValue {
-
-    public Property<String>         attributeName;
+@Retention( RetentionPolicy.RUNTIME )
+@Target( { ElementType.FIELD } )
+@Documented
+public @interface UIOrder {
+    
+    public int value();
     
 }

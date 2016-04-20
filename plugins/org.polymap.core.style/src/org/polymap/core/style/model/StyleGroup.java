@@ -18,7 +18,7 @@ import org.opengis.style.FeatureTypeStyle;
 import org.opengis.style.Rule;
 
 import org.polymap.model2.CollectionProperty;
-import org.polymap.model2.runtime.TypedValueInitializer;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * A logical group of styles. The activity/visibility of all member styles is
@@ -39,7 +39,7 @@ public class StyleGroup
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final TypedValueInitializer<StyleGroup> defaults = new TypedValueInitializer<StyleGroup>() {
+    public static final ValueInitializer<StyleGroup> defaults = new ValueInitializer<StyleGroup>() {
         @Override
         public StyleGroup initialize( StyleGroup proto ) throws Exception {
             Style.defaults.initialize( proto );

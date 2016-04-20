@@ -14,8 +14,11 @@
  */
 package org.polymap.core.style.model;
 
+import java.awt.Color;
+
+import org.polymap.model2.Description;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.TypedValueInitializer;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * Simple point style. Roughly modelling: 
@@ -33,7 +36,7 @@ public class PointStyle
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final TypedValueInitializer<PointStyle> defaults = new TypedValueInitializer<PointStyle>() {
+    public static final ValueInitializer<PointStyle> defaults = new ValueInitializer<PointStyle>() {
         @Override
         public PointStyle initialize( PointStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
@@ -41,14 +44,23 @@ public class PointStyle
         }
     };
 
-    public Property<StylePropertyValue>     strokeWidth;
+    @UIOrder( 10 )
+    @Description( "Width of the outer stroke" )
+    public Property<StylePropertyValue<Double>> strokeWidth;
     
-    public Property<StylePropertyValue>     strokeColor;
+    @UIOrder( 20 )
+    @Description( "Color of the outer stroke" )
+    public Property<StylePropertyValue<Color>>  strokeColor;
     
-    public Property<StylePropertyValue>     strokeOpacity;
+    @UIOrder( 30 )
+    @Description( "Opacity of the outer stroke (0..1)" )
+    public Property<StylePropertyValue<Double>> strokeOpacity;
     
-    public Property<StylePropertyValue>     fillColor;
+    @UIOrder( 40 )
+    public Property<StylePropertyValue<Color>>  fillColor;
     
-    public Property<StylePropertyValue>     fillOpacity;
+    @UIOrder( 50 )
+    //@NumberRange( 0.0, 1.0 );
+    public Property<StylePropertyValue<Double>> fillOpacity;
     
 }

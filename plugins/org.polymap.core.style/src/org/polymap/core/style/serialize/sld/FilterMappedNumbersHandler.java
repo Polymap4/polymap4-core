@@ -23,21 +23,21 @@ import org.opengis.filter.Filter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.ConstantNumbersFromFilter;
+import org.polymap.core.style.model.FilterMappedNumbers;
 
 /**
  * 
  *
  * @author Falko Bräutigam
  */
-public class ConstantNumbersFromFilterHandler
-    extends StylePropertyValueHandler<ConstantNumbersFromFilter,Number> {
+public class FilterMappedNumbersHandler
+    extends StylePropertyValueHandler<FilterMappedNumbers,Number> {
 
-    private static Log log = LogFactory.getLog( ConstantNumbersFromFilterHandler.class );
+    private static Log log = LogFactory.getLog( FilterMappedNumbersHandler.class );
 
 
     @Override
-    public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantNumbersFromFilter spv, SD sd, Setter<SD,Number> setter ) {
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( FilterMappedNumbers spv, SD sd, Setter<SD,Number> setter ) {
         // split style descriptors
         List<SD> result = new ArrayList( spv.values.size() );
         

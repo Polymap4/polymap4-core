@@ -19,7 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import org.polymap.core.style.model.ConstantNumber;
 
@@ -41,10 +41,10 @@ class ConstantNumberEditor
 
 
     @Override
-    public Composite createValueContents( Composite parent ) {
-        Composite contents = super.createValueContents( parent );
-        Label l = new Label( parent, SWT.NONE );
-        l.setText( "" + spv.value.get() );
+    public Composite createContents( Composite parent ) {
+        Composite contents = super.createContents( parent );
+        Text t = new Text( parent, SWT.NONE );
+        t.setText( "" + spv.value.get() );
         return contents;
     }
     
