@@ -17,7 +17,10 @@ package org.polymap.core.style.ui;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+
 import org.polymap.core.style.model.FilterMappedNumbers;
 
 import org.polymap.model2.Property;
@@ -47,6 +50,7 @@ class AttributeMappedNumbersEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
+        new Label( parent, SWT.NONE ).setText( "List of numbers..." );
         return contents;
     }
     

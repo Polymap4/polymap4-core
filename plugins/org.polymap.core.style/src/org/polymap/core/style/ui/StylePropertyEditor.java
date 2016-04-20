@@ -129,7 +129,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * the user to modify the value.
      */
     public Composite createContents( Composite parent ) {
-        Composite contents = new Composite( parent, SWT.BORDER );
+        Composite contents = parent; //new Composite( parent, SWT.BORDER );
         contents.setLayout( new FillLayout( SWT.HORIZONTAL ) );
         return contents;
     }

@@ -50,7 +50,7 @@ class ConstantNumberEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        Text t = new Text( parent, SWT.NONE );
+        Text t = new Text( contents, SWT.BORDER );
         t.setText( "" + prop.get().value.get() );
         return contents;
     }

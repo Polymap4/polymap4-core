@@ -45,23 +45,23 @@ public class PointStyle
     };
 
     @UIOrder( 10 )
-    @Description( "Width of the outer stroke" )
+    @Description( "Outer stroke: width" )
     public Property<StylePropertyValue<Double>> strokeWidth;
     
     @UIOrder( 20 )
-    @Description( "Color of the outer stroke" )
+    @Description( "Outer stroke: color" )
     public Property<StylePropertyValue<Color>>  strokeColor;
     
     @UIOrder( 30 )
-    @Description( "Opacity of the outer stroke (0..1)" )
+    @Description( "Outer stroke: opacity" )
     public Property<StylePropertyValue<Double>> strokeOpacity;
     
     @UIOrder( 40 )
-    @Description( "Color of fill" )
+    @Description( "Fill: color" )
     public Property<StylePropertyValue<Color>>  fillColor;
     
     @UIOrder( 50 )
-    @Description( "Opacity of the fill" )
+    @Description( "Fill: opacity" )
     //@NumberRange( 0.0, 1.0 );
     public Property<StylePropertyValue<Double>> fillOpacity;
     

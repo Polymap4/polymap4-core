@@ -189,6 +189,7 @@ public class UIUtils {
      * disposed.
      */
     public static void disposeChildren( Composite parent ) {
+        assert parent != null;
         for (Control child : parent.getChildren()) {
             if (!child.isDisposed()) {
                 child.dispose();

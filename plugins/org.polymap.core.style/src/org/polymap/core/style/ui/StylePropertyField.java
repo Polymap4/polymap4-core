@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -36,6 +37,8 @@ import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.ui.FormLayoutFactory;
+import org.polymap.core.ui.SelectionAdapter;
+import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.Property;
 
@@ -59,11 +62,15 @@ public class StylePropertyField
 
     private ComboViewer                         combo;
     
+    private Composite                           valueContainer;
+
     /**
      * The available editors for our {@link #propInfo} property type. Model of
      * {@link #combo}.
      */
     private StylePropertyEditor[]               editors;
+
+    private StylePropertyEditor                 selected;
 
     
     public StylePropertyField( Property<StylePropertyValue> prop ) {
@@ -85,6 +92,10 @@ public class StylePropertyField
         t.setData( RWT.MARKUP_ENABLED, Boolean.TRUE );
         t.setText( "<b>" + title.get() + "</b>" );
 
+        // value container
+        valueContainer = new Composite( contents, SWT.NONE );
+        updateEditor();
+        
         // combo
         combo = new ComboViewer( new Combo( contents, SWT.READ_ONLY ) );
         combo.getCombo().setVisibleItemCount( 5 );
@@ -96,6 +107,10 @@ public class StylePropertyField
             }
         });
         combo.setInput( editors );
+        combo.addSelectionChangedListener( ev -> {
+            selected = SelectionAdapter.on( ev.getSelection() ).first( StylePropertyEditor.class ).get();
+            updateEditor();
+        });
         for (StylePropertyEditor editor : editors) {
             if (editor.canHandleCurrentValue()) {
                 combo.setSelection( new StructuredSelection( editor ) );
@@ -104,9 +119,25 @@ public class StylePropertyField
         }
         
         // layout
-        on( t ).fill().noBottom();
+        on( t ).fill().left( 0, 5 ).noBottom();
         on( combo.getCombo() ).top( t ).left( 0 ).right( 50 );
+        on( valueContainer ).top( t ).bottom( 100 ).left( combo.getControl(), 5 ).right( 100 );
         return contents;
     }
+
     
+    public void updateEditor() {
+        UIUtils.disposeChildren( valueContainer );
+        if (selected == null) {
+            valueContainer.setLayout( new FillLayout() );
+            Label msg = new Label( valueContainer, SWT.NONE );
+            msg.setText( "" );
+            msg.setToolTipText( "No value" );
+        }
+        else {
+            selected.createContents( valueContainer );
+        }
+        valueContainer.layout( true );
+    }
+
 }
