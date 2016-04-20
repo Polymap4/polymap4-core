@@ -24,6 +24,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
+import org.polymap.model2.Description;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -57,6 +58,7 @@ public abstract class Style
      * <p/>
      * Defaults to: {@link ConstantFilter#defaultTrue}
      */
+    @Description( "Active if..." )
     public Property<StylePropertyValue<Filter>> activeIf;
 
     /**

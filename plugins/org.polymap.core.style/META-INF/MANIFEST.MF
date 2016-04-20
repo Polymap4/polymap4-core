@@ -10,7 +10,8 @@ Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.data;bundle-version="4.0.0",
  org.polymap.core.recordstore,
  org.polymap.model2.store.recordstore,
- org.eclipse.rap.rwt;bundle-version="2.3.1"
+ org.eclipse.rap.rwt;bundle-version="2.3.1",
+ org.eclipse.rap.jface
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.style,

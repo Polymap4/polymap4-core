@@ -17,41 +17,36 @@ package org.polymap.core.style.ui;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
-
-import org.polymap.core.style.model.ConstantNumber;
+import org.polymap.core.style.model.FilterMappedNumbers;
 
 import org.polymap.model2.Property;
 
 /**
- * Editor that creates one {@link ConstantNumber}. 
+ * Editor that creates {@link FilterMappedNumbers}. 
  *
  * @author Falko Bräutigam
  */
-class ConstantNumberEditor
-        extends StylePropertyEditor<ConstantNumber> {
+class AttributeMappedNumbersEditor
+        extends StylePropertyEditor<FilterMappedNumbers> {
 
-    private static Log log = LogFactory.getLog( ConstantNumberEditor.class );
+    private static Log log = LogFactory.getLog( AttributeMappedNumbersEditor.class );
     
     @Override
     public String label() {
-        return "Constant number";
+        return "Attribute mapped numbers";
     }
 
-
+    
     @Override
-    public boolean init( Property<ConstantNumber> _prop ) {
+    public boolean init( Property<FilterMappedNumbers> _prop ) {
         return Number.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
     }
 
-
+    
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        Text t = new Text( parent, SWT.NONE );
-        t.setText( "" + prop.get().value.get() );
         return contents;
     }
     

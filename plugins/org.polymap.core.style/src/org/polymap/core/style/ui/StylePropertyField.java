@@ -25,12 +25,19 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
+
+import org.eclipse.rap.rwt.RWT;
+
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.ui.FormLayoutFactory;
 
-import org.polymap.model2.runtime.PropertyInfo;
+import org.polymap.model2.Property;
 
 /**
  * The viewer of an {@link StylePropertyValue}. 
@@ -46,16 +53,23 @@ public class StylePropertyField
     
     public Config<String>                       tooltip;
     
-    private PropertyInfo<StylePropertyValue>    propInfo;
+    private Property<StylePropertyValue>        prop;
 
     private Composite                           contents;
 
-    private Combo                               combo;
+    private ComboViewer                         combo;
+    
+    /**
+     * The available editors for our {@link #propInfo} property type. Model of
+     * {@link #combo}.
+     */
+    private StylePropertyEditor[]               editors;
 
     
-    public StylePropertyField( PropertyInfo<StylePropertyValue> propInfo ) {
-        this.propInfo = propInfo;
-        this.title.set( propInfo.getDescription().orElse( "" ) );
+    public StylePropertyField( Property<StylePropertyValue> prop ) {
+        this.prop = prop;
+        this.title.set( (String)prop.info().getDescription().orElse( "" ) );
+        this.editors = StylePropertyEditor.forValue( prop );
     }
 
 
@@ -66,21 +80,33 @@ public class StylePropertyField
         contents.setLayout( FormLayoutFactory.defaults().create() );
         tooltip.ifPresent( txt -> contents.setToolTipText( txt ) );
         
+        // label
         Label t = new Label( contents, SWT.NONE );
-        t.setText( title.get() );
+        t.setData( RWT.MARKUP_ENABLED, Boolean.TRUE );
+        t.setText( "<b>" + title.get() + "</b>" );
 
-        combo = new Combo( contents, SWT.READ_ONLY );
-        combo.setVisibleItemCount( 5 );
+        // combo
+        combo = new ComboViewer( new Combo( contents, SWT.READ_ONLY ) );
+        combo.getCombo().setVisibleItemCount( 5 );
+        combo.setContentProvider( new ArrayContentProvider() );
+        combo.setLabelProvider( new LabelProvider() {
+            @Override
+            public String getText( Object elm ) {
+                return ((StylePropertyEditor)elm).label();
+            }
+        });
+        combo.setInput( editors );
+        for (StylePropertyEditor editor : editors) {
+            if (editor.canHandleCurrentValue()) {
+                combo.setSelection( new StructuredSelection( editor ) );
+                break;
+            }
+        }
         
         // layout
         on( t ).fill().noBottom();
-        on( combo ).top( t ).left( 0 ).right( 50 );
+        on( combo.getCombo() ).top( t ).left( 0 ).right( 50 );
         return contents;
     }
-    
-    
-//    protected List<StylePropertyEditor> availableEditors() {
-//        
-//    }
     
 }

@@ -57,9 +57,11 @@ public class PointStyle
     public Property<StylePropertyValue<Double>> strokeOpacity;
     
     @UIOrder( 40 )
+    @Description( "Color of fill" )
     public Property<StylePropertyValue<Color>>  fillColor;
     
     @UIOrder( 50 )
+    @Description( "Opacity of the fill" )
     //@NumberRange( 0.0, 1.0 );
     public Property<StylePropertyValue<Double>> fillOpacity;
     

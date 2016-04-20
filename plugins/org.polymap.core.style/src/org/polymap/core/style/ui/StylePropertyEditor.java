@@ -14,24 +14,107 @@
  */
 package org.polymap.core.style.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import java.lang.reflect.ParameterizedType;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+
 import org.polymap.core.style.model.StylePropertyValue;
+
+import org.polymap.model2.Property;
 
 /**
  * 
- *
+ * @param <T> The target type of the {@link StylePropertyValue}.
  * @author Falko Bräutigam
  */
-abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
+public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     private static Log log = LogFactory.getLog( StylePropertyEditor.class );
     
-    protected SPV               spv;
+    public static final Class<StylePropertyEditor>[] availableEditors = new Class[] { 
+            ConstantNumberEditor.class, 
+            AttributeMappedNumbersEditor.class };
+    
+    /**
+     * Factory of new editor instances. 
+     *
+     * @param spv
+     */
+    public static StylePropertyEditor[] forValue( Property<StylePropertyValue> prop ) {
+        List<StylePropertyEditor> result = new ArrayList( availableEditors.length );
+        for (Class<StylePropertyEditor> cl : availableEditors) {
+            try {
+                StylePropertyEditor editor = cl.newInstance();
+                if (editor.init( prop )) {
+                    result.add( editor );
+                }
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        }
+        return (StylePropertyEditor[])result.toArray( new StylePropertyEditor[result.size()] );
+    }
+
+    
+    // instance *******************************************
+    
+    protected Property<SPV>             prop;
+    
+    
+    /**
+     * Initialize and check if this editor is able to handle the given property's
+     * {@link StylePropertyValue}.
+     * 
+     * @return True if this editor is able to handle the property's
+     *         {@link StylePropertyValue}.
+     */
+    public boolean init( @SuppressWarnings("hiding") Property<SPV> prop ) {
+        try {
+            this.prop = prop;
+            return true;
+        }
+        catch (ClassCastException e) {
+            return false;
+        }
+    }
+    
+    
+    /**
+     * Returns the <b>declared</b> type of the given property:
+     * <pre>
+     * Property&lt;StylePropertyValue&lt;Number&gt;&gt; -> Number
+     * </pre>
+     *
+     * @param _prop
+     * @return
+     */
+    protected Class targetType( Property _prop ) {
+        assert StylePropertyValue.class.isAssignableFrom( _prop.info().getType() );
+        Optional<ParameterizedType> o = _prop.info().getParameterizedType();
+        ParameterizedType p = o.orElseThrow( () -> new RuntimeException( "StylePropertyValue has no type parameter: " + prop.toString() ) );
+        return (Class)p.getActualTypeArguments()[0];    
+    }
+
+    
+    /**
+     * Checks if the <b>actual</b> type of the {@link #prop} is compatible with
+     * the type parameter of this editor.
+     */
+    public boolean canHandleCurrentValue() {
+        Class<? extends StylePropertyValue> targetType = (Class)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        StylePropertyValue current = prop.get();
+        return current != null && targetType.isAssignableFrom( current.getClass() );
+    }
     
     
     /**
