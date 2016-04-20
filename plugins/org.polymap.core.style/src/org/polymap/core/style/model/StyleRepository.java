@@ -86,6 +86,7 @@ public class StyleRepository
                         FilterMappedNumbers.class,
                         //ScaleMappedNumbers.class,
                         ConstantBoolean.class,
+                        ConstantFilter.class,
                         PointStyle.class} )
                 .store.set( 
                         new OptimisticLocking(

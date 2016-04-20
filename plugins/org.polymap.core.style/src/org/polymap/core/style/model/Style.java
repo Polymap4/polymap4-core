@@ -15,6 +15,7 @@
 package org.polymap.core.style.model;
 
 import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,7 +45,7 @@ public abstract class Style
     public static final ValueInitializer<Style> defaults = new ValueInitializer<Style>() {
         @Override
         public Style initialize( Style proto ) throws Exception {
-            proto.activeIf.createValue( ConstantBoolean.defaultsTrue );
+            proto.activeIf.createValue( ConstantFilter.defaultTrue );
             return proto;
         }
     };
@@ -54,15 +55,15 @@ public abstract class Style
      * Describes the condition that makes this style is active/visible. The value
      * might be a constant or a complex filter expression.
      * <p/>
-     * Defaults to: {@link ConstantBoolean#defaultsTrue}
+     * Defaults to: {@link ConstantFilter#defaultTrue}
      */
-    public Property<StylePropertyValue>     activeIf;
+    public Property<StylePropertyValue<Filter>> activeIf;
 
     /**
      * This allows to bring structure to the (possibly many) styles of an
      * {@link FeatureStyle}. Used to have the notion of "folders" or something like
      * that in the UI. Not sure about this yet :)
      */
-    public CollectionProperty<String>       tags;
+    public CollectionProperty<String>           tags;
     
 }

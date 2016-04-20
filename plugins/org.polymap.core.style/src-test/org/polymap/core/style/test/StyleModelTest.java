@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.ConstantBoolean;
 import org.polymap.core.style.model.ConstantColor;
+import org.polymap.core.style.model.ConstantFilter;
 import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
@@ -63,7 +63,7 @@ public class StyleModelTest {
         
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
-        assertTrue( point.activeIf.get() instanceof ConstantBoolean );
+        assertTrue( point.activeIf.get() instanceof ConstantFilter );
         
         point.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
