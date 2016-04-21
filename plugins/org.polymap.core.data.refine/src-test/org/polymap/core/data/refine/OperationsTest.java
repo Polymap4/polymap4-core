@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,8 +24,8 @@ public class OperationsTest {
 
 
     @Before
-    public void setUp() {
-        service = RefineServiceImpl.INSTANCE( new File( System.getProperty( "java.io.tmpdir" ) ) );
+    public void setUp() throws IOException {
+        service = RefineServiceImpl.INSTANCE( java.nio.file.Files.createTempDirectory( "refine" ) );
     }
 
 

@@ -9,7 +9,9 @@ import java.util.Map;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
 
 import org.json.JSONObject;
 import org.junit.Before;
@@ -17,7 +19,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import com.google.refine.commands.importing.CreateImportingJobCommand;
 import com.google.refine.commands.importing.ImportingControllerCommand;
 import com.google.refine.commands.project.GetModelsCommand;
@@ -37,14 +38,9 @@ public class ImportCSVTest {
 
 
     @Before
-    public void setUp() {
-        StringBuffer tmpDir = new StringBuffer( System.getProperty( "java.io.tmpdir" ) );
-        if (System.getProperty( "user.name" ) != null) {
-            tmpDir.append( File.separatorChar ).append( System.getProperty( "user.name" ) );
-        }
-        tmpDir.append( File.separatorChar ).append( this.hashCode() ).append( File.separatorChar ).append( "refine" );
+    public void setUp() throws IOException {
         service = RefineServiceImpl
-                .INSTANCE( new File( tmpDir.toString() ) );
+                .INSTANCE( Files.createTempDirectory( "refine" ) );
     }
 
 
@@ -171,7 +167,7 @@ public class ImportCSVTest {
         File wohngebiete = new File(
                 this.getClass().getResource( "/data/wohngebiete_sachsen.csv" ).getFile() );
         File tmp = File.createTempFile( "foo", ".csv" );
-        Files.copy( wohngebiete, tmp );
+        com.google.common.io.Files.copy( wohngebiete, tmp );
         ImportResponse<CSVFormatAndOptions> response = service.importFile( tmp,
                 CSVFormatAndOptions.createDefault(), null );
         assertEquals( ";", response.options().separator() );
