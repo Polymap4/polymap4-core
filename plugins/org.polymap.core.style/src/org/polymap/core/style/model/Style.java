@@ -58,6 +58,7 @@ public abstract class Style
      * <p/>
      * Defaults to: {@link ConstantFilter#defaultTrue}
      */
+    @UIOrder( 0 )
     @Description( "Active if..." )
     public Property<StylePropertyValue<Filter>> activeIf;
 

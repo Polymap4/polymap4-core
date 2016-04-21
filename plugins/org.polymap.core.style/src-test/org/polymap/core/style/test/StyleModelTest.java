@@ -59,7 +59,7 @@ public class StyleModelTest {
     
     @Test
     public void test() throws Exception {
-        FeatureStyle fs = repo.newfeatureStyle();
+        FeatureStyle fs = repo.newFeatureStyle();
         
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );

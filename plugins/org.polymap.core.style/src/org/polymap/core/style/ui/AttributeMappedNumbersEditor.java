@@ -48,6 +48,13 @@ class AttributeMappedNumbersEditor
 
     
     @Override
+    public void updateProperty() {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
         new Label( parent, SWT.NONE ).setText( "List of numbers..." );

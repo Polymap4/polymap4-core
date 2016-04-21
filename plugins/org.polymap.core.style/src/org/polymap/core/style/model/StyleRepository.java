@@ -103,9 +103,11 @@ public class StyleRepository
     }
 
 
-    public FeatureStyle newfeatureStyle() {
+    public FeatureStyle newFeatureStyle() {
         UnitOfWork uow = repo.newUnitOfWork();
-        return uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults( this, uow ) );
+        FeatureStyle result = uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults( this, uow ) );
+        result.uow = uow;
+        return result;
     }
 
     

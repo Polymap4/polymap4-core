@@ -18,12 +18,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.polymap.core.style.model.ConstantNumber;
+import org.polymap.core.style.model.DoubleRange;
+import org.polymap.core.style.model.IntRange;
 
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * Editor that creates one {@link ConstantNumber}. 
@@ -48,10 +53,41 @@ class ConstantNumberEditor
 
 
     @Override
+    public void updateProperty() {
+        prop.createValue( new ValueInitializer<ConstantNumber>() {
+            @Override
+            public ConstantNumber initialize( ConstantNumber proto ) throws Exception {
+                IntRange ai = (IntRange)prop.info().getAnnotation( IntRange.class );
+                DoubleRange ad = (DoubleRange)prop.info().getAnnotation( DoubleRange.class );
+                if (ai != null) {
+                    proto.value.set( ai.defaultValue() );
+                }
+                else if (ad != null) {
+                    proto.value.set( ad.defaultValue() );
+                }
+                else {
+                    throw new RuntimeException( "No Number value range defined for: " + prop );
+                }
+                return proto;
+            }
+        });
+    }
+
+
+    @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
         Text t = new Text( contents, SWT.BORDER );
-        t.setText( "" + prop.get().value.get() );
+        t.setText( prop.get().value.get().toString() );
+        
+        t.addModifyListener( new ModifyListener() {
+            @Override
+            public void modifyText( ModifyEvent ev ) {
+                // XXX
+                Double newValue = Double.valueOf( t.getText() );
+                prop.get().value.set( newValue );
+            }
+        });
         return contents;
     }
     

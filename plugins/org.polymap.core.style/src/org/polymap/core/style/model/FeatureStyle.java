@@ -72,7 +72,6 @@ public class FeatureStyle
         return (String)super.id();
     }
 
-    
     /**
      * 
      *

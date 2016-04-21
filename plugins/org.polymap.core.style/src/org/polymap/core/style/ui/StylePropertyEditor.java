@@ -133,5 +133,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
         contents.setLayout( new FillLayout( SWT.HORIZONTAL ) );
         return contents;
     }
+
+
+    public abstract void updateProperty();
     
 }

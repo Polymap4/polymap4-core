@@ -107,16 +107,19 @@ public class StylePropertyField
             }
         });
         combo.setInput( editors );
-        combo.addSelectionChangedListener( ev -> {
-            selected = SelectionAdapter.on( ev.getSelection() ).first( StylePropertyEditor.class ).get();
-            updateEditor();
-        });
         for (StylePropertyEditor editor : editors) {
             if (editor.canHandleCurrentValue()) {
+                selected = editor;
                 combo.setSelection( new StructuredSelection( editor ) );
+                updateEditor();
                 break;
             }
         }
+        combo.addSelectionChangedListener( ev -> {
+            selected = SelectionAdapter.on( ev.getSelection() ).first( StylePropertyEditor.class ).get();
+            selected.updateProperty();
+            updateEditor();
+        });
         
         // layout
         on( t ).fill().left( 0, 5 ).noBottom();

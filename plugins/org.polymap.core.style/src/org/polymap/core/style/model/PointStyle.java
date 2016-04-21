@@ -46,6 +46,7 @@ public class PointStyle
 
     @UIOrder( 10 )
     @Description( "Outer stroke: width" )
+    @DoubleRange( from=0, to=Double.MAX_VALUE, defaultValue=1 )
     public Property<StylePropertyValue<Double>> strokeWidth;
     
     @UIOrder( 20 )
@@ -54,6 +55,7 @@ public class PointStyle
     
     @UIOrder( 30 )
     @Description( "Outer stroke: opacity" )
+    @DoubleRange( from=0, to=1, defaultValue=1 )
     public Property<StylePropertyValue<Double>> strokeOpacity;
     
     @UIOrder( 40 )
@@ -62,7 +64,7 @@ public class PointStyle
     
     @UIOrder( 50 )
     @Description( "Fill: opacity" )
-    //@NumberRange( 0.0, 1.0 );
+    @DoubleRange( from=0, to=1, defaultValue=1 )
     public Property<StylePropertyValue<Double>> fillOpacity;
     
 }
