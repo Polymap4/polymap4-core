@@ -32,8 +32,6 @@ public class RefinePlugin
 
     private RefineServiceImpl               service;
 
-    private File                            baseTempDir;
-
 
     /**
      * The constructor
@@ -53,14 +51,7 @@ public class RefinePlugin
         super.start( context );
         plugin = this;
 
-        baseTempDir = Files.createTempDirectory( ID ).toFile();
-        baseTempDir.mkdirs();
-        baseTempDir.deleteOnExit();
-        FileUtils.cleanDirectory( baseTempDir );
-        log.info( "temp dir: " + baseTempDir );
-
-        service = RefineServiceImpl
-                .INSTANCE( Files.createTempDirectory( baseTempDir.toPath(), null ) );
+        service = RefineServiceImpl.INSTANCE( Files.createTempDirectory( ID ) );
         reference = context.registerService( RefineService.class, service, null )
                 .getReference();
     }
@@ -76,9 +67,6 @@ public class RefinePlugin
         plugin = null;
         service.destroy();
         context.ungetService( reference );
-        if (baseTempDir != null) {
-            FileUtils.cleanDirectory( baseTempDir );
-        }
         super.stop( context );
     }
 
