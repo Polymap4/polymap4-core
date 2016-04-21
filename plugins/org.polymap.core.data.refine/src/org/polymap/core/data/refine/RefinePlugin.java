@@ -1,7 +1,6 @@
 package org.polymap.core.data.refine;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 
 import org.osgi.framework.BundleContext;
@@ -13,7 +12,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import org.polymap.core.CorePlugin;
 import org.polymap.core.data.refine.impl.RefineServiceImpl;
 
 /**
@@ -55,7 +53,7 @@ public class RefinePlugin
         super.start( context );
         plugin = this;
 
-        baseTempDir = new File( CorePlugin.getDataLocation( getBundle() ), "refineTemp" );
+        baseTempDir = Files.createTempDirectory( ID ).toFile();
         baseTempDir.mkdirs();
         baseTempDir.deleteOnExit();
         FileUtils.cleanDirectory( baseTempDir );
