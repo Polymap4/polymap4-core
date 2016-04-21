@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.activation.MimetypesFileTypeMap;
 
@@ -62,18 +64,18 @@ public class RefineServiceImpl
             .newSingleThreadScheduledExecutor();
 
 
-    private RefineServiceImpl( final File baseDir ) {
+    private RefineServiceImpl( final Path baseDir ) {
 
         log.info( "Starting " + FULLNAME + "..." );
 
         log.trace( "> initialize" );
-        FileProjectManager.initialize( new File( baseDir, "workspace" ) );
+        FileProjectManager.initialize( new File(baseDir.toFile(), "workspace" ) );
         // only used to call servlet.getTempDir() later on
         ImportingManagerRegistry.initialize( new RefineServlet() {
 
             @Override
             public File getTempDir() {
-                return new File( baseDir, "tmp" );
+                return new File( baseDir.toFile(), "tmp" );
             }
         } );
 
@@ -93,7 +95,7 @@ public class RefineServiceImpl
     // }
 
 
-    public static RefineServiceImpl INSTANCE( File refineDir ) {
+    public static RefineServiceImpl INSTANCE( Path refineDir ) {
         if (refineService == null) {
             refineService = new RefineServiceImpl( refineDir );
         }
