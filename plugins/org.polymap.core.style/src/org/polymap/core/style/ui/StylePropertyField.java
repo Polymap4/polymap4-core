@@ -135,7 +135,7 @@ public class StylePropertyField
             valueContainer.setLayout( new FillLayout() );
             Label msg = new Label( valueContainer, SWT.NONE );
             msg.setText( "" );
-            msg.setToolTipText( "No value" );
+            //msg.setToolTipText( "No value" );
         }
         else {
             selected.createContents( valueContainer );

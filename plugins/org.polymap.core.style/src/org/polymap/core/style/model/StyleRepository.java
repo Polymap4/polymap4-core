@@ -106,16 +106,18 @@ public class StyleRepository
     public FeatureStyle newFeatureStyle() {
         UnitOfWork uow = repo.newUnitOfWork();
         FeatureStyle result = uow.createEntity( FeatureStyle.class, null, FeatureStyle.defaults( this, uow ) );
-        result.uow = uow;
         return result;
     }
 
     
     public Optional<FeatureStyle> featureStyle( String id ) {
         UnitOfWork uow = repo.newUnitOfWork();
-        Optional<FeatureStyle> result = Optional.ofNullable( uow.entity( FeatureStyle.class, id ) );
-        result.ifPresent( fs -> fs.uow = uow );
-        return result;
+        FeatureStyle result = uow.entity( FeatureStyle.class, id );
+        if (result != null) {
+            result.uow = uow;
+            result.repo = this;
+        }
+        return Optional.ofNullable( result );
     }
     
 
