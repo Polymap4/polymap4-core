@@ -37,15 +37,21 @@ public class DefaultStyle {
     
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            return createPointStyle( fs, schema );
+            return createPointStyle( fs );
         }
         else {
-            throw new RuntimeException( "Unkhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
+            throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
         }
     }
     
+
+    public static FeatureStyle createAllStyle( FeatureStyle fs ) {
+        createPointStyle( fs );
+        return fs;
+    }
     
-    public static FeatureStyle createPointStyle( FeatureStyle fs, FeatureType schema ) {
+    
+    public static FeatureStyle createPointStyle( FeatureStyle fs ) {
         PointStyle point = fs.members().createElement( PointStyle.defaults );
         
         point.fillColor.createValue( ConstantColor.defaults( 200, 0, 0 ) );
