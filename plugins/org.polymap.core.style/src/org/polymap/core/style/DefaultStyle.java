@@ -42,20 +42,27 @@ public class DefaultStyle {
 
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            return createPointStyle( fs, schema );
+            return createPointStyle( fs );
         }
         if (Polygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )
                 || MultiPolygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            return createPolygonStyle( fs, schema );
+            return createPolygonStyle( fs);
         }
         else {
             throw new RuntimeException(
                     "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
         }
     }
+    
 
-
-    public static FeatureStyle createPointStyle( FeatureStyle fs, FeatureType schema ) {
+    public static FeatureStyle createAllStyle( FeatureStyle fs ) {
+        createPointStyle( fs );
+        createPolygonStyle( fs );
+        return fs;
+    }
+    
+    
+    public static FeatureStyle createPointStyle( FeatureStyle fs ) {
         PointStyle point = fs.members().createElement( PointStyle.defaults );
 
         point.fillColor.createValue( ConstantColor.defaults( 200, 0, 0 ) );
@@ -67,7 +74,7 @@ public class DefaultStyle {
     }
 
 
-    public static FeatureStyle createPolygonStyle( FeatureStyle fs, FeatureType schema ) {
+    public static FeatureStyle createPolygonStyle( FeatureStyle fs ) {
         PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
 
         polygon.fillColor.createValue( ConstantColor.defaults( 200, 0, 0 ) );
