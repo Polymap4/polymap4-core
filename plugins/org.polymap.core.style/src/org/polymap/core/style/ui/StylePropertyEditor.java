@@ -36,11 +36,14 @@ import org.polymap.model2.Property;
  */
 public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
-    private static Log                               log              = LogFactory.getLog( StylePropertyEditor.class );
+    private static Log log = LogFactory.getLog( StylePropertyEditor.class );
 
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
-            ConstantNumberEditor.class, ConstantStrokeCapStyleEditor.class, ConstantStrokeDashStyleEditor.class,
-            ConstantStrokeJoinStyleEditor.class, AttributeMappedNumbersEditor.class };
+            ConstantNumberEditor.class, 
+            ConstantStrokeCapStyleEditor.class, 
+            ConstantStrokeDashStyleEditor.class,
+            ConstantStrokeJoinStyleEditor.class, 
+            AttributeMappedNumbersEditor.class };
 
 
     /**
@@ -89,7 +92,6 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     /**
      * Returns the <b>declared</b> type of the given property:
-     * 
      * <pre>
      * Property&lt;StylePropertyValue&lt;Number&gt;&gt; -> Number
      * </pre>

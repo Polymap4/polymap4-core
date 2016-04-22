@@ -41,28 +41,30 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
      * See {@link #doHandle(StylePropertyValue, SymbolizerDescriptor, Setter)}.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <SD extends SymbolizerDescriptor, V extends Object> List<SD> handle( StylePropertyValue spv, SD sd,
-            Setter<SD,V> setter ) {
+    public static <SD extends SymbolizerDescriptor,V> List<SD> handle( StylePropertyValue spv, SD sd, Setter<SD,V> setter ) {
         if (spv instanceof ConstantNumber) {
-            return new ConstantNumberHandler().doHandle( (ConstantNumber)spv, sd, (Setter<SD,Number>)setter );
+            return new ConstantNumberHandler().doHandle( 
+                    (ConstantNumber)spv, sd, (Setter<SD,Number>)setter );
         }
         else if (spv instanceof FilterMappedNumbers) {
-            return new FilterMappedNumbersHandler().doHandle( (FilterMappedNumbers)spv, sd, (Setter<SD,Number>)setter );
+            return new FilterMappedNumbersHandler().doHandle( 
+                    (FilterMappedNumbers)spv, sd, (Setter<SD,Number>)setter );
         }
         else if (spv instanceof ConstantColor) {
-            return new ConstantColorHandler().doHandle( (ConstantColor)spv, sd, (Setter<SD,Color>)setter );
+            return new ConstantColorHandler().doHandle( 
+                    (ConstantColor)spv, sd, (Setter<SD,Color>)setter );
         }
         else if (spv instanceof ConstantStrokeCapStyle) {
-            return new ConstantStrokeCapStyleHandler().doHandle( (ConstantStrokeCapStyle)spv, sd,
-                    (Setter<SD,StrokeCapStyle>)setter );
+            return new ConstantStrokeCapStyleHandler().doHandle( 
+                    (ConstantStrokeCapStyle)spv, sd, (Setter<SD,StrokeCapStyle>)setter );
         }
         else if (spv instanceof ConstantStrokeDashStyle) {
-            return new ConstantStrokeDashStyleHandler().doHandle( (ConstantStrokeDashStyle)spv, sd,
-                    (Setter<SD,StrokeDashStyle>)setter );
+            return new ConstantStrokeDashStyleHandler().doHandle( 
+                    (ConstantStrokeDashStyle)spv, sd, (Setter<SD,StrokeDashStyle>)setter );
         }
         else if (spv instanceof ConstantStrokeJoinStyle) {
-            return new ConstantStrokeJoinStyleHandler().doHandle( (ConstantStrokeJoinStyle)spv, sd,
-                    (Setter<SD,StrokeJoinStyle>)setter );
+            return new ConstantStrokeJoinStyleHandler().doHandle( 
+                    (ConstantStrokeJoinStyle)spv, sd, (Setter<SD,StrokeJoinStyle>)setter );
         }
         else {
             throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );

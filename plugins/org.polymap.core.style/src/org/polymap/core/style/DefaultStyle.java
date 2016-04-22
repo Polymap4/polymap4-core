@@ -49,8 +49,7 @@ public class DefaultStyle {
             return createPolygonStyle( fs);
         }
         else {
-            throw new RuntimeException(
-                    "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
+            throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
         }
     }
     

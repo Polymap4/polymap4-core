@@ -63,7 +63,7 @@ public class StyleModelTest {
     // instance *******************************************
     
     @Test
-    public void test() throws Exception {
+    public void testPoint() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
         
         // point
@@ -86,6 +86,7 @@ public class StyleModelTest {
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
 
+    
     @Test
     public void testPolygon() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();

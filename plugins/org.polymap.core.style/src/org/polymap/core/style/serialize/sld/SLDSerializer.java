@@ -32,8 +32,6 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.Lists;
-
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
@@ -57,14 +55,14 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer;
 public class SLDSerializer
         extends FeatureStyleSerializer<Style> {
 
-    private static Log                log = LogFactory.getLog( SLDSerializer.class );
+    private static Log log = LogFactory.getLog( SLDSerializer.class );
 
-    public static final StyleFactory  sf  = CommonFactoryFinder.getStyleFactory( null );
+    public static final StyleFactory sf  = CommonFactoryFinder.getStyleFactory( null );
 
     public static final FilterFactory ff  = CommonFactoryFinder.getFilterFactory( null );
 
     /** The result of this serializer. */
-    private Style                     sld;
+    private Style                   sld;
 
 
     /**
@@ -89,7 +87,6 @@ public class SLDSerializer
         List<SymbolizerDescriptor> descriptors = new ArrayList<SymbolizerDescriptor>();
         // 2: create flat list of SymbolizerDescriptor instances
         for (org.polymap.core.style.model.Style style : featureStyle.members()) {
-
             if (PointStyle.class.isInstance( style )) {
                 PointStyle ps = (PointStyle)style;
                 PointStyleSerializer serializer = new PointStyleSerializer();
@@ -101,8 +98,7 @@ public class SLDSerializer
                 descriptors.addAll( serializer.serialize( ps ));
             }
             else {
-                throw new RuntimeException(
-                        "Unhandled Style type: " + style.getClass().getName() );
+                throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
             }
         }
 
@@ -116,8 +112,7 @@ public class SLDSerializer
                 sld.featureTypeStyles().add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
             }
             else {
-                throw new RuntimeException(
-                        "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
+                throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
             }
         }
         return sld;

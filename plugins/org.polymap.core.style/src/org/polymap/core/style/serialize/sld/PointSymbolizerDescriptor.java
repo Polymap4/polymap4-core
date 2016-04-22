@@ -29,23 +29,23 @@ public class PointSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<Double> strokeWidth;
+    public Config<Double>           strokeWidth;
 
     @Immutable
-    public Config<Color>  strokeColor;
+    public Config<Color>            strokeColor;
 
     @Immutable
-    @DefaultDouble(1)
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double> strokeOpacity;
+    @DefaultDouble( 1 )
+    @Check( value=NumberRangeValidator.class, args={"0","1"} )
+    public Config<Double>           strokeOpacity;
 
     @Immutable
-    public Config<Color>  fillColor;
+    public Config<Color>            fillColor;
 
     @Immutable
-    @DefaultDouble(1)
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double> fillOpacity;
+    @DefaultDouble( 1 )
+    @Check( value=NumberRangeValidator.class, args={"0","1"} )
+    public Config<Double>           fillOpacity;
 
 
     @Override

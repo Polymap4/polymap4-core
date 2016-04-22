@@ -34,15 +34,13 @@ public class PolygonStyle
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final ValueInitializer<PolygonStyle>   defaults = new ValueInitializer<PolygonStyle>() {
-
-                                                                      @Override
-                                                                      public PolygonStyle initialize(
-                                                                              PolygonStyle proto ) throws Exception {
-                                                                          Style.defaults.initialize( proto );
-                                                                          return proto;
-                                                                      }
-                                                                  };
+    public static final ValueInitializer<PolygonStyle>  defaults = new ValueInitializer<PolygonStyle>() {
+        @Override
+        public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
+            Style.defaults.initialize( proto );
+            return proto;
+        }
+    };
 
     @UIOrder(10)
     @Description("Fill: color")

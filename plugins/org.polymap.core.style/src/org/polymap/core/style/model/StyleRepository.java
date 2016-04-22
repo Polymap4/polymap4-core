@@ -57,7 +57,7 @@ import org.polymap.recordstore.lucene.LuceneRecordStore;
 public class StyleRepository
         implements AutoCloseable {
 
-    private static Log                          log        = LogFactory.getLog( StyleRepository.class );
+    private static Log log = LogFactory.getLog( StyleRepository.class );
 
     private EntityRepository                    repo;
 
@@ -72,24 +72,24 @@ public class StyleRepository
      * @throws IOException
      */
     public StyleRepository( File dataDir ) throws IOException {
-        IRecordStore store = LuceneRecordStore.newConfiguration().indexDir.put( dataDir )
-                .create();
+        IRecordStore store = LuceneRecordStore.newConfiguration().indexDir.put( dataDir ).create();
 
-        repo = EntityRepository.newConfiguration().entities.set( new Class[] {
-                FeatureStyle.class,
-                ConstantColor.class,
-                ConstantNumber.class,
-                ConstantStrokeCapStyle.class,
-                ConstantStrokeDashStyle.class,
-                ConstantStrokeJoinStyle.class,
-                FilterMappedNumbers.class,
-                // ScaleMappedNumbers.class,
-                ConstantBoolean.class,
-                ConstantFilter.class,
-                PointStyle.class,
-                PolygonStyle.class,
-        } ).store.set(
-                new OptimisticLocking(
+        repo = EntityRepository.newConfiguration()
+                .entities.set( new Class[] {
+                        FeatureStyle.class,
+                        ConstantColor.class,
+                        ConstantNumber.class,
+                        ConstantStrokeCapStyle.class,
+                        ConstantStrokeDashStyle.class,
+                        ConstantStrokeJoinStyle.class,
+                        FilterMappedNumbers.class,
+                        // ScaleMappedNumbers.class,
+                        ConstantBoolean.class,
+                        ConstantFilter.class,
+                        PointStyle.class,
+                        PolygonStyle.class,
+                } ).store.set(
+                        new OptimisticLocking(
                         new RecordStoreAdapter( store ) ) )
                 .create();
     }
