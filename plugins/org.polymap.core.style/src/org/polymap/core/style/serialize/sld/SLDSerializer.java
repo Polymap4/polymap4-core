@@ -12,6 +12,7 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.geotools.factory.CommonFactoryFinder;
@@ -31,7 +32,7 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
@@ -85,26 +86,27 @@ public class SLDSerializer
         // XXX 1: gather scale and filter descriptions from StyleGroup hierarchy
         // ...
 
+        List<SymbolizerDescriptor> descriptors = new ArrayList<SymbolizerDescriptor>();
         // 2: create flat list of SymbolizerDescriptor instances
-        org.polymap.core.style.model.Style style = Iterables.getOnlyElement( featureStyle.members() );
+        for (org.polymap.core.style.model.Style style : featureStyle.members()) {
+
+            if (PointStyle.class.isInstance( style )) {
+                PointStyle ps = (PointStyle)style;
+                PointStyleSerializer serializer = new PointStyleSerializer();
+                descriptors.addAll( serializer.serialize( ps ));
+            }
+            else if (PolygonStyle.class.isInstance( style )) {
+                PolygonStyle ps = (PolygonStyle)style;
+                PolygonStyleSerializer serializer = new PolygonStyleSerializer();
+                descriptors.addAll( serializer.serialize( ps ));
+            }
+            else {
+                throw new RuntimeException(
+                        "Unhandled Style type: " + style.getClass().getName() );
+            }
+        }
 
         sld = sf.createStyle();
-        List<? extends SymbolizerDescriptor> descriptors;
-        if (PointStyle.class.isInstance( style )) {
-            PointStyle ps = (PointStyle)style;
-            PointStyleSerializer serializer = new PointStyleSerializer();
-            descriptors = serializer.serialize( ps );
-        }
-        else if (PolygonStyle.class.isInstance( style )) {
-            PolygonStyle ps = (PolygonStyle)style;
-            PolygonStyleSerializer serializer = new PolygonStyleSerializer();
-            descriptors = serializer.serialize( ps );
-        }
-        else {
-            throw new RuntimeException(
-                    "Unhandled Style type: " + style.getClass().getName() );
-        }
-
         // 3: transform into FeatureTypeStyle and Rule instances
         for (SymbolizerDescriptor descriptor : descriptors) {
             if (descriptor instanceof PointSymbolizerDescriptor) {
@@ -159,7 +161,7 @@ public class SLDSerializer
 
 
     protected FeatureTypeStyle buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
-//        Graphic gr = sf.createDefaultGraphic();
+        // Graphic gr = sf.createDefaultGraphic();
 
         // Stroke stroke = sf.createStroke( color, width, opacity, lineJoin, lineCap,
         // dashArray, dashOffset, graphicFill, graphicStroke );

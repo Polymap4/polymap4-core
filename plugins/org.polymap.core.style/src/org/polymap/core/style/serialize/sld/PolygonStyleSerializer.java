@@ -60,29 +60,37 @@ public class PolygonStyleSerializer
 
 
     private void doSerializeDashStyle( PolygonSymbolizerDescriptor sd, StrokeDashStyle value ) {
-        // see http://docs.geoserver.org/stable/en/user/styling/sld-cookbook/lines.html#dashed-line
+        // see
+        // http://docs.geoserver.org/stable/en/user/styling/sld-cookbook/lines.html#dashed-line
+        Double strokeWidth = sd.strokeWidth.get();
+        if (strokeWidth == null) {
+            strokeWidth = new Double( 1.0 );
+        }
+        float dot = strokeWidth.floatValue() / 4;
+        float dash = 2 * strokeWidth.floatValue();
+        float longDash = 4 * strokeWidth.floatValue();
+
         switch (value) {
             case dash:
-                sd.strokeDashStyle.set( new float[] { 20.0f, 10.0f } );
+                sd.strokeDashStyle.set( new float[] { dash, dash } );
                 break;
             case dashdot:
-                sd.strokeDashStyle.set( new float[] { 20.0f, 10.0f, 2.0f, 10.0f } );
+                sd.strokeDashStyle.set( new float[] { dash, dash, dot, dash } );
                 break;
             case dot:
-                sd.strokeDashStyle.set( new float[] { 2.0f, 10.0f } );
+                sd.strokeDashStyle.set( new float[] { dot, dash } );
                 break;
             case longdash:
-                sd.strokeDashStyle.set( new float[] { 40.0f, 10.0f } );
+                sd.strokeDashStyle.set( new float[] { longDash, dash, longDash, dash } );
                 break;
             case longdashdot:
-                sd.strokeDashStyle.set( new float[] { 40.0f, 10.0f, 2.0f, 10.0f } );
+                sd.strokeDashStyle.set( new float[] { longDash, dash, dot, dash } );
                 break;
             case solid:
                 // do nothing
                 break;
             default:
-                throw new RuntimeException(
-                        "Unhandled StrokeDashStyle: " + value );
+                throw new RuntimeException( "Unhandled StrokeDashStyle: " + value );
         }
     }
 
