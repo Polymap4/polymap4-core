@@ -1,16 +1,14 @@
-/* 
- * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+/*
+ * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 3.0 of the License, or (at your option) any later
+ * version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  */
 package org.polymap.core.style.model;
 
@@ -59,37 +57,39 @@ import org.polymap.recordstore.lucene.LuceneRecordStore;
 public class StyleRepository
         implements AutoCloseable {
 
-    private static Log log = LogFactory.getLog( StyleRepository.class );
-    
+    private static Log                          log        = LogFactory.getLog( StyleRepository.class );
+
     private EntityRepository                    repo;
-    
+
     private Cache<Pair<String,String>,Optional> serialized = CacheConfig.defaults().createCache();
 
-    
+
     /**
      * Creates a repository instance backed by a {@link LuceneRecordStore} in the
      * given dataDir.
      * 
      * @param dataDir The directory of the database or null, for testing in-memory.
-     * @throws IOException 
+     * @throws IOException
      */
     public StyleRepository( File dataDir ) throws IOException {
-        IRecordStore store = LuceneRecordStore.newConfiguration()
-                .indexDir.put( dataDir )
+        IRecordStore store = LuceneRecordStore.newConfiguration().indexDir.put( dataDir )
                 .create();
-        
-        repo = EntityRepository.newConfiguration()
-                .entities.set( new Class[] {
-                        FeatureStyle.class, 
-                        ConstantColor.class, 
-                        ConstantNumber.class,
-                        FilterMappedNumbers.class,
-                        //ScaleMappedNumbers.class,
-                        ConstantBoolean.class,
-                        ConstantFilter.class,
-                        PointStyle.class} )
-                .store.set( 
-                        new OptimisticLocking(
+
+        repo = EntityRepository.newConfiguration().entities.set( new Class[] {
+                FeatureStyle.class,
+                ConstantColor.class,
+                ConstantNumber.class,
+                ConstantStrokeCapStyle.class,
+                ConstantStrokeDashStyle.class,
+                ConstantStrokeJoinStyle.class,
+                FilterMappedNumbers.class,
+                // ScaleMappedNumbers.class,
+                ConstantBoolean.class,
+                ConstantFilter.class,
+                PointStyle.class,
+                PolygonStyle.class,
+        } ).store.set(
+                new OptimisticLocking(
                         new RecordStoreAdapter( store ) ) )
                 .create();
     }
@@ -109,7 +109,7 @@ public class StyleRepository
         return result;
     }
 
-    
+
     public Optional<FeatureStyle> featureStyle( String id ) {
         UnitOfWork uow = repo.newUnitOfWork();
         FeatureStyle result = uow.entity( FeatureStyle.class, id );
@@ -119,7 +119,7 @@ public class StyleRepository
         }
         return Optional.ofNullable( result );
     }
-    
+
 
     /**
      * The serialized version of the {@link FeatureStyle} with the given id. The
@@ -138,7 +138,7 @@ public class StyleRepository
             FeatureStyle fs = featureStyle( id ).orElse( null );
             if (fs != null) {
                 Context sc = new Context().featureStyle.put( fs );
-                
+
                 // geotools.styling.Style
                 if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
                     result = (T)new SLDSerializer().serialize( sc );
@@ -161,7 +161,7 @@ public class StyleRepository
                 }
             }
             return Optional.ofNullable( result );
-        });
+        } );
     }
 
 
@@ -169,8 +169,8 @@ public class StyleRepository
         List<Pair<String,String>> invalid = serialized.keySet().stream()
                 .filter( key -> key.getLeft().equals( updated.id() ) )
                 .collect( Collectors.toList() );
-        
+
         invalid.forEach( key -> serialized.remove( key ) );
     }
-    
+
 }

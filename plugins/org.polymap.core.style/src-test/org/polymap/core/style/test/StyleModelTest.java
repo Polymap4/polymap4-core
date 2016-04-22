@@ -30,6 +30,11 @@ import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.PointStyle;
+import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.model.StrokeDashStyle;
+import org.polymap.core.style.model.ConstantStrokeCapStyle;
+import org.polymap.core.style.model.ConstantStrokeDashStyle;
+import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.StyleRepository;
 
 /**
@@ -80,5 +85,31 @@ public class StyleModelTest {
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
-    
+
+    @Test
+    public void testPolygon() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
+        
+        // point
+        PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
+        assertTrue( polygon.activeIf.get() instanceof ConstantFilter );
+        
+        polygon.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
+        polygon.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        polygon.strokeColor.createValue( ConstantColor.defaults( 100, 100, 100 ) );
+        polygon.strokeWidth.createValue( ConstantNumber.defaults( 5.0 ) );
+        polygon.strokeOpacity.createValue( FilterMappedNumbers.defaults() )
+                .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
+                .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
+        polygon.strokeCapStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        polygon.strokeJoinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        
+        polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults( StrokeDashStyle.dot ) );
+        fs.store();
+        log.info( "SLD (dot): " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+    }    
 }
