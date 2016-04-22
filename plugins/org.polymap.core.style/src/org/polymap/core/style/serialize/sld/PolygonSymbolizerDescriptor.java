@@ -25,7 +25,7 @@ import org.polymap.core.style.model.StrokeJoinStyle;
 /**
  * 
  *
- * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class PolygonSymbolizerDescriptor
         extends SymbolizerDescriptor {

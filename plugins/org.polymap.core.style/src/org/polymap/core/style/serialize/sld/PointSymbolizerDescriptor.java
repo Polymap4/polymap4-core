@@ -23,7 +23,7 @@ import org.polymap.core.runtime.config.NumberRangeValidator;
 /**
  * 
  *
- * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
 public class PointSymbolizerDescriptor
         extends SymbolizerDescriptor {
