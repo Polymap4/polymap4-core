@@ -39,6 +39,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
     private static Log log = LogFactory.getLog( StylePropertyEditor.class );
 
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
+            ConstantColorEditor.class,
             ConstantNumberEditor.class, 
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,
