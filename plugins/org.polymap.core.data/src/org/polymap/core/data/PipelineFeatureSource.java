@@ -87,7 +87,7 @@ public class PipelineFeatureSource
 
     /** XXX defaults to {@link DepthFirstStackExecutor}. */
     @Mandatory
-    public Config2<PipelineFeatureSource,PipelineExecutor>  pipelineExecutor;
+    public Config2<PipelineFeatureSource,Class<? extends PipelineExecutor>>  pipelineExecutor;
     
     private Pipeline                pipeline;
 
@@ -101,12 +101,16 @@ public class PipelineFeatureSource
     public PipelineFeatureSource( Pipeline pipeline ) {
         ConfigurationFactory.inject( this );
         this.pipeline = pipeline;
-        this.pipelineExecutor.set( new DepthFirstStackExecutor() );
+        this.pipelineExecutor.set( DepthFirstStackExecutor.class );
         
         // FIXME this has to be unique instance per session
         this.store = new PipelineDataStore( this );
     }
 
+    
+    protected PipelineExecutor createExecutor() throws InstantiationException, IllegalAccessException {
+        return pipelineExecutor.get().newInstance();
+    }
 
     public DataStore getDataStore() {
         return store;
@@ -152,7 +156,7 @@ public class PipelineFeatureSource
         GetFeatureTypeRequest request = new GetFeatureTypeRequest();
         try {
             final FeatureType[] type = new FeatureType[1];
-            pipelineExecutor.get().execute( pipeline, request, new ResponseHandler() {
+            createExecutor().execute( pipeline, request, new ResponseHandler() {
                 public void handle( ProcessorResponse r ) throws Exception {
                     GetFeatureTypeResponse response = (GetFeatureTypeResponse)r;
                     type[0] = response.getFeatureType();
@@ -190,7 +194,7 @@ public class PipelineFeatureSource
             log.debug( "fetchFeatures(): maxFeatures= " + query.getMaxFeatures() );
             GetFeaturesRequest request = new GetFeaturesRequest( query );
 
-            pipelineExecutor.get().execute( pipeline, request, new ResponseHandler() {
+            createExecutor().execute( pipeline, request, new ResponseHandler() {
                 public void handle( ProcessorResponse r ) throws Exception {
                     GetFeaturesResponse response = (GetFeaturesResponse)r;
                     handler.handle( response.getFeatures() );
@@ -227,7 +231,7 @@ public class PipelineFeatureSource
         GetFeaturesSizeRequest request = new GetFeaturesSizeRequest( query );
         try {
             final int[] result = new int[1];
-            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {
+            createExecutor().execute( pipeline, request, (ProcessorResponse r) -> {
                     GetFeaturesSizeResponse response = (GetFeaturesSizeResponse)r;
                     result[0] = response.getSize();
             });
@@ -257,7 +261,7 @@ public class PipelineFeatureSource
     public void setTransaction( Transaction tx ) {
         try {
             TransactionRequest request = new TransactionRequest( tx );
-            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {});
+            createExecutor().execute( pipeline, request, (ProcessorResponse r) -> {});
             
             this.tx = tx;
             if (tx != Transaction.AUTO_COMMIT) {
@@ -365,7 +369,7 @@ public class PipelineFeatureSource
             final List<FeatureId> fids = new ArrayList( 1024 );
             // request
             AddFeaturesRequest request = new AddFeaturesRequest( features.getSchema(), coll );
-            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> 
+            createExecutor().execute( pipeline, request, (ProcessorResponse r) -> 
                     fids.addAll( ((ModifyFeaturesResponse)r).getFeatureIds() )
             );
 
@@ -392,7 +396,7 @@ public class PipelineFeatureSource
             // request
             RemoveFeaturesRequest request = new RemoveFeaturesRequest( filter );
             final ModifyFeaturesResponse[] response = new ModifyFeaturesResponse[1];
-            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) -> {
+            createExecutor().execute( pipeline, request, (ProcessorResponse r) -> {
                     response[0] = (ModifyFeaturesResponse)r;
             });
             // fire event
@@ -435,7 +439,7 @@ public class PipelineFeatureSource
             // request
             ModifyFeaturesRequest request = new ModifyFeaturesRequest( type, value, filter );
             final ModifyFeaturesResponse[] response = new ModifyFeaturesResponse[1];
-            pipelineExecutor.get().execute( pipeline, request, (ProcessorResponse r) ->
+            createExecutor().execute( pipeline, request, (ProcessorResponse r) ->
                     response[0] = (ModifyFeaturesResponse)r
             );
             // fire event
