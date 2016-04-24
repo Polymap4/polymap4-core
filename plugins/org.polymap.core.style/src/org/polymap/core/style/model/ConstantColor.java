@@ -43,6 +43,18 @@ public class ConstantColor
         };
     }
 
+    public static ValueInitializer<ConstantColor> defaults( Color color ) {
+        return new ValueInitializer<ConstantColor>() {
+            @Override
+            public ConstantColor initialize( ConstantColor proto ) throws Exception {
+                proto.r.set( color.getRed() );
+                proto.g.set( color.getGreen() );
+                proto.b.set( color.getBlue() );
+                return proto;
+            }
+        };
+    }
+
     // instance *******************************************
     
     @Concerns( NumberConcern.class )

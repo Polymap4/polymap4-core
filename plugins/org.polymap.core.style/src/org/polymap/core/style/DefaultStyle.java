@@ -12,6 +12,10 @@
  */
 package org.polymap.core.style;
 
+import java.util.Random;
+
+import java.awt.Color;
+
 import org.opengis.feature.type.FeatureType;
 
 import org.apache.commons.logging.Log;
@@ -39,51 +43,60 @@ public class DefaultStyle {
 
     private static Log log = LogFactory.getLog( DefaultStyle.class );
 
+    public static Random        rand = new Random();
+    
 
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            return createPointStyle( fs );
+            fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
         }
         if (Polygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )
                 || MultiPolygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            return createPolygonStyle( fs);
+            fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
         }
         else {
             throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
         }
+        return fs;
     }
     
 
     public static FeatureStyle createAllStyle( FeatureStyle fs ) {
-        createPointStyle( fs );
-        createPolygonStyle( fs );
+        fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
+        fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
         return fs;
     }
     
     
-    public static FeatureStyle createPointStyle( FeatureStyle fs ) {
-        PointStyle point = fs.members().createElement( PointStyle.defaults );
-
-        point.fillColor.createValue( ConstantColor.defaults( 200, 0, 0 ) );
-        point.fillOpacity.createValue( ConstantNumber.defaults( 0.5 ) );
-        point.strokeColor.createValue( ConstantColor.defaults( 100, 100, 100 ) );
-        point.strokeWidth.createValue( ConstantNumber.defaults( 2.0 ) );
+    public static PointStyle fillPointStyle( PointStyle point ) {
+        point.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
+        point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.strokeColor.createValue( ConstantColor.defaults( randomColor() ) );
+        point.strokeWidth.createValue( ConstantNumber.defaults( 1.0 ) );
         point.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        return fs;
+        return point;
     }
 
 
-    public static FeatureStyle createPolygonStyle( FeatureStyle fs ) {
-        PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
-
-        polygon.fillColor.createValue( ConstantColor.defaults( 200, 0, 0 ) );
+    public static PolygonStyle fillPolygonStyle( PolygonStyle polygon ) {
+        polygon.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.fillOpacity.createValue( ConstantNumber.defaults( 0.5 ) );
-        polygon.strokeColor.createValue( ConstantColor.defaults( 100, 100, 100 ) );
+        polygon.strokeColor.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.strokeWidth.createValue( ConstantNumber.defaults( 2.0 ) );
         polygon.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
         polygon.strokeCapStyle.createValue( ConstantStrokeCapStyle.defaults() );
         polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults() );
         polygon.strokeJoinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
-        return fs;
+        return polygon;
     }
+    
+    
+    public static Color randomColor() {
+        int from = 50, range = 150;
+        return new Color( 
+                from + rand.nextInt( range ), 
+                from + rand.nextInt( range ),
+                from + rand.nextInt( range ) );
+    }
+    
 }

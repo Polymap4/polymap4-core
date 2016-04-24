@@ -25,6 +25,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
 import org.polymap.model2.Description;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -51,7 +52,21 @@ public abstract class Style
         }
     };
     
-
+    /**
+     * Allow the user to give this style a title in order to better distinguish between
+     * the styles in the {@link StyleGroup} hierarchy.
+     */
+    @Nullable
+    @Description( "Title" )
+    public Property<String>                     title;
+    
+    /**
+     * User defined description of the style.
+     */
+    @Nullable
+    @Description( "Description" )
+    public Property<String>                     description;
+    
     /**
      * Describes the condition that makes this style is active/visible. The value
      * might be a constant or a complex filter expression.
@@ -68,5 +83,14 @@ public abstract class Style
      * that in the UI. Not sure about this yet :)
      */
     public CollectionProperty<String>           tags;
+
+
+    /**
+     * Identity check. Necessary to make UI work with Style instances.
+     */
+    @Override
+    public boolean equals( Object obj ) {
+        return obj == this;
+    }
     
 }

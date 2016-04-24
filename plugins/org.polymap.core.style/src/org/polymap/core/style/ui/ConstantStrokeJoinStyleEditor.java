@@ -46,7 +46,7 @@ class ConstantStrokeJoinStyleEditor
 
     @Override
     public String label() {
-        return "Constant cap style";
+        return "A join style";
     }
 
 

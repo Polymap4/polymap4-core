@@ -15,6 +15,7 @@ package org.polymap.core.style.model;
 import java.awt.Color;
 
 import org.polymap.model2.Description;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -38,40 +39,49 @@ public class PolygonStyle
         @Override
         public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
+            proto.title.set( "Polygon" );
             return proto;
         }
     };
 
+    @Nullable
     @UIOrder(10)
     @Description("Fill: color")
     public Property<StylePropertyValue<Color>>           fillColor;
 
     // @NumberRange( 0.0, 1.0 );
+    @Nullable
     @UIOrder(20)
     @Description("Fill: opacity")
     public Property<StylePropertyValue<Double>>          fillOpacity;
 
+    @Nullable
     @UIOrder(30)
     @Description("Outer stroke: width")
     public Property<StylePropertyValue<Double>>          strokeWidth;
 
+    @Nullable
     @UIOrder(40)
     @Description("Outer stroke: color")
     public Property<StylePropertyValue<Color>>           strokeColor;
 
+    @Nullable
     @UIOrder(50)
     @Description("Outer stroke: opacity")
     public Property<StylePropertyValue<Double>>          strokeOpacity;
 
+    @Nullable
     @UIOrder(60)
-    @Description("Outer stroke: capStyle")
+    @Description("Outer stroke: cap style")
     public Property<StylePropertyValue<StrokeCapStyle>>  strokeCapStyle;
 
+    @Nullable
     @UIOrder(70)
-    @Description("Outer stroke: dashStyle")
+    @Description("Outer stroke: dash style")
     public Property<StylePropertyValue<StrokeDashStyle>> strokeDashStyle;
 
+    @Nullable
     @UIOrder(80)
-    @Description("Outer stroke: joinStyle")
+    @Description("Outer stroke: join style")
     public Property<StylePropertyValue<StrokeJoinStyle>> strokeJoinStyle;
 }

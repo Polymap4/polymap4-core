@@ -42,7 +42,7 @@ class ConstantNumberEditor
     
     @Override
     public String label() {
-        return "Constant number";
+        return "A number";
     }
 
 

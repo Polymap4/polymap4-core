@@ -46,7 +46,7 @@ class ConstantStrokeDashStyleEditor
 
     @Override
     public String label() {
-        return "Constant dash style";
+        return "A dash style";
     }
 
 

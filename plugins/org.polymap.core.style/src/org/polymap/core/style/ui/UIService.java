@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.polymap.core.style.StylePlugin;
 
 /**
- * Generell UI abstractions.
+ * Generell application level UI abstractions.
  * <p/>
  * Implementing bundle must register the implementation with its
  * {@link BundleContext} on {@link Plugin#start(BundleContext)}.
