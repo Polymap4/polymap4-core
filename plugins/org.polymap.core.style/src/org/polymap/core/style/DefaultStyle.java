@@ -82,7 +82,7 @@ public class DefaultStyle {
         polygon.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.fillOpacity.createValue( ConstantNumber.defaults( 0.5 ) );
         polygon.strokeColor.createValue( ConstantColor.defaults( randomColor() ) );
-        polygon.strokeWidth.createValue( ConstantNumber.defaults( 2.0 ) );
+        polygon.strokeWidth.createValue( ConstantNumber.defaults( 1.0 ) );
         polygon.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
         polygon.strokeCapStyle.createValue( ConstantStrokeCapStyle.defaults() );
         polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults() );

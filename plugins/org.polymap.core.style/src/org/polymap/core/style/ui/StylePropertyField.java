@@ -84,7 +84,6 @@ public class StylePropertyField
         assert contents == null : "StylePropertyField can be created only once.";
         
         contents = new Composite( parent, SWT.NONE );
-        contents.setLayout( FormLayoutFactory.defaults().create() );
         tooltip.ifPresent( txt -> contents.setToolTipText( txt ) );
         
         // label
@@ -122,9 +121,10 @@ public class StylePropertyField
         });
         
         // layout
+        contents.setLayout( FormLayoutFactory.defaults().create() );
         on( t ).fill().left( 0, 5 ).noBottom();
         on( combo.getCombo() ).top( t ).left( 0 ).right( 38 );
-        on( valueContainer ).top( t ).bottom( 100 ).left( combo.getControl(), 5 ).right( 100 );
+        on( valueContainer ).top( t ).bottom( 100 ).left( combo.getControl(), 5 ).right( 100 ).width( 100 );
         return contents;
     }
 

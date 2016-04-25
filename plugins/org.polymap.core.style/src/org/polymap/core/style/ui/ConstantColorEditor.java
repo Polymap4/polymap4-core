@@ -23,8 +23,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantColor;
@@ -60,7 +58,6 @@ class ConstantColorEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<ConstantColor>() {
-
             @Override
             public ConstantColor initialize( ConstantColor proto ) throws Exception {
                 // TODO default value here
@@ -79,23 +76,23 @@ class ConstantColorEditor
         final Button button = new Button( parent, SWT.PUSH );
         button.setText( i18n.get( "choose" ) );
         button.addSelectionListener( new SelectionAdapter() {
-
+            @Override
             public void widgetSelected( SelectionEvent e ) {
                 ColorChooser cc = new ColorChooser( new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) );
-                UIService.instance().openDialog( cc.title(), parent -> {
-                    cc.createContents( parent );
+                UIService.instance().openDialog( cc.title(), dialogParent -> {
+                    cc.createContents( dialogParent );
                 }, () -> {
                     RGB rgb = cc.getRGB();
                     prop.get().r.set( rgb.red );
                     prop.get().b.set( rgb.blue );
                     prop.get().g.set( rgb.green );
-                    button.setBackground( new org.eclipse.swt.graphics.Color( Display.getDefault(), rgb ) );
+                    button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
                     return true;
                 } );
             }
 
         } );
-        button.setBackground( new org.eclipse.swt.graphics.Color( Display.getCurrent(), new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) ) );
+        button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) ) );
         return contents;
     }
 }
