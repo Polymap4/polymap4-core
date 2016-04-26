@@ -18,6 +18,9 @@ import java.util.Optional;
 
 import java.lang.reflect.ParameterizedType;
 
+import org.geotools.factory.CommonFactoryFinder;
+import org.opengis.filter.FilterFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,6 +41,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     private static Log log = LogFactory.getLog( StylePropertyEditor.class );
 
+    public static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
+    
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
             ConstantColorEditor.class,
             ConstantNumberEditor.class, 

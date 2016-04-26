@@ -68,7 +68,7 @@ public class StyleModelTest {
         
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
-        assertTrue( point.activeIf.get() instanceof ConstantFilter );
+        assertTrue( point.visibleIf.get() instanceof ConstantFilter );
         
         point.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
@@ -93,7 +93,7 @@ public class StyleModelTest {
         
         // point
         PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
-        assertTrue( polygon.activeIf.get() instanceof ConstantFilter );
+        assertTrue( polygon.visibleIf.get() instanceof ConstantFilter );
         
         polygon.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         polygon.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );

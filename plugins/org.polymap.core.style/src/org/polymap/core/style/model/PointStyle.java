@@ -16,6 +16,7 @@ package org.polymap.core.style.model;
 
 import java.awt.Color;
 
+import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
@@ -50,28 +51,33 @@ public class PointStyle
     @UIOrder( 10 )
     @Description( "Outer stroke: width" )
     @DoubleRange( from=0, to=Double.MAX_VALUE, defaultValue=1 )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> strokeWidth;
     
     @Nullable
     @UIOrder( 20 )
     @Description( "Outer stroke: color" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Color>>  strokeColor;
     
     @Nullable
     @UIOrder( 30 )
     @Description( "Outer stroke: opacity" )
     @DoubleRange( from=0, to=1, defaultValue=1 )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> strokeOpacity;
     
     @Nullable
     @UIOrder( 40 )
     @Description( "Fill: color" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Color>>  fillColor;
     
     @Nullable
     @UIOrder( 50 )
     @Description( "Fill: opacity" )
     @DoubleRange( from=0, to=1, defaultValue=1 )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> fillOpacity;
     
 }

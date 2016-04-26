@@ -17,6 +17,7 @@ package org.polymap.core.style.model;
 import java.util.Collection;
 
 import java.io.IOException;
+
 import org.opengis.filter.Filter;
 
 import org.apache.commons.logging.Log;
@@ -52,8 +53,11 @@ public class FilterMappedNumbers<T extends Number>
 
     // instance *******************************************
     
+    // XXX Collections are not supported yet, use force-fire-fake prop?
+    //@Concerns( StylePropertyChange.Concern.class )
     public CollectionProperty<Number>           values;
     
+    //@Concerns( StylePropertyChange.Concern.class )
     public CollectionProperty<String>           filters;
     
     

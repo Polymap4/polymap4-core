@@ -12,6 +12,7 @@
  */
 package org.polymap.core.style.model;
 
+import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -42,5 +43,6 @@ public class ConstantStrokeCapStyle
         };
     }
 
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StrokeCapStyle> capStyle;
 }

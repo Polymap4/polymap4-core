@@ -14,6 +14,8 @@
  */
 package org.polymap.core.style.ui;
 
+import java.io.IOException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -49,8 +51,15 @@ class AttributeMappedNumbersEditor
     
     @Override
     public void updateProperty() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        try {
+            // FIXME just create anything for testing
+            prop.createValue( FilterMappedNumbers.defaults() )
+                    .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
+                    .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
+        }
+        catch (IOException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 

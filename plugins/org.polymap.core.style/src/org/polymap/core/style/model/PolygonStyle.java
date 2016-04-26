@@ -14,6 +14,7 @@ package org.polymap.core.style.model;
 
 import java.awt.Color;
 
+import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
@@ -47,41 +48,49 @@ public class PolygonStyle
     @Nullable
     @UIOrder(10)
     @Description("Fill: color")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Color>>           fillColor;
 
     // @NumberRange( 0.0, 1.0 );
     @Nullable
     @UIOrder(20)
     @Description("Fill: opacity")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>>          fillOpacity;
 
     @Nullable
     @UIOrder(30)
     @Description("Outer stroke: width")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>>          strokeWidth;
 
     @Nullable
     @UIOrder(40)
     @Description("Outer stroke: color")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Color>>           strokeColor;
 
     @Nullable
     @UIOrder(50)
     @Description("Outer stroke: opacity")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>>          strokeOpacity;
 
     @Nullable
     @UIOrder(60)
     @Description("Outer stroke: cap style")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<StrokeCapStyle>>  strokeCapStyle;
 
     @Nullable
     @UIOrder(70)
     @Description("Outer stroke: dash style")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<StrokeDashStyle>> strokeDashStyle;
 
     @Nullable
     @UIOrder(80)
     @Description("Outer stroke: join style")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<StrokeJoinStyle>> strokeJoinStyle;
 }

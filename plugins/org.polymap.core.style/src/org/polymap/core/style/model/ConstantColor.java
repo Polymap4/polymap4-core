@@ -57,16 +57,16 @@ public class ConstantColor
 
     // instance *******************************************
     
-    @Concerns( NumberConcern.class )
     @NumberConcern.Range( from=0, to=255 )
+    @Concerns( {NumberConcern.class, StylePropertyChange.Concern.class} )
     public Property<Integer>            r;
     
-    @Concerns( NumberConcern.class )
     @NumberConcern.Range( from=0, to=255 )
+    @Concerns( {NumberConcern.class, StylePropertyChange.Concern.class} )
     public Property<Integer>            g;
     
-    @Concerns( NumberConcern.class )
     @NumberConcern.Range( from=0, to=255 )
+    @Concerns( {NumberConcern.class, StylePropertyChange.Concern.class} )
     public Property<Integer>            b;
     
     

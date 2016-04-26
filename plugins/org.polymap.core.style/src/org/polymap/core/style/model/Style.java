@@ -24,8 +24,9 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
+import org.polymap.model2.Concerns;
+import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Description;
-import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -47,7 +48,7 @@ public abstract class Style
     public static final ValueInitializer<Style> defaults = new ValueInitializer<Style>() {
         @Override
         public Style initialize( Style proto ) throws Exception {
-            proto.activeIf.createValue( ConstantFilter.defaultTrue );
+            proto.visibleIf.createValue( ConstantFilter.defaultTrue );
             return proto;
         }
     };
@@ -56,33 +57,52 @@ public abstract class Style
      * Allow the user to give this style a title in order to better distinguish between
      * the styles in the {@link StyleGroup} hierarchy.
      */
-    @Nullable
+    @DefaultValue( "[No title]" )
     @Description( "Title" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<String>                     title;
     
     /**
-     * User defined description of the style.
+     * User provided description of the style.
      */
-    @Nullable
+    @DefaultValue( "[No description]" )
     @Description( "Description" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<String>                     description;
+
+    /**
+     * Allows the user to deactivate this style in order to test render result with
+     * actually removing it.
+     */
+    @DefaultValue( "true" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<Boolean>                    active;
     
     /**
-     * Describes the condition that makes this style is active/visible. The value
-     * might be a constant or a complex filter expression.
+     * Due to limitations of {@link Composite} {@link CollectionProperty}s it
+     * is better to flag removed instances rather than actually removing them.
+     */
+    @DefaultValue( "false" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<Boolean>                    removed;
+    
+    /**
+     * Describes the condition that makes this style is generally active/visible. The
+     * value might be a constant or a complex filter expression.
      * <p/>
      * Defaults to: {@link ConstantFilter#defaultTrue}
      */
     @UIOrder( 0 )
     @Description( "Active if..." )
-    public Property<StylePropertyValue<Filter>> activeIf;
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Filter>> visibleIf;
 
-    /**
-     * This allows to bring structure to the (possibly many) styles of an
-     * {@link FeatureStyle}. Used to have the notion of "folders" or something like
-     * that in the UI. Not sure about this yet :)
-     */
-    public CollectionProperty<String>           tags;
+//    /**
+//     * This allows to bring structure to the (possibly many) styles of an
+//     * {@link FeatureStyle}. Used to have the notion of "folders" or something like
+//     * that in the UI. Not sure about this yet :)
+//     */
+//    public CollectionProperty<String>           tags;
 
 
     /**
