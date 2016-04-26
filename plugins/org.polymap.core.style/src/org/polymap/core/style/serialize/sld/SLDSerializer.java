@@ -87,11 +87,16 @@ public class SLDSerializer
         List<SymbolizerDescriptor> descriptors = new ArrayList<SymbolizerDescriptor>();
         // 2: create flat list of SymbolizerDescriptor instances
         for (org.polymap.core.style.model.Style style : featureStyle.members()) {
-            if (PointStyle.class.isInstance( style )) {
+            // skip deactivated
+            if (!style.active.get()) {
+            }
+            // Point
+            else if (PointStyle.class.isInstance( style )) {
                 PointStyle ps = (PointStyle)style;
                 PointStyleSerializer serializer = new PointStyleSerializer();
                 descriptors.addAll( serializer.serialize( ps ));
             }
+            // Polygon
             else if (PolygonStyle.class.isInstance( style )) {
                 PolygonStyle ps = (PolygonStyle)style;
                 PolygonStyleSerializer serializer = new PolygonStyleSerializer();

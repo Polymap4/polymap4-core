@@ -14,10 +14,16 @@
  */
 package org.polymap.core.style.model;
 
+import java.util.Iterator;
+
 import org.opengis.style.FeatureTypeStyle;
 import org.opengis.style.Rule;
 
+import com.google.common.collect.Iterators;
+
 import org.polymap.model2.CollectionProperty;
+import org.polymap.model2.CollectionPropertyConcernAdapter;
+import org.polymap.model2.Concerns;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -47,6 +53,34 @@ public class StyleGroup
         }
     };
 
-    public CollectionProperty<Style>    members;
+    @Concerns( FilterRemovedConcern.class )
+    public CollectionProperty<Style>        members;
+    
+    
+    /**
+     * 
+     */
+    public static class FilterRemovedConcern
+            extends CollectionPropertyConcernAdapter<Style> {
+
+        @Override
+        public Style createElement( ValueInitializer initializer ) {
+            return ((CollectionProperty<Style>)delegate).createElement( initializer );
+        }
+
+        @Override
+        public Iterator<Style> iterator() {
+            Iterator<Style> unfiltered = ((CollectionProperty<Style>)delegate).iterator();
+            return Iterators.filter( unfiltered, style -> !style.removed.get() );
+        }
+
+        // XXX used by UI content provider; due to bugs on Model2 toArray()
+        // does not call iterator()
+        // (http://github.com/Polymap4/polymap4-model/issues/issue/12)
+        @Override
+        public Object[] toArray() {
+            return Iterators.toArray( iterator(), Object.class );
+        }
+    }
     
 }
