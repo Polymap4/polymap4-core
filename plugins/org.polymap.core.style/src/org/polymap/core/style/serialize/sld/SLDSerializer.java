@@ -133,7 +133,9 @@ public class SLDSerializer
                 ff.literal( descriptor.strokeWidth.get() ),
                 ff.literal( descriptor.strokeOpacity.get() ) ) );
 
-        // mark.setFill( sf.createFill( ff.literal( Color.YELLOW ) ) );
+        mark.setFill( sf.createFill( 
+                ff.literal( descriptor.fillColor.get() ),
+                ff.literal( descriptor.fillOpacity.get() ) ) );
 
         gr.graphicalSymbols().clear();
         gr.graphicalSymbols().add( mark );
