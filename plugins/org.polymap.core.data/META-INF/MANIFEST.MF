@@ -363,4 +363,5 @@ Bundle-ClassPath: .,
  lib/gt-render-13.2.jar,
  lib/gt-shapefile-13.2.jar,
  lib/gt-brewer-13.2.jar,
- lib/commons-collections-3.1.jar
+ lib/commons-collections-3.1.jar,
+ lib/ecore-2.6.1.jar
