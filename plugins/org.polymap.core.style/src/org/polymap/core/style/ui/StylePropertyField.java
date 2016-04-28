@@ -72,11 +72,14 @@ public class StylePropertyField
 
     private StylePropertyEditor                 selected;
 
+    private final StylePropertyFieldSite fieldSite;
+
     
-    public StylePropertyField( Property<StylePropertyValue> prop ) {
-        this.prop = prop;
+    public StylePropertyField( StylePropertyFieldSite fieldSite ) {
+        this.fieldSite = fieldSite;
+        this.prop = fieldSite.prop.get();
         this.title.set( (String)prop.info().getDescription().orElse( "" ) );
-        this.editors = StylePropertyEditor.forValue( prop );
+        this.editors = StylePropertyEditor.forValue( fieldSite );
     }
 
 

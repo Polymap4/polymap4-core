@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import java.lang.reflect.ParameterizedType;
 
+import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.FilterFactory;
 
@@ -57,12 +58,12 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      *
      * @param spv
      */
-    public static StylePropertyEditor[] forValue( Property<StylePropertyValue> prop ) {
+    public static StylePropertyEditor[] forValue( StylePropertyFieldSite fieldSite ) {
         List<StylePropertyEditor> result = new ArrayList( availableEditors.length );
         for (Class<StylePropertyEditor> cl : availableEditors) {
             try {
                 StylePropertyEditor editor = cl.newInstance();
-                if (editor.init( prop )) {
+                if (editor.init( fieldSite )) {
                     result.add( editor );
                 }
             }
@@ -77,6 +78,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     protected Property<SPV> prop;
 
+    protected FeatureStore featureStore;
+
 
     /**
      * Initialize and check if this editor is able to handle the given property's
@@ -85,9 +88,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * @return True if this editor is able to handle the property's
      *         {@link StylePropertyValue}.
      */
-    public boolean init( @SuppressWarnings("hiding") Property<SPV> prop ) {
+    public boolean init( StylePropertyFieldSite fieldSite) {
         try {
-            this.prop = prop;
+            this.prop = (Property<SPV>)fieldSite.prop.get();
+            this.featureStore = fieldSite.featureStore.get();
             return true;
         }
         catch (ClassCastException e) {

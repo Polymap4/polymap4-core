@@ -51,6 +51,7 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer;
  * </pre>
  * 
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class SLDSerializer
         extends FeatureStyleSerializer<Style> {
@@ -185,6 +186,45 @@ public class SLDSerializer
          * the default geometry of features
          */
         PolygonSymbolizer sym = sf.createPolygonSymbolizer( stroke, fill, null );
+
+        // Rule
+        Rule rule = sf.createRule();
+        rule.setName( descriptor.description.get() );
+        rule.symbolizers().add( sym );
+
+        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
+        descriptor.scale.ifPresent( scale -> {
+            rule.setMinScaleDenominator( scale.getLeft() );
+            rule.setMaxScaleDenominator( scale.getRight() );
+        } );
+
+        return sf.createFeatureTypeStyle( new Rule[] { rule } );
+    }
+    
+
+    protected FeatureTypeStyle buildTextStyle( TextSymbolizerDescriptor descriptor ) {
+        // Graphic gr = sf.createDefaultGraphic();
+
+        // Stroke stroke = sf.createStroke( color, width, opacity, lineJoin, lineCap,
+        // dashArray, dashOffset, graphicFill, graphicStroke );
+        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ),
+                ff.literal( descriptor.strokeWidth.get() ),
+                ff.literal( descriptor.strokeOpacity.get() ) );
+
+        stroke.setLineJoin( ff.literal( descriptor.strokeJoinStyle.get() ) );
+        stroke.setLineCap( ff.literal( descriptor.strokeCapStyle.get() ) );
+        if (descriptor.strokeDashStyle.get() != null) {
+            stroke.setDashArray( descriptor.strokeDashStyle.get() );
+            stroke.setDashOffset( ff.literal( 0 ) );
+        }
+
+        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ),
+                ff.literal( descriptor.fillOpacity.get() ) );
+        /*
+         * Setting the geometryPropertyName arg to null signals that we want to draw
+         * the default geometry of features
+         */
+        TextSymbolizer sym = sf.createTextSymbolizer( fill, fonts, halo, label, labelPlacement, geometryPropertyName );
 
         // Rule
         Rule rule = sf.createRule();
