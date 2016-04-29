@@ -32,6 +32,7 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.config.Config;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
@@ -124,14 +125,19 @@ public class SLDSerializer
     }
 
 
+    protected Stroke buildStroke( Config<StrokeDescriptor> stroke ) {
+        // ich bin mir nicht sicher ob mir so eine schreibweise wirklich gefällt
+        return stroke.map( s -> 
+                sf.createStroke( ff.literal( s.color.get() ), ff.literal( s.width.get() ), ff.literal( s.opacity.get() ) ) )
+                .orElse( sf.getDefaultStroke() );
+    }
+    
+    
     protected FeatureTypeStyle buildPointStyle( PointSymbolizerDescriptor descriptor ) {
         Graphic gr = sf.createDefaultGraphic();
 
         Mark mark = sf.getCircleMark();
-        mark.setStroke( sf.createStroke(
-                ff.literal( descriptor.strokeColor.get() ),
-                ff.literal( descriptor.strokeWidth.get() ),
-                ff.literal( descriptor.strokeOpacity.get() ) ) );
+        mark.setStroke( buildStroke( descriptor.stroke ) );
 
         mark.setFill( sf.createFill( 
                 ff.literal( descriptor.fillColor.get() ),

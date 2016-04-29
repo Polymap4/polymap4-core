@@ -81,6 +81,11 @@ public class StyleGroup
         public Object[] toArray() {
             return Iterators.toArray( iterator(), Object.class );
         }
+
+        @Override
+        public int size() {
+            return Iterators.size( iterator() );
+        }
     }
     
 }
