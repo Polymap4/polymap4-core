@@ -47,6 +47,7 @@ public class ConfigurationFactory {
     private static final Lazy<Method>       doSet = new PlainLazyInit( () -> doMethod( "doSet" ) ); 
     private static final Lazy<Method>       doInit = new PlainLazyInit( () -> doMethod( "doInit" ) ); 
     
+    
     private static Method doMethod( String name ) {
         try {
             return PropertyConcern.class.getDeclaredMethod( name, new Class[] {Object.class, Config.class, Object.class} );
@@ -277,12 +278,12 @@ public class ConfigurationFactory {
         }
         
         
-        protected V checkConcerns( Method m, V v ) {
+        protected V checkConcerns( Method m, V newValue ) {
             try {
                 for (PropertyConcern concern : concerns) {
-                    v = (V)m.invoke( concern, new Object[] {instance, this, v} );
+                    newValue = (V)m.invoke( concern, new Object[] {instance, this, newValue} );
                 }
-                return v;
+                return newValue;
             }
             catch (RuntimeException e) {
                 throw e;
@@ -354,6 +355,11 @@ public class ConfigurationFactory {
                 @Override 
                 public <T extends Object> T getHostObject() {
                     return (T)instance;
+                }
+                
+                @Override
+                public <R extends Object> R getRawValue() {
+                    return (R)value;
                 }
             };
         }
