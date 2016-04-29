@@ -16,6 +16,8 @@ package org.polymap.core.project;
 
 import static org.polymap.model2.query.Expressions.and;
 import static org.polymap.model2.query.Expressions.eq;
+import static org.polymap.model2.query.Expressions.is;
+
 import java.util.EventObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -65,6 +67,17 @@ public abstract class ProjectNode
 
     
     @Override
+    public String id() {
+        return (String)super.id();
+    }
+
+
+    public UnitOfWork belongsTo() {
+        return context.getUnitOfWork();
+    }
+    
+    
+    @Override
     public void onLifecycleChange( State state ) {
         if (state == State.AFTER_COMMIT) {
             EventManager.instance().publish( new ProjectNodeCommittedEvent( this ) );
@@ -88,7 +101,7 @@ public abstract class ProjectNode
         U template = Expressions.template( userSettingsType, repo );
         ResultSet<U> rs = uow.query( userSettingsType )
                 .where( and(
-                        Expressions.is( backAssoc, (N)ProjectNode.this ),
+                        is( backAssoc, (N)ProjectNode.this ),
                         eq( template.username, username ) ) )
                 .maxResults( 2 )
                 .execute();
@@ -127,13 +140,6 @@ public abstract class ProjectNode
         @DefaultValue( "true" )
         @Concerns( {PropertyChangeSupport.class, AutoCommit.class} )
         public Property<Boolean>         visible;
-        
-        
-//        public void autoCommit( Consumer<ProjectNodeUser> task ) {
-//            task.accept( this );
-//            // every instance has its own UnitOfWork; see ProjectNode#userSetting()
-//            context.getUnitOfWork().commit();
-//        }
     }
 
     
@@ -171,6 +177,6 @@ public abstract class ProjectNode
         public <T extends ProjectNode> T getEntity() {
             return (T)super.getSource();
         }
-        
     }
+    
 }
