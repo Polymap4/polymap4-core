@@ -29,4 +29,8 @@ public enum FontFamily {
     FontFamily( final String value ) {
         this.value = value;
     }
+    
+    public String value() {
+        return value;
+    }
 }

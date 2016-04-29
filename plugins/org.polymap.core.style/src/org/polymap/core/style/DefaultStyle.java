@@ -33,6 +33,7 @@ import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.model.TextStyle;
 
 /**
  * Factory of simple default feature styles with some random settings.
@@ -97,6 +98,12 @@ public class DefaultStyle {
                 from + rand.nextInt( range ), 
                 from + rand.nextInt( range ),
                 from + rand.nextInt( range ) );
+    }
+
+
+    public static void fillTextStyle( TextStyle createElement ) {
+        // TODO Auto-generated method stub
+        thro w new RuntimeException( "not yet implemented." );
     }
     
 }

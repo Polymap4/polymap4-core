@@ -27,45 +27,40 @@ public class Font
     /**
      * Initializes a newly created instance with default values.
      */
-    @SuppressWarnings("hiding")
+    @SuppressWarnings( "hiding" )
     public static final ValueInitializer<Font>      defaults = new ValueInitializer<Font>() {
-
-                                                                 @Override
-                                                                 public Font initialize( Font proto ) throws Exception {
-                                                                     proto.family.createValue(
-                                                                             ConstantFontFamily.defaults());
-                                                                     proto.style.createValue(
-                                                                             ConstantFontStyle.defaults() );
-                                                                     proto.weight.createValue(
-                                                                             ConstantFontWeight.defaults() );
-                                                                     proto.size.createValue(
-                                                                             ConstantNumber.defaults( 10.0 ) );
-                                                                     return proto;
-                                                                 }
-                                                             };
+        @Override
+        public Font initialize( Font proto ) throws Exception {
+            proto.family.createValue( ConstantFontFamily.defaults() );
+            proto.style.createValue( ConstantFontStyle.defaults() );
+            proto.weight.createValue( ConstantFontWeight.defaults() );
+            proto.size.createValue( ConstantNumber.defaults( 10.0 ) );
+            return proto;
+        }
+    };
 
     // @NumberRange( 0.0, 1.0 );
     @Nullable
-    @UIOrder(10)
-    @Description("Text: font family")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<FontFamily>>     family;
+    @UIOrder( 10 )
+    @Description( "Text: font family" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<FontFamily>> family;
 
     @Nullable
-    @UIOrder(20)
-    @Description("Text: font style")
-    @Concerns(StylePropertyChange.Concern.class)
+    @UIOrder( 20 )
+    @Description( "Text: font style" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<FontStyle>>  style;
 
     @Nullable
-    @UIOrder(30)
-    @Description("Text: font weight")
-    @Concerns(StylePropertyChange.Concern.class)
+    @UIOrder( 30 )
+    @Description( "Text: font weight" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<FontWeight>> weight;
 
     @Nullable
-    @UIOrder(40)
-    @Description("Text: font size")
-    @Concerns(StylePropertyChange.Concern.class)
+    @UIOrder( 40 )
+    @Description( "Text: font size" )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>>     size;
 }
