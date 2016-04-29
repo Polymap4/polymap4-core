@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.StrokeJoinStyle;
 
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -51,8 +50,8 @@ class ConstantStrokeJoinStyleEditor
 
 
     @Override
-    public boolean init( Property<ConstantStrokeJoinStyle> _prop ) {
-        return StrokeJoinStyle.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return StrokeJoinStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 

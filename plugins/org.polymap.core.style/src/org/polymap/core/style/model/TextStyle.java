@@ -12,6 +12,8 @@
  */
 package org.polymap.core.style.model;
 
+import java.util.List;
+
 import java.awt.Color;
 
 import org.polymap.model2.Concerns;
@@ -29,62 +31,103 @@ public class TextStyle
     /**
      * Initializes a newly created instance with default values.
      */
-    @SuppressWarnings("hiding")
-    public static final ValueInitializer<TextStyle>  defaults = new ValueInitializer<TextStyle>() {
-        @Override
-        public TextStyle initialize( TextStyle proto ) throws Exception {
-            Style.defaults.initialize( proto );
-            proto.title.set( "Text" );
-            return proto;
-        }
-    };
+    @SuppressWarnings( "hiding" )
+    public static final ValueInitializer<TextStyle>   defaults = new ValueInitializer<TextStyle>() {
 
-    @Nullable
-    @UIOrder(10)
-    @Description("Text: color")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Color>>           color;
+                                                                   @Override
+                                                                   public TextStyle initialize( TextStyle proto )
+                                                                           throws Exception {
+                                                                       Style.defaults.initialize( proto );
+                                                                       proto.title.set( "Text" );
+                                                                       return proto;
+                                                                   }
+                                                               };
 
     // @NumberRange( 0.0, 1.0 );
     @Nullable
-    @UIOrder(20)
-    @Description("Text: opacity")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>>          opacity;
+    @UIOrder( 20 )
+    @Description( "Text: property" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<String>>       textProperty;
 
     @Nullable
-    @UIOrder(30)
-    @Description("Outer stroke: width")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>>          strokeWidth;
+    @UIOrder( 10 )
+    @Description( "Text: color" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Color>>        color;
+
+    // @NumberRange( 0.0, 1.0 );
+    @Nullable
+    @UIOrder( 20 )
+    @Description( "Text: font family" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<List<String>>> fontFamily;
 
     @Nullable
-    @UIOrder(40)
-    @Description("Text: Label placement")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<LabelPlacement>>           labelPlacement;
+    @UIOrder( 20 )
+    @Description( "Text: font style" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<FontStyle>>    fontStyle;
 
     @Nullable
-    @UIOrder(50)
-    @Description("Outer stroke: opacity")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>>          strokeOpacity;
+    @UIOrder( 20 )
+    @Description( "Text: font weight" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<FontWeight>>   fontWeight;
 
     @Nullable
-    @UIOrder(60)
-    @Description("Outer stroke: cap style")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<StrokeCapStyle>>  strokeCapStyle;
+    @UIOrder( 20 )
+    @Description( "Text: font size" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Double>>       fontSize;
+
+    // @NumberRange( 0.0, 1.0 );
+    @Nullable
+    @UIOrder( 20 )
+    @Description( "Text: opacity" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Double>>       opacity;
 
     @Nullable
-    @UIOrder(70)
-    @Description("Outer stroke: dash style")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<StrokeDashStyle>> strokeDashStyle;
+    @UIOrder( 30 )
+    @Description( "Background: width" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Double>>       haloWidth;
 
     @Nullable
-    @UIOrder(80)
-    @Description("Outer stroke: join style")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<StrokeJoinStyle>> strokeJoinStyle;
+    @UIOrder( 40 )
+    @Description( "Background: color " )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Color>>        haloColor;
+
+    @Nullable
+    @UIOrder( 50 )
+    @Description( "Background: opacity" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Double>>       haloOpacity;
+
+    @Nullable
+    @UIOrder( 50 )
+    @Description( "Anchor: x,y" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Point>>        anchorPoint;
+
+    @Nullable
+    @UIOrder( 50 )
+    @Description( "Displacement: x,y" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Point>>        displacement;
+
+    @Nullable
+    @UIOrder( 50 )
+    @Description( "Label: Rotation" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Double>>       placementRotation;
+
+    @Nullable
+    @UIOrder( 50 )
+    @Description( "Line Label: Offset" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Double>>       placementOffset;
+
 }

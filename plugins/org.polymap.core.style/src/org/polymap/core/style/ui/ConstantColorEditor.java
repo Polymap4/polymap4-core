@@ -27,7 +27,6 @@ import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantColor;
 
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -50,8 +49,8 @@ class ConstantColorEditor
 
 
     @Override
-    public boolean init( Property<ConstantColor> _prop ) {
-        return Color.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return Color.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 

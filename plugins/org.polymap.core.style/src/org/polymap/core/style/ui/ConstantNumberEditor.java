@@ -27,7 +27,6 @@ import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.DoubleRange;
 import org.polymap.core.style.model.IntRange;
 
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -47,8 +46,8 @@ class ConstantNumberEditor
 
 
     @Override
-    public boolean init( Property<ConstantNumber> _prop ) {
-        return Number.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return Number.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 

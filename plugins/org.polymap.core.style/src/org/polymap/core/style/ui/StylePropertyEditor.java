@@ -106,12 +106,12 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * Property&lt;StylePropertyValue&lt;Number&gt;&gt; -> Number
      * </pre>
      *
-     * @param _prop
+     * @param site
      * @return
      */
-    protected Class targetType( Property _prop ) {
-        assert StylePropertyValue.class.isAssignableFrom( _prop.info().getType() );
-        Optional<ParameterizedType> o = _prop.info().getParameterizedType();
+    protected Class targetType( StylePropertyFieldSite site ) {
+        assert StylePropertyValue.class.isAssignableFrom( site.prop.get().info().getType() );
+        Optional<ParameterizedType> o = site.prop.get().info().getParameterizedType();
         ParameterizedType p = o.orElseThrow(
                 () -> new RuntimeException( "StylePropertyValue has no type parameter: " + prop.toString() ) );
         return (Class)p.getActualTypeArguments()[0];

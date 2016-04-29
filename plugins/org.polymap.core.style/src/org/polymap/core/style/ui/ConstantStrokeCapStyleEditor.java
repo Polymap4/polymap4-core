@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.StrokeCapStyle;
 
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -51,8 +50,8 @@ class ConstantStrokeCapStyleEditor
 
 
     @Override
-    public boolean init( Property<ConstantStrokeCapStyle> _prop ) {
-        return StrokeCapStyle.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return StrokeCapStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 

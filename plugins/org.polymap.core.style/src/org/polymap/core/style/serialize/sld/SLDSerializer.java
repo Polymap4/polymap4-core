@@ -27,6 +27,7 @@ import org.geotools.styling.SLDTransformer;
 import org.geotools.styling.Stroke;
 import org.geotools.styling.Style;
 import org.geotools.styling.StyleFactory;
+import org.geotools.styling.Symbolizer;
 import org.opengis.filter.FilterFactory;
 
 import org.apache.commons.logging.Log;
@@ -56,14 +57,14 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer;
 public class SLDSerializer
         extends FeatureStyleSerializer<Style> {
 
-    private static Log log = LogFactory.getLog( SLDSerializer.class );
+    private static Log                log = LogFactory.getLog( SLDSerializer.class );
 
-    public static final StyleFactory sf  = CommonFactoryFinder.getStyleFactory( null );
+    public static final StyleFactory  sf  = CommonFactoryFinder.getStyleFactory( null );
 
     public static final FilterFactory ff  = CommonFactoryFinder.getFilterFactory( null );
 
     /** The result of this serializer. */
-    private Style                   sld;
+    private Style                     sld;
 
 
     /**
@@ -95,13 +96,13 @@ public class SLDSerializer
             else if (PointStyle.class.isInstance( style )) {
                 PointStyle ps = (PointStyle)style;
                 PointStyleSerializer serializer = new PointStyleSerializer();
-                descriptors.addAll( serializer.serialize( ps ));
+                descriptors.addAll( serializer.serialize( ps ) );
             }
             // Polygon
             else if (PolygonStyle.class.isInstance( style )) {
                 PolygonStyle ps = (PolygonStyle)style;
                 PolygonStyleSerializer serializer = new PolygonStyleSerializer();
-                descriptors.addAll( serializer.serialize( ps ));
+                descriptors.addAll( serializer.serialize( ps ) );
             }
             else {
                 throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
@@ -111,32 +112,46 @@ public class SLDSerializer
         sld = sf.createStyle();
         // 3: transform into FeatureTypeStyle and Rule instances
         for (SymbolizerDescriptor descriptor : descriptors) {
-            if (descriptor instanceof PointSymbolizerDescriptor) {
-                sld.featureTypeStyles().add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
-            }
-            else if (descriptor instanceof PolygonSymbolizerDescriptor) {
-                sld.featureTypeStyles().add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
-            }
-            else {
-                throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
-            }
+            sld.featureTypeStyles().add( buildStyle( descriptor ) );
         }
         return sld;
     }
 
 
-    protected FeatureTypeStyle buildPointStyle( PointSymbolizerDescriptor descriptor ) {
+    private FeatureTypeStyle buildStyle( final SymbolizerDescriptor descriptor ) {
+        Symbolizer sym = null;
+        if (descriptor instanceof PointSymbolizerDescriptor) {
+            sym = buildPointStyle( (PointSymbolizerDescriptor)descriptor );
+        }
+        else if (descriptor instanceof PolygonSymbolizerDescriptor) {
+            sym = buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor );
+        }
+        else {
+            throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
+        }
+
+        // Rule
+        Rule rule = sf.createRule();
+        rule.setName( descriptor.description.get() );
+        rule.symbolizers().add( sym );
+
+        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
+        descriptor.scale.ifPresent( scale -> {
+            rule.setMinScaleDenominator( scale.getLeft() );
+            rule.setMaxScaleDenominator( scale.getRight() );
+        } );
+
+        return sf.createFeatureTypeStyle( new Rule[] { rule } );
+    }
+
+
+    protected PointSymbolizer buildPointStyle( PointSymbolizerDescriptor descriptor ) {
         Graphic gr = sf.createDefaultGraphic();
 
         Mark mark = sf.getCircleMark();
-        mark.setStroke( sf.createStroke(
-                ff.literal( descriptor.strokeColor.get() ),
-                ff.literal( descriptor.strokeWidth.get() ),
-                ff.literal( descriptor.strokeOpacity.get() ) ) );
+        mark.setStroke( sf.createStroke( ff.literal( descriptor.strokeColor.get() ), ff.literal( descriptor.strokeWidth.get() ), ff.literal( descriptor.strokeOpacity.get() ) ) );
 
-        mark.setFill( sf.createFill( 
-                ff.literal( descriptor.fillColor.get() ),
-                ff.literal( descriptor.fillOpacity.get() ) ) );
+        mark.setFill( sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) ) );
 
         gr.graphicalSymbols().clear();
         gr.graphicalSymbols().add( mark );
@@ -146,31 +161,16 @@ public class SLDSerializer
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
          */
-        PointSymbolizer sym = sf.createPointSymbolizer( gr, null );
-
-        // Rule
-        Rule rule = sf.createRule();
-        rule.setName( descriptor.description.get() );
-        rule.symbolizers().add( sym );
-
-        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
-        descriptor.scale.ifPresent( scale -> {
-            rule.setMinScaleDenominator( scale.getLeft() );
-            rule.setMaxScaleDenominator( scale.getRight() );
-        } );
-
-        return sf.createFeatureTypeStyle( new Rule[] { rule } );
+        return sf.createPointSymbolizer( gr, null );
     }
 
 
-    protected FeatureTypeStyle buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
+    protected PolygonSymbolizer buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
         // Graphic gr = sf.createDefaultGraphic();
 
         // Stroke stroke = sf.createStroke( color, width, opacity, lineJoin, lineCap,
         // dashArray, dashOffset, graphicFill, graphicStroke );
-        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ),
-                ff.literal( descriptor.strokeWidth.get() ),
-                ff.literal( descriptor.strokeOpacity.get() ) );
+        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ), ff.literal( descriptor.strokeWidth.get() ), ff.literal( descriptor.strokeOpacity.get() ) );
 
         stroke.setLineJoin( ff.literal( descriptor.strokeJoinStyle.get() ) );
         stroke.setLineCap( ff.literal( descriptor.strokeCapStyle.get() ) );
@@ -179,37 +179,21 @@ public class SLDSerializer
             stroke.setDashOffset( ff.literal( 0 ) );
         }
 
-        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ),
-                ff.literal( descriptor.fillOpacity.get() ) );
+        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) );
         /*
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
          */
-        PolygonSymbolizer sym = sf.createPolygonSymbolizer( stroke, fill, null );
-
-        // Rule
-        Rule rule = sf.createRule();
-        rule.setName( descriptor.description.get() );
-        rule.symbolizers().add( sym );
-
-        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
-        descriptor.scale.ifPresent( scale -> {
-            rule.setMinScaleDenominator( scale.getLeft() );
-            rule.setMaxScaleDenominator( scale.getRight() );
-        } );
-
-        return sf.createFeatureTypeStyle( new Rule[] { rule } );
+        return sf.createPolygonSymbolizer( stroke, fill, null );
     }
-    
+
 
     protected FeatureTypeStyle buildTextStyle( TextSymbolizerDescriptor descriptor ) {
         // Graphic gr = sf.createDefaultGraphic();
 
         // Stroke stroke = sf.createStroke( color, width, opacity, lineJoin, lineCap,
         // dashArray, dashOffset, graphicFill, graphicStroke );
-        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ),
-                ff.literal( descriptor.strokeWidth.get() ),
-                ff.literal( descriptor.strokeOpacity.get() ) );
+        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ), ff.literal( descriptor.strokeWidth.get() ), ff.literal( descriptor.strokeOpacity.get() ) );
 
         stroke.setLineJoin( ff.literal( descriptor.strokeJoinStyle.get() ) );
         stroke.setLineCap( ff.literal( descriptor.strokeCapStyle.get() ) );
@@ -218,25 +202,11 @@ public class SLDSerializer
             stroke.setDashOffset( ff.literal( 0 ) );
         }
 
-        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ),
-                ff.literal( descriptor.fillOpacity.get() ) );
+        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) );
         /*
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
          */
-        TextSymbolizer sym = sf.createTextSymbolizer( fill, fonts, halo, label, labelPlacement, geometryPropertyName );
-
-        // Rule
-        Rule rule = sf.createRule();
-        rule.setName( descriptor.description.get() );
-        rule.symbolizers().add( sym );
-
-        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
-        descriptor.scale.ifPresent( scale -> {
-            rule.setMinScaleDenominator( scale.getLeft() );
-            rule.setMaxScaleDenominator( scale.getRight() );
-        } );
-
-        return sf.createFeatureTypeStyle( new Rule[] { rule } );
+        return sf.createTextSymbolizer( fill, fonts, halo, label, labelPlacement, geometryPropertyName );
     }
 }
