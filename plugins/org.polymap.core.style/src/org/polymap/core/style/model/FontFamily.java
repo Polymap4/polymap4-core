@@ -13,10 +13,20 @@
 package org.polymap.core.style.model;
 
 /**
- * @see org.geotools.styling.Font.Weight
+ * Commonly used web save fonts from
+ * http://www.w3schools.com/cssref/css_websafe_fonts.asp
  *
  * @author Steffen Stundzig
  */
 public enum FontFamily {
-    Arial, bold;
+    georgia("Georgia, serif"), palatino("\"Palatino Linotype\", \"Book Antiqua\", Palatino, serif"), times(
+            "\"Times New Roman\", Times, serif"), arial("Arial, Helvetica, sans-serif"), arialBlack(
+                    "\"Arial Black\", Gadget, sans-serif"), comicSans("\"Comic Sans MS\", cursive, sans-serif");
+
+    private String value;
+
+
+    FontFamily( final String value ) {
+        this.value = value;
+    }
 }

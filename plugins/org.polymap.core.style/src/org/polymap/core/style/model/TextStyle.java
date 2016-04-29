@@ -12,8 +12,6 @@
  */
 package org.polymap.core.style.model;
 
-import java.util.List;
-
 import java.awt.Color;
 
 import org.polymap.model2.Concerns;
@@ -59,27 +57,9 @@ public class TextStyle
     // @NumberRange( 0.0, 1.0 );
     @Nullable
     @UIOrder( 20 )
-    @Description( "Text: font family" )
+    @Description( "Text: font" )
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<List<String>>> fontFamily;
-
-    @Nullable
-    @UIOrder( 20 )
-    @Description( "Text: font style" )
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<FontStyle>>    fontStyle;
-
-    @Nullable
-    @UIOrder( 20 )
-    @Description( "Text: font weight" )
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<FontWeight>>   fontWeight;
-
-    @Nullable
-    @UIOrder( 20 )
-    @Description( "Text: font size" )
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<Double>>       fontSize;
+    public Property<StylePropertyValue<Font>> font;
 
     // @NumberRange( 0.0, 1.0 );
     @Nullable
