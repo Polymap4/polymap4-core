@@ -40,9 +40,10 @@ public class PointStyleSerializer
 
     @Override
     public void doSerialize( PointStyle style ) {
-        setValue( style.strokeWidth.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.strokeWidth.set( value ) );
-        setValue( style.strokeOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.strokeOpacity.set( value ) );
-        setValue( style.strokeColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.strokeColor.set( value ) );
+        setValue( style.stroke.get().width.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.stroke.get().width.set( value ) );
+        setValue( style.stroke.get().opacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.stroke.get().opacity.set( value ) );
+        setValue( style.stroke.get().color.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.stroke.get().color.set( value ) );
+        
         setValue( style.fillColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.fillColor.set( value ) );
         setValue( style.fillOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.fillOpacity.set( value ) );
     }

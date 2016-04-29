@@ -71,9 +71,9 @@ public class DefaultStyle {
     public static PointStyle fillPointStyle( PointStyle point ) {
         point.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
         point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        point.strokeColor.createValue( ConstantColor.defaults( randomColor() ) );
-        point.strokeWidth.createValue( ConstantNumber.defaults( 1.0 ) );
-        point.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
+        point.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         return point;
     }
 

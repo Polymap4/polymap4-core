@@ -16,6 +16,9 @@ package org.polymap.core.style.model;
 
 import java.awt.Color;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
 import org.polymap.model2.Nullable;
@@ -23,46 +26,45 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Simple point style. Roughly modelling: 
- * <ul>
- * <li>{@link org.opengis.style.PointSymbolizer}</li>
- * <li>{@link org.opengis.style.Mark}</li>
- * </ul>
+ * 
  *
  * @author Falko Bräutigam
  */
-public class PointStyle
-        extends Style {
+public class Stroke
+        extends StyleComposite {
+
+    private static Log log = LogFactory.getLog( Stroke.class );
 
     /**
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final ValueInitializer<PointStyle> defaults = new ValueInitializer<PointStyle>() {
+    public static final ValueInitializer<Stroke> defaults = new ValueInitializer<Stroke>() {
         @Override
-        public PointStyle initialize( PointStyle proto ) throws Exception {
-            Style.defaults.initialize( proto );
-            proto.stroke.createValue( Stroke.defaults );
-            proto.title.set( "Point/Mark" );
+        public Stroke initialize( Stroke proto ) throws Exception {
+            StyleComposite.defaults.initialize( proto );
             return proto;
         }
     };
 
+    @Nullable
     @UIOrder( 10 )
-    @Description( "Outer stroke" )
-    public Property<Stroke>                     stroke;
-    
-    @Nullable
-    @UIOrder( 40 )
-    @Description( "Fill: color" )
+    @Description( "Outer stroke: width" )
+    @DoubleRange( from=0, to=Double.MAX_VALUE, defaultValue=1 )
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<Color>>  fillColor;
+    public Property<StylePropertyValue<Double>> width;
     
     @Nullable
-    @UIOrder( 50 )
-    @Description( "Fill: opacity" )
+    @UIOrder( 20 )
+    @Description( "Outer stroke: color" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<Color>>  color;
+    
+    @Nullable
+    @UIOrder( 30 )
+    @Description( "Outer stroke: opacity" )
     @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<Double>> fillOpacity;
-    
+    public Property<StylePropertyValue<Double>> opacity;
+
 }

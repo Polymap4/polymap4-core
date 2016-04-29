@@ -25,24 +25,23 @@ import org.polymap.core.runtime.config.NumberRangeValidator;
  *
  * @author Falko Bräutigam
  */
-public class PointSymbolizerDescriptor
+public class StrokeDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<StrokeDescriptor> stroke;
+    public Config<Double>           width;
 
     @Immutable
-    public Config<Color>            fillColor;
+    public Config<Color>            color;
 
     @Immutable
     @DefaultDouble( 1 )
     @Check( value=NumberRangeValidator.class, args={"0","1"} )
-    public Config<Double>           fillOpacity;
-
+    public Config<Double>           opacity;
 
     @Override
-    protected PointSymbolizerDescriptor clone() {
-        return (PointSymbolizerDescriptor)super.clone();
+    protected StrokeDescriptor clone() {
+        return (StrokeDescriptor)super.clone();
     }
 
 }

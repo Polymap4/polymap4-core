@@ -12,7 +12,6 @@
  */
 package org.polymap.core.style.model;
 
-import org.polymap.model2.Composite;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
 import org.polymap.model2.Nullable;
@@ -23,7 +22,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Steffen Stundzig
  */
 public class Font
-        extends Composite {
+        extends StyleComposite {
 
     /**
      * Initializes a newly created instance with default values.

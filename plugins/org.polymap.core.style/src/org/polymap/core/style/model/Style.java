@@ -38,21 +38,23 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Falko Bräutigam
  */
 public abstract class Style
-        extends Composite {
+        extends StyleComposite {
 
     private static Log log = LogFactory.getLog( Style.class );
     
     /**
      * Initializes a newly created instance with default values.
      */
+    @SuppressWarnings( "hiding" )
     public static final ValueInitializer<Style> defaults = new ValueInitializer<Style>() {
         @Override
         public Style initialize( Style proto ) throws Exception {
+            StyleComposite.defaults.initialize( proto );
             proto.visibleIf.createValue( ConstantFilter.defaultTrue );
             return proto;
         }
     };
-    
+
     /**
      * Allow the user to give this style a title in order to better distinguish between
      * the styles in the {@link StyleGroup} hierarchy.

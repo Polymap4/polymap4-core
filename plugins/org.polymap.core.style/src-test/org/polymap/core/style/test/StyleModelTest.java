@@ -72,16 +72,16 @@ public class StyleModelTest {
         
         point.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        point.strokeColor.createValue( ConstantColor.defaults( 100, 100, 100 ) );
-        point.strokeWidth.createValue( ConstantNumber.defaults( 5.0 ) );
-        point.strokeOpacity.createValue( FilterMappedNumbers.defaults() )
+        point.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
+        point.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
+        point.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
                 .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
                 .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
         
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
-        point.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
