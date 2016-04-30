@@ -19,8 +19,6 @@ import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.DefaultDouble;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.NumberRangeValidator;
-import org.polymap.core.style.model.StrokeCapStyle;
-import org.polymap.core.style.model.StrokeJoinStyle;
 
 /**
  * 
@@ -31,17 +29,6 @@ public class PolygonSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<Double>          strokeWidth;
-
-    @Immutable
-    public Config<Color>           strokeColor;
-
-    @Immutable
-    @DefaultDouble(1)
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double>          strokeOpacity;
-
-    @Immutable
     public Config<Color>           fillColor;
 
     @Immutable
@@ -49,15 +36,8 @@ public class PolygonSymbolizerDescriptor
     @Check(value = NumberRangeValidator.class, args = { "0", "1" })
     public Config<Double>          fillOpacity;
 
-    @Immutable
-    public Config<StrokeCapStyle>  strokeCapStyle;
-
-    @Immutable
-    public Config<StrokeJoinStyle> strokeJoinStyle;
-
-    @Immutable
-    public Config<float[]>         strokeDashStyle;
-
+    //@Immutable
+    public Config<StrokeDescriptor> stroke;
 
     @Override
     protected PolygonSymbolizerDescriptor clone() {

@@ -37,12 +37,12 @@ public class ConstantFontFamily
 
             @Override
             public ConstantFontFamily initialize( final ConstantFontFamily proto ) throws Exception {
-                proto.fontFamily.set( family );
+                proto.value.set( family );
                 return proto;
             }
         };
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<FontFamily> fontFamily;
+    public Property<FontFamily> value;
 }

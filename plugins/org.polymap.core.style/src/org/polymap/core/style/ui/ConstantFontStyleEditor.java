@@ -27,44 +27,44 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.ConstantFontFamily;
-import org.polymap.core.style.model.FontFamily;
+import org.polymap.core.style.model.ConstantFontStyle;
+import org.polymap.core.style.model.FontStyle;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Editor that creates one {@link ConstantFontFamily}.
+ * Editor that creates one {@link ConstantFontStyle}.
  *
  * @author Steffen Stundzig
  */
-public class ConstantFontFamilyEditor
-        extends StylePropertyEditor<ConstantFontFamily> {
+public class ConstantFontStyleEditor
+        extends StylePropertyEditor<ConstantFontStyle> {
 
     private static final IMessages i18n = Messages.forPrefix( "Font" );
 
-    private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
+    private static Log log = LogFactory.getLog( ConstantFontStyleEditor.class );
 
-    private final static List<FontFamily> content = Lists.newArrayList( FontFamily.values() );
+    private final static List<FontStyle> content = Lists.newArrayList( FontStyle.values() );
 
 
     @Override
     public String label() {
-        return i18n.get( "family" );
+        return i18n.get( "style" );
     }
 
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return FontFamily.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
+        return FontStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<ConstantFontFamily>() {
+        prop.createValue( new ValueInitializer<ConstantFontStyle>() {
 
             @Override
-            public ConstantFontFamily initialize( ConstantFontFamily proto ) throws Exception {
-                proto.value.set( FontFamily.comicSans );
+            public ConstantFontStyle initialize( ConstantFontStyle proto ) throws Exception {
+                proto.value.set( FontStyle.normal );
                 return proto;
             }
         } );
@@ -76,8 +76,8 @@ public class ConstantFontFamilyEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( FontFamily::value ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().value.get().value() ) );
+        combo.setItems( content.stream().map( FontStyle::name ).toArray( String[]::new ) );
+        combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 

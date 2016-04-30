@@ -37,12 +37,12 @@ public class ConstantFontWeight
 
             @Override
             public ConstantFontWeight initialize( final ConstantFontWeight proto ) throws Exception {
-                proto.fontWeight.set( weight );
+                proto.value.set( weight );
                 return proto;
             }
         };
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<FontWeight> fontWeight;
+    public Property<FontWeight> value;
 }

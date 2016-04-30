@@ -177,18 +177,10 @@ public class SLDSerializer
     protected PolygonSymbolizer buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
         // Graphic gr = sf.createDefaultGraphic();
 
-        // Stroke stroke = sf.createStroke( color, width, opacity, lineJoin, lineCap,
-        // dashArray, dashOffset, graphicFill, graphicStroke );
-        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ), ff.literal( descriptor.strokeWidth.get() ), ff.literal( descriptor.strokeOpacity.get() ) );
+        Stroke stroke = createStroke( descriptor.stroke.get() );
 
-        stroke.setLineJoin( ff.literal( descriptor.strokeJoinStyle.get() ) );
-        stroke.setLineCap( ff.literal( descriptor.strokeCapStyle.get() ) );
-        if (descriptor.strokeDashStyle.get() != null) {
-            stroke.setDashArray( descriptor.strokeDashStyle.get() );
-            stroke.setDashOffset( ff.literal( 0 ) );
-        }
-
-        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) );
+        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ),
+                ff.literal( descriptor.fillOpacity.get() ) );
         /*
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
@@ -197,25 +189,19 @@ public class SLDSerializer
     }
 
 
-    protected FeatureTypeStyle buildTextStyle( TextSymbolizerDescriptor descriptor ) {
-        // Graphic gr = sf.createDefaultGraphic();
+    private Stroke createStroke( StrokeDescriptor descriptor ) {
+        Stroke stroke = null;
+        if (descriptor != null) {
+            stroke = sf.createStroke( ff.literal( descriptor.color.get() ),
+                    ff.literal( descriptor.width.get() ), ff.literal( descriptor.opacity.get() ) );
 
-        // Stroke stroke = sf.createStroke( color, width, opacity, lineJoin, lineCap,
-        // dashArray, dashOffset, graphicFill, graphicStroke );
-        Stroke stroke = sf.createStroke( ff.literal( descriptor.strokeColor.get() ), ff.literal( descriptor.strokeWidth.get() ), ff.literal( descriptor.strokeOpacity.get() ) );
-
-        stroke.setLineJoin( ff.literal( descriptor.strokeJoinStyle.get() ) );
-        stroke.setLineCap( ff.literal( descriptor.strokeCapStyle.get() ) );
-        if (descriptor.strokeDashStyle.get() != null) {
-            stroke.setDashArray( descriptor.strokeDashStyle.get() );
-            stroke.setDashOffset( ff.literal( 0 ) );
+            stroke.setLineJoin( ff.literal( descriptor.joinStyle.get() ) );
+            stroke.setLineCap( ff.literal( descriptor.capStyle.get() ) );
+            if (descriptor.dashStyle.get() != null) {
+                stroke.setDashArray( descriptor.dashStyle.get() );
+                stroke.setDashOffset( ff.literal( 0 ) );
+            }
         }
-
-        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) );
-        /*
-         * Setting the geometryPropertyName arg to null signals that we want to draw
-         * the default geometry of features
-         */
-        return sf.createTextSymbolizer( fill, fonts, halo, label, labelPlacement, geometryPropertyName );
+        return stroke;
     }
 }

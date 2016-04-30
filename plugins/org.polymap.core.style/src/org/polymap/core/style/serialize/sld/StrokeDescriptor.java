@@ -19,11 +19,14 @@ import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.DefaultDouble;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.NumberRangeValidator;
+import org.polymap.core.style.model.StrokeCapStyle;
+import org.polymap.core.style.model.StrokeJoinStyle;
 
 /**
  * 
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class StrokeDescriptor
         extends SymbolizerDescriptor {
@@ -39,6 +42,15 @@ public class StrokeDescriptor
     @Check( value=NumberRangeValidator.class, args={"0","1"} )
     public Config<Double>           opacity;
 
+    @Immutable
+    public Config<StrokeCapStyle>  capStyle;
+
+    @Immutable
+    public Config<StrokeJoinStyle> joinStyle;
+
+    @Immutable
+    public Config<float[]>         dashStyle;
+    
     @Override
     protected StrokeDescriptor clone() {
         return (StrokeDescriptor)super.clone();

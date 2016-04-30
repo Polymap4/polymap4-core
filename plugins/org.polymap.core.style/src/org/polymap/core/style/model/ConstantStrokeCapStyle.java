@@ -37,12 +37,12 @@ public class ConstantStrokeCapStyle
 
             @Override
             public ConstantStrokeCapStyle initialize( ConstantStrokeCapStyle proto ) throws Exception {
-                proto.capStyle.set( style );
+                proto.value.set( style );
                 return proto;
             }
         };
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StrokeCapStyle> capStyle;
+    public Property<StrokeCapStyle> value;
 }

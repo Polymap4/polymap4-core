@@ -27,44 +27,44 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.ConstantFontFamily;
-import org.polymap.core.style.model.FontFamily;
+import org.polymap.core.style.model.ConstantFontWeight;
+import org.polymap.core.style.model.FontWeight;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Editor that creates one {@link ConstantFontFamily}.
+ * Editor that creates one {@link ConstantFontWeight}.
  *
  * @author Steffen Stundzig
  */
-public class ConstantFontFamilyEditor
-        extends StylePropertyEditor<ConstantFontFamily> {
+public class ConstantFontWeightEditor
+        extends StylePropertyEditor<ConstantFontWeight> {
 
     private static final IMessages i18n = Messages.forPrefix( "Font" );
 
-    private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
+    private static Log log = LogFactory.getLog( ConstantFontWeightEditor.class );
 
-    private final static List<FontFamily> content = Lists.newArrayList( FontFamily.values() );
+    private final static List<FontWeight> content = Lists.newArrayList( FontWeight.values() );
 
 
     @Override
     public String label() {
-        return i18n.get( "family" );
+        return i18n.get( "weight" );
     }
 
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return FontFamily.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
+        return FontWeight.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<ConstantFontFamily>() {
+        prop.createValue( new ValueInitializer<ConstantFontWeight>() {
 
             @Override
-            public ConstantFontFamily initialize( ConstantFontFamily proto ) throws Exception {
-                proto.value.set( FontFamily.comicSans );
+            public ConstantFontWeight initialize( ConstantFontWeight proto ) throws Exception {
+                proto.value.set( FontWeight.normal );
                 return proto;
             }
         } );
@@ -76,8 +76,8 @@ public class ConstantFontFamilyEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( FontFamily::value ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().value.get().value() ) );
+        combo.setItems( content.stream().map( FontWeight::name ).toArray( String[]::new ) );
+        combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 

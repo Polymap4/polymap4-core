@@ -42,25 +42,25 @@ public class Font
     // @NumberRange( 0.0, 1.0 );
     @Nullable
     @UIOrder( 10 )
-    @Description( "Text: font family" )
+    @Description( "fontFamily" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<FontFamily>> family;
 
     @Nullable
     @UIOrder( 20 )
-    @Description( "Text: font style" )
+    @Description( "fontStyle" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<FontStyle>>  style;
 
     @Nullable
     @UIOrder( 30 )
-    @Description( "Text: font weight" )
+    @Description( "fontWeight" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<FontWeight>> weight;
 
     @Nullable
     @UIOrder( 40 )
-    @Description( "Text: font size" )
+    @Description( "fontSize" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>>     size;
 }

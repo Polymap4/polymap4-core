@@ -57,15 +57,14 @@ public class TextStyle
     // @NumberRange( 0.0, 1.0 );
     @Nullable
     @UIOrder(20)
-    @Description("Text: font")
-    public Property<Font> font;
-
-    // @NumberRange( 0.0, 1.0 );
-    @Nullable
-    @UIOrder(20)
     @Description("Text: opacity")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
+    
+    @Nullable
+    @UIOrder(20)
+    @Description("Font")
+    public Property<Font> font;
 
     @Nullable
     @UIOrder(30)

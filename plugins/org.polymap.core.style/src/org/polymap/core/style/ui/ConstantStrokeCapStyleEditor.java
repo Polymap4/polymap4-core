@@ -65,7 +65,7 @@ public class ConstantStrokeCapStyleEditor
 
             @Override
             public ConstantStrokeCapStyle initialize( ConstantStrokeCapStyle proto ) throws Exception {
-                proto.capStyle.set( StrokeCapStyle.round );
+                proto.value.set( StrokeCapStyle.round );
                 return proto;
             }
         } );
@@ -78,13 +78,13 @@ public class ConstantStrokeCapStyleEditor
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
         combo.setItems( content.stream().map( StrokeCapStyle::name ).map( name -> translate(name) ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().capStyle.get() ) );
+        combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().capStyle.set( content.get( combo.getSelectionIndex() ) );
+                prop.get().value.set( content.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;

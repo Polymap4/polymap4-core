@@ -49,22 +49,40 @@ public class Stroke
 
     @Nullable
     @UIOrder( 10 )
-    @Description( "Outer stroke: width" )
+    @Description( "width" )
     @DoubleRange( from=0, to=Double.MAX_VALUE, defaultValue=1 )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> width;
     
     @Nullable
     @UIOrder( 20 )
-    @Description( "Outer stroke: color" )
+    @Description( "color" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Color>>  color;
     
     @Nullable
     @UIOrder( 30 )
-    @Description( "Outer stroke: opacity" )
+    @Description( "opacity" )
     @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> opacity;
+    
+    @Nullable
+    @UIOrder(60)
+    @Description("capStyle")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<StrokeCapStyle>> capStyle;
+
+    @Nullable
+    @UIOrder(70)
+    @Description("dashStyle")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<StrokeDashStyle>> dashStyle;
+
+    @Nullable
+    @UIOrder(80)
+    @Description("joinStyle")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<StrokeJoinStyle>> joinStyle;
 
 }

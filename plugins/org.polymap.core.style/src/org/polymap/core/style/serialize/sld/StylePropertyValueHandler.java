@@ -34,6 +34,7 @@ import org.polymap.core.style.model.StylePropertyValue;
  * values.
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, V> {
 
@@ -132,7 +133,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeCapStyle src, SD sd,
                 Setter<SD,StrokeCapStyle> setter ) {
-            setter.set( sd, src.capStyle.get() );
+            setter.set( sd, src.value.get() );
             return Collections.singletonList( sd );
         }
     }
@@ -144,7 +145,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeDashStyle src, SD sd,
                 Setter<SD,StrokeDashStyle> setter ) {
-            setter.set( sd, src.dashStyle.get() );
+            setter.set( sd, src.value.get() );
             return Collections.singletonList( sd );
         }
     }
@@ -156,7 +157,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeJoinStyle src, SD sd,
                 Setter<SD,StrokeJoinStyle> setter ) {
-            setter.set( sd, src.joinStyle.get() );
+            setter.set( sd, src.value.get() );
             return Collections.singletonList( sd );
         }
     }

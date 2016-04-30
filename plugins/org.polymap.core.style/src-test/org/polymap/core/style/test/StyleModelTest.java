@@ -97,19 +97,19 @@ public class StyleModelTest {
         
         polygon.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         polygon.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        polygon.strokeColor.createValue( ConstantColor.defaults( 100, 100, 100 ) );
-        polygon.strokeWidth.createValue( ConstantNumber.defaults( 5.0 ) );
-        polygon.strokeOpacity.createValue( FilterMappedNumbers.defaults() )
+        polygon.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
+        polygon.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
+        polygon.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
                 .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
                 .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
-        polygon.strokeCapStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        polygon.strokeJoinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        polygon.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        polygon.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
         
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         
-        polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults( StrokeDashStyle.dot ) );
+        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults( StrokeDashStyle.dot ) );
         fs.store();
         log.info( "SLD (dot): " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }    
