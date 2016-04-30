@@ -40,6 +40,11 @@ public class PointSymbolizerDescriptor
     public Config<Double>           fillOpacity;
 
 
+    public PointSymbolizerDescriptor() {
+        stroke.set( new StrokeDescriptor() );
+    }
+
+
     @Override
     protected PointSymbolizerDescriptor clone() {
         return (PointSymbolizerDescriptor)super.clone();

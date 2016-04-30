@@ -26,6 +26,9 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import org.polymap.core.style.model.ConstantColor;
+import org.polymap.core.style.model.ConstantFontFamily;
+import org.polymap.core.style.model.ConstantFontStyle;
+import org.polymap.core.style.model.ConstantFontWeight;
 import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
@@ -101,9 +104,12 @@ public class DefaultStyle {
     }
 
 
-    public static void fillTextStyle( TextStyle createElement ) {
-        // TODO Auto-generated method stub
-        thro w new RuntimeException( "not yet implemented." );
+    public static TextStyle fillTextStyle( TextStyle text ) {
+        text.font.get().family.createValue( ConstantFontFamily.defaults() );
+        text.font.get().style.createValue( ConstantFontStyle.defaults() );
+        text.font.get().weight.createValue( ConstantFontWeight.defaults() );
+        text.font.get().size.createValue( ConstantNumber.defaults( 10.0 ) );
+        text.color.createValue( ConstantColor.defaults( Color.BLACK ) );
+        return text;
     }
-    
 }

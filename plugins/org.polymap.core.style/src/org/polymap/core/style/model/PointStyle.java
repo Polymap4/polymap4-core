@@ -49,7 +49,7 @@ public class PointStyle
     };
 
     @UIOrder( 10 )
-    @Description( "Outer stroke" )
+    @Description( "Stroke" )
     public Property<Stroke>                     stroke;
     
     @Nullable
