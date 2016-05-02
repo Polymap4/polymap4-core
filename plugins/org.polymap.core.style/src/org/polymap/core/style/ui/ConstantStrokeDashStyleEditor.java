@@ -40,16 +40,16 @@ import org.polymap.model2.runtime.ValueInitializer;
 class ConstantStrokeDashStyleEditor
         extends StylePropertyEditor<ConstantStrokeDashStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "Stroke" );
+    private static final IMessages i18n = Messages.forPrefix( "StrokeDashstyle" );
 
-    private static Log                         log     = LogFactory.getLog( ConstantStrokeDashStyleEditor.class );
+    private static Log log = LogFactory.getLog( ConstantStrokeDashStyleEditor.class );
 
     private final static List<StrokeDashStyle> content = Lists.newArrayList( StrokeDashStyle.values() );
 
 
     @Override
     public String label() {
-        return i18n.get( "dashstyle" );
+        return i18n.get( "title" );
     }
 
 
@@ -77,7 +77,7 @@ class ConstantStrokeDashStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeDashStyle::name ).toArray( String[]::new ) );
+        combo.setItems( content.stream().map( StrokeDashStyle::name ).map( this::translate ).toArray( String[]::new ) );
         combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
@@ -90,4 +90,8 @@ class ConstantStrokeDashStyleEditor
         return contents;
     }
 
+
+    private String translate( String name ) {
+        return i18n.get( name );
+    }
 }

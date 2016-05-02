@@ -27,8 +27,9 @@ public class Font
     /**
      * Initializes a newly created instance with default values.
      */
-    @SuppressWarnings( "hiding" )
-    public static final ValueInitializer<Font>      defaults = new ValueInitializer<Font>() {
+    @SuppressWarnings("hiding")
+    public static final ValueInitializer<Font> defaults = new ValueInitializer<Font>() {
+
         @Override
         public Font initialize( Font proto ) throws Exception {
             proto.family.createValue( ConstantFontFamily.defaults() );
@@ -41,26 +42,26 @@ public class Font
 
     // @NumberRange( 0.0, 1.0 );
     @Nullable
-    @UIOrder( 10 )
-    @Description( "fontFamily" )
-    @Concerns( StylePropertyChange.Concern.class )
+    @UIOrder(10)
+    @Description("fontFamily")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<FontFamily>> family;
 
     @Nullable
-    @UIOrder( 20 )
-    @Description( "fontStyle" )
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<FontStyle>>  style;
+    @UIOrder(20)
+    @Description("fontStyle")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<FontStyle>> style;
 
     @Nullable
-    @UIOrder( 30 )
-    @Description( "fontWeight" )
-    @Concerns( StylePropertyChange.Concern.class )
+    @UIOrder(30)
+    @Description("fontWeight")
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<FontWeight>> weight;
 
     @Nullable
-    @UIOrder( 40 )
-    @Description( "fontSize" )
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<Double>>     size;
+    @UIOrder(40)
+    @Description("fontSize")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<Double>> size;
 }

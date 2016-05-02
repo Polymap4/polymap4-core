@@ -29,6 +29,7 @@ import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantFontStyle;
 import org.polymap.core.style.model.FontStyle;
+
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -39,7 +40,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantFontStyleEditor
         extends StylePropertyEditor<ConstantFontStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "Font" );
+    private static final IMessages i18n = Messages.forPrefix( "FontStyle" );
 
     private static Log log = LogFactory.getLog( ConstantFontStyleEditor.class );
 
@@ -48,7 +49,7 @@ public class ConstantFontStyleEditor
 
     @Override
     public String label() {
-        return i18n.get( "style" );
+        return i18n.get( "title" );
     }
 
 
@@ -76,7 +77,7 @@ public class ConstantFontStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( FontStyle::name ).toArray( String[]::new ) );
+        combo.setItems( content.stream().map( FontStyle::name ).map( n -> i18n.get( n ) ).toArray( String[]::new ) );
         combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
@@ -88,10 +89,4 @@ public class ConstantFontStyleEditor
         } );
         return contents;
     }
-
-//
-//    private String translate( String name ) {
-//        return i18n.get( name );
-//    }
-
 }

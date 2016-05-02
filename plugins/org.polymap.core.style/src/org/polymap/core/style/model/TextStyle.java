@@ -29,82 +29,84 @@ public class TextStyle
     /**
      * Initializes a newly created instance with default values.
      */
-    @SuppressWarnings( "hiding" )
+    @SuppressWarnings("hiding")
     public static final ValueInitializer<TextStyle> defaults = new ValueInitializer<TextStyle>() {
 
         @Override
-        public TextStyle initialize( TextStyle proto )
-                throws Exception {
+        public TextStyle initialize( TextStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
             proto.title.set( "Text" );
+            proto.font.createValue( Font.defaults );
             return proto;
         }
     };
 
-    // @NumberRange( 0.0, 1.0 );
     @Nullable
-    @UIOrder(20)
-    @Description("Text: property")
+    @UIOrder(10)
+    @Description("property")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<String>> textProperty;
 
     @Nullable
-    @UIOrder(10)
-    @Description("Text: color")
+    @UIOrder(20)
+    @Description("textColor")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Color>> color;
 
-    // @NumberRange( 0.0, 1.0 );
     @Nullable
-    @UIOrder(20)
-    @Description("Text: opacity")
+    @UIOrder(30)
+    @Description("textOpacity")
+    @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
-    
-    @Nullable
-    @UIOrder(20)
-    @Description("Font")
+
+    @UIOrder(40)
+    @Description("font")
     public Property<Font> font;
 
     @Nullable
-    @UIOrder(30)
-    @Description("Background: width")
+    @UIOrder(50)
+    @Description("backgroundWidth")
+    @DoubleRange( from=0, to=100, defaultValue=2 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> haloWidth;
 
     @Nullable
-    @UIOrder(40)
-    @Description("Background: color ")
+    @UIOrder(60)
+    @Description("backgroundColor")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Color>> haloColor;
 
     @Nullable
-    @UIOrder(50)
-    @Description("Background: opacity")
+    @UIOrder(70)
+    @Description("backgroundOpacity")
+    @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> haloOpacity;
 
     @Nullable
-    @UIOrder(50)
-    @Description("Anchor: x,y")
+    @UIOrder(80)
+    @Description("labelAnchor")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Point>> anchorPoint;
 
     @Nullable
-    @UIOrder(50)
-    @Description("Displacement: x,y")
+    @UIOrder(90)
+    @Description("labelDisplacement")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Point>> displacement;
 
     @Nullable
-    @UIOrder(50)
-    @Description("Label: Rotation")
+    @UIOrder(100)
+    @Description("labelRotation")
+    @DoubleRange( from=0, to=360, defaultValue=0 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> placementRotation;
 
     @Nullable
-    @UIOrder(50)
-    @Description("Line Label: Offset")
+    @UIOrder(110)
+    @Description("labelOffset")
+    @DoubleRange( from=0, to=100, defaultValue=0 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> placementOffset;
 

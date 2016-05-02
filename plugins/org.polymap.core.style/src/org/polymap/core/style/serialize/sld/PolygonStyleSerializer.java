@@ -42,9 +42,9 @@ public class PolygonStyleSerializer
     public void doSerialize( PolygonStyle style ) {
         StrokeSerializer strokeSerializer = new StrokeSerializer();
         List<StrokeDescriptor> strokeDescriptors = strokeSerializer.serialize( style.stroke.get() );
-
         setComposite( strokeDescriptors,
                 ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
+        
         setValue( style.fillColor.get(), ( PolygonSymbolizerDescriptor sd, Color value ) -> sd.fillColor.set( value ) );
         setValue( style.fillOpacity.get(),
                 ( PolygonSymbolizerDescriptor sd, Double value ) -> sd.fillOpacity.set( value ) );

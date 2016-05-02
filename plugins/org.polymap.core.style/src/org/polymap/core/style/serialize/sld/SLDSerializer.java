@@ -16,9 +16,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.styling.AnchorPoint;
+import org.geotools.styling.Displacement;
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Fill;
+import org.geotools.styling.Font;
 import org.geotools.styling.Graphic;
+import org.geotools.styling.Halo;
+import org.geotools.styling.LabelPlacement;
 import org.geotools.styling.Mark;
 import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.PolygonSymbolizer;
@@ -33,12 +38,12 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.runtime.config.Config;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
 import org.polymap.core.style.model.StyleGroup;
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
 
 /**
@@ -105,6 +110,10 @@ public class SLDSerializer
                 PolygonStyleSerializer serializer = new PolygonStyleSerializer();
                 descriptors.addAll( serializer.serialize( ps ) );
             }
+            // Text
+            else if (TextStyle.class.isInstance( style )) {
+                descriptors.addAll( new TextStyleSerializer().serialize( (TextStyle)style ) );
+            }
             else {
                 throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
             }
@@ -127,6 +136,9 @@ public class SLDSerializer
         else if (descriptor instanceof PolygonSymbolizerDescriptor) {
             sym = buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor );
         }
+        else if (descriptor instanceof TextSymbolizerDescriptor) {
+            sym = buildTextStyle( (TextSymbolizerDescriptor)descriptor );
+        }
         else {
             throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
         }
@@ -146,26 +158,17 @@ public class SLDSerializer
     }
 
 
-    protected Stroke buildStroke( Config<StrokeDescriptor> stroke ) {
-        // ich bin mir nicht sicher ob mir so eine schreibweise wirklich gefällt
-        return stroke.map( s -> 
-                sf.createStroke( ff.literal( s.color.get() ), ff.literal( s.width.get() ), ff.literal( s.opacity.get() ) ) )
-                .orElse( sf.getDefaultStroke() );
-    }
-    
-    
     protected PointSymbolizer buildPointStyle( PointSymbolizerDescriptor descriptor ) {
         Graphic gr = sf.createDefaultGraphic();
 
         Mark mark = sf.getCircleMark();
-        mark.setStroke( buildStroke( descriptor.stroke ) );
+        mark.setStroke( buildStroke( descriptor.stroke.get() ) );
 
         mark.setFill( sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) ) );
 
         gr.graphicalSymbols().clear();
         gr.graphicalSymbols().add( mark );
         gr.setSize( ff.literal( 8 ) );
-
         /*
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
@@ -177,7 +180,7 @@ public class SLDSerializer
     protected PolygonSymbolizer buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
         // Graphic gr = sf.createDefaultGraphic();
 
-        Stroke stroke = createStroke( descriptor.stroke.get() );
+        Stroke stroke = buildStroke( descriptor.stroke.get() );
 
         Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ),
                 ff.literal( descriptor.fillOpacity.get() ) );
@@ -189,7 +192,61 @@ public class SLDSerializer
     }
 
 
-    private Stroke createStroke( StrokeDescriptor descriptor ) {
+    private Symbolizer buildTextStyle( TextSymbolizerDescriptor descriptor ) {
+
+        Fill foreground = null;
+        if (descriptor.color.isPresent()) {
+            foreground = sf.createFill( ff.literal( descriptor.color.get() ) );
+            if (descriptor.opacity.isPresent()) {
+                foreground.setOpacity( ff.literal( descriptor.opacity.get() ) );
+            }
+        }
+        Halo background = null;
+        if (descriptor.haloColor.isPresent()) {
+            background = sf.createHalo( sf.createFill( ff.literal( descriptor.haloColor.get() ) ),
+                    ff.literal( descriptor.haloWidth.isPresent() ? descriptor.haloWidth.get() : 2.0 ) );
+            if (descriptor.haloOpacity.isPresent()) {
+                background.getFill().setOpacity( ff.literal( descriptor.haloOpacity.get() ) );
+            }
+        }
+
+        AnchorPoint anchorPoint = null;
+        if (descriptor.anchorPoint.isPresent()) {
+            anchorPoint = sf.createAnchorPoint( ff.literal( descriptor.anchorPoint.get().x() ),
+                    ff.literal( descriptor.anchorPoint.get().y() ) );
+        }
+        Displacement displacement = null;
+        if (descriptor.displacement.isPresent()) {
+            displacement = sf.createDisplacement( ff.literal( descriptor.displacement.get().x() ),
+                    ff.literal( descriptor.displacement.get().y() ) );
+        }
+
+        LabelPlacement placement = null;
+        // XXX decide if we have a label placement or a line placement
+        placement = sf.createPointPlacement( anchorPoint, displacement,
+                ff.literal( descriptor.placementRotation.get() ) );
+        sf.createLinePlacement( ff.literal( descriptor.placementOffset.get() ) );
+
+        Font[] fonts = null;
+        if (descriptor.font.isPresent()) {
+            FontDescriptor font = descriptor.font.get();
+            if (font.family.isPresent()) {
+                String[] families = font.family.get().families();
+                fonts = new Font[families.length];
+                for (int i = 0; i < families.length; i++) {
+                    fonts[i] = sf.createFont( ff.literal( families[i].trim() ),
+                            ff.literal( font.style.isPresent() ? font.style.get() : Font.Style.NORMAL ),
+                            ff.literal( font.weight.isPresent() ? font.weight.get() : Font.Weight.NORMAL ),
+                            ff.literal( font.size.get() ) );
+                }
+            }
+        }
+        return sf.createTextSymbolizer( foreground, fonts, background, ff.property( descriptor.textProperty.get() ),
+                placement, null );
+    }
+    
+    
+    private Stroke buildStroke( StrokeDescriptor descriptor ) {
         Stroke stroke = null;
         if (descriptor != null) {
             stroke = sf.createStroke( ff.literal( descriptor.color.get() ),

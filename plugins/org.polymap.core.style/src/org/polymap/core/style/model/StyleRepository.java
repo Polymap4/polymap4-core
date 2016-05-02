@@ -76,18 +76,22 @@ public class StyleRepository
 
         repo = EntityRepository.newConfiguration()
                 .entities.set( new Class[] {
-                        FeatureStyle.class,
+                        ConstantBoolean.class,
                         ConstantColor.class,
+                        ConstantFilter.class,
+                        ConstantFontFamily.class,
+                        ConstantFontStyle.class,
+                        ConstantFontWeight.class,
                         ConstantNumber.class,
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
+                        FeatureStyle.class,
                         FilterMappedNumbers.class,
                         // ScaleMappedNumbers.class,
-                        ConstantBoolean.class,
-                        ConstantFilter.class,
                         PointStyle.class,
                         PolygonStyle.class,
+                        TextStyle.class
                 } ).store.set(
                         new OptimisticLocking(
                         new RecordStoreAdapter( store ) ) )

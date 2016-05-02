@@ -98,15 +98,4 @@ public class StrokeSerializer
         }
         sd.dashStyle.set( style );
     }
-
-
-    public StrokeDescriptor descriptor() {
-        if (descriptors.isEmpty()) {
-            return null;
-        }
-        if (descriptors.size() > 1) {
-            throw new RuntimeException( "More than one descriptor per composite is not supported, currently there are: " + descriptors.size() );
-        }
-        return descriptors.get( 0 );
-    }
 }

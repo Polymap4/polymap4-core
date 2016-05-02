@@ -40,26 +40,27 @@ public class PolygonStyle
         @Override
         public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.stroke.createValue( Stroke.defaults );
             proto.title.set( "Polygon" );
+            proto.stroke.createValue( Stroke.defaults );
             return proto;
         }
     };
 
     @Nullable
     @UIOrder(10)
-    @Description("Fill: color")
+    @Description("fillColor")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Color>>           fillColor;
 
     // @NumberRange( 0.0, 1.0 );
     @Nullable
     @UIOrder(20)
-    @Description("Fill: opacity")
+    @Description("fillOpacity")
+    @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>>          fillOpacity;
 
     @UIOrder( 30 )
-    @Description( "Stroke" )
+    @Description( "stroke" )
     public Property<Stroke>                     stroke;
 }

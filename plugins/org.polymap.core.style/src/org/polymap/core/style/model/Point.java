@@ -13,11 +13,23 @@
 package org.polymap.core.style.model;
 
 /**
- * 
+ * Property type to hold coordinates e.g. for anchor point or label placement
  *
  * @author Steffen Stundzig
  */
 public class Point {
+
     Double x;
+
     Double y;
+
+
+    public Double x() {
+        return x;
+    }
+
+
+    public Double y() {
+        return y;
+    }
 }

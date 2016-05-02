@@ -40,7 +40,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantStrokeCapStyleEditor
         extends StylePropertyEditor<ConstantStrokeCapStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "Stroke" );
+    private static final IMessages i18n = Messages.forPrefix( "StrokeCapstyle" );
 
     private static Log log = LogFactory.getLog( ConstantStrokeCapStyleEditor.class );
 
@@ -49,7 +49,7 @@ public class ConstantStrokeCapStyleEditor
 
     @Override
     public String label() {
-        return i18n.get( "capstyle" );
+        return i18n.get( "title" );
     }
 
 
@@ -77,7 +77,7 @@ public class ConstantStrokeCapStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeCapStyle::name ).map( name -> translate(name) ).toArray( String[]::new ) );
+        combo.setItems( content.stream().map( StrokeCapStyle::name ).map( this::translate ).toArray( String[]::new ) );
         combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {

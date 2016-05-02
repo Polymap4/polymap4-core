@@ -18,11 +18,18 @@ import java.util.List;
 import java.awt.Color;
 
 import org.polymap.core.style.model.ConstantColor;
+import org.polymap.core.style.model.ConstantFontFamily;
+import org.polymap.core.style.model.ConstantFontStyle;
+import org.polymap.core.style.model.ConstantFontWeight;
 import org.polymap.core.style.model.ConstantNumber;
+import org.polymap.core.style.model.ConstantString;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
+import org.polymap.core.style.model.FontFamily;
+import org.polymap.core.style.model.FontStyle;
+import org.polymap.core.style.model.FontWeight;
 import org.polymap.core.style.model.StrokeCapStyle;
 import org.polymap.core.style.model.StrokeDashStyle;
 import org.polymap.core.style.model.StrokeJoinStyle;
@@ -43,7 +50,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <SD extends SymbolizerDescriptor,V> List<SD> handle( StylePropertyValue spv, SD sd, Setter<SD,V> setter ) {
-        if (spv instanceof ConstantNumber) {
+        if (spv == null) {
+            return Collections.singletonList( sd );
+        }
+        else if (spv instanceof ConstantNumber) {
             return new ConstantNumberHandler().doHandle( 
                     (ConstantNumber)spv, sd, (Setter<SD,Number>)setter );
         }
@@ -54,6 +64,20 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         else if (spv instanceof ConstantColor) {
             return new ConstantColorHandler().doHandle( 
                     (ConstantColor)spv, sd, (Setter<SD,Color>)setter );
+        }
+        else if (spv instanceof ConstantFontFamily) {
+            return new ConstantFontFamilyHandler().doHandle( (ConstantFontFamily)spv, sd,
+                    (Setter<SD,FontFamily>)setter );
+        }
+        else if (spv instanceof ConstantFontStyle) {
+            return new ConstantFontStyleHandler().doHandle( (ConstantFontStyle)spv, sd, (Setter<SD,FontStyle>)setter );
+        }
+        else if (spv instanceof ConstantFontWeight) {
+            return new ConstantFontWeightHandler().doHandle( (ConstantFontWeight)spv, sd,
+                    (Setter<SD,FontWeight>)setter );
+        }
+        else if (spv instanceof ConstantString) {
+            return new ConstantStringHandler().doHandle( (ConstantString)spv, sd, (Setter<SD,String>)setter );
         }
         else if (spv instanceof ConstantStrokeCapStyle) {
             return new ConstantStrokeCapStyleHandler().doHandle( 
@@ -133,6 +157,54 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeCapStyle src, SD sd,
                 Setter<SD,StrokeCapStyle> setter ) {
+            setter.set( sd, src.value.get() );
+            return Collections.singletonList( sd );
+        }
+    }
+
+
+    static class ConstantStringHandler
+            extends StylePropertyValueHandler<ConstantString,String> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantString src, SD sd,
+                Setter<SD,String> setter ) {
+            setter.set( sd, src.value.get() );
+            return Collections.singletonList( sd );
+        }
+    }
+
+
+    static class ConstantFontFamilyHandler
+            extends StylePropertyValueHandler<ConstantFontFamily,FontFamily> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantFontFamily src, SD sd,
+                Setter<SD,FontFamily> setter ) {
+            setter.set( sd, src.value.get() );
+            return Collections.singletonList( sd );
+        }
+    }
+
+
+    static class ConstantFontStyleHandler
+            extends StylePropertyValueHandler<ConstantFontStyle,FontStyle> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantFontStyle src, SD sd,
+                Setter<SD,FontStyle> setter ) {
+            setter.set( sd, src.value.get() );
+            return Collections.singletonList( sd );
+        }
+    }
+
+
+    static class ConstantFontWeightHandler
+            extends StylePropertyValueHandler<ConstantFontWeight,FontWeight> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantFontWeight src, SD sd,
+                Setter<SD,FontWeight> setter ) {
             setter.set( sd, src.value.get() );
             return Collections.singletonList( sd );
         }

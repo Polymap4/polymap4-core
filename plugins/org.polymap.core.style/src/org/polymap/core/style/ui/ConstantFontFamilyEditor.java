@@ -39,7 +39,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantFontFamilyEditor
         extends StylePropertyEditor<ConstantFontFamily> {
 
-    private static final IMessages i18n = Messages.forPrefix( "Font" );
+    private static final IMessages i18n = Messages.forPrefix( "FontFamily" );
 
     private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
 
@@ -48,7 +48,7 @@ public class ConstantFontFamilyEditor
 
     @Override
     public String label() {
-        return i18n.get( "family" );
+        return i18n.get( "title" );
     }
 
 
@@ -88,10 +88,4 @@ public class ConstantFontFamilyEditor
         } );
         return contents;
     }
-
-//
-//    private String translate( String name ) {
-//        return i18n.get( name );
-//    }
-
 }

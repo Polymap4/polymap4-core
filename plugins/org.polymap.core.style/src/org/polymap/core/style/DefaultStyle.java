@@ -53,10 +53,12 @@ public class DefaultStyle {
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
             fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
+            fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         }
         if (Polygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )
                 || MultiPolygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
             fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
+            fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         }
         else {
             throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
@@ -68,6 +70,7 @@ public class DefaultStyle {
     public static FeatureStyle createAllStyle( FeatureStyle fs ) {
         fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
         fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
+        fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         return fs;
     }
     

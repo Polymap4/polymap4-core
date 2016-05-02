@@ -40,7 +40,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 class ConstantStrokeJoinStyleEditor
         extends StylePropertyEditor<ConstantStrokeJoinStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "Stroke" );
+    private static final IMessages i18n = Messages.forPrefix( "StrokeJoinstyle" );
 
     private static Log                        log     = LogFactory.getLog( ConstantStrokeJoinStyleEditor.class );
 
@@ -49,7 +49,7 @@ class ConstantStrokeJoinStyleEditor
 
     @Override
     public String label() {
-        return i18n.get( "joinstyle" );
+        return i18n.get( "title" );
     }
 
 
@@ -77,7 +77,7 @@ class ConstantStrokeJoinStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeJoinStyle::name ).toArray( String[]::new ) );
+        combo.setItems( content.stream().map( StrokeJoinStyle::name ).map( this::translate ).toArray( String[]::new ) );
         combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
@@ -90,4 +90,7 @@ class ConstantStrokeJoinStyleEditor
         return contents;
     }
 
+    private String translate( String name ) {
+        return i18n.get( name );
+    }
 }

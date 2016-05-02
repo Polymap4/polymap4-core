@@ -45,12 +45,16 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
     public static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
     
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
+            AttributeMappedNumbersEditor.class,
             ConstantColorEditor.class,
+            ConstantFontFamilyEditor.class,
+            ConstantFontStyleEditor.class,
+            ConstantFontWeightEditor.class,
             ConstantNumberEditor.class, 
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,
-            ConstantStrokeJoinStyleEditor.class, 
-            AttributeMappedNumbersEditor.class };
+            ConstantStrokeJoinStyleEditor.class,
+            FeatureAttributeSelectionEditor.class };
 
 
     /**

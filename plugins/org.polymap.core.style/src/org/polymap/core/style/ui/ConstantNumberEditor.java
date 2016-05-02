@@ -23,6 +23,8 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.DoubleRange;
 import org.polymap.core.style.model.IntRange;
@@ -33,15 +35,18 @@ import org.polymap.model2.runtime.ValueInitializer;
  * Editor that creates one {@link ConstantNumber}. 
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 class ConstantNumberEditor
         extends StylePropertyEditor<ConstantNumber> {
+
+    private static final IMessages i18n = Messages.forPrefix( "Number" );
 
     private static Log log = LogFactory.getLog( ConstantNumberEditor.class );
     
     @Override
     public String label() {
-        return "A number";
+        return i18n.get( "title");
     }
 
 

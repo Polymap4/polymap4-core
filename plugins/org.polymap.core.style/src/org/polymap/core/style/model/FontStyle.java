@@ -18,5 +18,5 @@ package org.polymap.core.style.model;
  * @author Steffen Stundzig
  */
 public enum FontStyle {
-    normal, italic, oblique;
+    normal, italic/*, oblique*/;
 }
