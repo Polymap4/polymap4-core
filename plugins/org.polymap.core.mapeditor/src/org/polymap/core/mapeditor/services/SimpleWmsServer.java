@@ -34,10 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -56,6 +52,8 @@ import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.mapeditor.MapViewer;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.PlainLazyInit;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.session.SessionContext;
 
 /**
@@ -81,7 +79,7 @@ public abstract class SimpleWmsServer
     private SessionContext                  sessionContext;
     
     /** Maps layer name into corresponding Pipeline. */
-    private LoadingCache<String,Pipeline>   pipelines;
+    private Cache<String,Pipeline>          pipelines = CacheConfig.defaults().initSize( 32 ).concurrencyLevel( 4 ).createCache();
     
     
     /**
@@ -112,15 +110,6 @@ public abstract class SimpleWmsServer
     @Override
     public void init() throws ServletException {
         this.sessionContext = SessionContext.current();
-        this.pipelines = CacheBuilder.newBuilder()
-                .concurrencyLevel( 2 )
-                .softValues()
-                .build( new CacheLoader<String,Pipeline>() {
-                    @Override
-                    public Pipeline load( String key ) throws Exception {
-                        return createPipeline( key );
-                    }
-                });
     }
 
     
@@ -168,7 +157,8 @@ public abstract class SimpleWmsServer
                     log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
 
                     // find/create pipeline
-                    final Pipeline pipeline = pipelines.get( layerRenderKey );
+                    final Pipeline pipeline = pipelines.get( layerRenderKey, key -> 
+                            createPipeline( key ) );
 
                     long modifiedSince = request.getDateHeader( "If-Modified-Since" );
                     final ProcessorRequest pr = new GetMapRequest( null, // layers 

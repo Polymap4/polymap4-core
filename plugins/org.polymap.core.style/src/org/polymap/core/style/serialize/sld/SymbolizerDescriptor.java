@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Rule;
+import org.geotools.styling.Symbolizer;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 
@@ -36,11 +37,14 @@ import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.style.model.Style;
 
 /**
- * Zwischenschritt beim Serialisieren: sammelt alle Einstellungen, um aus einem
- * {@link Style} einen SLD-Symbolizer zu machen. Hilft beim "Ausmultiplizieren", in
- * dem er einfach zu kopieren ist, wobei bei jedem Schritt mehr Properties gesetzt
- * werden. Diese Klasse verbirgt die Komplexität von {@link FeatureTypeStyle} und
- * {@link Rule}.
+ * Beschreibt einen <b>SLD {@link Symbolizer}</b>, inklusive {@link #zIndex} (im SLD
+ * {@link FeatureTypeStyle}) und {@link #scale} (im SLD {@link Rule}).
+ * <p/>
+ * Descriptoren sind Zwischenschritt beim Serialisieren: sammelt alle Einstellungen,
+ * um aus einem {@link Style} einen SLD-Symbolizer zu machen. Hilft beim
+ * "Ausmultiplizieren", in dem er einfach zu kopieren ist, wobei bei jedem Schritt
+ * mehr Properties gesetzt werden. Diese Klasse verbirgt dabei die Komplexität von
+ * {@link FeatureTypeStyle} und {@link Rule}.
  *
  * @author Falko Bräutigam
  */

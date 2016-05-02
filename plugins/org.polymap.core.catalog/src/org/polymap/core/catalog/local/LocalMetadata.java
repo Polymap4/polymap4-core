@@ -14,9 +14,13 @@
  */
 package org.polymap.core.catalog.local;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.catalog.IUpdateableMetadata;
 
@@ -37,6 +41,8 @@ public class LocalMetadata
         extends Entity
         implements IUpdateableMetadata {
 
+    private static Log log = LogFactory.getLog( LocalMetadata.class );
+    
     public static LocalMetadata         TYPE;
     
     @Mandatory
@@ -68,6 +74,11 @@ public class LocalMetadata
 
         @Queryable
         protected Property<String>          value;
+
+        @Override
+        public String toString() {
+            return "KeyValue[" + key.get() + ", " + value.get() + "]";
+        }
     }
     
     @Override
@@ -117,12 +128,20 @@ public class LocalMetadata
 
     @Override
     public Map<String,String> getConnectionParams() {
-        return connectionParams.stream().collect( Collectors.toMap( kv -> kv.key.get(), kv -> kv.value.get() ) );
+        Map result = new HashMap();
+        connectionParams.stream().forEach( kv -> result.put( kv.key.get(), kv.value.get() ) );
+        return result;
+
+//        return connectionParams.stream().collect( Collectors.toMap( 
+//                kv -> { log.info( "KV: " + kv ); return kv.key.get(); }, 
+//                kv -> kv.value.get() ) );
     }
 
     @Override
     public IUpdateableMetadata setConnectionParams( Map<String,String> params ) {
-        this.connectionParams.clear();
+        //this.connectionParams.clear();
+        assert connectionParams.isEmpty();
+        
         params.entrySet().stream().forEach( entry -> 
                 connectionParams.createElement( (KeyValue kv) -> {
                         kv.key.set( entry.getKey() );

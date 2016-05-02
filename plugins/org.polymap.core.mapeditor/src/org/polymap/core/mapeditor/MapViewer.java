@@ -15,6 +15,7 @@
 package org.polymap.core.mapeditor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -156,7 +157,23 @@ public class MapViewer<CL>
         readLayers();
     }
 
+    
+    public void refresh( CL layer ) {
+        Layer olayer = layers.get( layer );
+        if (olayer != null) {
+            olayer.refresh();
+        }
+    }
 
+    
+    public void removeLayer( CL layer ) {
+        Layer olayer = layers.remove( layer );
+        assert olayer != null : "No such layer: " + layer;
+        olmap.removeLayer( olayer );
+        olayer.dispose();  // ???
+    }
+
+    
     @Override
     protected void inputChanged( @SuppressWarnings("hiding") Object input, Object oldInput ) {
         super.inputChanged( input, oldInput );
@@ -299,8 +316,8 @@ public class MapViewer<CL>
     }
 
     
-    public Iterable<CL> getLayers() {
-        return layers.keySet();
+    public Set<CL> getLayers() {
+        return Collections.unmodifiableSet( layers.keySet() );
     }
     
     
@@ -310,6 +327,7 @@ public class MapViewer<CL>
         throw new RuntimeException( "not yet implemented." );
     }
 
+    
 //    @Override
 //    public void handleEvent( OlObject obj, String name, JsonObject props ) {
 //        if (olwidget.getMap() != obj) {

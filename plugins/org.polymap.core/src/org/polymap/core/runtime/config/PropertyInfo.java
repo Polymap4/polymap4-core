@@ -35,5 +35,11 @@ public interface PropertyInfo/*<H,V>*/ {
     public <A extends Annotation> A getAnnotation( Class<A> type );
 
     public <H extends Object> H getHostObject();
+
+    /**
+     * The raw value of the property without checking concerns. This is useful
+     * to access {@link Mandatory} property.
+     */
+    public <R extends Object> R getRawValue();
     
 }

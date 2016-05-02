@@ -18,6 +18,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,8 +59,19 @@ public class UIUtils {
         ResourceFactory resourceFactory = ContextProvider.getApplicationContext().getResourceFactory();
         return resourceFactory.getColor( r, g, b );
     }
-    
-    
+
+
+//    public static Color getColor( java.awt.Color src ) {
+//        HS
+//        return getColor( src.getRed(), src.getGreen(), src.getBlue() );
+//    }
+//
+//
+//    public static java.awt.Color awtColor( Color src ) {
+//        return new java.awt.Color( src.getRed(), src.getGreen(), src.getBlue() );
+//    }
+
+
     /**
      * The {@link Display} of the session of the current thread. Null, if the current
      * thread has no session. The result is equivalent to
@@ -138,6 +150,26 @@ public class UIUtils {
     }
 
 
+    // http://www.mkyong.com/regular-expressions/how-to-validate-html-tag-with-regular-expression/
+    public static final Pattern         htmlTag1 = Pattern.compile( "<(\"[^\"]*\"|'[^']*'|[^'\">])*>" );
+
+    /** No '<>' allowed. Nothing. Nowhere. */
+    public static final Pattern         htmlTag2 = Pattern.compile( "<[^>]*>" );
+    
+    /**
+     * Sanitize the given user input string by removing HTML tags. We allow markdown,
+     * that's cool! :)
+     *
+     * @param userInput
+     */
+    public static String sanitize( String userInput ) {
+        return userInput
+                .replace( "<", "&lt;" )
+                .replace( ">", "&gt;" );
+        //return htmlTag2.matcher( userInput ).replaceAll( "" );
+    }
+
+    
     /**
      * 
      * @see ServerPushManager

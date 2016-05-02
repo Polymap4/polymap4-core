@@ -45,15 +45,15 @@ public class ILayer
         extends ProjectNode {
 
     private static Log log = LogFactory.getLog( ILayer.class );
-    
+
     /**
      *
      */
     public Property<String>         resourceIdentifier;
-   
-   /**
-    *
-    */
+
+    /**
+     *
+     */
     @Nullable
     public Property<String>         styleIdentifier;
 
@@ -82,8 +82,14 @@ public class ILayer
          * This Entity belongs to the UnitOfWork of the {@link LayerUserSettings}, so
          * don't equals() with other ILayer nor modify properties.
          */
-        public Association<ILayer>      layer;
-        
+        protected Association<ILayer>   layer;
+
+        /**
+         * The id of the {@link ILayer} this instance belongs to.
+         */
+        public String layerId() {
+            return layer.get().id();
+        }
     }
     
 }

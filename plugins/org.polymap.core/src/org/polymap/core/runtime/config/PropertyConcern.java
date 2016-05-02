@@ -48,9 +48,9 @@ public interface PropertyConcern<T> {
      *
      * @param obj
      * @param prop
-     * @param value The value given to {@link Config#set(Object)}
+     * @param newValue The value given to {@link Config#set(Object)}
      * @return The value to set to the property.
      */
-    public T doSet( Object obj, Config<T> prop, T value );
+    public T doSet( Object obj, Config<T> prop, T newValue );
     
 }
