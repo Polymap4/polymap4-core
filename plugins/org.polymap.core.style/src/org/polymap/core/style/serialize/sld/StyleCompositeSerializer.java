@@ -38,7 +38,7 @@ import org.polymap.core.style.model.StylePropertyValue;
  */
 public abstract class StyleCompositeSerializer<S extends StyleComposite, SD extends SymbolizerDescriptor> {
 
-    private static Log log = LogFactory.getLog( StyleCompositeSerializer.class );
+    private static final Log log = LogFactory.getLog( StyleCompositeSerializer.class );
 
     protected List<SD> descriptors;
 
@@ -110,12 +110,19 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
                 else {
                     // if not empty create a clone of the descriptors for each value
                     // in composites
-                    List<SD> updated = new ArrayList<SD>(descriptors.size() * composites.size());
+                    List<SD> updated = new ArrayList<SD>( descriptors.size() * composites.size() );
                     for (SD sd : descriptors) {
                         for (V composite : composites) {
                             SD clone = (SD)sd.clone();
                             setter.set( clone, composite );
-                            composite.filter.ifPresent( filter -> clone.filter.set( filter ) );
+                            composite.filter.ifPresent( filter -> {
+                                if (clone.filter.get() != null) {
+                                    clone.filter.set( SLDSerializer.ff.and( filter, clone.filter.get() ) );
+                                }
+                                else {
+                                    clone.filter.set( filter );
+                                }
+                            } );
                             updated.add( clone );
                         }
                     }
