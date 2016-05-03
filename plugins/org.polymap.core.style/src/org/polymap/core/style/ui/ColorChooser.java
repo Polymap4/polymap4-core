@@ -57,67 +57,9 @@ public class ColorChooser {
 
     private static final IMessages i18n = Messages.forPrefix( "ColorChooser" );
 
+    private static final int   COLORBOX_HEIGHT = 200;
 
-    public String title() {
-        return i18n.get( "title" );
-    }
-
-
-    enum COLOR_WIDGET_TYPE {
-        PREPARE, BOX, HEX, SPINNER, DISPLAY, OLD_DISPLAY, PALETTE
-    };
-
-    private static final int COLORBOX_HEIGHT = 200;
-
-    private static final int COLORBOX_WIDTH  = 200;
-
-
-    private class PaletteListener
-            extends MouseAdapter {
-
-        private final Composite panelBody;
-
-        private final RGB       rgb;
-
-
-        public PaletteListener( Composite panelBody, RGB rgb ) {
-            this.panelBody = panelBody;
-            this.rgb = rgb;
-        }
-
-
-        @Override
-        public void mouseDown( MouseEvent event ) {
-            updateColorWidgets( panelBody, rgb, COLOR_WIDGET_TYPE.PALETTE );
-        }
-    }
-
-    private boolean spinnerListenerActive = true, hexListenerActive = true;
-
-
-    private class SpinnerListener
-            implements ModifyListener {
-
-        private final Composite panelBody;
-
-        private final Spinner   spinner;
-
-        private final int       colorIndex;
-
-
-        public SpinnerListener( Composite panelBody, Spinner spinner, int colorIndex ) {
-            this.panelBody = panelBody;
-            this.spinner = spinner;
-            this.colorIndex = colorIndex;
-        }
-
-
-        public void modifyText( ModifyEvent event ) {
-            if (spinnerListenerActive) {
-                updateColorFomSpinner( panelBody, colorIndex, spinner.getSelection() );
-            }
-        }
-    }
+    private static final int   COLORBOX_WIDTH  = 200;
 
     private static final int   PALETTE_BOX_SIZE        = 12;
 
@@ -134,6 +76,52 @@ public class ColorChooser {
 
     private static final int   BLUE                    = 2;
 
+    enum COLOR_WIDGET_TYPE {
+        PREPARE, BOX, HEX, SPINNER, DISPLAY, OLD_DISPLAY, PALETTE
+    };
+
+
+    private class PaletteListener
+            extends MouseAdapter {
+
+        private final Composite panelBody;
+
+        private final RGB       rgb;
+
+        public PaletteListener( Composite panelBody, RGB rgb ) {
+            this.panelBody = panelBody;
+            this.rgb = rgb;
+        }
+
+        @Override
+        public void mouseDown( MouseEvent event ) {
+            updateColorWidgets( panelBody, rgb, COLOR_WIDGET_TYPE.PALETTE );
+        }
+    }
+
+
+    private class SpinnerListener
+            implements ModifyListener {
+
+        private final Composite panelBody;
+
+        private final Spinner   spinner;
+
+        private final int       colorIndex;
+
+        public SpinnerListener( Composite panelBody, Spinner spinner, int colorIndex ) {
+            this.panelBody = panelBody;
+            this.spinner = spinner;
+            this.colorIndex = colorIndex;
+        }
+
+        public void modifyText( ModifyEvent event ) {
+            if (spinnerListenerActive) {
+                updateColorFomSpinner( panelBody, colorIndex, spinner.getSelection() );
+            }
+        }
+    }
+
     // Palette colors
     private static final RGB[] PALETTE_COLORS          = new RGB[] { new RGB( 0, 0, 0 ), new RGB( 70, 70, 70 ),
             new RGB( 120, 120, 120 ), new RGB( 153, 0, 48 ), new RGB( 237, 28, 36 ), new RGB( 255, 126, 0 ),
@@ -144,13 +132,16 @@ public class ColorChooser {
             new RGB( 211, 249, 188 ), new RGB( 157, 187, 97 ), new RGB( 153, 217, 234 ), new RGB( 112, 154, 209 ),
             new RGB( 84, 109, 142 ), new RGB( 181, 165, 213 ) };
 
+    
+    // instance *******************************************
+    
     private RGB                rgb;
 
     private Label              colorDisplay;
 
     private Canvas             colorBox;
 
-    private Image              colorBoxImage           = null;
+    private Image              colorBoxImage;
 
     private Canvas             colorBoxMarker;
 
@@ -162,9 +153,16 @@ public class ColorChooser {
 
     private Text               colorHex;
 
+    private boolean            spinnerListenerActive = true, hexListenerActive = true;
+
 
     public ColorChooser( RGB rgb ) {
         this.setRGB( rgb );
+    }
+
+
+    public String title() {
+        return i18n.get( "title" );
     }
 
 
