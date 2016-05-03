@@ -25,8 +25,6 @@ import org.eclipse.swt.widgets.Label;
 
 import org.polymap.core.style.model.FilterMappedNumbers;
 
-import org.polymap.model2.Property;
-
 /**
  * Editor that creates {@link FilterMappedNumbers}. 
  *
@@ -44,8 +42,8 @@ class AttributeMappedNumbersEditor
 
     
     @Override
-    public boolean init( Property<FilterMappedNumbers> _prop ) {
-        return Number.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return Number.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
     

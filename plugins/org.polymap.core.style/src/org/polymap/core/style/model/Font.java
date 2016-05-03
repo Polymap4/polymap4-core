@@ -12,8 +12,6 @@
  */
 package org.polymap.core.style.model;
 
-import java.awt.Color;
-
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
 import org.polymap.model2.Nullable;
@@ -21,46 +19,49 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Simple polygon style. Roughly modelling:
- * <ul>
- * <li>{@link org.opengis.style.PolygonSymbolizer}</li>
- * <li>{@link org.opengis.style.Mark}</li>
- * </ul>
- *
  * @author Steffen Stundzig
  */
-public class PolygonStyle
-        extends Style {
+public class Font
+        extends StyleComposite {
 
     /**
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final ValueInitializer<PolygonStyle>  defaults = new ValueInitializer<PolygonStyle>() {
+    public static final ValueInitializer<Font> defaults = new ValueInitializer<Font>() {
+
         @Override
-        public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
-            Style.defaults.initialize( proto );
-            proto.title.set( "Polygon" );
-            proto.stroke.createValue( Stroke.defaults );
+        public Font initialize( Font proto ) throws Exception {
+            proto.family.createValue( ConstantFontFamily.defaults() );
+            proto.style.createValue( ConstantFontStyle.defaults() );
+            proto.weight.createValue( ConstantFontWeight.defaults() );
+            proto.size.createValue( ConstantNumber.defaults( 10.0 ) );
             return proto;
         }
     };
 
-    @Nullable
-    @UIOrder(10)
-    @Description("fillColor")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Color>>           fillColor;
-
     // @NumberRange( 0.0, 1.0 );
     @Nullable
-    @UIOrder(20)
-    @Description("fillOpacity")
-    @DoubleRange( from=0, to=1, defaultValue=1 )
+    @UIOrder(10)
+    @Description("fontFamily")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>>          fillOpacity;
+    public Property<StylePropertyValue<FontFamily>> family;
 
-    @UIOrder( 30 )
-    @Description( "stroke" )
-    public Property<Stroke>                     stroke;
+    @Nullable
+    @UIOrder(20)
+    @Description("fontStyle")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<FontStyle>> style;
+
+    @Nullable
+    @UIOrder(30)
+    @Description("fontWeight")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<FontWeight>> weight;
+
+    @Nullable
+    @UIOrder(40)
+    @Description("fontSize")
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<Double>> size;
 }

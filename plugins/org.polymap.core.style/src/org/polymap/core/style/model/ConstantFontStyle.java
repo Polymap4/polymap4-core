@@ -21,22 +21,22 @@ import org.polymap.model2.runtime.ValueInitializer;
  *
  * @author Steffen Stundzig
  */
-public class ConstantStrokeCapStyle
-        extends StylePropertyValue<StrokeCapStyle> {
+public class ConstantFontStyle
+        extends StylePropertyValue<FontStyle> {
 
     /**
      * Initializes a newly created instance with default values.
      */
-    public static ValueInitializer<ConstantStrokeCapStyle> defaults() {
-        return defaults( StrokeCapStyle.round );
+    public static ValueInitializer<ConstantFontStyle> defaults() {
+        return defaults( FontStyle.normal );
     }
 
 
-    public static ValueInitializer<ConstantStrokeCapStyle> defaults( final StrokeCapStyle style ) {
-        return new ValueInitializer<ConstantStrokeCapStyle>() {
+    public static ValueInitializer<ConstantFontStyle> defaults( final FontStyle style ) {
+        return new ValueInitializer<ConstantFontStyle>() {
 
             @Override
-            public ConstantStrokeCapStyle initialize( ConstantStrokeCapStyle proto ) throws Exception {
+            public ConstantFontStyle initialize( final ConstantFontStyle proto ) throws Exception {
                 proto.value.set( style );
                 return proto;
             }
@@ -44,5 +44,5 @@ public class ConstantStrokeCapStyle
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StrokeCapStyle> value;
+    public Property<FontStyle> value;
 }

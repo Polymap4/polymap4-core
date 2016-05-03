@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import java.lang.reflect.ParameterizedType;
 
+import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.FilterFactory;
 
@@ -44,12 +45,16 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
     public static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
     
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
+            AttributeMappedNumbersEditor.class,
             ConstantColorEditor.class,
+            ConstantFontFamilyEditor.class,
+            ConstantFontStyleEditor.class,
+            ConstantFontWeightEditor.class,
             ConstantNumberEditor.class, 
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,
-            ConstantStrokeJoinStyleEditor.class, 
-            AttributeMappedNumbersEditor.class };
+            ConstantStrokeJoinStyleEditor.class,
+            FeatureAttributeSelectionEditor.class };
 
 
     /**
@@ -57,12 +62,12 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      *
      * @param spv
      */
-    public static StylePropertyEditor[] forValue( Property<StylePropertyValue> prop ) {
+    public static StylePropertyEditor[] forValue( StylePropertyFieldSite fieldSite ) {
         List<StylePropertyEditor> result = new ArrayList( availableEditors.length );
         for (Class<StylePropertyEditor> cl : availableEditors) {
             try {
                 StylePropertyEditor editor = cl.newInstance();
-                if (editor.init( prop )) {
+                if (editor.init( fieldSite )) {
                     result.add( editor );
                 }
             }
@@ -77,6 +82,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     protected Property<SPV> prop;
 
+    protected FeatureStore featureStore;
+
 
     /**
      * Initialize and check if this editor is able to handle the given property's
@@ -85,9 +92,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * @return True if this editor is able to handle the property's
      *         {@link StylePropertyValue}.
      */
-    public boolean init( @SuppressWarnings("hiding") Property<SPV> prop ) {
+    public boolean init( StylePropertyFieldSite fieldSite) {
         try {
-            this.prop = prop;
+            this.prop = (Property<SPV>)fieldSite.prop.get();
+            this.featureStore = fieldSite.featureStore.get();
             return true;
         }
         catch (ClassCastException e) {
@@ -102,12 +110,12 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * Property&lt;StylePropertyValue&lt;Number&gt;&gt; -> Number
      * </pre>
      *
-     * @param _prop
+     * @param site
      * @return
      */
-    protected Class targetType( Property _prop ) {
-        assert StylePropertyValue.class.isAssignableFrom( _prop.info().getType() );
-        Optional<ParameterizedType> o = _prop.info().getParameterizedType();
+    protected Class targetType( StylePropertyFieldSite site ) {
+        assert StylePropertyValue.class.isAssignableFrom( site.prop.get().info().getType() );
+        Optional<ParameterizedType> o = site.prop.get().info().getParameterizedType();
         ParameterizedType p = o.orElseThrow(
                 () -> new RuntimeException( "StylePropertyValue has no type parameter: " + prop.toString() ) );
         return (Class)p.getActualTypeArguments()[0];

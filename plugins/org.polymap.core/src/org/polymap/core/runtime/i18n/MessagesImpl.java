@@ -158,7 +158,7 @@ public class MessagesImpl
             return result;
         }
         catch (MissingResourceException e) {
-            log.warn( e.getLocalizedMessage() );
+            log.warn( "Can't find key '" + prefix + key + "' in bundle " + bundleName );
             // ResourceBundleEditor removes empty entries :(
             return "";
         }

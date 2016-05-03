@@ -14,44 +14,88 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.awt.Color;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.PointStyle;
+import org.polymap.core.style.model.Stroke;
+import org.polymap.core.style.model.StrokeCapStyle;
+import org.polymap.core.style.model.StrokeDashStyle;
+import org.polymap.core.style.model.StrokeJoinStyle;
 
 /**
- * Serialize {@link PointStyle}.
+ * Serialize {@link Stroke}.
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
-public class StrokeSerializer {
+public class StrokeSerializer
+        extends StyleCompositeSerializer<Stroke,StrokeDescriptor> {
 
     private static Log log = LogFactory.getLog( StrokeSerializer.class );
 
 
-    // ich hab noch keine ahnung, wie der StrokeSerializer rausfactoriert werden muss
-    
-    
-//    @Override
-//    protected PointSymbolizerDescriptor createDescriptor() {
-//        return new PointSymbolizerDescriptor();
-//    }
+    @Override
+    protected StrokeDescriptor createDescriptor() {
+        return new StrokeDescriptor();
+    }
+
+
+    @Override
+    public void doSerialize( Stroke stroke ) {
+        setValue( stroke.width.get(), ( StrokeDescriptor sd, Double value ) -> sd.width.set( value ) );
+        setValue( stroke.opacity.get(), ( StrokeDescriptor sd, Double value ) -> sd.opacity.set( value ) );
+        setValue( stroke.color.get(), ( StrokeDescriptor sd, Color value ) -> sd.color.set( value ) );
+        setValue( stroke.capStyle.get(), ( StrokeDescriptor sd, StrokeCapStyle value ) -> sd.capStyle.set( value ) );
+        setValue( stroke.joinStyle.get(), ( StrokeDescriptor sd, StrokeJoinStyle value ) -> sd.joinStyle.set( value ) );
+        // must be the last, since it uses the width
+        setValue( stroke.dashStyle.get(),
+                ( StrokeDescriptor sd, StrokeDashStyle value ) -> doSerializeDashStyle( sd, value ) );
+
+    }
 //
 //
-//    @Override
-//    public void doSerialize( PointStyle style ) {
-//        setValue( style.strokeWidth.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.strokeWidth.set( value ) );
-//        setValue( style.strokeOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.strokeOpacity.set( value ) );
-//        setValue( style.strokeColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.strokeColor.set( value ) );
-//        setValue( style.fillColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.fillColor.set( value ) );
-//        setValue( style.fillOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.fillOpacity.set( value ) );
-//    }
-//    
 //    protected Stroke buildStroke( Config<StrokeDescriptor> stroke ) {
 //        // ich bin mir nicht sicher ob mir so eine schreibweise wirklich gefällt
-//        return stroke.map( s -> 
-//                sf.createStroke( ff.literal( s.color.get() ), ff.literal( s.width.get() ), ff.literal( s.opacity.get() ) ) )
-//                .orElse( sf.getDefaultStroke() );
+//        return stroke.map( s -> sf.createStroke( ff.literal( s.color.get() ), ff.literal( s.width.get() ),
+//                ff.literal( s.opacity.get() ) ) ).orElse( sf.getDefaultStroke() );
 //    }
 
+
+    private void doSerializeDashStyle( StrokeDescriptor sd, StrokeDashStyle value ) {
+        // see
+        // http://docs.geoserver.org/stable/en/user/styling/sld-cookbook/lines.html#dashed-line
+        Double strokeWidth = sd.width.get();
+        if (strokeWidth == null) {
+            strokeWidth = new Double( 1.0 );
+        }
+        final float dot = strokeWidth.floatValue() / 4;
+        final float dash = 2 * strokeWidth.floatValue();
+        final float longDash = 4 * strokeWidth.floatValue();
+        float[] style = null;
+        switch (value) {
+            case dash:
+                style = new float[] { dash, dash };
+                break;
+            case dashdot:
+                style = new float[] { dash, dash, dot, dash };
+                break;
+            case dot:
+                style = new float[] { dot, dash };
+                break;
+            case longdash:
+                style = new float[] { longDash, dash, longDash, dash };
+                break;
+            case longdashdot:
+                style = new float[] { longDash, dash, dot, dash };
+                break;
+            case solid:
+                // do nothing
+                break;
+            default:
+                throw new RuntimeException( "Unhandled StrokeDashStyle: " + value );
+        }
+        sd.dashStyle.set( style );
+    }
 }

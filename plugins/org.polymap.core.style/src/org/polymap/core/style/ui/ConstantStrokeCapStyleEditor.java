@@ -25,10 +25,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.StrokeCapStyle;
 
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -36,23 +37,25 @@ import org.polymap.model2.runtime.ValueInitializer;
  *
  * @author Steffen Stundzig
  */
-class ConstantStrokeCapStyleEditor
+public class ConstantStrokeCapStyleEditor
         extends StylePropertyEditor<ConstantStrokeCapStyle> {
 
-    private static Log                        log     = LogFactory.getLog( ConstantStrokeCapStyleEditor.class );
+    private static final IMessages i18n = Messages.forPrefix( "StrokeCapstyle" );
+
+    private static Log log = LogFactory.getLog( ConstantStrokeCapStyleEditor.class );
 
     private final static List<StrokeCapStyle> content = Lists.newArrayList( StrokeCapStyle.values() );
 
 
     @Override
     public String label() {
-        return "A cap style";
+        return i18n.get( "title" );
     }
 
 
     @Override
-    public boolean init( Property<ConstantStrokeCapStyle> _prop ) {
-        return StrokeCapStyle.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return StrokeCapStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
@@ -62,7 +65,7 @@ class ConstantStrokeCapStyleEditor
 
             @Override
             public ConstantStrokeCapStyle initialize( ConstantStrokeCapStyle proto ) throws Exception {
-                proto.capStyle.set( StrokeCapStyle.round );
+                proto.value.set( StrokeCapStyle.round );
                 return proto;
             }
         } );
@@ -74,17 +77,22 @@ class ConstantStrokeCapStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeCapStyle::name ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().capStyle.get() ) );
+        combo.setItems( content.stream().map( StrokeCapStyle::name ).map( this::translate ).toArray( String[]::new ) );
+        combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().capStyle.set( content.get( combo.getSelectionIndex() ) );
+                prop.get().value.set( content.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;
+    }
+
+
+    private String translate( String name ) {
+        return i18n.get( name );
     }
 
 }

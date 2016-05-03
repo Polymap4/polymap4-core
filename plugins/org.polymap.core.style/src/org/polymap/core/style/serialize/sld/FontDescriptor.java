@@ -12,36 +12,40 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
-
 import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.DefaultDouble;
-import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.NumberRangeValidator;
+import org.polymap.core.style.model.FontFamily;
+import org.polymap.core.style.model.FontStyle;
+import org.polymap.core.style.model.FontWeight;
+
+import org.polymap.model2.Immutable;
 
 /**
- * 
- *
  * @author Steffen Stundzig
  */
-public class PolygonSymbolizerDescriptor
+public class FontDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<Color>           fillColor;
+    public Config<FontFamily> family;
 
     @Immutable
-    @DefaultDouble(1)
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double>          fillOpacity;
+    public Config<FontStyle> style;
 
-    //@Immutable
-    public Config<StrokeDescriptor> stroke;
+    @Immutable
+    public Config<FontWeight> weight;
+
+    @Immutable
+    @DefaultDouble( 10 )
+    @Check(value = NumberRangeValidator.class, args = { "1", "100" })
+    public Config<Double> size;
+
 
     @Override
-    protected PolygonSymbolizerDescriptor clone() {
-        return (PolygonSymbolizerDescriptor)super.clone();
+    protected FontDescriptor clone() {
+        return (FontDescriptor)super.clone();
     }
 
 }

@@ -25,10 +25,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.StrokeJoinStyle;
 
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -39,6 +40,8 @@ import org.polymap.model2.runtime.ValueInitializer;
 class ConstantStrokeJoinStyleEditor
         extends StylePropertyEditor<ConstantStrokeJoinStyle> {
 
+    private static final IMessages i18n = Messages.forPrefix( "StrokeJoinstyle" );
+
     private static Log                        log     = LogFactory.getLog( ConstantStrokeJoinStyleEditor.class );
 
     private final static List<StrokeJoinStyle> content = Lists.newArrayList( StrokeJoinStyle.values() );
@@ -46,13 +49,13 @@ class ConstantStrokeJoinStyleEditor
 
     @Override
     public String label() {
-        return "A join style";
+        return i18n.get( "title" );
     }
 
 
     @Override
-    public boolean init( Property<ConstantStrokeJoinStyle> _prop ) {
-        return StrokeJoinStyle.class.isAssignableFrom( targetType( _prop ) ) ? super.init( _prop ) : false;
+    public boolean init( StylePropertyFieldSite site ) {
+        return StrokeJoinStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
@@ -62,7 +65,7 @@ class ConstantStrokeJoinStyleEditor
 
             @Override
             public ConstantStrokeJoinStyle initialize( ConstantStrokeJoinStyle proto ) throws Exception {
-                proto.joinStyle.set( StrokeJoinStyle.round );
+                proto.value.set( StrokeJoinStyle.round );
                 return proto;
             }
         } );
@@ -74,17 +77,20 @@ class ConstantStrokeJoinStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeJoinStyle::name ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().joinStyle.get() ) );
+        combo.setItems( content.stream().map( StrokeJoinStyle::name ).map( this::translate ).toArray( String[]::new ) );
+        combo.select( content.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().joinStyle.set( content.get( combo.getSelectionIndex() ) );
+                prop.get().value.set( content.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;
     }
 
+    private String translate( String name ) {
+        return i18n.get( name );
+    }
 }

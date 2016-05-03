@@ -14,6 +14,8 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.util.List;
+
 import java.awt.Color;
 
 import org.apache.commons.logging.Log;
@@ -25,9 +27,10 @@ import org.polymap.core.style.model.PointStyle;
  * Serialize {@link PointStyle}.
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class PointStyleSerializer
-        extends StyleSerializer<PointStyle,PointSymbolizerDescriptor> {
+        extends StyleCompositeSerializer<PointStyle,PointSymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( PointStyleSerializer.class );
 
@@ -40,9 +43,11 @@ public class PointStyleSerializer
 
     @Override
     public void doSerialize( PointStyle style ) {
-        setValue( style.stroke.get().width.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.stroke.get().width.set( value ) );
-        setValue( style.stroke.get().opacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.stroke.get().opacity.set( value ) );
-        setValue( style.stroke.get().color.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.stroke.get().color.set( value ) );
+        StrokeSerializer strokeSerializer = new StrokeSerializer();
+        List<StrokeDescriptor> strokeDescriptors = strokeSerializer.serialize( style.stroke.get() );
+
+        setComposite( strokeDescriptors,
+                ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         
         setValue( style.fillColor.get(), (PointSymbolizerDescriptor sd, Color value) -> sd.fillColor.set( value ) );
         setValue( style.fillOpacity.get(), (PointSymbolizerDescriptor sd, Double value) -> sd.fillOpacity.set( value ) );

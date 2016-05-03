@@ -12,7 +12,11 @@
  */
 package org.polymap.core.style.ui;
 
+import java.util.Collection;
 import java.util.List;
+
+import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.feature.type.PropertyDescriptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,24 +31,21 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.ConstantStrokeDashStyle;
-import org.polymap.core.style.model.StrokeDashStyle;
-
+import org.polymap.core.style.model.ConstantFontFamily;
+import org.polymap.core.style.model.ConstantString;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Editor that creates one {@link ConstantStrokeDashStyle}.
+ * Editor that creates one {@link ConstantFontFamily}.
  *
  * @author Steffen Stundzig
  */
-class ConstantStrokeDashStyleEditor
-        extends StylePropertyEditor<ConstantStrokeDashStyle> {
+public class FeatureAttributeSelectionEditor
+        extends StylePropertyEditor<ConstantString> {
 
-    private static final IMessages i18n = Messages.forPrefix( "StrokeDashstyle" );
+    private static final IMessages i18n = Messages.forPrefix( "FeatureAttributeSelection" );
 
-    private static Log log = LogFactory.getLog( ConstantStrokeDashStyleEditor.class );
-
-    private final static List<StrokeDashStyle> content = Lists.newArrayList( StrokeDashStyle.values() );
+    private static Log log = LogFactory.getLog( FeatureAttributeSelectionEditor.class );
 
 
     @Override
@@ -55,17 +56,17 @@ class ConstantStrokeDashStyleEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return StrokeDashStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
+        return String.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<ConstantStrokeDashStyle>() {
+        prop.createValue( new ValueInitializer<ConstantString>() {
 
             @Override
-            public ConstantStrokeDashStyle initialize( ConstantStrokeDashStyle proto ) throws Exception {
-                proto.value.set( StrokeDashStyle.solid );
+            public ConstantString initialize( ConstantString proto ) throws Exception {
+                proto.value.set( "" );
                 return proto;
             }
         } );
@@ -77,21 +78,24 @@ class ConstantStrokeDashStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeDashStyle::name ).map( this::translate ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().value.get() ) );
+        Collection<PropertyDescriptor> schemaDescriptors = featureStore.getSchema().getDescriptors();
+        GeometryDescriptor geometryDescriptor = featureStore.getSchema().getGeometryDescriptor();
+        final List<String> columns = Lists.newArrayList();
+        for (PropertyDescriptor descriptor : schemaDescriptors) {
+            if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {
+                columns.add( descriptor.getName().getLocalPart() );
+            }
+        }
+        combo.setItems( columns.toArray( new String[columns.size()] ) );
+        combo.select( columns.indexOf( prop.get().value.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().value.set( content.get( combo.getSelectionIndex() ) );
+                prop.get().value.set( columns.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;
-    }
-
-
-    private String translate( String name ) {
-        return i18n.get( name );
     }
 }

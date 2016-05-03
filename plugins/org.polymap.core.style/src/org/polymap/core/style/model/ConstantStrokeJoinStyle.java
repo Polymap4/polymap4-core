@@ -37,12 +37,12 @@ public class ConstantStrokeJoinStyle
 
             @Override
             public ConstantStrokeJoinStyle initialize( ConstantStrokeJoinStyle proto ) throws Exception {
-                proto.joinStyle.set( style );
+                proto.value.set( style );
                 return proto;
             }
         };
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StrokeJoinStyle> joinStyle;
+    public Property<StrokeJoinStyle> value;
 }

@@ -35,6 +35,8 @@ import org.eclipse.rap.rwt.RWT;
 
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.ui.FormLayoutFactory;
 import org.polymap.core.ui.SelectionAdapter;
@@ -49,6 +51,8 @@ import org.polymap.model2.Property;
  */
 public class StylePropertyField
         extends Configurable {
+
+    private final static IMessages i18n = Messages.forPrefix( "Field" );
 
     private static Log log = LogFactory.getLog( StylePropertyField.class );
     
@@ -72,11 +76,15 @@ public class StylePropertyField
 
     private StylePropertyEditor                 selected;
 
+    private final StylePropertyFieldSite fieldSite;
+
     
-    public StylePropertyField( Property<StylePropertyValue> prop ) {
-        this.prop = prop;
-        this.title.set( (String)prop.info().getDescription().orElse( "" ) );
-        this.editors = StylePropertyEditor.forValue( prop );
+    public StylePropertyField( StylePropertyFieldSite fieldSite ) {
+        this.fieldSite = fieldSite;
+        this.prop = fieldSite.prop.get();
+        this.title.set( prop.info().getDescription().isPresent()
+                ? i18n.get( (String)prop.info().getDescription().get() ) : "" );
+        this.editors = StylePropertyEditor.forValue( fieldSite );
     }
 
 

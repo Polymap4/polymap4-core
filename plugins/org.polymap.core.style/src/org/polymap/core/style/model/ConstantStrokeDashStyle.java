@@ -37,12 +37,12 @@ public class ConstantStrokeDashStyle
 
             @Override
             public ConstantStrokeDashStyle initialize( ConstantStrokeDashStyle proto ) throws Exception {
-                proto.dashStyle.set( style );
+                proto.value.set( style );
                 return proto;
             }
         };
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StrokeDashStyle> dashStyle;
+    public Property<StrokeDashStyle> value;
 }

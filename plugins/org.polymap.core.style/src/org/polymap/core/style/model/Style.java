@@ -60,7 +60,7 @@ public abstract class Style
      * the styles in the {@link StyleGroup} hierarchy.
      */
     @DefaultValue( "[No title]" )
-    @Description( "Title" )
+    @Description( "title" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<String>                     title;
     
@@ -68,7 +68,7 @@ public abstract class Style
      * User provided description of the style.
      */
     @DefaultValue( "[No description]" )
-    @Description( "Description" )
+    @Description( "description" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<String>                     description;
 
@@ -95,7 +95,7 @@ public abstract class Style
      * Defaults to: {@link ConstantFilter#defaultTrue}
      */
     @UIOrder( 0 )
-    @Description( "Active if..." )
+    @Description( "activeIf" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Filter>> visibleIf;
 

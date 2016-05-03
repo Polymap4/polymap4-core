@@ -30,6 +30,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  * </ul>
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class PointStyle
         extends Style {
@@ -42,27 +43,27 @@ public class PointStyle
         @Override
         public PointStyle initialize( PointStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.stroke.createValue( Stroke.defaults );
             proto.title.set( "Point/Mark" );
+            proto.stroke.createValue( Stroke.defaults );
             return proto;
         }
     };
 
-    @UIOrder( 10 )
-    @Description( "Outer stroke" )
-    public Property<Stroke>                     stroke;
     
     @Nullable
-    @UIOrder( 40 )
-    @Description( "Fill: color" )
+    @UIOrder( 10 )
+    @Description( "fillColor" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Color>>  fillColor;
     
     @Nullable
-    @UIOrder( 50 )
-    @Description( "Fill: opacity" )
+    @UIOrder( 20 )
+    @Description( "fillOpacity" )
     @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> fillOpacity;
-    
+
+    @UIOrder( 30 )
+    @Description( "stroke" )
+    public Property<Stroke>                     stroke;
 }

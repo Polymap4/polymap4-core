@@ -27,24 +27,23 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.ConstantStrokeDashStyle;
-import org.polymap.core.style.model.StrokeDashStyle;
-
+import org.polymap.core.style.model.ConstantFontFamily;
+import org.polymap.core.style.model.FontFamily;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Editor that creates one {@link ConstantStrokeDashStyle}.
+ * Editor that creates one {@link ConstantFontFamily}.
  *
  * @author Steffen Stundzig
  */
-class ConstantStrokeDashStyleEditor
-        extends StylePropertyEditor<ConstantStrokeDashStyle> {
+public class ConstantFontFamilyEditor
+        extends StylePropertyEditor<ConstantFontFamily> {
 
-    private static final IMessages i18n = Messages.forPrefix( "StrokeDashstyle" );
+    private static final IMessages i18n = Messages.forPrefix( "FontFamily" );
 
-    private static Log log = LogFactory.getLog( ConstantStrokeDashStyleEditor.class );
+    private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
 
-    private final static List<StrokeDashStyle> content = Lists.newArrayList( StrokeDashStyle.values() );
+    private final static List<FontFamily> content = Lists.newArrayList( FontFamily.values() );
 
 
     @Override
@@ -55,17 +54,17 @@ class ConstantStrokeDashStyleEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return StrokeDashStyle.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
+        return FontFamily.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<ConstantStrokeDashStyle>() {
+        prop.createValue( new ValueInitializer<ConstantFontFamily>() {
 
             @Override
-            public ConstantStrokeDashStyle initialize( ConstantStrokeDashStyle proto ) throws Exception {
-                proto.value.set( StrokeDashStyle.solid );
+            public ConstantFontFamily initialize( ConstantFontFamily proto ) throws Exception {
+                proto.value.set( FontFamily.comicSans );
                 return proto;
             }
         } );
@@ -77,8 +76,8 @@ class ConstantStrokeDashStyleEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( StrokeDashStyle::name ).map( this::translate ).toArray( String[]::new ) );
-        combo.select( content.indexOf( prop.get().value.get() ) );
+        combo.setItems( content.stream().map( FontFamily::value ).toArray( String[]::new ) );
+        combo.select( content.indexOf( prop.get().value.get().value() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
@@ -88,10 +87,5 @@ class ConstantStrokeDashStyleEditor
             }
         } );
         return contents;
-    }
-
-
-    private String translate( String name ) {
-        return i18n.get( name );
     }
 }

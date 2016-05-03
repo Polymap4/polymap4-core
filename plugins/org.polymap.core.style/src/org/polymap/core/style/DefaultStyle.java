@@ -26,6 +26,9 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
 import org.polymap.core.style.model.ConstantColor;
+import org.polymap.core.style.model.ConstantFontFamily;
+import org.polymap.core.style.model.ConstantFontStyle;
+import org.polymap.core.style.model.ConstantFontWeight;
 import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
@@ -33,6 +36,7 @@ import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.model.TextStyle;
 
 /**
  * Factory of simple default feature styles with some random settings.
@@ -49,10 +53,12 @@ public class DefaultStyle {
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
             fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
+            fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         }
         if (Polygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )
                 || MultiPolygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
             fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
+            fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         }
         else {
             throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
@@ -64,6 +70,7 @@ public class DefaultStyle {
     public static FeatureStyle createAllStyle( FeatureStyle fs ) {
         fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
         fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
+        fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         return fs;
     }
     
@@ -74,6 +81,9 @@ public class DefaultStyle {
         point.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         point.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
         point.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        point.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        point.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
         return point;
     }
 
@@ -81,12 +91,12 @@ public class DefaultStyle {
     public static PolygonStyle fillPolygonStyle( PolygonStyle polygon ) {
         polygon.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.fillOpacity.createValue( ConstantNumber.defaults( 0.5 ) );
-        polygon.strokeColor.createValue( ConstantColor.defaults( randomColor() ) );
-        polygon.strokeWidth.createValue( ConstantNumber.defaults( 1.0 ) );
-        polygon.strokeOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        polygon.strokeCapStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        polygon.strokeDashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        polygon.strokeJoinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        polygon.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
+        polygon.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
+        polygon.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        polygon.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        polygon.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
         return polygon;
     }
     
@@ -98,5 +108,14 @@ public class DefaultStyle {
                 from + rand.nextInt( range ),
                 from + rand.nextInt( range ) );
     }
-    
+
+
+    public static TextStyle fillTextStyle( TextStyle text ) {
+        text.font.get().family.createValue( ConstantFontFamily.defaults() );
+        text.font.get().style.createValue( ConstantFontStyle.defaults() );
+        text.font.get().weight.createValue( ConstantFontWeight.defaults() );
+        text.font.get().size.createValue( ConstantNumber.defaults( 10.0 ) );
+        text.color.createValue( ConstantColor.defaults( Color.BLACK ) );
+        return text;
+    }
 }
