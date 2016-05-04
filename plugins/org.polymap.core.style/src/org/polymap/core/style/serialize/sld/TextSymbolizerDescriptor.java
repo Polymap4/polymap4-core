@@ -14,6 +14,8 @@ package org.polymap.core.style.serialize.sld;
 
 import java.awt.Color;
 
+import org.opengis.filter.expression.Expression;
+
 import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.DefaultDouble;
@@ -29,7 +31,7 @@ public class TextSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<String> textProperty;
+    public Config<Expression> text;
 
     @Immutable
     public Config<Color> color;

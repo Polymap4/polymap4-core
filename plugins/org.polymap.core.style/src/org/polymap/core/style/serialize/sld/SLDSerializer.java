@@ -164,11 +164,11 @@ public class SLDSerializer
         Mark mark = sf.getCircleMark();
         mark.setStroke( buildStroke( descriptor.stroke.get() ) );
 
-        mark.setFill( sf.createFill( ff.literal( descriptor.fillColor.get() ), ff.literal( descriptor.fillOpacity.get() ) ) );
+        mark.setFill( sf.createFill( ff.literal( descriptor.fill.get().color.get() ), ff.literal( descriptor.fill.get().opacity.get() ) ) );
 
         gr.graphicalSymbols().clear();
         gr.graphicalSymbols().add( mark );
-        gr.setSize( ff.literal( 8 ) );
+        gr.setSize( descriptor.diameter.get() );
         /*
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
@@ -182,8 +182,7 @@ public class SLDSerializer
 
         Stroke stroke = buildStroke( descriptor.stroke.get() );
 
-        Fill fill = sf.createFill( ff.literal( descriptor.fillColor.get() ),
-                ff.literal( descriptor.fillOpacity.get() ) );
+        Fill fill = buildFill(descriptor.fill.get());
         /*
          * Setting the geometryPropertyName arg to null signals that we want to draw
          * the default geometry of features
@@ -241,8 +240,7 @@ public class SLDSerializer
                 }
             }
         }
-        return sf.createTextSymbolizer( foreground, fonts, background, ff.property( descriptor.textProperty.get() ),
-                placement, null );
+        return sf.createTextSymbolizer( foreground, fonts, background, descriptor.text.get(), placement, null );
     }
     
     
@@ -260,5 +258,15 @@ public class SLDSerializer
             }
         }
         return stroke;
+    }
+
+
+    private Fill buildFill( FillDescriptor descriptor ) {
+        Fill fill = null;
+        if (descriptor != null) {
+            fill = sf.createFill( ff.literal( descriptor.color.get() ),
+                    ff.literal( descriptor.opacity.get() ) );
+        }
+        return fill;
     }
 }

@@ -86,6 +86,8 @@ public class StyleRepository
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
+                        FeaturePropertyBasedNumber.class,
+                        FeaturePropertyBasedString.class,
                         FeatureStyle.class,
                         FilterMappedNumbers.class,
                         // ScaleMappedNumbers.class,
@@ -155,6 +157,7 @@ public class StyleRepository
                         styleTransform.setIndentation( 4 );
                         styleTransform.setOmitXMLDeclaration( false );
                         result = (T)styleTransform.transform( style );
+                        System.err.println( result );
                     }
                     catch (TransformerException e) {
                         throw new RuntimeException( "Unable to transform style.", e );

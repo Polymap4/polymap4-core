@@ -17,7 +17,7 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * 
+ * It contains a fixed string.
  *
  * @author Steffen Stundzig
  */

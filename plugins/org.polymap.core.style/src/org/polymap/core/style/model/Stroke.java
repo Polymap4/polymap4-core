@@ -26,9 +26,8 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * 
- *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class Stroke
         extends StyleComposite {

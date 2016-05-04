@@ -17,6 +17,8 @@ package org.polymap.core.style.serialize.sld;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opengis.filter.expression.Expression;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -83,45 +85,59 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
         }
         this.descriptors = updated;
     }
+    
+    /**
+     * Sets the value as Expression in all current {@link #descriptors} using the given setter.
+     * <p/>
+     * Here goes the magic of multiplying style descriptors :)
+     *
+     * @param spv
+     * @param setter
+     */
+    protected <V extends Object> void setExpressionValue( StylePropertyValue<V> spv,
+            org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter<SD, Expression> setter ) {
+
+        if (descriptors.isEmpty()) {
+            descriptors.add( createDescriptor() );
+        }
+
+        List<SD> updated = new ArrayList( descriptors.size() );
+        for (SymbolizerDescriptor sd : descriptors) {
+            updated.addAll( StylePropertyValueHandler.handleExpression( spv, (SD)sd, setter ) );
+        }
+        this.descriptors = updated;
+    }
 
 
     protected <V extends SymbolizerDescriptor> void setComposite( List<V> composites, Setter<SD,V> setter ) {
-
         if (!composites.isEmpty()) {
-            if (composites.size() == 1) {
-                if (descriptors.isEmpty()) {
+            if (descriptors.isEmpty()) {
+                for (V composite : composites) {
                     SD descriptor = createDescriptor();
-                    V composite = composites.get( 0 );
+                    descriptor.filter.set( composite.filter.get() );
                     setter.set( descriptor, composite );
-                    composite.filter.ifPresent( filter -> descriptor.filter.set( filter ) );
                     descriptors.add( descriptor );
                 }
             }
-            else if (composites.size() > 1) {
-                // create a new descriptor for each composite
-                if (descriptors.isEmpty()) {
-                    for (V composite : composites) {
-                        SD descriptor = createDescriptor();
-                        setter.set( descriptor, composite );
-                        composite.filter.ifPresent( filter -> descriptor.filter.set( filter ) );
-                        descriptors.add( descriptor );
+            else {
+                // if its only one composite, don't clone
+                if (composites.size() == 1) {
+                    for (SD sd : descriptors) {
+                        setter.set( sd, composites.get( 0 ) );
+                        composites.get( 0 ).filter.ifPresent( filter -> {
+                            sd.filterAnd( filter );
+                        } );
                     }
                 }
                 else {
-                    // if not empty create a clone of the descriptors for each value
-                    // in composites
+                    // otherwise create fresh clones for all composites
                     List<SD> updated = new ArrayList<SD>( descriptors.size() * composites.size() );
-                    for (SD sd : descriptors) {
-                        for (V composite : composites) {
-                            SD clone = (SD)sd.clone();
+                    for (V composite : composites) {
+                        for (SD sd : descriptors) {
+                            SD clone = composites.size() == 1 ? sd : (SD)sd.clone();
                             setter.set( clone, composite );
                             composite.filter.ifPresent( filter -> {
-                                if (clone.filter.get() != null) {
-                                    clone.filter.set( SLDSerializer.ff.and( filter, clone.filter.get() ) );
-                                }
-                                else {
-                                    clone.filter.set( filter );
-                                }
+                                clone.filterAnd( filter );
                             } );
                             updated.add( clone );
                         }

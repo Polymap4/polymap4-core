@@ -17,6 +17,8 @@ import java.util.List;
 
 import java.awt.Color;
 
+import org.opengis.filter.expression.Expression;
+
 import org.polymap.core.style.model.ConstantColor;
 import org.polymap.core.style.model.ConstantFontFamily;
 import org.polymap.core.style.model.ConstantFontStyle;
@@ -26,6 +28,8 @@ import org.polymap.core.style.model.ConstantString;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
+import org.polymap.core.style.model.FeaturePropertyBasedNumber;
+import org.polymap.core.style.model.FeaturePropertyBasedValue;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
@@ -95,6 +99,34 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
         }
     }
+    
+    /**
+     * See {@link #doHandle(StylePropertyValue, SymbolizerDescriptor, Setter)}.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static <SD extends SymbolizerDescriptor> List<SD> handleExpression( StylePropertyValue spv, SD sd, Setter<SD, Expression> setter ) {
+        if (spv == null) {
+            return Collections.singletonList( sd );
+        }
+        else if (spv instanceof ConstantNumber) {
+            return new ConstantNumberHandler().doHandleExpression( 
+                    (ConstantNumber)spv, sd, setter );
+        }
+        else if (spv instanceof ConstantString) {
+            return new ConstantStringHandler().doHandleExpression( (ConstantString)spv, sd, setter );
+        }
+        else if (spv instanceof FeaturePropertyBasedValue) {
+            return new FeaturePropertyBasedValueHandler().doHandleExpression( 
+                    (FeaturePropertyBasedValue)spv, sd, setter );
+        }
+        else if (spv instanceof FeaturePropertyBasedNumber) {
+            return new FeaturePropertyBasedNumberHandler().doHandleExpression( 
+                    (FeaturePropertyBasedNumber)spv, sd, setter );
+        }
+        else {
+            throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
+        }
+    }
 
 
     // SPI ************************************************
@@ -104,6 +136,12 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
 
         void set( SD sd, V value );
     }
+//
+//    @FunctionalInterface
+//    public interface ExpressionSetter<SD extends SymbolizerDescriptor> {
+//
+//        void set( SD sd, Expression value );
+//    }
 
 
     /**
@@ -133,9 +171,87 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
                 throw new RuntimeException( e.getMessage() + " : " + constantNumber.info().getName(), e );
             }
         }
+
+        public <SD extends SymbolizerDescriptor> List<SD> doHandleExpression( ConstantNumber spv, SD sd, Setter<SD,Expression> setter ) {
+            try {
+                setter.set( sd, SLDSerializer.ff.literal( (Number)spv.value.get()) );
+                return Collections.singletonList( sd );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
+            }
+        }
     }
+//
+//    /**
+//     * ConstantNumber
+//     */
+//    static class FeatureAttributeBasedNumberHandler
+//            extends StylePropertyValueHandler<FeaturePropertyBasedNumber,Number> {
+//
+//        @Override
+//        public <SD extends SymbolizerDescriptor> List<SD> doHandle( FeaturePropertyBasedNumber constantNumber, SD sd,
+//                Setter<SD,Number> setter ) {
+//                throw new RuntimeException( "should never be called");
+//        }
+//
+//        public <SD extends SymbolizerDescriptor> List<SD> doHandleExpression( FeaturePropertyBasedNumber spv, SD sd, Setter<SD,Expression> setter ) {
+//            try {
+//                setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get()) );
+//                return Collections.singletonList( sd );
+//            }
+//            catch (Exception e) {
+//                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
+//            }
+//        }
+//    }
 
 
+    static class FeaturePropertyBasedValueHandler
+            extends StylePropertyValueHandler<FeaturePropertyBasedValue,Object> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( FeaturePropertyBasedValue constantNumber, SD sd,
+                Setter<SD,Object> setter ) {
+            throw new RuntimeException( "should never be called" );
+        }
+
+
+        public <SD extends SymbolizerDescriptor> List<SD> doHandleExpression( FeaturePropertyBasedValue spv, SD sd,
+                Setter<SD,Expression> setter ) {
+            try {
+                setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get() ) );
+                return Collections.singletonList( sd );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
+            }
+        }
+    }
+    
+
+    static class FeaturePropertyBasedNumberHandler
+            extends StylePropertyValueHandler<FeaturePropertyBasedNumber,Number> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( FeaturePropertyBasedNumber constantNumber, SD sd,
+                Setter<SD,Number> setter ) {
+            throw new RuntimeException( "should never be called" );
+        }
+
+
+        public <SD extends SymbolizerDescriptor> List<SD> doHandleExpression( FeaturePropertyBasedNumber spv, SD sd,
+                Setter<SD,Expression> setter ) {
+            try {
+                setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get() ) );
+                return Collections.singletonList( sd );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
+            }
+        }
+    }
+    
     /**
      * ConstantColor
      */
@@ -171,6 +287,16 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
                 Setter<SD,String> setter ) {
             setter.set( sd, src.value.get() );
             return Collections.singletonList( sd );
+        }
+
+        public <SD extends SymbolizerDescriptor>  List<SD> doHandleExpression( ConstantString spv, SD sd, Setter<SD,Expression> setter ) {
+            try {
+                setter.set( sd, SLDSerializer.ff.literal( spv.value.get()) );
+                return Collections.singletonList( sd );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
+            }
         }
     }
 

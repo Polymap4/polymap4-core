@@ -12,36 +12,23 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
-
-import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
-import org.polymap.core.runtime.config.DefaultDouble;
 import org.polymap.core.runtime.config.Immutable;
-import org.polymap.core.runtime.config.NumberRangeValidator;
 
 /**
- * 
- *
  * @author Steffen Stundzig
  */
 public class PolygonSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<Color>           fillColor;
-
-    @Immutable
-    @DefaultDouble(1)
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double>          fillOpacity;
-
-    //@Immutable
     public Config<StrokeDescriptor> stroke;
 
+    @Immutable
+    public Config<FillDescriptor> fill;
+    
     @Override
     protected PolygonSymbolizerDescriptor clone() {
         return (PolygonSymbolizerDescriptor)super.clone();
     }
-
 }

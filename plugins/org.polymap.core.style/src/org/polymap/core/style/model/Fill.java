@@ -14,51 +14,43 @@
  */
 package org.polymap.core.style.model;
 
+import java.awt.Color;
+
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Simple point style. Roughly modelling: 
- * <ul>
- * <li>{@link org.opengis.style.PointSymbolizer}</li>
- * <li>{@link org.opengis.style.Mark}</li>
- * </ul>
- *
- * @author Falko Bräutigam
  * @author Steffen Stundzig
  */
-public class PointStyle
-        extends Style {
+public class Fill
+        extends StyleComposite {
 
     /**
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final ValueInitializer<PointStyle> defaults = new ValueInitializer<PointStyle>() {
+    public static final ValueInitializer<Fill> defaults = new ValueInitializer<Fill>() {
+
         @Override
-        public PointStyle initialize( PointStyle proto ) throws Exception {
-            Style.defaults.initialize( proto );
-            proto.title.set( "Point/Mark" );
-            proto.fill.createValue( Fill.defaults );
-            proto.stroke.createValue( Stroke.defaults );
-//            proto.diameter.createValue( ConstantNumber.defaults( 8.0 ) );
+        public Fill initialize( Fill proto ) throws Exception {
+            StyleComposite.defaults.initialize( proto );
             return proto;
         }
     };
 
+    @Nullable
     @UIOrder(10)
-    @Description("fill")
-    public Property<Fill> fill;
-
-    @UIOrder(20)
-    @Description("stroke")
-    public Property<Stroke> stroke;
-
-    @UIOrder(30)
-    @Description("diameter")
-    @DoubleRange(from = 0, to = 10000, defaultValue = 8)
+    @Description("color")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>> diameter;
+    public Property<StylePropertyValue<Color>> color;
+
+    @Nullable
+    @UIOrder(20)
+    @Description("opacity")
+    @DoubleRange(from = 0, to = 1, defaultValue = 1)
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<Double>> opacity;
 }

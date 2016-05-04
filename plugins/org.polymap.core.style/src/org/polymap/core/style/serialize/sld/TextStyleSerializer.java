@@ -16,6 +16,8 @@ import java.util.List;
 
 import java.awt.Color;
 
+import org.opengis.filter.expression.Expression;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -45,8 +47,8 @@ public class TextStyleSerializer
         List<FontDescriptor> fontDescriptors = fontSerializer.serialize( style.font.get() );
         setComposite( fontDescriptors, ( TextSymbolizerDescriptor sd, FontDescriptor value ) -> sd.font.set( value ) );
 
-        setValue( style.textProperty.get(),
-                ( TextSymbolizerDescriptor sd, String value ) -> sd.textProperty.set( value ) );
+        setExpressionValue( style.textProperty.get(),
+                ( TextSymbolizerDescriptor sd, Expression value ) -> sd.text.set( value ) );
         setValue( style.color.get(), ( TextSymbolizerDescriptor sd, Color value ) -> sd.color.set( value ) );
         setValue( style.opacity.get(), ( TextSymbolizerDescriptor sd, Double value ) -> sd.opacity.set( value ) );
         setValue( style.haloWidth.get(), ( TextSymbolizerDescriptor sd, Double value ) -> sd.haloWidth.set( value ) );
