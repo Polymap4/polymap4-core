@@ -13,7 +13,7 @@
 package org.polymap.core.style.model;
 
 /**
- * Property type to hold coordinates e.g. for anchor point or label placement
+ * Property type to hold 2 doubles e.g. for anchor point or label placement
  *
  * @author Steffen Stundzig
  */
