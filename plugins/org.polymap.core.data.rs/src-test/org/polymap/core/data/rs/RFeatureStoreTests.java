@@ -1,10 +1,10 @@
 /* 
  * polymap.org
- * Copyright 2012, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
+ * published by the Free Software Foundation; either version 3.0 of
  * the License, or (at your option) any later version.
  *
  * This software is distributed in the hope that it will be useful,
@@ -22,8 +22,6 @@ import java.util.Map;
 
 import java.io.File;
 import java.io.Serializable;
-
-import junit.framework.TestCase;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -50,11 +48,11 @@ import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
 
-import org.polymap.core.data.rs.RDataStore;
-import org.polymap.core.data.rs.RFeatureStore;
 import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
 
 import org.polymap.recordstore.lucene.LuceneRecordStore;
+
+import junit.framework.TestCase;
 
 /**
  * 
@@ -82,6 +80,7 @@ public class RFeatureStoreTests
         super.tearDown();
     }
 
+    
     protected SimpleFeatureType createSimpleSchema() throws Exception {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.setName( "Test1" );
@@ -182,5 +181,17 @@ public class RFeatureStoreTests
         }
         assertEquals( 669, count );
     }
+    
+    
+//    public void testAssociation() throws Exception {
+//        FeatureTypeFactoryImpl factory = new FeatureTypeFactoryImpl();
+//        TypeBuilder builder = new TypeBuilder( factory );
+//        builder.addAttribute( "name", String.class );
+//        builder.referenceType( AttributeType ).association();
+//        
+//        FeatureType schema = builder.feature();
+//        
+//        ds.createSchema( schema );
+//    }
     
 }
