@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.FeaturePropertyBasedNumber;
+import org.polymap.core.style.model.PropertyNumber;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -42,7 +42,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Steffen Stundzig
  */
 class FeaturePropertyBasedNumberEditor
-        extends StylePropertyEditor<FeaturePropertyBasedNumber> {
+        extends StylePropertyEditor<PropertyNumber> {
 
     private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyBasedNumber" );
 
@@ -63,10 +63,10 @@ class FeaturePropertyBasedNumberEditor
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<FeaturePropertyBasedNumber>() {
+        prop.createValue( new ValueInitializer<PropertyNumber>() {
 
             @Override
-            public FeaturePropertyBasedNumber initialize( FeaturePropertyBasedNumber proto ) throws Exception {
+            public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
                 proto.value.set( "" );
                 return proto;
             }

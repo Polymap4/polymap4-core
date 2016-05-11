@@ -14,31 +14,31 @@
  */
 package org.polymap.core.style.model;
 
-import org.polymap.model2.Concerns;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Describes a feature property based number.
+ * Base class for feature property based values.
  *
  * @author Steffen Stundzig
  */
-public class FeaturePropertyBasedNumber<T extends Number>
+public class PropertyValue<T>
         extends StylePropertyValue<T> {
 
     /**
      * Initializes a newly created instance with the given default value.
      */
-    public static ValueInitializer<FeaturePropertyBasedNumber> defaults() {
+    public static ValueInitializer<PropertyValue> defaults() {
         return defaults( "" );
     }
 
 
-    public static ValueInitializer<FeaturePropertyBasedNumber> defaults( final String value ) {
-        return new ValueInitializer<FeaturePropertyBasedNumber>() {
+    public static ValueInitializer<PropertyValue> defaults( final String value ) {
+        return new ValueInitializer<PropertyValue>() {
 
             @Override
-            public FeaturePropertyBasedNumber initialize( FeaturePropertyBasedNumber proto ) throws Exception {
+            public PropertyValue initialize( PropertyValue proto ) throws Exception {
                 proto.value.set( value );
                 return proto;
             }
@@ -48,9 +48,10 @@ public class FeaturePropertyBasedNumber<T extends Number>
     // instance *******************************************
 
     /**
-     * the name of the feature attribute column
+     * The name of the feature attribute.
      */
-    //@Nullable
-    @Concerns(StylePropertyChange.Concern.class)
+    @Nullable
+//    @Concerns(StylePropertyChange.Concern.class)
     public Property<String> value;
+    
 }

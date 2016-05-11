@@ -53,7 +53,6 @@ public class PointStyleSerializer
         
         setValue( style.diameter.get(),
                 ( PointSymbolizerDescriptor sd, Expression value ) -> sd.diameter.set( value ) );
-
     }
     
 }

@@ -124,6 +124,10 @@ public class SLDSerializer
         for (SymbolizerDescriptor descriptor : descriptors) {
             sld.featureTypeStyles().add( buildStyle( descriptor ) );
         }
+        
+        // XXX 4: collect equal FeatureTypeStyles and Rules
+        // ...
+        
         return sld;
     }
 
@@ -192,7 +196,6 @@ public class SLDSerializer
 
 
     private Symbolizer buildTextStyle( TextSymbolizerDescriptor descriptor ) {
-
         Fill foreground = null;
         if (descriptor.color.isPresent()) {
             foreground = sf.createFill( descriptor.color.get() );

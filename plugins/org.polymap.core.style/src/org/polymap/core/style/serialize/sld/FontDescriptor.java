@@ -33,21 +33,21 @@ public class FontDescriptor
 
     @Immutable
     //FontStyle
-    public Config<Expression> style;
+    public Config<Expression>   style;
 
     @Immutable
     //Font Weight
-    public Config<Expression> weight;
+    public Config<Expression>   weight;
 
     @Immutable
 //    @DefaultDouble( 10 )
 //    @Check(value = NumberRangeValidator.class, args = { "1", "100" })
     // Double
-    public Config<Expression> size;
+    public Config<Expression>   size;
 
     @Immutable
     //Font[]
-    public Config<Font[]> fonts;
+    public Config<Font[]>       fonts;
 
     @Override
     protected FontDescriptor clone() {

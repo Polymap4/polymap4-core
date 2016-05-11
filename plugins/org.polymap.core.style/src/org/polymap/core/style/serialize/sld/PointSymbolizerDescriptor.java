@@ -25,14 +25,14 @@ public class PointSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<StrokeDescriptor> stroke;
+    public Config<StrokeDescriptor>     stroke;
 
     @Immutable
-    public Config<FillDescriptor> fill;
+    public Config<FillDescriptor>       fill;
 
     @Immutable
     // @DefaultDouble(8)
-    public Config<Expression> diameter;
+    public Config<Expression>           diameter;
     
     @Override
     protected PointSymbolizerDescriptor clone() {

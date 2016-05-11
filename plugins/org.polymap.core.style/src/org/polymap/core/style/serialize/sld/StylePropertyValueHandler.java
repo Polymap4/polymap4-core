@@ -28,8 +28,8 @@ import org.polymap.core.style.model.ConstantString;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
-import org.polymap.core.style.model.FeaturePropertyBasedNumber;
-import org.polymap.core.style.model.FeaturePropertyBasedValue;
+import org.polymap.core.style.model.PropertyNumber;
+import org.polymap.core.style.model.PropertyValue;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
@@ -136,11 +136,11 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
     }
 
 
-    static class FeaturePropertyBasedValueHandler
-            extends StylePropertyValueHandler<FeaturePropertyBasedValue,Object> {
+    static class PropertyValueHandler
+            extends StylePropertyValueHandler<PropertyValue,Object> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( FeaturePropertyBasedValue spv, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( PropertyValue spv, SD sd,
                 Setter<SD> setter ) {
             try {
                 setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get() ) );
@@ -153,11 +153,11 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
     }
 
 
-    static class FeaturePropertyBasedNumberHandler
-            extends StylePropertyValueHandler<FeaturePropertyBasedNumber,Number> {
+    static class PropertyNumberHandler
+            extends StylePropertyValueHandler<PropertyNumber,Number> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( FeaturePropertyBasedNumber spv, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( PropertyNumber spv, SD sd,
                 Setter<SD> setter ) {
             try {
                 setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get() ) );

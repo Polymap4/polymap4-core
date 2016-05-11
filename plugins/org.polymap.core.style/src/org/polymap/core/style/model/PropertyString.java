@@ -18,7 +18,8 @@ package org.polymap.core.style.model;
  * Describes a feature property based string.
  *
  * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
-public class FeaturePropertyBasedString
-        extends FeaturePropertyBasedValue<String>  {
+public class PropertyString
+        extends PropertyValue<String>  {
 }

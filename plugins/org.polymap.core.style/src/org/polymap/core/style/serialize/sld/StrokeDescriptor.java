@@ -29,27 +29,27 @@ public class StrokeDescriptor
 
     @Immutable
     // Double
-    public Config<Expression> width;
+    public Config<Expression>   width;
 
     @Immutable
     // Color
-    public Config<Expression> color;
+    public Config<Expression>   color;
 
     @Immutable
     @DefaultDouble(1)
     // @Check( value=NumberRangeValidator.class, args={"0","1"} )
-    public Config<Expression> opacity;
+    public Config<Expression>   opacity;
 
     @Immutable
     // StrokeCapStyle
-    public Config<Expression> capStyle;
+    public Config<Expression>   capStyle;
 
     @Immutable
     // StrokeJoinStyle
-    public Config<Expression> joinStyle;
+    public Config<Expression>   joinStyle;
 
     @Immutable
-    public Config<float[]> dashStyle;
+    public Config<float[]>      dashStyle;
 
 
     @Override
