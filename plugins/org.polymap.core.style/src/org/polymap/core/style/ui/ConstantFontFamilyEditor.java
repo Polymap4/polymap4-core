@@ -13,6 +13,7 @@
 package org.polymap.core.style.ui;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +44,7 @@ public class ConstantFontFamilyEditor
 
     private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
 
-    private final static List<FontFamily> content = Lists.newArrayList( FontFamily.values() );
+    private final static List<FontFamily> families = Lists.newArrayList( FontFamily.values() );
 
 
     @Override
@@ -76,14 +77,16 @@ public class ConstantFontFamilyEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
 
-        combo.setItems( content.stream().map( FontFamily::value ).toArray( String[]::new ) );
+        final List<String> content = families.stream().map( FontFamily::value ).collect( Collectors.toList() );
+        combo.setItems( content.toArray( new String[content.size()] ) );
         combo.select( content.indexOf( prop.get().value.get().value() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().value.set( content.get( combo.getSelectionIndex() ) );
+                // XXX rethink for sorted values
+                prop.get().value.set( FontFamily.forValue( content.get( combo.getSelectionIndex() ) ) );
             }
         } );
         return contents;

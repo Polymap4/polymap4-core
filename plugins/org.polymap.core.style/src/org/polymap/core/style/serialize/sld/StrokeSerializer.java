@@ -14,15 +14,15 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.expression.Literal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.Stroke;
-import org.polymap.core.style.model.StrokeCapStyle;
 import org.polymap.core.style.model.StrokeDashStyle;
-import org.polymap.core.style.model.StrokeJoinStyle;
 
 /**
  * Serialize {@link Stroke}.
@@ -44,32 +44,44 @@ public class StrokeSerializer
 
     @Override
     public void doSerialize( Stroke stroke ) {
-        setValue( stroke.width.get(), ( StrokeDescriptor sd, Double value ) -> sd.width.set( value ) );
-        setValue( stroke.opacity.get(), ( StrokeDescriptor sd, Double value ) -> sd.opacity.set( value ) );
-        setValue( stroke.color.get(), ( StrokeDescriptor sd, Color value ) -> sd.color.set( value ) );
-        setValue( stroke.capStyle.get(), ( StrokeDescriptor sd, StrokeCapStyle value ) -> sd.capStyle.set( value ) );
-        setValue( stroke.joinStyle.get(), ( StrokeDescriptor sd, StrokeJoinStyle value ) -> sd.joinStyle.set( value ) );
+        setValue( stroke.width.get(), ( StrokeDescriptor sd, Expression value ) -> sd.width.set( value ) );
+        setValue( stroke.opacity.get(), ( StrokeDescriptor sd, Expression value ) -> sd.opacity.set( value ) );
+        setValue( stroke.color.get(), ( StrokeDescriptor sd, Expression value ) -> sd.color.set( value ) );
+        setValue( stroke.capStyle.get(), ( StrokeDescriptor sd, Expression value ) -> sd.capStyle.set( value ) );
+        setValue( stroke.joinStyle.get(), ( StrokeDescriptor sd, Expression value ) -> sd.joinStyle.set( value ) );
         // must be the last, since it uses the width
-        setValue( stroke.dashStyle.get(),
-                ( StrokeDescriptor sd, StrokeDashStyle value ) -> doSerializeDashStyle( sd, value ) );
-
+        if (stroke.dashStyle.get() != null) {
+            if (stroke.dashStyle.get() instanceof ConstantStrokeDashStyle) {
+                StrokeDashStyle dashStyle = ((ConstantStrokeDashStyle)stroke.dashStyle.get()).value.get();
+                for (StrokeDescriptor sd : descriptors) {
+                    serializeDashStyle( sd, dashStyle );
+                }
+            }
+            else {
+                throw new UnsupportedOperationException( stroke.dashStyle.get().getClass() + " is not supported" );
+            }
+        }
     }
-//
-//
-//    protected Stroke buildStroke( Config<StrokeDescriptor> stroke ) {
-//        // ich bin mir nicht sicher ob mir so eine schreibweise wirklich gefällt
-//        return stroke.map( s -> sf.createStroke( ff.literal( s.color.get() ), ff.literal( s.width.get() ),
-//                ff.literal( s.opacity.get() ) ) ).orElse( sf.getDefaultStroke() );
-//    }
+    //
+    //
+    // protected Stroke buildStroke( Config<StrokeDescriptor> stroke ) {
+    // // ich bin mir nicht sicher ob mir so eine schreibweise wirklich gefällt
+    // return stroke.map( s -> sf.createStroke( ff.literal( s.color.get() ),
+    // ff.literal( s.width.get() ),
+    // ff.literal( s.opacity.get() ) ) ).orElse( sf.getDefaultStroke() );
+    // }
 
 
-    private void doSerializeDashStyle( StrokeDescriptor sd, StrokeDashStyle value ) {
+    private void serializeDashStyle( StrokeDescriptor sd, StrokeDashStyle value ) {
         // see
         // http://docs.geoserver.org/stable/en/user/styling/sld-cookbook/lines.html#dashed-line
-        Double strokeWidth = sd.width.get();
-        if (strokeWidth == null) {
-            strokeWidth = new Double( 1.0 );
+        Double strokeWidth = new Double( 1.0 );
+
+        Expression strokeWidthExpression = sd.width.get();
+        if (strokeWidthExpression instanceof Literal) {
+            strokeWidth = (Double)((Literal)strokeWidthExpression).getValue();
         }
+
         final float dot = strokeWidth.floatValue() / 4;
         final float dash = 2 * strokeWidth.floatValue();
         final float longDash = 4 * strokeWidth.floatValue();

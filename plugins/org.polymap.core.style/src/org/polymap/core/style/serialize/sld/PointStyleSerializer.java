@@ -51,7 +51,7 @@ public class PointStyleSerializer
         setComposite( fillDescriptors,
                 ( PointSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
         
-        setExpressionValue( style.diameter.get(),
+        setValue( style.diameter.get(),
                 ( PointSymbolizerDescriptor sd, Expression value ) -> sd.diameter.set( value ) );
 
     }

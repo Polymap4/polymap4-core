@@ -14,7 +14,7 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
+import org.opengis.filter.expression.Expression;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,8 +38,8 @@ public class FillSerializer
 
     @Override
     public void doSerialize( Fill style ) {
-        setValue( style.color.get(), ( FillDescriptor sd, Color value ) -> sd.color.set( value ) );
-        setValue( style.opacity.get(), ( FillDescriptor sd, Double value ) -> sd.opacity.set( value ) );
+        setValue( style.color.get(), ( FillDescriptor sd, Expression value ) -> sd.color.set( value ) );
+        setValue( style.opacity.get(), ( FillDescriptor sd, Expression value ) -> sd.opacity.set( value ) );
     }
 
 }

@@ -29,6 +29,7 @@ import org.polymap.core.style.model.FilterMappedNumbers;
  * 
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class FilterMappedNumbersHandler
     extends StylePropertyValueHandler<FilterMappedNumbers,Number> {
@@ -37,7 +38,7 @@ public class FilterMappedNumbersHandler
 
 
     @Override
-    public <SD extends SymbolizerDescriptor> List<SD> doHandle( FilterMappedNumbers spv, SD sd, Setter<SD,Number> setter ) {
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( FilterMappedNumbers spv, SD sd, Setter<SD> setter ) {
         // split style descriptors
         List<SD> result = new ArrayList( spv.values.size() );
         
@@ -49,7 +50,7 @@ public class FilterMappedNumbersHandler
             SD clone = (SD)sd.clone();
             
             clone.filterAnd( filters.next() );
-            setter.set( clone, values.next() );
+            setter.set( clone, SLDSerializer.ff.literal( values.next() ));
             result.add( clone );
         }
         

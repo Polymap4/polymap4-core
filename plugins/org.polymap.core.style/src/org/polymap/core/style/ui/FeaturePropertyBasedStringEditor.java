@@ -43,7 +43,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class FeaturePropertyBasedStringEditor
         extends StylePropertyEditor<ConstantString> {
 
-    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyBasedNumber" );
+    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyBasedString" );
 
     private static Log log = LogFactory.getLog( FeaturePropertyBasedStringEditor.class );
     

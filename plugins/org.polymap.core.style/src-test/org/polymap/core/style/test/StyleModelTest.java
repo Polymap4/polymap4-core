@@ -33,7 +33,6 @@ import org.polymap.core.style.model.ConstantString;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
-import org.polymap.core.style.model.FeaturePropertyBasedNumber;
 import org.polymap.core.style.model.FeaturePropertyBasedString;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
@@ -108,11 +107,11 @@ public class StyleModelTest {
         PointSymbolizer sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
         assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize());
         
-        point.diameter.createValue( FeaturePropertyBasedNumber.defaults("foo") );
-        fs.store();
-        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
-        sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.property( "foo" ), sym.getGraphic().getSize());
+//        point.diameter.createValue( FeaturePropertyBasedNumber.defaults("foo") );
+//        fs.store();
+//        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+//        sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
+//        assertEquals( SLDSerializer.ff.property( "foo" ), sym.getGraphic().getSize());
     }
     
     @Test

@@ -37,5 +37,14 @@ public enum FontFamily {
     public String[] families() {
         return value.split( "," );
     }
+
+    public static FontFamily forValue( String currentValue ) {
+        for (FontFamily family : values()) {
+            if (family.value.equals( currentValue )) {
+                return family;
+            }
+        }
+        return null;
+    }
     
 }

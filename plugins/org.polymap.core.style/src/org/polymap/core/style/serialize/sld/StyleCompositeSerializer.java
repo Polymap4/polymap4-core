@@ -17,8 +17,6 @@ package org.polymap.core.style.serialize.sld;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opengis.filter.expression.Expression;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -72,8 +70,8 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
      * @param spv
      * @param setter
      */
-    protected <V extends Object> void setValue( StylePropertyValue<V> spv,
-            org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter<SD,V> setter ) {
+    protected void setValue( StylePropertyValue<? extends Object> spv,
+            org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter<SD> setter ) {
 
         if (descriptors.isEmpty()) {
             descriptors.add( createDescriptor() );
@@ -82,28 +80,6 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
         List<SD> updated = new ArrayList( descriptors.size() );
         for (SymbolizerDescriptor sd : descriptors) {
             updated.addAll( StylePropertyValueHandler.handle( spv, (SD)sd, setter ) );
-        }
-        this.descriptors = updated;
-    }
-    
-    /**
-     * Sets the value as Expression in all current {@link #descriptors} using the given setter.
-     * <p/>
-     * Here goes the magic of multiplying style descriptors :)
-     *
-     * @param spv
-     * @param setter
-     */
-    protected <V extends Object> void setExpressionValue( StylePropertyValue<V> spv,
-            org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter<SD, Expression> setter ) {
-
-        if (descriptors.isEmpty()) {
-            descriptors.add( createDescriptor() );
-        }
-
-        List<SD> updated = new ArrayList( descriptors.size() );
-        for (SymbolizerDescriptor sd : descriptors) {
-            updated.addAll( StylePropertyValueHandler.handleExpression( spv, (SD)sd, setter ) );
         }
         this.descriptors = updated;
     }
