@@ -33,7 +33,7 @@ import org.polymap.core.style.model.ConstantString;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
-import org.polymap.core.style.model.FeaturePropertyBasedString;
+import org.polymap.core.style.model.PropertyString;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.LineStyle;
@@ -150,7 +150,7 @@ public class StyleModelTest {
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
-        text.property.createValue( FeaturePropertyBasedString.defaults( "featureproperty" )  );
+        text.property.createValue( PropertyString.defaults( "featureproperty" )  );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }

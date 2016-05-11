@@ -128,6 +128,10 @@ public class SLDSerializer
         for (SymbolizerDescriptor descriptor : descriptors) {
             sld.featureTypeStyles().add( buildStyle( descriptor ) );
         }
+        
+        // XXX 4: collect equal FeatureTypeStyles and Rules
+        // ...
+        
         return sld;
     }
 

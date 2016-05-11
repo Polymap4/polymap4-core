@@ -25,7 +25,7 @@ public class PolygonSymbolizerDescriptor
     public Config<StrokeDescriptor> stroke;
 
     @Immutable
-    public Config<FillDescriptor> fill;
+    public Config<FillDescriptor>   fill;
     
     @Override
     protected PolygonSymbolizerDescriptor clone() {

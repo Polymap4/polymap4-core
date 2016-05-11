@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantFontFamily;
-import org.polymap.core.style.model.FeaturePropertyBasedString;
+import org.polymap.core.style.model.PropertyString;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -42,7 +42,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Steffen Stundzig
  */
 public class FeaturePropertyBasedStringEditor
-        extends StylePropertyEditor<FeaturePropertyBasedString> {
+        extends StylePropertyEditor<PropertyString> {
 
     private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyBasedString" );
 
@@ -62,10 +62,10 @@ public class FeaturePropertyBasedStringEditor
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<FeaturePropertyBasedString>() {
+        prop.createValue( new ValueInitializer<PropertyString>() {
 
             @Override
-            public FeaturePropertyBasedString initialize( FeaturePropertyBasedString proto ) throws Exception {
+            public PropertyString initialize( PropertyString proto ) throws Exception {
                 proto.value.set( "" );
                 return proto;
             }
