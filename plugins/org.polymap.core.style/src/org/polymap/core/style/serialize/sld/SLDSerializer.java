@@ -24,6 +24,7 @@ import org.geotools.styling.Font;
 import org.geotools.styling.Graphic;
 import org.geotools.styling.Halo;
 import org.geotools.styling.LabelPlacement;
+import org.geotools.styling.LineSymbolizer;
 import org.geotools.styling.Mark;
 import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.PolygonSymbolizer;
@@ -38,7 +39,10 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Lists;
+
 import org.polymap.core.style.model.FeatureStyle;
+import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
 import org.polymap.core.style.model.StyleGroup;
@@ -100,19 +104,19 @@ public class SLDSerializer
             }
             // Point
             else if (PointStyle.class.isInstance( style )) {
-                PointStyle ps = (PointStyle)style;
-                PointStyleSerializer serializer = new PointStyleSerializer();
-                descriptors.addAll( serializer.serialize( ps ) );
+                descriptors.addAll( new PointStyleSerializer().serialize( (PointStyle)style ) );
             }
             // Polygon
             else if (PolygonStyle.class.isInstance( style )) {
-                PolygonStyle ps = (PolygonStyle)style;
-                PolygonStyleSerializer serializer = new PolygonStyleSerializer();
-                descriptors.addAll( serializer.serialize( ps ) );
+                descriptors.addAll( new PolygonStyleSerializer().serialize( (PolygonStyle)style ) );
             }
             // Text
             else if (TextStyle.class.isInstance( style )) {
                 descriptors.addAll( new TextStyleSerializer().serialize( (TextStyle)style ) );
+            }
+            // Line
+            else if (LineStyle.class.isInstance( style )) {
+                descriptors.addAll( new LineStyleSerializer().serialize( (LineStyle)style ) );
             }
             else {
                 throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
@@ -129,15 +133,18 @@ public class SLDSerializer
 
 
     private FeatureTypeStyle buildStyle( final SymbolizerDescriptor descriptor ) {
-        Symbolizer sym = null;
-        if (descriptor instanceof PointSymbolizerDescriptor) {
-            sym = buildPointStyle( (PointSymbolizerDescriptor)descriptor );
+        List<Symbolizer> sym = Lists.newArrayList();
+        if (descriptor instanceof LineSymbolizerDescriptor) {
+            sym.addAll( buildLineStyle( (LineSymbolizerDescriptor)descriptor ) );
+        }
+        else if (descriptor instanceof PointSymbolizerDescriptor) {
+            sym.add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
         }
         else if (descriptor instanceof PolygonSymbolizerDescriptor) {
-            sym = buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor );
+            sym.add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
         }
         else if (descriptor instanceof TextSymbolizerDescriptor) {
-            sym = buildTextStyle( (TextSymbolizerDescriptor)descriptor );
+            sym.add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
         }
         else {
             throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
@@ -146,7 +153,7 @@ public class SLDSerializer
         // Rule
         Rule rule = sf.createRule();
         rule.setName( descriptor.description.get() );
-        rule.symbolizers().add( sym );
+        rule.symbolizers().addAll( sym );
 
         descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
         descriptor.scale.ifPresent( scale -> {
@@ -157,6 +164,29 @@ public class SLDSerializer
         return sf.createFeatureTypeStyle( new Rule[] { rule } );
     }
 
+
+    protected List<LineSymbolizer> buildLineStyle( LineSymbolizerDescriptor descriptor ) {
+        // Graphic gr = sf.createDefaultGraphic();
+        /*
+         * Setting the geometryPropertyName arg to null signals that we want to draw
+         * the default geometry of features
+         */
+        List<LineSymbolizer> lines = Lists.newArrayList();
+        lines.add( sf.createLineSymbolizer( buildStroke( descriptor.line.get() ), null ) );
+        
+        if (descriptor.stroke.isPresent()) {
+            LineSymbolizer top = sf.createLineSymbolizer( buildStroke( descriptor.stroke.get() ), null );
+            top.setPerpendicularOffset(
+                    descriptor.offset.get() != null ? descriptor.offset.get() : ff.literal( 5.0 ) );
+            lines.add( top );
+            
+            LineSymbolizer bottom = sf.createLineSymbolizer( buildStroke( descriptor.stroke.get() ), null );
+            bottom.setPerpendicularOffset(
+                    descriptor.offset.get() != null ? ff.multiply( ff.literal( -1 ), descriptor.offset.get()) : ff.literal( -5.0 ) );
+            lines.add( bottom );
+        }
+        return lines;
+    }
 
     protected PointSymbolizer buildPointStyle( PointSymbolizerDescriptor descriptor ) {
         Graphic gr = sf.createDefaultGraphic();

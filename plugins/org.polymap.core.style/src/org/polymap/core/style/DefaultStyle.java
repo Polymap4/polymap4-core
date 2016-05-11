@@ -34,6 +34,7 @@ import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.FeatureStyle;
+import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
 import org.polymap.core.style.model.TextStyle;
@@ -68,12 +69,16 @@ public class DefaultStyle {
     
 
     public static FeatureStyle createAllStyle( FeatureStyle fs ) {
+        fillLineStyle( fs.members().createElement( LineStyle.defaults ) );
         fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
         fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
         fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         return fs;
     }
     
+    public static LineStyle fillLineStyle( LineStyle line ) {
+        return line;
+    }
     
     public static PointStyle fillPointStyle( PointStyle point ) {
         point.diameter.createValue( ConstantNumber.defaults( 8.0 ) );

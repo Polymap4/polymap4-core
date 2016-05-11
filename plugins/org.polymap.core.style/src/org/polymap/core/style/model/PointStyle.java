@@ -58,7 +58,7 @@ public class PointStyle
 
     @UIOrder(30)
     @Description("diameter")
-    @DoubleRange(from = 0, to = 10000, defaultValue = 8)
+    @DoubleRange(from = 0, to = Double.MAX_VALUE, defaultValue = 8)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> diameter;
 }

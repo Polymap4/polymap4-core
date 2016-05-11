@@ -18,42 +18,23 @@ import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Immutable;
 
 /**
- * 
- *
- * @author Falko Bräutigam
  * @author Steffen Stundzig
  */
-public class StrokeDescriptor
+public class LineSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    // Double
-    public Config<Expression> width;
+    public Config<StrokeDescriptor> line;
 
     @Immutable
-    // Color
-    public Config<Expression> color;
+    public Config<StrokeDescriptor> stroke;
 
     @Immutable
-//    @DefaultDouble(1)
-    // @Check( value=NumberRangeValidator.class, args={"0","1"} )
-    public Config<Expression> opacity;
-
-    @Immutable
-    // StrokeCapStyle
-    public Config<Expression> capStyle;
-
-    @Immutable
-    // StrokeJoinStyle
-    public Config<Expression> joinStyle;
-
-    @Immutable
-    public Config<float[]> dashStyle;
+    public Config<Expression> offset;
 
 
     @Override
-    protected StrokeDescriptor clone() {
-        return (StrokeDescriptor)super.clone();
+    protected LineSymbolizerDescriptor clone() {
+        return (LineSymbolizerDescriptor)super.clone();
     }
-
 }

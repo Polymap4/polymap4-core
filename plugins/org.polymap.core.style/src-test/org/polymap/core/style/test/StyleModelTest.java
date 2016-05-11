@@ -36,6 +36,7 @@ import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.FeaturePropertyBasedString;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
+import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
 import org.polymap.core.style.model.StyleRepository;
@@ -156,6 +157,30 @@ public class StyleModelTest {
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
         text.textProperty.createValue( FeaturePropertyBasedString.defaults( "featureproperty" )  );
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+    }
+
+    @Test
+    public void testLine() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        // point
+        LineStyle line = fs.members().createElement( LineStyle.defaults );
+
+        line.line.get().color.createValue( ConstantColor.defaults( 0, 0, 100 ) );
+        line.line.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
+        line.line.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        line.line.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        line.line.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+
+        line.stroke.get().color.createValue( ConstantColor.defaults( 100, 0, 0 ) );
+        line.stroke.get().width.createValue( ConstantNumber.defaults( 2.0 ) );
+        line.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        line.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        line.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        line.offset.createValue( ConstantNumber.defaults( 5.0 ) );
+
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
