@@ -40,17 +40,16 @@ import org.polymap.model2.runtime.ValueInitializer;
  *
  * @author Steffen Stundzig
  */
-public class FeatureAttributeSelectionEditor
+public class FeaturePropertyBasedStringEditor
         extends StylePropertyEditor<ConstantString> {
 
-    private static final IMessages i18n = Messages.forPrefix( "FeatureAttributeSelection" );
+    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyBasedString" );
 
-    private static Log log = LogFactory.getLog( FeatureAttributeSelectionEditor.class );
-
-
+    private static Log log = LogFactory.getLog( FeaturePropertyBasedStringEditor.class );
+    
     @Override
     public String label() {
-        return i18n.get( "title" );
+        return i18n.get( "title");
     }
 
 

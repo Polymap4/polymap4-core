@@ -10,26 +10,33 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  */
-package org.polymap.core.style.model;
+package org.polymap.core.style.serialize.sld;
+
+import org.opengis.filter.expression.Expression;
+
+import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.Immutable;
 
 /**
- * Property type to hold 2 doubles e.g. for anchor point or label placement
- *
  * @author Steffen Stundzig
  */
-public class Point {
+public class FillDescriptor
+        extends SymbolizerDescriptor {
 
-    Double x;
+    @Immutable
+    // Color
+    public Config<Expression> color;
 
-    Double y;
+    @Immutable
+    // @DefaultDouble(1)
+    // @Check(value = NumberRangeValidator.class, args = { "0", "1" })
+    // Double
+    public Config<Expression> opacity;
 
 
-    public Double x() {
-        return x;
+    @Override
+    protected FillDescriptor clone() {
+        return (FillDescriptor)super.clone();
     }
 
-
-    public Double y() {
-        return y;
-    }
 }

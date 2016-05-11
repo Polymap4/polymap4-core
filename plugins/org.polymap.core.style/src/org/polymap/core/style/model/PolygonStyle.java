@@ -12,11 +12,8 @@
  */
 package org.polymap.core.style.model;
 
-import java.awt.Color;
-
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
-import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -41,26 +38,18 @@ public class PolygonStyle
         public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
             proto.title.set( "Polygon" );
+            proto.fill.createValue( Fill.defaults );
             proto.stroke.createValue( Stroke.defaults );
             return proto;
         }
     };
 
-    @Nullable
     @UIOrder(10)
-    @Description("fillColor")
+    @Description("fill")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Color>>           fillColor;
+    public Property<Fill>           fill;
 
-    // @NumberRange( 0.0, 1.0 );
-    @Nullable
-    @UIOrder(20)
-    @Description("fillOpacity")
-    @DoubleRange( from=0, to=1, defaultValue=1 )
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>>          fillOpacity;
-
-    @UIOrder( 30 )
+    @UIOrder( 20 )
     @Description( "stroke" )
     public Property<Stroke>                     stroke;
 }

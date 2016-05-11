@@ -14,8 +14,6 @@ package org.polymap.core.style.serialize.sld;
 
 import java.util.List;
 
-import java.awt.Color;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -45,9 +43,8 @@ public class PolygonStyleSerializer
         setComposite( strokeDescriptors,
                 ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         
-        setValue( style.fillColor.get(), ( PolygonSymbolizerDescriptor sd, Color value ) -> sd.fillColor.set( value ) );
-        setValue( style.fillOpacity.get(),
-                ( PolygonSymbolizerDescriptor sd, Double value ) -> sd.fillOpacity.set( value ) );
+        List<FillDescriptor> fillDescriptors = new FillSerializer().serialize( style.fill.get() );
+        setComposite( fillDescriptors,
+                ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
     }
-
 }

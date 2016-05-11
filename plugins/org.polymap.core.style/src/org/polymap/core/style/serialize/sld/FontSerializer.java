@@ -14,16 +14,21 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import org.opengis.filter.expression.Expression;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.style.model.ConstantFontFamily;
 import org.polymap.core.style.model.Font;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
 import org.polymap.core.style.model.FontWeight;
 
 /**
- * Serialize {@link Font}.
+ * Serialize {@link Font}. Since fonts are handled as special Font[] and not as Expressions, here the
+ * Serializer must implement this. Other Values than ConstantFontFamily are currently not
+ * supported.
  * 
  * @author Steffen Stundzig
  */
@@ -41,9 +46,32 @@ public class FontSerializer
 
     @Override
     public void doSerialize( Font font ) {
-        setValue( font.family.get(), ( FontDescriptor sd, FontFamily value ) -> sd.family.set( value ) );
-        setValue( font.style.get(), ( FontDescriptor sd, FontStyle value ) -> sd.style.set( value ) );
-        setValue( font.weight.get(), ( FontDescriptor sd, FontWeight value ) -> sd.weight.set( value ) );
-        setValue( font.size.get(), ( FontDescriptor sd, Double value ) -> sd.size.set( value ) );
+        setValue( font.style.get(), ( FontDescriptor sd, Expression value ) -> sd.style.set( value ) );
+        setValue( font.weight.get(), ( FontDescriptor sd, Expression value ) -> sd.weight.set( value ) );
+        setValue( font.size.get(), ( FontDescriptor sd, Expression value ) -> sd.size.set( value ) );
+
+        if (font.family.get() != null) {
+            if (font.family.get() instanceof ConstantFontFamily) {
+                FontFamily fontFamily = ((ConstantFontFamily)font.family.get()).value.get();
+                if (fontFamily != null) {
+                    String[] families = fontFamily.families();
+                    for (FontDescriptor descriptor : descriptors) {
+                        org.geotools.styling.Font[] fonts = new org.geotools.styling.Font[families.length];
+                        for (int i = 0; i < families.length; i++) {
+                            fonts[i] = SLDSerializer.sf.createFont( SLDSerializer.ff.literal( families[i].trim() ),
+                                    descriptor.style.isPresent() ? descriptor.style.get()
+                                            : SLDSerializer.ff.literal( FontStyle.normal ),
+                                    descriptor.weight.isPresent() ? descriptor.weight.get()
+                                            : SLDSerializer.ff.literal( FontWeight.normal ),
+                                    descriptor.size.get() );
+                            descriptor.fonts.set( fonts );
+                        }
+                    }
+                }
+            }
+            else {
+                throw new UnsupportedOperationException( font.family.get().getClass() + " is not supported" );
+            }
+        }
     }
 }

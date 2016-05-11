@@ -12,36 +12,30 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
+import org.opengis.filter.expression.Expression;
 
-import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
-import org.polymap.core.runtime.config.DefaultDouble;
 import org.polymap.core.runtime.config.Immutable;
-import org.polymap.core.runtime.config.NumberRangeValidator;
 
 /**
- * 
- *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class PointSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
-    //@Immutable
+    @Immutable
     public Config<StrokeDescriptor> stroke;
 
     @Immutable
-    public Config<Color>            fillColor;
+    public Config<FillDescriptor> fill;
 
     @Immutable
-    @DefaultDouble( 1 )
-    @Check( value=NumberRangeValidator.class, args={"0","1"} )
-    public Config<Double>           fillOpacity;
-
+    // @DefaultDouble(8)
+    public Config<Expression> diameter;
+    
     @Override
     protected PointSymbolizerDescriptor clone() {
         return (PointSymbolizerDescriptor)super.clone();
     }
-
 }

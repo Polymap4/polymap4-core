@@ -14,9 +14,11 @@
  */
 package org.polymap.core.style.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
 
+import org.geotools.styling.PointSymbolizer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,15 +29,18 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.style.model.ConstantColor;
 import org.polymap.core.style.model.ConstantFilter;
 import org.polymap.core.style.model.ConstantNumber;
+import org.polymap.core.style.model.ConstantString;
+import org.polymap.core.style.model.ConstantStrokeCapStyle;
+import org.polymap.core.style.model.ConstantStrokeDashStyle;
+import org.polymap.core.style.model.ConstantStrokeJoinStyle;
+import org.polymap.core.style.model.FeaturePropertyBasedString;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
-import org.polymap.core.style.model.StrokeDashStyle;
-import org.polymap.core.style.model.ConstantStrokeCapStyle;
-import org.polymap.core.style.model.ConstantStrokeDashStyle;
-import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.StyleRepository;
+import org.polymap.core.style.model.TextStyle;
+import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 /**
  * 
@@ -70,8 +75,9 @@ public class StyleModelTest {
         PointStyle point = fs.members().createElement( PointStyle.defaults );
         assertTrue( point.visibleIf.get() instanceof ConstantFilter );
         
-        point.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
-        point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.diameter.createValue( ConstantNumber.defaults( 10.0 ) );
+        point.fill.get().color.createValue( ConstantColor.defaults( 0, 0, 0 ) );
+        point.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         point.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
         point.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
         point.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
@@ -86,6 +92,27 @@ public class StyleModelTest {
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
 
+    @Test
+    public void testFeatureBasedPoint() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
+        
+        // point
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+        assertTrue( point.visibleIf.get() instanceof ConstantFilter );
+        
+        point.diameter.createValue( ConstantNumber.defaults( 23.0 ) );
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class ).get();
+        PointSymbolizer sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
+        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize());
+        
+//        point.diameter.createValue( FeaturePropertyBasedNumber.defaults("foo") );
+//        fs.store();
+//        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+//        sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
+//        assertEquals( SLDSerializer.ff.property( "foo" ), sym.getGraphic().getSize());
+    }
     
     @Test
     public void testPolygon() throws Exception {
@@ -95,8 +122,10 @@ public class StyleModelTest {
         PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
         assertTrue( polygon.visibleIf.get() instanceof ConstantFilter );
         
-        polygon.fillColor.createValue( ConstantColor.defaults( 0, 0, 0 ) );
-        polygon.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        polygon.fill.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
+//        polygon.fill.get().opacity.createValue( FilterMappedNumbers.defaults() )
+//        .add( 0.5, ff.equals( ff.literal( "1" ), ff.literal( "f1" ) ) )
+//        .add( 0.8, ff.equals( ff.literal( "2" ), ff.literal( "f2" ) ) );
         polygon.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
         polygon.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
         polygon.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
@@ -108,9 +137,26 @@ public class StyleModelTest {
         
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+//        
+//        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults( StrokeDashStyle.dot ) );
+//        fs.store();
+//        log.info( "SLD (dot): " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+    }
+    
+    
+    @Test
+    public void testText() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
         
-        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults( StrokeDashStyle.dot ) );
+        // point
+        TextStyle text = fs.members().createElement( TextStyle.defaults );
+        
+        text.textProperty.createValue( ConstantString.defaults( "constant" )  );
         fs.store();
-        log.info( "SLD (dot): " + repo.serializedFeatureStyle( fs.id(), String.class ) );
-    }    
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+
+        text.textProperty.createValue( FeaturePropertyBasedString.defaults( "featureproperty" )  );
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+    }
 }

@@ -12,15 +12,11 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
+import org.opengis.filter.expression.Expression;
 
-import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.DefaultDouble;
 import org.polymap.core.runtime.config.Immutable;
-import org.polymap.core.runtime.config.NumberRangeValidator;
-import org.polymap.core.style.model.StrokeCapStyle;
-import org.polymap.core.style.model.StrokeJoinStyle;
 
 /**
  * 
@@ -32,25 +28,30 @@ public class StrokeDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<Double>           width;
+    // Double
+    public Config<Expression> width;
 
     @Immutable
-    public Config<Color>            color;
+    // Color
+    public Config<Expression> color;
 
     @Immutable
-    @DefaultDouble( 1 )
-    @Check( value=NumberRangeValidator.class, args={"0","1"} )
-    public Config<Double>           opacity;
+    @DefaultDouble(1)
+    // @Check( value=NumberRangeValidator.class, args={"0","1"} )
+    public Config<Expression> opacity;
 
     @Immutable
-    public Config<StrokeCapStyle>  capStyle;
+    // StrokeCapStyle
+    public Config<Expression> capStyle;
 
     @Immutable
-    public Config<StrokeJoinStyle> joinStyle;
+    // StrokeJoinStyle
+    public Config<Expression> joinStyle;
 
     @Immutable
-    public Config<float[]>         dashStyle;
-    
+    public Config<float[]> dashStyle;
+
+
     @Override
     protected StrokeDescriptor clone() {
         return (StrokeDescriptor)super.clone();

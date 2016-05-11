@@ -43,7 +43,7 @@ public class TextStyle
 
     @Nullable
     @UIOrder(10)
-    @Description("property")
+    @Description("textProperty")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<String>> textProperty;
 
@@ -86,25 +86,41 @@ public class TextStyle
 
     @Nullable
     @UIOrder(80)
-    @Description("labelAnchor")
+    @Description("labelAnchorX")
+    @DoubleRange( from=0, to=Integer.MAX_VALUE, defaultValue=2 )
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Point>> anchorPoint;
+    public Property<StylePropertyValue<Double>> anchorPointX;
 
     @Nullable
     @UIOrder(90)
-    @Description("labelDisplacement")
+    @Description("labelAnchorY")
+    @DoubleRange( from=0, to=Integer.MAX_VALUE, defaultValue=2 )
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Point>> displacement;
+    public Property<StylePropertyValue<Double>> anchorPointY;
 
     @Nullable
     @UIOrder(100)
+    @Description("labelDisplacementX")
+    @DoubleRange( from=0, to=Integer.MAX_VALUE, defaultValue=2 )
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<Double>> displacementX;
+
+    @Nullable
+    @UIOrder(110)
+    @Description("labelDisplacementY")
+    @DoubleRange( from=0, to=Integer.MAX_VALUE, defaultValue=2 )
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<StylePropertyValue<Double>> displacementY;
+
+    @Nullable
+    @UIOrder(120)
     @Description("labelRotation")
     @DoubleRange( from=0, to=360, defaultValue=0 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> placementRotation;
 
     @Nullable
-    @UIOrder(110)
+    @UIOrder(130)
     @Description("labelOffset")
     @DoubleRange( from=0, to=100, defaultValue=0 )
     @Concerns(StylePropertyChange.Concern.class)

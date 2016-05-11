@@ -12,14 +12,10 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import org.polymap.core.runtime.config.Check;
-import org.polymap.core.runtime.config.Config;
-import org.polymap.core.runtime.config.DefaultDouble;
-import org.polymap.core.runtime.config.NumberRangeValidator;
-import org.polymap.core.style.model.FontFamily;
-import org.polymap.core.style.model.FontStyle;
-import org.polymap.core.style.model.FontWeight;
+import org.geotools.styling.Font;
+import org.opengis.filter.expression.Expression;
 
+import org.polymap.core.runtime.config.Config;
 import org.polymap.model2.Immutable;
 
 /**
@@ -28,20 +24,30 @@ import org.polymap.model2.Immutable;
 public class FontDescriptor
         extends SymbolizerDescriptor {
 
-    @Immutable
-    public Config<FontFamily> family;
+//    /**
+//     * XXX remind, the font descriptor currently contains Font[]
+//     */
+//    @Immutable
+//    //FontFamily
+//    public Config<FontFamily> family;
 
     @Immutable
-    public Config<FontStyle> style;
+    //FontStyle
+    public Config<Expression> style;
 
     @Immutable
-    public Config<FontWeight> weight;
+    //Font Weight
+    public Config<Expression> weight;
 
     @Immutable
-    @DefaultDouble( 10 )
-    @Check(value = NumberRangeValidator.class, args = { "1", "100" })
-    public Config<Double> size;
+//    @DefaultDouble( 10 )
+//    @Check(value = NumberRangeValidator.class, args = { "1", "100" })
+    // Double
+    public Config<Expression> size;
 
+    @Immutable
+    //Font[]
+    public Config<Font[]> fonts;
 
     @Override
     protected FontDescriptor clone() {

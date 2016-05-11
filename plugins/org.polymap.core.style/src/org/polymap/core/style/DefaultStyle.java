@@ -76,8 +76,9 @@ public class DefaultStyle {
     
     
     public static PointStyle fillPointStyle( PointStyle point ) {
-        point.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
-        point.fillOpacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        point.diameter.createValue( ConstantNumber.defaults( 8.0 ) );
+        point.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
+        point.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         point.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         point.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
         point.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
@@ -89,8 +90,8 @@ public class DefaultStyle {
 
 
     public static PolygonStyle fillPolygonStyle( PolygonStyle polygon ) {
-        polygon.fillColor.createValue( ConstantColor.defaults( randomColor() ) );
-        polygon.fillOpacity.createValue( ConstantNumber.defaults( 0.5 ) );
+        polygon.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
+        polygon.fill.get().opacity.createValue( ConstantNumber.defaults( 0.5 ) );
         polygon.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
         polygon.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );

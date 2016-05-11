@@ -40,7 +40,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 class ConstantNumberEditor
         extends StylePropertyEditor<ConstantNumber> {
 
-    private static final IMessages i18n = Messages.forPrefix( "Number" );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantNumber" );
 
     private static Log log = LogFactory.getLog( ConstantNumberEditor.class );
     

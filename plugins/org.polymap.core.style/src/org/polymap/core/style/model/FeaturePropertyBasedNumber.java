@@ -19,30 +19,38 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Describes a constant number as style property value.
+ * Describes a feature property based number.
  *
- * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
-public class ConstantNumber<T extends Number>
+public class FeaturePropertyBasedNumber<T extends Number>
         extends StylePropertyValue<T> {
 
     /**
      * Initializes a newly created instance with the given default value.
      */
-    public static <N extends Number> ValueInitializer<ConstantNumber<N>> defaults( N value ) {
-        return new ValueInitializer<ConstantNumber<N>>() {
+    public static ValueInitializer<FeaturePropertyBasedNumber> defaults() {
+        return defaults( "" );
+    }
+
+
+    public static ValueInitializer<FeaturePropertyBasedNumber> defaults( final String value ) {
+        return new ValueInitializer<FeaturePropertyBasedNumber>() {
+
             @Override
-            public ConstantNumber initialize( ConstantNumber proto ) throws Exception {
+            public FeaturePropertyBasedNumber initialize( FeaturePropertyBasedNumber proto ) throws Exception {
                 proto.value.set( value );
                 return proto;
             }
         };
     }
-    
 
     // instance *******************************************
+
+    /**
+     * the name of the feature attribute column
+     */
     //@Nullable
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<Number>             value;
-    
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<String> value;
 }

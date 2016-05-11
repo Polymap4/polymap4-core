@@ -30,14 +30,14 @@ import org.polymap.core.style.model.FilterMappedNumbers;
  *
  * @author Falko Bräutigam
  */
-class AttributeMappedNumbersEditor
+class FilteredMappedNumbersEditor
         extends StylePropertyEditor<FilterMappedNumbers> {
 
-    private static Log log = LogFactory.getLog( AttributeMappedNumbersEditor.class );
+    private static Log log = LogFactory.getLog( FilteredMappedNumbersEditor.class );
     
     @Override
     public String label() {
-        return "Attribute mapped numbers";
+        return "Filtered mapped numbers";
     }
 
     

@@ -12,13 +12,9 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.awt.Color;
+import org.opengis.filter.expression.Expression;
 
-import org.polymap.core.runtime.config.Check;
 import org.polymap.core.runtime.config.Config;
-import org.polymap.core.runtime.config.DefaultDouble;
-import org.polymap.core.runtime.config.NumberRangeValidator;
-import org.polymap.core.style.model.Point;
 
 import org.polymap.model2.Immutable;
 
@@ -29,47 +25,66 @@ public class TextSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<String> textProperty;
+    // String
+    public Config<Expression> text;
 
     @Immutable
-    public Config<Color> color;
+    // Color
+    public Config<Expression> color;
 
     @Immutable
-    @DefaultDouble( 1 )
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double> opacity;
+    // @DefaultDouble( 1 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "1" })
+    // Double
+    public Config<Expression> opacity;
 
     @Immutable
     public Config<FontDescriptor> font;
 
     @Immutable
-    @DefaultDouble( 2 )
-    @Check(value = NumberRangeValidator.class, args = { "0", "100" })
-    public Config<Double> haloWidth;
+    // @DefaultDouble( 2 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "100" })
+    // Double
+    public Config<Expression> haloWidth;
 
     @Immutable
-    public Config<Color> haloColor;
+    // Color
+    public Config<Expression> haloColor;
 
     @Immutable
-    @DefaultDouble( 1 )
-    @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    public Config<Double> haloOpacity;
+    // @DefaultDouble( 1 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "1" })
+    // Double
+    public Config<Expression> haloOpacity;
 
     @Immutable
-    public Config<Point> anchorPoint;
+    // Point
+    public Config<Expression> anchorPointX;
 
     @Immutable
-    public Config<Point> displacement;
+    // Point
+    public Config<Expression> anchorPointY;
 
     @Immutable
-    @DefaultDouble( 0 )
-    @Check(value = NumberRangeValidator.class, args = { "0", "360" })
-    public Config<Double> placementRotation;
+    // Point
+    public Config<Expression> displacementX;
 
     @Immutable
-    @DefaultDouble( 2 )
-    @Check(value = NumberRangeValidator.class, args = { "0", "100" })
-    public Config<Double> placementOffset;
+    // Point
+    public Config<Expression> displacementY;
+
+    @Immutable
+    // @DefaultDouble( 0 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "360" })
+    // Double
+    public Config<Expression> placementRotation;
+
+    @Immutable
+    // @DefaultDouble( 2 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "100" })
+    // Double
+    public Config<Expression> placementOffset;
+
 
     @Override
     protected TextSymbolizerDescriptor clone() {
