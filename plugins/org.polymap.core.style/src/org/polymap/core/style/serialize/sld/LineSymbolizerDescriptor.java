@@ -12,8 +12,6 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import org.opengis.filter.expression.Expression;
-
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Immutable;
 
@@ -24,13 +22,13 @@ public class LineSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    public Config<StrokeDescriptor> line;
+    public Config<StrokeDescriptor> fill;
 
     @Immutable
     public Config<StrokeDescriptor> stroke;
-
-    @Immutable
-    public Config<Expression> offset;
+//
+//    @Immutable
+//    public Config<Expression> offset;
 
 
     @Override

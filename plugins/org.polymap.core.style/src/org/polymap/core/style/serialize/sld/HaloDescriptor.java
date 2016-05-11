@@ -21,12 +21,14 @@ import org.polymap.model2.Immutable;
 /**
  * @author Steffen Stundzig
  */
-public class TextSymbolizerDescriptor
+public class HaloDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    // String
-    public Config<Expression> text;
+    // @DefaultDouble( 2 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "100" })
+    // Double
+    public Config<Expression> width;
 
     @Immutable
     // Color
@@ -38,19 +40,8 @@ public class TextSymbolizerDescriptor
     // Double
     public Config<Expression> opacity;
 
-    @Immutable
-    public Config<FontDescriptor> font;
-
-    @Immutable
-    public Config<HaloDescriptor> halo;
-
-    @Immutable
-    public Config<LabelPlacementDescriptor> labelPlacement;
-
-
     @Override
-    protected TextSymbolizerDescriptor clone() {
-        return (TextSymbolizerDescriptor)super.clone();
+    protected HaloDescriptor clone() {
+        return (HaloDescriptor)super.clone();
     }
-
 }

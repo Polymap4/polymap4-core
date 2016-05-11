@@ -91,6 +91,8 @@ public class StyleRepository
                         FeaturePropertyBasedString.class,
                         FeatureStyle.class,
                         FilterMappedNumbers.class,
+                        Halo.class,
+                        LabelPlacement.class,
                         LineStyle.class,
                         // ScaleMappedNumbers.class,
                         PointStyle.class,

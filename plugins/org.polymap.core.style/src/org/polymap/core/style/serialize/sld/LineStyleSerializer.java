@@ -12,10 +12,6 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.util.List;
-
-import org.opengis.filter.expression.Expression;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,15 +37,15 @@ public class LineStyleSerializer
 
     @Override
     public void doSerialize( final LineStyle style ) {
-        StrokeSerializer strokeSerializer = new StrokeSerializer();
-        List<StrokeDescriptor> lineDescriptors = strokeSerializer.serialize( style.line.get() );
-        setComposite( lineDescriptors,
-                ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.line.set( value ) );
-
-        List<StrokeDescriptor> strokeDescriptors = strokeSerializer.serialize( style.stroke.get() );
-        setComposite( strokeDescriptors,
-                ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-
-        setValue( style.offset.get(), ( LineSymbolizerDescriptor sd, Expression value ) -> sd.offset.set( value ) );
+//        if (style.fill.get() != null) {
+            setComposite( new StrokeSerializer().serialize( style.fill.get() ),
+                    ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
+//        }
+//        if (style.stroke.get() != null) {
+            setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+                    ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
+//        }
+        // setValue( style.offset.get(), ( LineSymbolizerDescriptor sd, Expression
+        // value ) -> sd.offset.set( value ) );
     }
 }

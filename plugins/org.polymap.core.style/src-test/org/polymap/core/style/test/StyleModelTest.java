@@ -44,9 +44,8 @@ import org.polymap.core.style.model.TextStyle;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 /**
- * 
- *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class StyleModelTest {
 
@@ -124,9 +123,6 @@ public class StyleModelTest {
         assertTrue( polygon.visibleIf.get() instanceof ConstantFilter );
         
         polygon.fill.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
-//        polygon.fill.get().opacity.createValue( FilterMappedNumbers.defaults() )
-//        .add( 0.5, ff.equals( ff.literal( "1" ), ff.literal( "f1" ) ) )
-//        .add( 0.8, ff.equals( ff.literal( "2" ), ff.literal( "f2" ) ) );
         polygon.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
         polygon.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
         polygon.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
@@ -138,10 +134,6 @@ public class StyleModelTest {
         
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
-//        
-//        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults( StrokeDashStyle.dot ) );
-//        fs.store();
-//        log.info( "SLD (dot): " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
     
     
@@ -152,11 +144,13 @@ public class StyleModelTest {
         // point
         TextStyle text = fs.members().createElement( TextStyle.defaults );
         
-        text.textProperty.createValue( ConstantString.defaults( "constant" )  );
+        text.property.createValue( ConstantString.defaults( "constant" )  );
+        // text.halo.createValue( Halo.defaults );
+        text.halo.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
-        text.textProperty.createValue( FeaturePropertyBasedString.defaults( "featureproperty" )  );
+        text.property.createValue( FeaturePropertyBasedString.defaults( "featureproperty" )  );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
@@ -168,18 +162,17 @@ public class StyleModelTest {
         // point
         LineStyle line = fs.members().createElement( LineStyle.defaults );
 
-        line.line.get().color.createValue( ConstantColor.defaults( 0, 0, 100 ) );
-        line.line.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
-        line.line.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        line.line.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        line.line.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        line.fill.get().color.createValue( ConstantColor.defaults( 0, 0, 100 ) );
+        line.fill.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
+        line.fill.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        line.fill.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        line.fill.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
 
         line.stroke.get().color.createValue( ConstantColor.defaults( 100, 0, 0 ) );
         line.stroke.get().width.createValue( ConstantNumber.defaults( 2.0 ) );
         line.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
         line.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
         line.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
-        line.offset.createValue( ConstantNumber.defaults( 5.0 ) );
 
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );

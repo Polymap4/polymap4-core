@@ -14,7 +14,6 @@ package org.polymap.core.style.model;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
-import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -40,26 +39,26 @@ public class LineStyle
         public LineStyle initialize( LineStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
             proto.title.set( "Line" );
-            proto.line.createValue( Stroke.defaults );
+            proto.fill.createValue( Stroke.defaults );
             proto.stroke.createValue( Stroke.defaults );
             return proto;
         }
     };
 
     @UIOrder(10)
-    @Description("line")
+    @Description("fill")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<Stroke> line;
+    public Property<Stroke> fill;
 
     @UIOrder(20)
     @Description("stroke")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<Stroke> stroke;
-
-    @Nullable
-    @UIOrder(30)
-    @Description("offset")
-    @DoubleRange(from = 0, to = Double.MAX_VALUE, defaultValue = 8)
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>> offset;
+//
+//    @Nullable
+//    @UIOrder(30)
+//    @Description("offset")
+//    @DoubleRange(from = 0, to = Double.MAX_VALUE, defaultValue = 8)
+//    @Concerns(StylePropertyChange.Concern.class)
+//    public Property<StylePropertyValue<Double>> offset;
 }

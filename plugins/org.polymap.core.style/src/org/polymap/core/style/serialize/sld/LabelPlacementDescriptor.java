@@ -21,36 +21,41 @@ import org.polymap.model2.Immutable;
 /**
  * @author Steffen Stundzig
  */
-public class TextSymbolizerDescriptor
+public class LabelPlacementDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    // String
-    public Config<Expression> text;
+    // Point
+    public Config<Expression> anchorPointX;
 
     @Immutable
-    // Color
-    public Config<Expression> color;
+    // Point
+    public Config<Expression> anchorPointY;
 
     @Immutable
-    // @DefaultDouble( 1 )
-    // @Check(value = NumberRangeValidator.class, args = { "0", "1" })
+    // Point
+    public Config<Expression> displacementX;
+
+    @Immutable
+    // Point
+    public Config<Expression> displacementY;
+
+    @Immutable
+    // @DefaultDouble( 0 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "360" })
     // Double
-    public Config<Expression> opacity;
+    public Config<Expression> rotation;
 
     @Immutable
-    public Config<FontDescriptor> font;
-
-    @Immutable
-    public Config<HaloDescriptor> halo;
-
-    @Immutable
-    public Config<LabelPlacementDescriptor> labelPlacement;
+    // @DefaultDouble( 2 )
+    // @Check(value = NumberRangeValidator.class, args = { "0", "100" })
+    // Double
+    public Config<Expression> offset;
 
 
     @Override
-    protected TextSymbolizerDescriptor clone() {
-        return (TextSymbolizerDescriptor)super.clone();
+    protected LabelPlacementDescriptor clone() {
+        return (LabelPlacementDescriptor)super.clone();
     }
 
 }

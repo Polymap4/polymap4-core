@@ -75,8 +75,11 @@ public class DefaultStyle {
         fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
         return fs;
     }
-    
+
     public static LineStyle fillLineStyle( LineStyle line ) {
+        line.fill.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
+        line.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
+        line.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         return line;
     }
     

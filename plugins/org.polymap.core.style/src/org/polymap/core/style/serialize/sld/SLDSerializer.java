@@ -166,24 +166,17 @@ public class SLDSerializer
 
 
     protected List<LineSymbolizer> buildLineStyle( LineSymbolizerDescriptor descriptor ) {
-        // Graphic gr = sf.createDefaultGraphic();
-        /*
-         * Setting the geometryPropertyName arg to null signals that we want to draw
-         * the default geometry of features
-         */
         List<LineSymbolizer> lines = Lists.newArrayList();
-        lines.add( sf.createLineSymbolizer( buildStroke( descriptor.line.get() ), null ) );
-        
-        if (descriptor.stroke.isPresent()) {
-            LineSymbolizer top = sf.createLineSymbolizer( buildStroke( descriptor.stroke.get() ), null );
-            top.setPerpendicularOffset(
-                    descriptor.offset.get() != null ? descriptor.offset.get() : ff.literal( 5.0 ) );
-            lines.add( top );
-            
-            LineSymbolizer bottom = sf.createLineSymbolizer( buildStroke( descriptor.stroke.get() ), null );
-            bottom.setPerpendicularOffset(
-                    descriptor.offset.get() != null ? ff.multiply( ff.literal( -1 ), descriptor.offset.get()) : ff.literal( -5.0 ) );
-            lines.add( bottom );
+        Stroke fill = buildStroke( descriptor.fill.get() );
+        Stroke stroke = buildStroke( descriptor.stroke.get() );
+        if (stroke != null) {
+            if (fill != null) {
+                stroke.setWidth( ff.add( fill.getWidth(), ff.multiply( ff.literal( 2 ), stroke.getWidth() ) ) );
+            }
+            lines.add( sf.createLineSymbolizer( stroke, null ) );
+        }
+        if (fill != null) {
+            lines.add( sf.createLineSymbolizer( fill, null ) );
         }
         return lines;
     }
@@ -199,30 +192,18 @@ public class SLDSerializer
         gr.graphicalSymbols().clear();
         gr.graphicalSymbols().add( mark );
         gr.setSize( descriptor.diameter.get() );
-        /*
-         * Setting the geometryPropertyName arg to null signals that we want to draw
-         * the default geometry of features
-         */
         return sf.createPointSymbolizer( gr, null );
     }
 
 
     protected PolygonSymbolizer buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
-        // Graphic gr = sf.createDefaultGraphic();
-
         Stroke stroke = buildStroke( descriptor.stroke.get() );
-
         Fill fill = buildFill( descriptor.fill.get() );
-        /*
-         * Setting the geometryPropertyName arg to null signals that we want to draw
-         * the default geometry of features
-         */
         return sf.createPolygonSymbolizer( stroke, fill, null );
     }
 
 
     private Symbolizer buildTextStyle( TextSymbolizerDescriptor descriptor ) {
-
         Fill foreground = null;
         if (descriptor.color.isPresent()) {
             foreground = sf.createFill( descriptor.color.get() );
@@ -230,59 +211,69 @@ public class SLDSerializer
                 foreground.setOpacity( descriptor.opacity.get() );
             }
         }
-        Halo background = null;
-        if (descriptor.haloColor.isPresent()) {
-            background = sf.createHalo( sf.createFill( descriptor.haloColor.get() ),
-                    descriptor.haloWidth.isPresent() ? descriptor.haloWidth.get() : ff.literal( 2.0 ) );
-            if (descriptor.haloOpacity.isPresent()) {
-                background.getFill().setOpacity( descriptor.haloOpacity.get() );
-            }
-        }
-
-        AnchorPoint anchorPoint = null;
-        if (descriptor.anchorPointX.isPresent()) {
-            anchorPoint = sf.createAnchorPoint( ff.literal( descriptor.anchorPointX.get() ),
-                    descriptor.anchorPointY.get() );
-        }
-        Displacement displacement = null;
-        if (descriptor.displacementX.isPresent()) {
-            displacement = sf.createDisplacement( descriptor.displacementX.get(), descriptor.displacementY.get() );
-        }
-
-        LabelPlacement placement = null;
-        // XXX decide if we have a label placement or a line placement
-        placement = sf.createPointPlacement( anchorPoint, displacement, descriptor.placementRotation.get() );
-        sf.createLinePlacement( descriptor.placementOffset.get() );
-
+        Halo background = buildHalo( descriptor.halo.get() );
+        LabelPlacement placement = buildLabelPlacement( descriptor.labelPlacement.get() );
         Font[] fonts = null;
-        if (descriptor.font.isPresent()) {
+        if (descriptor.font.get().fonts.isPresent()) {
             fonts = descriptor.font.get().fonts.get();
         }
         return sf.createTextSymbolizer( foreground, fonts, background, descriptor.text.get(), placement, null );
     }
 
 
-    private Stroke buildStroke( StrokeDescriptor descriptor ) {
-        Stroke stroke = null;
-        if (descriptor != null) {
-            stroke = sf.createStroke( descriptor.color.get(), descriptor.width.get(), descriptor.opacity.get() );
-
-            stroke.setLineJoin( descriptor.joinStyle.get() );
-            stroke.setLineCap( descriptor.capStyle.get() );
-            if (descriptor.dashStyle.get() != null) {
-                stroke.setDashArray( descriptor.dashStyle.get() );
-                stroke.setDashOffset( ff.literal( 0 ) );
+    private LabelPlacement buildLabelPlacement( LabelPlacementDescriptor lpd ) {
+        if (lpd != null && ((lpd.anchorPointX.isPresent() && lpd.anchorPointY.isPresent())
+                || (lpd.displacementX.isPresent() && lpd.displacementY.isPresent()) || lpd.rotation.isPresent())) {
+            AnchorPoint anchorPoint = null;
+            if (lpd.anchorPointX.isPresent() && lpd.anchorPointY.isPresent()) {
+                anchorPoint = sf.createAnchorPoint( lpd.anchorPointX.get(), lpd.anchorPointY.get() );
             }
+            Displacement displacement = null;
+            if (lpd.displacementX.isPresent() && lpd.displacementY.isPresent()) {
+                displacement = sf.createDisplacement( lpd.displacementX.get(), lpd.displacementY.get() );
+            }
+            // XXX decide if we have a label placement or a line placement
+            return sf.createPointPlacement( anchorPoint, displacement, lpd.rotation.get() );
+            // sf.createLinePlacement( lpd.offset.get() );
         }
-        return stroke;
+        return null;
     }
 
 
-    private Fill buildFill( FillDescriptor descriptor ) {
-        Fill fill = null;
-        if (descriptor != null) {
-            fill = sf.createFill( descriptor.color.get(), descriptor.opacity.get() );
+    private Halo buildHalo( final HaloDescriptor hd ) {
+        // check if one of the expressions is present
+        if (hd != null && (hd.color.isPresent() || hd.width.isPresent() || hd.opacity.isPresent())) {
+            Halo halo = sf.createHalo( sf.createFill( hd.color.get() ),
+                    hd.width.isPresent() ? hd.width.get() : ff.literal( 2.0 ) );
+            if (hd.opacity.isPresent()) {
+                halo.getFill().setOpacity( hd.opacity.get() );
+            }
+            return halo;
         }
-        return fill;
+        return null;
+    }
+
+
+    private Stroke buildStroke( final StrokeDescriptor sd ) {
+        if (sd != null && (sd.color.isPresent() || sd.width.isPresent() || sd.opacity.isPresent())) {
+            Stroke stroke = sf.createStroke( sd.color.get(), sd.width.get(), sd.opacity.get() );
+
+            stroke.setLineJoin( sd.joinStyle.get() );
+            stroke.setLineCap( sd.capStyle.get() );
+            if (sd.dashStyle.get() != null) {
+                stroke.setDashArray( sd.dashStyle.get() );
+                stroke.setDashOffset( ff.literal( 0 ) );
+            }
+            return stroke;
+        }
+        return null;
+    }
+
+
+    private Fill buildFill( final FillDescriptor fd ) {
+        if (fd != null && (fd.color.isPresent() || fd.opacity.isPresent())) {
+            return sf.createFill( fd.color.get(), fd.opacity.get() );
+        }
+        return null;
     }
 }

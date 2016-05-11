@@ -12,8 +12,6 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,13 +36,13 @@ public class PolygonStyleSerializer
 
     @Override
     public void doSerialize( PolygonStyle style ) {
-        StrokeSerializer strokeSerializer = new StrokeSerializer();
-        List<StrokeDescriptor> strokeDescriptors = strokeSerializer.serialize( style.stroke.get() );
-        setComposite( strokeDescriptors,
-                ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-        
-        List<FillDescriptor> fillDescriptors = new FillSerializer().serialize( style.fill.get() );
-        setComposite( fillDescriptors,
-                ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
+//        if (style.stroke.get() != null) {
+            setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+                    ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
+//        }
+//        if (style.fill.get() != null) {
+            setComposite( new FillSerializer().serialize( style.fill.get() ),
+                    ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
+//        }
     }
 }
