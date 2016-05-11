@@ -36,13 +36,9 @@ public class PolygonStyleSerializer
 
     @Override
     public void doSerialize( PolygonStyle style ) {
-//        if (style.stroke.get() != null) {
-            setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
-                    ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-//        }
-//        if (style.fill.get() != null) {
-            setComposite( new FillSerializer().serialize( style.fill.get() ),
-                    ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
-//        }
+        setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+                ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
+        setComposite( new FillSerializer().serialize( style.fill.get() ),
+                ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
     }
 }

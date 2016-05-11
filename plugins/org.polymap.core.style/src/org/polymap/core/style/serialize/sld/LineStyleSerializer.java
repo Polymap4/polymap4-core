@@ -37,14 +37,10 @@ public class LineStyleSerializer
 
     @Override
     public void doSerialize( final LineStyle style ) {
-//        if (style.fill.get() != null) {
-            setComposite( new StrokeSerializer().serialize( style.fill.get() ),
-                    ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
-//        }
-//        if (style.stroke.get() != null) {
-            setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
-                    ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-//        }
+        setComposite( new StrokeSerializer().serialize( style.fill.get() ),
+                ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
+        setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+                ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         // setValue( style.offset.get(), ( LineSymbolizerDescriptor sd, Expression
         // value ) -> sd.offset.set( value ) );
     }

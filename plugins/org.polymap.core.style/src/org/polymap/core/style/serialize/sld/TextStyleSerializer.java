@@ -38,18 +38,12 @@ public class TextStyleSerializer
 
     @Override
     public void doSerialize( TextStyle style ) {
-//        if (style.font.get() != null) {
-            setComposite( new FontSerializer().serialize( style.font.get() ),
-                    ( TextSymbolizerDescriptor sd, FontDescriptor value ) -> sd.font.set( value ) );
-//        }
-//        if (style.halo.get() != null) {
-            setComposite( new HaloSerializer().serialize( style.halo.get() ),
-                    ( TextSymbolizerDescriptor sd, HaloDescriptor value ) -> sd.halo.set( value ) );
-//        }
-//        if (style.labelPlacement.get() != null) {
-            setComposite( new LabelPlacementSerializer().serialize( style.labelPlacement.get() ),
-                    ( TextSymbolizerDescriptor sd, LabelPlacementDescriptor value ) -> sd.labelPlacement.set( value ) );
-//        }
+        setComposite( new FontSerializer().serialize( style.font.get() ),
+                ( TextSymbolizerDescriptor sd, FontDescriptor value ) -> sd.font.set( value ) );
+        setComposite( new HaloSerializer().serialize( style.halo.get() ),
+                ( TextSymbolizerDescriptor sd, HaloDescriptor value ) -> sd.halo.set( value ) );
+        setComposite( new LabelPlacementSerializer().serialize( style.labelPlacement.get() ),
+                ( TextSymbolizerDescriptor sd, LabelPlacementDescriptor value ) -> sd.labelPlacement.set( value ) );
         setValue( style.property.get(), ( TextSymbolizerDescriptor sd, Expression value ) -> sd.text.set( value ) );
         setValue( style.color.get(), ( TextSymbolizerDescriptor sd, Expression value ) -> sd.color.set( value ) );
         setValue( style.opacity.get(), ( TextSymbolizerDescriptor sd, Expression value ) -> sd.opacity.set( value ) );

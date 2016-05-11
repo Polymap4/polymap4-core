@@ -41,14 +41,10 @@ public class PointStyleSerializer
 
     @Override
     public void doSerialize( PointStyle style ) {
-//        if (style.stroke.get() != null) {
-            setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
-                    ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-//        }
-//        if (style.fill.get() != null) {
-            setComposite( new FillSerializer().serialize( style.fill.get() ),
-                    ( PointSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
-//        }
+        setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+                ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
+        setComposite( new FillSerializer().serialize( style.fill.get() ),
+                ( PointSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
         setValue( style.diameter.get(),
                 ( PointSymbolizerDescriptor sd, Expression value ) -> sd.diameter.set( value ) );
     }
