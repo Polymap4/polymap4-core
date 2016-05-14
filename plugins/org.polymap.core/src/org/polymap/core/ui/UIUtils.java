@@ -139,7 +139,7 @@ public class UIUtils {
     }
 
 
-    private static void exec( String... jscode ) {
+    public static void exec( String... jscode ) {
         StringBuilder buf = new StringBuilder( 256 )
                 .append( "try{" )
                 .append( String.join( "", jscode ) )

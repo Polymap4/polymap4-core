@@ -24,7 +24,6 @@ import java.net.URL;
 import java.security.Principal;
 
 import javax.security.auth.Subject;
-import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
 import org.apache.commons.logging.Log;
@@ -175,12 +174,15 @@ public class SecurityContext
             }
             principals.addAll( authModules.iterator().next().rolesOf( subject ) );
             return true;
-        } 
-        catch (FailedLoginException e) {
-            return false;
         }
+// org.eclipse.equinox.internal.security.auth.SecurityContext wraps FaildLoginException        
+//        catch (FailedLoginException e) {
+//            return false;
+//        }
         catch (LoginException e) {
-            throw new RuntimeException( e );
+            // no matter if wrong username/password or technical problem
+            // login failed
+            return false;
         }
     }
 
