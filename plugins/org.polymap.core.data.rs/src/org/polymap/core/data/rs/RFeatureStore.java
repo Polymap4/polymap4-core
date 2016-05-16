@@ -255,7 +255,7 @@ public class RFeatureStore
                         }
                         // SimpleFeature -> convert
                         else if (feature instanceof SimpleFeature) {
-                            RFeature newFeature = newFeature( null );
+                            RFeature newFeature = newFeature( feature.getIdentifier().getID() );
                             for (Property prop : feature.getProperties()) {
                                 newFeature.getProperty( prop.getName() ).setValue( prop.getValue() );
                             }
