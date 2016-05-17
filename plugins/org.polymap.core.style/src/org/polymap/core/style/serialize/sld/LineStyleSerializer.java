@@ -15,6 +15,7 @@ package org.polymap.core.style.serialize.sld;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PolygonStyle;
 
 /**
@@ -22,23 +23,25 @@ import org.polymap.core.style.model.PolygonStyle;
  *
  * @author Steffen Stundzig
  */
-public class PolygonStyleSerializer
-        extends StyleCompositeSerializer<PolygonStyle,PolygonSymbolizerDescriptor> {
+public class LineStyleSerializer
+        extends StyleCompositeSerializer<LineStyle,LineSymbolizerDescriptor> {
 
-    private static Log log = LogFactory.getLog( PolygonStyleSerializer.class );
+    private static Log log = LogFactory.getLog( LineStyleSerializer.class );
 
 
     @Override
-    protected PolygonSymbolizerDescriptor createDescriptor() {
-        return new PolygonSymbolizerDescriptor();
+    protected LineSymbolizerDescriptor createDescriptor() {
+        return new LineSymbolizerDescriptor();
     }
 
 
     @Override
-    public void doSerialize( PolygonStyle style ) {
+    public void doSerialize( final LineStyle style ) {
+        setComposite( new StrokeSerializer().serialize( style.fill.get() ),
+                ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
-                ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-        setComposite( new FillSerializer().serialize( style.fill.get() ),
-                ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
+                ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
+        // setValue( style.offset.get(), ( LineSymbolizerDescriptor sd, Expression
+        // value ) -> sd.offset.set( value ) );
     }
 }

@@ -12,65 +12,53 @@
  */
 package org.polymap.core.style.model;
 
-import java.awt.Color;
-
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Description;
-import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
+ * Simple line style with a stroke.
+ * <ul>
+ * <li>{@link org.opengis.style.LineSymbolizer}</li>
+ * <li>{@link org.opengis.style.Mark}</li>
+ * </ul>
+ *
  * @author Steffen Stundzig
  */
-public class TextStyle
+public class LineStyle
         extends Style {
 
     /**
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final ValueInitializer<TextStyle> defaults = new ValueInitializer<TextStyle>() {
+    public static final ValueInitializer<LineStyle> defaults = new ValueInitializer<LineStyle>() {
 
         @Override
-        public TextStyle initialize( TextStyle proto ) throws Exception {
+        public LineStyle initialize( LineStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Text" );
-            proto.font.createValue( Font.defaults );
-            proto.halo.createValue( Halo.defaults );
-            proto.labelPlacement.createValue( LabelPlacement.defaults );
+            proto.title.set( "Line" );
+            proto.fill.createValue( Stroke.defaults );
+            proto.stroke.createValue( Stroke.defaults );
             return proto;
         }
     };
 
-    @Nullable
     @UIOrder(10)
-    @Description("property")
+    @Description("fill")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<String>> property;
+    public Property<Stroke> fill;
 
-    @Nullable
     @UIOrder(20)
-    @Description("color")
+    @Description("stroke")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Color>> color;
-
-    @Nullable
-    @UIOrder(30)
-    @Description("opacity")
-    @DoubleRange( from=0, to=1, defaultValue=1 )
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Double>> opacity;
-
-    @UIOrder(40)
-    @Description("font")
-    public Property<Font> font;
-
-    @UIOrder(50)
-    @Description("halo")
-    public Property<Halo> halo;
-
-    @UIOrder(60)
-    @Description("labelPlacement")
-    public Property<LabelPlacement> labelPlacement;
+    public Property<Stroke> stroke;
+//
+//    @Nullable
+//    @UIOrder(30)
+//    @Description("offset")
+//    @DoubleRange(from = 0, to = Double.MAX_VALUE, defaultValue = 8)
+//    @Concerns(StylePropertyChange.Concern.class)
+//    public Property<StylePropertyValue<Double>> offset;
 }

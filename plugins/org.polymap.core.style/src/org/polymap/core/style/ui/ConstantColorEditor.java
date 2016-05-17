@@ -86,6 +86,13 @@ class ConstantColorEditor
                     prop.get().b.set( rgb.blue );
                     prop.get().g.set( rgb.green );
                     button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
+                    if (rgb.red * rgb.blue * rgb.green > 8000000) {
+                        button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 0, 0, 0 ) );
+                    }
+                    else {
+                        button.setForeground(
+                                new org.eclipse.swt.graphics.Color( button.getDisplay(), 255, 255, 255 ) );
+                    }
                     return true;
                 } );
             }

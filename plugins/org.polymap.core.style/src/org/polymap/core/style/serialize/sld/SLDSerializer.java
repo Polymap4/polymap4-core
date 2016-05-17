@@ -24,6 +24,7 @@ import org.geotools.styling.Font;
 import org.geotools.styling.Graphic;
 import org.geotools.styling.Halo;
 import org.geotools.styling.LabelPlacement;
+import org.geotools.styling.LineSymbolizer;
 import org.geotools.styling.Mark;
 import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.PolygonSymbolizer;
@@ -38,7 +39,10 @@ import org.opengis.filter.FilterFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Lists;
+
 import org.polymap.core.style.model.FeatureStyle;
+import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
 import org.polymap.core.style.model.StyleGroup;
@@ -100,19 +104,19 @@ public class SLDSerializer
             }
             // Point
             else if (PointStyle.class.isInstance( style )) {
-                PointStyle ps = (PointStyle)style;
-                PointStyleSerializer serializer = new PointStyleSerializer();
-                descriptors.addAll( serializer.serialize( ps ) );
+                descriptors.addAll( new PointStyleSerializer().serialize( (PointStyle)style ) );
             }
             // Polygon
             else if (PolygonStyle.class.isInstance( style )) {
-                PolygonStyle ps = (PolygonStyle)style;
-                PolygonStyleSerializer serializer = new PolygonStyleSerializer();
-                descriptors.addAll( serializer.serialize( ps ) );
+                descriptors.addAll( new PolygonStyleSerializer().serialize( (PolygonStyle)style ) );
             }
             // Text
             else if (TextStyle.class.isInstance( style )) {
                 descriptors.addAll( new TextStyleSerializer().serialize( (TextStyle)style ) );
+            }
+            // Line
+            else if (LineStyle.class.isInstance( style )) {
+                descriptors.addAll( new LineStyleSerializer().serialize( (LineStyle)style ) );
             }
             else {
                 throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
@@ -133,15 +137,18 @@ public class SLDSerializer
 
 
     private FeatureTypeStyle buildStyle( final SymbolizerDescriptor descriptor ) {
-        Symbolizer sym = null;
-        if (descriptor instanceof PointSymbolizerDescriptor) {
-            sym = buildPointStyle( (PointSymbolizerDescriptor)descriptor );
+        List<Symbolizer> sym = Lists.newArrayList();
+        if (descriptor instanceof LineSymbolizerDescriptor) {
+            sym.addAll( buildLineStyle( (LineSymbolizerDescriptor)descriptor ) );
+        }
+        else if (descriptor instanceof PointSymbolizerDescriptor) {
+            sym.add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
         }
         else if (descriptor instanceof PolygonSymbolizerDescriptor) {
-            sym = buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor );
+            sym.add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
         }
         else if (descriptor instanceof TextSymbolizerDescriptor) {
-            sym = buildTextStyle( (TextSymbolizerDescriptor)descriptor );
+            sym.add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
         }
         else {
             throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
@@ -150,7 +157,7 @@ public class SLDSerializer
         // Rule
         Rule rule = sf.createRule();
         rule.setName( descriptor.description.get() );
-        rule.symbolizers().add( sym );
+        rule.symbolizers().addAll( sym );
 
         descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
         descriptor.scale.ifPresent( scale -> {
@@ -161,6 +168,22 @@ public class SLDSerializer
         return sf.createFeatureTypeStyle( new Rule[] { rule } );
     }
 
+
+    protected List<LineSymbolizer> buildLineStyle( LineSymbolizerDescriptor descriptor ) {
+        List<LineSymbolizer> lines = Lists.newArrayList();
+        Stroke fill = buildStroke( descriptor.fill.get() );
+        Stroke stroke = buildStroke( descriptor.stroke.get() );
+        if (stroke != null) {
+            if (fill != null) {
+                stroke.setWidth( ff.add( fill.getWidth(), ff.multiply( ff.literal( 2 ), stroke.getWidth() ) ) );
+            }
+            lines.add( sf.createLineSymbolizer( stroke, null ) );
+        }
+        if (fill != null) {
+            lines.add( sf.createLineSymbolizer( fill, null ) );
+        }
+        return lines;
+    }
 
     protected PointSymbolizer buildPointStyle( PointSymbolizerDescriptor descriptor ) {
         Graphic gr = sf.createDefaultGraphic();
@@ -173,24 +196,13 @@ public class SLDSerializer
         gr.graphicalSymbols().clear();
         gr.graphicalSymbols().add( mark );
         gr.setSize( descriptor.diameter.get() );
-        /*
-         * Setting the geometryPropertyName arg to null signals that we want to draw
-         * the default geometry of features
-         */
         return sf.createPointSymbolizer( gr, null );
     }
 
 
     protected PolygonSymbolizer buildPolygonStyle( PolygonSymbolizerDescriptor descriptor ) {
-        // Graphic gr = sf.createDefaultGraphic();
-
         Stroke stroke = buildStroke( descriptor.stroke.get() );
-
         Fill fill = buildFill( descriptor.fill.get() );
-        /*
-         * Setting the geometryPropertyName arg to null signals that we want to draw
-         * the default geometry of features
-         */
         return sf.createPolygonSymbolizer( stroke, fill, null );
     }
 
@@ -203,59 +215,69 @@ public class SLDSerializer
                 foreground.setOpacity( descriptor.opacity.get() );
             }
         }
-        Halo background = null;
-        if (descriptor.haloColor.isPresent()) {
-            background = sf.createHalo( sf.createFill( descriptor.haloColor.get() ),
-                    descriptor.haloWidth.isPresent() ? descriptor.haloWidth.get() : ff.literal( 2.0 ) );
-            if (descriptor.haloOpacity.isPresent()) {
-                background.getFill().setOpacity( descriptor.haloOpacity.get() );
-            }
-        }
-
-        AnchorPoint anchorPoint = null;
-        if (descriptor.anchorPointX.isPresent()) {
-            anchorPoint = sf.createAnchorPoint( ff.literal( descriptor.anchorPointX.get() ),
-                    descriptor.anchorPointY.get() );
-        }
-        Displacement displacement = null;
-        if (descriptor.displacementX.isPresent()) {
-            displacement = sf.createDisplacement( descriptor.displacementX.get(), descriptor.displacementY.get() );
-        }
-
-        LabelPlacement placement = null;
-        // XXX decide if we have a label placement or a line placement
-        placement = sf.createPointPlacement( anchorPoint, displacement, descriptor.placementRotation.get() );
-        sf.createLinePlacement( descriptor.placementOffset.get() );
-
+        Halo background = buildHalo( descriptor.halo.get() );
+        LabelPlacement placement = buildLabelPlacement( descriptor.labelPlacement.get() );
         Font[] fonts = null;
-        if (descriptor.font.isPresent()) {
+        if (descriptor.font.get().fonts.isPresent()) {
             fonts = descriptor.font.get().fonts.get();
         }
         return sf.createTextSymbolizer( foreground, fonts, background, descriptor.text.get(), placement, null );
     }
 
 
-    private Stroke buildStroke( StrokeDescriptor descriptor ) {
-        Stroke stroke = null;
-        if (descriptor != null) {
-            stroke = sf.createStroke( descriptor.color.get(), descriptor.width.get(), descriptor.opacity.get() );
-
-            stroke.setLineJoin( descriptor.joinStyle.get() );
-            stroke.setLineCap( descriptor.capStyle.get() );
-            if (descriptor.dashStyle.get() != null) {
-                stroke.setDashArray( descriptor.dashStyle.get() );
-                stroke.setDashOffset( ff.literal( 0 ) );
+    private LabelPlacement buildLabelPlacement( LabelPlacementDescriptor lpd ) {
+        if (lpd != null && ((lpd.anchorPointX.isPresent() && lpd.anchorPointY.isPresent())
+                || (lpd.displacementX.isPresent() && lpd.displacementY.isPresent()) || lpd.rotation.isPresent())) {
+            AnchorPoint anchorPoint = null;
+            if (lpd.anchorPointX.isPresent() && lpd.anchorPointY.isPresent()) {
+                anchorPoint = sf.createAnchorPoint( lpd.anchorPointX.get(), lpd.anchorPointY.get() );
             }
+            Displacement displacement = null;
+            if (lpd.displacementX.isPresent() && lpd.displacementY.isPresent()) {
+                displacement = sf.createDisplacement( lpd.displacementX.get(), lpd.displacementY.get() );
+            }
+            // XXX decide if we have a label placement or a line placement
+            return sf.createPointPlacement( anchorPoint, displacement, lpd.rotation.get() );
+            // sf.createLinePlacement( lpd.offset.get() );
         }
-        return stroke;
+        return null;
     }
 
 
-    private Fill buildFill( FillDescriptor descriptor ) {
-        Fill fill = null;
-        if (descriptor != null) {
-            fill = sf.createFill( descriptor.color.get(), descriptor.opacity.get() );
+    private Halo buildHalo( final HaloDescriptor hd ) {
+        // check if one of the expressions is present
+        if (hd != null && (hd.color.isPresent() || hd.width.isPresent() || hd.opacity.isPresent())) {
+            Halo halo = sf.createHalo( sf.createFill( hd.color.get() ),
+                    hd.width.isPresent() ? hd.width.get() : ff.literal( 2.0 ) );
+            if (hd.opacity.isPresent()) {
+                halo.getFill().setOpacity( hd.opacity.get() );
+            }
+            return halo;
         }
-        return fill;
+        return null;
+    }
+
+
+    private Stroke buildStroke( final StrokeDescriptor sd ) {
+        if (sd != null && (sd.color.isPresent() || sd.width.isPresent() || sd.opacity.isPresent())) {
+            Stroke stroke = sf.createStroke( sd.color.get(), sd.width.get(), sd.opacity.get() );
+
+            stroke.setLineJoin( sd.joinStyle.get() );
+            stroke.setLineCap( sd.capStyle.get() );
+            if (sd.dashStyle.get() != null) {
+                stroke.setDashArray( sd.dashStyle.get() );
+                stroke.setDashOffset( ff.literal( 0 ) );
+            }
+            return stroke;
+        }
+        return null;
+    }
+
+
+    private Fill buildFill( final FillDescriptor fd ) {
+        if (fd != null && (fd.color.isPresent() || fd.opacity.isPresent())) {
+            return sf.createFill( fd.color.get(), fd.opacity.get() );
+        }
+        return null;
     }
 }

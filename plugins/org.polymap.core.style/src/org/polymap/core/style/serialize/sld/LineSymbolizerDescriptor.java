@@ -12,45 +12,27 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import org.opengis.filter.expression.Expression;
-
 import org.polymap.core.runtime.config.Config;
-
-import org.polymap.model2.Immutable;
+import org.polymap.core.runtime.config.Immutable;
 
 /**
  * @author Steffen Stundzig
  */
-public class TextSymbolizerDescriptor
+public class LineSymbolizerDescriptor
         extends SymbolizerDescriptor {
 
     @Immutable
-    // String
-    public Config<Expression> text;
+    public Config<StrokeDescriptor> fill;
 
     @Immutable
-    // Color
-    public Config<Expression> color;
-
-    @Immutable
-    // @DefaultDouble( 1 )
-    // @Check(value = NumberRangeValidator.class, args = { "0", "1" })
-    // Double
-    public Config<Expression> opacity;
-
-    @Immutable
-    public Config<FontDescriptor> font;
-
-    @Immutable
-    public Config<HaloDescriptor> halo;
-
-    @Immutable
-    public Config<LabelPlacementDescriptor> labelPlacement;
+    public Config<StrokeDescriptor> stroke;
+//
+//    @Immutable
+//    public Config<Expression> offset;
 
 
     @Override
-    protected TextSymbolizerDescriptor clone() {
-        return (TextSymbolizerDescriptor)super.clone();
+    protected LineSymbolizerDescriptor clone() {
+        return (LineSymbolizerDescriptor)super.clone();
     }
-
 }

@@ -91,6 +91,14 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             return new ConstantStrokeJoinStyleHandler().doHandle( (ConstantStrokeJoinStyle)spv, sd,
                     (Setter<SD>)setter );
         }
+        else if (spv instanceof PropertyValue) {
+            return new PropertyValueHandler().doHandle( (PropertyValue)spv, sd,
+                    setter );
+        }
+//        else if (spv instanceof FeaturePropertyBasedNumber) {
+//            return new FeaturePropertyBasedNumberHandler().doHandle( (FeaturePropertyBasedNumber)spv, sd,
+//                    setter );
+//        }
         else {
             throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
         }

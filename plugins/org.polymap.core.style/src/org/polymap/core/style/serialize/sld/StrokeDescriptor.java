@@ -15,7 +15,6 @@ package org.polymap.core.style.serialize.sld;
 import org.opengis.filter.expression.Expression;
 
 import org.polymap.core.runtime.config.Config;
-import org.polymap.core.runtime.config.DefaultDouble;
 import org.polymap.core.runtime.config.Immutable;
 
 /**
@@ -36,7 +35,7 @@ public class StrokeDescriptor
     public Config<Expression>   color;
 
     @Immutable
-    @DefaultDouble(1)
+//    @DefaultDouble(1)
     // @Check( value=NumberRangeValidator.class, args={"0","1"} )
     public Config<Expression>   opacity;
 

@@ -23,54 +23,39 @@ import org.polymap.model2.runtime.ValueInitializer;
 /**
  * @author Steffen Stundzig
  */
-public class TextStyle
-        extends Style {
+public class Halo
+        extends StyleComposite {
 
     /**
      * Initializes a newly created instance with default values.
      */
     @SuppressWarnings("hiding")
-    public static final ValueInitializer<TextStyle> defaults = new ValueInitializer<TextStyle>() {
+    public static final ValueInitializer<Halo> defaults = new ValueInitializer<Halo>() {
 
         @Override
-        public TextStyle initialize( TextStyle proto ) throws Exception {
-            Style.defaults.initialize( proto );
-            proto.title.set( "Text" );
-            proto.font.createValue( Font.defaults );
-            proto.halo.createValue( Halo.defaults );
-            proto.labelPlacement.createValue( LabelPlacement.defaults );
+        public Halo initialize( Halo proto ) throws Exception {
+            StyleComposite.defaults.initialize( proto );
             return proto;
         }
     };
 
     @Nullable
-    @UIOrder(10)
-    @Description("property")
+    @UIOrder(50)
+    @Description("width")
+    @DoubleRange( from=0, to=100, defaultValue=2 )
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<String>> property;
+    public Property<StylePropertyValue<Double>> width;
 
     @Nullable
-    @UIOrder(20)
+    @UIOrder(60)
     @Description("color")
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Color>> color;
 
     @Nullable
-    @UIOrder(30)
+    @UIOrder(70)
     @Description("opacity")
     @DoubleRange( from=0, to=1, defaultValue=1 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
-
-    @UIOrder(40)
-    @Description("font")
-    public Property<Font> font;
-
-    @UIOrder(50)
-    @Description("halo")
-    public Property<Halo> halo;
-
-    @UIOrder(60)
-    @Description("labelPlacement")
-    public Property<LabelPlacement> labelPlacement;
 }

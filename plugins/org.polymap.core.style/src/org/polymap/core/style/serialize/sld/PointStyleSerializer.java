@@ -14,8 +14,6 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.util.List;
-
 import org.opengis.filter.expression.Expression;
 
 import org.apache.commons.logging.Log;
@@ -43,16 +41,11 @@ public class PointStyleSerializer
 
     @Override
     public void doSerialize( PointStyle style ) {
-        List<StrokeDescriptor> strokeDescriptors = new StrokeSerializer().serialize( style.stroke.get() );
-        setComposite( strokeDescriptors,
+        setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
                 ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-
-        List<FillDescriptor> fillDescriptors = new FillSerializer().serialize( style.fill.get() );
-        setComposite( fillDescriptors,
+        setComposite( new FillSerializer().serialize( style.fill.get() ),
                 ( PointSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
-        
         setValue( style.diameter.get(),
                 ( PointSymbolizerDescriptor sd, Expression value ) -> sd.diameter.set( value ) );
     }
-    
 }
