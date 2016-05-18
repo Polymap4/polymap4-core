@@ -14,12 +14,15 @@
  */
 package org.polymap.core.project.ui;
 
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectNode;
 
@@ -45,7 +48,9 @@ public class ProjectNodeContentProvider
 
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
-            return ((IMap)elm).layers.toArray();
+            return ((IMap)elm).layers.stream()
+                    .sorted( ILayer.ORDER_KEY_ORDERING.reversed() )
+                    .collect( Collectors.toList() ).toArray();
         }
         return null;
     }
@@ -59,13 +64,13 @@ public class ProjectNodeContentProvider
     }
 
 
-    public boolean hasChildren( Object element ) {
-        return getChildren( element ) != null;
+    public boolean hasChildren( Object elm ) {
+        return getChildren( elm ) != null;
     }
 
 
-    public Object[] getElements( Object inputElement ) {
-        return getChildren( inputElement );
+    public Object[] getElements( Object input ) {
+        return getChildren( input );
     }
     
 }

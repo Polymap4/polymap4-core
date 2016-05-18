@@ -47,19 +47,17 @@ public class IMap
     @DefaultValue( "EPSG:3857" )
     public Property<String>             srsCode;
 
-//    @ModelProperty(PROP_CRSCODE)
-//    public void setCRSCode( String code )
-//            throws NoSuchAuthorityCodeException, FactoryException, TransformException;
-//    
-//    public CoordinateReferenceSystem getCRS();
-
 
     /**
      * The max extent of the map. 
      */
     public Property<EnvelopeComposite>  maxExtent;
 
-    
-//    public <T> T visit( LayerVisitor<T> visitor );
+
+    public boolean containsLayer( ILayer search ) {
+        return layers.stream()
+                .filter( l -> l.id().equals( search.id() ) )
+                .findAny().isPresent();
+    }
 
 }

@@ -62,7 +62,7 @@ public class Layers {
      *
      * @return Newly created {@link Comparator}.
      */
-    public static Comparator<ILayer> zPrioComparator() {
+    public static Comparator<ILayer> orderComparator() {
         return new Comparator<ILayer>() {
             public int compare( ILayer l1, ILayer l2 ) {
                 return l1.orderKey.get() - l2.orderKey.get();

@@ -89,9 +89,10 @@ public class NewLayerOperation
             IMap localMap = uow.get().entity( map.get() );
             // create entity
             layer.set( uow.get().createEntity( ILayer.class, null, (ILayer proto) -> {
+                proto.parentMap.set( localMap );
+                proto.orderKey.set( proto.maxOrderKey() + 1  );
                 proto.label.set( label.get() );
                 proto.resourceIdentifier.set( resourceIdentifier.get() );
-                proto.parentMap.set( localMap );
                 styleIdentifier.ifPresent( id -> proto.styleIdentifier.set( id ) );
                 return proto;
             }));

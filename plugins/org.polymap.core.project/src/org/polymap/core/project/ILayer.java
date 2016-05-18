@@ -14,8 +14,14 @@
  */
 package org.polymap.core.project;
 
+import java.util.Comparator;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
@@ -27,6 +33,7 @@ import org.polymap.model2.Defaults;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
@@ -46,6 +53,8 @@ public class ILayer
 
     private static Log log = LogFactory.getLog( ILayer.class );
 
+    public static final Comparator<ILayer>  ORDER_KEY_ORDERING = (l1,l2) -> l1.orderKey.get().compareTo( l2.orderKey.get() );
+    
     /**
      *
      */
@@ -89,6 +98,84 @@ public class ILayer
          */
         public String layerId() {
             return layer.get().id();
+        }
+    }
+
+
+    /**
+     * Bubble up {@link #orderKey} one step.
+     * <p/>
+     * This changes {@link #orderKey} if this and other layers. Should be called
+     * inside an operation and a nested {@link UnitOfWork}.
+     */
+    public void orderUp( IProgressMonitor monitor ) {
+        TreeMap<Integer,ILayer> ordered = orderedLayers();
+        Entry<Integer,ILayer> ceiling = ordered.ceilingEntry( orderKey.get()+1 );
+        if (ceiling != null ) {
+            ordered.put( ceiling.getKey(), this );
+            ordered.put( orderKey.get(), ceiling.getValue() );
+            updateOrderKeys( ordered );
+        }
+        else {
+            //log.info( "No ceiling, we are biggest orderKey: " + this );            
+            throw new IllegalStateException( "No ceiling, we are biggest orderKey: " + this );            
+        }
+    }
+
+    
+    /**
+     * Bubble down {@link #orderKey} one step.
+     * <p/>
+     * This changes {@link #orderKey} if this and other layers. Should be called
+     * inside an operation and a nested {@link UnitOfWork}.
+     */
+    public void orderDown(  IProgressMonitor monitor ) {
+        TreeMap<Integer,ILayer> ordered = orderedLayers();
+        Entry<Integer,ILayer> floor = ordered.floorEntry( orderKey.get()-1 );
+        if (floor != null ) {
+            ordered.put( floor.getKey(), this );
+            ordered.put( orderKey.get(), floor.getValue() );
+            updateOrderKeys( ordered );
+        }
+        else {
+            //log.info( "No floor, we are lowest orderKey: " + this );
+            throw new IllegalStateException( "No floor, we are lowest orderKey: " + this );
+        }
+    }
+
+    
+    /**
+     * The highest {@link #orderKey} of all layers of my {@link ProjectNode#parentMap}. 
+     */
+    public Integer maxOrderKey() {
+        TreeMap<Integer,ILayer> ordered = orderedLayers();
+        return ordered.isEmpty() ? 0 : ordered.lastKey();
+    }
+    
+    
+    /**
+     * The lowest {@link #orderKey} of all layers of my {@link ProjectNode#parentMap}. 
+     */
+    public Integer minOrderKey() {
+        TreeMap<Integer,ILayer> ordered = orderedLayers();
+        return ordered.isEmpty() ? 0 : ordered.firstKey();
+    }
+    
+    
+    protected TreeMap<Integer,ILayer> orderedLayers() {
+        TreeMap<Integer,ILayer> ordered = new TreeMap();
+        for (ILayer layer : parentMap.get().layers) {
+            if (ordered.putIfAbsent( layer.orderKey.get(), layer ) != null) {
+                throw new IllegalStateException( "orderKey already seen: " + layer );
+            }
+        }
+        return ordered;
+    }
+    
+    
+    protected void updateOrderKeys( TreeMap<Integer,ILayer> ordered ) {
+        for (Entry<Integer,ILayer> entry: ordered.entrySet()) {
+            entry.getValue().orderKey.set( entry.getKey() );
         }
     }
     
