@@ -20,6 +20,7 @@ import java.lang.reflect.ParameterizedType;
 
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.FilterFactory;
 
 import org.apache.commons.logging.Log;
@@ -85,6 +86,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     protected FeatureStore featureStore;
 
+    protected FeatureType featureType;
+
 
     /**
      * Initialize and check if this editor is able to handle the given property's
@@ -97,6 +100,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
         try {
             this.prop = (Property<SPV>)fieldSite.prop.get();
             this.featureStore = fieldSite.featureStore.get();
+            this.featureType = fieldSite.featureType.get();
             return true;
         }
         catch (ClassCastException e) {

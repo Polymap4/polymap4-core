@@ -13,6 +13,7 @@
 package org.polymap.core.style.ui;
 
 import org.geotools.data.FeatureStore;
+import org.opengis.feature.type.FeatureType;
 
 import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
@@ -31,6 +32,7 @@ public class StylePropertyFieldSite
     @Mandatory
     public Config2<StylePropertyFieldSite,Property<StylePropertyValue>>  prop;
 
-    @Mandatory
     public Config2<StylePropertyFieldSite,FeatureStore> featureStore;
+
+    public Config2<StylePropertyFieldSite,FeatureType> featureType;
 }

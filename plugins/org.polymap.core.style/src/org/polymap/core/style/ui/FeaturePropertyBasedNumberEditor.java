@@ -57,7 +57,7 @@ class FeaturePropertyBasedNumberEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Number.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
+        return Number.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site ) : false;
     }
 
 
@@ -77,10 +77,10 @@ class FeaturePropertyBasedNumberEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
+        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
-        Collection<PropertyDescriptor> schemaDescriptors = featureStore.getSchema().getDescriptors();
-        GeometryDescriptor geometryDescriptor = featureStore.getSchema().getGeometryDescriptor();
+        Collection<PropertyDescriptor> schemaDescriptors = featureType.getDescriptors();
+        GeometryDescriptor geometryDescriptor = featureType.getGeometryDescriptor();
         final List<String> columns = Lists.newArrayList();
         for (PropertyDescriptor descriptor : schemaDescriptors) {
             if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {

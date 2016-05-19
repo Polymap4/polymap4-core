@@ -75,7 +75,7 @@ public class ConstantFontStyleEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
+        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
         combo.setItems( content.stream().map( FontStyle::name ).map( n -> i18n.get( n ) ).toArray( String[]::new ) );
         combo.select( content.indexOf( prop.get().value.get() ) );

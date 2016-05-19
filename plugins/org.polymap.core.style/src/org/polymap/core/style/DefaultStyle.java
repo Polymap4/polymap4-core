@@ -53,13 +53,13 @@ public class DefaultStyle {
 
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
-            fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
+            fillPointStyle( fs );
+            fillTextStyle( fs );
         }
         if (Polygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )
                 || MultiPolygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
-            fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
-            fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
+            fillPolygonStyle( fs );
+            fillTextStyle( fs );
         }
         else {
             throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
@@ -69,21 +69,23 @@ public class DefaultStyle {
     
 
     public static FeatureStyle createAllStyle( FeatureStyle fs ) {
-        fillLineStyle( fs.members().createElement( LineStyle.defaults ) );
-        fillPointStyle( fs.members().createElement( PointStyle.defaults ) );
-        fillPolygonStyle( fs.members().createElement( PolygonStyle.defaults ) );
-        fillTextStyle( fs.members().createElement( TextStyle.defaults ) );
+        fillLineStyle( fs );
+        fillPointStyle( fs );
+        fillPolygonStyle( fs );
+        fillTextStyle( fs );
         return fs;
     }
 
-    public static LineStyle fillLineStyle( LineStyle line ) {
+    public static LineStyle fillLineStyle( FeatureStyle fs ) {
+        LineStyle line = fs.members().createElement( LineStyle.defaults );
         line.fill.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
         line.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         line.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         return line;
     }
     
-    public static PointStyle fillPointStyle( PointStyle point ) {
+    public static PointStyle fillPointStyle( FeatureStyle fs ) {
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
         point.diameter.createValue( ConstantNumber.defaults( 8.0 ) );
         point.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         point.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
@@ -97,7 +99,8 @@ public class DefaultStyle {
     }
 
 
-    public static PolygonStyle fillPolygonStyle( PolygonStyle polygon ) {
+    public static PolygonStyle fillPolygonStyle( FeatureStyle fs ) {
+        PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
         polygon.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.fill.get().opacity.createValue( ConstantNumber.defaults( 0.5 ) );
         polygon.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
@@ -119,7 +122,8 @@ public class DefaultStyle {
     }
 
 
-    public static TextStyle fillTextStyle( TextStyle text ) {
+    public static TextStyle fillTextStyle( FeatureStyle fs ) {
+        TextStyle text = fs.members().createElement( TextStyle.defaults );
         text.font.get().family.createValue( ConstantFontFamily.defaults() );
         text.font.get().style.createValue( ConstantFontStyle.defaults() );
         text.font.get().weight.createValue( ConstantFontWeight.defaults() );

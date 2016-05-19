@@ -75,7 +75,7 @@ public class ConstantFontFamilyEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN );
+        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
         final List<String> content = families.stream().map( FontFamily::value ).collect( Collectors.toList() );
         combo.setItems( content.toArray( new String[content.size()] ) );
