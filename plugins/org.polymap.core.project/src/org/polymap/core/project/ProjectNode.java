@@ -168,14 +168,32 @@ public abstract class ProjectNode
         public ProjectNodeCommittedEvent( ProjectNode source ) {
             super( source );
         }
-
+        
+        /**
+         * The {@link ProjectNode} on which the event <b>initially</b> occured. In
+         * most cases this Entity is now <b>detached</b> and must not be used any
+         * longer.
+         * <p/>
+         * Use {@link #getEntity()} to get an instance of the target
+         * {@link UnitOfWork}.
+         * 
+         * @see #getEntity(UnitOfWork)
+         */
         @Override
         public ProjectNode getSource() {
             return (ProjectNode)super.getSource();
         }
-
-        public <T extends ProjectNode> T getEntity() {
-            return (T)super.getSource();
+        
+        /**
+         * Returns the {@link #getSource() source} Entity of the event
+         * {@link UnitOfWork#entity(Entity) belonging to} the given target
+         * {@link UnitOfWork}.
+         *
+         * @param uow The target {@link UnitOfWork}.
+         */
+        public <T extends ProjectNode> T getEntity( UnitOfWork uow ) {
+            assert uow != null;
+            return (T)uow.entity( getSource() );
         }
     }
     
