@@ -73,7 +73,6 @@ import org.polymap.service.geoserver.spring.PipelineMapResponse;
  */
 public abstract class GeoServerServlet
         extends HttpServlet {
-    private static final long serialVersionUID = -2859693647813939503L;
 
     private static final Log log = LogFactory.getLog( GeoServerServlet.class );
 
@@ -94,12 +93,17 @@ public abstract class GeoServerServlet
     
     private File                            dataDir;
     
-//    private String                          sessionKey;
-
     private Cache<String,Pipeline>          pipelines = CacheConfig.defaults().initSize( 128 ).createCache();
 
+    public String                           alias;
 
-    public abstract IMap getMap();
+    public IMap                             map;
+
+
+    public GeoServerServlet( String alias, IMap map ) {
+        this.alias = alias;
+        this.map = map;
+    }
 
     
     /**
@@ -146,7 +150,7 @@ public abstract class GeoServerServlet
 //        assert sessionKey != null;
 
         context = new PluginServletContext( getServletContext() );
-        log.debug( "initGeoServer(): contextPath=" + context.getContextPath() );
+        log.info( "initGeoServer(): contextPath=" + context.getContextPath() );
 
         ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader( context.cl );
@@ -201,7 +205,7 @@ public abstract class GeoServerServlet
 
     protected void initGeoServer() throws Exception {        
         File cacheDir = GeoServerPlugin.instance().getCacheDir();
-        dataDir = new File( cacheDir, Stringer.of( getMapLabel() ).toFilename( "_" ).toString() );
+        dataDir = new File( cacheDir, Stringer.of( mapLabel() ).toFilename( "_" ).toString() );
         log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
         dataDir.mkdirs();
         // TODO: have to create styles folder here, as otherwise 
@@ -238,19 +242,19 @@ public abstract class GeoServerServlet
         dispatcher = new DispatcherServlet();
         log.debug( "Dispatcher: " + dispatcher.getClass().getClassLoader() );
         dispatcher.init( new ServletConfig() {
-
+            @Override
             public String getInitParameter( String name ) {
                 return GeoServerServlet.this.getInitParameter( name );
             }
-
+            @Override
             public Enumeration<String> getInitParameterNames() {
                 return GeoServerServlet.this.getInitParameterNames();
             }
-
+            @Override
             public ServletContext getServletContext() {
                 return context;
             }
-
+            @Override
             public String getServletName() {
                 return "dispatcher";
             }
@@ -258,8 +262,8 @@ public abstract class GeoServerServlet
     }
     
     
-    protected String getMapLabel() {
-    	return getMap().label.get();
+    protected String mapLabel() {
+    	return map.label.get();
     }
 
 
@@ -303,12 +307,6 @@ public abstract class GeoServerServlet
             instance.set( null );
         }
     }
-    
-    // JRE: copied from /org.polymap.service/src/org/polymap/service/http/MapHttpServer.java
-    public String getPathSpec() {
-//        return CorePlugin.servletAlias( this );
-    	return "/wms";
-    }
 
 
     /**
@@ -351,9 +349,7 @@ public abstract class GeoServerServlet
         }
 
         public String getContextPath() {
-            log.debug( "getContextPath(): result=" + getPathSpec() );
-            return getPathSpec();
-            //return delegate.getContextPath();
+            return alias;
         }
 
         public String getInitParameter( String name ) {

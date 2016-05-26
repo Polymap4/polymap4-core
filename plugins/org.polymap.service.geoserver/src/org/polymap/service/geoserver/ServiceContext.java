@@ -114,7 +114,7 @@ public abstract class ServiceContext
         new Job( "Re-starting Service: " + serviceId ) {
             protected IStatus run( IProgressMonitor monitor ) {
                 try {
-                    boolean newContext = contextProvider.mapContext( sessionKey, true );
+                    contextProvider.mapContext( sessionKey, true );
 //                    Polymap.instance().addPrincipal( new ServicesPlugin.AdminPrincipal() );
 
                     if (contextProvider.currentContext().isDestroyed()) {

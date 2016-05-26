@@ -69,7 +69,7 @@ public class PipelineMapResponse
 
 
     public PipelineMapResponse( WMS wms ) {
-        super( MIME_TYPE, /*OUTPUT_FORMATS*/wms );
+        super( MIME_TYPE, /*OUTPUT_FORMATS*/ wms );
         log.debug( "INIT: " + wms.getServiceInfo().getId() );
     }
 
@@ -91,7 +91,7 @@ public class PipelineMapResponse
             
             ILayer layer = null;
             String layerName = StringUtils.substringAfterLast( mapLayer.getTitle(), ":" );
-            for (ILayer l : server.getMap().layers) {
+            for (ILayer l : server.map.layers) {
                 if (l.label.get().equals( layerName )) {
                     layer = l;
                     break;

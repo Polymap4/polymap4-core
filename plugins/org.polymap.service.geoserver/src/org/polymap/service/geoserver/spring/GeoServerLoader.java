@@ -92,7 +92,7 @@ public class GeoServerLoader
 
     private static final Log        log       = LogFactory.getLog( GeoServerLoader.class );
 
-    /** The namespace of all features delivered via GeoServer. */
+    /** FIXME The namespace of all features delivered via GeoServer. */
     public static final String      NAMESPACE = "http://www.polymap.org/";
 
     private GeoServerResourceLoader resourceLoader;
@@ -177,7 +177,7 @@ public class GeoServerLoader
     protected void loadCatalog( Catalog catalog, GeoServerServlet service ) throws Exception {
         log.info( "Loading catalog..." );
 
-        IMap map = service.getMap();
+        IMap map = service.map;
 
         CatalogBuilder catalogBuilder = new org.geoserver.catalog.CatalogBuilder( catalog );
         WorkspaceInfoImpl wsInfo = createAndAddWorkspace( map, catalogBuilder );
@@ -487,7 +487,7 @@ public class GeoServerLoader
 
 
     protected void loadGeoServer( GeoServerServlet service, GeoServer geoserver ) {
-        IMap map = service.getMap();
+        IMap map = service.map;
 
         internalLoadGeoServer( service, geoserver );
 
@@ -585,9 +585,10 @@ public class GeoServerLoader
         // GeoServer
         log.info( "Loading GeoServer..." );
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
-        gsInfo.setTitle( "POLYMAP3 powered by GeoServer :)" );
+        gsInfo.setTitle( "mapzone.io powered by GeoServer :)" );
         gsInfo.setId( "geoserver-polymap3" );
-        gsInfo.setProxyBaseUrl( proxyUrl + service.getPathSpec() + "/" );
+        gsInfo.setProxyBaseUrl( proxyUrl + service.alias + "/" );
+        log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
         // XXX indent XML output, make configurable
         gsInfo.setVerbose( true );
         gsInfo.setVerboseExceptions( true );

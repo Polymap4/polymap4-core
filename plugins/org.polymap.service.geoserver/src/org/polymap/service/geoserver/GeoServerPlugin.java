@@ -15,12 +15,7 @@
 package org.polymap.service.geoserver;
 
 import java.io.File;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpService;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.io.FileUtils;
@@ -121,37 +116,37 @@ public class GeoServerPlugin
             cacheDir.mkdir();            
         }
         
-        // start test servlet
-        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
-            public Object addingService( ServiceReference reference ) {
-                HttpService httpService = (HttpService)super.addingService( reference );                
-                if (httpService != null) {
-                    String protocol = "http";
-                    String port = context.getProperty( "org.osgi.service.http.port" );
-                    String hostname = "localhost";
-                    try {
-                        InetAddress.getLocalHost().getHostAddress();
-                    }
-                    catch (UnknownHostException e) {
-                        // ignore; use "localhost" then
-                    }
-
-                    // get baseUrl
-                    localBaseUrl = protocol + "://" + hostname + ":" + port;
-                    log.info( "HTTP service found on: " + localBaseUrl );
-
+//        // start test servlet
+//        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+//            public Object addingService( ServiceReference reference ) {
+//                HttpService httpService = (HttpService)super.addingService( reference );                
+//                if (httpService != null) {
+//                    String protocol = "http";
+//                    String port = context.getProperty( "org.osgi.service.http.port" );
+//                    String hostname = "localhost";
 //                    try {
-//                        // auto test
-//                        httpService.registerServlet( "/wms", new GeoServerServlet(), null, null );
+//                        InetAddress.getLocalHost().getHostAddress();
 //                    }
-//                    catch (Exception e) {
-//                        throw new RuntimeException( e );
+//                    catch (UnknownHostException e) {
+//                        // ignore; use "localhost" then
 //                    }
-                }
-                return httpService;
-            }
-        };
-        httpServiceTracker.open();
+//
+//                    // get baseUrl
+//                    localBaseUrl = protocol + "://" + hostname + ":" + port;
+//                    log.info( "HTTP service found on: " + localBaseUrl );
+//
+////                    try {
+////                        // auto test
+////                        httpService.registerServlet( "/wms", new GeoServerServlet(), null, null );
+////                    }
+////                    catch (Exception e) {
+////                        throw new RuntimeException( e );
+////                    }
+//                }
+//                return httpService;
+//            }
+//        };
+//        httpServiceTracker.open();
 	}
 
 	

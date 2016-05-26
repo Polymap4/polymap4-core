@@ -400,7 +400,7 @@
 	<bean id="wmsURLMapping" 
 		class="org.geoserver.ows.OWSHandlerMapping">
 		<constructor-arg ref="catalog"/>
-		<property name="alwaysUseFullPath" value="true"/>
+		<property name="alwaysUseFullPath" value="false"/>
 		<property name="mappings">
 			<props>
 				<prop key="/wms">dispatcher</prop>
