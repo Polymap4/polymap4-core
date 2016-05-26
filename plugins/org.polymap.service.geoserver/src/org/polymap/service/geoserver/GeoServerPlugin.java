@@ -15,7 +15,12 @@
 package org.polymap.service.geoserver;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpService;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.apache.commons.io.FileUtils;
@@ -47,6 +52,8 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.Plugin;
 
 import org.polymap.core.CorePlugin;
+import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.ConfigurationFactory;
 
 /**
  * 
@@ -73,16 +80,16 @@ public class GeoServerPlugin
 
     // instance *******************************************
 
+    /** 
+     * The base URL of services. This gets initialized as soon as a {@link HttpService}
+     * is found. This should be overwritten if we are running behind a HTTP proxy. 
+     */
+    public Config<String>               baseUrl;
+    
     private File                        cacheDir;
 
     private ServiceTracker              httpServiceTracker;
     
-    /** The base URL on the local machine (without proxy). */
-    private String                      localBaseUrl;
-    
-    /** The base URL explicitly set by the user via {@link GeneralPreferencePage}. */
-    private String                      proxyBaseUrl;
-
     
     /**
      * Returns the cache directory of this plugin.
@@ -91,19 +98,11 @@ public class GeoServerPlugin
         return cacheDir;
     }
 
-    /**
-     * The configured base URL of this instance.
-     *
-     * @return The configured URL or somethong like http://localhost...
-     */
-    public String getBaseUrl() {
-        return proxyBaseUrl != null && proxyBaseUrl.length() > 0 ? proxyBaseUrl : localBaseUrl;
-    }
-
     
 	public void start( BundleContext context ) throws Exception {
 		super.start( context );
 		instance = this;
+		ConfigurationFactory.inject( this );
 
 		cacheDir = new File( CorePlugin.getDataLocation( getBundle() ), "cache" );
         if (cacheDir.exists()) {
@@ -116,37 +115,29 @@ public class GeoServerPlugin
             cacheDir.mkdir();            
         }
         
-//        // start test servlet
-//        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
-//            public Object addingService( ServiceReference reference ) {
-//                HttpService httpService = (HttpService)super.addingService( reference );                
-//                if (httpService != null) {
-//                    String protocol = "http";
-//                    String port = context.getProperty( "org.osgi.service.http.port" );
-//                    String hostname = "localhost";
-//                    try {
-//                        InetAddress.getLocalHost().getHostAddress();
-//                    }
-//                    catch (UnknownHostException e) {
-//                        // ignore; use "localhost" then
-//                    }
-//
-//                    // get baseUrl
-//                    localBaseUrl = protocol + "://" + hostname + ":" + port;
-//                    log.info( "HTTP service found on: " + localBaseUrl );
-//
-////                    try {
-////                        // auto test
-////                        httpService.registerServlet( "/wms", new GeoServerServlet(), null, null );
-////                    }
-////                    catch (Exception e) {
-////                        throw new RuntimeException( e );
-////                    }
-//                }
-//                return httpService;
-//            }
-//        };
-//        httpServiceTracker.open();
+        // start test servlet
+        httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
+            public Object addingService( ServiceReference reference ) {
+                HttpService httpService = (HttpService)super.addingService( reference );                
+                if (httpService != null) {
+                    String protocol = "http";
+                    String port = context.getProperty( "org.osgi.service.http.port" );
+                    String hostname = "localhost";
+                    try {
+                        InetAddress.getLocalHost().getHostAddress();
+                    }
+                    catch (UnknownHostException e) {
+                        // ignore; use "localhost" then
+                    }
+
+                    // get baseUrl
+                    baseUrl.set( protocol + "://" + hostname + ":" + port );
+                    log.info( "HTTP service found on: " + baseUrl.get() );
+                }
+                return httpService;
+            }
+        };
+        httpServiceTracker.open();
 	}
 
 	

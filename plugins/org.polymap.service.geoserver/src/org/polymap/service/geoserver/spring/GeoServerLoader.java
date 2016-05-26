@@ -579,15 +579,12 @@ public class GeoServerLoader
 
 
     private void internalLoadGeoServer( GeoServerServlet service, GeoServer geoserver ) {
-        String proxyUrl = GeoServerPlugin.instance().getBaseUrl();
-        log.info( "    proxy URL: " + proxyUrl );
-
         // GeoServer
         log.info( "Loading GeoServer..." );
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
         gsInfo.setTitle( "mapzone.io powered by GeoServer :)" );
         gsInfo.setId( "geoserver-polymap3" );
-        gsInfo.setProxyBaseUrl( proxyUrl + service.alias + "/" );
+        gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() + service.alias + "/" );
         log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
         // XXX indent XML output, make configurable
         gsInfo.setVerbose( true );
