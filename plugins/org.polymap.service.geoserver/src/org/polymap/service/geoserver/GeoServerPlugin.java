@@ -115,7 +115,7 @@ public class GeoServerPlugin
             cacheDir.mkdir();            
         }
         
-        // start test servlet
+        // get baseUrl
         httpServiceTracker = new ServiceTracker( context, HttpService.class.getName(), null ) {
             public Object addingService( ServiceReference reference ) {
                 HttpService httpService = (HttpService)super.addingService( reference );                
@@ -148,7 +148,7 @@ public class GeoServerPlugin
 	    }
 	    
 		instance = null;
-		super.stop(context);
+		super.stop( context );
 
 		if (cacheDir.exists()) {
             log.info( "Cleaning cache dir: " + cacheDir );

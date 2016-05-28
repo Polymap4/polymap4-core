@@ -142,32 +142,50 @@ public abstract class GeoServerServlet
     }
 
     
+    @FunctionalInterface
+    interface Task<E extends Exception> {
+        public void call() throws E;
+    }
+    
+    
+    protected <E extends Exception> void inContextClassLoader( Task<E> task ) throws E {
+        // XXX no GeoServerClassLoader; just one instance per JVM
+//        assert context.cl != null;
+//        ClassLoader orig = Thread.currentThread().getContextClassLoader();
+//        Thread.currentThread().setContextClassLoader( context.cl );
+//        assert Thread.currentThread().getContextClassLoader() == context.cl;
+//        try {
+//          ServiceContext.mapContext( sessionKey );
+            task.call();
+//        }
+//        finally {
+//            Thread.currentThread().setContextClassLoader( orig );
+//          ServiceContext.unmapContext( false );
+//        }
+    }
+    
+    
     @Override
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
-
+        
+        context = new PluginServletContext( getServletContext() );
+        log.info( "initGeoServer(): contextPath=" + context.getContextPath() );
+        
 //        sessionKey = SessionContext.current().getSessionKey();
 //        assert sessionKey != null;
 
-        context = new PluginServletContext( getServletContext() );
-        log.info( "initGeoServer(): contextPath=" + context.getContextPath() );
-
-        ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader( context.cl );
-        try {
-//            ServiceContext.mapContext( sessionKey );
-            initGeoServer();
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
-        finally {
-            Thread.currentThread().setContextClassLoader( threadLoader );
-//            ServiceContext.unmapContext( false );
-        }
+        inContextClassLoader( () -> {
+            try {
+                initGeoServer();
+            }
+            catch (RuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        });            
     }
 
 
@@ -175,30 +193,26 @@ public abstract class GeoServerServlet
         log.debug( "destroy(): ..." );
         super.destroy();
         if (dispatcher != null) {
-            ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader( context.cl );
+            inContextClassLoader( () -> {
+                try {
+                    // listeners
+                    ServletContextEvent ev = new ServletContextEvent( context );
+                    for (ServletContextListener loader : loaders) {
+                        loader.contextDestroyed( ev );
+                    }
+                    loaders.clear();
 
-            try {
-                // listeners
-                ServletContextEvent ev = new ServletContextEvent( context );
-                for (ServletContextListener loader : loaders) {
-                    loader.contextDestroyed( ev );
+                    // dispatcher
+                    dispatcher.destroy();
+                    dispatcher = null;
+
+                    context.destroy();
+                    context = null;
                 }
-                loaders.clear();
-
-                // dispatcher
-                dispatcher.destroy();
-                dispatcher = null;
-
-                context.destroy();
-                context = null;
-            }
-            catch (IOException e) {
-                log.warn( "", e );
-            }
-            finally {
-                Thread.currentThread().setContextClassLoader( threadLoader );
-            }
+                catch (IOException e) {
+                    log.warn( "", e );
+                }
+            });
         }
     }
 
@@ -291,21 +305,23 @@ public abstract class GeoServerServlet
         }
         
         // service
-        ClassLoader threadLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader( context.cl );
-        try {
-            // session context
-//            ServiceContext.mapContext( sessionKey );
-            instance.set( this );
-            response.set( resp );
-            dispatcher.service( req, resp );
-        }
-        finally {
-            Thread.currentThread().setContextClassLoader( threadLoader );
-//            ServiceContext.unmapContext( false );
-            response.set( null );
-            instance.set( null );
-        }
+        inContextClassLoader( () -> {
+            try {
+                instance.set( this );
+                response.set( resp );
+                dispatcher.service( req, resp );
+            }
+            catch (ServletException e) {
+                throw e;
+            }
+            catch (IOException e) {
+                throw new RuntimeException( e );
+            }
+            finally {
+                response.set( null );
+                instance.set( null );
+            }
+        });
     }
 
 
@@ -324,8 +340,11 @@ public abstract class GeoServerServlet
         
         protected PluginServletContext( ServletContext delegate ) {
             super();
+            assert delegate != null;
             this.delegate = delegate;
-            this.cl = new GeoServerClassLoader( getClass().getClassLoader() );
+            ClassLoader bundleLoader = GeoServerPlugin.class.getClassLoader();
+            log.debug( "ClassLoader: " + bundleLoader );
+            this.cl = new GeoServerClassLoader( bundleLoader );
             log.debug( "ClassLoader: " + cl );
         }
 

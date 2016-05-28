@@ -90,7 +90,7 @@ import org.polymap.service.geoserver.GeoServerServlet;
 public class GeoServerLoader
         implements BeanPostProcessor, DisposableBean, ApplicationContextAware {
 
-    private static final Log        log       = LogFactory.getLog( GeoServerLoader.class );
+    private static final Log log = LogFactory.getLog( GeoServerLoader.class );
 
     /** FIXME The namespace of all features delivered via GeoServer. */
     public static final String      NAMESPACE = "http://www.polymap.org/";
@@ -99,7 +99,7 @@ public class GeoServerLoader
 
     private GeoServer               geoserver;
 
-    private Map<String,ILayer>      layers    = new HashMap<String,ILayer>();
+    private Map<String,ILayer>      layers = new HashMap<String,ILayer>();
 
 
     public GeoServerLoader( GeoServerResourceLoader resourceLoader ) {
