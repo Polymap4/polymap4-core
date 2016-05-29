@@ -15,5 +15,10 @@ Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.catalog;bundle-version="4.0.0"
 Export-Package: org.geotools.data.ows,
  org.geotools.data.wms,
+ org.geotools.data.wms.request,
+ org.geotools.data.wms.response,
+ org.geotools.data.wms.xml,
+ org.geotools.map,
+ org.geotools.ows,
  org.polymap.core.data.wms,
  org.polymap.core.data.wms.catalog
