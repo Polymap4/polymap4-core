@@ -14,8 +14,13 @@
  */
 package org.polymap.core.project;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
 import org.polymap.model2.Composite;
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * 
@@ -25,12 +30,30 @@ import org.polymap.model2.Property;
 public class EnvelopeComposite
         extends Composite {
 
-    public Property<Integer>    minX;
+    public static ValueInitializer<EnvelopeComposite> defaults( Envelope extent ) {
+        return (EnvelopeComposite proto) -> {
+            proto.minX.set( extent.getMinimum( 0 ) );
+            proto.maxX.set( extent.getMaximum( 0 ) );
+            proto.minY.set( extent.getMinimum( 1 ) );
+            proto.maxY.set( extent.getMaximum( 1 ) );
+            return proto;
+        };        
+    }
     
-    public Property<Integer>    minY;
+    // instance *******************************************
     
-    public Property<Integer>    maxX;
+    public Property<Double>     minX;
+    
+    public Property<Double>     minY;
+    
+    public Property<Double>     maxX;
 
-    public Property<Integer>    maxY;
+    public Property<Double>     maxY;
+
+    
+    public ReferencedEnvelope toReferencedEnvelope( CoordinateReferenceSystem crs ) {
+        assert crs != null;
+        return new ReferencedEnvelope( minX.get(), maxX.get(), minY.get(), maxY.get(), crs );
+    }
 
 }

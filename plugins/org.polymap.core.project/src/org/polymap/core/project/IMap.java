@@ -14,6 +14,10 @@
  */
 package org.polymap.core.project;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+
+import org.polymap.core.data.util.Geometries;
+
 import org.polymap.model2.Concerns;
 import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Defaults;
@@ -53,11 +57,21 @@ public class IMap
      */
     public Property<EnvelopeComposite>  maxExtent;
 
-
+    
     public boolean containsLayer( ILayer search ) {
         return layers.stream()
                 .filter( l -> l.id().equals( search.id() ) )
                 .findAny().isPresent();
+    }
+
+
+    public ReferencedEnvelope maxExtent() {
+        try {
+            return maxExtent.get().toReferencedEnvelope( Geometries.crs( srsCode.get() ) );
+        }
+        catch (Exception e) {
+            throw new RuntimeException();
+        }
     }
 
 }

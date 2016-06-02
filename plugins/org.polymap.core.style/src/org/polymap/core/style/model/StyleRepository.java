@@ -137,7 +137,8 @@ public class StyleRepository
      *
      * @param id The id of the {@link FeatureStyle} to serialize. The instance has to
      *        be <b>stored</b>.
-     * @param targetType The target type of the serialization.
+     * @param targetType The target type of the serialization. Possible values are:
+     *        {@link geotools.styling.Style} and {@link String}.
      * @return The serialized version, or {@link Optional#empty()} no style exists
      *         for the given id.
      * @throws RuntimeException If targetType is not supported.
