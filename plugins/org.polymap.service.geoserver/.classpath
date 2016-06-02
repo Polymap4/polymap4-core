@@ -26,9 +26,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/aopalliance-1.0.jar" sourcepath="lib/sources/aopalliance-1.0-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/freemarker-2.3.18.jar" sourcepath="lib/sources/freemarker-2.3.18-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/itext-2.1.5.jar" sourcepath="lib/sources/itext-2.1.5-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/jai_codec-1.1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jai_core-1.1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jai_imageio-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.7.2.jar" sourcepath="lib/sources/gs-main-2.7.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gs-ows-2.7.2.jar" sourcepath="lib/sources/gs-ows-2.7.2-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gs-platform-2.7.2.jar" sourcepath="lib/sources/gs-platform-2.7.2-sources.zip"/>
@@ -52,4 +49,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="output" path="build/eclipse"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-main-13.2.jar" sourcepath="lib/sources/gt-main-13.2-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-api-13.2.jar" sourcepath="lib/sources/gt-api-13.2-sources.zip"/>
 </classpath>

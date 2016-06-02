@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Eclipse-RegisterBuddy: org.polymap.core.data
 Bundle-ManifestVersion: 2
 Bundle-Name: GeoServer OGC Services
 Bundle-SymbolicName: org.polymap.service.geoserver;singleton:=true
@@ -35,9 +36,6 @@ Bundle-ClassPath: .,
  lib/gs-wfs-2.7.2.jar,
  lib/gs-wms-2.7.2.jar,
  lib/xstream-1.4.7.jar,
- lib/jai_codec-1.1.3.jar,
- lib/jai_core-1.1.3.jar,
- lib/jai_imageio-1.1.jar,
  lib/itext-2.1.5.jar,
  lib/freemarker-2.3.18.jar,
  lib/aopalliance-1.0.jar,
