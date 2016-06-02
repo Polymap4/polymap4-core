@@ -306,12 +306,12 @@
       	<constructor-arg ref="wms" />
 	</bean>
 	
-	<!-- bean id="getMapKvpReader"
+	<!--bean id="getMapKvpReader"
 		class="org.geoserver.wms.map.GetMapKvpRequestReader">
         <constructor-arg ref="wms"/>
 	</bean-->
 	<bean id="getMapKvpReader"
-		class="org.polymap.service.geoserver.spring.MyGetMapKvpRequestReader">
+		class="org.polymap.service.geoserver.spring.BBoxGetMapKvpRequestReader">
         <constructor-arg ref="wms"/>
 	</bean>
 	<bean id="getFeatureInfoKvpReader"
@@ -439,7 +439,6 @@
         </description>
     </bean>
 
-	<!-- replaced by polymap PNGMapProducer, see below -->
     <bean id="PNGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
@@ -455,7 +454,7 @@
       <property name="extension" value="png"/>
     </bean>
 
-    <bean id="PNG8MapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <!--bean id="PNG8MapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
         <value>image/png; mode=8bit</value>
@@ -469,18 +468,17 @@
       </constructor-arg>
       <constructor-arg ref="wms" />
       <property name="extension" value="png"/>
-    </bean>
+    </bean-->
 
+    <!-- replaced by polymap PNGMapProducer, see below -->
     <!-- bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
       <constructor-arg ref="wms" />
     </bean-->
 
-    <!--  
-        Polymap
-     -->
-    <!-- bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
+    <!-- Polymap -->
+    <bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
       <constructor-arg ref="wms" />
-    </bean-->
+    </bean>
     
     <!-- falko: kein Tiff support, keine zusätzlichen probleme ;) -->
     <!--bean id="GeoTiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
@@ -782,14 +780,6 @@
   </bean>
   
   
-    <!-- replaces default PNGMapProducer -->
-    <bean id="PNGMapResponse"
-        singleton="false"
-        class="org.polymap.service.geoserver.spring.PipelineMapResponse">
-        <constructor-arg index="0" ref="wms"/>
-        <!--constructor-arg index="1" ref="geoServerLoader"/-->
-    </bean>
-
     <!-- _p3: the bridge to polymap pipeline system -->
     <!-- bean id="pipelineDataStoreFactoryInitializer" class="org.polymap.service.geoserver.spring.PipelineDataStoreFactoryInitializer">
         <property name="resourceLoader" ref="resourceLoader"/>

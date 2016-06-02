@@ -29,7 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.PlainLazyInit;
+import org.polymap.core.runtime.LockedLazyInit;
 
 /**
  * 
@@ -47,7 +47,7 @@ public class OnDemandServlet
 
     
     public OnDemandServlet( Supplier<? extends HttpServlet> supplier ) {
-        this.delegate = new PlainLazyInit( () -> {
+        this.delegate = new LockedLazyInit( () -> {
             try {
                 HttpServlet result = supplier.get();
                 result.init( config );

@@ -25,50 +25,45 @@ import org.geotools.referencing.CRS;
 import org.geotools.util.Version;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
+import com.vividsolutions.jts.geom.Envelope;
 
 /**
- * TODO: This logic shouldn't be necessary as
- * parsing the BBox parameters in a GetMap 
- * request should be done as part of 
- * {@link org.geoserver.wms.map.GetMapKvpRequestReader#read(Object, Map, Map)}
- * either directly, or in its super class, or via 
- * discovered service, e.g. implementing 
- * org.geotools.util.ConverterFactory to convert String to 
- * Envelope.
+ * TODO: This logic shouldn't be necessary as parsing the BBox parameters in a GetMap
+ * request should be done as part of
+ * {@link org.geoserver.wms.map.GetMapKvpRequestReader#read(Object, Map, Map)} either
+ * directly, or in its super class, or via discovered service, e.g. implementing
+ * org.geotools.util.ConverterFactory to convert String to Envelope.
  * 
- * @author Joerg Reichert <joerg@mapzone.io>
- *
+ * @author Joerg Reichert
+ * @author Falko Bräutigam
  */
-public class MyGetMapKvpRequestReader
+public class BBoxGetMapKvpRequestReader
         extends GetMapKvpRequestReader {
 
-    /**
-     * @param wms
-     */
-    public MyGetMapKvpRequestReader( WMS wms ) {
+    public BBoxGetMapKvpRequestReader( WMS wms ) {
         super( wms );
     }
 
     
-    /* (non-Javadoc)
-     * @see org.geoserver.wms.map.GetMapKvpRequestReader#read(java.lang.Object, java.util.Map, java.util.Map)
-     */
     @Override
     public GetMapRequest read( Object request, Map kvp, Map rawKvp ) throws Exception {
-        GetMapRequest getMapRequest =  super.read( request, kvp, rawKvp );
-        String service = String.valueOf(kvp.get( "service" ));
-        String version = String.valueOf(kvp.get( "version" ));
-        String req = String.valueOf(kvp.get( "request" ));
-        String srs = String.valueOf(kvp.get( "srs" ));
-        String crs = String.valueOf(kvp.get( "crs" ));
-        String bbox = String.valueOf(kvp.get( "bbox" ));
-        if(bbox != null) {
+        GetMapRequest getMapRequest = super.read( request, kvp, rawKvp );
+        
+        String bbox = String.valueOf( kvp.get( "bbox" ) );
+        if (bbox != null) {
+            String version = String.valueOf( kvp.get( "version" ) );
+            String srs = String.valueOf( kvp.get( "srs" ) );
+            String crs = String.valueOf( kvp.get( "crs" ) );
+
             BBoxKvpParser bboxKvpParser = new BBoxKvpParser();
-            bboxKvpParser.setRequest( req );
-            bboxKvpParser.setService( service );
-            bboxKvpParser.setVersion( new Version(version) );
-            com.vividsolutions.jts.geom.Envelope envelope = (com.vividsolutions.jts.geom.Envelope) bboxKvpParser.parse( bbox );
-            if(version != null && version.startsWith( "1.1" )) {
+            bboxKvpParser.setRequest( kvp.get( "request" ).toString() );
+            bboxKvpParser.setService( kvp.get( "service" ).toString() );
+            bboxKvpParser.setVersion( new Version( version ) );
+
+            Envelope envelope = (Envelope)bboxKvpParser.parse( bbox );
+
+            // XXX is this ok?
+            if (version != null && version.startsWith( "1.3.0" )) {
                 // swap longitude and latitude as described here:
                 // http://docs.geoserver.org/stable/en/user/services/wms/basics.html#axis-ordering
                 double minX = envelope.getMinY();
@@ -76,16 +71,17 @@ public class MyGetMapKvpRequestReader
                 double minY = envelope.getMinX();
                 double maxY = envelope.getMaxX();
                 CoordinateReferenceSystem crsCode = null;
-                if(srs != null) {
+                if (srs != null) {
                     crsCode = CRS.decode( srs );
-                } else if (crs != null) {
+                }
+                else if (crs != null) {
                     crsCode = CRS.decode( crs );
                 }
-                envelope = new ReferencedEnvelope(minX, maxX, minY, maxY, crsCode);
+                envelope = new ReferencedEnvelope( minX, maxX, minY, maxY, crsCode );
             }
-            getMapRequest.setBbox(envelope);
+            getMapRequest.setBbox( envelope );
         }
-        
         return getMapRequest;
     }
+    
 }

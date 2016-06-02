@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -76,7 +77,7 @@ public abstract class GeoServerServlet
 
     private static final Log log = LogFactory.getLog( GeoServerServlet.class );
 
-    /** First attempt to pass info to GeoServerLoader inside Spring. */
+    /** First, hackish attempt to pass info to GeoServerLoader inside Spring. */
     public static ThreadLocal<GeoServerServlet>     instance = new ThreadLocal<GeoServerServlet>();
     
     /**
@@ -89,7 +90,7 @@ public abstract class GeoServerServlet
     
     private DispatcherServlet               dispatcher;
     
-    private PluginServletContext            context;
+    private BundleServletContext            context;
     
     private File                            dataDir;
     
@@ -117,6 +118,9 @@ public abstract class GeoServerServlet
             throws Exception;
 
     
+    public abstract String createSLD( ILayer layer );
+
+
     public Pipeline getOrCreatePipeline( final ILayer layer, Class<? extends PipelineProcessor> usecase ) 
             throws Exception {
         try {
@@ -169,7 +173,7 @@ public abstract class GeoServerServlet
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
         
-        context = new PluginServletContext( getServletContext() );
+        context = new BundleServletContext( getServletContext() );
         log.info( "initGeoServer(): contextPath=" + context.getContextPath() );
         
 //        sessionKey = SessionContext.current().getSessionKey();
@@ -293,10 +297,14 @@ public abstract class GeoServerServlet
             String resName = req.getPathInfo().substring( 1 );
             URL res = GeoServerPlugin.instance().getBundle().getResource( resName );
             if (res != null) {
-                IOUtils.copy( res.openStream(), resp.getOutputStream() );
-                IOUtils.closeQuietly( res.openStream() );
-                resp.getOutputStream().flush();
-                resp.flushBuffer();
+                try (
+                    InputStream in = res.openStream();
+                    OutputStream out = resp.getOutputStream();
+                ){
+                    IOUtils.copy( in, out );
+                    out.flush();
+                    resp.flushBuffer();
+                }
             }
             else {
                 log.warn( "No such resource found: " + resName );
@@ -330,27 +338,33 @@ public abstract class GeoServerServlet
      * proper resources, real path, mime.
      */
     @SuppressWarnings("deprecation")
-    class PluginServletContext
+    protected class BundleServletContext
             implements ServletContext {
      
         private ServletContext          delegate;
         
-        private GeoServerClassLoader    cl;
+        /** 
+         * {@link GeoServerClassLoader} if separate class loading is enabled, or
+         * the ordinary loader of the Bundle. 
+         */
+        private ClassLoader             cl;
 
         
-        protected PluginServletContext( ServletContext delegate ) {
+        protected BundleServletContext( ServletContext delegate ) {
             super();
             assert delegate != null;
             this.delegate = delegate;
             ClassLoader bundleLoader = GeoServerPlugin.class.getClassLoader();
             log.debug( "ClassLoader: " + bundleLoader );
-            this.cl = new GeoServerClassLoader( bundleLoader );
-            log.debug( "ClassLoader: " + cl );
+            this.cl = bundleLoader;  // new GeoServerClassLoader( bundleLoader );
+            log.info( "ClassLoader: " + cl );
         }
 
         public void destroy() throws IOException {
 //            LogFactory.release( cl );
-            cl.close();
+            if (cl instanceof GeoServerClassLoader) {
+                ((GeoServerClassLoader)cl).close();
+            }
             cl = null;
             delegate = null;
         }

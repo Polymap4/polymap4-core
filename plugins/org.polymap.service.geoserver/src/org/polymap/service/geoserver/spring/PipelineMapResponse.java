@@ -72,7 +72,7 @@ public class PipelineMapResponse
         super( MIME_TYPE, /*OUTPUT_FORMATS*/ wms );
         log.debug( "INIT: " + wms.getServiceInfo().getId() );
     }
-
+    
 
     @Override
     public MapProducerCapabilities getCapabilities( String outputFormat ) {
@@ -103,12 +103,10 @@ public class PipelineMapResponse
             
             try {
                 Pipeline pipeline = server.getOrCreatePipeline( layer, EncodedImageProducer.class );
-
                 ProcessorRequest request = prepareProcessorRequest( mapContent );
                 server.createPipelineExecutor().execute( pipeline, request, new ResponseHandler() {
                     @Override
                     public void handle( ProcessorResponse pipeResponse ) throws Exception {
-                        
                         HttpServletResponse response = GeoServerServlet.response.get();
                         if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
                             log.info( "Response: 304!" );
