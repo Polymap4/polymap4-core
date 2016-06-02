@@ -63,13 +63,13 @@ public class PipelineMapResponse
     /** the only MIME type this map producer supports */
     static final String         MIME_TYPE = "image/png";
 
-    static final String[]       OUTPUT_FORMATS = {MIME_TYPE, "image/jpeg", "image/gif" };
+    static final String[]       OUTPUT_FORMATS = {MIME_TYPE, "image/jpeg" };
 
     private GeoServerServlet    server = GeoServerServlet.instance.get();
 
 
     public PipelineMapResponse( WMS wms ) {
-        super( MIME_TYPE, /*OUTPUT_FORMATS*/ wms );
+        super( OUTPUT_FORMATS, wms );
         log.debug( "INIT: " + wms.getServiceInfo().getId() );
     }
     

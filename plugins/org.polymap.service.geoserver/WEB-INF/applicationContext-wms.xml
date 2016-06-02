@@ -545,7 +545,7 @@
       <constructor-arg ref="wms" />
     </bean-->
   
-    <bean id="GIFMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <!--bean id="GIFMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type, same as declared in the getcaps document</description>
         <value>image/gif</value>
@@ -559,10 +559,10 @@
       </constructor-arg>
       <constructor-arg ref="wms" />
       <property name="extension" value="gif"/>
-    </bean>
-    <bean id="GIFMapResponse" class="org.geoserver.wms.map.GIFMapResponse">
+    </bean-->
+    <!--bean id="GIFMapResponse" class="org.geoserver.wms.map.GIFMapResponse">
       <constructor-arg ref="wms" />
-    </bean>
+    </bean-->
   
     <bean id="JPEGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
@@ -580,9 +580,9 @@
       </property>
       <property name="extension" value="jpg"/>
     </bean>
-    <bean id="JPEGMapResponse" class="org.geoserver.wms.map.JPEGMapResponse">
+    <!--bean id="JPEGMapResponse" class="org.geoserver.wms.map.JPEGMapResponse">
       <constructor-arg ref="wms" />
-    </bean>
+    </bean-->
 
     <bean id="PDFMapProducer" class="org.geoserver.wms.map.PDFMapOutputFormat">
     </bean>
