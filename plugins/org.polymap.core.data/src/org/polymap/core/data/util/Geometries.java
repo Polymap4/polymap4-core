@@ -17,7 +17,10 @@ package org.polymap.core.data.util;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
@@ -28,6 +31,8 @@ import org.apache.commons.logging.LogFactory;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.polymap.core.runtime.CachedLazyInit;
+import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 
@@ -40,6 +45,19 @@ import org.polymap.core.runtime.cache.CacheConfig;
 public class Geometries {
 
     private static Log log = LogFactory.getLog( Geometries.class );
+    
+    /**
+     * EPSG:4326
+     * @see DefaultGeographicCRS#WGS84
+     */
+    public static final Lazy<CoordinateReferenceSystem> WGS84 = new CachedLazyInit( () -> {
+        try {
+            return crs( "EPSG:4326" );
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+    });
     
     private static Cache<String,CoordinateReferenceSystem>  crsCache = CacheConfig.defaults().initSize( 32 ).createCache();
  
