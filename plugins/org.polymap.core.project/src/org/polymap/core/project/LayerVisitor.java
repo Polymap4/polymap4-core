@@ -14,12 +14,10 @@
  */
 package org.polymap.core.project;
 
-
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.1
  */
 public abstract class LayerVisitor<T> {
 

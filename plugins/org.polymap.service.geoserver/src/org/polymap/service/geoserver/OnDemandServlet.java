@@ -70,6 +70,7 @@ public class OnDemandServlet
             HttpServlet local = delegate.get();
             delegate.clear();
             local.destroy();
+            log.info( "Delegate destroyed." );
         }
     }
 
