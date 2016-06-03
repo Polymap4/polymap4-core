@@ -31,7 +31,6 @@ import org.geotools.data.memory.MemoryDataStore;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -48,6 +47,7 @@ import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
+import org.polymap.core.data.util.Geometries;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.PlainLazyInit;
@@ -108,9 +108,9 @@ public class P4DataStoreInfo
     }
     
     
-    private FeatureSource createFeatureSource() {
-        // try feature/vector resource
+    protected FeatureSource createFeatureSource() {
         try {
+            // feature resource
             GeoServerServlet server = GeoServerServlet.instance.get();
             Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
             PipelineFeatureSource result = new PipelineFeatureSource( pipeline );
@@ -126,6 +126,7 @@ public class P4DataStoreInfo
         }
         // 
         catch (PipelineIncubationException e) {
+            // WMS
             // XXX howto skip layer in case of WFS!?
             return wrapCoverageLayer();
         }
@@ -152,11 +153,9 @@ public class P4DataStoreInfo
         ftb.setName( simpleName( layer.label.get() ) );
         ftb.setNamespaceURI( Utils.NAMESPACE );
         // required to have schema.getGeometryDescriptor() not 
-        // return null in org.geotools.renderer.lite.StreamingRenderer.processStylers(
-        // Graphics2D, Layer, AffineTransform, CoordinateReferenceSystem, Envelope, 
-        // Rectangle, String)
+        // return null in org.geotools.renderer.lite.StreamingRenderer.processStylers()
         // polygonProperty requires CoordinateReferenceSystem
-        ftb.setCRS( DefaultGeographicCRS.WGS84 );
+        ftb.setCRS( Geometries.WGS84.get() );
         ftb.add( "geom", Polygon.class );
         ftb.add( "params", GeneralParameterValue[].class );
         final SimpleFeatureType schema = ftb.buildFeatureType();

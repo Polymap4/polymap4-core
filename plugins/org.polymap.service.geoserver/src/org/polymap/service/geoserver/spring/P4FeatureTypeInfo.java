@@ -14,11 +14,11 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import static java.util.stream.Collectors.toList;
 import static org.polymap.core.data.util.Geometries.WGS84;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import java.io.IOException;
 
 import org.geoserver.catalog.AttributeTypeInfo;
@@ -64,8 +64,8 @@ public class P4FeatureTypeInfo
         super( catalog, dsInfo.getLayer().id() );
         this.dsInfo = dsInfo;
         setStore( dsInfo );
-        setEnabled( true );
-        setAdvertised( true );
+//        setEnabled( true );
+//        setAdvertised( true );
 
         ILayer layer = dsInfo.getLayer();
 
@@ -77,9 +77,7 @@ public class P4FeatureTypeInfo
         //setNativeName( schema.getTypeName() );
         setTitle( layer.label.get() );
         setDescription( "FeatureType of ILayer: " + layer.label.get() );
-        for (String keyword : layer.keywords) {
-            getKeywords().add( new Keyword(keyword) );
-        }
+        setKeywords( layer.keywords.stream().map( kw -> new Keyword(kw) ).collect( toList() ) );
 
         // bbox
         try {

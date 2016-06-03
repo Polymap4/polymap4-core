@@ -29,8 +29,6 @@ import org.geoserver.config.GeoServer;
 import org.geoserver.config.impl.GeoServerInfoImpl;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.wms.WMSInfoImpl;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.store.ContentFeatureSource;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -40,7 +38,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.service.geoserver.GeoServerPlugin;
@@ -138,8 +135,6 @@ public class GeoServerLoader
 
         IMap map = service.map;
 
-//        CatalogBuilder catalogBuilder = new CatalogBuilder( catalog );
-        
         // workspace
         WorkspaceInfoImpl wsInfo = new WorkspaceInfoImpl();
         wsInfo.setId( (String)map.id() );
@@ -153,25 +148,13 @@ public class GeoServerLoader
             P4DataStoreInfo dsInfo = new P4DataStoreInfo( catalog, layer );
             dsInfo.setWorkspace( wsInfo );
 
-            FeatureSource fs = dsInfo.getFeatureSource();
-            if (fs instanceof PipelineFeatureSource) {
-                // Feature
-                P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
-                catalog.add( ftInfo );
-                P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
-                layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
-                catalog.add( layerInfo );
-            }
-            else if (fs instanceof ContentFeatureSource) {
-                // WMS
-                P4CoverageInfo resInfo = new P4CoverageInfo( catalog );
-                catalog.add( resInfo );
-                P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, resInfo, PublishedType.RASTER );
-                catalog.add( layerInfo );
-            }
-            else {
-                throw new RuntimeException( "Unhandled FeatureSource type: " + fs );
-            }
+            // Feature layers and upstream WMS are represented same way;
+            // all rendering is done by PipelineMapResponse
+            P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
+            catalog.add( ftInfo );
+            P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
+            layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
+            catalog.add( layerInfo );
         }
     }
 
@@ -197,13 +180,13 @@ public class GeoServerLoader
     }
 
     
-    private void createWMSInfo( IMap map ) {
+    protected void createWMSInfo( IMap map ) {
         WMSInfoImpl wms = new WMSInfoImpl();
         wms.setGeoServer( geoserver );
         wms.setId( simpleName( map.label.get() ) + "-wms" );
         wms.setMaintainer( "" );
-        wms.setTitle( simpleName( map.label.get() ) );
-        wms.setAbstract( "POLYMAP4 (polymap.org) powered by GeoServer (geoserver.org)." );
+        wms.setTitle( map.label.get() );
+//        wms.setAbstract( "POLYMAP4 (polymap.org) powered by GeoServer (geoserver.org)." );
         wms.setName( simpleName( map.label.get() ) );
         wms.setOutputStrategy( "SPEED" );
 
