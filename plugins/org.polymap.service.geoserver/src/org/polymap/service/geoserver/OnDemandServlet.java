@@ -64,6 +64,15 @@ public class OnDemandServlet
         this.config = config;
     }
 
+    public void destroyDelegate() {
+        if (delegate.isInitialized()) {
+            // clear before destroy so that new request get a new delegate
+            HttpServlet local = delegate.get();
+            delegate.clear();
+            local.destroy();
+        }
+    }
+
     @Override
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         delegate.get().service( req, resp );
@@ -73,6 +82,7 @@ public class OnDemandServlet
     public void destroy() {
         delegate.get().destroy();
         delegate = null;
+        super.destroy();
     }
 
     @Override

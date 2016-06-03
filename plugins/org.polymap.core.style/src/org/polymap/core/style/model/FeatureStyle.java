@@ -18,6 +18,8 @@ import org.opengis.feature.type.FeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.polymap.core.runtime.event.EventManager;
+
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
@@ -82,6 +84,7 @@ public class FeatureStyle
     public void store() throws ModelRuntimeException {
         uow.commit();
         repo.updated( this );
+        EventManager.instance().publish( new FeatureStyleCommitedEvent( this ) );
     }
 
     /**
