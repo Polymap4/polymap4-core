@@ -29,11 +29,6 @@ import org.polymap.core.data.pipeline.Produces;
 public interface ImageProducer
         extends PipelineProcessor {
 
-    //  new Class[] {},
-//  new Class[] {GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class},
-//  new Class[] {ImageResponse.class, GetLayerTypesResponse.class},
-//  new Class[] {} );
-    
     @Produces(ImageResponse.class)
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;
     
