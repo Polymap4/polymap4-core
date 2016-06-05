@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2016, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,7 +14,6 @@
  */
 package org.polymap.core.data.pipeline;
 
-
 /**
  * Provides the SPI for executor services.
  *
@@ -22,7 +21,8 @@ package org.polymap.core.data.pipeline;
  */
 public interface PipelineExecutor {
 
-    public void execute( Pipeline pipeline, ProcessorRequest request, ResponseHandler handler ) throws Exception;
+    public <R extends ProcessorResponse,E extends Exception> void execute( 
+            Pipeline pipeline, ProcessorRequest request, ResponseHandler<R,E> handler ) throws Exception;
 
 
     /**

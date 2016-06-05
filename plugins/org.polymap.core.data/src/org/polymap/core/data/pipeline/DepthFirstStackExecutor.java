@@ -35,7 +35,7 @@ public class DepthFirstStackExecutor
 
     private static final Log log = LogFactory.getLog( DepthFirstStackExecutor.class );
 
-    private Pipeline                pipe;
+    private Pipeline                pipeline;
     
     /** The handler to send the result to, or null if a non-chunked execute() call was used. */
     private ResponseHandler         handler;
@@ -47,15 +47,16 @@ public class DepthFirstStackExecutor
     private boolean                 isEop;
 
     
-    public void execute( Pipeline _pipe, ProcessorRequest _request, ResponseHandler _handler ) throws Exception {
-        this.pipe = _pipe;
+    public <R extends ProcessorResponse,E extends Exception> void execute( 
+            Pipeline _pipeline, ProcessorRequest _request, ResponseHandler<R,E> _handler ) throws Exception {
+        this.pipeline = _pipeline;
         this.request = _request;
         this.handler = _handler;
         this.isEop = false;
 
         // create contexts
         int i = 0;
-        for (ProcessorDescription desc : pipe) {
+        for (ProcessorDescription desc : pipeline) {
             DepthFirstContext context = new DepthFirstContext( desc, i++ );
             contexts.add( context );
         }

@@ -18,6 +18,7 @@ import static org.polymap.service.geoserver.spring.Utils.simpleName;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -31,6 +32,9 @@ import org.geotools.data.memory.MemoryDataStore;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -45,6 +49,10 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
+import org.polymap.core.data.image.EncodedImageProducer;
+import org.polymap.core.data.image.GetLayerTypesRequest;
+import org.polymap.core.data.image.GetLayerTypesResponse;
+import org.polymap.core.data.image.LayerType;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.util.Geometries;
@@ -109,9 +117,9 @@ public class P4DataStoreInfo
     
     
     protected FeatureSource createFeatureSource() {
+        GeoServerServlet server = GeoServerServlet.instance.get();
         try {
             // feature resource
-            GeoServerServlet server = GeoServerServlet.instance.get();
             Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
             PipelineFeatureSource result = new PipelineFeatureSource( pipeline );
             if (result == null || result.getPipeline().length() == 0) {
@@ -128,7 +136,7 @@ public class P4DataStoreInfo
         catch (PipelineIncubationException e) {
             // WMS
             // XXX howto skip layer in case of WFS!?
-            return wrapCoverageLayer();
+            return wrapCoverageLayer( server );
         }
         // no geores found or something
         catch (Exception e) {
@@ -141,12 +149,13 @@ public class P4DataStoreInfo
     /**
      * Wraps a grid coverage into a Feature. Code lifted from ArcGridDataSource
      * (temporary).
+     * @param server 
      *
      * @param reader the grid coverage reader.
      * @return a feature with the grid coverage envelope as the geometry and the grid
      *         coverage itself in the "grid" attribute.
      */
-    protected ContentFeatureSource wrapCoverageLayer() {
+    protected ContentFeatureSource wrapCoverageLayer( GeoServerServlet server ) {
         // createSurroundingPolygon();
 
         SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
@@ -160,9 +169,27 @@ public class P4DataStoreInfo
         ftb.add( "params", GeneralParameterValue[].class );
         final SimpleFeatureType schema = ftb.buildFeatureType();
 
+        // bounding box
+        AtomicReference<Polygon> bbox = new AtomicReference();
+        try {
+            Pipeline pipeline = server.getOrCreatePipeline( layer, EncodedImageProducer.class );
+            server.createPipelineExecutor().execute( pipeline, new GetLayerTypesRequest(), (GetLayerTypesResponse resp) -> {
+                assert resp.getTypes().size() == 1;
+                LayerType layerType = resp.getTypes().stream().findAny().get();
+                for (ReferencedEnvelope env : layerType.getBoundingBoxes()) {
+                    if (CRS.equalsIgnoreMetadata( env.getCoordinateReferenceSystem(), Geometries.WGS84.get() )) {
+                        bbox.set( JTS.toGeometry( env ) );
+                    }
+                }
+            });
+        }
+        catch (Exception e) {
+            log.warn( "Error while getting bounding box.", e );
+        }
+        
         // create the feature
         SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
-        fb.set( "geom", null );
+        fb.set( "geom", bbox.get() );
         SimpleFeature feature = fb.buildFeature( null );
         MemoryDataStore ds = new MemoryDataStore( new SimpleFeature[] {feature} );
         try {

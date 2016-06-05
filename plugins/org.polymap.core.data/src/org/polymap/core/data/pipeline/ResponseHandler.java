@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright (C) 2009-2013 Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2016 Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -21,8 +21,8 @@ package org.polymap.core.data.pipeline;
  *         <li>19.10.2009: created</li>
  */
 @FunctionalInterface
-public interface ResponseHandler {
+public interface ResponseHandler<R extends ProcessorResponse,E extends Exception> {
     
-    public void handle( ProcessorResponse response ) throws Exception;
+    public void handle( R response ) throws E;
     
 }

@@ -14,8 +14,10 @@
  */
 package org.polymap.core.data.image;
 
+import java.util.List;
+
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.type.FeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * The response of the {@link GetLayerTypeRequest}. Similar to
@@ -25,21 +27,22 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  */
 public class LayerType {
 
-    private String              title;
+    private String                      title;
     
-    private String              name;
+    private String                      name;
     
-    private String[]            styles;
+    private List<String>                styles;
     
-    private CoordinateReferenceSystem crs;
+    private List<ReferencedEnvelope>    boundingBoxes;
     
     
-    public LayerType( String title, String name, String[] styles, CoordinateReferenceSystem crs ) {
+    public LayerType( String title, String name, List<String> styles, 
+            List<ReferencedEnvelope> boundingBoxes ) {
         super();
         this.title = title;
         this.name = name;
         this.styles = styles;
-        this.crs = crs;
+        this.boundingBoxes = boundingBoxes;
     }
 
     public String getTitle() {
@@ -50,12 +53,12 @@ public class LayerType {
         return name;
     }
     
-    public String[] getStyles() {
+    public List<String> getStyles() {
         return styles;
     }
     
-    public CoordinateReferenceSystem getCrs() {
-        return crs;
+    public List<ReferencedEnvelope> getBoundingBoxes() {
+        return boundingBoxes;
     }
     
 }

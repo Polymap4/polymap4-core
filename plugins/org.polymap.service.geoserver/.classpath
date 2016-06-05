@@ -51,4 +51,5 @@
 	<classpathentry kind="output" path="build/eclipse"/>
 	<referencedentry exported="true" kind="lib" path="lib/gt-main-13.2.jar" sourcepath="lib/sources/gt-main-13.2-sources.zip"/>
 	<referencedentry exported="true" kind="lib" path="lib/gt-api-13.2.jar" sourcepath="lib/sources/gt-api-13.2-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-referencing-13.2.jar" sourcepath="lib/sources/gt-referencing-13.2-sources.zip"/>
 </classpath>

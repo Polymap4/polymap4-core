@@ -14,12 +14,16 @@
  */
 package org.polymap.core.data.wms;
 
+import static java.util.Collections.singletonList;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.geotools.data.ows.CRSEnvelope;
 import org.geotools.data.ows.Layer;
 import org.geotools.data.wms.WebMapServer;
 import org.geotools.data.wms.response.GetMapResponse;
@@ -41,8 +45,10 @@ import com.vividsolutions.jts.geom.Envelope;
 import org.polymap.core.data.image.EncodedImageProducer;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
+import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.image.LayerType;
 import org.polymap.core.data.pipeline.DataSourceDescription;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
@@ -81,8 +87,7 @@ public class WmsRenderProcessor
 
         layer = wms.getCapabilities().getLayerList().stream()
                 .filter( l -> layerName.equals( l.getName() ) )
-                .findFirst()
-                .orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
+                .findFirst().orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
     }
 
 
@@ -101,10 +106,12 @@ public class WmsRenderProcessor
 
     @Override
     public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
-        throw new RuntimeException( "not yet implemented." );
-//        List<LayerType> types = getLayerTypes();
-//        context.sendResponse( new GetLayerTypesResponse( types ) );
-//        context.sendResponse( ProcessorResponse.EOP );
+        List<ReferencedEnvelope> boundingBoxes = new ArrayList();
+        for (CRSEnvelope env : layer.getBoundingBoxes().values()) {
+            boundingBoxes.add( new ReferencedEnvelope( env ) );
+        }
+        LayerType layerType = new LayerType( layer.getTitle(), layer.getName(), null, boundingBoxes );
+        context.sendResponse( new GetLayerTypesResponse( singletonList( layerType ) ) );
     }
 
 
@@ -259,7 +266,7 @@ public class WmsRenderProcessor
     }
 
     
-    private static boolean isEnvelopeNull( Envelope bbox ) {
+    protected static boolean isEnvelopeNull( Envelope bbox ) {
         if (bbox.getWidth() <= 0 || bbox.getHeight() <= 0) {
             return true;
         }
