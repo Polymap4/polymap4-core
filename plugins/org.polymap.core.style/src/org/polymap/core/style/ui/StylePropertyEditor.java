@@ -56,7 +56,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             ConstantStrokeDashStyleEditor.class,
             ConstantStrokeJoinStyleEditor.class,
             FeaturePropertyBasedStringEditor.class/*,
-            FeaturePropertyBasedNumberEditor.class*/};
+            FeaturePropertyBasedNumberEditor.class*/,
+            NoValueEditor.class};
 
 
     /**

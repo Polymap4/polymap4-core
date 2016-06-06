@@ -73,9 +73,6 @@ public class SLDSerializer
 
     public static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
 
-    /** The result of this serializer. */
-    private Style sld;
-
 
     /**
      * Creates {@link org.geotools.styling.Style} in 3 steps:
@@ -123,7 +120,7 @@ public class SLDSerializer
             }
         }
 
-        sld = sf.createStyle();
+        final Style sld = sf.createStyle();
         // 3: transform into FeatureTypeStyle and Rule instances
         for (SymbolizerDescriptor descriptor : descriptors) {
             sld.featureTypeStyles().add( buildStyle( descriptor ) );

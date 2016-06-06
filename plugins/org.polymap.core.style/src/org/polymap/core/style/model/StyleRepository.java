@@ -87,6 +87,7 @@ public class StyleRepository
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
+                        NoValue.class,
                         PropertyNumber.class,
                         PropertyString.class,
                         FeatureStyle.class,

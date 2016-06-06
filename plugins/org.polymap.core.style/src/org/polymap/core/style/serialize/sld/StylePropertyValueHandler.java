@@ -28,12 +28,13 @@ import org.polymap.core.style.model.ConstantString;
 import org.polymap.core.style.model.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.ConstantStrokeJoinStyle;
-import org.polymap.core.style.model.PropertyNumber;
-import org.polymap.core.style.model.PropertyValue;
+import org.polymap.core.style.model.NoValue;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
 import org.polymap.core.style.model.FontWeight;
+import org.polymap.core.style.model.PropertyNumber;
+import org.polymap.core.style.model.PropertyValue;
 import org.polymap.core.style.model.StrokeCapStyle;
 import org.polymap.core.style.model.StrokeDashStyle;
 import org.polymap.core.style.model.StrokeJoinStyle;
@@ -90,6 +91,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         else if (spv instanceof ConstantStrokeJoinStyle) {
             return new ConstantStrokeJoinStyleHandler().doHandle( (ConstantStrokeJoinStyle)spv, sd,
                     (Setter<SD>)setter );
+        }
+        else if (spv instanceof NoValue) {
+            return new NoValueHandler().doHandle( (NoValue)spv, sd,
+                    setter );
         }
         else if (spv instanceof PropertyValue) {
             return new PropertyValueHandler().doHandle( (PropertyValue)spv, sd,
@@ -284,6 +289,17 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             if (src.value.get() != null) {
                 setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
             }
+            return Collections.singletonList( sd );
+        }
+    }
+
+    static class NoValueHandler
+            extends StylePropertyValueHandler<NoValue,Object> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( NoValue empty, SD sd,
+                Setter<SD> setter ) {
+            // simply do nothing
             return Collections.singletonList( sd );
         }
     }
