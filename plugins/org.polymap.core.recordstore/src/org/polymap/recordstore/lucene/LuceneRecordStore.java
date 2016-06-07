@@ -707,10 +707,10 @@ public final class LuceneRecordStore
      * 
      * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
      */
-    static class IndexReaderReadWriteLock
+    protected static class IndexReaderReadWriteLock
             implements ReadWriteLock {
 
-        private IndexReader     indexReader;
+        private IndexReader     reader;
         
         /**
          * This is just a dummy. The writeLock is aquired just to call
@@ -722,12 +722,12 @@ public final class LuceneRecordStore
         private Lock            readLock = new Lock() {
             @Override
             public void lock() {
-                indexReader.incRef();
+                reader.incRef();
             }
             @Override
             public void unlock() {
                 try {
-                    indexReader.decRef();
+                    reader.decRef();
                 }
                 catch (IOException e) {
                     throw new RuntimeException( e );
@@ -739,7 +739,7 @@ public final class LuceneRecordStore
             }
             @Override
             public boolean tryLock() {
-                return indexReader.tryIncRef();
+                return reader.tryIncRef();
             }
             @Override
             public boolean tryLock( long time, TimeUnit unit ) throws InterruptedException {
@@ -752,7 +752,7 @@ public final class LuceneRecordStore
         };
         
         public IndexReaderReadWriteLock( IndexReader indexReader ) {
-            this.indexReader = indexReader;
+            this.reader = indexReader;
         }
 
         @Override
