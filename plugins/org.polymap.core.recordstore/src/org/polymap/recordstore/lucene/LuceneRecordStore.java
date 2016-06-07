@@ -461,8 +461,8 @@ public final class LuceneRecordStore
         }
         
         Document doc = null;
+        lock.readLock().lock();
         try {
-            lock.readLock().lock();
             doc = reader.document( docnum, fieldSelector );
         }
         finally {
@@ -638,6 +638,7 @@ public final class LuceneRecordStore
         public void apply( boolean optimizeIndex ) {
             assert writer != null : "Updater is closed.";
             Timer timer = new Timer();
+            lock.writeLock().lock();
             try {
                 writer.commit();
                 log.debug( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
@@ -654,12 +655,13 @@ public final class LuceneRecordStore
                 writer.close();
                 writer = null;
                 
-                lock.writeLock().lock();
                 searcher.close();
                 IndexReader newReader = IndexReader.openIfChanged( reader );
                 if (newReader != null) {
+                    lock.writeLock().unlock();
                     reader.close();
                     reader = newReader;
+                    lock = newLock();
                 }
                 searcher = new IndexSearcher( reader, executor );
                 
@@ -673,8 +675,8 @@ public final class LuceneRecordStore
                 throw new RuntimeException( e );
             }
             finally {
-                lock.writeLock().unlock();
-                lock = newLock();
+//                lock.writeLock().unlock();
+//                lock = newLock();
             }
         }
 
