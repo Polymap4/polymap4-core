@@ -169,11 +169,11 @@ public class WmsRenderProcessor
             
             in = wmsResponse.getInputStream();
             int count = 0;
-            byte[] buf = new byte[8*1024];
+            byte[] buf = new byte[4*1024];
             for (int c=in.read( buf ); c!=-1; c=in.read( buf )) {
                 context.sendResponse( new EncodedImageResponse( buf, c ) );
-                buf = new byte[8*2048];
-                //log.debug( "    --->data sent: " + c );
+                buf = new byte[8*1024];
+                log.debug( "    ---> data sent: " + c );
                 count += c;
             }
             if (count == 0) {
