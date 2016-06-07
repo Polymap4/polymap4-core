@@ -17,7 +17,9 @@ import java.util.List;
 
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
+import org.opengis.filter.Filter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -26,6 +28,9 @@ import com.google.common.collect.Lists;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
@@ -33,14 +38,16 @@ import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.PropertyMatchingNumberFilter;
 import org.polymap.core.style.model.RelationalOperator;
+import org.polymap.core.ui.FormDataFactory;
+import org.polymap.core.ui.FormLayoutFactory;
 
 /**
- * Editor that creates a Property matches Number.
+ * Matches a feature property against a number.
  *
  * @author Steffen Stundzig
  */
 public class FeaturePropertyMatchingNumberEditor
-        extends AbstractFeaturePropertyMatchingLiteralEditor<PropertyMatchingNumberFilter> {
+        extends StylePropertyEditor<PropertyMatchingNumberFilter> {
 
     private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyMatchingNumber" );
 
@@ -54,54 +61,83 @@ public class FeaturePropertyMatchingNumberEditor
         return i18n.get( "title" );
     }
 
+    private List<String> columns;
+
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        if (super.init( site )) {
-            return !allowedProperties().isEmpty();
+        if (Filter.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() && super.init( site )) {
+            columns = allowedProperties();
+            return true;
         }
         return false;
     }
 
 
     @Override
-    public Composite createContents( Composite parent ) {
-        Composite contents = super.createContents( parent );
+    public void updateProperty() {
+        prop.createValue( PropertyMatchingNumberFilter.defaults() );
+    }
 
-        // XXX number field
-        Text literalText = new Text( contents, SWT.BORDER );
-        literalText.setText( rightLiteral );
+
+    @Override
+    public Composite createContents( Composite parent ) {
+        final Composite contents = super.createContents( parent );
+        contents.setLayout( FormLayoutFactory.defaults().create() );
+        
+        final Combo propertyCombo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
+
+        propertyCombo.setItems( columns.toArray( new String[columns.size()] ) );
+        propertyCombo.select( columns.indexOf( prop.get().leftProperty.get() ) );
+        propertyCombo.addSelectionListener( new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected( SelectionEvent e ) {
+                prop.get().leftProperty.set( columns.get( propertyCombo.getSelectionIndex() ) );
+            }
+        } );
+
+        final Combo expressionCombo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
+        expressionCombo.setItems( content.stream().map( RelationalOperator::value ).toArray( String[]::new ) );
+        expressionCombo.select( content.indexOf( prop.get().relationalNumberOperator.get() ) );
+        expressionCombo.addSelectionListener( new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected( SelectionEvent e ) {
+                prop.get().relationalNumberOperator.set( content.get( expressionCombo.getSelectionIndex() ) );
+            }
+        } );
+
+        final Text literalText = new Text( contents, SWT.BORDER );
+        final String rightLiteral = prop.get().rightLiteral.get();
+        literalText.setText( StringUtils.isBlank( rightLiteral ) ? "" : rightLiteral );
         literalText.addModifyListener( new ModifyListener() {
 
             @Override
             public void modifyText( ModifyEvent ev ) {
-                updateRightLiteral( literalText.getText() );
+                prop.get().rightLiteral.set( literalText.getText() );
             }
 
         } );
-
+        
+        FormDataFactory.on( propertyCombo ).left( 0 ).right( 40 );
+        FormDataFactory.on( expressionCombo ).left( propertyCombo, 1 ).right( 60 );
+        FormDataFactory.on( literalText ).left( expressionCombo, 1 ).right( 100 );
         return contents;
     }
 
 
-    @Override
-    protected List<RelationalOperator> allowedOperators() {
-        return content;
-    }
-
-
-    @Override
     protected List<String> allowedProperties() {
         Collection<PropertyDescriptor> schemaDescriptors = featureType.getDescriptors();
         GeometryDescriptor geometryDescriptor = featureType.getGeometryDescriptor();
-        final List<String> columns = Lists.newArrayList();
+        final List<String> allowedProperties = Lists.newArrayList();
         for (PropertyDescriptor descriptor : schemaDescriptors) {
             if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {
                 if (Number.class.isAssignableFrom( descriptor.getType().getBinding() )) {
-                    columns.add( descriptor.getName().getLocalPart() );
+                    allowedProperties.add( descriptor.getName().getLocalPart() );
                 }
             }
         }
-        return columns;
+        return allowedProperties;
     }
 }

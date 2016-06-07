@@ -24,47 +24,32 @@ import org.polymap.model2.runtime.ValueInitializer;
 /**
  * @author Steffen Stundzig
  */
-public class PropertyMatchingNumberFilter
+public class ScaleRangeFilter
         extends StylePropertyValue<Filter> {
 
-    public static ValueInitializer<PropertyMatchingNumberFilter> defaults() {
-        return defaults( "", RelationalOperator.eq, "" );
+    public static ValueInitializer<ScaleRangeFilter> defaults() {
+        return defaults( 1, 80000000 );
     }
 
 
-    public static ValueInitializer<PropertyMatchingNumberFilter> defaults( final String leftProperty,
-            final RelationalOperator operator, final String rightLiteral ) {
-        return new ValueInitializer<PropertyMatchingNumberFilter>() {
+    public static ValueInitializer<ScaleRangeFilter> defaults( final Integer minScale, final Integer maxScale ) {
+        return new ValueInitializer<ScaleRangeFilter>() {
 
             @Override
-            public PropertyMatchingNumberFilter initialize( PropertyMatchingNumberFilter proto ) throws Exception {
-                proto.leftProperty.set( leftProperty );
-                proto.relationalNumberOperator.set( operator );
-                proto.rightLiteral.set( rightLiteral );
+            public ScaleRangeFilter initialize( ScaleRangeFilter proto ) throws Exception {
+                proto.minScale.set( minScale );
+                proto.maxScale.set( maxScale );
                 return proto;
             }
         };
     }
 
-    /**
-     * The name of the property.
-     */
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<String> leftProperty;
+    public Property<Integer> minScale;
 
-    /**
-     * The type of the expression.
-     */
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<RelationalOperator> relationalNumberOperator;
-
-    /**
-     * The content of the literal.
-     */
-    @Nullable
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<String> rightLiteral;
+    public Property<Integer> maxScale;
 
 }

@@ -17,17 +17,11 @@ package org.polymap.core.style.serialize.sld;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.io.IOException;
-
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.opengis.filter.Filter;
-import org.xml.sax.SAXException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.ConstantFilter;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StyleComposite;
 import org.polymap.core.style.model.StylePropertyValue;
@@ -69,15 +63,6 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
     protected abstract SD createDescriptor();
 
 
-    private SD createDescriptorInternal() {
-        SD sd = createDescriptor();
-        if (defaultFilter != null) {
-            sd.filterAnd( defaultFilter );
-        }
-        return sd;
-    }
-
-
     protected abstract void doSerialize( S style );
 
 
@@ -93,7 +78,7 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
             org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter<SD> setter ) {
 
         if (descriptors.isEmpty()) {
-            descriptors.add( createDescriptorInternal() );
+            descriptors.add( createDescriptor() );
         }
 
         List<SD> updated = new ArrayList( descriptors.size() );
@@ -108,7 +93,7 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
         if (!composites.isEmpty()) {
             if (descriptors.isEmpty()) {
                 for (V composite : composites) {
-                    SD descriptor = createDescriptorInternal();
+                    SD descriptor = createDescriptor();
                     composite.filter.ifPresent( filter -> descriptor.filterAnd( filter ) );
                     setter.set( descriptor, composite );
                     descriptors.add( descriptor );
@@ -148,20 +133,5 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
     public interface Setter<SD, V extends SymbolizerDescriptor> {
 
         void set( SD sd, V value );
-    }
-
-
-    protected void setDefaultFilter( Style style ) {
-        StylePropertyValue<Filter> filterValue = style.visibleIf.get();
-        if (filterValue != null) {
-            if (filterValue instanceof ConstantFilter) {
-                try {
-                    defaultFilter = ((ConstantFilter)filterValue).filter();
-                }
-                catch (IOException | SAXException | ParserConfigurationException e) {
-                    throw new RuntimeException( e );
-                }
-            }
-        }
     }
 }

@@ -24,20 +24,19 @@ import org.polymap.core.style.model.PolygonStyle;
  * @author Steffen Stundzig
  */
 public class LineStyleSerializer
-        extends StyleCompositeSerializer<LineStyle,LineSymbolizerDescriptor> {
+        extends StyleSerializer<LineStyle,LineSymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( LineStyleSerializer.class );
 
 
     @Override
-    protected LineSymbolizerDescriptor createDescriptor() {
+    protected LineSymbolizerDescriptor createStyleDescriptor() {
         return new LineSymbolizerDescriptor();
     }
 
 
     @Override
-    public void doSerialize( final LineStyle style ) {
-        setDefaultFilter(style);
+    public void doSerializeStyle( final LineStyle style ) {
         setComposite( new StrokeSerializer().serialize( style.fill.get() ),
                 ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),

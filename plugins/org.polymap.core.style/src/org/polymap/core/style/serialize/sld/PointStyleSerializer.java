@@ -28,20 +28,19 @@ import org.polymap.core.style.model.PointStyle;
  * @author Steffen Stundzig
  */
 public class PointStyleSerializer
-        extends StyleCompositeSerializer<PointStyle,PointSymbolizerDescriptor> {
+        extends StyleSerializer<PointStyle,PointSymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( PointStyleSerializer.class );
 
 
     @Override
-    protected PointSymbolizerDescriptor createDescriptor() {
+    protected PointSymbolizerDescriptor createStyleDescriptor() {
         return new PointSymbolizerDescriptor();
     }
 
 
     @Override
-    public void doSerialize( PointStyle style ) {
-        setDefaultFilter(style);
+    public void doSerializeStyle( PointStyle style ) {
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
                 ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         setComposite( new FillSerializer().serialize( style.fill.get() ),

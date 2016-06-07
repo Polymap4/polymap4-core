@@ -23,20 +23,19 @@ import org.polymap.core.style.model.PolygonStyle;
  * @author Steffen Stundzig
  */
 public class PolygonStyleSerializer
-        extends StyleCompositeSerializer<PolygonStyle,PolygonSymbolizerDescriptor> {
+        extends StyleSerializer<PolygonStyle,PolygonSymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( PolygonStyleSerializer.class );
 
 
     @Override
-    protected PolygonSymbolizerDescriptor createDescriptor() {
+    protected PolygonSymbolizerDescriptor createStyleDescriptor() {
         return new PolygonSymbolizerDescriptor();
     }
 
 
     @Override
-    public void doSerialize( PolygonStyle style ) {
-        setDefaultFilter(style);
+    public void doSerializeStyle( PolygonStyle style ) {
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
                 ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         setComposite( new FillSerializer().serialize( style.fill.get() ),

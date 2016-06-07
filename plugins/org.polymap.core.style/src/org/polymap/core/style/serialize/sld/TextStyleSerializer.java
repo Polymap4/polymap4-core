@@ -25,20 +25,19 @@ import org.polymap.core.style.model.TextStyle;
  * @author Steffen Stundzig
  */
 public class TextStyleSerializer
-        extends StyleCompositeSerializer<TextStyle,TextSymbolizerDescriptor> {
+        extends StyleSerializer<TextStyle,TextSymbolizerDescriptor> {
 
     private static Log log = LogFactory.getLog( TextStyleSerializer.class );
 
 
     @Override
-    protected TextSymbolizerDescriptor createDescriptor() {
+    protected TextSymbolizerDescriptor createStyleDescriptor() {
         return new TextSymbolizerDescriptor();
     }
 
 
     @Override
-    public void doSerialize( TextStyle style ) {
-        setDefaultFilter( style );
+    public void doSerializeStyle( TextStyle style ) {
         setComposite( new FontSerializer().serialize( style.font.get() ),
                 ( TextSymbolizerDescriptor sd, FontDescriptor value ) -> sd.font.set( value ) );
         setComposite( new HaloSerializer().serialize( style.halo.get() ),
