@@ -434,6 +434,24 @@ public final class LuceneRecordStore
     }
 
     
+    protected <R,E extends Exception> R withReadLock( Task<R,E> task ) throws E {
+        ReadWriteLock l = lock;
+        l.readLock().lock();
+        try {
+            return task.perform();
+        }
+        finally {
+            l.readLock().unlock();
+        }
+    }
+
+    
+    @FunctionalInterface
+    protected interface Task<R,E extends Exception> {
+        public R perform() throws E;
+    }
+    
+    
     /**
      * Get the record for the given document index.
      * 
@@ -460,14 +478,7 @@ public final class LuceneRecordStore
             }
         }
         
-        Document doc = null;
-        lock.readLock().lock();
-        try {
-            doc = reader.document( docnum, fieldSelector );
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        Document doc = withReadLock( () -> reader.document( docnum, fieldSelector ) );
         
         LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
         if (cache != null) {
@@ -491,21 +502,18 @@ public final class LuceneRecordStore
         public Document load( Object id ) throws CacheLoaderException {
             log.trace( "LUCENE: termDocs: " + LuceneRecordState.ID_FIELD + " = " + id.toString() );
 
-            lock.readLock().lock();
-            Term term = new Term( LuceneRecordState.ID_FIELD, id.toString() );
-            
-            try (TermDocs termDocs = reader.termDocs( term )) {
-                if (termDocs.next()) {
-                    return reader.document( termDocs.doc() );
+            return withReadLock( () -> {
+                Term term = new Term( LuceneRecordState.ID_FIELD, id.toString() );
+
+                try (TermDocs termDocs = reader.termDocs( term )) {
+                    return termDocs.next()
+                            ? reader.document( termDocs.doc() )
+                            : null;
                 }
-                return null;
-            }
-            catch (IOException e) {
-                throw new CacheLoaderException( e );
-            }
-            finally {
-                lock.readLock().unlock();
-            }
+                catch (IOException e) {
+                    throw new CacheLoaderException( e );
+                }
+            });
         }
 
         @Override
@@ -638,7 +646,8 @@ public final class LuceneRecordStore
         public void apply( boolean optimizeIndex ) {
             assert writer != null : "Updater is closed.";
             Timer timer = new Timer();
-            lock.writeLock().lock();
+            ReadWriteLock l = lock;
+            l.writeLock().lock();
             try {
                 writer.commit();
                 log.debug( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
@@ -658,10 +667,19 @@ public final class LuceneRecordStore
                 searcher.close();
                 IndexReader newReader = IndexReader.openIfChanged( reader );
                 if (newReader != null) {
-                    lock.writeLock().unlock();
-                    reader.close();
+                    IndexReader r = reader;
+          
+                    // XXX other threads can kick in between
                     reader = newReader;
                     lock = newLock();
+
+                    l.writeLock().unlock();
+                    r.close();
+                    assert r.getRefCount() == 0;
+                }
+                else {
+                    l.writeLock().unlock();
+                    assert reader.getRefCount() > 0;                    
                 }
                 searcher = new IndexSearcher( reader, executor );
                 
@@ -673,10 +691,6 @@ public final class LuceneRecordStore
             }
             catch (Exception e) {
                 throw new RuntimeException( e );
-            }
-            finally {
-//                lock.writeLock().unlock();
-//                lock = newLock();
             }
         }
 
