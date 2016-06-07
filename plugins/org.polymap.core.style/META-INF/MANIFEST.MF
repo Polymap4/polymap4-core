@@ -21,3 +21,5 @@ Export-Package: org.polymap.core.style,
  org.polymap.core.style.serialize.sld,
  org.polymap.core.style.ui
 Import-Package: org.osgi.service.http;version="1.2.1"
+Bundle-ClassPath: lib/mockito-all-1.10.19.jar,
+ .

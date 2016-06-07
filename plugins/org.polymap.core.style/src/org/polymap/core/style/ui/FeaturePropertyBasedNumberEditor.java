@@ -67,7 +67,7 @@ class FeaturePropertyBasedNumberEditor
 
             @Override
             public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
-                proto.value.set( "" );
+                proto.propertyValue.set( "" );
                 return proto;
             }
         } );
@@ -84,20 +84,19 @@ class FeaturePropertyBasedNumberEditor
         final List<String> columns = Lists.newArrayList();
         for (PropertyDescriptor descriptor : schemaDescriptors) {
             if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {
-//                if (Double.class.isAssignableFrom( descriptor.getType().getBinding() )
-//                        || Integer.class.isAssignableFrom( descriptor.getType().getBinding() )) {
+                if (Number.class.isAssignableFrom( descriptor.getType().getBinding() )) {
                     columns.add( descriptor.getName().getLocalPart() );
-//                }
+                }
             }
         }
         combo.setItems( columns.toArray( new String[columns.size()] ) );
-        combo.select( columns.indexOf( prop.get().value.get() ) );
+        combo.select( columns.indexOf( prop.get().propertyValue.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().value.set( columns.get( combo.getSelectionIndex() ) );
+                prop.get().propertyValue.set( columns.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;

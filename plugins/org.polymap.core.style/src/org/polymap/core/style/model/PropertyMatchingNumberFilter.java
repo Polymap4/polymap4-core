@@ -14,22 +14,11 @@
  */
 package org.polymap.core.style.model;
 
-import org.polymap.model2.Property;
-
 /**
- * Describes the style of a street. There is no direct SLD counterpart for this.
+ * Subclass of constant filter to support different filter editors.
  *
- * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
-public class StreetStyle
-        extends Style {
-
-    public Property<StylePropertyValue>     width;
-
-    public Property<StylePropertyValue>     outerLineWidth;
-    
-    public Property<StylePropertyValue>     outerLineColor;
-    
-    public Property<StylePropertyValue>     fillColor;
-
+public class PropertyMatchingNumberFilter
+        extends ConstantFilter {
 }

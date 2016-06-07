@@ -41,6 +41,7 @@ public class PointStyleSerializer
 
     @Override
     public void doSerialize( PointStyle style ) {
+        setDefaultFilter(style);
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
                 ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         setComposite( new FillSerializer().serialize( style.fill.get() ),

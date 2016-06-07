@@ -25,7 +25,6 @@ import org.geotools.styling.Rule;
 import org.geotools.styling.Symbolizer;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,7 +63,7 @@ public abstract class SymbolizerDescriptor
     public Config<String>                   description;
 
     public Config<Pair<Integer,Integer>>    scale;
-    
+
     public Config<Filter>                   filter;
 
     @Immutable
@@ -112,7 +111,7 @@ public abstract class SymbolizerDescriptor
      * descriptor.
      */
     public void filterAnd( Filter f ) {
-        Filter current = filter.get();
+        Filter current = (Filter)filter.get();
         filter.set( current == null || current.equals( Filter.INCLUDE )
                 ? f : ff.and( current, f ) );
     }

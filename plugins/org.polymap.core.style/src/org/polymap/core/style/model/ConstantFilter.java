@@ -28,17 +28,19 @@ import org.geotools.xml.Parser;
 import org.opengis.filter.Filter;
 import org.xml.sax.SAXException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Timer;
 
+import org.polymap.model2.Concerns;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Provides a constant number as style property value.
+ * Provides a constant filter as style property value.
  *
  * @author Falko Bräutigam
  */
@@ -65,6 +67,7 @@ public class ConstantFilter
     
     /** Null specifies {@link Filter#INCLUDE}. */
     @Nullable
+    @Concerns( StylePropertyChange.Concern.class )
     protected Property<String>          encoded;
 
     
@@ -81,7 +84,14 @@ public class ConstantFilter
     
     public static Filter decode( String encoded ) throws IOException, SAXException, ParserConfigurationException {
         Parser parser = new Parser( ENCODE_CONFIG );
-        return (Filter)parser.parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
+        Object result = parser.parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
+        if (result instanceof Filter) {
+            return (Filter)result;
+        }
+        if (result instanceof String && StringUtils.isBlank((String)result)) {
+            return Filter.INCLUDE;
+        }
+        throw new IOException("unknown parser result " + result);
     }
 
 

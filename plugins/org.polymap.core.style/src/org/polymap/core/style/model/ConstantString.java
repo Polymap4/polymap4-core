@@ -37,12 +37,12 @@ public class ConstantString
 
             @Override
             public ConstantString initialize( final ConstantString proto ) throws Exception {
-                proto.value.set( value );
+                proto.constantString.set( value );
                 return proto;
             }
         };
     }
 
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<String> value;
+    public Property<String> constantString;
 }

@@ -37,6 +37,7 @@ public class LineStyleSerializer
 
     @Override
     public void doSerialize( final LineStyle style ) {
+        setDefaultFilter(style);
         setComposite( new StrokeSerializer().serialize( style.fill.get() ),
                 ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),

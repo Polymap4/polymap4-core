@@ -36,6 +36,7 @@ public class PolygonStyleSerializer
 
     @Override
     public void doSerialize( PolygonStyle style ) {
+        setDefaultFilter(style);
         setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
                 ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         setComposite( new FillSerializer().serialize( style.fill.get() ),

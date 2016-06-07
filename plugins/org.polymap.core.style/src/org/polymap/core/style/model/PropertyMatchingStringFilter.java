@@ -15,10 +15,10 @@
 package org.polymap.core.style.model;
 
 /**
- * Describes a feature property based number.
+ * Subclass of constant filter to support different filter editors.
  *
  * @author Steffen Stundzig
  */
-public class PropertyNumber<T extends Number>
-        extends PropertyValue<T> {
+public class PropertyMatchingStringFilter
+        extends ConstantFilter {
 }

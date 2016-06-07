@@ -14,6 +14,8 @@
  */
 package org.polymap.core.style.model;
 
+
+import org.polymap.model2.Concerns;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
@@ -29,17 +31,12 @@ public class PropertyValue<T>
     /**
      * Initializes a newly created instance with the given default value.
      */
-    public static ValueInitializer<PropertyValue> defaults() {
-        return defaults( "" );
-    }
-
-
     public static ValueInitializer<PropertyValue> defaults( final String value ) {
         return new ValueInitializer<PropertyValue>() {
 
             @Override
             public PropertyValue initialize( PropertyValue proto ) throws Exception {
-                proto.value.set( value );
+                proto.propertyValue.set( value );
                 return proto;
             }
         };
@@ -51,7 +48,7 @@ public class PropertyValue<T>
      * The name of the feature attribute.
      */
     @Nullable
-//    @Concerns(StylePropertyChange.Concern.class)
-    public Property<String> value;
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<String> propertyValue;
     
 }

@@ -17,6 +17,7 @@ import java.util.List;
 
 import java.awt.Color;
 
+import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
 
 import org.polymap.core.style.model.ConstantColor;
@@ -33,7 +34,6 @@ import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
 import org.polymap.core.style.model.FontWeight;
-import org.polymap.core.style.model.PropertyNumber;
 import org.polymap.core.style.model.PropertyValue;
 import org.polymap.core.style.model.StrokeCapStyle;
 import org.polymap.core.style.model.StrokeDashStyle;
@@ -118,6 +118,11 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         void set( SD sd, Expression value );
     }
 
+    @FunctionalInterface
+    public interface FilterSetter<SD extends SymbolizerDescriptor> {
+
+        void set( SD sd, Filter value );
+    }
 
     /**
      * Converts the given {@link Style} property value into actual values in the
@@ -129,9 +134,6 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
     public abstract <SD extends SymbolizerDescriptor> List<SD> doHandle( SPV spv, SD sd, Setter<SD> setter );
 
 
-    /**
-     * ConstantNumber
-     */
     static class ConstantNumberHandler
             extends StylePropertyValueHandler<ConstantNumber,Number> {
 
@@ -139,7 +141,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantNumber constantNumber, SD sd,
                 Setter<SD> setter ) {
             try {
-                setter.set( sd, SLDSerializer.ff.literal( (Number)constantNumber.value.get() ) );
+                setter.set( sd, SLDSerializer.ff.literal( (Number)constantNumber.constantNumber.get() ) );
                 return Collections.singletonList( sd );
             }
             catch (Exception e) {
@@ -149,43 +151,6 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
     }
 
 
-    static class PropertyValueHandler
-            extends StylePropertyValueHandler<PropertyValue,Object> {
-
-        @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( PropertyValue spv, SD sd,
-                Setter<SD> setter ) {
-            try {
-                setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get() ) );
-                return Collections.singletonList( sd );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
-            }
-        }
-    }
-
-
-    static class PropertyNumberHandler
-            extends StylePropertyValueHandler<PropertyNumber,Number> {
-
-        @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( PropertyNumber spv, SD sd,
-                Setter<SD> setter ) {
-            try {
-                setter.set( sd, SLDSerializer.ff.property( (String)spv.value.get() ) );
-                return Collections.singletonList( sd );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
-            }
-        }
-    }
-
-
-    /**
-     * ConstantColor
-     */
     static class ConstantColorHandler
             extends StylePropertyValueHandler<ConstantColor,Color> {
 
@@ -219,8 +184,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantString src, SD sd, Setter<SD> setter ) {
-            if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+            if (src.constantString.get() != null) {
+                setter.set( sd, SLDSerializer.ff.literal( src.constantString.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -303,4 +268,21 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             return Collections.singletonList( sd );
         }
     }
+
+
+    static class PropertyValueHandler
+            extends StylePropertyValueHandler<PropertyValue,Object> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( PropertyValue spv, SD sd, Setter<SD> setter ) {
+            try {
+                setter.set( sd, SLDSerializer.ff.property( (String)spv.propertyValue.get() ) );
+                return Collections.singletonList( sd );
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
+            }
+        }
+    }
+
 }

@@ -64,10 +64,10 @@ class ConstantNumberEditor
                 IntRange ai = (IntRange)prop.info().getAnnotation( IntRange.class );
                 DoubleRange ad = (DoubleRange)prop.info().getAnnotation( DoubleRange.class );
                 if (ai != null) {
-                    proto.value.set( ai.defaultValue() );
+                    proto.constantNumber.set( ai.defaultValue() );
                 }
                 else if (ad != null) {
-                    proto.value.set( ad.defaultValue() );
+                    proto.constantNumber.set( ad.defaultValue() );
                 }
                 else {
                     throw new RuntimeException( "No Number value range defined for: " + prop );
@@ -82,14 +82,14 @@ class ConstantNumberEditor
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
         Text t = new Text( contents, SWT.BORDER );
-        t.setText( prop.get().value.get().toString() );
+        t.setText( prop.get().constantNumber.get().toString() );
         
         t.addModifyListener( new ModifyListener() {
             @Override
             public void modifyText( ModifyEvent ev ) {
                 // XXX
                 Double newValue = Double.valueOf( t.getText() );
-                prop.get().value.set( newValue );
+                prop.get().constantNumber.set( newValue );
             }
         });
         return contents;

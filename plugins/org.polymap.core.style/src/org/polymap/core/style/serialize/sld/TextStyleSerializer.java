@@ -38,6 +38,7 @@ public class TextStyleSerializer
 
     @Override
     public void doSerialize( TextStyle style ) {
+        setDefaultFilter( style );
         setComposite( new FontSerializer().serialize( style.font.get() ),
                 ( TextSymbolizerDescriptor sd, FontDescriptor value ) -> sd.font.set( value ) );
         setComposite( new HaloSerializer().serialize( style.halo.get() ),

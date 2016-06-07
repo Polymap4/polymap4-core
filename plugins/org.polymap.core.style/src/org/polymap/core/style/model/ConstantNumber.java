@@ -33,7 +33,7 @@ public class ConstantNumber<T extends Number>
         return new ValueInitializer<ConstantNumber<N>>() {
             @Override
             public ConstantNumber initialize( ConstantNumber proto ) throws Exception {
-                proto.value.set( value );
+                proto.constantNumber.set( value );
                 return proto;
             }
         };
@@ -43,6 +43,6 @@ public class ConstantNumber<T extends Number>
     // instance *******************************************
     //@Nullable
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<Number>             value;
+    public Property<Number>             constantNumber;
     
 }

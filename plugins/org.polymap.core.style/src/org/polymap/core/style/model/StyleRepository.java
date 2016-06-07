@@ -87,17 +87,20 @@ public class StyleRepository
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
-                        NoValue.class,
-                        PropertyNumber.class,
-                        PropertyString.class,
                         FeatureStyle.class,
                         FilterMappedNumbers.class,
                         Halo.class,
                         LabelPlacement.class,
                         LineStyle.class,
+                        NoValue.class,
                         // ScaleMappedNumbers.class,
                         PointStyle.class,
                         PolygonStyle.class,
+                        PropertyNumber.class,
+                        PropertyString.class,
+                        PropertyValue.class,
+                        PropertyMatchingNumberFilter.class,
+                        PropertyMatchingStringFilter.class,
                         TextStyle.class
                 } ).store.set(
                         new OptimisticLocking(
@@ -154,6 +157,16 @@ public class StyleRepository
                 // geotools.styling.Style
                 if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
                     result = (T)new SLDSerializer().serialize( sc );
+                    // only for debugging
+                    try {
+                        SLDTransformer styleTransform = new SLDTransformer();
+                        styleTransform.setIndentation( 4 );
+                        styleTransform.setOmitXMLDeclaration( false );
+                        styleTransform.transform( result, System.err );
+                    }
+                    catch (TransformerException e) {
+                        throw new RuntimeException( "Unable to transform style.", e );
+                    }
                 }
                 // String/SLD
                 else if (String.class.isAssignableFrom( targetType )) {
