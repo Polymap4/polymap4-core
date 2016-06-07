@@ -76,7 +76,7 @@ public class FilterTest {
         Filter decoded = ConstantFilter.decode( encoded );
 
         assertEquals( filter, decoded );
-        assertEquals( "[]", decoded.toString() );
+        assertEquals( "[ prop = literal ]", decoded.toString() );
     }
 
 
