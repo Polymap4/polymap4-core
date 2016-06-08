@@ -18,10 +18,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Spinner;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
@@ -32,7 +32,7 @@ import org.polymap.core.style.model.IntRange;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Editor that creates one {@link ConstantNumber}. 
+ * Editor that creates one {@link ConstantNumber}.
  *
  * @author Falko Bräutigam
  * @author Steffen Stundzig
@@ -43,10 +43,11 @@ class ConstantNumberEditor
     private static final IMessages i18n = Messages.forPrefix( "ConstantNumber" );
 
     private static Log log = LogFactory.getLog( ConstantNumberEditor.class );
-    
+
+
     @Override
     public String label() {
-        return i18n.get( "title");
+        return i18n.get( "title" );
     }
 
 
@@ -59,6 +60,7 @@ class ConstantNumberEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<ConstantNumber>() {
+
             @Override
             public ConstantNumber initialize( ConstantNumber proto ) throws Exception {
                 IntRange ai = (IntRange)prop.info().getAnnotation( IntRange.class );
@@ -74,25 +76,50 @@ class ConstantNumberEditor
                 }
                 return proto;
             }
-        });
+        } );
     }
 
 
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        Text t = new Text( contents, SWT.BORDER );
-        t.setText( prop.get().constantNumber.get().toString() );
-        
-        t.addModifyListener( new ModifyListener() {
-            @Override
-            public void modifyText( ModifyEvent ev ) {
-                // XXX
-                Double newValue = Double.valueOf( t.getText() );
-                prop.get().constantNumber.set( newValue );
+        Spinner s = new Spinner( contents, SWT.BORDER );
+        IntRange ai = (IntRange)prop.info().getAnnotation( IntRange.class );
+        DoubleRange ad = (DoubleRange)prop.info().getAnnotation( DoubleRange.class );
+        if (ad != null) {
+            int digits = ad.digits();
+            double currentValue = (double)prop.get().constantNumber.get();
+            s.setDigits( digits );
+            s.setSelection( (int)(currentValue * Math.pow( 10, digits )) );
+            s.setMinimum( (int)(ad.from() * Math.pow( 10, digits )) );
+            s.setMaximum( (int)(ad.to() * Math.pow( 10, digits )) );
+            if (ad.to() == 1) {
+                s.setIncrement( (int)Math.pow( 10, digits - 1 ) );
+                s.setPageIncrement( (int)Math.pow( 10, digits ) );
             }
-        });
+            else if (ad.to() <= 100) {
+                s.setIncrement( (int)(100 * Math.pow( 10, digits - 1 )) );
+                s.setPageIncrement( (int)(100 * Math.pow( 10, digits )) );
+            }
+            else {
+                // default
+                s.setIncrement( (int)(20 * Math.pow( 10, digits - 1 )) );
+                s.setPageIncrement( (int)(200 * Math.pow( 10, digits )) );
+            }
+        }
+        else if (ai != null) {
+            s.setSelection( (int)prop.get().constantNumber.get() );
+            s.setMinimum( ai.from() );
+            s.setMaximum( ai.to() );
+        }
+        s.addSelectionListener( new SelectionAdapter() {
+
+            public void widgetSelected( SelectionEvent e ) {
+                int selection = s.getSelection();
+                int digits = s.getDigits();
+                prop.get().constantNumber.set( selection / Math.pow( 10, digits ) );
+            }
+        } );
         return contents;
     }
-    
 }

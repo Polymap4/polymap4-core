@@ -42,7 +42,7 @@ public class Halo
     @Nullable
     @UIOrder(50)
     @Description("width")
-    @DoubleRange( from=0, to=100, defaultValue=2 )
+    @DoubleRange( from=0, to=1000, defaultValue=2 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> width;
 

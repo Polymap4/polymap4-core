@@ -22,17 +22,20 @@ import java.lang.annotation.Target;
 
 /**
  * 
- *
+ * 
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
 @Documented
 public @interface DoubleRange {
 
-    public double from();
+    double from() default 0;
     
-    public double to();
+    double to() default 10000;
     
-    public double defaultValue();
+    double defaultValue();
+    
+    int digits() default 1;
 }
