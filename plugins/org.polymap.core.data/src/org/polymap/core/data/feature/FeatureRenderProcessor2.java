@@ -132,7 +132,7 @@ public class FeatureRenderProcessor2
 //            }
 
         // Render
-        BufferedImage result = new BufferedImage( request.getWidth(), request.getWidth(), BufferedImage.TYPE_INT_ARGB );
+        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
         //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
@@ -181,8 +181,6 @@ public class FeatureRenderProcessor2
             renderer.setRendererHints( rendererParams );
 
             renderer.setMapContent( mapContent );
-            
-
             Rectangle paintArea = new Rectangle( request.getWidth(), request.getHeight() );
             renderer.paint( g, paintArea, request.getBoundingBox() );
             
