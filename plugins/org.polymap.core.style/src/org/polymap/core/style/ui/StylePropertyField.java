@@ -84,6 +84,8 @@ public class StylePropertyField
         this.prop = fieldSite.prop.get();
         this.title.set( prop.info().getDescription().isPresent()
                 ? i18n.get( (String)prop.info().getDescription().get() ) : "" );
+        this.tooltip.set( prop.info().getDescription().isPresent()
+                ? i18n.get( (String)prop.info().getDescription().get() + "Tooltip" ) : "" );
         this.editors = StylePropertyEditor.forValue( fieldSite );
     }
 
