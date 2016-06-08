@@ -14,10 +14,6 @@
  */
 package org.polymap.core.data.feature;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -25,17 +21,22 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import org.geotools.data.FeatureSource;
-import org.geotools.map.FeatureLayer;
-import org.geotools.map.MapContent;
-import org.geotools.renderer.RenderListener;
-import org.geotools.renderer.lite.StreamingRenderer;
-import org.geotools.styling.Style;
-import org.opengis.feature.simple.SimpleFeature;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.geotools.data.FeatureSource;
+import org.geotools.filter.function.EnvFunction;
+import org.geotools.map.FeatureLayer;
+import org.geotools.map.MapContent;
+import org.geotools.renderer.RenderListener;
+import org.geotools.renderer.lite.RendererUtilities;
+import org.geotools.renderer.lite.StreamingRenderer;
+import org.geotools.styling.Style;
+import org.opengis.feature.simple.SimpleFeature;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
@@ -131,7 +132,7 @@ public class FeatureRenderProcessor2
 //            }
 
         // Render
-        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
+        BufferedImage result = new BufferedImage( request.getWidth(), request.getWidth(), BufferedImage.TYPE_INT_ARGB );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
         //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
@@ -167,6 +168,10 @@ public class FeatureRenderProcessor2
                     RenderingHints.KEY_TEXT_ANTIALIASING,
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
 
+            // geoserver compatibility to support *env* in SLD functions
+            double scale = RendererUtilities.calculateOGCScale( request.getBoundingBox(), request.getWidth(), Collections.EMPTY_MAP);
+            EnvFunction.setLocalValue( "wms_scale_denominator", scale );
+            
             renderer.setJava2DHints( hints );
             // g.setRenderingHints( hints );
 
@@ -176,8 +181,12 @@ public class FeatureRenderProcessor2
             renderer.setRendererHints( rendererParams );
 
             renderer.setMapContent( mapContent );
+            
+
             Rectangle paintArea = new Rectangle( request.getWidth(), request.getHeight() );
             renderer.paint( g, paintArea, request.getBoundingBox() );
+            
+            EnvFunction.clearLocalValues();
         }
         catch (Throwable e) {
             log.error( "Renderer error: ", e );
