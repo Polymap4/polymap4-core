@@ -61,7 +61,9 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             FeaturePropertyMatchingNumberEditor.class,
             FeaturePropertyMatchingStringEditor.class,
             NoValueEditor.class,
-            ScaleRangeEditor.class};
+            ScaleRangeEditor.class,
+            TableBasedPropertyMappedNumbersEditor.class,
+            TableBasedScaleMappedNumbersEditor.class};
 
 
     /**

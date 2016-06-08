@@ -14,7 +14,8 @@
  */
 package org.polymap.core.style.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
 
 import org.geotools.styling.PointSymbolizer;
@@ -37,11 +38,15 @@ import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.model.PropertyMappedNumbers;
 import org.polymap.core.style.model.PropertyNumber;
 import org.polymap.core.style.model.PropertyString;
+import org.polymap.core.style.model.ScaleMappedNumbers;
 import org.polymap.core.style.model.StyleRepository;
 import org.polymap.core.style.model.TextStyle;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
+
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * @author Falko Bräutigam
@@ -50,8 +55,8 @@ import org.polymap.core.style.serialize.sld.SLDSerializer;
 public class StyleModelTest {
 
     private static Log log = LogFactory.getLog( StyleModelTest.class );
-    
-    private static StyleRepository  repo;
+
+    private static StyleRepository repo;
 
 
     @BeforeClass
@@ -59,22 +64,25 @@ public class StyleModelTest {
         repo = new StyleRepository( null );
     }
 
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (repo != null) { repo.close(); }
+        if (repo != null) {
+            repo.close();
+        }
     }
 
 
     // instance *******************************************
-    
+
     @Test
     public void testPoint() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
-        
+
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
         assertTrue( point.visibleIf.get() instanceof ConstantFilter );
-        
+
         point.diameter.createValue( ConstantNumber.defaults( 10.0 ) );
         point.fill.get().color.createValue( ConstantColor.defaults( 0, 0, 0 ) );
         point.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
@@ -83,7 +91,7 @@ public class StyleModelTest {
         point.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
                 .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
                 .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
-        
+
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
@@ -92,45 +100,48 @@ public class StyleModelTest {
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
 
+
     @Test
     public void testFeatureBasedPoint() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
-        
+
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
-        
+
         assertTrue( point.visibleIf.get() instanceof ConstantFilter );
-        
+
         point.diameter.createValue( ConstantNumber.defaults( 23.0 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
-        org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class ).get();
+        org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class )
+                .get();
         PointSymbolizer sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize());
-        
-        point.diameter.createValue( PropertyNumber.defaults("foo") );
+        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
+
+        point.diameter.createValue( PropertyNumber.defaults( "foo" ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class ).get();
         sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.property( "foo" ), sym.getGraphic().getSize());
-    
+        assertEquals( SLDSerializer.ff.property( "foo" ), sym.getGraphic().getSize() );
+
         point.diameter.createValue( ConstantNumber.defaults( 42.0 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class ).get();
         sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.literal( 42.0 ), sym.getGraphic().getSize());
+        assertEquals( SLDSerializer.ff.literal( 42.0 ), sym.getGraphic().getSize() );
     }
-    
+
+
     @Test
     public void testPolygon() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
-        
+
         // point
         PolygonStyle polygon = fs.members().createElement( PolygonStyle.defaults );
         assertTrue( polygon.visibleIf.get() instanceof ConstantFilter );
-        
+
         polygon.fill.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
         polygon.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
         polygon.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
@@ -140,29 +151,30 @@ public class StyleModelTest {
         polygon.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
         polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
         polygon.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
-        
+
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
-    
-    
+
+
     @Test
     public void testText() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
-        
+
         // point
         TextStyle text = fs.members().createElement( TextStyle.defaults );
-        
-        text.property.createValue( ConstantString.defaults( "constant" )  );
+
+        text.property.createValue( ConstantString.defaults( "constant" ) );
         // text.halo.createValue( Halo.defaults );
         text.halo.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
-        text.property.createValue( PropertyString.defaults( "featureproperty" )  );
+        text.property.createValue( PropertyString.defaults( "featureproperty" ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
+
 
     @Test
     public void testLine() throws Exception {
@@ -185,5 +197,78 @@ public class StyleModelTest {
 
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+    }
+
+
+    @Test
+    public void propertyNumberWithMinimumMaximum() {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        // point
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+
+        point.diameter.createValue( PropertyNumber.defaults( "foo", new Double(8), new Double(23) ) );
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class )
+                .get();
+        PointSymbolizer sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
+//        Map<String, Object> record = Maps.newHashMap();
+//        record.put( "foo", 48 );
+        assertEquals( "min([max([foo], [8.0])], [23.0])", sym.getGraphic().getSize().toString() );
+    }
+    
+
+    @Test
+    public void expressionMappedNumbers() {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        // point
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+
+        point.diameter.createValue( new ValueInitializer<PropertyMappedNumbers<Double>>() {
+            @Override
+            public PropertyMappedNumbers<Double> initialize( PropertyMappedNumbers<Double> proto ) throws Exception {
+                proto.propertyName.set( "foo" );
+                proto.defaultNumberValue.set(new Double(23));
+                proto.add( new Double(5), ff.literal( "big" ) );
+                proto.add( new Double(15), ff.literal( "bigger" ) );
+                return proto;
+            }} );
+        
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+//        org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class )
+//                .get();
+//        PointSymbolizer sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
+//        Map<String, Object> record = Maps.newHashMap();
+//        record.put( "foo", 48 );
+//        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize().evaluate( record ) );
+    }
+    
+    @Test
+    public void scaleMappedNumbers() {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        // point
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+
+        point.diameter.createValue( new ValueInitializer<ScaleMappedNumbers<Double>>() {
+            @Override
+            public ScaleMappedNumbers<Double> initialize( ScaleMappedNumbers<Double> proto ) throws Exception {
+                proto.defaultNumberValue.set(new Double(23));
+                proto.add( new Double(5), new Double(10000) );
+                proto.add( new Double(150), new Double(500000) );
+                return proto;
+            }} );
+        
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+//        org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class )
+//                .get();
+//        PointSymbolizer sym = (PointSymbolizer)style.getFeatureTypeStyles()[0].getRules()[0].getSymbolizers()[0];
+//        Map<String, Object> record = Maps.newHashMap();
+//        record.put( "foo", 48 );
+//        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize().evaluate( record ) );
     }
 }

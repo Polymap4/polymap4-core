@@ -68,6 +68,8 @@ class FeaturePropertyBasedNumberEditor
             @Override
             public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
                 proto.propertyValue.set( "" );
+                proto.minimumValue.set( new Double(8) );
+                proto.maximumValue.set( new Double(23) );
                 return proto;
             }
         } );

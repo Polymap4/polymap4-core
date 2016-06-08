@@ -99,8 +99,10 @@ public class StyleRepository
                         PropertyNumber.class,
                         PropertyString.class,
                         PropertyValue.class,
+                        PropertyMappedNumbers.class,
                         PropertyMatchingNumberFilter.class,
                         PropertyMatchingStringFilter.class,
+                        ScaleMappedNumbers.class,
                         ScaleRangeFilter.class,
                         TextStyle.class
                 } ).store.set(
@@ -159,15 +161,15 @@ public class StyleRepository
                 if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
                     result = (T)new SLDSerializer().serialize( sc );
                     // only for easier debugging
-                    // try {
-                    // SLDTransformer styleTransform = new SLDTransformer();
-                    // styleTransform.setIndentation( 4 );
-                    // styleTransform.setOmitXMLDeclaration( false );
-                    // styleTransform.transform( result, System.err );
-                    // }
-                    // catch (TransformerException e) {
-                    // throw new RuntimeException( "Unable to transform style.", e );
-                    // }
+                     try {
+                     SLDTransformer styleTransform = new SLDTransformer();
+                     styleTransform.setIndentation( 4 );
+                     styleTransform.setOmitXMLDeclaration( false );
+                     styleTransform.transform( result, System.err );
+                     }
+                     catch (TransformerException e) {
+                     throw new RuntimeException( "Unable to transform style.", e );
+                     }
                 }
                 // String/SLD
                 else if (String.class.isAssignableFrom( targetType )) {
@@ -178,7 +180,7 @@ public class StyleRepository
                         styleTransform.setOmitXMLDeclaration( false );
                         result = (T)styleTransform.transform( style );
                         // only for easier debugging
-                        // System.err.println( result );
+//                         System.err.println( result );
                     }
                     catch (TransformerException e) {
                         throw new RuntimeException( "Unable to transform style.", e );

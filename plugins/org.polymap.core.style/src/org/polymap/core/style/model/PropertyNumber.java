@@ -14,6 +14,11 @@
  */
 package org.polymap.core.style.model;
 
+import org.polymap.model2.Concerns;
+import org.polymap.model2.Nullable;
+import org.polymap.model2.Property;
+import org.polymap.model2.runtime.ValueInitializer;
+
 /**
  * Describes a feature property based number.
  *
@@ -21,4 +26,34 @@ package org.polymap.core.style.model;
  */
 public class PropertyNumber<T extends Number>
         extends PropertyValue<T> {
+    
+
+    /**
+     * Initializes a newly created instance with the given default value.
+     */
+    public static ValueInitializer<PropertyNumber> defaults( final String value, final Double minimum, final Double maximum ) {
+        return new ValueInitializer<PropertyNumber>() {
+
+            @Override
+            public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
+                proto.propertyValue.set( value );
+                proto.minimumValue.set( minimum );
+                proto.maximumValue.set( maximum );
+                return proto;
+            }
+        };
+    }
+
+    // instance *******************************************
+
+    @Nullable
+    @DoubleRange(defaultValue=0)
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<Double> minimumValue;
+
+    @Nullable
+    @DoubleRange(defaultValue=10000)
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<Double> maximumValue;
+    
 }
