@@ -183,8 +183,6 @@ public class FeatureRenderProcessor2
             renderer.setMapContent( mapContent );
             Rectangle paintArea = new Rectangle( request.getWidth(), request.getHeight() );
             renderer.paint( g, paintArea, request.getBoundingBox() );
-            
-            EnvFunction.clearLocalValues();
         }
         catch (Throwable e) {
             log.error( "Renderer error: ", e );
@@ -192,6 +190,7 @@ public class FeatureRenderProcessor2
         }
         finally {
             mapContent.dispose();
+            EnvFunction.clearLocalValues();
             if (g != null) { g.dispose(); }
         }
         log.debug( "   ...done: (" + (System.currentTimeMillis()-start) + "ms)." );
