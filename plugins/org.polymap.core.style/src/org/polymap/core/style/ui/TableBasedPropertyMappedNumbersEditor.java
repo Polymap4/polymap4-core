@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.PropertyMappedNumbers;
+import org.polymap.core.style.model.ExpressionMappedNumbers;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -30,7 +30,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Steffen Stundzig
  */
 class TableBasedPropertyMappedNumbersEditor
-        extends StylePropertyEditor<PropertyMappedNumbers>{
+        extends StylePropertyEditor<ExpressionMappedNumbers>{
 
     private static final IMessages i18n = Messages.forPrefix( "TableBasedPropertyMappedNumbers" );
 
@@ -51,16 +51,16 @@ class TableBasedPropertyMappedNumbersEditor
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<PropertyMappedNumbers>() {
+        prop.createValue( new ValueInitializer<ExpressionMappedNumbers>() {
 
             @Override
-            public PropertyMappedNumbers initialize( PropertyMappedNumbers proto ) throws Exception {
+            public ExpressionMappedNumbers initialize( ExpressionMappedNumbers proto ) throws Exception {
                 proto.propertyName.set( "dxf_color" );
                 proto.defaultNumberValue.set( new Double(50) );
                 proto.numberValues.clear();
-                proto.expressions.clear();
-                proto.add( new Double(5), ff.literal( "1" ) );
-                proto.add( new Double(150), ff.literal( "191" ) );
+                proto.properties.clear();
+                proto.add( "1", new Double(5) );
+                proto.add( "191", new Double(150) );
                 return proto;
             }
         } );

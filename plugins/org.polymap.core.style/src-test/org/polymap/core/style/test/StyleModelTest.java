@@ -20,6 +20,8 @@ import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
 
 import java.util.List;
 
+import java.awt.Color;
+
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.Style;
@@ -43,7 +45,8 @@ import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
-import org.polymap.core.style.model.PropertyMappedNumbers;
+import org.polymap.core.style.model.ExpressionMappedColors;
+import org.polymap.core.style.model.ExpressionMappedNumbers;
 import org.polymap.core.style.model.PropertyNumber;
 import org.polymap.core.style.model.PropertyString;
 import org.polymap.core.style.model.ScaleMappedNumbers;
@@ -51,7 +54,6 @@ import org.polymap.core.style.model.StyleRepository;
 import org.polymap.core.style.model.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
-
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -183,7 +185,7 @@ public class StyleModelTest {
 
 
     @Test
-    public void testLine() throws Exception {
+    public void simpleLine() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
 
         // point
@@ -239,18 +241,56 @@ public class StyleModelTest {
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
 
-        point.diameter.createValue( new ValueInitializer<PropertyMappedNumbers<Double>>() {
+        point.diameter.createValue( new ValueInitializer<ExpressionMappedNumbers<Double>>() {
 
             @Override
-            public PropertyMappedNumbers<Double> initialize( PropertyMappedNumbers<Double> proto ) throws Exception {
+            public ExpressionMappedNumbers<Double> initialize( ExpressionMappedNumbers<Double> proto )
+                    throws Exception {
                 proto.propertyName.set( "foo" );
                 proto.defaultNumberValue.set( new Double( 23 ) );
-                proto.add( new Double( 5 ), ff.literal( "big" ) );
-                proto.add( new Double( 15 ), ff.literal( "bigger" ) );
+                proto.add( "big", new Double( 5 ) );
+                proto.add( "bigger", new Double( 15 ) );
                 return proto;
             }
         } );
 
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.GEOSERVER ).get();
+        List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
+        assertEquals( 1, featureTypeStyles.size() );
+        assertEquals( Filter.INCLUDE, featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter() );
+
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.OGC ) );
+        style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.OGC ).get();
+        featureTypeStyles = style.featureTypeStyles();
+        assertEquals( 3, featureTypeStyles.size() );
+        assertEquals( "[ foo = big ]", featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter().toString() );
+        assertEquals( "[ foo = bigger ]", featureTypeStyles.get( 1 ).rules().get( 0 ).getFilter().toString() );
+        assertEquals( "[[ foo != big ] AND [ foo != bigger ]]",
+                featureTypeStyles.get( 2 ).rules().get( 0 ).getFilter().toString() );
+    }
+
+
+    @Test
+    public void propertyMappedColors() {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        // point
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+
+        point.diameter.createValue( ConstantNumber.defaults( 5.0 ) );
+        point.fill.get().color.createValue( new ValueInitializer<ExpressionMappedColors>() {
+
+            @Override
+            public ExpressionMappedColors initialize( ExpressionMappedColors proto ) throws Exception {
+                proto.propertyName.set( "foo" );
+                proto.setDefaultColor( new Color( 0, 0, 0 ) );
+                proto.add( ff.literal( "big" ), new Color( 255, 0, 0 ) );
+                proto.add( ff.literal( "bigger" ), new Color( 0, 0, 255 ) );
+                return proto;
+            }
+        } );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.GEOSERVER ).get();

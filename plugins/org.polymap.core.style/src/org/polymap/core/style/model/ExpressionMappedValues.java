@@ -41,51 +41,61 @@ import org.polymap.core.runtime.Timer;
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * Conditions based numbers.
  * 
  * @author Steffen Stundzig
  */
-public class PropertyMappedNumbers<T extends Number>
+public abstract class ExpressionMappedValues<T>
         extends StylePropertyValue<T> {
 
-    public static final Configuration   ENCODE_CONFIG = new org.geotools.filter.v1_1.OGCConfiguration();
-    public static final Charset         ENCODE_CHARSET = Charset.forName( "UTF-8" );
+    public static final Configuration ENCODE_CONFIG = new org.geotools.filter.v1_1.OGCConfiguration();
 
-    private static Log log = LogFactory.getLog( PropertyMappedNumbers.class );
+    public static final Charset ENCODE_CHARSET = Charset.forName( "UTF-8" );
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
-    public static <R extends Number> ValueInitializer<PropertyMappedNumbers<R>> defaults() {
-        return new ValueInitializer<PropertyMappedNumbers<R>>() {
-            @Override
-            public PropertyMappedNumbers<R> initialize( PropertyMappedNumbers<R> proto ) throws Exception {
-                return proto;
-            }
-        };
-    }
-    
+    private static Log log = LogFactory.getLog( ExpressionMappedValues.class );
+    //
+    // /**
+    // * Initializes a newly created instance with default values.
+    // */
+    // public static <R extends Number> ValueInitializer<PropertyMappedValues<R>>
+    // defaults() {
+    // return new ValueInitializer<PropertyMappedValues<R>>() {
+    // @Override
+    // public PropertyMappedValues<R> initialize( PropertyMappedValues<R> proto )
+    // throws Exception {
+    // return proto;
+    // }
+    // };
+    // }
 
     // instance *******************************************
-    
+
     // XXX Collections are not supported yet, use force-fire-fake prop?
-    
-    @Concerns( StylePropertyChange.Concern.class )
+
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<String> propertyName;
 
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<Number> defaultNumberValue;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<Number> numberValues;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
+    // @Concerns( StylePropertyChange.Concern.class )
     public CollectionProperty<String> expressions;
-    
-    
+
+
+    public ExpressionMappedValues add( Expression expression, T value ) throws IOException {
+        expressions.add( encode( expression ) );
+        return add( value );
+    }
+
+
+    public abstract ExpressionMappedValues add( T value );
+
+
+    public abstract T defaultValue();
+
+
+    public abstract Collection<T> values();
+
+
     public Collection<Expression> expressions() {
         return Collections2.transform( expressions, encoded -> {
             try {
@@ -94,26 +104,20 @@ public class PropertyMappedNumbers<T extends Number>
             catch (Exception e) {
                 throw new RuntimeException( e );
             }
-        });
+        } );
     }
-    
-    
-    public PropertyMappedNumbers add( T number, Expression expression ) throws IOException {
-        numberValues.add( number );
-        expressions.add( encode( expression ) );
-        return this;
-    }
-    
+
+
     public static Expression decode( String encoded ) throws IOException, SAXException, ParserConfigurationException {
         Parser parser = new Parser( ENCODE_CONFIG );
         Object result = parser.parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
         if (result instanceof Expression) {
             return (Expression)result;
         }
-        if (result instanceof String && StringUtils.isBlank((String)result)) {
+        if (result instanceof String && StringUtils.isBlank( (String)result )) {
             return Expression.NIL;
         }
-        throw new IOException("unknown parser result " + result);
+        throw new IOException( "unknown parser result " + result );
     }
 
 
@@ -125,7 +129,9 @@ public class PropertyMappedNumbers<T extends Number>
         encoder.setEncoding( ENCODE_CHARSET );
         encoder.setNamespaceAware( false );
         encoder.setOmitXMLDeclaration( true );
-        QName name = org.geotools.filter.v1_1.OGC.expression; //new QName( "http://www.opengis.net/ogc", "Filter" );
+        QName name = org.geotools.filter.v1_1.OGC.expression; // new QName(
+                                                              // "http://www.opengis.net/ogc",
+                                                              // "Filter" );
         String encoded = encoder.encodeAsString( expression, name );
         log.info( "Filter encoded (" + t.elapsedTime() + "ms)" );
         return encoded;

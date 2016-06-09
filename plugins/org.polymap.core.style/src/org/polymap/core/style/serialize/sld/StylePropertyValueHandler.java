@@ -93,8 +93,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             else if (spv instanceof PropertyNumber) {
                 return new PropertyNumberHandler().doHandle( context, (PropertyNumber)spv, sd, setter );
             }
-            else if (spv instanceof PropertyMappedNumbers) {
-                return new PropertyMappedNumbersHandler().doHandle( context, (PropertyMappedNumbers)spv, sd, setter );
+            else if (spv instanceof ExpressionMappedValues) {
+                return new ExpressionMappedValuesHandler().doHandle( context, (ExpressionMappedValues)spv, sd, setter );
             }
             else if (spv instanceof ScaleMappedNumbers) {
                 return new ScaleMappedNumbersHandler().doHandle( context, (ScaleMappedNumbers)spv, sd, setter );
