@@ -65,20 +65,20 @@ public class ColumnLayoutFactory {
         return this;
     }
 
-    public ColumnLayoutFactory margins( int width, int height ) {
-        layout.leftMargin = width;
-        layout.rightMargin = width;
-        layout.topMargin = height;
-        layout.bottomMargin = height;
+    public ColumnLayoutFactory margins( int top, int right, int bottom, int left ) {
+        layout.leftMargin = left;
+        layout.rightMargin = right;
+        layout.topMargin = top;
+        layout.bottomMargin = bottom;
         return this;
     }
 
+    public ColumnLayoutFactory margins( int width, int height ) {
+        return margins( height, width, height, width );
+    }
+
     public ColumnLayoutFactory margins( int margin ) {
-        layout.leftMargin = margin;
-        layout.rightMargin = margin;
-        layout.topMargin = margin;
-        layout.bottomMargin = margin;
-        return this;
+        return margins( margin, margin, margin, margin );
     }
 
     public ColumnLayoutFactory columns( int min, int max ) {
