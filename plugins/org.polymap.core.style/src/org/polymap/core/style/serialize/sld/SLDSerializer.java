@@ -34,7 +34,7 @@ import org.geotools.styling.Stroke;
 import org.geotools.styling.Style;
 import org.geotools.styling.StyleFactory;
 import org.geotools.styling.Symbolizer;
-import org.opengis.filter.FilterFactory;
+import org.opengis.filter.FilterFactory2;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -71,7 +71,7 @@ public class SLDSerializer
 
     public static final StyleFactory sf = CommonFactoryFinder.getStyleFactory( null );
 
-    public static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
+    public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
 
 
     /**
@@ -101,19 +101,19 @@ public class SLDSerializer
             }
             // Point
             else if (PointStyle.class.isInstance( style )) {
-                descriptors.addAll( new PointStyleSerializer().serialize( (PointStyle)style ) );
+                descriptors.addAll( new PointStyleSerializer(context).serialize( (PointStyle)style ) );
             }
             // Polygon
             else if (PolygonStyle.class.isInstance( style )) {
-                descriptors.addAll( new PolygonStyleSerializer().serialize( (PolygonStyle)style ) );
+                descriptors.addAll( new PolygonStyleSerializer(context).serialize( (PolygonStyle)style ) );
             }
             // Text
             else if (TextStyle.class.isInstance( style )) {
-                descriptors.addAll( new TextStyleSerializer().serialize( (TextStyle)style ) );
+                descriptors.addAll( new TextStyleSerializer(context).serialize( (TextStyle)style ) );
             }
             // Line
             else if (LineStyle.class.isInstance( style )) {
-                descriptors.addAll( new LineStyleSerializer().serialize( (LineStyle)style ) );
+                descriptors.addAll( new LineStyleSerializer(context).serialize( (LineStyle)style ) );
             }
             else {
                 throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );

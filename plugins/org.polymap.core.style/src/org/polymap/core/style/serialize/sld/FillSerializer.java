@@ -20,12 +20,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.Fill;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * @author Steffen Stundzig
  */
 public class FillSerializer
         extends StyleCompositeSerializer<Fill,FillDescriptor> {
+
+    public FillSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( FillSerializer.class );
 

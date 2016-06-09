@@ -24,6 +24,7 @@ import org.polymap.core.style.model.Font;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
 import org.polymap.core.style.model.FontWeight;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link Font}. Since fonts are handled as special Font[] and not as Expressions, here the
@@ -34,6 +35,11 @@ import org.polymap.core.style.model.FontWeight;
  */
 public class FontSerializer
         extends StyleCompositeSerializer<Font,FontDescriptor> {
+
+    public FontSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( FontSerializer.class );
 

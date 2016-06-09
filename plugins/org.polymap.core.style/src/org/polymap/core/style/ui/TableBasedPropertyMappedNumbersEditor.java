@@ -56,11 +56,11 @@ class TableBasedPropertyMappedNumbersEditor
             @Override
             public PropertyMappedNumbers initialize( PropertyMappedNumbers proto ) throws Exception {
                 proto.propertyName.set( "dxf_color" );
-                proto.defaultNumberValue.set( new Double(8) );
+                proto.defaultNumberValue.set( new Double(50) );
                 proto.numberValues.clear();
                 proto.expressions.clear();
                 proto.add( new Double(5), ff.literal( "1" ) );
-                proto.add( new Double(15), ff.literal( "192" ) );
+                proto.add( new Double(150), ff.literal( "191" ) );
                 return proto;
             }
         } );

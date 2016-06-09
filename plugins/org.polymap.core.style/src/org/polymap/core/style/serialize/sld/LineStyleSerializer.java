@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link PolygonStyle}.
@@ -25,6 +26,11 @@ import org.polymap.core.style.model.PolygonStyle;
  */
 public class LineStyleSerializer
         extends StyleSerializer<LineStyle,LineSymbolizerDescriptor> {
+
+    public LineStyleSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( LineStyleSerializer.class );
 
@@ -37,9 +43,9 @@ public class LineStyleSerializer
 
     @Override
     public void doSerializeStyle( final LineStyle style ) {
-        setComposite( new StrokeSerializer().serialize( style.fill.get() ),
+        setComposite( new StrokeSerializer(context()).serialize( style.fill.get() ),
                 ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.fill.set( value ) );
-        setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+        setComposite( new StrokeSerializer(context()).serialize( style.stroke.get() ),
                 ( LineSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
         // setValue( style.offset.get(), ( LineSymbolizerDescriptor sd, Expression
         // value ) -> sd.offset.set( value ) );

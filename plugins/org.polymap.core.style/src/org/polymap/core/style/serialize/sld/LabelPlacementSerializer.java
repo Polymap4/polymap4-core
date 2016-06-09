@@ -18,6 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.LabelPlacement;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link LabelPlacement}.
@@ -26,6 +27,11 @@ import org.polymap.core.style.model.LabelPlacement;
  */
 public class LabelPlacementSerializer
         extends StyleCompositeSerializer<LabelPlacement,LabelPlacementDescriptor> {
+
+    public LabelPlacementSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( LabelPlacementSerializer.class );
 

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.Stroke;
 import org.polymap.core.style.model.StrokeDashStyle;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link Stroke}.
@@ -32,6 +33,11 @@ import org.polymap.core.style.model.StrokeDashStyle;
  */
 public class StrokeSerializer
         extends StyleCompositeSerializer<Stroke,StrokeDescriptor> {
+
+    public StrokeSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( StrokeSerializer.class );
 

@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StyleComposite;
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serializes a particular {@link Style} into a flat list of
@@ -46,6 +47,12 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
 
     private Filter defaultFilter;
 
+    private Context context;
+
+    public StyleCompositeSerializer( Context context ) {
+        this.context = context;
+    }
+
 
     public List<SD> serialize( S style ) {
         assert descriptors == null;
@@ -57,6 +64,11 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
         finally {
             descriptors = null;
         }
+    }
+
+
+    protected Context context() {
+        return context;
     }
 
 
@@ -83,7 +95,7 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
 
         List<SD> updated = new ArrayList( descriptors.size() );
         for (SymbolizerDescriptor sd : descriptors) {
-            updated.addAll( StylePropertyValueHandler.handle( spv, (SD)sd, setter ) );
+            updated.addAll( StylePropertyValueHandler.handle(context, spv, (SD)sd, setter ) );
         }
         this.descriptors = updated;
     }
