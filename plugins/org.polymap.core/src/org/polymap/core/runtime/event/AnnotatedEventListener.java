@@ -101,8 +101,7 @@ class AnnotatedEventListener
                     
                     // currenty COMMENTED OUT! see EventManger#SessionEventDispatcher
                     if (annotation.delay() > 0 /*|| annotation.display()*/) {
-                        int delay = annotation.delay() > 0 ? annotation.delay() : 500;
-                        listener = new TimerDeferringListener( listener, delay, 10000 );
+                        listener = new TimerDeferringListener( listener, annotation.delay(), 10000 );
                     }
                     // filters
                     listener = new FilteringListener( listener, 

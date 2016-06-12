@@ -46,6 +46,7 @@ import org.polymap.core.runtime.session.SessionContext;
  * @see EventHandler
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings( "deprecation" )
 public class EventManager {
 
     private static Log log = LogFactory.getLog( EventManager.class );

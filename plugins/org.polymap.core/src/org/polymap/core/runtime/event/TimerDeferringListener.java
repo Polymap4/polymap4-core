@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.UIThreadExecutor;
 import org.polymap.core.runtime.session.SessionContext;
 
 /**
@@ -49,7 +50,7 @@ class TimerDeferringListener
     private SessionContext              sessionContext = SessionContext.current();
     
 
-    public  TimerDeferringListener( EventListener delegate, int delay, int maxEvents ) {
+    public TimerDeferringListener( EventListener delegate, int delay, int maxEvents ) {
         super( delegate, delay, maxEvents );
     }
 
@@ -73,7 +74,7 @@ class TimerDeferringListener
     protected class SchedulerTask
             extends TimerTask {
         
-        private volatile List<EventObject>  events = new ArrayList( 512 );
+        private volatile List<EventObject>  events = new ArrayList( 128 );
         
         public SchedulerTask schedule() {
             scheduler.schedule( this, delay );
@@ -88,7 +89,7 @@ class TimerDeferringListener
             if (sessionContext == null) {
                 doRun();
             }
-            // avoid overhead of a Job if events are handled in in UI thread anyway
+            // avoid overhead of a Job if events are handled in UI thread anyway
             else if (delegate instanceof DisplayingListener) {
                 sessionContext.execute( () -> doRun() );
             }
@@ -122,7 +123,8 @@ class TimerDeferringListener
                 log.warn( "Error while handling defered events.", e );
             }
             finally {
-                SessionUICallbackCounter.jobFinished( delegate );
+                // release current request *after* events have been handled in the display thread
+                UIThreadExecutor.async( () -> SessionUICallbackCounter.jobFinished( delegate ) );
             }
         }
     };

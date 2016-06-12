@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
+import org.polymap.core.runtime.UIThreadExecutor;
 import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.runtime.session.SessionSingleton;
 import org.polymap.core.ui.UIUtils;
@@ -38,67 +39,61 @@ abstract class DeferringListener
     private static Log log = LogFactory.getLog( DeferringListener.class );
 
     /**
-     * Counter for pending events per session.
+     * Keep a callback request open while there are pending delayed, display events.
      */
     static class SessionUICallbackCounter
             extends SessionSingleton {
         
-        public static int jobStarted( EventListener delegate ) {
-            return delegate instanceof DisplayingListener && SessionContext.current() != null ? 
-                    instance( SessionUICallbackCounter.class ).doJobStarted() : -1;
+        protected static SessionUICallbackCounter instance() {
+            //return SingletonUtil.getSessionInstance( ServerPushManager.class );
+            return instance( SessionUICallbackCounter.class );
         }
         
-        public static int jobFinished( EventListener delegate ) {
-            return delegate instanceof DisplayingListener && SessionContext.current() != null ? 
-                    instance( SessionUICallbackCounter.class ).doJobFinished() : -1;
+        public static void jobStarted( EventListener delegate ) {
+            if (delegate instanceof DisplayingListener && SessionContext.current() != null) {
+                String id = String.valueOf( delegate.hashCode() );
+                instance().doJobStarted( id );
+            }
+        }
+        
+        public static void jobFinished( EventListener delegate ) {
+            if (delegate instanceof DisplayingListener && SessionContext.current() != null) {
+                String id = String.valueOf( delegate.hashCode() );
+                instance().doJobFinished( id );
+            }
         }
 
+        
         // instance ***************************************
         
         private AtomicInteger       jobCount = new AtomicInteger( 0 );
         
         private AtomicInteger       maxJobCount = new AtomicInteger( 0 );
         
-        protected synchronized int doJobStarted() {
-            maxJobCount.incrementAndGet();
-            log.debug( "UICallback: job started. counter=" + jobCount.get() );
-            if (jobCount.getAndIncrement() == 0) {
-                UIUtils.sessionDisplay().asyncExec( new Runnable() {
-                    public void run() {
-                        UIUtils.activateCallback( "DeferredEvents" );
-                        log.debug( "UICallback: ON (counter=" + jobCount.get() + ")" );
-                    }
-                });
-            }
-            return jobCount.get();
+        protected void doJobStarted( String id ) {
+            log.debug( "Delayed events: job started for: " + id + ". counter: " + jobCount.incrementAndGet() );            
+            UIThreadExecutor.asyncFast( () -> UIUtils.activateCallback( id ) );
         }
         
-        protected synchronized int doJobFinished() {
-            log.debug( "UICallback: job finished. counter=" + jobCount.get() );
-            if (jobCount.decrementAndGet() == 0) {
-                final int max = maxJobCount.getAndSet( 0 );
-                UIUtils.sessionDisplay().asyncExec( new Runnable() {
-                    public void run() {
-                        UIUtils.deactivateCallback( "DeferredEvents" );
-                        log.debug( "UICallback: OFF (counter=" + jobCount.get() + ", max=" + max + ")" );
-                    }
-                });
-            }
-            return jobCount.get();
+        protected void doJobFinished( String id ) {
+            log.debug( "Delayed events: job finished for: " + id + ". counter: " + jobCount.decrementAndGet() );
+            UIThreadExecutor.asyncFast( () -> UIUtils.deactivateCallback( id ) );
         }
     }
     
 
     // instance *******************************************
     
-    protected int                       delay = 3000;
+    protected int                       delay;
     
     protected int                       maxEvents = 10000;
 
     
     public DeferringListener( EventListener delegate, int delay, int maxEvents ) {
         super( delegate );
+        assert delay > 0;
         this.delay = delay;
+        assert maxEvents > 100;
         this.maxEvents = maxEvents;
     }
 
