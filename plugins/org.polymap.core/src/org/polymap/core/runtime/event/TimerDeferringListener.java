@@ -77,8 +77,14 @@ class TimerDeferringListener
         private volatile List<EventObject>  events = new ArrayList( 128 );
         
         public SchedulerTask schedule() {
-            scheduler.schedule( this, delay );
-            SessionUICallbackCounter.jobStarted( delegate );
+            try {
+                scheduler.schedule( this, delay );
+                SessionUICallbackCounter.jobStarted( delegate );
+            }
+            catch (IllegalStateException e) {
+                // Timer already cancelled (?)
+                log.warn( "", e );
+            }
             return this;
         }
         
