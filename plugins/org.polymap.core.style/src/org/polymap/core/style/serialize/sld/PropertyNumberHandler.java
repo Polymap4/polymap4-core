@@ -38,7 +38,7 @@ public class PropertyNumberHandler
             StylePropertyValueHandler.Setter<SD> setter ) {
         List<SD> result = Lists.newArrayList();
         if (context.outputFormat.get().equals( OutputFormat.GEOSERVER )) {
-            Expression exp = ff.property( (String)spv.propertyValue.get() );
+            Expression exp = ff.property( (String)spv.propertyName.get() );
             if (spv.minimumValue.get() != null) {
                 exp = ff.function( "max", exp, ff.literal( spv.minimumValue.get() ) );
             }
@@ -50,7 +50,7 @@ public class PropertyNumberHandler
         }
         else {
             // return OGC standard
-            Expression exp = ff.property( (String)spv.propertyValue.get() );
+            Expression exp = ff.property( (String)spv.propertyName.get() );
             Double minimum = (Double)spv.minimumValue.get();
             Double maximum = (Double)spv.maximumValue.get();
             if (minimum == null && maximum == null) {

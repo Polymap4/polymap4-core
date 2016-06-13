@@ -40,42 +40,42 @@ public class LabelPlacement
     @Nullable
     @UIOrder(80)
     @Description("anchorPointX")
-    @DoubleRange(defaultValue = 2)
+    @NumberRange(defaultValue = 2)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> anchorPointX;
 
     @Nullable
     @UIOrder(90)
     @Description("anchorPointY")
-    @DoubleRange(defaultValue = 2)
+    @NumberRange(defaultValue = 2)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> anchorPointY;
 
     @Nullable
     @UIOrder(100)
     @Description("displacementX")
-    @DoubleRange(defaultValue = 2)
+    @NumberRange(defaultValue = 2)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> displacementX;
 
     @Nullable
     @UIOrder(110)
     @Description("displacementY")
-    @DoubleRange(defaultValue = 2)
+    @NumberRange(defaultValue = 2)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> displacementY;
 
     @Nullable
     @UIOrder(120)
     @Description("rotation")
-    @DoubleRange(from = 0, to = 360, defaultValue = 0)
+    @NumberRange(from = 0, to = 360, defaultValue = 0)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> rotation;
 
     @Nullable
     @UIOrder(130)
     @Description("offset")
-    @DoubleRange(defaultValue = 0)
+    @NumberRange(defaultValue = 0)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> offset;
 }

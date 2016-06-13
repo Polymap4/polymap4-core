@@ -58,6 +58,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             ConstantStrokeJoinStyleEditor.class,
             FeaturePropertyBasedStringEditor.class,
             FeaturePropertyBasedNumberEditor.class,
+            FeaturePropertyMappedNumbersEditor.class,
             FeaturePropertyMatchingNumberEditor.class,
             FeaturePropertyMatchingStringEditor.class,
             NoValueEditor.class,

@@ -36,7 +36,7 @@ public class PropertyValue<T>
 
             @Override
             public PropertyValue initialize( PropertyValue proto ) throws Exception {
-                proto.propertyValue.set( value );
+                proto.propertyName.set( value );
                 return proto;
             }
         };
@@ -49,6 +49,6 @@ public class PropertyValue<T>
      */
     @Nullable
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<String> propertyValue;
+    public Property<String> propertyName;
     
 }

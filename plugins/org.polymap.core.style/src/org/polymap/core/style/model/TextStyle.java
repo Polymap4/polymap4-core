@@ -58,7 +58,7 @@ public class TextStyle
     @Nullable
     @UIOrder(30)
     @Description("opacity")
-    @DoubleRange(to = 1, defaultValue = 1, increment = 0.1)
+    @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
 

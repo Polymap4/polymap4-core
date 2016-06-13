@@ -74,7 +74,7 @@ class TableBasedExpressionMappedColorsEditor
 
             @Override
             public ExpressionMappedColors initialize( ExpressionMappedColors proto ) throws Exception {
-                proto.propertyName.set( "dxf_color" );
+                proto.propertyName.set( "" );
                 proto.setDefaultColor( new Color( 255, 0, 0 ) );
                 proto.expressions.clear();
                 proto.colorValues.clear();

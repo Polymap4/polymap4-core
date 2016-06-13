@@ -67,9 +67,9 @@ class FeaturePropertyBasedNumberEditor
 
             @Override
             public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
-                proto.propertyValue.set( "" );
-                proto.minimumValue.set( new Double(8) );
-                proto.maximumValue.set( new Double(23) );
+                proto.propertyName.set( "" );
+                proto.minimumValue.set( null );
+                proto.maximumValue.set( null );
                 return proto;
             }
         } );
@@ -92,13 +92,13 @@ class FeaturePropertyBasedNumberEditor
             }
         }
         combo.setItems( columns.toArray( new String[columns.size()] ) );
-        combo.select( columns.indexOf( prop.get().propertyValue.get() ) );
+        combo.select( columns.indexOf( prop.get().propertyName.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().propertyValue.set( columns.get( combo.getSelectionIndex() ) );
+                prop.get().propertyName.set( columns.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;

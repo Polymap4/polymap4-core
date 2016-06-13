@@ -66,7 +66,7 @@ public class FeaturePropertyBasedStringEditor
 
             @Override
             public PropertyString initialize( PropertyString proto ) throws Exception {
-                proto.propertyValue.set( "" );
+                proto.propertyName.set( "" );
                 return proto;
             }
         } );
@@ -87,13 +87,13 @@ public class FeaturePropertyBasedStringEditor
             }
         }
         combo.setItems( columns.toArray( new String[columns.size()] ) );
-        combo.select( columns.indexOf( prop.get().propertyValue.get() ) );
+        combo.select( columns.indexOf( prop.get().propertyName.get() ) );
 
         combo.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                prop.get().propertyValue.set( columns.get( combo.getSelectionIndex() ) );
+                prop.get().propertyName.set( columns.get( combo.getSelectionIndex() ) );
             }
         } );
         return contents;

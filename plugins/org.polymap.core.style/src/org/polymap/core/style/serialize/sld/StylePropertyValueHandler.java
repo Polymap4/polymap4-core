@@ -282,7 +282,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, PropertyString spv, SD sd,
                 Setter<SD> setter ) {
-            setter.set( sd, ff.property( (String)spv.propertyValue.get() ) );
+            setter.set( sd, ff.property( (String)spv.propertyName.get() ) );
             return Collections.singletonList( sd );
         }
     }

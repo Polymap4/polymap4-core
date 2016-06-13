@@ -174,8 +174,8 @@ public class FeaturePropertyMappedColorsChooser {
 
         scrolledComposite.setMinSize( tableViewer.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
-        on( propertyCombo ).top( 0 ).left( 0 ).right( MAX_VALUES );
-        on( scrolledComposite ).top( propertyCombo ).bottom( MAX_VALUES ).height( 250 ).width( 300 );
+        on( propertyCombo ).top( 0 ).left( 0 ).right( 100 );
+        on( scrolledComposite ).top( propertyCombo ).bottom( 100 ).height( 250 ).width( 300 );
 
         try {
             updateTable( propertyCombo );

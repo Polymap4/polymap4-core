@@ -26,9 +26,7 @@ import org.eclipse.swt.widgets.Spinner;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantNumber;
-import org.polymap.core.style.model.DoubleRange;
-import org.polymap.core.style.model.IntRange;
-
+import org.polymap.core.style.model.NumberRange;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -63,12 +61,8 @@ class ConstantNumberEditor
 
             @Override
             public ConstantNumber initialize( ConstantNumber proto ) throws Exception {
-                IntRange ai = (IntRange)prop.info().getAnnotation( IntRange.class );
-                DoubleRange ad = (DoubleRange)prop.info().getAnnotation( DoubleRange.class );
-                if (ai != null) {
-                    proto.constantNumber.set( ai.defaultValue() );
-                }
-                else if (ad != null) {
+                NumberRange ad = (NumberRange)prop.info().getAnnotation( NumberRange.class );
+                if (ad != null) {
                     proto.constantNumber.set( ad.defaultValue() );
                 }
                 else {
@@ -84,23 +78,17 @@ class ConstantNumberEditor
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
         Spinner s = new Spinner( contents, SWT.BORDER );
-        IntRange ai = (IntRange)prop.info().getAnnotation( IntRange.class );
-        DoubleRange ad = (DoubleRange)prop.info().getAnnotation( DoubleRange.class );
-        if (ad != null) {
-            int digits = ad.digits();
+        NumberRange nd = (NumberRange)prop.info().getAnnotation( NumberRange.class );
+        if (nd != null) {
+            int digits = nd.digits();
             double currentValue = (double)prop.get().constantNumber.get();
             double factorX = Math.pow( 10, digits );
             s.setDigits( digits );
-            s.setMinimum( (int)(ad.from() * factorX) );
-            s.setMaximum( (int)(ad.to() * factorX) );
-            s.setIncrement( (int)(ad.increment() * factorX) );
-            s.setPageIncrement( (int)(ad.increment() * factorX * 10) );
+            s.setMinimum( (int)(nd.from() * factorX) );
+            s.setMaximum( (int)(nd.to() * factorX) );
+            s.setIncrement( (int)(nd.increment() * factorX) );
+            s.setPageIncrement( (int)(nd.increment() * factorX * 10) );
             s.setSelection( (int)(currentValue * factorX) );
-        }
-        else if (ai != null) {
-            s.setSelection( (int)prop.get().constantNumber.get() );
-            s.setMinimum( ai.from() );
-            s.setMaximum( ai.to() );
         }
         s.addSelectionListener( new SelectionAdapter() {
 

@@ -21,15 +21,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
- * 
  * @author Falko Bräutigam
  * @author Steffen Stundzig
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD } )
 @Documented
-public @interface DoubleRange {
+public @interface NumberRange {
 
     double from() default 0;
     

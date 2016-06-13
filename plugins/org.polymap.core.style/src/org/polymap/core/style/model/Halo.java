@@ -42,7 +42,7 @@ public class Halo
     @Nullable
     @UIOrder(50)
     @Description("width")
-    @DoubleRange( from=0, to=1000, defaultValue=2 )
+    @NumberRange( from=0, to=1000, defaultValue=2 )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> width;
 
@@ -55,7 +55,7 @@ public class Halo
     @Nullable
     @UIOrder(70)
     @Description("opacity")
-    @DoubleRange(to = 1, defaultValue = 1, increment = 0.1)
+    @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
 }

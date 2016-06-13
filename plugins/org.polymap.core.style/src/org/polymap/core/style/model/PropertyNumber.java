@@ -36,7 +36,7 @@ public class PropertyNumber<T extends Number>
 
             @Override
             public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
-                proto.propertyValue.set( value );
+                proto.propertyName.set( value );
                 proto.minimumValue.set( minimum );
                 proto.maximumValue.set( maximum );
                 return proto;
@@ -47,12 +47,12 @@ public class PropertyNumber<T extends Number>
     // instance *******************************************
 
     @Nullable
-    @DoubleRange(defaultValue=0)
+    @NumberRange(defaultValue=0)
     @Concerns( StylePropertyChange.Concern.class )
     public Property<Double> minimumValue;
 
     @Nullable
-    @DoubleRange(defaultValue=10000)
+    @NumberRange(defaultValue=10000)
     @Concerns( StylePropertyChange.Concern.class )
     public Property<Double> maximumValue;
     
