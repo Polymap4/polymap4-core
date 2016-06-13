@@ -49,16 +49,16 @@ public class PointStyle
     };
 
     @UIOrder(10)
-    @Description("fill")
-    public Property<Fill> fill;
-
-    @UIOrder(20)
-    @Description("stroke")
-    public Property<Stroke> stroke;
-
-    @UIOrder(30)
     @Description("diameter")
     @DoubleRange(defaultValue = 8)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> diameter;
+
+    @UIOrder(20)
+    @Description("fill")
+    public Property<Fill> fill;
+
+    @UIOrder(30)
+    @Description("stroke")
+    public Property<Stroke> stroke;
 }
