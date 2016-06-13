@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ExpressionMappedColors;
-import org.polymap.core.style.ui.PropertyMappedColorsChooser.Triple;
+import org.polymap.core.style.ui.FeaturePropertyMappedColorsChooser.Triple;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -92,7 +92,7 @@ class TableBasedExpressionMappedColorsEditor
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                PropertyMappedColorsChooser cc = new PropertyMappedColorsChooser( prop.get().propertyName.get(),
+                FeaturePropertyMappedColorsChooser cc = new FeaturePropertyMappedColorsChooser( prop.get().propertyName.get(),
                         prop.get().defaultValue(), initialColors(), featureStore, featureType );
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );
