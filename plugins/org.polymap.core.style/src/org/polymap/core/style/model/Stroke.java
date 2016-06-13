@@ -62,7 +62,7 @@ public class Stroke
     @Nullable
     @UIOrder( 30 )
     @Description( "opacity" )
-    @DoubleRange( from=0, to=1, defaultValue=1 )
+    @DoubleRange(to = 1, defaultValue = 1, increment = 0.1)
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> opacity;
     

@@ -38,4 +38,6 @@ public @interface DoubleRange {
     double defaultValue();
     
     int digits() default 1;
+    
+    double increment() default 2;
 }

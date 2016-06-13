@@ -89,23 +89,13 @@ class ConstantNumberEditor
         if (ad != null) {
             int digits = ad.digits();
             double currentValue = (double)prop.get().constantNumber.get();
+            double factorX = Math.pow( 10, digits );
             s.setDigits( digits );
-            s.setMinimum( (int)(ad.from() * Math.pow( 10, digits )) );
-            s.setMaximum( (int)(ad.to() * Math.pow( 10, digits )) );
-            if (ad.to() == 1) {
-                s.setIncrement( (int)Math.pow( 10, digits - 1 ) );
-                s.setPageIncrement( (int)Math.pow( 10, digits ) );
-            }
-            else if (ad.to() <= 100) {
-                s.setIncrement( (int)(100 * Math.pow( 10, digits - 1 )) );
-                s.setPageIncrement( (int)(100 * Math.pow( 10, digits )) );
-            }
-            else {
-                // default
-                s.setIncrement( (int)(20 * Math.pow( 10, digits - 1 )) );
-                s.setPageIncrement( (int)(200 * Math.pow( 10, digits )) );
-            }
-            s.setSelection( (int)(currentValue * Math.pow( 10, digits )) );
+            s.setMinimum( (int)(ad.from() * factorX) );
+            s.setMaximum( (int)(ad.to() * factorX) );
+            s.setIncrement( (int)(ad.increment() * factorX) );
+            s.setPageIncrement( (int)(ad.increment() * factorX * 10) );
+            s.setSelection( (int)(currentValue * factorX) );
         }
         else if (ai != null) {
             s.setSelection( (int)prop.get().constantNumber.get() );

@@ -50,7 +50,7 @@ public class Fill
     @Nullable
     @UIOrder(20)
     @Description("opacity")
-    @DoubleRange(to = 1, defaultValue = 1)
+    @DoubleRange(to = 1, defaultValue = 1, increment = 0.1)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
 }
