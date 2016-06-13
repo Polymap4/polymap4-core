@@ -31,7 +31,12 @@ public abstract class FeatureStyleSerializer<T> {
 
     public abstract T serialize( Context context );
     
-    
+
+    public enum OutputFormat {
+        OGC, GEOSERVER
+    }
+
+
     /**
      * 
      */
@@ -43,6 +48,9 @@ public abstract class FeatureStyleSerializer<T> {
         
         @Mandatory
         public Config2<Context,FeatureStyle>        featureStyle;
+        
+        @Mandatory
+        public Config2<Context,OutputFormat>        outputFormat;
         
         public Context() {
             monitor.set( new NullProgressMonitor() );

@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link PolygonStyle}.
@@ -24,6 +25,11 @@ import org.polymap.core.style.model.PolygonStyle;
  */
 public class PolygonStyleSerializer
         extends StyleSerializer<PolygonStyle,PolygonSymbolizerDescriptor> {
+
+    public PolygonStyleSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( PolygonStyleSerializer.class );
 
@@ -36,9 +42,9 @@ public class PolygonStyleSerializer
 
     @Override
     public void doSerializeStyle( PolygonStyle style ) {
-        setComposite( new StrokeSerializer().serialize( style.stroke.get() ),
+        setComposite( new StrokeSerializer(context()).serialize( style.stroke.get() ),
                 ( PolygonSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-        setComposite( new FillSerializer().serialize( style.fill.get() ),
+        setComposite( new FillSerializer(context()).serialize( style.fill.get() ),
                 ( PolygonSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
     }
 }

@@ -15,6 +15,8 @@
 package org.polymap.core.style.model;
 
 import org.polymap.model2.Composite;
+import org.polymap.model2.Nullable;
+import org.polymap.model2.Property;
 
 /**
  * Describes the value of a style property. Values can be a simple constant value or
@@ -22,8 +24,11 @@ import org.polymap.model2.Composite;
  *
  * @param <T> The actual target type of this value.
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public abstract class StylePropertyValue<T>
         extends Composite {
 
+    @Nullable
+    public Property<String> lastEditorHint;
 }

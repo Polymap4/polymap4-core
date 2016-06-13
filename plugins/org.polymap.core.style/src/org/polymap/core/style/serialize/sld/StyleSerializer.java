@@ -34,6 +34,7 @@ import org.polymap.core.style.model.PropertyMatchingStringFilter;
 import org.polymap.core.style.model.ScaleRangeFilter;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serializes a particular {@link Style} into a flat list of
@@ -55,6 +56,11 @@ public abstract class StyleSerializer<S extends Style, SD extends SymbolizerDesc
     private Filter defaultFilter;
 
     private Pair<Integer, Integer> currentScale;
+
+
+    public StyleSerializer( Context context ) {
+        super(context);
+    }
 
 
     protected abstract SD createStyleDescriptor();

@@ -21,8 +21,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.ConstantStrokeDashStyle;
+import org.polymap.core.style.model.NoValue;
 import org.polymap.core.style.model.Stroke;
 import org.polymap.core.style.model.StrokeDashStyle;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link Stroke}.
@@ -32,6 +34,11 @@ import org.polymap.core.style.model.StrokeDashStyle;
  */
 public class StrokeSerializer
         extends StyleCompositeSerializer<Stroke,StrokeDescriptor> {
+
+    public StrokeSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( StrokeSerializer.class );
 
@@ -56,6 +63,9 @@ public class StrokeSerializer
                 for (StrokeDescriptor sd : descriptors) {
                     serializeDashStyle( sd, dashStyle );
                 }
+            }
+            else if (stroke.dashStyle.get().getClass().equals( NoValue.class)) {
+                // ignore
             }
             else {
                 throw new UnsupportedOperationException( stroke.dashStyle.get().getClass() + " is not supported" );

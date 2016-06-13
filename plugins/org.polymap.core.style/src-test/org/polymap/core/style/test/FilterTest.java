@@ -96,19 +96,19 @@ public class FilterTest {
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class )
                 .get();
-        
-        Rule rule = style.getFeatureTypeStyles()[0].getRules()[0];
-        assertTrue(rule.getFilter() instanceof PropertyIsEqualTo);
+
+        Rule rule = style.featureTypeStyles().get( 0 ).rules().get( 0 );
+        assertTrue( rule.getFilter() instanceof PropertyIsEqualTo );
         PropertyIsEqualTo filter = (PropertyIsEqualTo)rule.getFilter();
-        assertTrue(filter.getExpression1() instanceof PropertyName);
-        assertEquals("prop", ((PropertyName)filter.getExpression1()).getPropertyName());
-        assertTrue(filter.getExpression2() instanceof Literal);
-        assertEquals("literal", ((Literal)filter.getExpression2()).getValue());
+        assertTrue( filter.getExpression1() instanceof PropertyName );
+        assertEquals( "prop", ((PropertyName)filter.getExpression1()).getPropertyName() );
+        assertTrue( filter.getExpression2() instanceof Literal );
+        assertEquals( "literal", ((Literal)filter.getExpression2()).getValue() );
         PointSymbolizer sym = (PointSymbolizer)rule.getSymbolizers()[0];
         assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
     }
 
-    @SuppressWarnings("deprecation")
+
     @Test
     public void pointWithScale() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
@@ -118,17 +118,17 @@ public class FilterTest {
 
         assertTrue( point.visibleIf.get() instanceof ConstantFilter );
 
-        point.visibleIf.createValue( ScaleRangeFilter.defaults(10000, 500000) );
+        point.visibleIf.createValue( ScaleRangeFilter.defaults( 10000, 500000 ) );
         point.diameter.createValue( ConstantNumber.defaults( 23.0 ) );
 
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         org.geotools.styling.Style style = repo.serializedFeatureStyle( fs.id(), org.geotools.styling.Style.class )
                 .get();
-        
-        Rule rule = style.getFeatureTypeStyles()[0].getRules()[0];
-        assertEquals(10000.0d, rule.getMinScaleDenominator(), 0);
-        assertEquals(500000.0d, rule.getMaxScaleDenominator(), 0);
+
+        Rule rule = style.featureTypeStyles().get( 0 ).rules().get( 0 );
+        assertEquals( 10000.0d, rule.getMinScaleDenominator(), 0 );
+        assertEquals( 500000.0d, rule.getMaxScaleDenominator(), 0 );
         PointSymbolizer sym = (PointSymbolizer)rule.getSymbolizers()[0];
         assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
     }

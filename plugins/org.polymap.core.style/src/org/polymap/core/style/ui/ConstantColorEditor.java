@@ -36,7 +36,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  */
 class ConstantColorEditor
         extends StylePropertyEditor<ConstantColor> {
-    
+
     private static final IMessages i18n = Messages.forPrefix( "ColorEditor" );
 
     private static Log log = LogFactory.getLog( ConstantColorEditor.class );
@@ -57,6 +57,7 @@ class ConstantColorEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<ConstantColor>() {
+
             @Override
             public ConstantColor initialize( ConstantColor proto ) throws Exception {
                 // TODO default value here
@@ -75,9 +76,11 @@ class ConstantColorEditor
         final Button button = new Button( parent, SWT.PUSH );
         button.setText( i18n.get( "choose" ) );
         button.addSelectionListener( new SelectionAdapter() {
+
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                ColorChooser cc = new ColorChooser( new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) );
+                ColorChooser cc = new ColorChooser(
+                        new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) );
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );
                 }, () -> {
@@ -85,20 +88,24 @@ class ConstantColorEditor
                     prop.get().r.set( rgb.red );
                     prop.get().b.set( rgb.blue );
                     prop.get().g.set( rgb.green );
-                    button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
-                    if (rgb.red * rgb.blue * rgb.green > 8000000) {
-                        button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 0, 0, 0 ) );
-                    }
-                    else {
-                        button.setForeground(
-                                new org.eclipse.swt.graphics.Color( button.getDisplay(), 255, 255, 255 ) );
-                    }
+                    updateButtonColor( button, rgb );
                     return true;
                 } );
             }
 
         } );
-        button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) ) );
+        updateButtonColor( button, new RGB( prop.get().r.get(), prop.get().g.get(), prop.get().b.get() ) );
         return contents;
+    }
+
+
+    protected void updateButtonColor( Button button, RGB rgb ) {
+        button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
+        if (rgb.red * rgb.blue * rgb.green > 8000000) {
+            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 0, 0, 0 ) );
+        }
+        else {
+            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 255, 255, 255 ) );
+        }
     }
 }

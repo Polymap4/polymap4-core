@@ -23,13 +23,14 @@ import javax.xml.transform.TransformerException;
 
 import org.geotools.styling.SLDTransformer;
 
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 import org.polymap.model2.runtime.ConcurrentEntityModificationException;
@@ -61,7 +62,7 @@ public class StyleRepository
 
     private EntityRepository                    repo;
 
-    private Cache<Pair<String,String>,Optional> serialized = CacheConfig.defaults().createCache();
+    private Cache<Triple<String,String,OutputFormat>,Optional> serialized = CacheConfig.defaults().createCache();
 
 
     /**
@@ -87,6 +88,9 @@ public class StyleRepository
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
+                        ExpressionMappedColors.class,
+                        ExpressionMappedNumbers.class,
+                        ExpressionMappedStrings.class,
                         FeatureStyle.class,
                         FilterMappedNumbers.class,
                         Halo.class,
@@ -101,6 +105,7 @@ public class StyleRepository
                         PropertyValue.class,
                         PropertyMatchingNumberFilter.class,
                         PropertyMatchingStringFilter.class,
+                        ScaleMappedNumbers.class,
                         ScaleRangeFilter.class,
                         TextStyle.class
                 } ).store.set(
@@ -138,8 +143,10 @@ public class StyleRepository
 
     /**
      * The serialized version of the {@link FeatureStyle} with the given id. The
-     * result ist cached until next time the style is stored.
-     *
+     * result is cached until next time the style is stored.
+     * 
+     * Uses OutputFormat.GEOSERVER as default format.
+     * 
      * @param id The id of the {@link FeatureStyle} to serialize. The instance has to
      *        be <b>stored</b>.
      * @param targetType The target type of the serialization. Possible values are:
@@ -149,25 +156,44 @@ public class StyleRepository
      * @throws RuntimeException If targetType is not supported.
      */
     public <T> Optional<T> serializedFeatureStyle( String id, Class<T> targetType ) {
-        return serialized.get( Pair.of( id, targetType.getName() ), key -> {
+        return serializedFeatureStyle( id, targetType, OutputFormat.GEOSERVER );
+    }
+
+
+    /**
+     * The serialized version of the {@link FeatureStyle} with the given id. The
+     * result is cached until next time the style is stored.
+     *
+     * @param id The id of the {@link FeatureStyle} to serialize. The instance has to
+     *        be <b>stored</b>.
+     * @param targetType The target type of the serialization. Possible values are:
+     *        {@link geotools.styling.Style} and {@link String}.
+     * @param outputFormat The output format of the serialization. Possible values are:
+     *        {@link org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat}.
+     * @return The serialized version, or {@link Optional#empty()} no style exists
+     *         for the given id.
+     * @throws RuntimeException If targetType is not supported.
+     */
+    public <T> Optional<T> serializedFeatureStyle( String id, Class<T> targetType, OutputFormat outputFormat ) {
+        return serialized.get( Triple.of( id, targetType.getName(), outputFormat ), key -> {
             T result = null;
             FeatureStyle fs = featureStyle( id ).orElse( null );
             if (fs != null) {
-                Context sc = new Context().featureStyle.put( fs );
-
+                Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
+                
                 // geotools.styling.Style
                 if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
                     result = (T)new SLDSerializer().serialize( sc );
                     // only for easier debugging
-                    // try {
-                    // SLDTransformer styleTransform = new SLDTransformer();
-                    // styleTransform.setIndentation( 4 );
-                    // styleTransform.setOmitXMLDeclaration( false );
-                    // styleTransform.transform( result, System.err );
-                    // }
-                    // catch (TransformerException e) {
-                    // throw new RuntimeException( "Unable to transform style.", e );
-                    // }
+                     try {
+                     SLDTransformer styleTransform = new SLDTransformer();
+                     styleTransform.setIndentation( 4 );
+                     styleTransform.setOmitXMLDeclaration( false );
+                     styleTransform.transform( result, System.err );
+                     }
+                     catch (TransformerException e) {
+                     throw new RuntimeException( "Unable to transform style.", e );
+                     }
                 }
                 // String/SLD
                 else if (String.class.isAssignableFrom( targetType )) {
@@ -178,7 +204,7 @@ public class StyleRepository
                         styleTransform.setOmitXMLDeclaration( false );
                         result = (T)styleTransform.transform( style );
                         // only for easier debugging
-                        // System.err.println( result );
+//                         System.err.println( result );
                     }
                     catch (TransformerException e) {
                         throw new RuntimeException( "Unable to transform style.", e );
@@ -194,7 +220,7 @@ public class StyleRepository
 
 
     protected void updated( FeatureStyle updated ) {
-        List<Pair<String,String>> invalid = serialized.keySet().stream()
+        List<Triple<String,String,OutputFormat>> invalid = serialized.keySet().stream()
                 .filter( key -> key.getLeft().equals( updated.id() ) )
                 .collect( Collectors.toList() );
 

@@ -126,7 +126,7 @@ public class StylePropertyField
         }
         combo.addSelectionChangedListener( ev -> {
             selected = SelectionAdapter.on( ev.getSelection() ).first( StylePropertyEditor.class ).get();
-            selected.updateProperty();
+            selected.updatePropertyWithHint();
             updateEditor();
         });
         

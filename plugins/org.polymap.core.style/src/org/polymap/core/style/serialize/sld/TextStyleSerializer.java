@@ -18,6 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.TextStyle;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Serialize {@link TextStyle}.
@@ -26,6 +27,11 @@ import org.polymap.core.style.model.TextStyle;
  */
 public class TextStyleSerializer
         extends StyleSerializer<TextStyle,TextSymbolizerDescriptor> {
+
+    public TextStyleSerializer( Context context ) {
+        super( context );
+    }
+
 
     private static Log log = LogFactory.getLog( TextStyleSerializer.class );
 
@@ -38,11 +44,11 @@ public class TextStyleSerializer
 
     @Override
     public void doSerializeStyle( TextStyle style ) {
-        setComposite( new FontSerializer().serialize( style.font.get() ),
+        setComposite( new FontSerializer(context()).serialize( style.font.get() ),
                 ( TextSymbolizerDescriptor sd, FontDescriptor value ) -> sd.font.set( value ) );
-        setComposite( new HaloSerializer().serialize( style.halo.get() ),
+        setComposite( new HaloSerializer(context()).serialize( style.halo.get() ),
                 ( TextSymbolizerDescriptor sd, HaloDescriptor value ) -> sd.halo.set( value ) );
-        setComposite( new LabelPlacementSerializer().serialize( style.labelPlacement.get() ),
+        setComposite( new LabelPlacementSerializer(context()).serialize( style.labelPlacement.get() ),
                 ( TextSymbolizerDescriptor sd, LabelPlacementDescriptor value ) -> sd.labelPlacement.set( value ) );
         setValue( style.property.get(), ( TextSymbolizerDescriptor sd, Expression value ) -> sd.text.set( value ) );
         setValue( style.color.get(), ( TextSymbolizerDescriptor sd, Expression value ) -> sd.color.set( value ) );

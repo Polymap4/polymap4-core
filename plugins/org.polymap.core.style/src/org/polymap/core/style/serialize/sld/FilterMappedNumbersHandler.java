@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.FilterMappedNumbers;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * 
@@ -38,7 +39,8 @@ public class FilterMappedNumbersHandler
 
 
     @Override
-    public <SD extends SymbolizerDescriptor> List<SD> doHandle( FilterMappedNumbers spv, SD sd, Setter<SD> setter ) {
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, FilterMappedNumbers spv, SD sd,
+            Setter<SD> setter ) {
         // split style descriptors
         List<SD> result = new ArrayList( spv.values.size() );
         

@@ -12,34 +12,20 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
+
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import java.awt.Color;
 
-import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
 
-import org.polymap.core.style.model.ConstantColor;
-import org.polymap.core.style.model.ConstantFontFamily;
-import org.polymap.core.style.model.ConstantFontStyle;
-import org.polymap.core.style.model.ConstantFontWeight;
-import org.polymap.core.style.model.ConstantNumber;
-import org.polymap.core.style.model.ConstantString;
-import org.polymap.core.style.model.ConstantStrokeCapStyle;
-import org.polymap.core.style.model.ConstantStrokeDashStyle;
-import org.polymap.core.style.model.ConstantStrokeJoinStyle;
-import org.polymap.core.style.model.NoValue;
-import org.polymap.core.style.model.FilterMappedNumbers;
-import org.polymap.core.style.model.FontFamily;
-import org.polymap.core.style.model.FontStyle;
-import org.polymap.core.style.model.FontWeight;
-import org.polymap.core.style.model.PropertyValue;
-import org.polymap.core.style.model.StrokeCapStyle;
-import org.polymap.core.style.model.StrokeDashStyle;
-import org.polymap.core.style.model.StrokeJoinStyle;
-import org.polymap.core.style.model.Style;
-import org.polymap.core.style.model.StylePropertyValue;
+import com.google.common.collect.Lists;
+
+import org.polymap.core.style.model.*;
+import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * Handles one {@link StylePropertyValue} descriptor and provides it with actual
@@ -54,58 +40,76 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
      * See {@link #doHandle(StylePropertyValue, SymbolizerDescriptor, Setter)}.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <SD extends SymbolizerDescriptor, V> List<SD> handle( StylePropertyValue spv, SD sd,
+    public static <SD extends SymbolizerDescriptor, V> List<SD> handle( Context context, StylePropertyValue spv, SD sd,
             Setter<SD> setter ) {
-        if (spv == null) {
-            return Collections.singletonList( sd );
+        try {
+            if (spv == null) {
+                return Collections.singletonList( sd );
+            }
+            else if (spv instanceof ConstantNumber) {
+                return new ConstantNumberHandler().doHandle( context, (ConstantNumber)spv, sd, (Setter<SD>)setter );
+            }
+            else if (spv instanceof FilterMappedNumbers) {
+                return new FilterMappedNumbersHandler().doHandle( context, (FilterMappedNumbers)spv, sd,
+                        (Setter<SD>)setter );
+            }
+            else if (spv instanceof ConstantColor) {
+                return new ConstantColorHandler().doHandle( context, (ConstantColor)spv, sd, (Setter<SD>)setter );
+            }
+            // handled in the FontSerializer
+            // else if (spv instanceof ConstantFontFamily) {
+            // return new ConstantFontFamilyHandler().doHandle(context,
+            // (ConstantFontFamily)spv, sd, (Setter<SD>)setter );
+            // }
+            else if (spv instanceof ConstantFontStyle) {
+                return new ConstantFontStyleHandler().doHandle( context, (ConstantFontStyle)spv, sd,
+                        (Setter<SD>)setter );
+            }
+            else if (spv instanceof ConstantFontWeight) {
+                return new ConstantFontWeightHandler().doHandle( context, (ConstantFontWeight)spv, sd,
+                        (Setter<SD>)setter );
+            }
+            else if (spv instanceof ConstantString) {
+                return new ConstantStringHandler().doHandle( context, (ConstantString)spv, sd, (Setter<SD>)setter );
+            }
+            else if (spv instanceof ConstantStrokeCapStyle) {
+                return new ConstantStrokeCapStyleHandler().doHandle( context, (ConstantStrokeCapStyle)spv, sd,
+                        (Setter<SD>)setter );
+            }
+            else if (spv instanceof ConstantStrokeDashStyle) {
+                return new ConstantStrokeDashStyleHandler().doHandle( context, (ConstantStrokeDashStyle)spv, sd,
+                        (Setter<SD>)setter );
+            }
+            else if (spv instanceof ConstantStrokeJoinStyle) {
+                return new ConstantStrokeJoinStyleHandler().doHandle( context, (ConstantStrokeJoinStyle)spv, sd,
+                        (Setter<SD>)setter );
+            }
+            else if (spv instanceof NoValue) {
+                return new NoValueHandler().doHandle( context, (NoValue)spv, sd, setter );
+            }
+            else if (spv instanceof PropertyString) {
+                return new PropertyStringHandler().doHandle( context, (PropertyString)spv, sd, setter );
+            }
+            else if (spv instanceof PropertyNumber) {
+                return new PropertyNumberHandler().doHandle( context, (PropertyNumber)spv, sd, setter );
+            }
+            else if (spv instanceof ExpressionMappedValues) {
+                return new ExpressionMappedValuesHandler().doHandle( context, (ExpressionMappedValues)spv, sd, setter );
+            }
+            else if (spv instanceof ScaleMappedNumbers) {
+                return new ScaleMappedNumbersHandler().doHandle( context, (ScaleMappedNumbers)spv, sd, setter );
+            }
+            // else if (spv instanceof FeaturePropertyBasedNumber) {
+            // return new FeaturePropertyBasedNumberHandler().doHandle(
+            // (FeaturePropertyBasedNumber)spv, sd,
+            // setter );
+            // }
+            else {
+                throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
+            }
         }
-        else if (spv instanceof ConstantNumber) {
-            return new ConstantNumberHandler().doHandle( (ConstantNumber)spv, sd, (Setter<SD>)setter );
-        }
-        else if (spv instanceof FilterMappedNumbers) {
-            return new FilterMappedNumbersHandler().doHandle( (FilterMappedNumbers)spv, sd, (Setter<SD>)setter );
-        }
-        else if (spv instanceof ConstantColor) {
-            return new ConstantColorHandler().doHandle( (ConstantColor)spv, sd, (Setter<SD>)setter );
-        }
-        // handled in the FontSerializer
-//        else if (spv instanceof ConstantFontFamily) {
-//            return new ConstantFontFamilyHandler().doHandle( (ConstantFontFamily)spv, sd, (Setter<SD>)setter );
-//        }
-        else if (spv instanceof ConstantFontStyle) {
-            return new ConstantFontStyleHandler().doHandle( (ConstantFontStyle)spv, sd, (Setter<SD>)setter );
-        }
-        else if (spv instanceof ConstantFontWeight) {
-            return new ConstantFontWeightHandler().doHandle( (ConstantFontWeight)spv, sd, (Setter<SD>)setter );
-        }
-        else if (spv instanceof ConstantString) {
-            return new ConstantStringHandler().doHandle( (ConstantString)spv, sd, (Setter<SD>)setter );
-        }
-        else if (spv instanceof ConstantStrokeCapStyle) {
-            return new ConstantStrokeCapStyleHandler().doHandle( (ConstantStrokeCapStyle)spv, sd, (Setter<SD>)setter );
-        }
-        else if (spv instanceof ConstantStrokeDashStyle) {
-            return new ConstantStrokeDashStyleHandler().doHandle( (ConstantStrokeDashStyle)spv, sd,
-                    (Setter<SD>)setter );
-        }
-        else if (spv instanceof ConstantStrokeJoinStyle) {
-            return new ConstantStrokeJoinStyleHandler().doHandle( (ConstantStrokeJoinStyle)spv, sd,
-                    (Setter<SD>)setter );
-        }
-        else if (spv instanceof NoValue) {
-            return new NoValueHandler().doHandle( (NoValue)spv, sd,
-                    setter );
-        }
-        else if (spv instanceof PropertyValue) {
-            return new PropertyValueHandler().doHandle( (PropertyValue)spv, sd,
-                    setter );
-        }
-//        else if (spv instanceof FeaturePropertyBasedNumber) {
-//            return new FeaturePropertyBasedNumberHandler().doHandle( (FeaturePropertyBasedNumber)spv, sd,
-//                    setter );
-//        }
-        else {
-            throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
+        catch (Exception e) {
+            throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
         }
     }
 
@@ -117,12 +121,13 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
 
         void set( SD sd, Expression value );
     }
+    //
+    // @FunctionalInterface
+    // public interface FilterSetter<SD extends SymbolizerDescriptor> {
+    //
+    // void set( SD sd, Filter value );
+    // }
 
-    @FunctionalInterface
-    public interface FilterSetter<SD extends SymbolizerDescriptor> {
-
-        void set( SD sd, Filter value );
-    }
 
     /**
      * Converts the given {@link Style} property value into actual values in the
@@ -131,22 +136,18 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
      *
      * @return List of resulting symbolizers.
      */
-    public abstract <SD extends SymbolizerDescriptor> List<SD> doHandle( SPV spv, SD sd, Setter<SD> setter );
+    public abstract <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, SPV spv, SD sd,
+            Setter<SD> setter );
 
 
     static class ConstantNumberHandler
             extends StylePropertyValueHandler<ConstantNumber,Number> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantNumber constantNumber, SD sd,
-                Setter<SD> setter ) {
-            try {
-                setter.set( sd, SLDSerializer.ff.literal( (Number)constantNumber.constantNumber.get() ) );
-                return Collections.singletonList( sd );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e.getMessage() + " : " + constantNumber.info().getName(), e );
-            }
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantNumber constantNumber,
+                SD sd, Setter<SD> setter ) {
+            setter.set( sd, ff.literal( (Number)constantNumber.constantNumber.get() ) );
+            return Collections.singletonList( sd );
         }
     }
 
@@ -155,10 +156,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantColor,Color> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantColor constantColor, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantColor constantColor, SD sd,
                 Setter<SD> setter ) {
             if (constantColor.color() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( constantColor.color() ) );
+                setter.set( sd, ff.literal( constantColor.color() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -169,10 +170,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantStrokeCapStyle,StrokeCapStyle> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeCapStyle src, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantStrokeCapStyle src, SD sd,
                 Setter<SD> setter ) {
             if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+                setter.set( sd, ff.literal( src.value.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -183,9 +184,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantString,String> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantString src, SD sd, Setter<SD> setter ) {
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantString src, SD sd,
+                Setter<SD> setter ) {
             if (src.constantString.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.constantString.get() ) );
+                setter.set( sd, ff.literal( src.constantString.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -196,9 +198,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantFontFamily,FontFamily> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantFontFamily src, SD sd, Setter<SD> setter ) {
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantFontFamily src, SD sd,
+                Setter<SD> setter ) {
             if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+                setter.set( sd, ff.literal( src.value.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -209,9 +212,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantFontStyle,FontStyle> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantFontStyle src, SD sd, Setter<SD> setter ) {
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantFontStyle src, SD sd,
+                Setter<SD> setter ) {
             if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+                setter.set( sd, ff.literal( src.value.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -222,9 +226,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantFontWeight,FontWeight> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantFontWeight src, SD sd, Setter<SD> setter ) {
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantFontWeight src, SD sd,
+                Setter<SD> setter ) {
             if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+                setter.set( sd, ff.literal( src.value.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -235,10 +240,10 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantStrokeDashStyle,StrokeDashStyle> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeDashStyle src, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantStrokeDashStyle src, SD sd,
                 Setter<SD> setter ) {
             if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+                setter.set( sd, ff.literal( src.value.get() ) );
             }
             return Collections.singletonList( sd );
         }
@@ -249,20 +254,21 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             extends StylePropertyValueHandler<ConstantStrokeJoinStyle,StrokeJoinStyle> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( ConstantStrokeJoinStyle src, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantStrokeJoinStyle src, SD sd,
                 Setter<SD> setter ) {
             if (src.value.get() != null) {
-                setter.set( sd, SLDSerializer.ff.literal( src.value.get() ) );
+                setter.set( sd, ff.literal( src.value.get() ) );
             }
             return Collections.singletonList( sd );
         }
     }
 
+
     static class NoValueHandler
             extends StylePropertyValueHandler<NoValue,Object> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( NoValue empty, SD sd,
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, NoValue empty, SD sd,
                 Setter<SD> setter ) {
             // simply do nothing
             return Collections.singletonList( sd );
@@ -270,19 +276,39 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
     }
 
 
-    static class PropertyValueHandler
-            extends StylePropertyValueHandler<PropertyValue,Object> {
+    static class PropertyStringHandler
+            extends StylePropertyValueHandler<PropertyString,Object> {
 
         @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( PropertyValue spv, SD sd, Setter<SD> setter ) {
-            try {
-                setter.set( sd, SLDSerializer.ff.property( (String)spv.propertyValue.get() ) );
-                return Collections.singletonList( sd );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e.getMessage() + " : " + spv.info().getName(), e );
-            }
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, PropertyString spv, SD sd,
+                Setter<SD> setter ) {
+            setter.set( sd, ff.property( (String)spv.propertyValue.get() ) );
+            return Collections.singletonList( sd );
         }
     }
 
+
+    static class ScaleMappedNumbersHandler
+            extends StylePropertyValueHandler<ScaleMappedNumbers,Object> {
+
+        @Override
+        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ScaleMappedNumbers spv, SD sd,
+                Setter<SD> setter ) {
+            Number defaultValue = (Number)spv.defaultNumberValue.get();
+            Expression ife = ff.literal( defaultValue );
+            Iterator<Number> scales = spv.scales.iterator();
+            Iterator<Number> values = spv.numberValues.iterator();
+            List<Expression> allExpressions = Lists.newArrayList(
+                    ff.function( "env", ff.literal( "wms_scale_denominator" ) ), ff.literal( defaultValue ) );
+
+            while (scales.hasNext()) {
+                assert values.hasNext();
+                allExpressions.add( ff.literal( scales.next() ) );
+                allExpressions.add( ff.literal( values.next() ) );
+            }
+            ife = ff.function( "categorize", allExpressions.toArray( new Expression[allExpressions.size()] ) );
+            setter.set( sd, ife );
+            return Collections.singletonList( sd );
+        }
+    }
 }

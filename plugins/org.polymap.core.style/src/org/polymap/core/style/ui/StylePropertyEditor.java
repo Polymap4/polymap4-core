@@ -21,7 +21,7 @@ import java.lang.reflect.ParameterizedType;
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.feature.type.FeatureType;
-import org.opengis.filter.FilterFactory;
+import org.opengis.filter.FilterFactory2;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +43,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     private static Log log = LogFactory.getLog( StylePropertyEditor.class );
 
-    public static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
+    public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
     
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
             AlwaysTrueEditor.class,
@@ -61,7 +61,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             FeaturePropertyMatchingNumberEditor.class,
             FeaturePropertyMatchingStringEditor.class,
             NoValueEditor.class,
-            ScaleRangeEditor.class};
+            ScaleRangeEditor.class,
+            //TableBasedExpressionMappedNumbersEditor.class,
+            TableBasedExpressionMappedColorsEditor.class,
+            TableBasedScaleMappedNumbersEditor.class};
 
 
     /**
@@ -140,7 +143,25 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
         Class<? extends StylePropertyValue> targetType = (Class)((ParameterizedType)getClass().getGenericSuperclass())
                 .getActualTypeArguments()[0];
         StylePropertyValue current = prop.get();
-        return current != null && targetType.isAssignableFrom( current.getClass() );
+        if (current != null) {
+            if (current.lastEditorHint.get() != null) {
+                if (current.lastEditorHint.get().equals( hint() )) {
+                    return true;
+                }
+            }
+            return targetType.isAssignableFrom( current.getClass() );
+        }
+        return false;
+    }
+
+
+    /**
+     * a simple text to find the right (last) editor for a style value.
+     *
+     * @return the simple class name per default
+     */
+    protected String hint() {
+        return this.getClass().getSimpleName();
     }
 
 
@@ -164,4 +185,14 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     public abstract void updateProperty();
 
+    /**
+     * Updates the property and sets also the hint for the current editor.
+     */
+    public void updatePropertyWithHint() {
+        updateProperty();
+        StylePropertyValue current = prop.get();
+        if (current != null) {
+            current.lastEditorHint.set( hint() );
+        }
+    }
 }
