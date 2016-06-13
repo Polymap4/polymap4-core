@@ -90,7 +90,6 @@ class ConstantNumberEditor
             int digits = ad.digits();
             double currentValue = (double)prop.get().constantNumber.get();
             s.setDigits( digits );
-            s.setSelection( (int)(currentValue * Math.pow( 10, digits )) );
             s.setMinimum( (int)(ad.from() * Math.pow( 10, digits )) );
             s.setMaximum( (int)(ad.to() * Math.pow( 10, digits )) );
             if (ad.to() == 1) {
@@ -106,6 +105,7 @@ class ConstantNumberEditor
                 s.setIncrement( (int)(20 * Math.pow( 10, digits - 1 )) );
                 s.setPageIncrement( (int)(200 * Math.pow( 10, digits )) );
             }
+            s.setSelection( (int)(currentValue * Math.pow( 10, digits )) );
         }
         else if (ai != null) {
             s.setSelection( (int)prop.get().constantNumber.get() );
