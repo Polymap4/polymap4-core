@@ -248,8 +248,8 @@ public class StyleModelTest {
                     throws Exception {
                 proto.propertyName.set( "foo" );
                 proto.defaultNumberValue.set( new Double( 23 ) );
-                proto.add( "big", new Double( 5 ) );
-                proto.add( "bigger", new Double( 15 ) );
+                proto.add( ff.literal( "big" ), new Double( 5 ) );
+                proto.add( ff.literal( "bigger" ), new Double( 15 ) );
                 return proto;
             }
         } );

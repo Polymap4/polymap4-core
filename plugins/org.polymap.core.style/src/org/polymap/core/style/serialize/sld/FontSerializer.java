@@ -24,6 +24,7 @@ import org.polymap.core.style.model.Font;
 import org.polymap.core.style.model.FontFamily;
 import org.polymap.core.style.model.FontStyle;
 import org.polymap.core.style.model.FontWeight;
+import org.polymap.core.style.model.NoValue;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
@@ -74,6 +75,9 @@ public class FontSerializer
                         }
                     }
                 }
+            }
+            else if (font.family.get().getClass().equals( NoValue.class)) {
+                // ignore
             }
             else {
                 throw new UnsupportedOperationException( font.family.get().getClass() + " is not supported" );

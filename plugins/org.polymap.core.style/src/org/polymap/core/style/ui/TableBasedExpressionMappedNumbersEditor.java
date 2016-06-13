@@ -29,10 +29,10 @@ import org.polymap.model2.runtime.ValueInitializer;
  *
  * @author Steffen Stundzig
  */
-class TableBasedPropertyMappedNumbersEditor
+class TableBasedExpressionMappedNumbersEditor
         extends StylePropertyEditor<ExpressionMappedNumbers>{
 
-    private static final IMessages i18n = Messages.forPrefix( "TableBasedPropertyMappedNumbers" );
+    private static final IMessages i18n = Messages.forPrefix( "TableBasedExpressionMappedNumbers" );
 
 
     @Override
@@ -40,7 +40,7 @@ class TableBasedPropertyMappedNumbersEditor
         return i18n.get( "title" );
     }
 
-    private static Log log = LogFactory.getLog( TableBasedPropertyMappedNumbersEditor.class );
+    private static Log log = LogFactory.getLog( TableBasedExpressionMappedNumbersEditor.class );
 
 
     @Override
@@ -58,9 +58,9 @@ class TableBasedPropertyMappedNumbersEditor
                 proto.propertyName.set( "dxf_color" );
                 proto.defaultNumberValue.set( new Double(50) );
                 proto.numberValues.clear();
-                proto.properties.clear();
-                proto.add( "1", new Double(5) );
-                proto.add( "191", new Double(150) );
+                proto.expressions.clear();
+                proto.add( ff.literal( "1"), new Double(5) );
+                proto.add( ff.literal( "191"), new Double(150) );
                 return proto;
             }
         } );

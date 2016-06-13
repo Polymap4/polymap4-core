@@ -54,7 +54,13 @@ class NoValueEditor
 
     @Override
     public Composite createContents( Composite parent ) {
-        prop.get().value.set( System.currentTimeMillis() );
+        prop.createValue( NoValue.defaults() );
+        prop.get().noValue.set( System.currentTimeMillis() );
         return parent;
+    }
+    
+    @Override
+    public boolean canHandleCurrentValue() {
+        return prop.get() == null || prop.get() instanceof NoValue;
     }
 }

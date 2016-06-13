@@ -22,7 +22,9 @@ import java.util.List;
 
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Function;
+import org.opengis.filter.expression.Literal;
+import org.opengis.filter.expression.PropertyName;
+
 import com.google.common.collect.Lists;
 
 import org.polymap.core.style.model.ExpressionMappedValues;
@@ -45,16 +47,17 @@ public class ExpressionMappedValuesHandler
         Collection<Expression> expressions = spv.expressions();
         Iterator<Expression> expressionsIterator = expressions.iterator();
         Iterator<Object> values = spv.values().iterator();
+        boolean simpleExpressions = true;
 
-        if (context.outputFormat.get().equals( OutputFormat.GEOSERVER )) {
-            boolean simpleExpressions = true;
-
-            while (expressionsIterator.hasNext()) {
-                if (expressionsIterator.next() instanceof Function) {
-                    simpleExpressions = false;
-                    break;
-                }
+        while (expressionsIterator.hasNext()) {
+            Expression next = expressionsIterator.next();
+            if (!(next instanceof Literal || next instanceof PropertyName)) {
+                simpleExpressions = false;
+                break;
             }
+        }
+        if (context.outputFormat.get().equals( OutputFormat.GEOSERVER )) {
+
             expressionsIterator = expressions.iterator();
             if (simpleExpressions) {
                 List<Expression> recode = Lists.newArrayList();
@@ -92,6 +95,7 @@ public class ExpressionMappedValuesHandler
             }
         }
         else {
+            if (simpleExpressions) {
             List<Filter> filters = Lists.newArrayList();
             while (expressionsIterator.hasNext()) {
                 assert values.hasNext();
@@ -108,6 +112,9 @@ public class ExpressionMappedValuesHandler
                 sd.filterAnd( ff.and( filters ) );
                 setter.set( sd, ff.literal( defaultValue ) );
                 result.add( sd );
+            }
+            } else {
+                throw new RuntimeException("complex expressions not supported");
             }
         }
         return result;

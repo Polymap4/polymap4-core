@@ -14,16 +14,32 @@
  */
 package org.polymap.core.style.ui;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import java.awt.Color;
 
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.expression.Literal;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Maps;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ExpressionMappedColors;
+import org.polymap.core.style.ui.PropertyMappedColorsChooser.Triple;
+
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -62,8 +78,6 @@ class TableBasedExpressionMappedColorsEditor
                 proto.setDefaultColor( new Color( 255, 0, 0 ) );
                 proto.expressions.clear();
                 proto.colorValues.clear();
-                proto.add( ff.literal( "1"), new Color( 0, 255, 0 ) );
-                proto.add( ff.literal( "191"), new Color( 0, 0, 255 ) );
                 return proto;
             }
         } );
@@ -73,32 +87,74 @@ class TableBasedExpressionMappedColorsEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        // Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN
-        // | SWT.READ_ONLY );
-        //
-        // Collection<PropertyDescriptor> schemaDescriptors =
-        // featureType.getDescriptors();
-        // GeometryDescriptor geometryDescriptor =
-        // featureType.getGeometryDescriptor();
-        // final List<String> columns = Lists.newArrayList();
-        // for (PropertyDescriptor descriptor : schemaDescriptors) {
-        // if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor
-        // )) {
-        // if (Number.class.isAssignableFrom( descriptor.getType().getBinding() )) {
-        // columns.add( descriptor.getName().getLocalPart() );
-        // }
-        // }
-        // }
-        // combo.setItems( columns.toArray( new String[columns.size()] ) );
-        // combo.select( columns.indexOf( prop.get().propertyValue.get() ) );
-        //
-        // combo.addSelectionListener( new SelectionAdapter() {
-        //
-        // @Override
-        // public void widgetSelected( SelectionEvent e ) {
-        // prop.get().propertyValue.set( columns.get( combo.getSelectionIndex() ) );
-        // }
-        // } );
+        final Button button = new Button( parent, SWT.PUSH );
+        button.addSelectionListener( new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected( SelectionEvent e ) {
+                PropertyMappedColorsChooser cc = new PropertyMappedColorsChooser( prop.get().propertyName.get(),
+                        prop.get().defaultValue(), initialColors(), featureStore, featureType );
+                UIService.instance().openDialog( cc.title(), dialogParent -> {
+                    cc.createContents( dialogParent );
+                }, () -> {
+                    if (cc.propertyName() != null && !cc.triples().isEmpty()) {
+                        prop.get().propertyName.set( cc.propertyName() );
+                        // prop.get().setDefaultColor( cc.defaultColor() );
+                        prop.get().expressions.clear();
+                        prop.get().colorValues.clear();
+                        for (Triple triple : cc.triples()) {
+                            if (!StringUtils.isBlank( triple.label() )) {
+                                prop.get().add( ff.literal( triple.label() ), triple.color() );
+                            }
+                            else {
+                                // empty contains the default color
+                                prop.get().setDefaultColor( triple.color() );
+                                updateButtonColor( button, triple.color() );
+                            }
+                        }
+                    }
+                    return true;
+                } );
+            }
+        } );
+        if (prop.get().propertyName.get() != null && !prop.get().colorValues.isEmpty()) {
+            button.setText( i18n.get( "rechoose", prop.get().propertyName.get(), prop.get().colorValues.size() ) );
+        }
+        else {
+            button.setText( i18n.get( "choose" ) );
+        }
+        if (prop.get().defaultValue() != null) {
+            updateButtonColor( button, prop.get().defaultValue() );
+        }
         return contents;
+    }
+
+
+    protected Map<String,Color> initialColors() {
+        Iterator<Expression> expressions = prop.get().expressions().iterator();
+        Iterator<Color> values = prop.get().values().iterator();
+        Map<String,Color> initialColors = Maps.newHashMap();
+        while (expressions.hasNext()) {
+            assert values.hasNext();
+            Expression expression = expressions.next();
+            if (expression instanceof Literal) {
+                String property = ((Literal)expression).getValue().toString();
+                Color value = values.next();
+                initialColors.put( property, value );
+            }
+        }
+        return initialColors;
+    }
+
+
+    protected void updateButtonColor( Button button, Color color ) {
+        RGB rgb = new RGB( color.getRed(), color.getGreen(), color.getBlue() );
+        button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
+        if (rgb.red * rgb.blue * rgb.green > 8000000) {
+            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 0, 0, 0 ) );
+        }
+        else {
+            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 255, 255, 255 ) );
+        }
     }
 }

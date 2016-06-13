@@ -38,5 +38,5 @@ public class NoValue
 
     // only to trigger the events in the editor
     @Concerns({ StylePropertyChange.Concern.class })
-    public Property<Object> value;
+    public Property<Object> noValue;
 }
