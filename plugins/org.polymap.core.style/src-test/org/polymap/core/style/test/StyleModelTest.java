@@ -50,6 +50,7 @@ import org.polymap.core.style.model.ExpressionMappedNumbers;
 import org.polymap.core.style.model.PropertyNumber;
 import org.polymap.core.style.model.PropertyString;
 import org.polymap.core.style.model.ScaleMappedNumbers;
+import org.polymap.core.style.model.StrokeDashStyle;
 import org.polymap.core.style.model.StyleRepository;
 import org.polymap.core.style.model.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
@@ -156,9 +157,9 @@ public class StyleModelTest {
         polygon.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
                 .add( 0.1, ff.equals( ff.literal( 1 ), ff.literal( 1 ) ) )
                 .add( 0.2, ff.equals( ff.literal( 2 ), ff.literal( 2 ) ) );
-        polygon.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        polygon.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        polygon.stroke.get().strokeStyle.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        polygon.stroke.get().strokeStyle.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        polygon.stroke.get().strokeStyle.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
 
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
@@ -192,16 +193,16 @@ public class StyleModelTest {
         LineStyle line = fs.members().createElement( LineStyle.defaults );
 
         line.fill.get().color.createValue( ConstantColor.defaults( 0, 0, 100 ) );
-        line.fill.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
-        line.fill.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        line.fill.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        line.fill.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        line.fill.get().width.createValue( ConstantNumber.defaults( 15.0 ) );
+        line.fill.get().strokeStyle.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        line.fill.get().strokeStyle.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults(StrokeDashStyle.dashdot) );
+        line.fill.get().strokeStyle.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
 
         line.stroke.get().color.createValue( ConstantColor.defaults( 100, 0, 0 ) );
         line.stroke.get().width.createValue( ConstantNumber.defaults( 2.0 ) );
-        line.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        line.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        line.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        line.stroke.get().strokeStyle.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        line.stroke.get().strokeStyle.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        line.stroke.get().strokeStyle.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
 
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );

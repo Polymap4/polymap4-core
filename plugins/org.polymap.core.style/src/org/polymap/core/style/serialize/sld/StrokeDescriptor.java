@@ -40,20 +40,11 @@ public class StrokeDescriptor
     public Config<Expression>   opacity;
 
     @Immutable
-    // StrokeCapStyle
-    public Config<Expression>   capStyle;
-
-    @Immutable
-    // StrokeJoinStyle
-    public Config<Expression>   joinStyle;
-
-    @Immutable
-    public Config<float[]>      dashStyle;
+    public Config<StrokeStyleDescriptor>   strokeStyle;
 
 
     @Override
     protected StrokeDescriptor clone() {
         return (StrokeDescriptor)super.clone();
     }
-
 }

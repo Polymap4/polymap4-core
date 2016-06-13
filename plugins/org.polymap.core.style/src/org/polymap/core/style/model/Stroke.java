@@ -42,6 +42,7 @@ public class Stroke
         @Override
         public Stroke initialize( Stroke proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );
+            proto.strokeStyle.createValue( StrokeStyle.defaults );
             return proto;
         }
     };
@@ -65,23 +66,9 @@ public class Stroke
     @DoubleRange(to = 1, defaultValue = 1, increment = 0.1)
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> opacity;
-    
-    @Nullable
-    @UIOrder(60)
-    @Description("capStyle")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<StrokeCapStyle>> capStyle;
 
-    @Nullable
-    @UIOrder(70)
-    @Description("dashStyle")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<StrokeDashStyle>> dashStyle;
-
-    @Nullable
-    @UIOrder(80)
-    @Description("joinStyle")
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<StrokeJoinStyle>> joinStyle;
+    @UIOrder(40)
+    @Description("strokeStyle")
+    public Property<StrokeStyle> strokeStyle;
 
 }

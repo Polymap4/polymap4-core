@@ -92,9 +92,9 @@ public class DefaultStyle {
         point.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         point.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
         point.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        point.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        point.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        point.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        point.stroke.get().strokeStyle.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        point.stroke.get().strokeStyle.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        point.stroke.get().strokeStyle.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
         return point;
     }
 
@@ -106,9 +106,9 @@ public class DefaultStyle {
         polygon.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         polygon.stroke.get().width.createValue( ConstantNumber.defaults( 1.0 ) );
         polygon.stroke.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        polygon.stroke.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
-        polygon.stroke.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
-        polygon.stroke.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
+        polygon.stroke.get().strokeStyle.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
+        polygon.stroke.get().strokeStyle.get().dashStyle.createValue( ConstantStrokeDashStyle.defaults() );
+        polygon.stroke.get().strokeStyle.get().joinStyle.createValue( ConstantStrokeJoinStyle.defaults() );
         return polygon;
     }
     

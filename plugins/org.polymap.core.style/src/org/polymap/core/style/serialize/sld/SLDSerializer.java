@@ -259,11 +259,13 @@ public class SLDSerializer
         if (sd != null && (sd.color.isPresent() || sd.width.isPresent() || sd.opacity.isPresent())) {
             Stroke stroke = sf.createStroke( sd.color.get(), sd.width.get(), sd.opacity.get() );
 
-            stroke.setLineJoin( sd.joinStyle.get() );
-            stroke.setLineCap( sd.capStyle.get() );
-            if (sd.dashStyle.get() != null) {
-                stroke.setDashArray( sd.dashStyle.get() );
-                stroke.setDashOffset( ff.literal( 0 ) );
+            if (sd.strokeStyle.isPresent()) {
+                stroke.setLineJoin( sd.strokeStyle.get().joinStyle.get() );
+                stroke.setLineCap( sd.strokeStyle.get().capStyle.get() );
+                if (sd.strokeStyle.get().dashStyle.get() != null) {
+                    stroke.setDashArray( sd.strokeStyle.get().dashStyle.get() );
+                    stroke.setDashOffset( ff.literal( 0 ) );
+                }
             }
             return stroke;
         }
