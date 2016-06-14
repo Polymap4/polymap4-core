@@ -78,15 +78,18 @@ public class FeaturePropertyMappedNumbersChooser {
 
     private Double upperBound;
 
+    private Integer steps;
+
 
     public FeaturePropertyMappedNumbersChooser( String propertyName, Double lowerBound, Double upperBound,
-            Double mappedMinimum, Double mappedMaximum, NumberRange range, FeatureStore featureStore,
+            Double mappedMinimum, Double mappedMaximum, Integer steps, NumberRange range, FeatureStore featureStore,
             FeatureType featureType ) {
         this.propertyName = propertyName;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
         this.mappedMinimum = mappedMinimum;
         this.mappedMaximum = mappedMaximum;
+        this.steps = steps;
         this.range = range;
         this.featureStore = featureStore;
         this.featureType = featureType;
@@ -268,12 +271,25 @@ public class FeaturePropertyMappedNumbersChooser {
     }
 
 
-    public Double minimum() {
+    public Double mappedMinimum() {
         return mappedMinimum;
     }
 
 
-    public Double maximum() {
+    public Double mappedMaximum() {
         return mappedMaximum;
+    }
+
+
+    public Double lowerBound() {
+        return lowerBound;
+    }
+
+    public Double upperBound() {
+        return upperBound;
+    }
+
+    public Integer steps() {
+        return steps;
     }
 }

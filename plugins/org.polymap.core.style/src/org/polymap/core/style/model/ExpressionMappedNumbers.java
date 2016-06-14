@@ -14,7 +14,8 @@
  */
 package org.polymap.core.style.model;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -71,7 +72,7 @@ public class ExpressionMappedNumbers<T extends Number>
 
 
     @Override
-    public Collection<T> values() {
-        return (Collection<T>)numberValues;
+    public List<T> values() {
+        return numberValues.stream().map( number -> (T)number ).collect( Collectors.toList() );
     }
 }

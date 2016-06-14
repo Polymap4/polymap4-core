@@ -15,26 +15,24 @@
 package org.polymap.core.style.model;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.geotools.filter.v1_1.OGCConfiguration;
 import org.geotools.xml.Configuration;
 import org.geotools.xml.Encoder;
 import org.geotools.xml.Parser;
 import org.opengis.filter.expression.Expression;
-import org.xml.sax.SAXException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.collect.Collections2;
 
 import org.polymap.core.runtime.Timer;
 
@@ -96,28 +94,26 @@ public abstract class ExpressionMappedValues<T>
     public abstract Collection<T> values();
 
 
-    public Collection<Expression> expressions() {
-        return Collections2.transform( expressions, encoded -> {
-            try {
-                return decode( encoded );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e );
-            }
-        } );
+    public List<Expression> expressions() {
+        return expressions.stream().map( encoded ->  decode( encoded )).collect( Collectors.toList() );
     }
 
 
-    public static Expression decode( String encoded ) throws IOException, SAXException, ParserConfigurationException {
-        Parser parser = new Parser( ENCODE_CONFIG );
-        Object result = parser.parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
-        if (result instanceof Expression) {
-            return (Expression)result;
+    public static Expression decode( String encoded ) {
+        try {
+            Parser parser = new Parser( ENCODE_CONFIG );
+            Object result = parser.parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
+            if (result instanceof Expression) {
+                return (Expression)result;
+            }
+            if (result instanceof String && StringUtils.isBlank( (String)result )) {
+                return Expression.NIL;
+            }
+            throw new IOException( "unknown parser result " + result );
         }
-        if (result instanceof String && StringUtils.isBlank( (String)result )) {
-            return Expression.NIL;
+        catch (Exception e) {
+            throw new RuntimeException( e );
         }
-        throw new IOException( "unknown parser result " + result );
     }
 
 

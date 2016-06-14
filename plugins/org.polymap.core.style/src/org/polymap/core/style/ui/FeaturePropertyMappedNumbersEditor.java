@@ -14,6 +14,11 @@
  */
 package org.polymap.core.style.ui;
 
+import java.util.List;
+
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.expression.Literal;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,8 +33,6 @@ import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ExpressionMappedNumbers;
 import org.polymap.core.style.model.NumberRange;
-import org.polymap.core.style.model.PropertyNumber;
-
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -64,11 +67,12 @@ public class FeaturePropertyMappedNumbersEditor
         prop.createValue( new ValueInitializer<ExpressionMappedNumbers<Double>>() {
 
             @Override
-            public ExpressionMappedNumbers<Double> initialize( ExpressionMappedNumbers<Double> proto ) throws Exception {
+            public ExpressionMappedNumbers<Double> initialize( ExpressionMappedNumbers<Double> proto )
+                    throws Exception {
                 proto.propertyName.set( "" );
-                NumberRange ad = (NumberRange)prop.info().getAnnotation( NumberRange.class );
-                proto.minimumValue.set( ad.from() );
-                proto.maximumValue.set( ad.to() );
+                proto.expressions.clear();
+                proto.defaultNumberValue.set( null );
+                proto.numberValues.clear();
                 return proto;
             }
         } );
@@ -77,44 +81,74 @@ public class FeaturePropertyMappedNumbersEditor
 
     @Override
     public Composite createContents( Composite parent ) {
+        // lowerBound is first literal value
+        // upperBound is last literal value
+        Double lowerBound = null;
+        Double upperBound = null;
+        List<Expression> expressions = prop.get().expressions();
+        if (!expressions.isEmpty()) {
+            Expression exp = expressions.get( 0 );
+            if (exp instanceof Literal) {
+                lowerBound = (Double)((Literal)exp).getValue();
+            }
+            exp = expressions.get( expressions.size() - 1 );
+            if (exp instanceof Literal) {
+                upperBound = (Double)((Literal)exp).getValue();
+            }
+        }
+        // minimumValue is first value
+        // maximumValue is last value
+        Double minimumValue = null;
+        Double maximumValue = null;
+        List<Double> values = prop.get().values();
+        if (!values.isEmpty()) {
+            minimumValue = values.get( 0 );
+            maximumValue = values.get( values.size() - 1 );
+        }
+
+        Integer steps = values.size();
+
+        final FeaturePropertyMappedNumbersChooser cc = new FeaturePropertyMappedNumbersChooser(
+                (String)prop.get().propertyName.get(), lowerBound, upperBound, minimumValue, maximumValue, steps,
+                (NumberRange)prop.info().getAnnotation( NumberRange.class ), featureStore, featureType );
+
         Composite contents = super.createContents( parent );
         final Button button = new Button( parent, SWT.PUSH );
         button.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                FeaturePropertyMappedNumbersChooser cc = new FeaturePropertyMappedNumbersChooser(
-                        (String)prop.get().propertyName.get(), null, null, (Double)prop.get().minimumValue.get(),
-                        (Double)prop.get().maximumValue.get(),
-                        (NumberRange)prop.info().getAnnotation( NumberRange.class ), featureStore, featureType );
+
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );
                 }, () -> {
                     if (cc.propertyName() != null) {
                         prop.get().propertyName.set( cc.propertyName() );
-                        // prop.get().setDefaultColor( cc.defaultColor() );
-                        prop.get().minimumValue.set( cc.minimum() );
-                        prop.get().maximumValue.set( cc.maximum() );
-                        updateButton( button );
+                        prop.get().expressions.clear();
+                        prop.get().numberValues.clear();
+                        
+                        prop.get().add( ff.function( "lessThan", ff.property( cc.propertyName() ), ff.literal( cc.lowerBound() )), cc.mappedMinimum() );
+//                        prop.get().add( ff.lessOrEqual( ff.property( cc.propertyName() ), ff.literal( cc.lupperBound() ), cc.minimum() ));
+                        prop.get().add( ff.function( "greaterEqualThan", ff.property( cc.propertyName() ), ff.literal( cc.upperBound() )), cc.mappedMaximum() );
+                        updateButton( cc, button );
                     }
                     return true;
                 } );
             }
         } );
+        updateButton( cc, button );
 
         return contents;
     }
 
 
-    protected void updateButton( Button button ) {
-        if (!StringUtils.isBlank( (String)prop.get().propertyName.get() )) {
-            if (prop.get().minimumValue.get() != null && prop.get().maximumValue.get() != null) {
-                button.setText( i18n.get( "chooseBetween", prop.get().propertyName.get(), prop.get().minimumValue.get(),
-                        prop.get().maximumValue.get() ) );
+    protected void updateButton( FeaturePropertyMappedNumbersChooser cc, Button button ) {
+        if (!StringUtils.isBlank( cc.propertyName() )) {
+            if (cc.mappedMinimum() != null && cc.mappedMaximum() != null) {
+                button.setText( i18n.get( "chooseBetween", cc.propertyName(), cc.mappedMinimum(), cc.mappedMaximum() ) );
             }
             else {
-                button.setText( i18n.get( "chooseFrom", prop.get().propertyName.get(), prop.get().minimumValue.get(),
-                        prop.get().maximumValue.get() ) );
+                button.setText( i18n.get( "chooseFrom", cc.propertyName(), cc.mappedMinimum(), cc.mappedMaximum() ) );
             }
         }
         else {
