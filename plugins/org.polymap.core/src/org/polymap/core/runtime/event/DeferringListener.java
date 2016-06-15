@@ -17,16 +17,10 @@ package org.polymap.core.runtime.event;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
-
-import org.polymap.core.runtime.UIThreadExecutor;
-import org.polymap.core.runtime.session.SessionContext;
-import org.polymap.core.runtime.session.SessionSingleton;
-import org.polymap.core.ui.UIUtils;
 
 /**
  * 
@@ -38,52 +32,6 @@ abstract class DeferringListener
 
     private static Log log = LogFactory.getLog( DeferringListener.class );
 
-    /**
-     * Keep a callback request open while there are pending delayed, display events.
-     */
-    static class SessionUICallbackCounter
-            extends SessionSingleton {
-        
-        protected static SessionUICallbackCounter instance() {
-            //return SingletonUtil.getSessionInstance( ServerPushManager.class );
-            return instance( SessionUICallbackCounter.class );
-        }
-        
-        public static void jobStarted( EventListener delegate ) {
-            if (delegate instanceof DisplayingListener && SessionContext.current() != null) {
-                String id = String.valueOf( delegate.hashCode() );
-                instance().doJobStarted( id );
-            }
-        }
-        
-        public static void jobFinished( EventListener delegate ) {
-            if (delegate instanceof DisplayingListener && SessionContext.current() != null) {
-                String id = String.valueOf( delegate.hashCode() );
-                instance().doJobFinished( id );
-            }
-        }
-
-        
-        // instance ***************************************
-        
-        private AtomicInteger       jobCount = new AtomicInteger( 0 );
-        
-        private AtomicInteger       maxJobCount = new AtomicInteger( 0 );
-        
-        protected void doJobStarted( String id ) {
-            log.debug( "Delayed events: job started for: " + id + ". counter: " + jobCount.incrementAndGet() );            
-            UIThreadExecutor.asyncFast( () -> UIUtils.activateCallback( id ) );
-        }
-        
-        protected void doJobFinished( String id ) {
-            log.debug( "Delayed events: job finished for: " + id + ". counter: " + jobCount.decrementAndGet() );
-            UIThreadExecutor.asyncFast( () -> UIUtils.deactivateCallback( id ) );
-        }
-    }
-    
-
-    // instance *******************************************
-    
     protected int                       delay;
     
     protected int                       maxEvents = 10000;
@@ -122,5 +70,49 @@ abstract class DeferringListener
                     .collect( Collectors.toList() );
         }
     }
+    
+    
+//    /**
+//     * Keep a callback request open while there are pending delayed, display events.
+//     */
+//    static class SessionUICallbackCounter
+//    extends SessionSingleton {
+//
+//        protected static SessionUICallbackCounter instance() {
+//            //return SingletonUtil.getSessionInstance( ServerPushManager.class );
+//            return instance( SessionUICallbackCounter.class );
+//        }
+//
+//        public static void jobStarted( EventListener delegate ) {
+//            if (delegate instanceof DisplayingListener && SessionContext.current() != null) {
+//                String id = String.valueOf( delegate.hashCode() );
+//                instance().doJobStarted( id );
+//            }
+//        }
+//
+//        public static void jobFinished( EventListener delegate ) {
+//            if (delegate instanceof DisplayingListener && SessionContext.current() != null) {
+//                String id = String.valueOf( delegate.hashCode() );
+//                instance().doJobFinished( id );
+//            }
+//        }
+//
+//
+//        // instance ***************************************
+//
+//        private AtomicInteger       jobCount = new AtomicInteger( 0 );
+//
+//        private AtomicInteger       maxJobCount = new AtomicInteger( 0 );
+//
+//        protected void doJobStarted( String id ) {
+//            log.debug( "Delayed events: job started for: " + id + ". counter: " + jobCount.incrementAndGet() );            
+//            UIThreadExecutor.asyncFast( () -> UIUtils.activateCallback( id ) );
+//        }
+//
+//        protected void doJobFinished( String id ) {
+//            log.debug( "Delayed events: job finished for: " + id + ". counter: " + jobCount.decrementAndGet() );
+//            UIThreadExecutor.asyncFast( () -> UIUtils.deactivateCallback( id ) );
+//        }
+//    }
     
 }

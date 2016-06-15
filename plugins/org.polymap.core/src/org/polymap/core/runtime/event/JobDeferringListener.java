@@ -61,7 +61,7 @@ class JobDeferringListener
         events.add( ev );
         
         if (job == null) {
-            SessionUICallbackCounter.jobStarted( delegate );
+//            SessionUICallbackCounter.jobStarted( delegate );
             
             job = new UIJob( Messages.get( "DeferringListener_jobTitle" ) ) {
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
@@ -73,7 +73,7 @@ class JobDeferringListener
                         delegate.handleEvent( dev );
                     }
                     finally {
-                        SessionUICallbackCounter.jobFinished( delegate );                
+//                        SessionUICallbackCounter.jobFinished( delegate );                
                     }
                 }
             };
