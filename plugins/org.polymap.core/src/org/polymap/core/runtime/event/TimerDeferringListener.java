@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.Messages;
-import org.polymap.core.runtime.UIThreadExecutor;
 import org.polymap.core.runtime.session.SessionContext;
 
 /**
@@ -79,7 +78,12 @@ class TimerDeferringListener
         public SchedulerTask schedule() {
             try {
                 scheduler.schedule( this, delay );
-                SessionUICallbackCounter.jobStarted( delegate );
+                
+                // this is to late! we are already in the EventManager#DispatcherThread;
+                // this must be done in the event publishing thread; the display thread
+                // may already have been returned to client here.
+                
+//                SessionUICallbackCounter.jobStarted( delegate );
             }
             catch (IllegalStateException e) {
                 // Timer already cancelled (?)
@@ -130,7 +134,7 @@ class TimerDeferringListener
             }
             finally {
                 // release current request *after* events have been handled in the display thread
-                UIThreadExecutor.async( () -> SessionUICallbackCounter.jobFinished( delegate ) );
+//                UIThreadExecutor.async( () -> SessionUICallbackCounter.jobFinished( delegate ) );
             }
         }
     };

@@ -22,20 +22,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedTransferQueue;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
-
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.lifecycle.PhaseEvent;
-import org.eclipse.rap.rwt.lifecycle.PhaseId;
-import org.eclipse.rap.rwt.lifecycle.PhaseListener;
-import org.eclipse.rap.rwt.lifecycle.UICallBack;
-import org.eclipse.rap.rwt.service.ISessionStore;
-import org.eclipse.rap.rwt.service.UISessionEvent;
-import org.eclipse.rap.rwt.service.UISessionListener;
+import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * Provides the central API and implementation of the event system. Classes
@@ -46,7 +40,6 @@ import org.polymap.core.runtime.session.SessionContext;
  * @see EventHandler
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@SuppressWarnings( "deprecation" )
 public class EventManager {
 
     private static Log log = LogFactory.getLog( EventManager.class );
@@ -90,35 +83,10 @@ public class EventManager {
     
     private Timer                                   statTimer;
     
-    private /*volatile*/ int                        pendingEvents;
-    
-    /** The global {@link PhaseListener} installed by the {@link SessionEventDispatcher}. */
-    private UICallbackPhaseListener                 phaseListener;
-    
+    private Cache<Integer,Boolean>                  callbackActivatedThreads = CacheConfig.defaults().initSize( 32 ).createCache();
+
 
     protected EventManager() {
-        // always keep one listener in the list so that SessionEventDispatcher
-        // propery counts #pendingEvents
-        subscribe( this, new EventFilter<EventObject>() {
-            public boolean apply( EventObject input ) {
-                return false;
-            }
-        });
-
-        // install UICallbackPhaseListener
-        try {
-            // seems that a PhaseListener is installed just once for all sessions
-            if (phaseListener == null) {
-                phaseListener = new UICallbackPhaseListener();
-                RWT.getLifeCycle().addPhaseListener( phaseListener );
-            }
-        }
-        catch (IllegalStateException e) {
-            phaseListener = null;
-            // outside request lifecycle -> no UICallback handling
-            log.warn( e.toString() );
-        }
-
         dispatcher.start();
     }
 
@@ -131,11 +99,6 @@ public class EventManager {
     }
 
 
-    @EventHandler
-    protected void handleEvent( EventObject ev ) {
-    }
-
-    
     /**
      * Asynchronously publish the given event. An event dispatch thread actually
      * delivers the events. This method may immediatelly return to the caller.
@@ -143,12 +106,7 @@ public class EventManager {
      * @param ev The event to dispatch.
      */
     public void publish( EventObject ev, Object... omitHandlers ) {
-        assert ev != null;        
-        
-        Iterator<AnnotatedEventListener> snapshot = queueableListeners();
-        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
-
-        dispatcher.dispatch( d );
+        doPublish( ev, omitHandlers );
     }
 
 
@@ -167,11 +125,7 @@ public class EventManager {
      * @param ev The event to dispatch.
      */
     public void syncPublish( EventObject ev, Object... omitHandlers ) {
-        assert ev != null;
-        Iterator<AnnotatedEventListener> snapshot = queueableListeners();
-        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
-        
-        dispatcher.dispatch( d );
+        SessionEventDispatcher d = doPublish( ev, omitHandlers );
         
         synchronized (d) {
             Timer timer = new Timer();
@@ -186,42 +140,31 @@ public class EventManager {
     }
 
     
-    /**
-     * A snapshot of the current {@link #listeners}.
-     */
-    protected Iterator<AnnotatedEventListener> queueableListeners() {
-        return listeners.iterator();
+    protected SessionEventDispatcher doPublish( EventObject ev, Object... omitHandlers ) {
+        assert ev != null;
+        
+        // XXX #34: Delayed event UI update (http://github.com/Polymap4/polymap4-rhei/issues/issue/34)
+        // this is an easy hack that always activates UI callback for every Display thread;
+        // it is never deactivated;
+        Integer threadId = Thread.currentThread().hashCode();
+        callbackActivatedThreads.get( threadId, key -> {
+            try {
+                UIUtils.activateCallback( key.toString() );
+                log.info( "UICallback activated!" );
+                return true;
+            }
+            catch (Throwable e) {
+                return false;
+            }
+        });
+        
+        Iterator<AnnotatedEventListener> snapshot = listeners.iterator();
+        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
+        dispatcher.dispatch( d );
+        return d;
     }
 
     
-//    /**
-//     * <p/>
-//     * Listeners are weakly referenced by the EventManager. A listener is reclaimed
-//     * by the GC and removed from the EventManager as soon as there is no strong
-//     * reference to it. An anonymous inner class can not be used as event listener.
-//     * 
-//     * @param scope
-//     * @param type
-//     * @param listener
-//     * @throws IllegalArgumentException If the given listener is registered already.
-//     */
-//    public void subscribe( Event.Scope scope, Class<? extends EventObject> type, EventListener listener, EventFilter... filters ) {
-//        // weak reference
-//        Integer key = System.identityHashCode( listener );
-//        WeakListener chained = new WeakListener( listener, key );
-//        
-//        // scope/type filter
-//        TypeEventFilter typeFilter = new TypeEventFilter( type );
-//        ScopeEventFilter scopeFilter = ScopeEventFilter.forScope( scope );
-//        EventListener tweaked = new FilteringListener( chained, typeFilter, scopeFilter );
-//        
-//        EventListener found = listeners.putIfAbsent( key, tweaked );
-//        if (found != null) {
-//            throw new IllegalArgumentException( "EventListener already registered: " + listener ); 
-//        }
-//    }
-
-
     /**
      * Registeres the given {@link EventHandler annotated} handler as event listener.
      * <p/>
@@ -283,62 +226,9 @@ public class EventManager {
 
     
     /**
-     * Checks if there are pending events after the render page of an request. If
-     * yes, then UICallback is activated - until there are no pending events after
-     * any subsequent request.
-     * <p/>
-     * XXX Currently #pendingEvents counts ALL events from all sessions! So a foreign
-     * session might force a UICallback even if we don't have anything to render.
-     */
-    private class UICallbackPhaseListener
-            implements PhaseListener, UISessionListener {
-
-        public PhaseId getPhaseId() {
-            return PhaseId.ANY;
-        }
-        
-        public void beforePhase( PhaseEvent ev ) {
-            //log.debug( "Before " + ev.getPhaseId() + ": pending=" + pendingEvents );
-        }
-        
-        public void afterPhase( PhaseEvent ev ) {
-            if (ev.getPhaseId() != PhaseId.PROCESS_ACTION) {
-                return;
-            }
-            ISessionStore session = RWT.getSessionStore();
-            boolean uiCallbackActive = session.getAttribute( "uiCallbackActive" ) != null;
-            
-            //log.debug( "After " + getPhaseId() + ": pending=" + pendingEvents + ", UICallbackActive=" + uiCallbackActive );
-            
-            if (pendingEvents > 0) {
-                if (pendingEvents > 0 && !uiCallbackActive) {
-                    log.debug( "UICallback: ON (pending: " + pendingEvents + ")" );
-                    UICallBack.activate( "EventManager.pendingEvents" );
-                    session.setAttribute( "uiCallbackActive", true );
-                }
-            }
-            else {
-                if (uiCallbackActive) {
-                    log.debug( "UICallback: OFF" );
-                    UICallBack.deactivate( "EventManager.pendingEvents" );
-                    session.removeAttribute( "uiCallbackActive" );
-                }
-            }
-        }
-
-        @Override
-        public void beforeDestroy( UISessionEvent ev ) {
-            RWT.getLifeCycle().removePhaseListener( this );
-            ev.getUISession().removeUISessionListener( this );
-        }
-        
-    }
-    
-
-    /**
      * 
      */
-    private class SessionEventDispatcher
+    protected class SessionEventDispatcher
             implements Runnable {
         
         private SessionContext      publishSession;
@@ -361,13 +251,6 @@ public class EventManager {
             this.publishSession = SessionContext.current();
 //            assert publishSession != null;
             assert omitHandlers != null;
-            
-            // XXX should never happen
-            if (pendingEvents < 0) {
-                //log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
-                pendingEvents = 0;
-            }
-            ++ pendingEvents;
         }
     
         
@@ -393,8 +276,6 @@ public class EventManager {
             finally {
                 threadPublishSession = null;
 
-                -- pendingEvents;
-                
                 synchronized (this) {
                     done = true;
                     notifyAll();
@@ -431,7 +312,7 @@ public class EventManager {
     /**
      * 
      */
-    static class DispatcherThread
+    protected static class DispatcherThread
             extends Thread {
 
         public static final int         MAX_QUEUE_SIZE = 10000;
@@ -443,7 +324,7 @@ public class EventManager {
          * XXX on IA32 it seems to work ok without "volatile"; not sure about other platforms; 
          * see http://brooker.co.za/blog/2012/09/10/volatile.html
          */
-        private int                     queueSize;
+        private volatile int            queueSize;
         
         private int                     queueReadCount;
 
@@ -472,7 +353,7 @@ public class EventManager {
             try {
                 for (int i=0; queueSize >= MAX_QUEUE_SIZE; i++) {
                     log.trace( "Waiting on dispatch... queue: " + queueSize );
-                    try {Thread.sleep( Math.min( 10*i, 1000 ) );} catch (InterruptedException e) {};
+                    try { Thread.sleep( Math.min( 10*i, 1000 ) ); } catch (InterruptedException e) {};
                     log.trace( "    queue: " + queueSize );
                 }
                 ++queueSize;
