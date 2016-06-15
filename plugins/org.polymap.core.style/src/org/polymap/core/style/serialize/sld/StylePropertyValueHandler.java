@@ -49,8 +49,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             else if (spv instanceof ConstantNumber) {
                 return new ConstantNumberHandler().doHandle( context, (ConstantNumber)spv, sd, (Setter<SD>)setter );
             }
-            else if (spv instanceof FilterMappedNumbers) {
-                return new FilterMappedNumbersHandler().doHandle( context, (FilterMappedNumbers)spv, sd,
+            else if (spv instanceof FilterMappedValues) {
+                return new FilterMappedValuesHandler().doHandle( context, (FilterMappedValues)spv, sd,
                         (Setter<SD>)setter );
             }
             else if (spv instanceof ConstantColor) {
@@ -93,17 +93,9 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             else if (spv instanceof PropertyNumber) {
                 return new PropertyNumberHandler().doHandle( context, (PropertyNumber)spv, sd, setter );
             }
-            else if (spv instanceof ExpressionMappedValues) {
-                return new ExpressionMappedValuesHandler().doHandle( context, (ExpressionMappedValues)spv, sd, setter );
-            }
             else if (spv instanceof ScaleMappedNumbers) {
                 return new ScaleMappedNumbersHandler().doHandle( context, (ScaleMappedNumbers)spv, sd, setter );
             }
-            // else if (spv instanceof FeaturePropertyBasedNumber) {
-            // return new FeaturePropertyBasedNumberHandler().doHandle(
-            // (FeaturePropertyBasedNumber)spv, sd,
-            // setter );
-            // }
             else {
                 throw new RuntimeException( "Unhandled StylePropertyValue: " + spv.getClass().getName() );
             }

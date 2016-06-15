@@ -12,9 +12,7 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import java.util.ArrayList;
 import java.util.List;
-
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.styling.AnchorPoint;
 import org.geotools.styling.Displacement;
@@ -93,76 +91,82 @@ public class SLDSerializer
         // XXX 1: gather scale and filter descriptions from StyleGroup hierarchy
         // ...
 
-        List<SymbolizerDescriptor> descriptors = new ArrayList<SymbolizerDescriptor>();
-        // 2: create flat list of SymbolizerDescriptor instances
+        // 2: create flat list of SymbolizerDescriptor instances per style and add a
+        // feature type style for each
+        final Style sld = sf.createStyle();
         for (org.polymap.core.style.model.Style style : featureStyle.members()) {
             // skip deactivated
             if (!style.active.get()) {
             }
-            // Point
-            else if (PointStyle.class.isInstance( style )) {
-                descriptors.addAll( new PointStyleSerializer(context).serialize( (PointStyle)style ) );
-            }
-            // Polygon
-            else if (PolygonStyle.class.isInstance( style )) {
-                descriptors.addAll( new PolygonStyleSerializer(context).serialize( (PolygonStyle)style ) );
-            }
-            // Text
-            else if (TextStyle.class.isInstance( style )) {
-                descriptors.addAll( new TextStyleSerializer(context).serialize( (TextStyle)style ) );
-            }
-            // Line
-            else if (LineStyle.class.isInstance( style )) {
-                descriptors.addAll( new LineStyleSerializer(context).serialize( (LineStyle)style ) );
-            }
             else {
-                throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
+                sld.featureTypeStyles().add( buildStyle( style, context ) );
             }
         }
 
-        final Style sld = sf.createStyle();
-        // 3: transform into FeatureTypeStyle and Rule instances
-        for (SymbolizerDescriptor descriptor : descriptors) {
-            sld.featureTypeStyles().add( buildStyle( descriptor ) );
-        }
-        
-        // XXX 4: collect equal FeatureTypeStyles and Rules
-        // ...
-        
         return sld;
     }
 
 
-    private FeatureTypeStyle buildStyle( final SymbolizerDescriptor descriptor ) {
-        List<Symbolizer> sym = Lists.newArrayList();
-        if (descriptor instanceof LineSymbolizerDescriptor) {
-            sym.addAll( buildLineStyle( (LineSymbolizerDescriptor)descriptor ) );
+    private FeatureTypeStyle buildStyle( final org.polymap.core.style.model.Style style, final Context context ) {
+        FeatureTypeStyle featureTypeStyle = sf.createFeatureTypeStyle();
+        featureTypeStyle.setName( style.title.get() );
+        featureTypeStyle.getDescription().setAbstract( style.description.get() );
+        // featureTypeStyle.getDescription().setTitle( style.title.get() );
+
+        for (SymbolizerDescriptor descriptor : serializeStyle( style, context )) {
+            List<Symbolizer> sym = Lists.newArrayList();
+            if (descriptor instanceof LineSymbolizerDescriptor) {
+                sym.addAll( buildLineStyle( (LineSymbolizerDescriptor)descriptor ) );
+            }
+            else if (descriptor instanceof PointSymbolizerDescriptor) {
+                sym.add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
+            }
+            else if (descriptor instanceof PolygonSymbolizerDescriptor) {
+                sym.add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
+            }
+            else if (descriptor instanceof TextSymbolizerDescriptor) {
+                sym.add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
+            }
+            else {
+                throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
+            }
+
+            // Rule
+            Rule rule = sf.createRule();
+            //rule.setName( descriptor.description.get() );
+            rule.symbolizers().addAll( sym );
+
+            descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
+            descriptor.scale.ifPresent( scale -> {
+                rule.setMinScaleDenominator( scale.getLeft() );
+                rule.setMaxScaleDenominator( scale.getRight() );
+            } );
+            featureTypeStyle.rules().add( rule );
         }
-        else if (descriptor instanceof PointSymbolizerDescriptor) {
-            sym.add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
+        return featureTypeStyle;
+    }
+
+
+    private List<? extends SymbolizerDescriptor> serializeStyle( org.polymap.core.style.model.Style style,
+            Context context ) {
+        if (PointStyle.class.isInstance( style )) {
+            return new PointStyleSerializer( context ).serialize( (PointStyle)style );
         }
-        else if (descriptor instanceof PolygonSymbolizerDescriptor) {
-            sym.add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
+        // Polygon
+        else if (PolygonStyle.class.isInstance( style )) {
+            return new PolygonStyleSerializer( context ).serialize( (PolygonStyle)style );
         }
-        else if (descriptor instanceof TextSymbolizerDescriptor) {
-            sym.add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
+        // Text
+        else if (TextStyle.class.isInstance( style )) {
+            return new TextStyleSerializer( context ).serialize( (TextStyle)style );
+        }
+        // Line
+        else if (LineStyle.class.isInstance( style )) {
+            return new LineStyleSerializer( context ).serialize( (LineStyle)style );
         }
         else {
-            throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
+            throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
         }
-
-        // Rule
-        Rule rule = sf.createRule();
-        rule.setName( descriptor.description.get() );
-        rule.symbolizers().addAll( sym );
-
-        descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
-        descriptor.scale.ifPresent( scale -> {
-            rule.setMinScaleDenominator( scale.getLeft() );
-            rule.setMaxScaleDenominator( scale.getRight() );
-        } );
-
-        return sf.createFeatureTypeStyle( new Rule[] { rule } );
     }
 
 
@@ -181,6 +185,7 @@ public class SLDSerializer
         }
         return lines;
     }
+
 
     protected PointSymbolizer buildPointStyle( PointSymbolizerDescriptor descriptor ) {
         Graphic gr = sf.createDefaultGraphic();

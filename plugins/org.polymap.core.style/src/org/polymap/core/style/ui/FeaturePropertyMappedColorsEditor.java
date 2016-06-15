@@ -14,18 +14,22 @@
  */
 package org.polymap.core.style.ui;
 
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import java.awt.Color;
 
-import org.opengis.filter.expression.Expression;
+import org.opengis.filter.And;
+import org.opengis.filter.Filter;
+import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.Literal;
+import org.opengis.filter.expression.PropertyName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import org.eclipse.swt.SWT;
@@ -37,20 +41,26 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.ExpressionMappedColors;
+import org.polymap.core.style.model.FilterMappedColors;
 import org.polymap.core.style.ui.FeaturePropertyMappedColorsChooser.Triple;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Editor that creates numbers based on feature attributes.
+ * Editor that creates colors based on feature attributes.
  *
  * @author Steffen Stundzig
  */
-class TableBasedExpressionMappedColorsEditor
-        extends StylePropertyEditor<ExpressionMappedColors> {
+public class FeaturePropertyMappedColorsEditor
+        extends StylePropertyEditor<FilterMappedColors> {
 
-    private static final IMessages i18n = Messages.forPrefix( "TableBasedExpressionMappedColors" );
+    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyMappedColorsEditor" );
+
+    private String propertyName;
+
+    private Color defaultColor;
+
+    private Map<String,Color> initialColors;
 
 
     @Override
@@ -58,7 +68,7 @@ class TableBasedExpressionMappedColorsEditor
         return i18n.get( "title" );
     }
 
-    private static Log log = LogFactory.getLog( TableBasedExpressionMappedColorsEditor.class );
+    private static Log log = LogFactory.getLog( FeaturePropertyMappedColorsEditor.class );
 
 
     @Override
@@ -70,13 +80,11 @@ class TableBasedExpressionMappedColorsEditor
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<ExpressionMappedColors>() {
+        prop.createValue( new ValueInitializer<FilterMappedColors>() {
 
             @Override
-            public ExpressionMappedColors initialize( ExpressionMappedColors proto ) throws Exception {
-                proto.propertyName.set( "" );
-                proto.setDefaultColor( new Color( 255, 0, 0 ) );
-                proto.expressions.clear();
+            public FilterMappedColors initialize( FilterMappedColors proto ) throws Exception {
+                proto.encodedFilters.clear();
                 proto.colorValues.clear();
                 return proto;
             }
@@ -88,62 +96,77 @@ class TableBasedExpressionMappedColorsEditor
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
         final Button button = new Button( parent, SWT.PUSH );
+
+        initialize();
+
         button.addSelectionListener( new SelectionAdapter() {
 
             @Override
             public void widgetSelected( SelectionEvent e ) {
-                FeaturePropertyMappedColorsChooser cc = new FeaturePropertyMappedColorsChooser( prop.get().propertyName.get(),
-                        prop.get().defaultValue(), initialColors(), featureStore, featureType );
+                FeaturePropertyMappedColorsChooser cc = new FeaturePropertyMappedColorsChooser( propertyName,
+                        defaultColor, initialColors, featureStore, featureType );
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );
                 }, () -> {
                     if (cc.propertyName() != null && !cc.triples().isEmpty()) {
-                        prop.get().propertyName.set( cc.propertyName() );
-                        // prop.get().setDefaultColor( cc.defaultColor() );
-                        prop.get().expressions.clear();
+                        propertyName = cc.propertyName();
+
+                        prop.get().encodedFilters.clear();
                         prop.get().colorValues.clear();
+                        List<Filter> opposite = Lists.newArrayList();
                         for (Triple triple : cc.triples()) {
                             if (!StringUtils.isBlank( triple.label() )) {
-                                prop.get().add( ff.literal( triple.label() ), triple.color() );
+                                prop.get().add( ff.equals( ff.property( propertyName ), ff.literal( triple.label() ) ),
+                                        triple.color() );
+                                opposite.add(
+                                        ff.notEqual( ff.property( propertyName ), ff.literal( triple.label() ) ) );
                             }
                             else {
                                 // empty contains the default color
-                                prop.get().setDefaultColor( triple.color() );
-                                updateButtonColor( button, triple.color() );
+                                defaultColor = triple.color();
                             }
                         }
+                        if (defaultColor != null) {
+                            prop.get().add( ff.and( opposite ), defaultColor );
+                        }
+                        updateButtonColor( button, defaultColor );
                     }
                     return true;
                 } );
             }
         } );
-        if (prop.get().propertyName.get() != null && !prop.get().colorValues.isEmpty()) {
-            button.setText( i18n.get( "rechoose", prop.get().propertyName.get(), prop.get().colorValues.size() ) );
+        if (!StringUtils.isBlank( propertyName ) && !initialColors.isEmpty()) {
+            button.setText( i18n.get( "rechoose", propertyName, prop.get().colorValues.size() ) );
         }
         else {
             button.setText( i18n.get( "choose" ) );
         }
-        if (prop.get().defaultValue() != null) {
-            updateButtonColor( button, prop.get().defaultValue() );
+        if (defaultColor != null) {
+            updateButtonColor( button, defaultColor );
         }
         return contents;
     }
 
 
-    protected Map<String,Color> initialColors() {
-        Iterator<Expression> expressions = prop.get().expressions().iterator();
-        Iterator<Color> values = prop.get().values().iterator();
-        Map<String,Color> initialColors = Maps.newHashMap();
-        while (expressions.hasNext()) {
-            assert values.hasNext();
-            Expression expression = expressions.next();
-            if (expression instanceof Literal) {
-                String property = ((Literal)expression).getValue().toString();
-                Color value = values.next();
-                initialColors.put( property, value );
+    private void initialize() {
+        List<Filter> expressions = prop.get().filters();
+        List<Color> values = prop.get().values();
+        initialColors = Maps.newHashMap();
+        for (int i = 0; i < expressions.size(); i++) {
+            Filter filter = expressions.get( i );
+            Color color = values.get( i );
+            if (filter.getClass().isInstance( PropertyIsEqualTo.class )) {
+                PropertyIsEqualTo piet = (PropertyIsEqualTo)filter;
+                if (propertyName == null) {
+                    propertyName = ((PropertyName)piet.getExpression1()).getPropertyName();
+                }
+                String property = ((Literal)piet.getExpression2()).getValue().toString();
+                initialColors.put( property, color );
+            }
+            else if (filter.getClass().isInstance( And.class )) {
+                defaultColor = color;
             }
         }
-        return initialColors;
     }
 
 

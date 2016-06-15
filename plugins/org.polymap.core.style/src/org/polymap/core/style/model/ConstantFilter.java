@@ -49,64 +49,86 @@ public class ConstantFilter
 
     private static Log log = LogFactory.getLog( ConstantFilter.class );
 
-    public static final Configuration   ENCODE_CONFIG = new org.geotools.filter.v1_1.OGCConfiguration();
-    public static final Charset         ENCODE_CHARSET = Charset.forName( "UTF-8" );
-    
+    private final static QName name = org.geotools.filter.v1_1.OGC.Filter;
+
+    private static Parser parser;
+
+    private static final Configuration ENCODE_CONFIG = new org.geotools.filter.v1_1.OGCConfiguration();
+
+    private static final Configuration CONFIGURATION = new OGCConfiguration();
+
+    public static final Charset ENCODE_CHARSET = Charset.forName( "UTF-8" );
+
     /**
      * 
      */
     public static final ValueInitializer<ConstantFilter> defaultTrue = new ValueInitializer<ConstantFilter>() {
+
         @Override
         public ConstantFilter initialize( ConstantFilter proto ) throws Exception {
             return proto;
         }
     };
 
-
     // instance *******************************************
-    
+
     /** Null specifies {@link Filter#INCLUDE}. */
     @Nullable
-    @Concerns( StylePropertyChange.Concern.class )
-    protected Property<String>          encoded;
+    @Concerns(StylePropertyChange.Concern.class)
+    protected Property<String> encoded;
 
-    
+
     public ConstantFilter setFilter( Filter filter ) throws IOException {
         encoded.set( encode( filter ) );
         return this;
     }
-    
-    
+
+
     public Filter filter() throws IOException, SAXException, ParserConfigurationException {
         return encoded.get() != null ? decode( encoded.get() ) : Filter.INCLUDE;
     }
-    
-    
+
+
     public static Filter decode( String encoded ) throws IOException, SAXException, ParserConfigurationException {
-        Parser parser = new Parser( ENCODE_CONFIG );
-        Object result = parser.parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
+        Timer t = new Timer().start();
+        Object result = getParser().parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
+        log.info( "Filter decoded (" + t.elapsedTime() + "ms): " );
         if (result instanceof Filter) {
             return (Filter)result;
         }
-        if (result instanceof String && StringUtils.isBlank((String)result)) {
+        if (result instanceof String && StringUtils.isBlank( (String)result )) {
             return Filter.INCLUDE;
         }
-        throw new IOException("unknown parser result " + result);
+        throw new IOException( "unknown parser result " + result );
+    }
+
+
+    private static synchronized Parser getParser() {
+        if (parser == null) {
+            parser = new Parser( ENCODE_CONFIG );
+        }
+        return parser;
     }
 
 
     public static String encode( Filter filter ) throws IOException {
         Timer t = new Timer().start();
-        Configuration configuration = new OGCConfiguration();
-        Encoder encoder = new Encoder( configuration );
+
+        String encoded = getEncoder().encodeAsString( filter, name );
+        log.info( "Filter encoded (" + t.elapsedTime() + "ms): " );
+        return encoded;
+    }
+
+
+    private static Encoder getEncoder() {
+        // if (encoder == null) {
+        Encoder encoder = new Encoder( CONFIGURATION );
         encoder.setIndenting( true );
         encoder.setEncoding( ENCODE_CHARSET );
         encoder.setNamespaceAware( false );
         encoder.setOmitXMLDeclaration( true );
-        QName name = org.geotools.filter.v1_1.OGC.Filter; //new QName( "http://www.opengis.net/ogc", "Filter" );
-        String encoded = encoder.encodeAsString( filter, name );
-        log.info( "Filter encoded (" + t.elapsedTime() + "ms)" );
-        return encoded;
+        // }
+        return encoder;
     }
-    
+
 }

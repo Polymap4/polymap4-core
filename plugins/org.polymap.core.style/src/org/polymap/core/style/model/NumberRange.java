@@ -31,7 +31,7 @@ public @interface NumberRange {
 
     double from() default 0;
     
-    double to() default 10000;
+    double to() default 100;
     
     double defaultValue();
     

@@ -14,64 +14,65 @@
  */
 package org.polymap.core.style.model;
 
-import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import java.awt.Color;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Lists;
+
 import org.polymap.model2.CollectionProperty;
-import org.polymap.model2.Concerns;
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Conditions based numbers.
+ * Colors mapped filters.
  * 
  * @author Steffen Stundzig
  */
-public class ExpressionMappedStrings
-        extends ExpressionMappedValues<String> {
+public class FilterMappedColors
+        extends FilterMappedValues<Color> {
 
-    private static Log log = LogFactory.getLog( ExpressionMappedStrings.class );
+    private static Log log = LogFactory.getLog( FilterMappedColors.class );
+
 
     /**
      * Initializes a newly created instance with default values.
      */
-    public static  ValueInitializer<ExpressionMappedStrings> defaults() {
-        return new ValueInitializer<ExpressionMappedStrings>() {
+    public static ValueInitializer<FilterMappedColors> defaults() {
+        return new ValueInitializer<FilterMappedColors>() {
+
             @Override
-            public ExpressionMappedStrings initialize( ExpressionMappedStrings proto ) throws Exception {
+            public FilterMappedColors initialize( FilterMappedColors proto ) throws Exception {
                 return proto;
             }
         };
     }
-    
 
     // instance *******************************************
-    
 
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<String> defaultStringValue;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<String> stringValues;
+    // @Concerns( StylePropertyChange.Concern.class )
+    public CollectionProperty<Integer> colorValues;
 
 
     @Override
-    public ExpressionMappedStrings add( String value ) {
-        stringValues.add( value );
+    public FilterMappedColors addValue( Color value ) {
+        colorValues.add( value.getRed() );
+        colorValues.add( value.getGreen() );
+        colorValues.add( value.getBlue() );
         return this;
     }
 
 
     @Override
-    public String defaultValue() {
-        return defaultStringValue.get();
-    }
-
-
-    @Override
-    public Collection<String> values() {
-        return stringValues;
+    public List<Color> values() {
+        List<Color> colors = Lists.newArrayList();
+        Iterator<Integer> iterator = colorValues.iterator();
+        while (iterator.hasNext()) {
+            colors.add( new Color( iterator.next(), iterator.next(), iterator.next() ) );
+        }
+        return colors;
     }
 }

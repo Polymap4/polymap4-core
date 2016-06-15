@@ -34,9 +34,6 @@ public class StrokeStyleDescriptor
     @Immutable
     public Config<float[]> dashStyle;
 
-    @Immutable
-    public Config<Expression> width;
-
 
     @Override
     protected StrokeStyleDescriptor clone() {

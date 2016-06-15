@@ -21,58 +21,49 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.model2.CollectionProperty;
-import org.polymap.model2.Concerns;
-import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Conditions based numbers.
- * 
+ * Strings mapped on filters
+ *
  * @author Steffen Stundzig
  */
-public class ExpressionMappedNumbers<T extends Number>
-        extends ExpressionMappedValues<T> {
+public class FilterMappedStrings
+        extends FilterMappedValues<String> {
 
-    private static Log log = LogFactory.getLog( ExpressionMappedNumbers.class );
+    private static Log log = LogFactory.getLog( FilterMappedStrings.class );
+
 
     /**
      * Initializes a newly created instance with default values.
      */
-    public static <R extends Number> ValueInitializer<ExpressionMappedNumbers<R>> defaults() {
-        return new ValueInitializer<ExpressionMappedNumbers<R>>() {
+    public static ValueInitializer<FilterMappedStrings> defaults() {
+        return new ValueInitializer<FilterMappedStrings>() {
+
             @Override
-            public ExpressionMappedNumbers<R> initialize( ExpressionMappedNumbers<R> proto ) throws Exception {
+            public FilterMappedStrings initialize( FilterMappedStrings proto ) throws Exception {
                 return proto;
             }
         };
     }
-    
 
     // instance *******************************************
-    
 
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<Number> defaultNumberValue;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<Number> numberValues;
+    // XXX Collections are not supported yet, use force-fire-fake prop?
+    // @Concerns( StylePropertyChange.Concern.class )
+    public CollectionProperty<String> stringValues;
 
 
     @Override
-    public ExpressionMappedNumbers add( T value ) {
-        numberValues.add( value );
+    protected FilterMappedValues addValue( String value ) {
+        stringValues.add( value );
         return this;
     }
 
 
     @Override
-    public T defaultValue() {
-        return (T)defaultNumberValue.get();
+    public List<String> values() {
+        return stringValues.stream().collect( Collectors.toList() );
     }
 
-
-    @Override
-    public List<T> values() {
-        return numberValues.stream().map( number -> (T)number ).collect( Collectors.toList() );
-    }
 }

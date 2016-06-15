@@ -56,9 +56,9 @@ import org.polymap.core.ui.StatusDispatcher;
  *
  * @author Steffen Stundzig
  */
-public class FeaturePropertyMappedNumbersChooser {
+public class FeaturePropertyRangeMappedNumbersChooser {
 
-    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyMappedNumbersChooser" );
+    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyRangeMappedNumbersChooser" );
 
     // private final ExpressionMappedColors property;
 
@@ -74,14 +74,26 @@ public class FeaturePropertyMappedNumbersChooser {
 
     private Double mappedMaximum;
 
-    private Double lowerBound;
+    private Number lowerBound;
 
-    private Double upperBound;
+    private Number upperBound;
 
     private Integer steps;
 
+    private Spinner stepsSpinner;
 
-    public FeaturePropertyMappedNumbersChooser( String propertyName, Double lowerBound, Double upperBound,
+    private Spinner mappedMaximumSpinner;
+
+    private Spinner mappedMinimumSpinner;
+
+    private Spinner upperBoundSpinner;
+
+    private Spinner lowerBoundSpinner;
+
+    private boolean isInteger = false;
+
+
+    public FeaturePropertyRangeMappedNumbersChooser( String propertyName, Number lowerBound, Number upperBound,
             Double mappedMinimum, Double mappedMaximum, Integer steps, NumberRange range, FeatureStore featureStore,
             FeatureType featureType ) {
         this.propertyName = propertyName;
@@ -100,7 +112,7 @@ public class FeaturePropertyMappedNumbersChooser {
         return i18n.get( "title" );
     }
 
-    private static Log log = LogFactory.getLog( FeaturePropertyMappedNumbersChooser.class );
+    private static Log log = LogFactory.getLog( FeaturePropertyRangeMappedNumbersChooser.class );
 
 
     public void createContents( Composite parent ) {
@@ -109,10 +121,13 @@ public class FeaturePropertyMappedNumbersChooser {
         final Combo propertyCombo = new Combo( parent, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
         final Label currentValues = new Label( parent, SWT.NONE );
-        int digits = range.digits();
-        double factorX = Math.pow( 10, digits );
+        final int digits = range.digits();
+        final double factorX = Math.pow( 10, digits );
 
-        List<String> properties = properties();
+        lowerBoundSpinner = new Spinner( parent, SWT.BORDER );
+        upperBoundSpinner = new Spinner( parent, SWT.BORDER );
+
+        final List<String> properties = properties();
         propertyCombo.setItems( properties.toArray( new String[properties.size()] ) );
         propertyCombo.select( properties.indexOf( propertyName ) );
         propertyCombo.addSelectionListener( new SelectionAdapter() {
@@ -121,7 +136,7 @@ public class FeaturePropertyMappedNumbersChooser {
             public void widgetSelected( SelectionEvent e ) {
                 propertyName = properties.get( propertyCombo.getSelectionIndex() );
                 try {
-                    updateSpinner( currentValues, digits );
+                    updateSpinner( currentValues, digits, factorX );
                 }
                 catch (IOException e1) {
                     StatusDispatcher.handleError( "error during load of property values", e1 );
@@ -129,13 +144,9 @@ public class FeaturePropertyMappedNumbersChooser {
             }
         } );
 
-        final Spinner lowerBoundSpinner = new Spinner( parent, SWT.BORDER );
-        final Spinner upperBoundSpinner = new Spinner( parent, SWT.BORDER );
-        final Spinner mappedMinimumSpinner = new Spinner( parent, SWT.BORDER );
-        final Spinner mappedMaximumSpinner = new Spinner( parent, SWT.BORDER );
-        final Spinner granularitySpinner = new Spinner( parent, SWT.BORDER );
-
         lowerBoundSpinner.setDigits( digits );
+        lowerBoundSpinner.setMinimum( Integer.MIN_VALUE );
+        lowerBoundSpinner.setMaximum( Integer.MAX_VALUE );
         // lowerBoundSpinner.setIncrement( (int)(range.increment() * factorX) );
         // lowerBoundSpinner.setPageIncrement( (int)(range.increment() * factorX *
         // 10) );
@@ -145,28 +156,36 @@ public class FeaturePropertyMappedNumbersChooser {
 
             public void widgetSelected( SelectionEvent e ) {
                 int selection = lowerBoundSpinner.getSelection();
-                lowerBound = selection / Math.pow( 10, digits );
+                if (lowerBoundSpinner.getDigits() > 0) {
+                    lowerBound = selection / Math.pow( 10, digits );
+                }
+                else {
+                    lowerBound = selection;
+                }
                 upperBoundSpinner.setMinimum( selection );
             }
         } );
 
-        upperBoundSpinner.setDigits( digits );
-        // upperBoundSpinner.setMinimum( (int)(range.from() * factorX) );
-        // upperBoundSpinner.setMaximum( (int)(range.to() * factorX) );
+        upperBoundSpinner.setMinimum( Integer.MIN_VALUE );
+        upperBoundSpinner.setMaximum( Integer.MAX_VALUE );
         // upperBoundSpinner.setIncrement( (int)(range.increment() * factorX) );
         // upperBoundSpinner.setPageIncrement( (int)(range.increment() * factorX *
         // 10) );
-        double currentUpperBound = upperBound != null ? upperBound.doubleValue() : 1000000.0;
-        upperBoundSpinner.setSelection( (int)(currentUpperBound * factorX) );
         upperBoundSpinner.addSelectionListener( new SelectionAdapter() {
 
             public void widgetSelected( SelectionEvent e ) {
                 int selection = upperBoundSpinner.getSelection();
-                upperBound = selection / Math.pow( 10, digits );
+                if (upperBoundSpinner.getDigits() > 0) {
+                    upperBound = selection / Math.pow( 10, digits );
+                }
+                else {
+                    upperBound = selection;
+                }
                 lowerBoundSpinner.setMaximum( selection );
             }
         } );
 
+        mappedMinimumSpinner = new Spinner( parent, SWT.BORDER );
         mappedMinimumSpinner.setDigits( digits );
         mappedMinimumSpinner.setMinimum( (int)(range.from() * factorX) );
         mappedMinimumSpinner.setMaximum( (int)(range.to() * factorX) );
@@ -177,12 +196,13 @@ public class FeaturePropertyMappedNumbersChooser {
         mappedMinimumSpinner.addSelectionListener( new SelectionAdapter() {
 
             public void widgetSelected( SelectionEvent e ) {
-                int selection = lowerBoundSpinner.getSelection();
+                int selection = mappedMinimumSpinner.getSelection();
                 mappedMinimum = selection / Math.pow( 10, digits );
                 // maximumMappedSpinner.setMinimum( selection );
             }
         } );
 
+        mappedMaximumSpinner = new Spinner( parent, SWT.BORDER );
         mappedMaximumSpinner.setDigits( digits );
         mappedMaximumSpinner.setMinimum( (int)(range.from() * factorX) );
         mappedMaximumSpinner.setMaximum( (int)(range.to() * factorX) );
@@ -193,21 +213,57 @@ public class FeaturePropertyMappedNumbersChooser {
         mappedMaximumSpinner.addSelectionListener( new SelectionAdapter() {
 
             public void widgetSelected( SelectionEvent e ) {
-                int selection = upperBoundSpinner.getSelection();
+                int selection = mappedMaximumSpinner.getSelection();
                 mappedMaximum = selection / Math.pow( 10, digits );
                 // minimumMappedSpinner.setMaximum( selection );
             }
         } );
 
-        on( propertyCombo ).top( 0 ).left( 0 ).right( 100 );
+        stepsSpinner = new Spinner( parent, SWT.BORDER );
+        stepsSpinner.setDigits( 0 );
+        stepsSpinner.setMinimum( 1 );
+        stepsSpinner.setMaximum( 100 );
+        stepsSpinner.setSelection( steps );
+        stepsSpinner.addSelectionListener( new SelectionAdapter() {
+
+            public void widgetSelected( SelectionEvent e ) {
+                steps = stepsSpinner.getSelection();
+            }
+        } );
+
+        Label l = new Label( parent, SWT.NONE | SWT.RIGHT );
+        l.setText( i18n.get( "selectProperty" ) );
+        on( l ).top( 3 ).left( 0 );
+        on( propertyCombo ).top( 0 ).left( l ).right( 100 );
         on( currentValues ).top( propertyCombo ).left( 0 ).right( 100 ).width( 450 );
-        on( lowerBoundSpinner ).top( currentValues );
-        on( mappedMinimumSpinner ).top( currentValues ).left( lowerBoundSpinner );
-        on( upperBoundSpinner ).top( lowerBoundSpinner );
-        on( mappedMaximumSpinner ).top( lowerBoundSpinner ).left( upperBoundSpinner );
+
+        l = new Label( parent, SWT.NONE | SWT.RIGHT );
+        l.setText( i18n.get( "lowerBound" ) );
+        on( l ).top( currentValues, 3 ).left( 0 );
+        on( lowerBoundSpinner ).top( currentValues ).left( l );
+
+        l = new Label( parent, SWT.NONE | SWT.RIGHT );
+        l.setText( i18n.get( "mapsTo" ) );
+        on( l ).top( currentValues, 3 ).left( lowerBoundSpinner );
+        on( mappedMinimumSpinner ).top( currentValues ).left( l );
+
+        l = new Label( parent, SWT.NONE | SWT.RIGHT );
+        l.setText( i18n.get( "upperBound" ) );
+        on( l ).top( lowerBoundSpinner, 3 ).left( 0 );
+        on( upperBoundSpinner ).top( lowerBoundSpinner ).left( l );
+
+        l = new Label( parent, SWT.NONE | SWT.RIGHT );
+        l.setText( i18n.get( "mapsTo" ) );
+        on( l ).top( lowerBoundSpinner, 3 ).left( upperBoundSpinner );
+        on( mappedMaximumSpinner ).top( lowerBoundSpinner ).left( l );
+
+        l = new Label( parent, SWT.NONE | SWT.RIGHT );
+        l.setText( i18n.get( "steps" ) );
+        on( l ).top( upperBoundSpinner, 3 ).left( 0 );
+        on( stepsSpinner ).top( upperBoundSpinner ).left( l );
 
         try {
-            updateSpinner( currentValues, digits );
+            updateSpinner( currentValues, digits, factorX );
         }
         catch (IOException e1) {
             StatusDispatcher.handleError( "error during load of property values", e1 );
@@ -215,14 +271,17 @@ public class FeaturePropertyMappedNumbersChooser {
     }
 
 
-    private void updateSpinner( Label label, int digits ) throws IOException {
+    private void updateSpinner( Label label, int digits, double factorX ) throws IOException {
         if (!StringUtils.isBlank( propertyName )) {
             // load all values and count min max
-            double min = Double.MAX_VALUE;
-            double max = 0.0;
+            Number min = null;
+            Number max = null;
 
             FeatureCollection featureCollection = featureStore.getFeatures();
             FeatureIterator iterator = featureCollection.features();
+            Class<?> binding = featureStore.getSchema().getDescriptor( propertyName ).getType().getBinding();
+            isInteger = binding == Integer.class || binding == Long.class;
+
             // color for empty or null is also the default color
             boolean valuesFound = false;
             while (iterator.hasNext()) {
@@ -231,23 +290,86 @@ public class FeaturePropertyMappedNumbersChooser {
                 if (rawValue != null && rawValue instanceof Number) {
                     Number currentValue = (Number)rawValue;
                     valuesFound = true;
-                    min = Math.min( currentValue.doubleValue(), min );
-                    max = Math.max( currentValue.doubleValue(), max );
+                    if (min == null) {
+                        min = currentValue;
+                    }
+                    else {
+                        if (isInteger) {
+                            min = Math.min( currentValue.intValue(), min.intValue() );
+                        }
+                        else {
+                            min = Math.min( currentValue.doubleValue(), min.doubleValue() );
+                        }
+                    }
+                    if (max == null) {
+                        max = currentValue;
+                    }
+                    else {
+                        if (isInteger) {
+                            max = Math.max( currentValue.intValue(), max.intValue() );
+                        }
+                        else {
+                            max = Math.max( currentValue.doubleValue(), max.doubleValue() );
+                        }
+                    }
                 }
             }
+            enableSpinner( valuesFound );
             if (valuesFound) {
                 DecimalFormat df = new DecimalFormat();
-                df.setMaximumFractionDigits( digits );
-                df.setMinimumFractionDigits( digits );
+                if (isInteger) {
+                    df.setMaximumFractionDigits( 0 );
+                    df.setMinimumFractionDigits( 0 );
+                }
+                else {
+                    df.setMaximumFractionDigits( digits );
+                    df.setMinimumFractionDigits( digits );
+                }
                 label.setText( i18n.get( "currentValues", df.format( min ), df.format( max ) ) );
+                if (lowerBound == null) {
+                    lowerBound = min;
+                }
+                if (upperBound == null) {
+                    upperBound = max;
+                }
             }
             else {
                 label.setText( i18n.get( "noValues" ) );
             }
         }
         else {
+            enableSpinner( false );
             label.setText( "" );
         }
+
+        if (isInteger) {
+            lowerBoundSpinner.setDigits( 0 );
+            int currentLowerBound = lowerBound != null ? lowerBound.intValue() : 0;
+            lowerBoundSpinner.setSelection( currentLowerBound );
+
+            upperBoundSpinner.setDigits( 0 );
+            int currentUpperBound = upperBound != null ? upperBound.intValue() : 1000;
+            upperBoundSpinner.setSelection( currentUpperBound );
+        }
+        else {
+            lowerBoundSpinner.setDigits( digits );
+            double currentLowerBound = lowerBound != null ? lowerBound.doubleValue() : 0.0;
+            lowerBoundSpinner.setSelection( (int)(currentLowerBound * factorX) );
+
+            upperBoundSpinner.setDigits( digits );
+            double currentUpperBound = upperBound != null ? upperBound.doubleValue() : 10000.0;
+            upperBoundSpinner.setSelection( (int)(currentUpperBound * factorX) );
+        }
+
+    }
+
+
+    private void enableSpinner( boolean enabled ) {
+        stepsSpinner.setEnabled( enabled );
+        mappedMaximumSpinner.setEnabled( enabled );
+        mappedMinimumSpinner.setEnabled( enabled );
+        upperBoundSpinner.setEnabled( enabled );
+        lowerBoundSpinner.setEnabled( enabled );
     }
 
 
@@ -281,15 +403,22 @@ public class FeaturePropertyMappedNumbersChooser {
     }
 
 
-    public Double lowerBound() {
+    public Number lowerBound() {
         return lowerBound;
     }
 
-    public Double upperBound() {
+
+    public Number upperBound() {
         return upperBound;
     }
 
+
     public Integer steps() {
         return steps;
+    }
+
+
+    public boolean isInteger() {
+        return isInteger;
     }
 }

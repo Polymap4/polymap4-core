@@ -23,29 +23,30 @@ import org.opengis.filter.Filter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.FilterMappedNumbers;
+import org.polymap.core.style.model.FilterMappedValues;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
- * 
- *
- * @author Falko Bräutigam
  * @author Steffen Stundzig
  */
-public class FilterMappedNumbersHandler
-    extends StylePropertyValueHandler<FilterMappedNumbers,Number> {
+public class FilterMappedValuesHandler
+    extends StylePropertyValueHandler<FilterMappedValues,Object> {
 
-    private static Log log = LogFactory.getLog( FilterMappedNumbersHandler.class );
+    private static Log log = LogFactory.getLog( FilterMappedValuesHandler.class );
 
 
     @Override
-    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, FilterMappedNumbers spv, SD sd,
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, FilterMappedValues spv, SD sd,
             Setter<SD> setter ) {
         // split style descriptors
-        List<SD> result = new ArrayList( spv.values.size() );
+        
+        // XXX wenn mehrere islessthan filter -> categorize
+        // XXX wenn mehrer isequal und letzter is not fiter -> recode
+        List<Object> allValues = spv.values();
+        List<SD> result = new ArrayList( allValues.size() );
         
         Iterator<Filter> filters = spv.filters().iterator();
-        Iterator<Number> values = spv.values.iterator();
+        Iterator<Object> values = allValues.iterator();
         while (filters.hasNext()) {
             assert values.hasNext();
             

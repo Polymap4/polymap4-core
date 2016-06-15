@@ -14,27 +14,23 @@
  */
 package org.polymap.core.style.model;
 
-import java.util.Collection;
-
-import java.io.IOException;
-
-import org.opengis.filter.Filter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.collect.Collections2;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Describes a constant number as style property value.
+ * Numbers mapped on filters
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class FilterMappedNumbers<T extends Number>
-        extends StylePropertyValue<T> {
+        extends FilterMappedValues<T> {
 
     private static Log log = LogFactory.getLog( FilterMappedNumbers.class );
 
@@ -55,28 +51,19 @@ public class FilterMappedNumbers<T extends Number>
     
     // XXX Collections are not supported yet, use force-fire-fake prop?
     //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<Number>           values;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<String>           filters;
-    
-    
-    public Collection<Filter> filters() {
-        return Collections2.transform( filters, encoded -> {
-            try {
-                return ConstantFilter.decode( encoded );
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e );
-            }
-        });
-    }
-    
-    
-    public FilterMappedNumbers add( T number, Filter filter ) throws IOException {
-        values.add( number );
-        filters.add( ConstantFilter.encode( filter ) );
+    public CollectionProperty<Number>           numberValues;
+
+
+    @Override
+    protected FilterMappedValues addValue( T value ) {
+        numberValues.add( value );
         return this;
+    }
+
+
+    @Override
+    public List<T> values() {
+        return numberValues.stream().map( number -> (T)number ).collect( Collectors.toList() );
     }
     
 }

@@ -14,6 +14,8 @@
  */
 package org.polymap.core.style.model;
 
+import org.polymap.model2.runtime.ValueInitializer;
+
 /**
  * Describes a feature property based string.
  *
@@ -21,5 +23,19 @@ package org.polymap.core.style.model;
  * @author Falko Bräutigam
  */
 public class PropertyString
-        extends PropertyValue<String>  {
+        extends PropertyValue<String> {
+
+    /**
+     * Initializes a newly created instance with the given default value.
+     */
+    public static ValueInitializer<PropertyString> defaults( final String value ) {
+        return new ValueInitializer<PropertyString>() {
+
+            @Override
+            public PropertyString initialize( PropertyString proto ) throws Exception {
+                proto.propertyName.set( value );
+                return proto;
+            }
+        };
+    }
 }

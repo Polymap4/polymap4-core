@@ -47,7 +47,6 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
     
     public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
             AlwaysTrueEditor.class,
-            FilteredMappedNumbersEditor.class,
             ConstantColorEditor.class,
             ConstantFontFamilyEditor.class,
             ConstantFontStyleEditor.class,
@@ -58,13 +57,13 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             ConstantStrokeJoinStyleEditor.class,
             FeaturePropertyBasedStringEditor.class,
             FeaturePropertyBasedNumberEditor.class,
-            FeaturePropertyMappedNumbersEditor.class,
             FeaturePropertyMatchingNumberEditor.class,
             FeaturePropertyMatchingStringEditor.class,
+            FeaturePropertyRangeMappedColorsEditor.class,
+            FeaturePropertyRangeMappedNumbersEditor.class,
             NoValueEditor.class,
             ScaleRangeEditor.class,
-            //TableBasedExpressionMappedNumbersEditor.class,
-            TableBasedExpressionMappedColorsEditor.class,
+            FeaturePropertyMappedColorsEditor.class,
             TableBasedScaleMappedNumbersEditor.class};
 
 
