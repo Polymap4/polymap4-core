@@ -28,6 +28,8 @@ import org.geotools.styling.Style;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opengis.filter.Filter;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -254,23 +256,53 @@ public class StyleModelTest {
         } );
 
         fs.store();
-        // XXX implement GEOSERVER style
-        // log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class )
-        // );
-        // Style style = repo.serializedFeatureStyle( fs.id(), Style.class,
-        // OutputFormat.GEOSERVER ).get();
-        // List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
-        // assertEquals( 1, featureTypeStyles.size() );
-        // assertEquals( Filter.INCLUDE, featureTypeStyles.get( 0 ).rules().get( 0
-        // ).getFilter() );
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.GEOSERVER ) );
+        Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.GEOSERVER ).get();
+        List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
+        assertEquals( 1, featureTypeStyles.size() );
+        assertEquals( Filter.INCLUDE, featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter() );
 
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.OGC ) );
-        Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.OGC ).get();
-        List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
+        style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.OGC ).get();
+        featureTypeStyles = style.featureTypeStyles();
         assertEquals( 1, featureTypeStyles.size() );
         assertEquals( "[ foo = big ]", featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter().toString() );
         assertEquals( "[ foo = bigger ]", featureTypeStyles.get( 0 ).rules().get( 1 ).getFilter().toString() );
         assertEquals( "[[ foo != big ] AND [ foo != bigger ]]",
+                featureTypeStyles.get( 0 ).rules().get( 2 ).getFilter().toString() );
+    }
+    @Test
+    public void propertyRangeMappedNumbers() {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        // point
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+
+        point.diameter.createValue( new ValueInitializer<FilterMappedNumbers<Double>>() {
+
+            @Override
+            public FilterMappedNumbers<Double> initialize( FilterMappedNumbers<Double> proto ) throws Exception {
+                proto.add( ff.lessOrEqual( ff.property( "foo" ), ff.literal( "big" ) ), new Double( 5 ) );
+                proto.add( ff.less( ff.property( "foo" ), ff.literal( "bigger" ) ), new Double( 15 ) );
+                proto.add( ff.greaterOrEqual( ff.property( "foo" ), ff.literal( "bigger" ) ), new Double( 23 ) );
+                return proto;
+            }
+        } );
+
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.GEOSERVER ) );
+        Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.GEOSERVER ).get();
+        List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
+        assertEquals( 1, featureTypeStyles.size() );
+        assertEquals( Filter.INCLUDE, featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter() );
+
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.OGC ) );
+        style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.OGC ).get();
+        featureTypeStyles = style.featureTypeStyles();
+        assertEquals( 1, featureTypeStyles.size() );
+        assertEquals( "[ foo <= big ]", featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter().toString() );
+        assertEquals( "[ foo < bigger ]", featureTypeStyles.get( 0 ).rules().get( 1 ).getFilter().toString() );
+        assertEquals( "[ foo >= bigger ]",
                 featureTypeStyles.get( 0 ).rules().get( 2 ).getFilter().toString() );
     }
 
@@ -295,19 +327,15 @@ public class StyleModelTest {
             }
         } );
         fs.store();
-        // implement GEOSERVER style
-        // log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class )
-        // );
-        // Style style = repo.serializedFeatureStyle( fs.id(), Style.class,
-        // OutputFormat.GEOSERVER ).get();
-        // List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
-        // assertEquals( 1, featureTypeStyles.size() );
-        // assertEquals( Filter.INCLUDE, featureTypeStyles.get( 0 ).rules().get( 0
-        // ).getFilter() );
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.GEOSERVER ).get();
+        List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
+        assertEquals( 1, featureTypeStyles.size() );
+        assertEquals( Filter.INCLUDE, featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter() );
 
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.OGC ) );
-        Style style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.OGC ).get();
-        List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
+        style = repo.serializedFeatureStyle( fs.id(), Style.class, OutputFormat.OGC ).get();
+        featureTypeStyles = style.featureTypeStyles();
         assertEquals( 1, featureTypeStyles.size() );
         assertEquals( "[ foo = big ]", featureTypeStyles.get( 0 ).rules().get( 0 ).getFilter().toString() );
         assertEquals( "[ foo = bigger ]", featureTypeStyles.get( 0 ).rules().get( 1 ).getFilter().toString() );

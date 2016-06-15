@@ -145,9 +145,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
         StylePropertyValue current = prop.get();
         if (current != null) {
             if (current.lastEditorHint.get() != null) {
-                if (current.lastEditorHint.get().equals( hint() )) {
-                    return true;
-                }
+                return current.lastEditorHint.get().equals( hint() );
             }
             return targetType.isAssignableFrom( current.getClass() );
         }

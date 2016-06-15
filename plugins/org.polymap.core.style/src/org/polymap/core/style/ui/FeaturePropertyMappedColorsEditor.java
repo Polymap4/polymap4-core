@@ -155,7 +155,7 @@ public class FeaturePropertyMappedColorsEditor
         for (int i = 0; i < expressions.size(); i++) {
             Filter filter = expressions.get( i );
             Color color = values.get( i );
-            if (filter.getClass().isInstance( PropertyIsEqualTo.class )) {
+            if (filter instanceof PropertyIsEqualTo ) {
                 PropertyIsEqualTo piet = (PropertyIsEqualTo)filter;
                 if (propertyName == null) {
                     propertyName = ((PropertyName)piet.getExpression1()).getPropertyName();
@@ -163,7 +163,7 @@ public class FeaturePropertyMappedColorsEditor
                 String property = ((Literal)piet.getExpression2()).getValue().toString();
                 initialColors.put( property, color );
             }
-            else if (filter.getClass().isInstance( And.class )) {
+            else if (filter instanceof And ) {
                 defaultColor = color;
             }
         }
