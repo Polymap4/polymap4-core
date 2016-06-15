@@ -83,24 +83,10 @@ public class EventManager {
     
     private Timer                                   statTimer;
     
-//    private /*volatile*/ int                        pendingEvents;
-//    
-//    /** The global {@link PhaseListener} installed by the {@link SessionEventDispatcher}. */
-//    private UICallbackPhaseListener                 phaseListener;
-
     private Cache<Integer,Boolean>                  callbackActivatedThreads = CacheConfig.defaults().initSize( 32 ).createCache();
-    
 
 
     protected EventManager() {
-//        // always keep one listener in the list so that SessionEventDispatcher
-//        // propery counts #pendingEvents
-//        subscribe( this, new EventFilter<EventObject>() {
-//            public boolean apply( EventObject input ) {
-//                return false;
-//            }
-//        });
-
         dispatcher.start();
     }
 
@@ -113,27 +99,6 @@ public class EventManager {
     }
 
 
-//    @EventHandler
-//    protected void handleEvent( EventObject ev ) {
-//    }
-//
-//    
-//    protected void registerPhaseListener() {
-//        try {
-//            // seems that a PhaseListener is installed just once for all sessions
-//            if (phaseListener == null) {
-//                phaseListener = new UICallbackPhaseListener();
-//                RWT.getLifeCycle().addPhaseListener( phaseListener );
-//            }
-//        }
-//        catch (IllegalStateException e) {
-//            phaseListener = null;
-//            // outside request lifecycle -> no UICallback handling
-//            log.warn( e.toString(), e );
-//        }
-//    }
-    
-    
     /**
      * Asynchronously publish the given event. An event dispatch thread actually
      * delivers the events. This method may immediatelly return to the caller.
@@ -260,56 +225,6 @@ public class EventManager {
     }
 
     
-//    /**
-//     * Checks if there are pending events after the render page of an request. If
-//     * yes, then UICallback is activated - until there are no pending events after
-//     * any subsequent request.
-//     * <p/>
-//     * XXX Currently #pendingEvents counts ALL events from all sessions! So a foreign
-//     * session might force a UICallback even if we don't have anything to render.
-//     */
-//    protected class UICallbackPhaseListener
-//            implements PhaseListener, UISessionListener {
-//
-//        public PhaseId getPhaseId() {
-//            return PhaseId.ANY;
-//        }
-//        
-//        public void beforePhase( PhaseEvent ev ) {
-//            //log.debug( "Before " + ev.getPhaseId() + ": pending=" + pendingEvents );
-//        }
-//        
-//        public void afterPhase( PhaseEvent ev ) {
-//            if (ev.getPhaseId() != PhaseId.PROCESS_ACTION) {
-//                return;
-//            }
-//            ISessionStore session = RWT.getSessionStore();
-//            boolean uiCallbackActive = session.getAttribute( "uiCallbackActive" ) != null;
-//            
-//            pendingEvents = dispatcher.queueSize;
-//            
-//            log.info( "After " + getPhaseId() + ": pending=" + pendingEvents + ", uiCallbackActive=" + uiCallbackActive );
-//            
-//            if (pendingEvents > 0 && !uiCallbackActive) {
-//                log.info( "UICallback: ON (pending: " + pendingEvents + ")" );
-//                UICallBack.activate( "EventManager.pendingEvents" );
-//                session.setAttribute( "uiCallbackActive", true );
-//            }
-//            if (pendingEvents <= 0 && uiCallbackActive) {
-//                log.info( "UICallback: OFF" );
-//                UICallBack.deactivate( "EventManager.pendingEvents" );
-//                session.removeAttribute( "uiCallbackActive" );
-//            }
-//        }
-//
-//        @Override
-//        public void beforeDestroy( UISessionEvent ev ) {
-//            RWT.getLifeCycle().removePhaseListener( this );
-//            ev.getUISession().removeUISessionListener( this );
-//        }
-//    }
-    
-
     /**
      * 
      */
@@ -336,13 +251,6 @@ public class EventManager {
             this.publishSession = SessionContext.current();
 //            assert publishSession != null;
             assert omitHandlers != null;
-            
-//            // XXX should never happen
-//            if (pendingEvents < 0) {
-//                //log.warn( "pendingEvents < 0 : " + pendingEvents, new Exception() );
-//                pendingEvents = 0;
-//            }
-//            ++ pendingEvents;
         }
     
         
@@ -368,8 +276,6 @@ public class EventManager {
             finally {
                 threadPublishSession = null;
 
-//                -- pendingEvents;
-                
                 synchronized (this) {
                     done = true;
                     notifyAll();
