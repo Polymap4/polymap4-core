@@ -57,7 +57,7 @@ class FeaturePropertyBasedNumberEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Number.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site ) : false;
+        return Double.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site ) : false;
     }
 
 

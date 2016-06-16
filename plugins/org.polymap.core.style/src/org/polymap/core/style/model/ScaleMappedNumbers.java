@@ -14,11 +14,15 @@
  */
 package org.polymap.core.style.model;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Concerns;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -32,33 +36,51 @@ public class ScaleMappedNumbers<T extends Number>
 
     private static Log log = LogFactory.getLog( ScaleMappedNumbers.class );
 
+
     /**
      * Initializes a newly created instance with default values.
      */
     public static <R extends Number> ValueInitializer<ScaleMappedNumbers<R>> defaults() {
         return new ValueInitializer<ScaleMappedNumbers<R>>() {
+
             @Override
             public ScaleMappedNumbers<R> initialize( ScaleMappedNumbers<R> proto ) throws Exception {
                 return proto;
             }
         };
     }
-    
 
     // instance *******************************************
-    
-    @Concerns( StylePropertyChange.Concern.class )
+
+    // XXX Collection change events are not supported yet, use force-fire-fake prop?
+    @Nullable
+    @Concerns(StylePropertyChange.Concern.class)
+    public Property<String> fake;
+
+    @Nullable
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<Number> defaultNumberValue;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
+
+    // @Concerns( StylePropertyChange.Concern.class )
     public CollectionProperty<Number> numberValues;
-    
-    //@Concerns( StylePropertyChange.Concern.class )
+
+    // @Concerns( StylePropertyChange.Concern.class )
     public CollectionProperty<Number> scales;
-    
-    public ScaleMappedNumbers add(final Double number, final Double scale) {
+
+
+    public ScaleMappedNumbers add( final Double number, final Double scale ) {
         numberValues.add( number );
         scales.add( scale );
         return this;
+    }
+
+
+    public List<T> numbers() {
+        return numberValues.stream().map( number -> (T)number ).collect( Collectors.toList() );
+    }
+
+
+    public List<Number> scales() {
+        return scales.stream().collect( Collectors.toList() );
     }
 }

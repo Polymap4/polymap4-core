@@ -207,8 +207,8 @@ public class FeaturePropertyRangeMappedColorsEditor
             maximumValue = values.get( values.size() - 1 );
         }
 
-        steps = values.size();
-        if (steps == 0) {
+        steps = values.size() - 1;
+        if (steps <= 0) {
             steps = 10;
         }
     }

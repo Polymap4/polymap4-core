@@ -74,7 +74,7 @@ public class FeaturePropertyRangeMappedNumbersEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Number.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site )
+        return Double.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site )
                 : false;
     }
 
@@ -206,8 +206,8 @@ public class FeaturePropertyRangeMappedNumbersEditor
             maximumValue = values.get( values.size() - 1 );
         }
 
-        steps = values.size();
-        if (steps == 0) {
+        steps = values.size() - 1;
+        if (steps <= 0) {
             steps = 10;
         }
 

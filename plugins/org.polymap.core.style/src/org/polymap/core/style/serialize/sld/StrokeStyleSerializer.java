@@ -62,7 +62,7 @@ public class StrokeStyleSerializer
             if (stroke.dashStyle.get() instanceof ConstantStrokeDashStyle) {
                 StrokeDashStyle dashStyle = ((ConstantStrokeDashStyle)stroke.dashStyle.get()).value.get();
                 for (StrokeStyleDescriptor sd : descriptors) {
-                    serializeDashStyle( sd, dashStyle, width );
+                    serializeDashStyle( sd, dashStyle );
                 }
             }
             else if (stroke.dashStyle.get().getClass().equals( NoValue.class )) {
@@ -75,13 +75,12 @@ public class StrokeStyleSerializer
     }
 
 
-    private void serializeDashStyle( StrokeStyleDescriptor sd, StrokeDashStyle value,
-            StylePropertyValue<Double> width ) {
+    private void serializeDashStyle( final StrokeStyleDescriptor sd, final StrokeDashStyle value) {
         // see
         // http://docs.geoserver.org/stable/en/user/styling/sld-cookbook/lines.html#dashed-line
         Double strokeWidth = new Double( 1.0 );
 
-        if (width instanceof ConstantNumber) {
+        if (width != null && width instanceof ConstantNumber) {
             strokeWidth = (Double)((ConstantNumber)width).constantNumber.get();
         }
 
