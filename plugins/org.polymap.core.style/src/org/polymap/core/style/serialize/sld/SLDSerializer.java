@@ -133,13 +133,17 @@ public class SLDSerializer
 
             // Rule
             Rule rule = sf.createRule();
-            //rule.setName( descriptor.description.get() );
+            // rule.setName( descriptor.description.get() );
             rule.symbolizers().addAll( sym );
 
             descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
             descriptor.scale.ifPresent( scale -> {
-                rule.setMinScaleDenominator( scale.getLeft() );
-                rule.setMaxScaleDenominator( scale.getRight() );
+                if (scale.getLeft() != null) {
+                    rule.setMinScaleDenominator( scale.getLeft() );
+                }
+                if (scale.getRight() != null) {
+                    rule.setMaxScaleDenominator( scale.getRight() );
+                }
             } );
             featureTypeStyle.rules().add( rule );
         }

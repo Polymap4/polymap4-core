@@ -15,14 +15,11 @@ package org.polymap.core.style.serialize.sld;
 import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import java.awt.Color;
 
 import org.opengis.filter.expression.Expression;
-
-import com.google.common.collect.Lists;
 
 import org.polymap.core.style.model.*;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
@@ -275,31 +272,6 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, PropertyString spv, SD sd,
                 Setter<SD> setter ) {
             setter.set( sd, ff.property( (String)spv.propertyName.get() ) );
-            return Collections.singletonList( sd );
-        }
-    }
-
-
-    static class ScaleMappedNumbersHandler
-            extends StylePropertyValueHandler<ScaleMappedNumbers,Object> {
-
-        @Override
-        public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ScaleMappedNumbers spv, SD sd,
-                Setter<SD> setter ) {
-            Number defaultValue = (Number)spv.defaultNumberValue.get();
-            Expression ife = ff.literal( defaultValue );
-            Iterator<Number> scales = spv.scales.iterator();
-            Iterator<Number> values = spv.numberValues.iterator();
-            List<Expression> allExpressions = Lists.newArrayList(
-                    ff.function( "env", ff.literal( "wms_scale_denominator" ) ), ff.literal( defaultValue ) );
-
-            while (scales.hasNext()) {
-                assert values.hasNext();
-                allExpressions.add( ff.literal( scales.next() ) );
-                allExpressions.add( ff.literal( values.next() ) );
-            }
-            ife = ff.function( "categorize", allExpressions.toArray( new Expression[allExpressions.size()] ) );
-            setter.set( sd, ife );
             return Collections.singletonList( sd );
         }
     }

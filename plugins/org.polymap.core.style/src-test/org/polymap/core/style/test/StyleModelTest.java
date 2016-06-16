@@ -364,6 +364,7 @@ public class StyleModelTest {
 
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.OGC ) );
         // Style style = repo.serializedFeatureStyle( fs.id(), Style.class )
         // .get();
         // PointSymbolizer sym =
