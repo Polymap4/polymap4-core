@@ -18,7 +18,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.osgi.framework.BundleContext;
+
+import org.eclipse.swt.graphics.Color;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.polymap.core.ui.UIUtils;
 
 /**
  * 
@@ -52,5 +57,16 @@ public class StylePlugin
 	public static StylePlugin instance() {
 		return instance;
 	}
+
+
+    public static Color okColor() {
+        // fab-gb
+        return UIUtils.getColor( 129, 204, 57 );
+    }
+
+
+    public static Color errorColor() {
+        return UIUtils.getColor( 255, 0, 0 );
+    }
 	
 }

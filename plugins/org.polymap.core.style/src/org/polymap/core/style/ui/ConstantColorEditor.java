@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.ConstantColor;
+import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -102,10 +103,12 @@ class ConstantColorEditor
     protected void updateButtonColor( Button button, RGB rgb ) {
         button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
         if (rgb.red * rgb.blue * rgb.green > 8000000) {
-            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 0, 0, 0 ) );
+            button.setForeground( UIUtils.getColor( 0, 0, 0 ) );
         }
         else {
-            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 255, 255, 255 ) );
+            button.setForeground( UIUtils.getColor( 255, 255, 255 ) );
         }
+        button.setText( "#" + Integer.toHexString( (new Color( rgb.red, rgb.green, rgb.blue ).getRGB() & 0xffffff)
+                | 0x1000000 ).substring( 1 ).toUpperCase());
     }
 }

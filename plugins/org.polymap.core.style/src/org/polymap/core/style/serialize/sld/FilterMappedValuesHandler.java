@@ -53,6 +53,9 @@ public class FilterMappedValuesHandler
         List<SD> result = Lists.newArrayList();
 
         List<Filter> filters = spv.filters();
+        if (filters.isEmpty()) {
+            return result;
+        }
         List<Object> values = spv.values();
         if (context.outputFormat.get().equals( OutputFormat.GEOSERVER )) {
             // try to optimize

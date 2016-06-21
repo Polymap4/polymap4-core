@@ -18,7 +18,6 @@ import java.util.List;
 
 import java.text.DecimalFormat;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,9 +29,9 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
+import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.NumberRange;
 import org.polymap.core.style.model.ScaleMappedNumbers;
-
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -55,8 +54,6 @@ public class ScaleRangeMappedNumbersEditor
     private Number maximumValue;
 
     private int steps;
-
-    private String propertyName;
 
 
     @Override
@@ -165,23 +162,20 @@ public class ScaleRangeMappedNumbersEditor
 
 
     protected void updateButton( Button button ) {
-        if (!StringUtils.isBlank( propertyName )) {
+        if (minimumValue != null && maximumValue != null) {
             int digits = ((NumberRange)prop.info().getAnnotation( NumberRange.class )).digits();
             DecimalFormat df = new DecimalFormat();
             df.setMaximumFractionDigits( digits );
             df.setMinimumFractionDigits( digits );
 
-            if (minimumValue != null && maximumValue != null) {
-                button.setText( i18n.get( "chooseBetween", propertyName, df.format( minimumValue ),
-                        df.format( maximumValue ) ) );
-            }
-            else {
-                button.setText(
-                        i18n.get( "chooseFrom", propertyName, df.format( minimumValue ), df.format( maximumValue ) ) );
-            }
+            button.setText( i18n.get( "chooseBetween", df.format( minimumValue ), df.format( maximumValue ) ) );
+            // green, all ok
+            button.setBackground( StylePlugin.okColor() );
         }
         else {
             button.setText( i18n.get( "choose" ) );
+            // red not ok
+            button.setBackground( StylePlugin.errorColor() );
         }
     }
 }

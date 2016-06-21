@@ -69,7 +69,7 @@ import org.polymap.core.ui.StatusDispatcher.Style;
  */
 public class FeaturePropertyMappedColorsChooser {
 
-    private static final int MAX_VALUES = 100;
+    private static final int MAX_VALUES = 255;
 
 
     public class Triple {

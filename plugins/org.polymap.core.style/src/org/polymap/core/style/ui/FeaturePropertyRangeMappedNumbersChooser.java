@@ -99,8 +99,9 @@ public class FeaturePropertyRangeMappedNumbersChooser {
         this.propertyName = propertyName;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
-        this.mappedMinimum = mappedMinimum;
-        this.mappedMaximum = mappedMaximum;
+        this.mappedMinimum = mappedMinimum != null ? mappedMinimum.doubleValue() : range.from();
+        this.mappedMaximum = mappedMaximum != null ? mappedMaximum.doubleValue() : range.to();
+
         this.steps = steps;
         this.range = range;
         this.featureStore = featureStore;
@@ -191,8 +192,7 @@ public class FeaturePropertyRangeMappedNumbersChooser {
         mappedMinimumSpinner.setMaximum( (int)(range.to() * factorX) );
         mappedMinimumSpinner.setIncrement( (int)(range.increment() * factorX) );
         mappedMinimumSpinner.setPageIncrement( (int)(range.increment() * factorX * 10) );
-        double currentMinimum = mappedMinimum != null ? mappedMinimum.doubleValue() : range.from();
-        mappedMinimumSpinner.setSelection( (int)(currentMinimum * factorX) );
+        mappedMinimumSpinner.setSelection( (int)(mappedMinimum * factorX) );
         mappedMinimumSpinner.addSelectionListener( new SelectionAdapter() {
 
             public void widgetSelected( SelectionEvent e ) {
@@ -208,8 +208,7 @@ public class FeaturePropertyRangeMappedNumbersChooser {
         mappedMaximumSpinner.setMaximum( (int)(range.to() * factorX) );
         mappedMaximumSpinner.setIncrement( (int)(range.increment() * factorX) );
         mappedMaximumSpinner.setPageIncrement( (int)(range.increment() * factorX * 10) );
-        double currentMaximum = mappedMaximum != null ? mappedMaximum.doubleValue() : range.to();
-        mappedMaximumSpinner.setSelection( (int)(currentMaximum * factorX) );
+        mappedMaximumSpinner.setSelection( (int)(mappedMaximum * factorX) );
         mappedMaximumSpinner.addSelectionListener( new SelectionAdapter() {
 
             public void widgetSelected( SelectionEvent e ) {

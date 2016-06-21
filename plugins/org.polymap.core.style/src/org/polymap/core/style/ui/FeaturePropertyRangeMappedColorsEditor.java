@@ -35,8 +35,8 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
+import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.FilterMappedColors;
-
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -216,18 +216,14 @@ public class FeaturePropertyRangeMappedColorsEditor
 
     protected void updateButton( Button button ) {
         if (!StringUtils.isBlank( propertyName )) {
-
-            // if (minimumValue != null && maximumValue != null) {
-            // button.setText( i18n.get( "chooseBetween", propertyName, minimumValue
-            // ),
-            // df.format( maximumValue ) ) );
-            // }
-            // else {
             button.setText( i18n.get( "chooseFrom", propertyName ) );
-            // }
+            // green, all ok
+            button.setBackground( StylePlugin.okColor() );
         }
         else {
             button.setText( i18n.get( "choose" ) );
+            // red not ok
+            button.setBackground( StylePlugin.errorColor() );
         }
     }
 }

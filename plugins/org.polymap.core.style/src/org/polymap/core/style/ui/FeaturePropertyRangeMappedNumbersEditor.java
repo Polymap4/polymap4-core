@@ -35,9 +35,9 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
+import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.NumberRange;
-
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -112,7 +112,7 @@ public class FeaturePropertyRangeMappedNumbersEditor
                     cc.createContents( dialogParent );
                 }, () -> {
                     if (cc.propertyName() != null && cc.lowerBound() != null && cc.upperBound() != null
-                            && cc.mappedMinimum() != null && cc.mappedMaximum() != null) {
+                            && cc.mappedMinimum() != null && cc.mappedMaximum() != null && cc.steps() != null) {
                         propertyName = cc.propertyName();
                         lowerBound = cc.lowerBound();
                         upperBound = cc.upperBound();
@@ -229,9 +229,13 @@ public class FeaturePropertyRangeMappedNumbersEditor
                 button.setText(
                         i18n.get( "chooseFrom", propertyName, df.format( minimumValue ), df.format( maximumValue ) ) );
             }
+            // green, all ok
+            button.setBackground( StylePlugin.okColor());
         }
         else {
             button.setText( i18n.get( "choose" ) );
+            // red, must be fixed
+            button.setBackground( StylePlugin.errorColor() );
         }
     }
 }

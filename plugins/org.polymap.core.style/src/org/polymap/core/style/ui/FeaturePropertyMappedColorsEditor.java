@@ -35,14 +35,15 @@ import com.google.common.collect.Maps;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
+import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.FilterMappedColors;
 import org.polymap.core.style.ui.FeaturePropertyMappedColorsChooser.Triple;
+import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -141,9 +142,7 @@ public class FeaturePropertyMappedColorsEditor
         else {
             button.setText( i18n.get( "choose" ) );
         }
-        if (defaultColor != null) {
-            updateButtonColor( button, defaultColor );
-        }
+        updateButtonColor( button, defaultColor );
         return contents;
     }
 
@@ -155,7 +154,7 @@ public class FeaturePropertyMappedColorsEditor
         for (int i = 0; i < expressions.size(); i++) {
             Filter filter = expressions.get( i );
             Color color = values.get( i );
-            if (filter instanceof PropertyIsEqualTo ) {
+            if (filter instanceof PropertyIsEqualTo) {
                 PropertyIsEqualTo piet = (PropertyIsEqualTo)filter;
                 if (propertyName == null) {
                     propertyName = ((PropertyName)piet.getExpression1()).getPropertyName();
@@ -163,7 +162,7 @@ public class FeaturePropertyMappedColorsEditor
                 String property = ((Literal)piet.getExpression2()).getValue().toString();
                 initialColors.put( property, color );
             }
-            else if (filter instanceof And ) {
+            else if (filter instanceof And) {
                 defaultColor = color;
             }
         }
@@ -171,13 +170,13 @@ public class FeaturePropertyMappedColorsEditor
 
 
     protected void updateButtonColor( Button button, Color color ) {
-        RGB rgb = new RGB( color.getRed(), color.getGreen(), color.getBlue() );
-        button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
-        if (rgb.red * rgb.blue * rgb.green > 8000000) {
-            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 0, 0, 0 ) );
+        org.eclipse.swt.graphics.Color rgb = color != null ? UIUtils.getColor( color.getRed(), color.getGreen(), color.getBlue() ) : StylePlugin.errorColor();
+        button.setBackground( rgb);
+        if (rgb.getRed() * rgb.getBlue() * rgb.getGreen() > (255*255*255)/2) {
+            button.setForeground( UIUtils.getColor( 0, 0, 0 ) );
         }
         else {
-            button.setForeground( new org.eclipse.swt.graphics.Color( button.getDisplay(), 255, 255, 255 ) );
+            button.setForeground( UIUtils.getColor( 255, 255, 255 ) );
         }
     }
 }
