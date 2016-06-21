@@ -37,7 +37,7 @@ public class PolygonStyle
         @Override
         public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Polygon" );
+            proto.title.set( "Polygon style" );
             proto.fill.createValue( Fill.defaults );
             proto.stroke.createValue( Stroke.defaults );
             return proto;

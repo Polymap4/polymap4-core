@@ -38,7 +38,7 @@ public class LineStyle
         @Override
         public LineStyle initialize( LineStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Line" );
+            proto.title.set( "Line style" );
             proto.fill.createValue( Stroke.defaults );
             proto.stroke.createValue( Stroke.defaults );
             return proto;

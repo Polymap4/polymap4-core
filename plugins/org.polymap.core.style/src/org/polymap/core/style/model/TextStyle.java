@@ -35,7 +35,7 @@ public class TextStyle
         @Override
         public TextStyle initialize( TextStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Text" );
+            proto.title.set( "Text style" );
             proto.font.createValue( Font.defaults );
             proto.halo.createValue( Halo.defaults );
             proto.labelPlacement.createValue( LabelPlacement.defaults );

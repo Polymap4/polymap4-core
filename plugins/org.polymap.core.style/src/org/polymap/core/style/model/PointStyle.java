@@ -40,7 +40,7 @@ public class PointStyle
         @Override
         public PointStyle initialize( PointStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Point/Mark" );
+            proto.title.set( "Point/Mark style" );
             proto.fill.createValue( Fill.defaults );
             proto.stroke.createValue( Stroke.defaults );
 //            proto.diameter.createValue( ConstantNumber.defaults( 8.0 ) );
