@@ -178,4 +178,10 @@ public class ScaleRangeMappedNumbersEditor
             button.setBackground( StylePlugin.errorColor() );
         }
     }
+    
+    @Override
+    public boolean isValid() {
+        return lowerBound != null && upperBound != null
+                && minimumValue != null && maximumValue != null && steps != 0;
+    }
 }

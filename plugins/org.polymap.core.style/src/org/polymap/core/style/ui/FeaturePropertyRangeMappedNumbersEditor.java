@@ -230,12 +230,19 @@ public class FeaturePropertyRangeMappedNumbersEditor
                         i18n.get( "chooseFrom", propertyName, df.format( minimumValue ), df.format( maximumValue ) ) );
             }
             // green, all ok
-            button.setBackground( StylePlugin.okColor());
+            button.setBackground( StylePlugin.okColor() );
         }
         else {
             button.setText( i18n.get( "choose" ) );
             // red, must be fixed
             button.setBackground( StylePlugin.errorColor() );
         }
+    }
+
+
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( propertyName ) && lowerBound != null && upperBound != null && minimumValue != null
+                && maximumValue != null && steps != 0;
     }
 }

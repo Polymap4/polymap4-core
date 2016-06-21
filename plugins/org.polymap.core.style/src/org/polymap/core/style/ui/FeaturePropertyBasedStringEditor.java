@@ -18,6 +18,7 @@ import java.util.List;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -47,16 +48,18 @@ public class FeaturePropertyBasedStringEditor
     private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyBasedString" );
 
     private static Log log = LogFactory.getLog( FeaturePropertyBasedStringEditor.class );
-    
+
+
     @Override
     public String label() {
-        return i18n.get( "title");
+        return i18n.get( "title" );
     }
 
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return String.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site ) : false;
+        return String.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site )
+                : false;
     }
 
 
@@ -98,4 +101,11 @@ public class FeaturePropertyBasedStringEditor
         } );
         return contents;
     }
+
+
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( (String)prop.get().propertyName.get() );
+    }
+
 }

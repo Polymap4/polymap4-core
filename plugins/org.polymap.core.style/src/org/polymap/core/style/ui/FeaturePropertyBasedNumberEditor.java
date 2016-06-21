@@ -20,6 +20,7 @@ import java.util.List;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -57,7 +58,8 @@ class FeaturePropertyBasedNumberEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Double.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site ) : false;
+        return Double.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site )
+                : false;
     }
 
 
@@ -102,5 +104,11 @@ class FeaturePropertyBasedNumberEditor
             }
         } );
         return contents;
+    }
+
+
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( (String)prop.get().propertyName.get() );
     }
 }

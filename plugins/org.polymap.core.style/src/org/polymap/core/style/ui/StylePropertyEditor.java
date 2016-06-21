@@ -193,4 +193,9 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             current.lastEditorHint.set( hint() );
         }
     }
+
+
+    public boolean isValid() {
+        return true;
+    }
 }

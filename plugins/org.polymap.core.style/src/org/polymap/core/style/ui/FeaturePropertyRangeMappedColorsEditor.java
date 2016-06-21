@@ -226,4 +226,10 @@ public class FeaturePropertyRangeMappedColorsEditor
             button.setBackground( StylePlugin.errorColor() );
         }
     }
+    
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( propertyName ) && lowerBound != null && upperBound != null
+                && minimumValue != null && maximumValue != null && steps != 0;
+    }
 }

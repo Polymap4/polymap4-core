@@ -111,6 +111,7 @@ public class FeaturePropertyMappedColorsEditor
                 }, () -> {
                     if (cc.propertyName() != null && !cc.triples().isEmpty()) {
                         propertyName = cc.propertyName();
+                        initialColors.clear();
 
                         prop.get().encodedFilters.clear();
                         prop.get().colorValues.clear();
@@ -121,6 +122,7 @@ public class FeaturePropertyMappedColorsEditor
                                         triple.color() );
                                 opposite.add(
                                         ff.notEqual( ff.property( propertyName ), ff.literal( triple.label() ) ) );
+                                initialColors.put( triple.label(), triple.color() );
                             }
                             else {
                                 // empty contains the default color
@@ -130,18 +132,13 @@ public class FeaturePropertyMappedColorsEditor
                         if (defaultColor != null) {
                             prop.get().add( ff.and( opposite ), defaultColor );
                         }
+                        prop.get().fake.set( "" + System.currentTimeMillis() );
                         updateButtonColor( button, defaultColor );
                     }
                     return true;
                 } );
             }
         } );
-        if (!StringUtils.isBlank( propertyName ) && !initialColors.isEmpty()) {
-            button.setText( i18n.get( "rechoose", propertyName, prop.get().colorValues.size() ) );
-        }
-        else {
-            button.setText( i18n.get( "choose" ) );
-        }
         updateButtonColor( button, defaultColor );
         return contents;
     }
@@ -170,13 +167,28 @@ public class FeaturePropertyMappedColorsEditor
 
 
     protected void updateButtonColor( Button button, Color color ) {
-        org.eclipse.swt.graphics.Color rgb = color != null ? UIUtils.getColor( color.getRed(), color.getGreen(), color.getBlue() ) : StylePlugin.errorColor();
-        button.setBackground( rgb);
-        if (rgb.getRed() * rgb.getBlue() * rgb.getGreen() > (255*255*255)/2) {
+        if (!StringUtils.isBlank( propertyName ) && !initialColors.isEmpty()) {
+            button.setText( i18n.get( "rechoose", propertyName, initialColors.size() ) );
+        }
+        else {
+            button.setText( i18n.get( "choose" ) );
+        }
+
+        org.eclipse.swt.graphics.Color rgb = color != null
+                ? UIUtils.getColor( color.getRed(), color.getGreen(), color.getBlue() ) : StylePlugin.errorColor();
+        button.setBackground( rgb );
+        if (rgb.getRed() * rgb.getBlue() * rgb.getGreen() > (255 * 255 * 255) / 2) {
             button.setForeground( UIUtils.getColor( 0, 0, 0 ) );
         }
         else {
             button.setForeground( UIUtils.getColor( 255, 255, 255 ) );
         }
     }
+
+
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( propertyName ) && defaultColor != null;
+    }
+
 }

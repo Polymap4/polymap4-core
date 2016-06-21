@@ -153,4 +153,9 @@ public class StylePropertyField
         valueContainer.layout( true );
     }
 
+
+    public boolean isValid() {
+        return selected != null && selected.isValid();
+    }
+
 }

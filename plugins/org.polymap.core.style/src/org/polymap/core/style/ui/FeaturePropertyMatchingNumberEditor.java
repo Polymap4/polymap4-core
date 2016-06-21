@@ -84,7 +84,7 @@ public class FeaturePropertyMatchingNumberEditor
     public Composite createContents( Composite parent ) {
         final Composite contents = super.createContents( parent );
         contents.setLayout( FormLayoutFactory.defaults().create() );
-        
+
         final Combo propertyCombo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
         propertyCombo.setItems( columns.toArray( new String[columns.size()] ) );
@@ -119,7 +119,7 @@ public class FeaturePropertyMatchingNumberEditor
             }
 
         } );
-        
+
         FormDataFactory.on( propertyCombo ).left( 0 ).right( 40 );
         FormDataFactory.on( expressionCombo ).left( propertyCombo, 1 ).right( 60 );
         FormDataFactory.on( literalText ).left( expressionCombo, 1 ).right( 100 );
@@ -140,4 +140,13 @@ public class FeaturePropertyMatchingNumberEditor
         }
         return allowedProperties;
     }
+
+
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( (String)prop.get().leftProperty.get() )
+                && prop.get().relationalNumberOperator.get() != null
+                && !StringUtils.isBlank( (String)prop.get().rightLiteral.get() );
+    }
+
 }

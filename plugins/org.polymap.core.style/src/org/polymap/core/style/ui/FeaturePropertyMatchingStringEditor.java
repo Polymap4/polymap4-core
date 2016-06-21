@@ -85,7 +85,7 @@ public class FeaturePropertyMatchingStringEditor
     public Composite createContents( Composite parent ) {
         final Composite contents = super.createContents( parent );
         contents.setLayout( FormLayoutFactory.defaults().create() );
-        
+
         final Combo propertyCombo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
         propertyCombo.setItems( columns.toArray( new String[columns.size()] ) );
         propertyCombo.select( columns.indexOf( prop.get().leftProperty.get() ) );
@@ -119,12 +119,13 @@ public class FeaturePropertyMatchingStringEditor
             }
 
         } );
-        
+
         FormDataFactory.on( propertyCombo ).left( 0 ).right( 40 );
         FormDataFactory.on( expressionCombo ).left( propertyCombo, 1 ).right( 60 );
         FormDataFactory.on( literalText ).left( expressionCombo, 1 ).right( 100 );
         return contents;
     }
+
 
     protected List<String> allowedProperties() {
         Collection<PropertyDescriptor> schemaDescriptors = featureType.getDescriptors();
@@ -136,5 +137,13 @@ public class FeaturePropertyMatchingStringEditor
             }
         }
         return columns;
+    }
+
+
+    @Override
+    public boolean isValid() {
+        return !StringUtils.isBlank( (String)prop.get().leftProperty.get() )
+                && prop.get().relationalStringOperator.get() != null
+                && !StringUtils.isBlank( (String)prop.get().rightLiteral.get() );
     }
 }
