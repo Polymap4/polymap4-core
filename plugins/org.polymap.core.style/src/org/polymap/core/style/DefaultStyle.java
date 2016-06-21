@@ -12,17 +12,23 @@
  */
 package org.polymap.core.style;
 
+import java.util.Collection;
 import java.util.Random;
 
 import java.awt.Color;
 
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.feature.type.PropertyDescriptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.vividsolutions.jts.awt.PointShapeFactory.Point;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
 import org.polymap.core.style.model.ConstantColor;
@@ -37,12 +43,14 @@ import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.model.PropertyString;
 import org.polymap.core.style.model.TextStyle;
 
 /**
  * Factory of simple default feature styles with some random settings.
  *
  * @author Falko Bräutigam
+ * @author Steffen Stundzig
  */
 public class DefaultStyle {
 
@@ -52,14 +60,20 @@ public class DefaultStyle {
     
 
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
-        if (Point.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
+        Class<?> geometryType = schema.getGeometryDescriptor().getType().getBinding();
+        if (Point.class.isAssignableFrom( geometryType ) || MultiPoint.class.isAssignableFrom( geometryType )) {
             fillPointStyle( fs );
-            fillTextStyle( fs );
+            fillTextStyle( fs, schema );
         }
-        if (Polygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )
-                || MultiPolygon.class.isAssignableFrom( schema.getGeometryDescriptor().getType().getBinding() )) {
+        else if (Polygon.class.isAssignableFrom( geometryType )
+                || MultiPolygon.class.isAssignableFrom( geometryType )) {
             fillPolygonStyle( fs );
-            fillTextStyle( fs );
+            fillTextStyle( fs, schema );
+        }
+        else if (LineString.class.isAssignableFrom( geometryType )
+                || MultiLineString.class.isAssignableFrom( geometryType )) {
+            fillLineStyle( fs );
+            fillTextStyle( fs, schema );
         }
         else {
             throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
@@ -68,11 +82,11 @@ public class DefaultStyle {
     }
     
 
-    public static FeatureStyle createAllStyle( FeatureStyle fs ) {
+    public static FeatureStyle createAllStyles( FeatureStyle fs ) {
         fillLineStyle( fs );
         fillPointStyle( fs );
         fillPolygonStyle( fs );
-        fillTextStyle( fs );
+        fillTextStyle( fs, null );
         return fs;
     }
 
@@ -122,13 +136,26 @@ public class DefaultStyle {
     }
 
 
-    public static TextStyle fillTextStyle( FeatureStyle fs ) {
+    public static TextStyle fillTextStyle( FeatureStyle fs, FeatureType schema ) {
         TextStyle text = fs.members().createElement( TextStyle.defaults );
         text.font.get().family.createValue( ConstantFontFamily.defaults() );
         text.font.get().style.createValue( ConstantFontStyle.defaults() );
         text.font.get().weight.createValue( ConstantFontWeight.defaults() );
         text.font.get().size.createValue( ConstantNumber.defaults( 10.0 ) );
         text.color.createValue( ConstantColor.defaults( Color.BLACK ) );
+
+        if (schema != null) {
+            Collection<PropertyDescriptor> schemaDescriptors = schema.getDescriptors();
+            GeometryDescriptor geometryDescriptor = schema.getGeometryDescriptor();
+            for (PropertyDescriptor descriptor : schemaDescriptors) {
+                if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {
+                    if (String.class.isAssignableFrom( descriptor.getType().getBinding() )) {
+                        text.property.createValue( PropertyString.defaults( descriptor.getName().getLocalPart() ) );
+                        break;
+                    }
+                }
+            }
+        }
         return text;
     }
 }
