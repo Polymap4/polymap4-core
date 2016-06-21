@@ -16,9 +16,10 @@ package org.polymap.core.catalog;
 
 import java.util.Optional;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 /**
- * Our minimal interface to a metadata catalog. Should be compliant to CSW and ISO
- * 19115.
+ * Our minimal interface to a metadata catalog. More or less compliant to CSW.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -32,8 +33,8 @@ public interface IMetadataCatalog
     @Override
     public void close();
 
-    public Optional<? extends IMetadata> entry( String identifier );
+    public Optional<? extends IMetadata> entry( String identifier, IProgressMonitor monitor ) throws Exception;
     
-    public MetadataQuery query( String query );
+    public MetadataQuery query( String query, IProgressMonitor monitor ) throws Exception;
     
 }

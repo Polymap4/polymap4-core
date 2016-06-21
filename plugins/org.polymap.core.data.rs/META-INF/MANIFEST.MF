@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: RDataStore
-Bundle-SymbolicName: org.polymap.core.data.rs
+Bundle-SymbolicName: org.polymap.core.data.rs;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

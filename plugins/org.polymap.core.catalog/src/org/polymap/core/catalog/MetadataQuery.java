@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog;
 
+import java.util.Iterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -29,15 +30,17 @@ import org.polymap.core.runtime.config.DefaultInt;
 public abstract class MetadataQuery
         extends Configurable {
     
-    @DefaultInt(Integer.MAX_VALUE)
+    @DefaultInt( Integer.MAX_VALUE )
     public Config2<MetadataQuery,Integer>   maxResults;
 
     
-    public abstract ResultSet execute();
+    public abstract ResultSet execute() throws Exception;
     
     
     /**
-     * 
+     * The result set of a {@link MetadataQuery#execute()}.
+     * <p/>
+     * Sub-classes should override {@link #finalize()} and call {@link #close()}. 
      */
     public static interface ResultSet
             extends Iterable<IMetadata>, AutoCloseable {
@@ -46,8 +49,13 @@ public abstract class MetadataQuery
 
         @Override
         public void close();
-
         
+        @Override
+        default Iterator<IMetadata> iterator() {
+            // XXX Auto-generated method stub
+            throw new RuntimeException( "not yet implemented." );
+        }
+
         public default Stream<IMetadata> stream() {
             return StreamSupport.stream( spliterator(), false );
         }

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension-point id="org.polymap.core.catalog.catalogProviders" name="CatalogProviders" schema="schema/org.polymap.core.catalog.catalogProviders.exsd"/>
+   <extension-point id="org.polymap.core.catalog.resolverProviders" name="ResourceResolvers" schema="schema/org.polymap.core.catalog.resolverProviders.exsd"/>
    <!--extension
          point="net.refractions.udig.catalog.resolvers">
       <factory

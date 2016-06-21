@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Shapefile data and catalog
-Bundle-SymbolicName: org.polymap.core.data.shapefile
+Bundle-SymbolicName: org.polymap.core.data.shapefile;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

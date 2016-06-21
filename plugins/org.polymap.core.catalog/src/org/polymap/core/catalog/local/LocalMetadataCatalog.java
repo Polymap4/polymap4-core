@@ -19,16 +19,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.IUpdateableMetadata;
 import org.polymap.core.catalog.IUpdateableMetadataCatalog;
 import org.polymap.core.catalog.MetadataQuery;
-
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.EntityRepository;
@@ -62,13 +61,13 @@ public class LocalMetadataCatalog
     
     @Override
     public String getTitle() {
-        return "Local catalog";
+        return "Project resources";
     }
 
 
     @Override
     public String getDescription() {
-        return "Description...";
+        return "Local project resources";
     }
 
 
@@ -80,7 +79,7 @@ public class LocalMetadataCatalog
     
     
     @Override
-    public Optional<? extends IMetadata> entry( String identifier ) {
+    public Optional<? extends IMetadata> entry( String identifier, IProgressMonitor monitor ) {
         org.polymap.model2.query.ResultSet<LocalMetadata> rs = uow.query( LocalMetadata.class )
                 .where( Expressions.eq( LocalMetadata.TYPE.identifier, identifier ) )
                 .maxResults( 2 )
@@ -94,7 +93,7 @@ public class LocalMetadataCatalog
 
 
     @Override
-    public MetadataQuery query( String query ) {
+    public MetadataQuery query( String query, IProgressMonitor monitor ) {
         return new MetadataQuery() {
             @Override
             public ResultSet execute() {
@@ -116,6 +115,10 @@ public class LocalMetadataCatalog
                     @Override
                     public void close() {
                         rs.close();
+                    }
+                    @Override
+                    public void finalize() throws Throwable {
+                        close();
                     }
                 };
             }

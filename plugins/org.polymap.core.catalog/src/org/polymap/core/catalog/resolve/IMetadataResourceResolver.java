@@ -24,7 +24,7 @@ import org.polymap.core.catalog.IMetadata;
  * Creates an {@link IServiceInfo} service out of connection params provided by an
  * {@link IMetadata} instance. It is the link between the matadata and the data.
  * <p>
- * Resolving a backend service instance from a layer contains the following steps:
+ * Resolving a backend service instance from a layer consists of the following steps:
  * <ul>
  * <li>ILayer provides UID of the {@link IMetadata} entry in the catalog</li>
  * <li>{@link IMetadata} provides connection params</li>
@@ -50,7 +50,9 @@ public interface IMetadataResourceResolver {
     public static final String      CONNECTION_PARAM_URL = "_url_";
 
     /**
-     * 
+     * Decides if this resolver can handle the given {@link IMetadata}.
+     * <p/>
+     * This must not block execution.
      *
      * @param params
      */

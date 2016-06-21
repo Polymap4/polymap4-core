@@ -141,7 +141,7 @@ public class MetadataContentProvider
             UIJob job = new UIJob( "Query catalog" ) {
                 @Override
                 protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    Object[] children = ((IMetadataCatalog)elm).query( catalogQuery ).execute().stream().toArray();
+                    Object[] children = ((IMetadataCatalog)elm).query( catalogQuery, monitor ).execute().stream().toArray();
                     updateChildren( elm, children, currentChildCount );
                 }
             };
