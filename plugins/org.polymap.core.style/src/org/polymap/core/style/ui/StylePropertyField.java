@@ -133,7 +133,7 @@ public class StylePropertyField
         // layout
         contents.setLayout( FormLayoutFactory.defaults().create() );
         on( t ).fill().left( 0, 5 ).noBottom();
-        on( combo.getCombo() ).top( t ).left( 0 ).right( 38 );
+        on( combo.getCombo() ).top( t ).left( 0 ).right( 30 );
         on( valueContainer ).top( t ).bottom( 100 ).left( combo.getControl(), 5 ).right( 100 );
         return contents;
     }
