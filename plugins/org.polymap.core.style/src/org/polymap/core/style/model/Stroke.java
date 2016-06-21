@@ -50,7 +50,7 @@ public class Stroke
     @Nullable
     @UIOrder( 10 )
     @Description( "width" )
-    @NumberRange( defaultValue=1 )
+    @NumberRange( defaultValue=1, increment=0.1 )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> width;
     
