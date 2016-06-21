@@ -20,7 +20,7 @@ package org.polymap.core.style.model;
  */
 public enum FontFamily {
     georgia("Georgia, Serif"), palatino("Palatino Linotype, Book Antiqua, Palatino, Serif"), times(
-            "Times New Roman, Times, Serif"), arial("Arial, Helvetica, SansSerif"), arialBlack(
+            "Times, Serif"), arial("Arial, Helvetica, SansSerif"), arialBlack(
                     "Arial Black, SansSerif"), comicSans("Comic Sans MS, SansSerif");
 
     private String value;
