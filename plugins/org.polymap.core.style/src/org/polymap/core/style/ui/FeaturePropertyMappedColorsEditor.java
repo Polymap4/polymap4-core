@@ -96,7 +96,7 @@ public class FeaturePropertyMappedColorsEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.PUSH );
+        final Button button = new Button( parent, SWT.BORDER);
 
         initialize();
 

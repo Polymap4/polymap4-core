@@ -60,8 +60,7 @@ public class StylePlugin
 
 
     public static Color okColor() {
-        // fab-gb
-        return UIUtils.getColor( 129, 204, 57 );
+        return UIUtils.getColor( 255, 255, 255 );
     }
 
 

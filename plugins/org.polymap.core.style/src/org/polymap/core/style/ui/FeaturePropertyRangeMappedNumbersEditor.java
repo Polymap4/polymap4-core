@@ -38,6 +38,8 @@ import org.polymap.core.style.Messages;
 import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.FilterMappedNumbers;
 import org.polymap.core.style.model.NumberRange;
+import org.polymap.core.ui.UIUtils;
+
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -99,7 +101,7 @@ public class FeaturePropertyRangeMappedNumbersEditor
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.PUSH );
+        final Button button = new Button( parent, SWT.BORDER);
         button.addSelectionListener( new SelectionAdapter() {
 
             @Override
@@ -144,7 +146,7 @@ public class FeaturePropertyRangeMappedNumbersEditor
                             else {
                                 l = ff.literal( literalNumber.doubleValue() );
                             }
-                            prop.get().add( ff.lessOrEqual( ff.property( propertyName ), l ),
+                            prop.get().add( ff.less( ff.property( propertyName ), l ),
                                     minimumValue + (singleMappedStep * i) );
                         }
                         if (isInteger) {
@@ -231,12 +233,14 @@ public class FeaturePropertyRangeMappedNumbersEditor
             }
             // green, all ok
             button.setBackground( StylePlugin.okColor() );
+//            button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
         }
         else {
             button.setText( i18n.get( "choose" ) );
             // red, must be fixed
             button.setBackground( StylePlugin.errorColor() );
         }
+        button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
 
 

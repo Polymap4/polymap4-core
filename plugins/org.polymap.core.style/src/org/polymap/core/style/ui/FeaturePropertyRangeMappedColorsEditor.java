@@ -37,6 +37,8 @@ import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.FilterMappedColors;
+import org.polymap.core.ui.UIUtils;
+
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -98,7 +100,7 @@ public class FeaturePropertyRangeMappedColorsEditor
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.PUSH );
+        final Button button = new Button( parent, SWT.BORDER);
         button.addSelectionListener( new SelectionAdapter() {
 
             @Override
@@ -219,12 +221,14 @@ public class FeaturePropertyRangeMappedColorsEditor
             button.setText( i18n.get( "chooseFrom", propertyName ) );
             // green, all ok
             button.setBackground( StylePlugin.okColor() );
+//            button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
         }
         else {
             button.setText( i18n.get( "choose" ) );
             // red not ok
             button.setBackground( StylePlugin.errorColor() );
         }
+        button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
     
     @Override

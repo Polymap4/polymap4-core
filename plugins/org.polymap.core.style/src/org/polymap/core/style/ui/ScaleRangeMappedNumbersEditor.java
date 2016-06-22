@@ -32,6 +32,8 @@ import org.polymap.core.style.Messages;
 import org.polymap.core.style.StylePlugin;
 import org.polymap.core.style.model.NumberRange;
 import org.polymap.core.style.model.ScaleMappedNumbers;
+import org.polymap.core.ui.UIUtils;
+
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -91,7 +93,7 @@ public class ScaleRangeMappedNumbersEditor
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.PUSH );
+        final Button button = new Button( parent, SWT.BORDER);
         button.addSelectionListener( new SelectionAdapter() {
 
             @Override
@@ -177,6 +179,7 @@ public class ScaleRangeMappedNumbersEditor
             // red not ok
             button.setBackground( StylePlugin.errorColor() );
         }
+        button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
     
     @Override
