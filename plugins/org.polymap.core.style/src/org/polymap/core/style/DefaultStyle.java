@@ -60,23 +60,26 @@ public class DefaultStyle {
     
 
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
-        Class<?> geometryType = schema.getGeometryDescriptor().getType().getBinding();
-        if (Point.class.isAssignableFrom( geometryType ) || MultiPoint.class.isAssignableFrom( geometryType )) {
-            fillPointStyle( fs );
-            fillTextStyle( fs, schema );
-        }
-        else if (Polygon.class.isAssignableFrom( geometryType )
-                || MultiPolygon.class.isAssignableFrom( geometryType )) {
-            fillPolygonStyle( fs );
-            fillTextStyle( fs, schema );
-        }
-        else if (LineString.class.isAssignableFrom( geometryType )
-                || MultiLineString.class.isAssignableFrom( geometryType )) {
-            fillLineStyle( fs );
-            fillTextStyle( fs, schema );
-        }
-        else {
-            throw new RuntimeException( "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
+        if (schema.getGeometryDescriptor() != null) {
+            Class<?> geometryType = schema.getGeometryDescriptor().getType().getBinding();
+            if (Point.class.isAssignableFrom( geometryType ) || MultiPoint.class.isAssignableFrom( geometryType )) {
+                fillPointStyle( fs );
+                fillTextStyle( fs, schema );
+            }
+            else if (Polygon.class.isAssignableFrom( geometryType )
+                    || MultiPolygon.class.isAssignableFrom( geometryType )) {
+                fillPolygonStyle( fs );
+                fillTextStyle( fs, schema );
+            }
+            else if (LineString.class.isAssignableFrom( geometryType )
+                    || MultiLineString.class.isAssignableFrom( geometryType )) {
+                fillLineStyle( fs );
+                fillTextStyle( fs, schema );
+            }
+            else {
+                throw new RuntimeException(
+                        "Unhandled geom type: " + schema.getGeometryDescriptor().getType().getBinding() );
+            }
         }
         return fs;
     }
