@@ -16,13 +16,15 @@ package org.polymap.core.data.rs;
 
 import static org.polymap.core.data.Features.iterable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -30,6 +32,7 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureImpl;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.geotools.util.Utilities;
@@ -40,17 +43,13 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
+import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
-
-import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
-
-import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 import junit.framework.TestCase;
 
@@ -90,6 +89,23 @@ public class RFeatureStoreTests
         return builder.buildFeatureType();        
     }
     
+    public void testCreateSimpleSchemaAndFeatureWithoutId() throws Exception {
+        log.debug( "creating schema..." );
+        SimpleFeatureType schema = createSimpleSchema();
+        ds.createSchema( schema );
+        RFeatureStore fs = (RFeatureStore)ds.getFeatureSource( schema.getName() );        
+
+        assertEquals( 0, Iterables.size( iterable( fs.getFeatures() ) ) );
+
+        // add feature
+        // SimpleFeatureBuilder always creates a default id
+        DefaultFeatureCollection features = new DefaultFeatureCollection();
+        features.add( new SimpleFeatureImpl( Lists.newArrayList( "value", null ), schema, null ));
+        fs.addFeatures( features );
+        
+         // check size
+        assertEquals( 1, Iterables.size( iterable( fs.getFeatures() ) ) );
+    }
     
     public void testCreateSimpleSchemaAndFeature() throws Exception {
         log.debug( "creating schema..." );
