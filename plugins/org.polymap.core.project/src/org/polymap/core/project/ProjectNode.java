@@ -61,6 +61,10 @@ public abstract class ProjectNode
 
     @Defaults
     @Queryable
+    public Property<String>             description;
+
+    @Defaults
+    @Queryable
     public CollectionProperty<String>   keywords;
 
     public Association<IMap>            parentMap;
