@@ -6,7 +6,7 @@
          <meta.schema plugin="org.polymap.core.catalog" id="org.polymap.core.catalog.resolverProviders" name="ResourceResolvers"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         Defines a new resource resolver. Resource resolvers are reponsible of building actual data services or resources out of catalog entries (IMetadata).
       </documentation>
    </annotation>
 

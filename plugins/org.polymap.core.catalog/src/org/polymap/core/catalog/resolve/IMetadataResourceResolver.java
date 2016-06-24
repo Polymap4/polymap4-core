@@ -21,8 +21,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.catalog.IMetadata;
 
 /**
- * Creates an {@link IServiceInfo} service out of connection params provided by an
- * {@link IMetadata} instance. It is the link between the matadata and the data.
+ * Creates an {@link IServiceInfo} out of connection params provided by an
+ * {@link IMetadata} instance. Bridging the gab between matadata and the actual data.
  * <p>
  * Resolving a backend service instance from a layer consists of the following steps:
  * <ul>

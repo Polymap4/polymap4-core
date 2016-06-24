@@ -6,7 +6,7 @@
          <meta.schema plugin="org.polymap.core.catalog" id="org.polymap.core.catalog.catalogProviders" name="CatalogProviders"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         A CatalogProvider adds a new implementation of IMetadataCatalog to the system.
       </documentation>
    </annotation>
 
