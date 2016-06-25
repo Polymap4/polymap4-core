@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +32,8 @@ public interface IMetadata {
     public String getTitle();
     
     public String getDescription();
+    
+    public Date getModified();
     
     public Set<String> getKeywords();
 

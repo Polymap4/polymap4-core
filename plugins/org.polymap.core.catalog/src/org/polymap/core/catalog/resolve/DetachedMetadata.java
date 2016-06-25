@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,6 +53,11 @@ public class DetachedMetadata
     @Override
     public Set<String> getKeywords() {
         return null;
+    }
+
+    @Override
+    public Date getModified() {
+        throw new RuntimeException( "not yet implemented." );
     }
 
     @Override

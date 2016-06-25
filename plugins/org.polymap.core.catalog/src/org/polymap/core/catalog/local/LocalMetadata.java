@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog.local;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +60,10 @@ public class LocalMetadata
     @Queryable
     @Defaults
     protected CollectionProperty<String> keywords;
+
+    @Queryable
+    @Defaults
+    protected Property<Date>            modified;
 
     @Defaults
     public CollectionProperty<KeyValue> connectionParams;
@@ -124,6 +129,11 @@ public class LocalMetadata
         this.keywords.clear();
         this.keywords.addAll( keywords );
         return this;
+    }
+
+    @Override
+    public Date getModified() {
+        return modified.get();
     }
 
     @Override
