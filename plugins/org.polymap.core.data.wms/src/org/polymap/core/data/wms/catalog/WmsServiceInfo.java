@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.geotools.data.ResourceInfo;
 import org.geotools.data.wms.WebMapServer;
 import org.geotools.ows.ServiceException;
 
@@ -30,11 +29,9 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
-import org.polymap.core.catalog.resolve.DefaultResourceInfo;
 import org.polymap.core.catalog.resolve.DefaultServiceInfo;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResourceInfo;
-import org.polymap.core.catalog.resolve.IServiceInfo;
 import org.polymap.core.runtime.StreamIterable;
 
 /**
@@ -77,19 +74,6 @@ public class WmsServiceInfo
         return StreamIterable.of( wms.getCapabilities().getLayerList().stream()
                 .map( layer -> wms.getInfo( layer ) )
                 .map( info -> new WmsResourceInfo( WmsServiceInfo.this, info ) ) );
-    }
-
-    
-    /**
-     * 
-     */
-    class WmsResourceInfo
-            extends DefaultResourceInfo {
-
-        public WmsResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate ) {
-            super( serviceInfo, delegate );
-        }
-        
     }
     
 }
