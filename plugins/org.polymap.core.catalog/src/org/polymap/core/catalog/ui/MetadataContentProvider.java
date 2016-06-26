@@ -62,7 +62,7 @@ public class MetadataContentProvider
     
     private Object                      input;
     
-    private String                      catalogQuery = "";
+    private String                      catalogQuery = "*";
     
     private IMetadataResourceResolver   resolver;
     

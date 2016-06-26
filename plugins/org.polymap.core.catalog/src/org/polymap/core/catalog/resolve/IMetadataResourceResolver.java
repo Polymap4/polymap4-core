@@ -48,6 +48,7 @@ public interface IMetadataResourceResolver {
      */
     public static final String      CONNECTION_PARAM_TYPE = "_type_";
     public static final String      CONNECTION_PARAM_URL = "_url_";
+    public static final String      CONNECTION_PARAM_RES = "_resource_";
 
     /**
      * Decides if this resolver can handle the given {@link IMetadata}.
@@ -75,12 +76,5 @@ public interface IMetadataResourceResolver {
      */
     public Map<String,String> createParams( Object service );
     
+}    
     
-//    /**
-//     * 
-//     */
-//    public class UrlParam
-//            extends Configurable {
-//        
-//    }
-}
