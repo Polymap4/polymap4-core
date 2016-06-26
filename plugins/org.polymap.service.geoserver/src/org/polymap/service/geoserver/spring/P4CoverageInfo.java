@@ -26,6 +26,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.project.ILayer;
 
+import org.polymap.service.geoserver.GeoServerUtils;
+
 /**
  * An upstream WMS.
  *
@@ -45,8 +47,8 @@ public class P4CoverageInfo
         setStore( dsInfo );
 
         ILayer layer = dsInfo.getLayer();
-        setNamespace( Utils.defaultNsInfo.get() );
-        setName( Utils.simpleName( layer.label.get() ) );
+        setNamespace( GeoServerUtils.defaultNsInfo.get() );
+        setName( GeoServerUtils.simpleName( layer.label.get() ) );
         setTitle( layer.label.get() );
         setDescription( "Coverage of ILayer: " + layer.label.get() );
         setKeywords( layer.keywords.stream().map( kw -> new Keyword(kw) ).collect( toList() ) );

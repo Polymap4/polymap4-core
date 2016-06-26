@@ -14,7 +14,7 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import static org.polymap.service.geoserver.spring.Utils.simpleName;
+import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +42,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.service.geoserver.GeoServerPlugin;
 import org.polymap.service.geoserver.GeoServerServlet;
+import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * Initializes GeoServer configuration and catalog on startup.
@@ -141,8 +142,8 @@ public class GeoServerLoader
         wsInfo.setName( simpleName( map.label.get() ) );
         log.info( "    loaded: " + wsInfo );
         
-        catalog.add( Utils.defaultNsInfo.get() );
-        log.info( "    loaded: " + Utils.defaultNsInfo.get() );
+        catalog.add( GeoServerUtils.defaultNsInfo.get() );
+        log.info( "    loaded: " + GeoServerUtils.defaultNsInfo.get() );
 
         for (ILayer layer : map.layers) {
             P4DataStoreInfo dsInfo = new P4DataStoreInfo( catalog, layer );

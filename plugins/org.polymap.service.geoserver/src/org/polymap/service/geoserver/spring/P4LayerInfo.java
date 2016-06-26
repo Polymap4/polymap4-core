@@ -14,7 +14,7 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import static org.polymap.service.geoserver.spring.Utils.simpleName;
+import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
 
 import java.util.Collections;
 

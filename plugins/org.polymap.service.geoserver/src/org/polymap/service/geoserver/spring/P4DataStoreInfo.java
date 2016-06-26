@@ -14,7 +14,7 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import static org.polymap.service.geoserver.spring.Utils.simpleName;
+import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +61,7 @@ import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.PlainLazyInit;
 
 import org.polymap.service.geoserver.GeoServerServlet;
+import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * 
@@ -160,7 +161,7 @@ public class P4DataStoreInfo
 
         SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
         ftb.setName( simpleName( layer.label.get() ) );
-        ftb.setNamespaceURI( Utils.NAMESPACE );
+        ftb.setNamespaceURI( GeoServerUtils.NAMESPACE );
         // required to have schema.getGeometryDescriptor() not 
         // return null in org.geotools.renderer.lite.StreamingRenderer.processStylers()
         // polygonProperty requires CoordinateReferenceSystem

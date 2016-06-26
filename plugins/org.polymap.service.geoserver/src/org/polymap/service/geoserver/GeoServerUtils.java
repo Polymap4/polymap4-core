@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.service.geoserver.spring;
+package org.polymap.service.geoserver;
 
 import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.catalog.impl.NamespaceInfoImpl;
@@ -29,9 +29,9 @@ import org.polymap.core.runtime.Stringer;
  *
  * @author Falko Bräutigam
  */
-public class Utils {
+public class GeoServerUtils {
 
-    private static Log log = LogFactory.getLog( Utils.class );
+    private static Log log = LogFactory.getLog( GeoServerUtils.class );
 
     /** FIXME The namespace of all features delivered via GeoServer. */
     public static final String      NAMESPACE = "http://www.opengis.net/gml";

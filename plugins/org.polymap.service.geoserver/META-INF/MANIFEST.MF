@@ -77,5 +77,4 @@ Export-Package: net.sf.ezmorph,
  net.sf.json.util,
  net.sf.json.xml,
  org.geoserver.catalog,
- org.polymap.service.geoserver,
- org.polymap.service.geoserver.jmx
+ org.polymap.service.geoserver

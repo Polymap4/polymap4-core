@@ -46,6 +46,8 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.data.util.Geometries;
 import org.polymap.core.project.ILayer;
 
+import org.polymap.service.geoserver.GeoServerUtils;
+
 /**
  * 
  *
@@ -72,8 +74,8 @@ public class P4FeatureTypeInfo
         FeatureSource fs = dsInfo.getFeatureSource();
         SimpleFeatureType schema = (SimpleFeatureType)fs.getSchema();
         
-        setNamespace( Utils.defaultNsInfo.get() );
-        setName( Utils.simpleName( layer.label.get() ) );
+        setNamespace( GeoServerUtils.defaultNsInfo.get() );
+        setName( GeoServerUtils.simpleName( layer.label.get() ) );
         //setNativeName( schema.getTypeName() );
         setTitle( layer.label.get() );
         setDescription( "FeatureType of ILayer: " + layer.label.get() );
