@@ -28,7 +28,7 @@ public class ConstantFontFamily
      * Initializes a newly created instance with default values.
      */
     public static ValueInitializer<ConstantFontFamily> defaults() {
-        return defaults( FontFamily.comicSans );
+        return defaults( FontFamily.sansSerif );
     }
 
 

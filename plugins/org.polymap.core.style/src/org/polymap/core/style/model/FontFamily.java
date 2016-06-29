@@ -19,9 +19,7 @@ package org.polymap.core.style.model;
  * @author Steffen Stundzig
  */
 public enum FontFamily {
-    georgia("Georgia, Serif"), palatino("Palatino Linotype, Book Antiqua, Palatino, Serif"), times(
-            "Times, Serif"), arial("Arial, Helvetica, SansSerif"), arialBlack(
-                    "Arial Black, SansSerif"), comicSans("Comic Sans MS, SansSerif");
+    monospaced("Monospaced"), sansSerif("SansSerif"), serif("Serif");
 
     private String value;
 
@@ -29,14 +27,17 @@ public enum FontFamily {
     FontFamily( final String value ) {
         this.value = value;
     }
-    
+
+
     public String value() {
         return value;
     }
-    
+
+
     public String[] families() {
         return value.split( "," );
     }
+
 
     public static FontFamily forValue( String currentValue ) {
         for (FontFamily family : values()) {
@@ -46,5 +47,5 @@ public enum FontFamily {
         }
         return null;
     }
-    
+
 }

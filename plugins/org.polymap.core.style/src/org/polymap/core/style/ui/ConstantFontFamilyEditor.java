@@ -65,7 +65,7 @@ public class ConstantFontFamilyEditor
 
             @Override
             public ConstantFontFamily initialize( ConstantFontFamily proto ) throws Exception {
-                proto.value.set( FontFamily.comicSans );
+                proto.value.set( FontFamily.sansSerif );
                 return proto;
             }
         } );
