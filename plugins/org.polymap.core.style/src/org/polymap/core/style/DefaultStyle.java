@@ -24,6 +24,7 @@ import org.opengis.feature.type.PropertyDescriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPoint;
@@ -73,6 +74,13 @@ public class DefaultStyle {
             }
             else if (LineString.class.isAssignableFrom( geometryType )
                     || MultiLineString.class.isAssignableFrom( geometryType )) {
+                fillLineStyle( fs );
+                fillTextStyle( fs, schema );
+            }
+            else if (Geometry.class.isAssignableFrom( geometryType )) {
+                // add all
+                fillPointStyle( fs );
+                fillPolygonStyle( fs );
                 fillLineStyle( fs );
                 fillTextStyle( fs, schema );
             }
