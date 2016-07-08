@@ -75,8 +75,8 @@ public class FeaturePropertyRangeMappedColorsEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Color.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site )
-                : false;
+        return Color.class.isAssignableFrom( targetType( site ) ) && site.featureStore.isPresent()
+                && site.featureType.isPresent() ? super.init( site ) : false;
     }
 
 
