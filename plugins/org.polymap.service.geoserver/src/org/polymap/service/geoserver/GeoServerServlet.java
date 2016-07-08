@@ -52,6 +52,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -311,6 +312,11 @@ public abstract class GeoServerServlet
             }
             return;
         }
+        
+        String origin = req.getHeader( "Origin" );
+        resp.addHeader( "Access-Control-Allow-Origin", StringUtils.isBlank( origin ) ? "*" : origin );
+        resp.addHeader( "Access-Control-Allow-Headers", req.getHeader( "Access-Control-Request-Headers" ));
+        resp.addHeader( "Access-Control-Allow-Methods", "GET,POST,OPTIONS" );
         
         // service
         inContextClassLoader( () -> {
