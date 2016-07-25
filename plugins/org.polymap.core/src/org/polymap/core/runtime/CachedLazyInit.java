@@ -33,6 +33,11 @@ public class CachedLazyInit<T>
     
     private volatile SoftReference<T>       ref;
 
+    
+    public CachedLazyInit() {
+        super();
+    }
+
     /**
      * 
      * @param elementSize The size of the value in the cache in bytes.

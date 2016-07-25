@@ -77,6 +77,10 @@ public class EventManager {
     
     private DispatcherThread                        dispatcher = new DispatcherThread();
     
+    /**
+     * XXX check https://lmax-exchange.github.io/disruptor/
+     * just to save the link somewhere: https://github.com/npgall/cqengine
+     */
     private CopyOnWriteArraySet<AnnotatedEventListener> listeners = new CopyOnWriteArraySet();
     
     private volatile int                            statCount;
@@ -317,6 +321,10 @@ public class EventManager {
 
         public static final int         MAX_QUEUE_SIZE = 10000;
         
+        /**
+         * XXX check https://lmax-exchange.github.io/disruptor/
+         * just to save the link somewhere: https://github.com/npgall/cqengine
+         */
         private BlockingQueue<Runnable> queue;
 
         /** 
