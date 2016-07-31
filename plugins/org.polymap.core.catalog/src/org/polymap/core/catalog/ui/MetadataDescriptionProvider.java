@@ -62,6 +62,9 @@ public class MetadataDescriptionProvider
         else if (elm instanceof IResolvableInfo) {
             return ((IResolvableInfo)elm).getDescription();
         }
+        else if (elm instanceof String) {
+            return (String)elm;
+        }
         else {
             throw new RuntimeException( "Unknown element type: " +  elm );
         }

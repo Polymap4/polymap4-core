@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -38,10 +38,14 @@ import org.polymap.core.catalog.resolve.IServiceInfo;
 import org.polymap.core.runtime.StreamIterable;
 import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.UIThreadExecutor;
+import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.DefaultInt;
+import org.polymap.core.runtime.config.DefaultString;
+import org.polymap.core.runtime.config.Mandatory;
 
 /**
- * Content provider for {@link IMetadataCatalog} (or Collection or Array thereof as input),
+ * Content provider for {@link IMetadataCatalog} (or Collection or Array thereof) as input,
  * {@link IMetadata}, {@link IServiceInfo} and {@link IResourceInfo} objects.
  * <p/>
  * XXX check databinding ObservableListContentProvider
@@ -58,17 +62,22 @@ public class MetadataContentProvider
     
     public static final Object[]        CACHE_LOADING = {LOADING};
     
+    @Mandatory
+    @DefaultString( IMetadataCatalog.ALL_QUERY )
+    public Config<String>               catalogQuery;
+    
+    /** Max results of {@link IMetadataCatalog#query(String, IProgressMonitor)}. */
+    @Mandatory
+    @DefaultInt( 25 )
+    public Config<Integer>              maxResults;
+    
     private TreeViewer                  viewer;
     
     private Object                      input;
-    
-    private String                      catalogQuery = "*";
-    
+
     private IMetadataResourceResolver   resolver;
     
-    /**
-     * XXX make this evictable?
-     */
+    /* XXX make this evictable? */
     private ConcurrentMap<Object,Object[]> cache = new ConcurrentHashMap( 32 );
 
     
@@ -86,32 +95,19 @@ public class MetadataContentProvider
     public void inputChanged( @SuppressWarnings("hiding") Viewer viewer, Object oldInput, Object newInput ) {
         this.viewer = (TreeViewer)viewer;
         this.input = newInput;
+        flush();
     }
-
-
-    // ILazyTreeContentProvider ***************************
 
     /**
-     * Updates the {@link #cache} and the child count for this elm in the viewer/tree.
+     * Flush internal cache.
      */
-    protected void updateChildren( Object elm, Object[] children, int currentChildCount  ) {
-        cache.put( elm, children );
-        
-//        if (children.length != currentChildCount) {
-            UIThreadExecutor.async( () -> { 
-                    viewer.setChildCount( elm, children.length );
-                    viewer.replace( elm, 0, children[0] );  // replace the LOADING elm 
-            }, logErrorMsg( "" ) );
-//        }
+    public void flush() {
+        cache.clear();
     }
 
     
-    protected void updateChildrenLoading( Object elm ) {
-        cache.put( elm, CACHE_LOADING );
-        viewer.setChildCount( elm, 1 );         
-    }
-    
-    
+    // ILazyTreeContentProvider ***************************
+
     @Override
     public void updateChildCount( Object elm, int currentChildCount ) {
         // check cache
@@ -137,52 +133,15 @@ public class MetadataContentProvider
         }
         // IMetadataCatalog -> query
         else if (elm instanceof IMetadataCatalog) {
-            updateChildrenLoading( elm );
-            UIJob job = new UIJob( "Query catalog" ) {
-                @Override
-                protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    Object[] children = ((IMetadataCatalog)elm).query( catalogQuery, monitor ).execute().stream().toArray();
-                    updateChildren( elm, children, currentChildCount );
-                }
-            };
-            job.scheduleWithUIUpdate();
+            updateMetadataCatalog( (IMetadataCatalog)elm, currentChildCount );
         }
         // IMetadata -> resolve
         else if (elm instanceof IMetadata) {
-            updateChildrenLoading( elm );
-            UIJob job = new UIJob( "Resolve service" ) {
-                @Override
-                protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    IMetadata metadata = (IMetadata)elm;
-                    if (resolver.canResolve( metadata )) {
-                        try {
-                            IResolvableInfo resource = resolver.resolve( metadata, monitor );
-                            updateChildren( elm, new Object[] {resource}, currentChildCount );
-                        }
-                        catch (Exception e) {
-                            // FIXME handle exceptions
-                            log.warn( "", e );
-                            throw new RuntimeException( e );
-                        }
-                    }
-                    else {
-                        updateChildren( elm, new Object[] {"Unable to resolve the service."}, currentChildCount );                        
-                    }
-                }
-            };
-            job.scheduleWithUIUpdate();
+            updateMetadata( (IMetadata)elm, currentChildCount );
         }
         // IServiceInfo
         else if (elm instanceof IServiceInfo) {
-            updateChildrenLoading( elm );
-            UIJob job = new UIJob( "Find resources" ) {
-                @Override
-                protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                    Object[] children = StreamIterable.of( ((IServiceInfo)elm).getResources( monitor ) ).stream().toArray();
-                    updateChildren( elm, children, currentChildCount );
-                }
-            };
-            job.scheduleWithUIUpdate();
+            updateService( (IServiceInfo)elm, currentChildCount );
         }
         // IResourceInfo
         else if (elm instanceof IResourceInfo) {
@@ -193,6 +152,100 @@ public class MetadataContentProvider
         else {
             throw new RuntimeException( "Unknown element type: " + elm );
         }
+    }
+
+
+    /**
+     *
+     * @param elm
+     * @param currentChildCount
+     */
+    protected void updateMetadataCatalog( IMetadataCatalog elm, int currentChildCount ) {
+        updateChildrenLoading( elm );
+        UIJob job = new UIJob( "Query catalog" ) {
+            @Override
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                Object[] children = ((IMetadataCatalog)elm)
+                        .query( catalogQuery.get(), monitor )
+                        .maxResults.put( maxResults.get() )
+                        .execute().stream().toArray();
+                updateChildren( elm, children, currentChildCount );
+            }
+        };
+        job.scheduleWithUIUpdate();
+    }
+
+
+    /**
+     *
+     * @param elm
+     * @param currentChildCount
+     */
+    protected void updateMetadata( IMetadata elm, int currentChildCount ) {
+        updateChildrenLoading( elm );
+        UIJob job = new UIJob( "Resolve service" ) {
+            @Override
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                IMetadata metadata = (IMetadata)elm;
+                if (resolver.canResolve( metadata )) {
+                    try {
+                        IResolvableInfo resource = resolver.resolve( metadata, monitor );
+                        updateChildren( elm, new Object[] {resource}, currentChildCount );
+                    }
+                    catch (Exception e) {
+                        // FIXME handle exceptions
+                        log.warn( "", e );
+                        throw new RuntimeException( e );
+                    }
+                }
+                else {
+                    updateChildren( elm, new Object[] {"Unable to resolve the service."}, currentChildCount );                        
+                }
+            }
+        };
+        job.scheduleWithUIUpdate();
+    }
+
+
+    /**
+     *
+     * @param elm
+     * @param currentChildCount
+     */
+    protected void updateService( IServiceInfo elm, int currentChildCount ) {
+        updateChildrenLoading( elm );
+        UIJob job = new UIJob( "Find resources" ) {
+            @Override
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                Object[] children = StreamIterable.of( ((IServiceInfo)elm).getResources( monitor ) ).stream().toArray();
+                updateChildren( elm, children, currentChildCount );
+            }
+        };
+        job.scheduleWithUIUpdate();
+    }
+
+
+    /**
+     * Updates the {@link #cache} and the child count for this elm in the viewer/tree.
+     */
+    protected void updateChildren( Object elm, Object[] children, int currentChildCount  ) {
+        cache.put( elm, children );
+
+        //        if (children.length != currentChildCount) {
+        UIThreadExecutor.async( () -> { 
+            viewer.setChildCount( elm, children.length );
+            viewer.replace( elm, 0, children[0] );  // replace the LOADING elm 
+        }, logErrorMsg( "" ) );
+        //        }
+    }
+
+
+    /**
+     * Marks the given elm as {@link #CACHE_LOADING}. 
+     */
+    protected void updateChildrenLoading( Object elm ) {
+        cache.put( elm, CACHE_LOADING );
+        viewer.setChildCount( elm, 1 );         
     }
 
 

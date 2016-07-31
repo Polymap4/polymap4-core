@@ -9,7 +9,8 @@ Bundle-Localization: plugin
 Require-Bundle: org.eclipse.rap.ui;bundle-version="2.3.1",
  org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.data;bundle-version="4.0.0",
- org.polymap.model2;bundle-version="3.0.0"
+ org.polymap.model2;bundle-version="3.0.0",
+ org.polymap.rhei.fulltext;bundle-version="4.0.0"
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.polymap.core.catalog,

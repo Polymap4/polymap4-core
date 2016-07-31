@@ -15,12 +15,15 @@
 package org.polymap.core.catalog.local;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Lists;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -29,9 +32,16 @@ import org.polymap.core.catalog.IUpdateableMetadata;
 import org.polymap.core.catalog.IUpdateableMetadataCatalog;
 import org.polymap.core.catalog.MetadataQuery;
 
+import org.polymap.rhei.fulltext.model2.EntityFeatureTransformer;
+import org.polymap.rhei.fulltext.model2.FulltextIndexer;
+import org.polymap.rhei.fulltext.update.UpdateableFulltextIndex;
+
 import org.polymap.model2.query.Expressions;
+import org.polymap.model2.query.Query;
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.runtime.locking.CommitLockStrategy;
+import org.polymap.model2.runtime.locking.OptimisticLocking;
 import org.polymap.model2.store.StoreSPI;
 
 /**
@@ -47,18 +57,39 @@ public class LocalMetadataCatalog
     private EntityRepository        repo;
     
     private UnitOfWork              uow;
+
+    private UpdateableFulltextIndex index;
     
     
-    public LocalMetadataCatalog( StoreSPI store ) {
+    @SuppressWarnings( "hiding" )
+    protected void init( StoreSPI store, UpdateableFulltextIndex index ) {
+        this.index = index;
+        
+        EntityFeatureTransformer transformer = new EntityFeatureTransformer().honorQueryableAnnotation.put( true );
+        List<EntityFeatureTransformer> transformers = Lists.newArrayList( transformer );
+        
         repo = EntityRepository.newConfiguration()
-                .entities.set( new Class[] {LocalMetadata.class} )
-                .store.set( store )
+                .entities.set( new Class[] {
+                        LocalMetadata.class} )
+                .store.set(
+                        new OptimisticLocking(
+                        new FulltextIndexer( index, store ).setTransformers( transformers ) ) )
+                .commitLockStrategy.set( () -> 
+                        new CommitLockStrategy.Serialize() )
                 .create();
         
         uow = repo.newUnitOfWork();
     }
     
     
+    @Override
+    public void close() {
+        index.close();
+        uow.close();
+        repo.close();
+    }
+
+
     @Override
     public String getTitle() {
         return "Project resources";
@@ -71,13 +102,6 @@ public class LocalMetadataCatalog
     }
 
 
-    @Override
-    public void close() {
-        uow.close();
-        repo.close();
-    }
-    
-    
     @Override
     public Optional<? extends IMetadata> entry( String identifier, IProgressMonitor monitor ) {
         org.polymap.model2.query.ResultSet<LocalMetadata> rs = uow.query( LocalMetadata.class )
@@ -93,14 +117,19 @@ public class LocalMetadataCatalog
 
 
     @Override
-    public MetadataQuery query( String query, IProgressMonitor monitor ) {
+    public MetadataQuery query( String queryString, IProgressMonitor monitor ) {
         return new MetadataQuery() {
             @Override
-            public ResultSet execute() {
+            public ResultSet execute() throws Exception {
+                Query<LocalMetadata> query = uow.query( LocalMetadata.class );
+                        
+//                // fulltext
+//                if (!queryString.equals( ALL_QUERY )) {
+//                    query.where( FulltextIndexer.query( index, queryString, maxResults.get() ) );
+//                }
+                
                 // execute the query
-                org.polymap.model2.query.ResultSet<LocalMetadata> rs = uow.query( LocalMetadata.class )
-                        .maxResults( maxResults.get() )
-                        .execute();
+                org.polymap.model2.query.ResultSet<LocalMetadata> rs = query.execute();
                 
                 // build ResultSet
                 return new ResultSet() {

@@ -26,6 +26,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public interface IMetadataCatalog
         extends AutoCloseable {
 
+    /** This query returns all entries of the catalog. Mimics CSW AnyText query. */
+    public static final String      ALL_QUERY = "*";
+    
     public String getTitle();
     
     public String getDescription();
@@ -35,6 +38,15 @@ public interface IMetadataCatalog
 
     public Optional<? extends IMetadata> entry( String identifier, IProgressMonitor monitor ) throws Exception;
     
+    /**
+     * 
+     *
+     * @param query
+     *        <a href="https://lucene.apache.org/core/2_9_4/queryparsersyntax.html">
+     *        Lucene</a> style fulltext query.
+     * @param monitor
+     * @throws Exception
+     */
     public MetadataQuery query( String query, IProgressMonitor monitor ) throws Exception;
     
 }
