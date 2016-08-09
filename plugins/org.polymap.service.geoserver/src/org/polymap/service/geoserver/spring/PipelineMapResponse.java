@@ -14,16 +14,35 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DirectColorModel;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.MapProducerCapabilities;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.WMSMapContent;
+import org.geoserver.wms.map.ImageUtils;
 import org.geoserver.wms.map.RenderedImageMapResponse;
 import org.geotools.map.Layer;
 import org.geotools.referencing.CRS;
@@ -33,15 +52,28 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.objectplanet.image.PngEncoder;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
+
 import org.polymap.core.data.image.EncodedImageProducer;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.image.ImageEncodeProcessor;
+import org.polymap.core.data.image.ImageProducer;
+import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.Pipeline;
+import org.polymap.core.data.pipeline.PipelineExecutor;
 import org.polymap.core.data.pipeline.ProcessorRequest;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.UIJob;
+import org.polymap.core.runtime.session.DefaultSessionContext;
+import org.polymap.core.runtime.session.DefaultSessionContextProvider;
+import org.polymap.core.runtime.session.SessionContext;
 
 import org.polymap.service.geoserver.GeoServerServlet;
 
@@ -67,10 +99,16 @@ public class PipelineMapResponse
 
     private GeoServerServlet    server = GeoServerServlet.instance.get();
 
+    private DefaultSessionContextProvider contextProvider;
+
 
     public PipelineMapResponse( WMS wms ) {
         super( OUTPUT_FORMATS, wms );
-        log.debug( "INIT: " + wms.getServiceInfo().getId() );
+        log.info( "INIT: " + wms.getServiceInfo().getId() );
+        
+        // FIXME is this the right place?
+        // create the session Context to run the UIJob
+        createSessionContextProvider();
     }
     
 
@@ -89,17 +127,7 @@ public class PipelineMapResponse
         if (mapContent.layers().size() == 1) {
             Layer mapLayer = mapContent.layers().get( 0 );
             
-            ILayer layer = null;
-            String layerName = StringUtils.substringAfterLast( mapLayer.getTitle(), ":" );
-            for (ILayer l : server.map.layers) {
-                if (l.label.get().equals( layerName )) {
-                    layer = l;
-                    break;
-                }
-            }
-            if (layer == null) {
-                throw new RuntimeException( "No such layer for title: " + mapLayer.getTitle() );
-            }
+            ILayer layer = findLayer(mapLayer);
             
             try {
                 Pipeline pipeline = server.getOrCreatePipeline( layer, EncodedImageProducer.class );
@@ -145,90 +173,129 @@ public class PipelineMapResponse
         // multiple layers -> render into one image
         else {
             // FIXME multiple layers
-            throw new RuntimeException( "Multiple layers are not supported yet." );
+//            throw new RuntimeException( "Multiple layers are not supported yet." );
+            log.info( "multiple layers" );
+
+            List<Job> jobs = new ArrayList();
+            final Map<Layer, Image> images = new HashMap();
             
-//            List<Job> jobs = new ArrayList();
-//            final Map<MapLayer, Image> images = new HashMap();
-//            
-//            // run jobs for all layers
-//            for (final MapLayer mapLayer : mapContent.getLayers()) {
-//                final ILayer layer = loader.findLayer( mapLayer );
-//                // job
-//                UIJob job = new UIJob( getClass().getSimpleName() + ": " + layer.getLabel() ) {
-//                    protected void runWithException( IProgressMonitor monitor )
-//                    throws Exception {
-//                        try {
-//                            Pipeline pipeline = loader.getOrCreatePipeline( layer, LayerUseCase.IMAGE );
-//
-//                            GetMapRequest targetRequest = prepareProcessorRequest();
-//                            pipeline.process( targetRequest, new ResponseHandler() {
-//                                @Override
-//                                public void handle( ProcessorResponse pipeResponse ) throws Exception {
-//                                    Image layerImage = ((ImageResponse)pipeResponse).getImage();
-//                                    images.put( mapLayer, layerImage );
-//                                }
-//                            });
-//                        }
-//                        catch (Exception e) {
-//                            // XXX put a special image in the map
-//                            log.warn( "", e );
-//                            images.put( mapLayer, null );
-//                            throw e;
-//                        }
-//                    }
-//                };
-//                job.schedule();
-//                jobs.add( job );
-//            }
-//
-//            // join jobs
-//            for (Job job : jobs) {
-//                try {
-//                    job.join();
-//                } catch (InterruptedException e) {
-//                    // XXX put a special image in the map
-//                    log.warn( "", e );
-//                }
-//            }
-//                    
-//            // put images together (MapContext order)
-//            Graphics2D g = null;
-//            try {
-//                // result image
-//                BufferedImage result = ImageUtils.createImage( mapContent.getMapWidth(), mapContent.getMapHeight(), null, true );
-//                g = result.createGraphics();
-//
-//                // rendering hints
-//                RenderingHints hints = new RenderingHints(
-//                        RenderingHints.KEY_RENDERING,
-//                        RenderingHints.VALUE_RENDER_QUALITY );
-//                hints.add( new RenderingHints(
-//                        RenderingHints.KEY_ANTIALIASING,
-//                        RenderingHints.VALUE_ANTIALIAS_ON ) );
-//                hints.add( new RenderingHints(
-//                        RenderingHints.KEY_TEXT_ANTIALIASING,
-//                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
-//                g.setRenderingHints( hints );
-//
-//                for (MapLayer mapLayer : mapContent.getLayers()) {
-//                    Image layerImage = images.get( mapLayer );
-//
-//                    // load image data
-////                  new javax.swing.ImageIcon( image ).getImage();
-//
-//                    ILayer layer = loader.findLayer( mapLayer );
-//                    int rule = AlphaComposite.SRC_OVER;
-//                    float alpha = ((float)layer.getOpacity()) / 100;
-//
-//                    g.setComposite( AlphaComposite.getInstance( rule, alpha ) );
-//                    g.drawImage( layerImage, 0, 0, null );
-//                }
-//                encodeImage( result, out );
-//            }
-//            finally {
-//                if (g != null) { g.dispose(); }
-//            }
+            final String sessionKey = "ows_" + System.currentTimeMillis();
+            contextProvider.mapContext( sessionKey, true );
+            
+            // run jobs for all layers
+            final PipelineExecutor pipelineExecutor = server.createPipelineExecutor();
+            for (final Layer mapLayer : mapContent.layers()) {
+                final ILayer layer = findLayer( mapLayer );
+                // job
+                UIJob job = new UIJob( getClass().getSimpleName() + ": " + mapLayer.getTitle() ) {
+                    protected void runWithException( IProgressMonitor monitor )
+                    throws Exception {
+                       try {
+                           log.info( "create pipeline" );
+                            Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
+                            log.info( "prepare processor" );
+                            GetMapRequest request = prepareProcessorRequest( mapContent );
+                            log.info( "execute pipeline" );
+                            pipelineExecutor.execute( pipeline, request, new ResponseHandler() {
+                                @Override
+                                public void handle( ProcessorResponse pipeResponse ) throws Exception {
+                                    Image layerImage = ((ImageResponse)pipeResponse).getImage();
+                                    images.put( mapLayer, layerImage );
+                                    log.info( "got image from layer" );
+                                }
+                            });
+                        }
+                        catch (Exception e) {
+                            // XXX put a special image in the map
+                            e.printStackTrace();
+                            log.warn( "", e );
+                            images.put( mapLayer, null );
+                            throw e;
+                        }
+                    }
+                };
+                job.schedule();
+                jobs.add( job );
+            }
+
+            // join jobs
+            for (Job job : jobs) {
+                try {
+                    job.join();
+                } catch (InterruptedException e) {
+                    // XXX put a special image in the map
+                    log.warn( "", e );
+                }
+            }
+            log.info( "destroy" );
+
+            contextProvider.destroyContext( sessionKey );
+            
+            // put images together (MapContext order)
+            Graphics2D g = null;
+            try {
+                // result image
+                BufferedImage result = ImageUtils.createImage( mapContent.getMapWidth(), mapContent.getMapHeight(), null, true );
+                g = result.createGraphics();
+
+                // rendering hints
+                RenderingHints hints = new RenderingHints(
+                        RenderingHints.KEY_RENDERING,
+                        RenderingHints.VALUE_RENDER_QUALITY );
+                hints.add( new RenderingHints(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON ) );
+                hints.add( new RenderingHints(
+                        RenderingHints.KEY_TEXT_ANTIALIASING,
+                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
+                g.setRenderingHints( hints );
+
+                for (Layer mapLayer : mapContent.layers()) {
+                    Image layerImage = images.get( mapLayer );
+
+                    // load image data
+//                  new javax.swing.ImageIcon( image ).getImage();
+
+                    //ILayer layer = findLayer( mapLayer );
+                    int rule = AlphaComposite.SRC_OVER;
+                    // TODO opacity
+                    float alpha = 1;//((float)layer.getOpacity()) / 100;
+
+                    g.setComposite( AlphaComposite.getInstance( rule, alpha ) );
+                    g.drawImage( layerImage, 0, 0, null );
+                }
+                encodeImage( result, out, mapContent );
+            }
+            finally {
+                if (g != null) { g.dispose(); }
+            }
         }
+    }
+
+
+    private void createSessionContextProvider() {
+        contextProvider = new DefaultSessionContextProvider() {
+            protected DefaultSessionContext newContext( String sessionKey ) {
+                return new DefaultSessionContext( sessionKey );
+            }
+        };
+        SessionContext.addProvider( contextProvider );
+    }
+
+
+    private ILayer findLayer( Layer mapLayer ) {
+        ILayer layer = null;
+        String layerName = StringUtils.substringAfterLast( mapLayer.getTitle(), ":" );
+        for (ILayer l : server.map.layers) {
+            if (l.label.get().equals( layerName )) {
+                layer = l;
+                break;
+            }
+        }
+        if (layer == null) {
+            throw new RuntimeException( "No such layer for title: " + mapLayer.getTitle() );
+        }
+        return layer;
     }
 
 
@@ -254,29 +321,58 @@ public class PipelineMapResponse
     }
     
     
-//    protected void encodeImage( BufferedImage _image, OutputStream out ) throws WmsException, IOException {
-//        Timer timer = new Timer();
-//        
-//        // use GeoServer code to encode result image
-//        String requestFormat = mapContent.getRequest().getFormat();
-//        log.debug( "encodeImage(): request format= " + requestFormat );
-//
-//        if (requestFormat == null || requestFormat.equals( "image/png" )) {
-//            PNGMapProducer producer = new PNGMapProducer( wms );
-//            producer.setMapContext( mapContent );
-//            producer.formatImageOutputStream( _image, out );
-//        }
-//        else if (requestFormat.equals( "image/gif" )) {
-//            GIFMapProducer producer = new GIFMapProducer( wms );
-//            producer.setMapContext( mapContent );
-//            producer.formatImageOutputStream( _image, out );
-//        }
-//        else if (requestFormat.equals( "image/jpeg" )) {
-//            JPEGMapProducer producer = new JPEGMapProducer( wms );
-//            producer.setMapContext( mapContent );
-//            producer.formatImageOutputStream( _image, out );
-//        }
-//        log.debug( "    done. (" + timer.elapsedTime() + "ms)" );
-//    }
+    protected void encodeImage( BufferedImage _image, OutputStream out, WMSMapContent mapContent ) throws IOException {
+        Timer timer = new Timer();
+        
+        // use GeoServer code to encode result image
+        String format = mapContent.getRequest().getFormat();
+        log.info( "encodeImage(): request format= " + format );
+        if ("image/jpeg".equals( format )) {
+            imageioEncodeJPEG( _image, out );
+        }
+        else {
+            opEncodePNG( _image, out );
+        }
+        out.flush();
+        out.close();
+        log.info( "    done. (" + timer.elapsedTime() + "ms)" );
+    }
+
+    /**
+     * TODO copied from ImageEncodeProcessor, i don't know how to use the Processor here
+     * @see ImageEncodeProcessor
+     */
+    private void opEncodePNG( Image image, OutputStream out ) throws IOException {
+        PngEncoder encoder = new PngEncoder( PngEncoder.COLOR_TRUECOLOR_ALPHA /*, PngEncoder.BEST_COMPRESSION*/ );
+        encoder.encode( image, out );
+    }
     
+
+    
+    /**
+     * TODO copied from ImageEncodeProcessor, i don't know how to use the Processor here
+     * @see ImageEncodeProcessor
+     */
+    private void imageioEncodeJPEG( Image image, OutputStream out ) throws IOException {
+        // this code is from http://forums.sun.com/thread.jspa?threadID=5197061
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        param.setSourceBands(new int[] {0,1,2});
+        ColorModel cm = new DirectColorModel( 24,
+                                      0x00ff0000,   // Red
+                                      0x0000ff00,   // Green
+                                      0x000000ff,   // Blue
+                                      0x0 );        // Alpha
+        param.setDestinationType(
+                new ImageTypeSpecifier(
+                    cm,
+                    cm.createCompatibleSampleModel( 1, 1 ) ) );
+         
+        ImageOutputStream imageOut =
+                ImageIO.createImageOutputStream( out );
+        writer.setOutput( imageOut );
+        writer.write( null, new IIOImage( (RenderedImage)image, null, null), param );
+        writer.dispose();
+        imageOut.close();        
+    }
 }
