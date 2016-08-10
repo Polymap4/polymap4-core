@@ -40,6 +40,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRegistration.Dynamic;
+import javax.servlet.ServletRequestEvent;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
@@ -65,13 +66,16 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
-
-import org.polymap.service.geoserver.spring.PipelineMapResponse;
+import org.polymap.core.runtime.event.EventManager;
+import org.polymap.core.runtime.session.DefaultSessionContext;
+import org.polymap.core.runtime.session.DefaultSessionContextProvider;
+import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author Steffen Stundzig
  */
 public abstract class GeoServerServlet
         extends HttpServlet {
@@ -101,12 +105,29 @@ public abstract class GeoServerServlet
 
     public IMap                             map;
 
+    private DefaultSessionContextProvider   contextProvider;
+
+    private String                          sessionKey;
+
 
     public GeoServerServlet( String alias, IMap map ) {
         this.alias = alias;
         this.map = map;
+        createSessionContextProvider();
     }
 
+    /**
+     * Create a default session context provider. Otherwise the feature iterators and other async stuff wont work correctly.
+     */
+    private void createSessionContextProvider() {
+        contextProvider = new DefaultSessionContextProvider() {
+
+            protected DefaultSessionContext newContext( String sessionKey ) {
+                return new DefaultSessionContext( sessionKey );
+            }
+        };
+        SessionContext.addProvider( contextProvider );
+    }
     
     /**
      * Actually creates a new {@link Pipeline} for the layer with the given name and
@@ -177,9 +198,11 @@ public abstract class GeoServerServlet
         context = new BundleServletContext( getServletContext() );
         log.info( "initGeoServer(): contextPath=" + context.getContextPath() );
         
-//        sessionKey = SessionContext.current().getSessionKey();
-//        assert sessionKey != null;
-
+        //String sessionKey = SessionContext.current().getSessionKey();
+        //assert sessionKey != null;
+        sessionKey = "ows_" + System.currentTimeMillis();
+        contextProvider.mapContext( sessionKey, true );
+        
         inContextClassLoader( () -> {
             try {
                 initGeoServer();
@@ -219,6 +242,7 @@ public abstract class GeoServerServlet
                 }
             });
         }
+        contextProvider.destroyContext( sessionKey );
     }
 
 
@@ -288,6 +312,8 @@ public abstract class GeoServerServlet
 
     protected void service( final HttpServletRequest req, HttpServletResponse resp )
             throws ServletException, IOException {
+        
+        EventManager.instance().publish( new ServletRequestEvent( getServletContext(), req ));
         
         final String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();

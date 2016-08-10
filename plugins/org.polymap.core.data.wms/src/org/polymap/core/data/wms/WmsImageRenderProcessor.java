@@ -14,27 +14,31 @@
  */
 package org.polymap.core.data.wms;
 
-import java.io.IOException;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.polymap.core.data.image.EncodedImageProducer;
-import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
+import org.polymap.core.data.image.ImageProducer;
+import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
- * 
+ * Creates a buffered image out of the WMS content.
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author Steffen Stundzig
  */
-public class WmsRenderProcessor extends AbstractWmsRenderProcessor
-        implements EncodedImageProducer {
-    
+public class WmsImageRenderProcessor
+        extends AbstractWmsRenderProcessor
+        implements ImageProducer {
+
     private static final Log log = LogFactory.getLog( WmsRenderProcessor.class );
+
 
     /**
      * Only here to support the Override annotations
@@ -62,23 +66,16 @@ public class WmsRenderProcessor extends AbstractWmsRenderProcessor
         super.getMapRequest( request, context );
     }
 
+
     @Override
     protected void handleResponse( InputStream in, ProcessorContext context ) throws Exception {
-        int count = 0;
-        byte[] buf = new byte[4 * 1024];
-        for (int c = in.read( buf ); c != -1; c = in.read( buf )) {
-            context.sendResponse( new EncodedImageResponse( buf, c ) );
-            buf = new byte[8 * 1024];
-            log.debug( "    ---> data sent: " + c );
-            count += c;
-        }
-        if (count == 0) {
-            throw new IOException( "WMSResponse is empty." );
-        }
+        BufferedImage image = ImageIO.read( in );
+        context.sendResponse( new ImageResponse( image ) );
     }
-    
+
+
     @Override
     protected void prepareRequest( org.geotools.data.wms.request.GetMapRequest getMap ) {
-        // nothing to do here
+        getMap.setFormat( "image/png" );
     }
 }

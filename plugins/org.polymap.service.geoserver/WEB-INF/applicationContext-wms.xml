@@ -439,7 +439,7 @@
         </description>
     </bean>
 
-    <bean id="PNGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <bean id="PNGMapProducer" class="org.polymap.service.geoserver.spring.PipelineMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
         <value>image/png</value>
@@ -471,14 +471,14 @@
     </bean-->
 
     <!-- replaced by polymap PNGMapProducer, see below -->
-    <!-- bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
-      <constructor-arg ref="wms" />
-    </bean-->
-
-    <!-- Polymap -->
-    <bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
+    <bean id="PNGMapResponse" class="org.geoserver.wms.map.PNGMapResponse">
       <constructor-arg ref="wms" />
     </bean>
+
+    <!-- Polymap -->
+    <!-- bean id="PipelineMapResponse" class="org.polymap.service.geoserver.spring.PipelineMapResponse">
+      <constructor-arg ref="wms" />
+    </bean-->
     
     <!-- falko: kein Tiff support, keine zusätzlichen probleme ;) -->
     <!--bean id="GeoTiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
@@ -508,12 +508,12 @@
       </constructor-arg>
       <constructor-arg ref="wms" />
       <property name="extension" value="tif"/>
-    </bean>
+    </bean-->
     <bean id="GeoTiffMapResponse" class="org.geoserver.wms.map.GeoTIFFMapResponse">
       <constructor-arg ref="wms" />
     </bean>
 
-    <bean id="TiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <!--bean id="TiffMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type</description>
         <value>image/tiff</value>
@@ -540,12 +540,12 @@
       </constructor-arg>
       <constructor-arg ref="wms" />
       <property name="extension" value="tif"/>
-    </bean>
+    </bean-->
     <bean id="TiffMapResponse" class="org.geoserver.wms.map.TIFFMapResponse">
       <constructor-arg ref="wms" />
-    </bean-->
+    </bean>
   
-    <!--bean id="GIFMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <bean id="GIFMapProducer" class="org.polymap.service.geoserver.spring.PipelineMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type, same as declared in the getcaps document</description>
         <value>image/gif</value>
@@ -559,34 +559,45 @@
       </constructor-arg>
       <constructor-arg ref="wms" />
       <property name="extension" value="gif"/>
-    </bean-->
-    <!--bean id="GIFMapResponse" class="org.geoserver.wms.map.GIFMapResponse">
+    </bean>
+    <bean id="GIFMapResponse" class="org.geoserver.wms.map.GIFMapResponse">
       <constructor-arg ref="wms" />
-    </bean-->
+    </bean>
   
-    <bean id="JPEGMapProducer" class="org.geoserver.wms.map.RenderedImageMapOutputFormat">
+    <bean id="JPEGMapProducer" class="org.polymap.service.geoserver.spring.PipelineMapOutputFormat">
       <constructor-arg>
         <description>The prescribed output format MIME-Type, same as declared in the getcaps document</description>
         <value>image/jpeg</value>
       </constructor-arg>
       <constructor-arg ref="wms" />
-      <property name="transparencySupported">
+      <!-- property name="transparencySupported">
         <description>JPEG does not support transparency</description>
         <value>false</value>
       </property>
       <property name="paletteSupported">
         <description>JPEG does not support 8-bit indexed color maps</description>
         <value>false</value>
-      </property>
+      </property-->
       <property name="extension" value="jpg"/>
     </bean>
-    <!--bean id="JPEGMapResponse" class="org.geoserver.wms.map.JPEGMapResponse">
+    <bean id="JPEGMapResponse" class="org.geoserver.wms.map.JPEGMapResponse">
       <constructor-arg ref="wms" />
-    </bean-->
+    </bean>
 
-    <bean id="PDFMapProducer" class="org.geoserver.wms.map.PDFMapOutputFormat">
+    <!-- bean id="PDFMapProducer" class="org.geoserver.wms.map.PDFMapOutputFormat">
     </bean>
     <bean id="PDFMapResponse" class="org.geoserver.wms.map.PDFMapResponse">
+      <constructor-arg ref="wms" />
+    </bean-->
+    <bean id="PDFMapProducer" class="org.polymap.service.geoserver.spring.PipelineMapOutputFormat">
+      <constructor-arg>
+        <description>The prescribed output format MIME-Type, same as declared in the getcaps document</description>
+        <value>application/pdf</value>
+      </constructor-arg>
+      <constructor-arg ref="wms" />
+      <property name="extension" value="pdf"/>
+    </bean>
+    <bean id="PDFMapResponse" class="org.polymap.service.geoserver.spring.PDFMapResponse">
       <constructor-arg ref="wms" />
     </bean>
 
