@@ -50,7 +50,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -235,7 +234,7 @@ public abstract class GeoServerServlet
         String stylesPath = dataDir.getAbsolutePath() + "/data/styles/dummy.sld";
         File styleFile = new File( stylesPath );
         styleFile.mkdirs();
-        FileUtils.forceDeleteOnExit( dataDir );
+        //FileUtils.forceDeleteOnExit( dataDir );
 
         // web.xml
         context.setAttribute( "serviceStrategy", "SPEED" );
