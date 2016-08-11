@@ -40,7 +40,6 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRegistration.Dynamic;
-import javax.servlet.ServletRequestEvent;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
@@ -66,7 +65,6 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
-import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.runtime.session.DefaultSessionContext;
 import org.polymap.core.runtime.session.DefaultSessionContextProvider;
 import org.polymap.core.runtime.session.SessionContext;
@@ -181,8 +179,16 @@ public abstract class GeoServerServlet
 //        Thread.currentThread().setContextClassLoader( context.cl );
 //        assert Thread.currentThread().getContextClassLoader() == context.cl;
 //        try {
+        boolean contextExists = contextProvider.currentContext() != null;
+        String sessionKey = "ows_" + System.currentTimeMillis();
+        if (!contextExists) {
+            contextProvider.mapContext( sessionKey, true );
+        }
 //          ServiceContext.mapContext( sessionKey );
-            task.call();
+        task.call();
+        if (!contextExists) {
+            contextProvider.destroyContext( sessionKey );
+        }
 //        }
 //        finally {
 //            Thread.currentThread().setContextClassLoader( orig );
@@ -200,7 +206,7 @@ public abstract class GeoServerServlet
         
         //String sessionKey = SessionContext.current().getSessionKey();
         //assert sessionKey != null;
-        sessionKey = "ows_" + System.currentTimeMillis();
+        sessionKey = "wms_" + System.currentTimeMillis();
         contextProvider.mapContext( sessionKey, true );
         
         inContextClassLoader( () -> {
@@ -313,8 +319,8 @@ public abstract class GeoServerServlet
     protected void service( final HttpServletRequest req, HttpServletResponse resp )
             throws ServletException, IOException {
         
-        EventManager.instance().publish( new ServletRequestEvent( getServletContext(), req ));
-        
+        //EventManager.instance().publish( new ServletRequestEvent( getServletContext(), req ));
+
         final String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
         log.debug( "Request: servletPath=" + servletPath + ", pathInfo=" + pathInfo );
