@@ -14,6 +14,8 @@
  */
 package org.polymap.service.geoserver;
 
+import static com.google.common.base.Throwables.propagateIfPossible;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.EventListener;
@@ -64,6 +66,7 @@ import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.Stringer;
 import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.cache.CacheConfig;
+import org.polymap.core.runtime.session.SessionContext;
 
 import org.polymap.service.geoserver.spring.PipelineMapResponse;
 
@@ -78,34 +81,44 @@ public abstract class GeoServerServlet
     private static final Log log = LogFactory.getLog( GeoServerServlet.class );
 
     /** First, hackish attempt to pass info to GeoServerLoader inside Spring. */
-    public static ThreadLocal<GeoServerServlet>     instance = new ThreadLocal<GeoServerServlet>();
+    public static final ThreadLocal<GeoServerServlet>   instance = new ThreadLocal<GeoServerServlet>();
     
     /**
      * XXX Bad hack. I just don't find the right way through GeoServer code
      * to get HTTP response in a {@link PipelineMapResponse}.
      */
-    public static ThreadLocal<HttpServletResponse>  response = new ThreadLocal<HttpServletResponse>();
+    public static final ThreadLocal<HttpServletResponse> response = new ThreadLocal<HttpServletResponse>();
     
-    private List<ServletContextListener>    loaders = new ArrayList<ServletContextListener>();
+    private List<ServletContextListener>    loaders = new ArrayList();
     
     private DispatcherServlet               dispatcher;
     
-    private BundleServletContext            context;
+    private BundleServletContext            servletContext;
     
     private File                            dataDir;
     
-    private Cache<String,Pipeline>          pipelines = CacheConfig.defaults().initSize( 128 ).createCache();
+    private Cache<String,Pipeline>          pipelines;
 
     public String                           alias;
 
     public IMap                             map;
 
+    private ServiceContext2                 session;
+    
 
-    public GeoServerServlet( String alias, IMap map ) {
+    public GeoServerServlet( String alias ) {
         this.alias = alias;
-        this.map = map;
+        this.pipelines = CacheConfig.defaults().initSize( 128 ).createCache();
+        this.session = new ServiceContext2( alias );
     }
 
+    /**
+     * Returns the {@link IMap} to be published by this servlet. This method is
+     * called within the proper {@link SessionContext} of the servlet.
+     *
+     * @return
+     */
+    protected abstract IMap createMap();
     
     /**
      * Actually creates a new {@link Pipeline} for the layer with the given name and
@@ -145,51 +158,21 @@ public abstract class GeoServerServlet
         return new DepthFirstStackExecutor();
     }
 
-    
-    @FunctionalInterface
-    interface Task<E extends Exception> {
-        public void call() throws E;
-    }
-    
-    
-    protected <E extends Exception> void inContextClassLoader( Task<E> task ) throws E {
-        // XXX no GeoServerClassLoader; just one instance per JVM
-//        assert context.cl != null;
-//        ClassLoader orig = Thread.currentThread().getContextClassLoader();
-//        Thread.currentThread().setContextClassLoader( context.cl );
-//        assert Thread.currentThread().getContextClassLoader() == context.cl;
-//        try {
-//          ServiceContext.mapContext( sessionKey );
-            task.call();
-//        }
-//        finally {
-//            Thread.currentThread().setContextClassLoader( orig );
-//          ServiceContext.unmapContext( false );
-//        }
-    }
-    
-    
+        
     @Override
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
         
-        context = new BundleServletContext( getServletContext() );
-        log.info( "initGeoServer(): contextPath=" + context.getContextPath() );
-        
-//        sessionKey = SessionContext.current().getSessionKey();
-//        assert sessionKey != null;
+        servletContext = new BundleServletContext( getServletContext() );
+        log.info( "initGeoServer(): contextPath=" + servletContext.getContextPath() );
 
-        inContextClassLoader( () -> {
-            try {
-                initGeoServer();
-            }
-            catch (RuntimeException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new RuntimeException( e );
-            }
-        });            
+        try {
+            session.execute( () -> initGeoServer() );
+        }
+        catch (Exception e) {
+            propagateIfPossible( e, ServletException.class );
+            throw new ServletException( e );
+        }
     }
 
 
@@ -197,10 +180,10 @@ public abstract class GeoServerServlet
         log.debug( "destroy(): ..." );
         super.destroy();
         if (dispatcher != null) {
-            inContextClassLoader( () -> {
+            session.execute( () -> {
                 try {
                     // listeners
-                    ServletContextEvent ev = new ServletContextEvent( context );
+                    ServletContextEvent ev = new ServletContextEvent( servletContext );
                     for (ServletContextListener loader : loaders) {
                         loader.contextDestroyed( ev );
                     }
@@ -210,18 +193,22 @@ public abstract class GeoServerServlet
                     dispatcher.destroy();
                     dispatcher = null;
 
-                    context.destroy();
-                    context = null;
+                    servletContext.destroy();
+                    servletContext = null;
                 }
                 catch (IOException e) {
                     log.warn( "", e );
                 }
             });
+            session.destroy();
+            session = null;
         }
     }
 
 
-    protected void initGeoServer() throws Exception {        
+    protected void initGeoServer() throws Exception {
+        this.map = createMap();
+        
         File cacheDir = GeoServerPlugin.instance().getCacheDir();
         dataDir = new File( cacheDir, Stringer.of( mapLabel() ).toFilename( "_" ).toString() );
         log.debug( "    dataDir=" + dataDir.getAbsolutePath() );
@@ -237,10 +224,10 @@ public abstract class GeoServerServlet
         //FileUtils.forceDeleteOnExit( dataDir );
 
         // web.xml
-        context.setAttribute( "serviceStrategy", "SPEED" );
-        context.setAttribute( "contextConfigLocation", "classpath*:/applicationContext.xml classpath*:/applicationSecurityContext.xml" );
-        context.setAttribute( "enableVersioning", "false" );
-        context.setAttribute( "GEOSERVER_DATA_DIR", dataDir.getAbsoluteFile() );
+        servletContext.setAttribute( "serviceStrategy", "SPEED" );
+        servletContext.setAttribute( "contextConfigLocation", "classpath*:/applicationContext.xml classpath*:/applicationSecurityContext.xml" );
+        servletContext.setAttribute( "enableVersioning", "false" );
+        servletContext.setAttribute( "GEOSERVER_DATA_DIR", dataDir.getAbsoluteFile() );
 
         try {
             instance.set( this );
@@ -248,7 +235,7 @@ public abstract class GeoServerServlet
             //loaders.add( new LoggingStartupContextListener() );
             loaders.add( new ContextLoaderListener() );
 
-            ServletContextEvent ev = new ServletContextEvent( context );
+            ServletContextEvent ev = new ServletContextEvent( servletContext );
             for (Object loader : loaders) {
                 ((ServletContextListener)loader).contextInitialized( ev );
             }
@@ -270,7 +257,7 @@ public abstract class GeoServerServlet
             }
             @Override
             public ServletContext getServletContext() {
-                return context;
+                return servletContext;
             }
             @Override
             public String getServletName() {
@@ -318,7 +305,7 @@ public abstract class GeoServerServlet
         resp.addHeader( "Access-Control-Allow-Methods", "GET,POST,OPTIONS" );
         
         // service
-        inContextClassLoader( () -> {
+        session.execute( () -> {
             try {
                 instance.set( this );
                 response.set( resp );
