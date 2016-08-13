@@ -221,6 +221,10 @@ public abstract class GeoServerServlet
         String stylesPath = dataDir.getAbsolutePath() + "/data/styles/dummy.sld";
         File styleFile = new File( stylesPath );
         styleFile.mkdirs();
+        
+        // FIXME very bad hack to work around an issue in mapzone. There
+        // are several instances started for the same project. They whipeout
+        // their dataDirs. See https://github.com/Mapzone/mapzone/issues/issue/62
         //FileUtils.forceDeleteOnExit( dataDir );
 
         // web.xml
