@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009-2013, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2013, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,14 +12,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.project.operations;
+package org.polymap.core.project.ops;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.operations.AbstractOperation;
-import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -28,11 +25,11 @@ import org.eclipse.core.runtime.Status;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
 import org.polymap.core.runtime.config.Config2;
-import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 
 import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.runtime.ValueInitializer;
 
 /**
  * Creates a new {@link ILayer} inside the given {@link #uow UnitOfWork}.
@@ -42,14 +39,12 @@ import org.polymap.model2.runtime.UnitOfWork;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class NewLayerOperation
-        extends AbstractOperation
-        implements IUndoableOperation {
+        extends TwoPhaseCommitOperation {
 
     private static Log log = LogFactory.getLog( NewLayerOperation.class );
 
     /**
-     * The UnitOfWork to work with. This UnitOfWork is committed/rolled back and
-     * closed by this operation.
+     * Inbound: The UnitOfWork to work with.
      */
     @Mandatory
     @Immutable
@@ -61,56 +56,43 @@ public class NewLayerOperation
     
     @Mandatory
     @Immutable
-    public Config2<NewLayerOperation,String>        label;
+    public Config2<NewLayerOperation,ValueInitializer<ILayer>>  initializer;
     
-    @Mandatory
-    @Immutable
-    public Config2<NewLayerOperation,String>        resourceIdentifier;
-    
-    @Immutable
-    public Config2<NewLayerOperation,String>        styleIdentifier;
-    
-    /** Newly created layer */
+    /** Outbound: Newly created layer */
     @Immutable
     public Config2<NewLayerOperation,ILayer>        layer;
 
 
     public NewLayerOperation() {
         super( "New layer" );
-        ConfigurationFactory.inject( this );
     }
 
 
     @Override
-    public IStatus execute( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        try {
-            monitor.beginTask( getLabel(), 5 );
-            
-            IMap localMap = uow.get().entity( map.get() );
-            // create entity
-            layer.set( uow.get().createEntity( ILayer.class, null, (ILayer proto) -> {
-                proto.parentMap.set( localMap );
-                proto.orderKey.set( proto.maxOrderKey() + 1  );
-                proto.label.set( label.get() );
-                proto.resourceIdentifier.set( resourceIdentifier.get() );
-                styleIdentifier.ifPresent( id -> proto.styleIdentifier.set( id ) );
-                return proto;
-            }));
-
-            localMap.layers.add( layer.get() );
-            // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
-            localMap.label.set( localMap.label.get() );
-                        
-            uow.get().commit();
-        }
-        catch (Throwable e) {
-            uow.get().rollback();
-            throw new ExecutionException( e.getMessage(), e );
-        }
-        finally {
-            uow.get().close();
-        }
+    public IStatus doWithCommit( IProgressMonitor monitor, IAdaptable info ) throws Exception {
+        assert map.get().belongsTo( uow.get() );
         
+        monitor.beginTask( getLabel(), 5 );
+        register( uow.get() );
+
+        // create entity
+        ILayer newLayer = uow.get().createEntity( ILayer.class, null, (ILayer proto) -> {
+            initializer.get().initialize( proto );
+            
+            assert proto.label.get() != null;
+            assert proto.resourceIdentifier.get() != null;
+
+            proto.parentMap.set( map.get() );
+            proto.orderKey.set( proto.maxOrderKey() + 1  );
+            return proto;
+        });
+        layer.set( newLayer );
+        
+        map.get().layers.add( layer.get() );
+        // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
+        map.get().label.set( map.get().label.get() );
+
+            
 //        try {
 //            monitor.beginTask( getLabel(), 5 );
 //            ProjectRepository repo = ProjectRepository.instance();
@@ -209,27 +191,6 @@ public class NewLayerOperation
 //            throw new ExecutionException( e.getMessage(), e );
 //        }
         return Status.OK_STATUS;
-    }
-
-
-    @Override
-    public IStatus redo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-    @Override
-    public IStatus undo( IProgressMonitor monitor, IAdaptable info ) throws ExecutionException {
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-    @Override
-    public boolean canUndo() {
-        return false;
-    }
-    
-    @Override
-    public boolean canRedo() {
-        return false;
     }
 
 }
