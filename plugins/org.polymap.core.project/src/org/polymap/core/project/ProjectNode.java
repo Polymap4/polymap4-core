@@ -81,6 +81,11 @@ public abstract class ProjectNode
     }
     
     
+    public boolean belongsTo( UnitOfWork uow ) {
+        return context.getUnitOfWork() == uow;
+    }
+    
+    
     @Override
     public void onLifecycleChange( State state ) {
         if (state == State.AFTER_COMMIT) {

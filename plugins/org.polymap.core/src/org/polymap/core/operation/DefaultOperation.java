@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -26,7 +26,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
 /**
- * 
+ * Provides a general base class for operations. Provides exception handling. Does
+ * not support undo/redo by default.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -76,11 +77,21 @@ public abstract class DefaultOperation
         return handleException( () -> doUndo( monitor, info ) );
     }
 
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * This default implementation always return <b>false</b>.
+     */
     @Override
     public boolean canRedo() {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * This default implementation always return <b>false</b>.
+     */
     @Override
     public boolean canUndo() {
         return false;

@@ -8,7 +8,7 @@ Bundle-Vendor: polymap.org
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.polymap.core.project,
- org.polymap.core.project.operations,
+ org.polymap.core.project.ops,
  org.polymap.core.project.ui,
  org.polymap.core.project.ui.layer
 Require-Bundle: org.eclipse.core.runtime,
