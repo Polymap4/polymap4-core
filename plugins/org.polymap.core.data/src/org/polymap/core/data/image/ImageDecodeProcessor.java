@@ -23,6 +23,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.pipeline.Consumes;
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
@@ -63,7 +64,8 @@ public class ImageDecodeProcessor
     /**
      * Collect enoded image chunks. 
      */
-    @Produces(ImageResponse.class)
+    @Produces( ImageResponse.class )
+    @Consumes( EncodedImageResponse.class )
     public void decodeImageResponse( EncodedImageResponse response, ProcessorContext context ) throws Exception {
         ByteArrayOutputStream data = (ByteArrayOutputStream)context.get( "data" );
 
@@ -78,7 +80,8 @@ public class ImageDecodeProcessor
     /**
      * Decode image on EOP. 
      */
-    @Produces(EndOfProcessing.class)
+    @Produces( EndOfProcessing.class )
+    @Consumes( EndOfProcessing.class )
     public void endOfProcessing( EndOfProcessing eop, ProcessorContext context ) throws Exception {
         long start = System.currentTimeMillis();
 
