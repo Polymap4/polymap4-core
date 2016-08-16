@@ -32,6 +32,9 @@ import org.polymap.core.runtime.session.SessionSingleton;
  * (entity repositories for example) and need a session context for that. It
  * maps/unmaps session context.
  * 
+ * @deprecated {@link SessionContext} handling has been moved to
+ *             {@link ServiceContext2}; event handling is in Arena's
+ *             GeoServerStarter.
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public abstract class ServiceContext

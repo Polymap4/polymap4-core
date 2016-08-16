@@ -3,108 +3,6 @@
 <plugin>
    <extension-point id="org.polymap.core.operation.concerns" name="Operation Concerns" schema="schema/operation.concerns.exsd"/>
    <extension-point id="org.polymap.core.security.AuthorizationModule" name="AuthorizationModule" schema="schema/AuthorizationModule.exsd"/>
-   <extension
-         point="org.eclipse.ui.commands">
-      <category
-            description="POLYMAP Workbench Kategorie"
-            id="org.polymap.core.workbench.category"
-            name="Workbench Kategorie">
-      </category>
-   </extension>
-   <!--extension
-         point="org.eclipse.ui.views">
-      <view
-            allowMultiple="false"
-            category="org.eclipse.ui"
-            class="org.polymap.core.workbench.PolymapCheatSheetView"
-            icon="icons/eview16/cheatsheet_view.gif"
-            id="org.eclipse.ui.cheatsheets.views.CheatSheetView"
-            name="%views_cheatsheets"
-            restorable="true">
-      </view>
-   </extension-->
-   <!--extension
-         point="net.refractions.udig.project.ui.editorInputs">
-      <editorInput
-            editorPartID="org.polymap.core.data.render.mapEditor"
-            projectElement="net.refractions.udig.project.internal.impl.MapImpl"
-            class="net.refractions.udig.project.ui.internal.MapEditorInput"
-            name="net.refractions.udig.project.internal.ui.mapEditorInput"/>
-   </extension-->
-   <extension
-         point="org.eclipse.rap.ui.branding">
-      <branding
-            body="resource/body.html"
-            favicon="icons/favicon.gif"
-            id="org.polymap.core.branding"
-            themeId="org.polymap.core.theme"
-            title="POLYMAP3 Workbench">
-         <additionalHeaders>
-            <meta
-                  content="chrome=1"
-                  name="X-UA-Compatible">
-            </meta>
-         </additionalHeaders>
-      </branding>
-   </extension>
-   <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            id="org.polymap.core.operations.actions.saveRevert"
-            label="%actionsets_saveRevert"
-            visible="true">
-         <action
-               class="org.polymap.core.operation.actions.RedoAction"
-               icon="icons/etool16/redo_edit.gif"
-               id="org.polymap.core.operation.actions.Redo"
-               label="%actions_redo"
-               menubarPath="edit/undo"
-               style="push"
-               toolbarPath="undo"
-               tooltip="%actions_redoTip">
-         </action>
-         <action
-               class="org.polymap.core.operation.actions.UndoAction"
-               icon="icons/etool16/undo_edit.gif"
-               id="org.polymap.core.operation.actions.Undo"
-               label="%actions_undo"
-               menubarPath="edit/undo"
-               style="push"
-               toolbarPath="undo"
-               tooltip="%actions_undoTip">
-         </action>
-         <!--action
-               class="org.polymap.core.operation.actions.RevertChangesAction"
-               icon="icons/elcl16/trash.gif"
-               id="org.polymap.core.operation.actions.Revert"
-               label="%actions_revert"
-               menubarPath="edit/save"
-               style="push"
-               toolbarPath="undo"
-               tooltip="%actions_revertTip">
-         </action-->
-         <action
-               class="org.polymap.core.operation.actions.MergeChangesAction"
-               icon="icons/elcl16/up_nav.gif"
-               id="org.polymap.core.operation.actions.Merge"
-               label="%actions_merge"
-               menubarPath="edit/save"
-               style="push"
-               toolbarPath="undo"
-               tooltip="%actions_mergeTip">
-         </action>
-         <action
-               class="org.polymap.core.operation.actions.SaveChangesAction"
-               icon="icons/etool16/save_edit.gif"
-               id="org.polymap.core.operation.actions.Save"
-               label="%actions_save"
-               menubarPath="edit/save"
-               style="push"
-               toolbarPath="undo"
-               tooltip="%actions_saveTip">
-         </action>
-      </actionSet>
-   </extension>
   <extension
       point="org.eclipse.rap.ui.themes">
      <theme
@@ -159,8 +57,7 @@
          id="org.polymap.core.security.DummyAuthorizationModule"
          point="org.polymap.core.security.AuthorizationModule">
       <AuthorizationModule
-            class="org.polymap.core.security.DummyAuthorizationModule"
-            id="org.polymap.core.security.DummyAuthorizationModule">
+            class="org.polymap.core.security.DummyAuthorizationModule">
       </AuthorizationModule>
    </extension>
    <extension
@@ -203,21 +100,10 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="org.eclipse.ui.activities.ActivitiesPreferencePage"
-            id="org.polymap.core.ActivitiesPrefsPage"
-            name="Activities">
-      </page>
-      <page
             class="org.polymap.core.security.LoginModulePreferencePage"
             id="org.polymap.core.security.DummyLoginPreferences"
             name="%prefpages_dummy_title">
       </page>
-   </extension>
-   <extension
-         point="org.eclipse.ui.helpSupport">
-      <config
-            class="org.polymap.core.help.HelpUI">
-      </config>
    </extension>
    <extension
          point="org.polymap.core.operation.concerns">

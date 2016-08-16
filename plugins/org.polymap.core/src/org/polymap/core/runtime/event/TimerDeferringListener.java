@@ -95,7 +95,8 @@ class TimerDeferringListener
 
         @Override
         public void run() {
-            // primarily for testing; Eclipse's JobManager < 3.7.x does schedule in JUnit
+            // primarily for testing; Eclipse's JobManager < 3.7.x does not schedule in JUnit
+            // FIXME GeoServerStarter.destroy() does not have sessionContext too!
             if (sessionContext == null) {
                 doRun();
             }
