@@ -46,20 +46,28 @@ public class ImageDecodeProcessor
     }
 
     @Override
+    @Produces(GetMapRequest.class)
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );        
     }
 
     @Override
+    @Produces(GetLegendGraphicRequest.class)
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
 
     @Override
+    @Produces(GetLayerTypesRequest.class)
     public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
 
+    @Consumes(GetLayerTypesResponse.class)
+    public void handleLayerTypesResponse( GetLayerTypesResponse response, ProcessorContext context ) throws Exception {
+        context.sendResponse(response);
+    }
+    
 
     /**
      * Collect enoded image chunks. 
