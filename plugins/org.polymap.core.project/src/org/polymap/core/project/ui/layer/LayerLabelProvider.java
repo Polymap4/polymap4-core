@@ -23,7 +23,6 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.ui.PlatformUI;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.project.IMap;
 import org.polymap.core.project.ProjectNode;
 import org.polymap.core.project.ProjectPlugin;
 
@@ -52,7 +51,7 @@ public class LayerLabelProvider
             
         public Image getImage( Object elm ) {
             if (elm instanceof ILayer) {
-                Image result = ProjectPlugin.instance().imageForName( "icons/obj16/layer_disabled_obj.gif" );
+                Image result = ProjectPlugin.images().image( "icons/obj16/layer_disabled_obj.gif" );
                 return result;
             }
             return null;

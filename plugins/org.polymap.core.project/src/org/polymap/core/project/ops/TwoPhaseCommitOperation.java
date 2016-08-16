@@ -31,8 +31,8 @@ import org.polymap.model2.runtime.TwoPhaseCommit.UnitOfWorkAdapter;
 import org.polymap.model2.runtime.UnitOfWork;
 
 /**
- * Provides a {@link DefaultOperation} for a typically user interface operations
- * that modifies {@link Entity} or other transaction aware resources and does a
+ * Provides a {@link DefaultOperation} for typical user interface operations
+ * that modify {@link Entity} or other transaction aware resources and do a
  * {@link TwoPhaseCommit}.
  *
  * @author Falko Bräutigam
@@ -53,7 +53,6 @@ public abstract class TwoPhaseCommitOperation
         super( label );
         ConfigurationFactory.inject( this );
     }
-
 
     /**
      *
@@ -85,6 +84,8 @@ public abstract class TwoPhaseCommitOperation
         }
         catch (Throwable e) {
             log.warn( "", e );
+            // rolling back might not be always necessary; in case of concurrent modification
+            // it is a good idea in order to be able to commit a subsequent try of the user
             twoPhaseCommit.rollback( CommitType.KEEP_OPEN );
             onError( e );
             throw e;
