@@ -231,12 +231,12 @@ public class MetadataContentProvider
     protected void updateChildren( Object elm, Object[] children, int currentChildCount  ) {
         cache.put( elm, children );
 
-        //        if (children.length != currentChildCount) {
+//        if (children.length != currentChildCount) {
         UIThreadExecutor.async( () -> { 
             viewer.setChildCount( elm, children.length );
-            viewer.replace( elm, 0, children[0] );  // replace the LOADING elm 
+            viewer.replace( elm, 0, children[0] );  // replace the LOADING elm
         }, logErrorMsg( "" ) );
-        //        }
+//        }
     }
 
 

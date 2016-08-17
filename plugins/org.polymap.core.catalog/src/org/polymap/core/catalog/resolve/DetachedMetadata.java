@@ -64,5 +64,15 @@ public class DetachedMetadata
     public Map<String,String> getConnectionParams() {
         return connectionParams;
     }
+
+    @Override
+    public String getPublisher() {
+        return null;
+    }
+
+    @Override
+    public String getRights() {
+        return null;
+    }
     
 }

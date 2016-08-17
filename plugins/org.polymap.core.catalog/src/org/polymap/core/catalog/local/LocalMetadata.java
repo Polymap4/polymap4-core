@@ -137,6 +137,16 @@ public class LocalMetadata
     }
 
     @Override
+    public String getPublisher() {
+        return "Local resource";
+    }
+
+    @Override
+    public String getRights() {
+        return "";
+    }
+
+    @Override
     public Map<String,String> getConnectionParams() {
         Map result = new HashMap();
         connectionParams.stream().forEach( kv -> result.put( kv.key.get(), kv.value.get() ) );

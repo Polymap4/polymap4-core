@@ -33,6 +33,10 @@ public interface IMetadata {
     
     public String getDescription();
     
+    public String getPublisher();
+    
+    public String getRights();
+    
     public Date getModified();
     
     public Set<String> getKeywords();
