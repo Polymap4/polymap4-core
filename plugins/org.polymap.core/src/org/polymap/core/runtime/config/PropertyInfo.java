@@ -42,4 +42,11 @@ public interface PropertyInfo/*<H,V>*/ {
      */
     public <R extends Object> R getRawValue();
     
+    /**
+     * Set raw value of the property without checking concerns.
+     * 
+     * @return The previous value.
+     */
+    public <R extends Object> R setRawValue( R value );
+    
 }

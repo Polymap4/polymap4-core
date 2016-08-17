@@ -75,8 +75,9 @@ public class MapViewer<CL>
     @Mandatory
     public Config<ILayerProvider<CL>>   layerProvider;
 
+    /** Read/write access to the current extent of the map. */
     @Mandatory
-    @Concern(MapExtentConcern.class)
+    @Concern( PropagateToViewConcern.class )
     public Config<Envelope>             mapExtent;
     
     /** Setting max extent also sets the {@link CoordinateReferenceSystem} of the map. */
@@ -100,23 +101,16 @@ public class MapViewer<CL>
     private List<Interaction>           interactions = Lists.newArrayList();
 
     /**
-     * if the mapExtent change was introduced by an event in the map, we must not
-     * propagate this change back to the map
-     * @see MapExtentConcern and MapViewer.handleEvent
-     **/
-    private boolean mapExtentSetInternally = false;
-    
-    public static class MapExtentConcern
+     * 
+     */
+    public static class PropagateToViewConcern
             extends DefaultPropertyConcern<Envelope> {
 
         @Override
         public Envelope doSet( Object obj, Config<Envelope> prop, Envelope value ) {
             MapViewer<?> viewer = (MapViewer<?>)obj;
-            if (!viewer.mapExtentSetInternally) {
-                Extent extent = new Extent( value.getMinX(), value.getMinY(), value.getMaxX(), value.getMaxY() );
-                viewer.olmap.view.get().fit( extent, null );
-            }
-            viewer.mapExtentSetInternally = false;
+            Extent extent = new Extent( value.getMinX(), value.getMinY(), value.getMaxX(), value.getMaxY() );
+            viewer.olmap.view.get().fit( extent, null );
             return value;
         }
     }
@@ -338,8 +332,8 @@ public class MapViewer<CL>
         if (extent != null) {
             Envelope envelope = new Envelope( extent.getDouble( 0 ), extent.getDouble( 2 ), extent.getDouble( 1 ),
                     extent.getDouble( 3 ) );
-            mapExtentSetInternally = true;
-            this.mapExtent.set( envelope );
+            // bypass concern -> loop
+            this.mapExtent.info().setRawValue( envelope );
         }
     }
 

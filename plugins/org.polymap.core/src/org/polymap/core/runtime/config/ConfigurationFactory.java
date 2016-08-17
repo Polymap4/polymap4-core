@@ -361,6 +361,13 @@ public class ConfigurationFactory {
                 public <R extends Object> R getRawValue() {
                     return (R)value;
                 }
+
+                @Override
+                public <R extends Object> R setRawValue( R newValue ) {
+                    R previous = (R)value;
+                    value = (V)newValue;
+                    return previous;
+                }
             };
         }
         
