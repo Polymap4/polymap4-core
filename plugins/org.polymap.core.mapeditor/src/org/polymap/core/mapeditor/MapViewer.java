@@ -101,7 +101,7 @@ public class MapViewer<CL>
 
     /**
      * if the mapExtent change was introduced by an event in the map, we must not
-     * progate this change back to the map
+     * propagate this change back to the map
      * @see MapExtentConcern and MapViewer.handleEvent
      **/
     private boolean mapExtentSetInternally = false;
