@@ -21,23 +21,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.json.JSONArray;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.polymap.core.data.util.Geometries;
 import org.polymap.core.runtime.config.Concern;
 import org.polymap.core.runtime.config.Config;
@@ -46,7 +40,6 @@ import org.polymap.core.runtime.config.DefaultPropertyConcern;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.runtime.i18n.IMessages;
-
 import org.polymap.rap.openlayers.base.OlEvent;
 import org.polymap.rap.openlayers.base.OlEventListener;
 import org.polymap.rap.openlayers.base.OlMap;
@@ -57,6 +50,10 @@ import org.polymap.rap.openlayers.types.Extent;
 import org.polymap.rap.openlayers.types.Projection;
 import org.polymap.rap.openlayers.types.Projection.Units;
 import org.polymap.rap.openlayers.view.View;
+
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
 
 /**
  * Provides a JFace style {@link Viewer} on an OpenLayers map.
@@ -102,14 +99,25 @@ public class MapViewer<CL>
     
     private List<Interaction>           interactions = Lists.newArrayList();
 
+    /**
+     * if the mapExtent change was introduced by an event in the map, we must not
+     * progate this change back to the map
+     * @see MapExtentConcern and MapViewer.handleEvent
+     **/
+    private boolean mapExtentSetInternally = false;
     
     public static class MapExtentConcern
             extends DefaultPropertyConcern<Envelope> {
 
         @Override
         public Envelope doSet( Object obj, Config<Envelope> prop, Envelope value ) {
-            throw new RuntimeException( "Setting map extent is not yet implemented." );
-//            ((MapViewer)obj).olmap.view.get().center
+            MapViewer<?> viewer = (MapViewer<?>)obj;
+            if (!viewer.mapExtentSetInternally) {
+                Extent extent = new Extent( value.getMinX(), value.getMinY(), value.getMaxX(), value.getMaxY() );
+                viewer.olmap.view.get().fit( extent, null );
+            }
+            viewer.mapExtentSetInternally = false;
+            return value;
         }
     }
     
@@ -185,8 +193,11 @@ public class MapViewer<CL>
         }
         // maxExtent
         View view = olmap.view.get();
-//        view.extent.set( maxExtent.map( new ToOlExtent() ).get() );
-        
+        // view.extent.set( maxExtent.map( new ToOlExtent() ).get() );
+        view.addEventListener( View.Event.resolution, this );
+        view.addEventListener( View.Event.rotation, this );
+        view.addEventListener( View.Event.center, this );
+
         // center
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();
         view.center.set( ToOlCoordinate.map( center ) );
@@ -322,9 +333,14 @@ public class MapViewer<CL>
     
     
     @Override
-    public void handleEvent( OlEvent ev ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void handleEvent( OlEvent event ) {
+        JSONArray extent = event.properties().optJSONArray( "extent" );
+        if (extent != null) {
+            Envelope envelope = new Envelope( extent.getDouble( 0 ), extent.getDouble( 2 ), extent.getDouble( 1 ),
+                    extent.getDouble( 3 ) );
+            mapExtentSetInternally = true;
+            this.mapExtent.set( envelope );
+        }
     }
 
     
