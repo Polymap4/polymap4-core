@@ -77,8 +77,13 @@ public class MapViewer<CL>
 
     /** Read/write access to the current extent of the map. */
     @Mandatory
-    @Concern( PropagateToViewConcern.class )
+    @Concern( PropagateExtentToViewConcern.class )
     public Config<Envelope>             mapExtent;
+
+    /** Read/write access to the current extent of the map. */
+    @Mandatory
+    @Concern( PropagateResolutionToViewConcern.class )
+    public Config<Float>                resolution;
     
     /** Setting max extent also sets the {@link CoordinateReferenceSystem} of the map. */
     @Mandatory
@@ -103,7 +108,7 @@ public class MapViewer<CL>
     /**
      * 
      */
-    public static class PropagateToViewConcern
+    public static class PropagateExtentToViewConcern
             extends DefaultPropertyConcern<Envelope> {
 
         @Override
@@ -111,6 +116,18 @@ public class MapViewer<CL>
             MapViewer<?> viewer = (MapViewer<?>)obj;
             Extent extent = new Extent( value.getMinX(), value.getMinY(), value.getMaxX(), value.getMaxY() );
             viewer.olmap.view.get().fit( extent, null );
+            return value;
+        }
+    }
+    
+
+    public static class PropagateResolutionToViewConcern
+            extends DefaultPropertyConcern<Float> {
+
+        @Override
+        public Float doSet( Object obj, Config<Float> prop, Float value ) {
+            MapViewer<?> viewer = (MapViewer<?>)obj;
+            viewer.olmap.view.get().resolution.set( value );
             return value;
         }
     }
@@ -334,6 +351,10 @@ public class MapViewer<CL>
                     extent.getDouble( 3 ) );
             // bypass concern -> loop
             this.mapExtent.info().setRawValue( envelope );
+        }
+        Double resolution = event.properties().optDouble( "resolution" );
+        if (resolution != null) {
+            this.resolution.info().setRawValue( resolution.floatValue() );
         }
     }
 
