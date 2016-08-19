@@ -14,18 +14,19 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import static java.util.stream.Collectors.toList;
 import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
 
 import java.util.Collections;
-
 import java.io.File;
 import java.io.IOException;
 
 import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.Keyword;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.PublishedType;
-import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.impl.LayerInfoImpl;
+import org.geoserver.catalog.impl.ResourceInfoImpl;
 import org.geoserver.catalog.impl.StyleInfoImpl;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerResourceLoader;
@@ -35,6 +36,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.project.ILayer;
+
+import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * 
@@ -52,13 +55,17 @@ public class P4LayerInfo
     private ILayer              layer;
 
     
-    public P4LayerInfo( Catalog catalog, ILayer layer, ResourceInfo resInfo, PublishedType type ) {
+    public P4LayerInfo( Catalog catalog, ILayer layer, ResourceInfoImpl resInfo, PublishedType type ) {
         super();
         this.catalog = catalog;
         this.layer = layer;
+        
         setResource( resInfo );
-//        setName( Utils.simpleName( layer.label.get() ) );
-//        setTitle( layer.label.get() );
+        setName( GeoServerUtils.simpleName( layer.label.get() ) );
+        setTitle( layer.label.get() );
+        resInfo.setAbstract( layer.description.get() );
+        resInfo.setKeywords( layer.keywords.stream().map( kw -> new Keyword( kw ) ).collect( toList() ) );
+
         setEnabled( true );
         setAdvertised( true );
         setType( type );
@@ -69,7 +76,7 @@ public class P4LayerInfo
     
     @Override
     public String prefixedName() {
-        // XXX Dieser bescheuerte GeoServer macht den Namen des Worspaces (!?!?) als
+        // XXX Dieser bescheuerte GeoServer macht den Namen des Workspaces (!?!?) als
         // Präfix an den Namen... nur um diesen Namen dann später bei einem GetMap nicht
         // mehr zu kennen. :( Ich hab echt die Schnauze voll.
         return getName();

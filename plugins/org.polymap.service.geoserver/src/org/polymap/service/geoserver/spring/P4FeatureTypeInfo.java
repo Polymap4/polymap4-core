@@ -14,7 +14,6 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import static java.util.stream.Collectors.toList;
 import static org.polymap.core.data.util.Geometries.WGS84;
 
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import java.io.IOException;
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
-import org.geoserver.catalog.Keyword;
 import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.catalog.impl.AttributeTypeInfoImpl;
 import org.geoserver.catalog.impl.FeatureTypeInfoImpl;
@@ -78,8 +76,7 @@ public class P4FeatureTypeInfo
         setName( GeoServerUtils.simpleName( layer.label.get() ) );
         //setNativeName( schema.getTypeName() );
         setTitle( layer.label.get() );
-        setDescription( "FeatureType of ILayer: " + layer.label.get() );
-        setKeywords( layer.keywords.stream().map( kw -> new Keyword(kw) ).collect( toList() ) );
+        // description and stuff is set in P4LayerInfo
 
         // bbox
         try {

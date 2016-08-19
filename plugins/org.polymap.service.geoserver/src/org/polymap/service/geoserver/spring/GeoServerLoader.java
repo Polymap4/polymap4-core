@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.Keyword;
 import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.Wrapper;
 import org.geoserver.catalog.impl.WorkspaceInfoImpl;
@@ -37,6 +38,8 @@ import org.springframework.context.ApplicationContextAware;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Lists;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
@@ -165,7 +168,7 @@ public class GeoServerLoader
 
         log.info( "Loading GeoServer..." );
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
-        gsInfo.setTitle( "mapzone.io powered by GeoServer :)" );
+        gsInfo.setTitle( "mapzone.io powered by GeoServer" );
         gsInfo.setId( "geoserver-polymap4" );
         gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() + service.alias + "/" );
         log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
@@ -185,10 +188,13 @@ public class GeoServerLoader
         WMSInfoImpl wms = new WMSInfoImpl();
         wms.setGeoServer( geoserver );
         wms.setId( simpleName( map.label.get() ) + "-wms" );
-        wms.setMaintainer( "" );
+        wms.setMaintainer( "-maintainer-" );
+        wms.setAccessConstraints( "-none-" );
+        wms.setFees( "-none-" );
         wms.setTitle( map.label.get() );
-//        wms.setAbstract( "POLYMAP4 (polymap.org) powered by GeoServer (geoserver.org)." );
+        wms.setAbstract( "-Test-" + map.description.get() );
         wms.setName( simpleName( map.label.get() ) );
+        wms.setKeywords( Lists.newArrayList( new Keyword( "-Test-" ) ) );
         wms.setOutputStrategy( "SPEED" );
 
         // XXX make this configurable; deliver all known EPSG codes for now :)

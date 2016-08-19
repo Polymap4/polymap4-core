@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.session.DefaultSessionContextProvider;
 import org.polymap.core.runtime.session.SessionContext;
+import org.polymap.core.security.SecurityContext;
 
 /**
  * 
@@ -54,7 +55,7 @@ public class ServiceContext2 {
 
     public ServiceContext2( String serviceId ) {
         this.serviceId = serviceId;
-        this.sessionKey = "GeoServer:" + serviceId;
+        this.sessionKey = "GeoServer:" + serviceId + "-" + hashCode();
 //        try {
 ////            log.info( "mapping sessionKey: " + sessionKey );
 //            boolean mapped = contextProvider.mapContext( sessionKey, true );
@@ -89,8 +90,15 @@ public class ServiceContext2 {
         assert current == null : "Thread already mapped to a SessionContext: " + current.getSessionKey();
         try {
             boolean mapped = contextProvider.mapContext( sessionKey, true );
+            log.info( "SessionContext: " + SessionContext.current() );
             assert mapped : "Thread already mapped to a SessionContext: " + SessionContext.current().getSessionKey();
       
+            SecurityContext securityContext = SecurityContext.instance();
+            if (!securityContext.isLoggedIn()) {
+                // XXX this user is used to authenticate upstream mapzone services
+                securityContext.loginTrusted( "admin" );              
+            }
+
             task.call();
         }
         finally {

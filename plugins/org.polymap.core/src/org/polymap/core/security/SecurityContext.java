@@ -131,7 +131,9 @@ public class SecurityContext
      * @see #APPLICATION_CONFIG_NAME
      */
     public boolean login( int maxAttempts ) {
-        assert subject == null : "Already logged in for this SessionContext.";
+        if (isLoggedIn()) {
+            throw new IllegalStateException( "Already logged in for this SessionContext." );
+        }
         for (int i=0; i<maxAttempts; i++) {
             if (tryLogin()) {
                 return true;
@@ -152,7 +154,9 @@ public class SecurityContext
 
     
     public boolean tryLogin() {
-        assert subject == null : "Already logged in for this SessionContext.";
+        if (isLoggedIn()) {
+            throw new IllegalStateException( "Already logged in for this SessionContext." );
+        }
         try {
             sc.login();
 
@@ -188,6 +192,9 @@ public class SecurityContext
 
 
     public UserPrincipal loginTrusted( String username ) {
+        if (isLoggedIn()) {
+            throw new IllegalStateException( "Already logged in for this SessionContext." );
+        }
         user = new UserPrincipal( username );
         return (UserPrincipal)user;
     }
@@ -221,7 +228,7 @@ public class SecurityContext
     
     
     public void addPrincipal( Principal principal ) {
-        assert subject != null : "Not logged in.";
+        checkLoggedIn();
         principals.add( principal );
         if (principal instanceof UserPrincipal) {
             user = (UserPrincipal)principal;
@@ -230,23 +237,30 @@ public class SecurityContext
     
     
     public Set<Principal> getPrincipals() {
-        assert subject != null : "Not logged in.";
+        checkLoggedIn();
         return principals;
     }
 
     
     public Principal getUser() {
-        assert subject != null : "Not logged in.";
+        checkLoggedIn();
         return user;
     }
 
 
     public Subject getSubject() {
-        assert subject != null : "Not logged in.";
+        checkLoggedIn();
         return subject;    
     }
 
     public boolean isLoggedIn() {
-        return subject != null;
+        return user != null;
     }
+
+    protected void checkLoggedIn() {
+        if (!isLoggedIn()) {
+            throw new IllegalStateException( "Not logged in in this SessionContext." );
+        }
+    }
+    
 }
