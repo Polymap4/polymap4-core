@@ -40,24 +40,20 @@ public class DefaultResourceInfo
         this.delegate = delegate;
     }
 
-
     @Override
     public String getTitle() {
         return delegate.getTitle();
     }
-
 
     @Override
     public Set<String> getKeywords() {
         return delegate.getKeywords();
     }
 
-
     @Override
     public String getDescription() {
         return delegate.getDescription();
     }
-
 
     @Override
     public String getName() {
