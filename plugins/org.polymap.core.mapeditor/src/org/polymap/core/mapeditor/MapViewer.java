@@ -95,9 +95,6 @@ public class MapViewer<CL>
     private OlMap                       olmap;
     
     private Object                      input;
-
-    /** The currently visible layers. */
-    private Set<CL>                     visibleLayers = new HashSet();
     
     private Map<CL,Layer>               layers = new HashMap();
     
@@ -215,9 +212,6 @@ public class MapViewer<CL>
         
         // read layers from contentProvider
         readLayers();
-
-        // every layer is visible by default
-        layers.keySet().stream().forEach( layer -> visibleLayers.add( layer ) );
         
         // add controls
         controls.forEach( control -> olmap.addControl( control ) );
@@ -314,29 +308,7 @@ public class MapViewer<CL>
         }
         return this;
     }
-
     
-    public MapViewer setVisible( CL layer, boolean visible ) {
-        Layer olayer = layers.get( layer );
-        if (olayer != null) {
-            olayer.visible.set( visible );
-            if (visible) {
-                visibleLayers.add( layer );
-            } else {
-                visibleLayers.remove( layer );
-            }
-            return this;
-        }
-        else {
-            throw new RuntimeException( "No such layer: " + layer );
-        }
-    }
-    
-    
-    public boolean isVisible( CL layer ) {
-        return visibleLayers.contains( layer );
-    }
-
     
     public Set<CL> getLayers() {
         return Collections.unmodifiableSet( layers.keySet() );
