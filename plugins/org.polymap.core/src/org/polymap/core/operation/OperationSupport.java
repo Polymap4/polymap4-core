@@ -120,7 +120,7 @@ public class OperationSupport
 
         // history
         history = new DefaultOperationHistory();
-        history.setLimit( context, 25 );
+        history.setLimit( context, 5 );
     }
 
     
