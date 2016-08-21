@@ -16,15 +16,13 @@ package org.polymap.core.data.rs;
 
 import static org.polymap.core.data.Features.iterable;
 
-import java.io.File;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.File;
+import java.io.Serializable;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -43,13 +41,18 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory;
-import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
-import org.polymap.recordstore.lucene.LuceneRecordStore;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiLineString;
+
+import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
+
+import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 import junit.framework.TestCase;
 

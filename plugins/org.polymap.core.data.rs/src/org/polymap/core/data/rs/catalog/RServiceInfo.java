@@ -96,7 +96,7 @@ public class RServiceInfo
     /**
      * 
      */
-    class RResourceInfo
+    public class RResourceInfo
             extends DefaultResourceInfo {
 
         public RResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate ) {
