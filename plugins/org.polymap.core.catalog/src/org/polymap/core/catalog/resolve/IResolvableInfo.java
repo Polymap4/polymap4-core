@@ -14,10 +14,12 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * Basic information about any resource type that can be resolved by an {@link IMetadataResourceResolver}.
+ * Basic information about any resource type that can be resolved by an
+ * {@link IMetadataResourceResolver}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -64,9 +66,7 @@ public interface IResolvableInfo {
      * <li>WFS: abstract</li>
      * <li>shapefile shp.xml information</li>
      * </ul>
-     *
-     * @return Human readable description, may be null.
      */
-    public String getDescription();
+    public Optional<String> getDescription();
 
 }

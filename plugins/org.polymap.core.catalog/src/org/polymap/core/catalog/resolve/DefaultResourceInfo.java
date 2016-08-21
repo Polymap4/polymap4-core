@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.geotools.data.ResourceInfo;
@@ -51,8 +52,8 @@ public class DefaultResourceInfo
     }
 
     @Override
-    public String getDescription() {
-        return delegate.getDescription();
+    public Optional<String> getDescription() {
+        return Optional.ofNullable(  delegate.getDescription() );
     }
 
     @Override

@@ -57,10 +57,10 @@ public class MetadataDescriptionProvider
             return ((IMetadataCatalog)elm).getDescription();
         }
         else if (elm instanceof IMetadata) {
-            return ((IMetadata)elm).getDescription();
+            return ((IMetadata)elm).getDescription().orElse( "-" );
         }
         else if (elm instanceof IResolvableInfo) {
-            return ((IResolvableInfo)elm).getDescription();
+            return ((IResolvableInfo)elm).getDescription().orElse( "-" );
         }
         else if (elm instanceof String) {
             return (String)elm;

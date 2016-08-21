@@ -17,12 +17,14 @@ package org.polymap.core.catalog.local;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.ImmutableSet;
 import org.polymap.core.catalog.IUpdateableMetadata;
 
 import org.polymap.model2.CollectionProperty;
@@ -65,8 +67,24 @@ public class LocalMetadata
     @Defaults
     protected Property<Date>            modified;
 
+    @Queryable
+    @Defaults
+    protected Property<Date>            created;
+
     @Defaults
     public CollectionProperty<KeyValue> connectionParams;
+
+    @Defaults
+    public CollectionProperty<KeyValue> descriptions;
+    
+    @Queryable
+    protected Property<String>          type;
+    
+    @Queryable
+    protected CollectionProperty<String> formats;
+
+    @Queryable
+    protected CollectionProperty<String> languages;
 
     /**
      * 
@@ -109,8 +127,8 @@ public class LocalMetadata
     }
 
     @Override
-    public String getDescription() {
-        return description.get();
+    public Optional<String> getDescription() {
+        return Optional.ofNullable( description.get() );
     }
 
     @Override
@@ -132,18 +150,66 @@ public class LocalMetadata
     }
 
     @Override
-    public Date getModified() {
-        return modified.get();
+    public Optional<Date> getModified() {
+        return Optional.ofNullable( modified.get() );
     }
 
     @Override
-    public String getPublisher() {
-        return "Local resource";
+    public Optional<Date> getCreated() {
+        return Optional.ofNullable( created.get() );
     }
 
     @Override
-    public String getRights() {
-        return "";
+    public Date[] getAvailable() {
+        return new Date[] {};
+    }
+
+    @Override
+    public Optional<String> getType() {
+        return Optional.ofNullable( type.get() );
+    }
+
+    @Override
+    public IUpdateableMetadata setType( String type ) {
+        this.type.set( type );
+        return this;
+    }
+
+    @Override
+    public Set<String> getFormats() {
+        return ImmutableSet.copyOf( formats );
+    }
+
+    @Override
+    public IUpdateableMetadata setFormats( Set<String> formats ) {
+        this.formats.clear();
+        this.formats.addAll( formats );
+        return this;
+    }
+
+    @Override
+    public Set<String> getLanguages() {
+        return ImmutableSet.copyOf( languages );
+    }
+
+    @Override
+    public IUpdateableMetadata setLanguages( Set<String> langs ) {
+        this.languages.clear();
+        this.languages.addAll( langs );
+        return this;
+    }
+
+    @Override
+    public Optional<String> getDescription( Field field ) {
+        return descriptions.stream()
+                .filter( kv -> kv.key.get().equals( field.name() ) )
+                .map( kv -> kv.value.get() )
+                .findAny();
+    }
+
+    @Override
+    public IUpdateableMetadata setDescription( Field field, String description ) {
+        throw new RuntimeException( "not yet implemented." );
     }
 
     @Override
@@ -151,10 +217,6 @@ public class LocalMetadata
         Map result = new HashMap();
         connectionParams.stream().forEach( kv -> result.put( kv.key.get(), kv.value.get() ) );
         return result;
-
-//        return connectionParams.stream().collect( Collectors.toMap( 
-//                kv -> { log.info( "KV: " + kv ); return kv.key.get(); }, 
-//                kv -> kv.value.get() ) );
     }
 
     @Override
