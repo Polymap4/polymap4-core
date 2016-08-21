@@ -33,7 +33,6 @@ import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
-import org.polymap.model2.runtime.config.Mandatory;
 
 /**
  * 
@@ -48,7 +47,6 @@ public class LocalMetadata
     
     public static LocalMetadata         TYPE;
     
-    @Mandatory
     @Queryable
     protected Property<String>          identifier;
     
@@ -74,16 +72,20 @@ public class LocalMetadata
     @Defaults
     public CollectionProperty<KeyValue> connectionParams;
 
+    @Queryable
     @Defaults
-    public CollectionProperty<KeyValue> descriptions;
+    protected CollectionProperty<KeyValue> descriptions;
     
     @Queryable
+    @Defaults
     protected Property<String>          type;
     
     @Queryable
+    @Defaults
     protected CollectionProperty<String> formats;
 
     @Queryable
+    @Defaults
     protected CollectionProperty<String> languages;
 
     /**

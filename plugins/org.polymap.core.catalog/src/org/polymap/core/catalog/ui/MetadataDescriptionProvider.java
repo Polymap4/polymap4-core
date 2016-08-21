@@ -53,6 +53,9 @@ public class MetadataDescriptionProvider
         if (elm == MetadataContentProvider.LOADING) {
             return "...";
         }
+        else if (elm == MetadataContentProvider.NO_CHILDREN) {
+            return "";
+        }
         else if (elm instanceof IMetadataCatalog) {
             return ((IMetadataCatalog)elm).getDescription();
         }
