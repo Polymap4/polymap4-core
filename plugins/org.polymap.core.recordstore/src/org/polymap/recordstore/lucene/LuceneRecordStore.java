@@ -410,7 +410,7 @@ public final class LuceneRecordStore
     
     @Override
     public IRecordState newRecord( Object id ) {
-        assert reader != null : "Store is closed.";
+        assert !isClosed() : "Store is closed already.";
         
         // FIXME fails for entities that are removed in this UnitOfWork
         try { assert get( id ) == null : "Id already exists: " + id; }
