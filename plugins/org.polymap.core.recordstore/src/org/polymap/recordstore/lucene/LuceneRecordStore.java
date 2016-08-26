@@ -19,16 +19,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,6 +64,7 @@ import org.apache.lucene.util.Constants;
 import org.apache.lucene.util.DummyConcurrentLock;
 import org.apache.lucene.util.Version;
 
+import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.ConfigurationFactory;
@@ -98,14 +96,6 @@ public final class LuceneRecordStore
     /** The Lucene version this store is working with. */
     public static final Version     VERSION = Version.LUCENE_36;
 
-//    /** Default: 10% of HEAP; 32M is good for 512M RAM and merge size 16MB (Lucene 3). */
-//    public static final double      MAX_RAMBUFFER_SIZE = 10d / 100d * Runtime.getRuntime().maxMemory() / 1000000;
-//    
-//    public static final double      MAX_MERGE_SIZE = 24;
-//    
-//    public static final double      MAX_DELETED_PERCENT = 10;
-
-    
     /**
      * Returns a newly created configuration with default setting. 
      */
@@ -154,26 +144,27 @@ public final class LuceneRecordStore
      * The default {@link ExecutorService} used by the {@link #searcher} if no
      * executor if specified in the config.
      */
-    private static ExecutorService  defaultExecutor;
-    
-    static {
-        //int procs = Runtime.getRuntime().availableProcessors();
-        ThreadFactory threadFactory = new ThreadFactory() {
-            volatile int threadNumber = 0;
-            public Thread newThread( Runnable r ) {
-                String prefix = "Lucene-searcher-";
-                Thread t = new Thread( r, prefix + threadNumber++ );
-                t.setDaemon( false );
-                //t.setPriority( Thread.NORM_PRIORITY - 1 );
-                return t;
-            }
-        };
-        defaultExecutor = new ThreadPoolExecutor( 0, 100,
-                60L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>(),
-                threadFactory );
-        ((ThreadPoolExecutor)defaultExecutor).allowCoreThreadTimeOut( true );        
-    }
+    private static Supplier<ExecutorService> defaultExecutorFactory = () -> {
+        return Polymap.executorService();
+        
+//        //int procs = Runtime.getRuntime().availableProcessors();
+//        ThreadFactory threadFactory = new ThreadFactory() {
+//            volatile int threadNumber = 0;
+//            public Thread newThread( Runnable r ) {
+//                String prefix = "Lucene-searcher-";
+//                Thread t = new Thread( r, prefix + threadNumber++ );
+//                t.setDaemon( false );
+//                //t.setPriority( Thread.NORM_PRIORITY - 1 );
+//                return t;
+//            }
+//        };
+//        ThreadPoolExecutor result = new ThreadPoolExecutor( 0, 100,
+//                60L, TimeUnit.SECONDS,
+//                new SynchronousQueue<Runnable>(),
+//                threadFactory );
+//        result.allowCoreThreadTimeOut( true );
+//        return result;
+    };
     
     
     // instance *******************************************
@@ -194,7 +185,7 @@ public final class LuceneRecordStore
      */
     private Cache<Integer,Object>   doc2id = null;
 
-    private ExecutorService         executor = defaultExecutor;
+    private ExecutorService         executor;
     
     IndexSearcher                   searcher;
 
@@ -248,14 +239,14 @@ public final class LuceneRecordStore
         }
 
         // init ExecutorService
-        executor = Optional.ofNullable( config.executor.get() ).orElse( defaultExecutor );
+        executor = config.executor.orElse( defaultExecutorFactory );
         
         log.info( "Database: " + (indexDir != null ? indexDir.getAbsolutePath() : "RAM")
                 + "\n    size: " + (indexDir != null ? FileUtils.sizeOfDirectory( indexDir ) : "-")
                 + "\n    using: " + directory.getClass().getSimpleName()
                 + "\n    files in directry: " + Arrays.asList( directory.listAll() )
                 + "\n    cache: " + (cache != null ? cache.getClass().getSimpleName() : "none")
-                + "\n    executor: " + executor.getClass().getSimpleName() );
+                + "\n    executor: " + executor );
     }
 
 
