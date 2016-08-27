@@ -14,7 +14,7 @@
  */
 package org.polymap.core.data.pipeline;
 
-import org.polymap.core.runtime.config.Config;
+import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
@@ -29,11 +29,11 @@ public class DataSourceDescription
 
     @Mandatory
     @Immutable
-    public Config<Object>       service;
+    public Config2<DataSourceDescription,Object>   service;
 
     @Mandatory
     @Immutable
-    public Config<String>       resourceName;
+    public Config2<DataSourceDescription,String>   resourceName;
     
     
     public DataSourceDescription() {

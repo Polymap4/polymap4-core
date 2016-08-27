@@ -31,6 +31,7 @@ import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 
@@ -54,7 +55,7 @@ public class LocalMetadata
     protected Property<String>          title;
     
     @Queryable
-    @Defaults
+    @Nullable
     protected Property<String>          description;
 
     @Queryable
@@ -62,11 +63,11 @@ public class LocalMetadata
     protected CollectionProperty<String> keywords;
 
     @Queryable
-    @Defaults
+    @Nullable
     protected Property<Date>            modified;
 
     @Queryable
-    @Defaults
+    @Nullable
     protected Property<Date>            created;
 
     @Defaults
@@ -77,7 +78,7 @@ public class LocalMetadata
     protected CollectionProperty<KeyValue> descriptions;
     
     @Queryable
-    @Defaults
+    @Nullable
     protected Property<String>          type;
     
     @Queryable
@@ -211,7 +212,13 @@ public class LocalMetadata
 
     @Override
     public IUpdateableMetadata setDescription( Field field, String description ) {
-        throw new RuntimeException( "not yet implemented." );
+        descriptions.stream()
+                .filter( kv -> kv.key.get().equals( field.name() ) ).findAny()
+                .orElseGet( () -> descriptions.createElement( proto -> { 
+                    proto.key.set( field.name() ); 
+                    return proto; } ) )
+                .value.set( description );
+        return this;
     }
 
     @Override

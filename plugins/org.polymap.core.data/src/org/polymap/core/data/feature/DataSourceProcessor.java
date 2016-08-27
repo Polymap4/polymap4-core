@@ -66,20 +66,6 @@ public class DataSourceProcessor
     private FeatureSource           fs;
 
     
-//    public DataSourceProcessor() {
-//    }
-//
-//
-//    /**
-//     * Directly init this instance, ignoring {@link #init(PipelineProcessorSite)}.
-//     * 
-//     * @param fs
-//     */
-//    public DataSourceProcessor( FeatureSource fs ) {
-//        this.fs = fs;
-//    }
-
-
     @Override
     public boolean isCompatible( DataSourceDescription dsd ) {
         return dsd.service.get() instanceof DataAccess;
@@ -90,7 +76,8 @@ public class DataSourceProcessor
     public void init( PipelineProcessorSite site ) throws Exception {
         if (fs == null) {
             ds = (DataAccess)site.dsd.get().service.get();
-            fs = ds.getFeatureSource( new NameImpl( site.dsd.get().resourceName.get() ) );
+            String resName = site.dsd.get().resourceName.get();
+            fs = ds.getFeatureSource( new NameImpl( resName ) );
         }
     }
 

@@ -56,6 +56,7 @@ public class UnboundPoolExecutor {
         final int maxThreads = procs * MAX_THREADS_PER_PROC;        
         ThreadPoolExecutor executor = new ThreadPoolExecutor( procs, maxThreads,
                 // SynchronousQueue is what we want to have here (is LinkedBlockingQueue faster?)
+                //180L, TimeUnit.SECONDS, new LinkedBlockingQueue( procs ), threadFactory );
                 180L, TimeUnit.SECONDS, new SynchronousQueue(), threadFactory );
         
         executor.allowCoreThreadTimeOut( false );
