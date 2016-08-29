@@ -27,6 +27,7 @@ import org.polymap.core.data.pipeline.Consumes;
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
@@ -104,6 +105,7 @@ public class ImageDecodeProcessor
         context.sendResponse( new ImageResponse( image ) );
         context.put( "data", null );
         log.debug( "Decode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
+        context.sendResponse( ProcessorResponse.EOP );
     }
    
 }

@@ -17,6 +17,7 @@ package org.polymap.core.data.image;
 import java.awt.Image;
 
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
 
@@ -29,10 +30,10 @@ import org.polymap.core.data.pipeline.Produces;
 public interface ImageProducer
         extends PipelineProcessor {
 
-    @Produces( ImageResponse.class )
+    @Produces( {ImageResponse.class, EndOfProcessing.class} )
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;
     
-    @Produces( ImageResponse.class )
+    @Produces( {ImageResponse.class, EndOfProcessing.class} )
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception;
     
     @Produces( GetLayerTypesResponse.class )

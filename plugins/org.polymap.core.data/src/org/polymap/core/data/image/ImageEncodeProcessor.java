@@ -15,9 +15,12 @@
 package org.polymap.core.data.image;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.image.RenderedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.imageio.IIOImage;
@@ -32,7 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.geotools.image.ImageWorker;
-
+import org.polymap.core.data.pipeline.Consumes;
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
@@ -95,6 +98,7 @@ public class ImageEncodeProcessor
 
     
     @Produces({EncodedImageResponse.class, EndOfProcessing.class})
+    @Consumes( ImageResponse.class )
     public void encodeImageResponse( ImageResponse response, ProcessorContext context ) throws Exception {
         Timer timer = new Timer();
 
@@ -123,6 +127,13 @@ public class ImageEncodeProcessor
         log.debug( "...all data sent. (" + out.getTotalSent() + " bytes " + format + ")" );
     }
     
+    // ToDo: rethink why EOP is necessary here
+    // otherwise the pipelines can't be built automatically, since e.g. FeatureRenderProcessor2 produces also an EOP
+    @Produces( EndOfProcessing.class )
+    @Consumes( EndOfProcessing.class )
+    public void endOfProcessing( EndOfProcessing eop, ProcessorContext context ) throws Exception {
+        context.sendResponse( ProcessorResponse.EOP );
+    }
 
     private void gtEncodePNG( Image image, ChunkedResponseOutputStream out ) throws IOException {
         // using ImageWorker allows for native accelaration
