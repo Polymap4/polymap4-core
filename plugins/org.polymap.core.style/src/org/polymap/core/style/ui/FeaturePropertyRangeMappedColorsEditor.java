@@ -100,7 +100,7 @@ public class FeaturePropertyRangeMappedColorsEditor
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.BORDER);
+        final Button button = new Button( parent, SWT.BORDER );
         button.addSelectionListener( new SelectionAdapter() {
 
             @Override
@@ -137,9 +137,11 @@ public class FeaturePropertyRangeMappedColorsEditor
                                 new Color( minimumValue.getRGB() ) );
 
                         // only linear currently
-                        int singleMappedStep = (maximumValue.getRGB() - minimumValue.getRGB()) / (cc.steps() + 1);
-                        double singleSrcStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / cc.steps();
-                        for (int i = 1; i <= cc.steps(); i++) {
+                        int singleMappedStepRed = (maximumValue.getRed() - minimumValue.getRed()) / (steps);
+                        int singleMappedStepGreen = (maximumValue.getGreen() - minimumValue.getGreen()) / (steps);
+                        int singleMappedStepBlue = (maximumValue.getBlue() - minimumValue.getBlue()) / (steps);
+                        double singleSrcStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / (steps - 1);
+                        for (int i = 1; i < cc.steps(); i++) {
                             Number literalNumber = lowerBound.doubleValue() + (singleSrcStep * i);
                             if (isInteger) {
                                 l = ff.literal( literalNumber.intValue() );
@@ -148,7 +150,9 @@ public class FeaturePropertyRangeMappedColorsEditor
                                 l = ff.literal( literalNumber.doubleValue() );
                             }
                             prop.get().add( ff.less( ff.property( propertyName ), l ),
-                                    new Color( minimumValue.getRGB() + (singleMappedStep * i) ) );
+                                    new Color( minimumValue.getRed() + (singleMappedStepRed * i),
+                                            minimumValue.getGreen() + (singleMappedStepGreen * i),
+                                            minimumValue.getBlue() + (singleMappedStepBlue * i) ) );
                         }
                         if (isInteger) {
                             l = ff.literal( upperBound.intValue() );
@@ -221,7 +225,7 @@ public class FeaturePropertyRangeMappedColorsEditor
             button.setText( i18n.get( "chooseFrom", propertyName ) );
             // green, all ok
             button.setBackground( StylePlugin.okColor() );
-//            button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
+            // button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
         }
         else {
             button.setText( i18n.get( "choose" ) );
@@ -230,10 +234,11 @@ public class FeaturePropertyRangeMappedColorsEditor
         }
         button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
-    
+
+
     @Override
     public boolean isValid() {
-        return !StringUtils.isBlank( propertyName ) && lowerBound != null && upperBound != null
-                && minimumValue != null && maximumValue != null && steps != 0;
+        return !StringUtils.isBlank( propertyName ) && lowerBound != null && upperBound != null && minimumValue != null
+                && maximumValue != null && steps != 0;
     }
 }

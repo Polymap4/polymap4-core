@@ -210,15 +210,15 @@ public class FeaturePropertyMappedColorsChooser {
                         Style.SHOW, Style.LOG );
             }
             else {
-                int currentEntryCount = 1;
+                int currentEntryCount = 0;
                 for (Entry<String> entry : Multisets.copyHighestCountFirst( allValues ).entrySet()) {
                     String label = entry.getElement();
                     Color color = StringUtils.isBlank( label ) ? defaultColor : initialColors.get( label );
                     if (color == null) {
-                        int colorCode = (256 * 256 * 256 / overallEntryCount) * currentEntryCount;
-                        System.err.println( new Color( colorCode ).toString() + ": " + overallEntryCount + "; "
-                                + currentEntryCount + " = " + colorCode );
-                        color = new Color( colorCode );
+                        int colorCode = 255 * currentEntryCount / overallEntryCount ;
+                        color = new Color( colorCode, colorCode, colorCode );
+//                        System.err.println( color.toString() + ": " + overallEntryCount + "; "
+//                                + currentEntryCount + " = " + colorCode );
                     }
                     Triple triple = new Triple( label, entry.getCount(), color );
                     triples.add( triple );
