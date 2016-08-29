@@ -53,6 +53,9 @@ public class MetadataLabelProvider
         if (elm == MetadataContentProvider.LOADING) {
             return "Loading...";
         }
+        else if (elm == MetadataContentProvider.NO_CHILDREN) {
+            return "No elements";
+        }
         else if (elm instanceof IMetadataCatalog) {
             return ((IMetadataCatalog)elm).getTitle();
         }

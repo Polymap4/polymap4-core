@@ -50,15 +50,17 @@ public class NewLayerOperation
     @Immutable
     public Config2<NewLayerOperation,UnitOfWork>    uow;
     
+    /** Inbound: the {@link IMap} to create new layer for. */
     @Mandatory
     @Immutable
     public Config2<NewLayerOperation,IMap>          map;
     
+    /** Inbound:  */
     @Mandatory
     @Immutable
     public Config2<NewLayerOperation,ValueInitializer<ILayer>>  initializer;
     
-    /** Outbound: Newly created layer */
+    /** Outbound: Newly created layer. */
     @Immutable
     public Config2<NewLayerOperation,ILayer>        layer;
 

@@ -36,7 +36,6 @@ public final class LockedLazyInit<T>
 
     private volatile T          value;
     
-    
     public LockedLazyInit() {
         super();
     }
@@ -59,7 +58,9 @@ public final class LockedLazyInit<T>
     }
 
     public void clear() {
-        value = null;
+        synchronized (this) {
+            value = null;            
+        }
     }
 
     public boolean isInitialized() {

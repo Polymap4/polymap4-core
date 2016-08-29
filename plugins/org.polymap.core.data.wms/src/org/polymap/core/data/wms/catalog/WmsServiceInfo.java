@@ -26,13 +26,14 @@ import org.geotools.ows.ServiceException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.FluentIterable;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.resolve.DefaultServiceInfo;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResourceInfo;
-import org.polymap.core.runtime.StreamIterable;
 
 /**
  * 
@@ -71,9 +72,9 @@ public class WmsServiceInfo
 
     @Override
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) {
-        return StreamIterable.of( wms.getCapabilities().getLayerList().stream()
-                .map( layer -> wms.getInfo( layer ) )
-                .map( info -> new WmsResourceInfo( WmsServiceInfo.this, info ) ) );
+        return FluentIterable.from( wms.getCapabilities().getLayerList() )
+                .skip( 1 )  // first entry represents the service itself
+                .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ) ) );
     }
     
 }

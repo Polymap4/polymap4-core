@@ -20,11 +20,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * A thread pool executor with (nearly) unbound pool size.
+ * A thread pool executor with (nearly) unbound pool size and no queue.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -34,19 +34,17 @@ public class UnboundPoolExecutor {
 
     public static int           DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
     
-    public static int           MAX_THREADS_PER_PROC = 32;
+    public static int           MAX_THREADS_PER_PROC = 16;
     
     
     public static ExecutorService newInstance() {
-        final int procs = Runtime.getRuntime().availableProcessors();
-        final int maxThreads = procs * MAX_THREADS_PER_PROC;
-        
         // thread factory
         ThreadFactory threadFactory = new ThreadFactory() {
             volatile int threadNumber = 0;
+            
+            @Override
             public Thread newThread( Runnable r ) {
-                String prefix = "polymap-";
-                Thread t = new Thread( r, prefix + threadNumber++ );
+                Thread t = new Thread( r, "polymap-worker-" + threadNumber++ );
                 t.setDaemon( false );
                 t.setPriority( DEFAULT_THREAD_PRIORITY );
                 return t;
@@ -54,13 +52,18 @@ public class UnboundPoolExecutor {
         };
 
         // thread pool
+        final int procs = Runtime.getRuntime().availableProcessors();
+        final int maxThreads = procs * MAX_THREADS_PER_PROC;        
         ThreadPoolExecutor executor = new ThreadPoolExecutor( procs, maxThreads,
-                180L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), threadFactory );
+                // SynchronousQueue is what we want to have here (is LinkedBlockingQueue faster?)
+                //180L, TimeUnit.SECONDS, new LinkedBlockingQueue( procs ), threadFactory );
+                180L, TimeUnit.SECONDS, new SynchronousQueue(), threadFactory );
+        
+        executor.allowCoreThreadTimeOut( false );
         
         // rejected? -> wait and try again
         executor.setRejectedExecutionHandler( new RejectedExecutionHandlers.Blocking() );
         
-        //executor.allowCoreThreadTimeOut( true );        
         return executor;
     }
     

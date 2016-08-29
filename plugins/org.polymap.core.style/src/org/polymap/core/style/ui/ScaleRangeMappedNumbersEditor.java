@@ -120,11 +120,11 @@ public class ScaleRangeMappedNumbersEditor
 
                         // only linear currently
                         double singleMappedStep = (maximumValue.doubleValue() - minimumValue.doubleValue())
-                                / (cc.steps() + 1);
-                        double singleSrcStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / cc.steps();
-                        for (int i = 0; i <= cc.steps(); i++) {
+                                / (steps);
+                        double singleSrcStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / (steps - 1);
+                        for (int i = 1; i <= cc.steps(); i++) {
                             prop.get().add( minimumValue.doubleValue() + (singleMappedStep * i),
-                                    lowerBound.doubleValue() + (singleSrcStep * i) );
+                                    lowerBound.doubleValue() + (singleSrcStep * (i - 1)) );
                         }
 
                         prop.get().fake.set( String.valueOf( System.currentTimeMillis() ) );
@@ -156,7 +156,7 @@ public class ScaleRangeMappedNumbersEditor
             upperBound = scales.get( values.size() - 1 ).intValue();
         }
 
-        steps = values.size() - 1;
+        steps = values.size();
         if (steps <= 0) {
             steps = 10;
         }

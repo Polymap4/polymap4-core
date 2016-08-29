@@ -136,9 +136,9 @@ public class FeaturePropertyRangeMappedNumbersEditor
                         prop.get().add( ff.lessOrEqual( ff.property( propertyName ), l ), minimumValue );
 
                         // only linear currently
-                        double singleMappedStep = (maximumValue - minimumValue) / (cc.steps() + 1);
-                        double singleSrcStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / cc.steps();
-                        for (int i = 1; i <= cc.steps(); i++) {
+                        double singleMappedStep = (maximumValue - minimumValue) / (steps);
+                        double singleSrcStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / (steps - 1);
+                        for (int i = 1; i < cc.steps(); i++) {
                             Number literalNumber = lowerBound.doubleValue() + (singleSrcStep * i);
                             if (isInteger) {
                                 l = ff.literal( literalNumber.intValue() );

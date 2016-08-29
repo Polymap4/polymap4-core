@@ -31,6 +31,7 @@ import org.polymap.model2.Concerns;
 import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.PropertyConcern;
 import org.polymap.model2.PropertyConcernAdapter;
@@ -61,6 +62,7 @@ public abstract class ProjectNode
 
     @Defaults
     @Queryable
+    @Nullable
     public Property<String>             description;
 
     @Defaults

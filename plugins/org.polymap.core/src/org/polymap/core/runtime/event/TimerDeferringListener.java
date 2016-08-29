@@ -19,8 +19,9 @@ import java.util.EventObject;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import org.apache.commons.logging.LogFactory;
+
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -28,6 +29,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import org.polymap.core.Messages;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.session.SessionContext;
 
 /**
@@ -42,9 +47,9 @@ class TimerDeferringListener
 
     private static Log log = LogFactory.getLog( TimerDeferringListener.class );
 
-    private static Timer                scheduler = new Timer( "DeferringListener.Scheduler", true );
+    private static Timer                scheduler = new Timer( "TimerDeferringListener.Scheduler", true );
 
-    private SchedulerTask               task;
+    private Lazy<SchedulerTask>         task = new LockedLazyInit( () -> new SchedulerTask() );
     
     private SessionContext              sessionContext = SessionContext.current();
     
@@ -56,14 +61,7 @@ class TimerDeferringListener
     
     @Override
     public void handleEvent( EventObject ev ) throws Exception {
-        if (task == null) {
-            synchronized (this) {
-                if (task == null) {
-                    task = new SchedulerTask().schedule();
-                }
-            }
-        }
-        task.events.add( ev );
+        task.get().events.add( ev );
     }
 
     
@@ -75,69 +73,80 @@ class TimerDeferringListener
         
         private volatile List<EventObject>  events = new ArrayList( 128 );
         
-        public SchedulerTask schedule() {
+        public SchedulerTask() {
             try {
                 scheduler.schedule( this, delay );
                 
                 // this is to late! we are already in the EventManager#DispatcherThread;
                 // this must be done in the event publishing thread; the display thread
                 // may already have been returned to client here.
-                
-//                SessionUICallbackCounter.jobStarted( delegate );
+                //SessionUICallbackCounter.jobStarted( delegate );
             }
-            catch (IllegalStateException e) {
+            catch (Exception e) {
                 // Timer already cancelled (?)
-                log.warn( "", e );
+                log.error( "", e );
             }
-            return this;
         }
         
 
         @Override
         public void run() {
-            // primarily for testing; Eclipse's JobManager < 3.7.x does not schedule in JUnit
-            // FIXME GeoServerStarter.destroy() does not have sessionContext too!
-            if (sessionContext == null) {
-                doRun();
-            }
+            // don't add events anymore
+            TimerDeferringListener.this.task.clear();
+            
             // avoid overhead of a Job if events are handled in UI thread anyway
-            else if (delegate instanceof DisplayingListener) {
+            if (delegate instanceof DisplayingListener) {
                 sessionContext.execute( () -> doRun() );
             }
             else {
-                Job job = new Job( Messages.get( "DeferringListener_jobTitle" ) ) {
-                    @Override
-                    protected IStatus run( IProgressMonitor monitor ) {
+                inJob( () -> {
+                    if (sessionContext != null) {
                         sessionContext.execute( () -> doRun() );
-                        return Status.OK_STATUS;
                     }
-                };
-                job.setSystem( true );
-                job.schedule();
+                    else {
+                        doRun();
+                    }
+                });
             }
-
             // use the TimerThread to cleanup the task queue
             //scheduler.purge();
         }
 
-        
+
         protected void doRun() {
             try {
-                synchronized (TimerDeferringListener.this) {
-                    TimerDeferringListener.this.task = null;
-                }
-                
                 DeferredEvent dev = new DeferredEvent( TimerDeferringListener.this, events );
                 delegate.handleEvent( dev );
             }
             catch (Exception e) {
-                log.warn( "Error while handling defered events.", e );
+                log.warn( "Error while handling deferred events.", e );
             }
             finally {
                 // release current request *after* events have been handled in the display thread
-//                UIThreadExecutor.async( () -> SessionUICallbackCounter.jobFinished( delegate ) );
+                //UIThreadExecutor.async( () -> SessionUICallbackCounter.jobFinished( delegate ) );
             }
         }
-    };
+
+
+        protected void inThread( Runnable run ) {
+            Polymap.executorService().submit( () -> {
+                doRun();
+            });
+        }
+        
+        
+        protected void inJob( Runnable run ) {
+            Job job = new Job( Messages.get( "DeferringListener_jobTitle" ) ) {
+                @Override
+                protected IStatus run( IProgressMonitor monitor ) {
+                    run.run();
+                    return Status.OK_STATUS;
+                }
+            };
+            job.setSystem( true );
+            job.setPriority( UIJob.DEFAULT_PRIORITY );
+            job.schedule();            
+        }
+    }
 
 }

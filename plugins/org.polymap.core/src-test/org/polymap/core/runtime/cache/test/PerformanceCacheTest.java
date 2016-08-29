@@ -83,12 +83,12 @@ public class PerformanceCacheTest
     }
 
 
-    public void testRandom() throws Exception {
+    public void tstRandom() throws Exception {
         Timer timer = new Timer();
         int count = 0;
         Random random = new Random();
         ByteArrayLoader loader = new ByteArrayLoader();
-        while (timer.elapsedTime() < 30000) {
+        while (timer.elapsedTime() < 5000) {
             log.println( "adding 1000 to " + cache.size() );
             for (int i=0; i<10000; i++) {
                 Integer key = new Integer( (int)(Math.abs( 

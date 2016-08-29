@@ -14,7 +14,6 @@
  */
 package org.polymap.core.runtime.event;
 
-import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,7 +56,7 @@ abstract class DeferringListener
         DeferredEvent( Object source, List<EventObject> events ) {
             super( source );
             assert events != null;
-            this.events = new ArrayList( events );
+            this.events = events;
         }
         
         public List<EventObject> events() {

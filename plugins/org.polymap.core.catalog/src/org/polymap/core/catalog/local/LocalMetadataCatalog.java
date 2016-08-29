@@ -92,13 +92,13 @@ public class LocalMetadataCatalog
 
     @Override
     public String getTitle() {
-        return "Project resources";
+        return "Project";
     }
 
 
     @Override
     public String getDescription() {
-        return "Local project resources";
+        return "Data sources registered with this project";
     }
 
 

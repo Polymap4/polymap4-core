@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.Iterables;
+
 import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -32,7 +34,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.IMetadataCatalog;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
-import org.polymap.core.catalog.resolve.IResolvableInfo;
 import org.polymap.core.catalog.resolve.IResourceInfo;
 import org.polymap.core.catalog.resolve.IServiceInfo;
 import org.polymap.core.runtime.StreamIterable;
@@ -61,6 +62,10 @@ public class MetadataContentProvider
     public static final Object          LOADING = new Object();
     
     public static final Object[]        CACHE_LOADING = {LOADING};
+    
+    public static final Object          NO_CHILDREN = new Object();
+    
+    public static final Object[]        CACHE_NO_CHILDREN = {NO_CHILDREN};
     
     @Mandatory
     @DefaultString( IMetadataCatalog.ALL_QUERY )
@@ -189,8 +194,10 @@ public class MetadataContentProvider
                 IMetadata metadata = (IMetadata)elm;
                 if (resolver.canResolve( metadata )) {
                     try {
-                        IResolvableInfo resource = resolver.resolve( metadata, monitor );
-                        updateChildren( elm, new Object[] {resource}, currentChildCount );
+                        IServiceInfo service = (IServiceInfo)resolver.resolve( metadata, monitor );
+                        // skip service as it has not more info than metadata record
+                        IResourceInfo[] children = Iterables.toArray( service.getResources( monitor ), IResourceInfo.class );
+                        updateChildren( elm, children, currentChildCount );
                     }
                     catch (Exception e) {
                         // FIXME handle exceptions
@@ -231,12 +238,12 @@ public class MetadataContentProvider
     protected void updateChildren( Object elm, Object[] children, int currentChildCount  ) {
         cache.put( elm, children );
 
-        //        if (children.length != currentChildCount) {
+//        if (children.length != currentChildCount) {
         UIThreadExecutor.async( () -> { 
             viewer.setChildCount( elm, children.length );
-            viewer.replace( elm, 0, children[0] );  // replace the LOADING elm 
+            viewer.replace( elm, 0, children.length > 0 ? children[0] : null );  // replace the LOADING elm
         }, logErrorMsg( "" ) );
-        //        }
+//        }
     }
 
 
@@ -257,10 +264,15 @@ public class MetadataContentProvider
 //            updateChildCount( parent, -1 );
 //            children = cache.get( parent );
         }
-        viewer.replace( parent, index, children[index] );
-        
-        boolean hasChildren = !(children[index] instanceof IResourceInfo);
-        viewer.setHasChildren( children[index], hasChildren );
+        if (index < children.length) {
+            Object child = children[index];
+            viewer.replace( parent, index, child );
+            boolean hasChildren = !(child instanceof IResourceInfo);
+            viewer.setHasChildren( child, hasChildren );
+        }
+        else {
+            viewer.replace( parent, index, NO_CHILDREN );
+        }
         
 //        updateChildCount( children[index], -1 );
     }

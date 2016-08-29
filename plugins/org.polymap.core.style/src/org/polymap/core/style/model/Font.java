@@ -63,6 +63,6 @@ public class Font
     @UIOrder(40)
     @Description("fontSize")
     @Concerns(StylePropertyChange.Concern.class)
-    @NumberRange(defaultValue = 12.0, from = 2.0, to = 144.0)
+    @NumberRange(defaultValue = 12.0, from = 2.0, to = 144.0, increment=1.0)
     public Property<StylePropertyValue<Double>> size;
 }

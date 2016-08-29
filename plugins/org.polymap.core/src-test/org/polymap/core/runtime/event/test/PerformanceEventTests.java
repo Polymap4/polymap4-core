@@ -16,15 +16,10 @@ package org.polymap.core.runtime.event.test;
 
 import java.util.List;
 
-import java.lang.reflect.Method;
-
 import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.eclipse.core.internal.jobs.JobManager;
-import org.eclipse.core.runtime.jobs.IJobManager;
 
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.event.Event;
@@ -37,7 +32,6 @@ import org.polymap.core.runtime.event.EventManager;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@SuppressWarnings("restriction")
 public class PerformanceEventTests
         extends TestCase {
 
@@ -47,18 +41,18 @@ public class PerformanceEventTests
         System.setProperty( "org.apache.commons.logging.simplelog.defaultlog", "info" );
         System.setProperty( "org.apache.commons.logging.simplelog.log.org.polymap.core.runtime.event", "debug" );
         
-        try {
-            Method m = JobManager.class.getDeclaredMethod( "getInstance", new Class[0] );
-            m.setAccessible( true );
-            IJobManager jobManager = (IJobManager)m.invoke( null, new Object[0] );
-            log.info( "JobManager: " + jobManager );            
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+//        try {
+//            Method m = JobManager.class.getDeclaredMethod( "getInstance", new Class[0] );
+//            m.setAccessible( true );
+//            IJobManager jobManager = (IJobManager)m.invoke( null, new Object[0] );
+//            log.info( "JobManager: " + jobManager );            
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException( e );
+//        }
     }
 
-    private int         count, target;
+    private volatile int         count, size;
     
     
     @Override
@@ -73,91 +67,86 @@ public class PerformanceEventTests
     
     public void testPublishNoDelay() throws InterruptedException {
         count = 0;
-        target = 1000000;
+        size = 1000000;
         
         // handler
         Object handler = new Object() {
-            @EventHandler(scope=Scope.JVM)
+            @EventHandler( scope=Scope.JVM )
             public void countEvent( PerformanceTestEvent ev ) {
-                if (++count == target-1) {
-                    synchronized (this) { notifyAll(); }
-                }
+                count++;
+                synchronized (this) { notifyAll(); }
             }
         };
-        EventManager.instance().subscribe( handler );
+        EventManager.instance().subscribe( handler, ev -> ev instanceof PerformanceTestEvent );
 
         // loop: publish event
         Timer timer = new Timer();
-        for (int i=0; i<target; i++) {
+        for (int i=0; i<size; i++) {
             EventManager.instance().publish( new PerformanceTestEvent( this ) );
         }
-        log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
+        log.info( "async events: " +  size + " - " + timer.elapsedTime() + "ms" );
         
         // wait for results
-        while (count < target-1) {
-            synchronized (this) { wait( 100 ); }
+        while (count < size) {
+            synchronized (handler) { handler.wait( 10 ); }
         }
-        log.info( "count: " + count + " - " + timer.elapsedTime() + "ms" );
+        log.info( "    count: " + count + " - " + timer.elapsedTime() + "ms" );
         EventManager.instance().unsubscribe( handler );
     }
     
     
     public void testPublishDelay() throws InterruptedException {
         count = 0;
-        target = 1000000;
+        size = 1000000;
         
         // handler
         Object handler = new Object() {
-            @EventHandler(scope=Scope.JVM,delay=100)
+            @EventHandler( scope=Scope.JVM, delay=10 )
             public void countEvent( List<PerformanceTestEvent> evs ) {
-                log.info( "handle delayed (100ms): " + evs.size() );
                 count += evs.size();
-                if (count >= target-1) {
-                    synchronized (this) { notifyAll(); }
-                }
+                log.info( "    handle delayed (10ms): " + evs.size() + " - " + count );
+                synchronized (this) { notifyAll(); }
             }
         };
-        EventManager.instance().subscribe( handler );
+        EventManager.instance().subscribe( handler, ev -> ev instanceof PerformanceTestEvent );
 
         // loop: publish event
         Timer timer = new Timer();
-        for (int i=0; i<target; i++) {
+        for (int i=0; i<size; i++) {
             EventManager.instance().publish( new PerformanceTestEvent( this ) );
             //Thread.sleep( 10 );
         }
-        log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
+        log.info( "delayed async events: " +  size + " - " + timer.elapsedTime() + "ms" );
         
         // wait for results
-        while (count < target-1) {
-            synchronized (this) { wait( 100 ); }
+        while (count < size-1) {
+            synchronized (handler) { handler.wait( 100 ); }
         }
-        log.info( "count: " + count + " - " + timer.elapsedTime() + "ms" );
+        log.info( "    count: " + count + " - " + timer.elapsedTime() + "ms" );
         EventManager.instance().unsubscribe( handler );
     }
     
     
     public void testSyncPublishNoDelay() throws InterruptedException {
         count = 0;
-        target = 100000;
+        size = 100000;
         
         // handler
         Object handler = new Object() {
-            @EventHandler(scope=Scope.JVM)
+            @EventHandler( scope=Scope.JVM )
             public void countEvent( PerformanceTestEvent ev ) {
-                if (++count == target-1) {
-                    synchronized (this) { notifyAll(); }
-                }
+                count++;
             }
         };
         EventManager.instance().subscribe( handler );
 
         // loop: publish event
         Timer timer = new Timer();
-        for (int i=0; i<target; i++) {
+        for (int i=0; i<size; i++) {
             EventManager.instance().syncPublish( new PerformanceTestEvent( this ) );
         }
-        log.info( "published events: " +  target + " - " + timer.elapsedTime() + "ms" );
-        assertEquals( count, target );
+        log.info( "sync events: " +  size + " - " + timer.elapsedTime() + "ms" );
+        assertEquals( count, size );
 
         EventManager.instance().unsubscribe( handler );
     }

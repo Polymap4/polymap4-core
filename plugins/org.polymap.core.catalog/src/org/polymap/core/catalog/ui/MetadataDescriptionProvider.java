@@ -53,14 +53,17 @@ public class MetadataDescriptionProvider
         if (elm == MetadataContentProvider.LOADING) {
             return "...";
         }
+        else if (elm == MetadataContentProvider.NO_CHILDREN) {
+            return "";
+        }
         else if (elm instanceof IMetadataCatalog) {
             return ((IMetadataCatalog)elm).getDescription();
         }
         else if (elm instanceof IMetadata) {
-            return ((IMetadata)elm).getDescription();
+            return ((IMetadata)elm).getDescription().orElse( "-" );
         }
         else if (elm instanceof IResolvableInfo) {
-            return ((IResolvableInfo)elm).getDescription();
+            return ((IResolvableInfo)elm).getDescription().orElse( "-" );
         }
         else if (elm instanceof String) {
             return (String)elm;

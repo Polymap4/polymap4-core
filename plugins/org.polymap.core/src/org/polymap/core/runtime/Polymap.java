@@ -138,8 +138,8 @@ public final class Polymap {
 
     
 // public static ExecutorService      executorService = new PolymapJobExecutor();
-    // public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
-     public static ExecutorService      executorService = UnboundPoolExecutor.newInstance();
+// public static ExecutorService      executorService = PolymapThreadPoolExecutor.newInstance();
+    private static ExecutorService      executorService = UnboundPoolExecutor.newInstance();
     
 
     /**
@@ -186,7 +186,7 @@ public final class Polymap {
 
     
     /**
-     * No-args default ctor for implicite creation by {@link #getInstance(Class)}.
+     * Use {@link #instance()} to get the instance of the current thread.
      */
     private Polymap() {
     }

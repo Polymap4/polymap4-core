@@ -31,8 +31,16 @@ public interface IUpdateableMetadata
     
     public IUpdateableMetadata setDescription( String description );
     
+    public IUpdateableMetadata setDescription( Field field, String description );
+    
     public IUpdateableMetadata setKeywords( Set<String> keywords );
- 
+    
+    public IUpdateableMetadata setType( String type );
+    
+    public IUpdateableMetadata setFormats( Set<String> formats );
+    
+    public IUpdateableMetadata setLanguages( Set<String> langs );
+    
     public IUpdateableMetadata setConnectionParams( Map<String,String> params );
 
 }
