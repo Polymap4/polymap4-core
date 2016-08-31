@@ -60,7 +60,6 @@ public abstract class ProjectNode
     @Queryable
     public Property<String>             label;
 
-    @Defaults
     @Queryable
     @Nullable
     public Property<String>             description;

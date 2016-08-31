@@ -35,7 +35,19 @@ public class ProjectNodeLabelProvider
 
     private static Log log = LogFactory.getLog( ProjectNodeLabelProvider.class );
     
+    public enum PropType {
+        Label, Description
+    }
     
+    private PropType            propType;
+    
+    
+    public ProjectNodeLabelProvider( PropType propType ) {
+        super();
+        this.propType = propType;
+    }
+
+
     @Override
     public void update( ViewerCell cell ) {
         Object elm = cell.getElement();
@@ -46,7 +58,15 @@ public class ProjectNodeLabelProvider
     @Override
     public String getText( Object elm ) {
         if (elm instanceof ProjectNode) {
-            return ((ProjectNode)elm).label.get();
+            if (propType == PropType.Label) {
+                return ((ProjectNode)elm).label.get();
+            }
+            else if (propType == PropType.Description) {
+                return ((ProjectNode)elm).description.opt().orElse( "--" );
+            }
+            else {
+                throw new RuntimeException( "Unknown: " + propType );
+            }
         }
         else {
             log.warn( "Element is not instanceof Labeled: " + elm );
