@@ -169,6 +169,13 @@ public class MarkdownBuilder
         return this;
     }
 
+    public Object bullet( CharSequence s, Object... args ) {
+        if (notBlank( s )) {
+            newline( 1 ).add( "  * " + s, args );
+        }
+        return this;
+    }
+
     protected CharSequence format( CharSequence cs, Object... args ) {
         String s = cs.toString();
         return s.indexOf( "{" ) > -1
