@@ -74,7 +74,7 @@ public class WmsServiceInfo
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) {
         return FluentIterable.from( wms.getCapabilities().getLayerList() )
                 .skip( 1 )  // first entry represents the service itself
-                .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ) ) );
+                .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ), layer ) );
     }
     
 }

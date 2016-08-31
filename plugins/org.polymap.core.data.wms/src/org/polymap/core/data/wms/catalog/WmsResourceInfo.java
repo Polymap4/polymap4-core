@@ -14,7 +14,13 @@
  */
 package org.polymap.core.data.wms.catalog;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.geotools.data.ResourceInfo;
+import org.geotools.data.ows.Layer;
+
+import com.google.common.collect.Sets;
 
 import org.polymap.core.catalog.resolve.DefaultResourceInfo;
 import org.polymap.core.catalog.resolve.IServiceInfo;
@@ -28,8 +34,19 @@ import org.polymap.core.catalog.resolve.IServiceInfo;
 public class WmsResourceInfo
         extends DefaultResourceInfo {
 
-    public WmsResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate ) {
+    private Layer       layer;
+    
+    public WmsResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate, Layer layer ) {
         super( serviceInfo, delegate );
+        this.layer = layer;
+    }
+
+    @Override
+    public Set<String> getKeywords() {
+        // avoid all the additional stuff from delegate
+        return layer.getKeywords() != null
+                ? Sets.newHashSet( layer.getKeywords() )
+                : Collections.EMPTY_SET;
     }
     
 }
