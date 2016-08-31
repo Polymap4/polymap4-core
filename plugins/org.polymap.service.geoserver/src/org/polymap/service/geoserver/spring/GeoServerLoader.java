@@ -192,7 +192,7 @@ public class GeoServerLoader
         wms.setAccessConstraints( "-none-" );
         wms.setFees( "-none-" );
         wms.setTitle( map.label.get() );
-        wms.setAbstract( "-Test-" + map.description.get() );
+        wms.setAbstract( map.description.opt().orElse( "" ) );
         wms.setName( simpleName( map.label.get() ) );
         wms.setKeywords( Lists.newArrayList( new Keyword( "-Test-" ) ) );
         wms.setOutputStrategy( "SPEED" );
