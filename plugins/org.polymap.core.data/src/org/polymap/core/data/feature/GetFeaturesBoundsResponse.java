@@ -14,26 +14,27 @@
  */
 package org.polymap.core.data.feature;
 
-import org.geotools.data.Query;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 
-import org.polymap.core.data.pipeline.ProcessorRequest;
+import org.polymap.core.data.pipeline.ProcessorResponse;
 
 /**
- * 
+ * The response of the {@link GetFeatureTypeRequest}.
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  */
-public class GetFeaturesSizeRequest
-        implements ProcessorRequest {
+public class GetFeaturesBoundsResponse
+        implements ProcessorResponse {
+
+    private ReferencedEnvelope      bounds;
     
-    private Query           query;
-
-    public GetFeaturesSizeRequest( Query query ) {
-        this.query = query;
+    
+    public GetFeaturesBoundsResponse( ReferencedEnvelope bounds ) {
+        this.bounds = bounds;
     }
 
-    public Query getQuery() {
-        return query;
+    public ReferencedEnvelope getBounds() {
+        return bounds;
     }
-
+    
 }

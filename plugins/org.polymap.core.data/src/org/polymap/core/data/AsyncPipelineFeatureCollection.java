@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2016, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -29,10 +29,13 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.session.SessionContext;
 
@@ -49,19 +52,19 @@ class AsyncPipelineFeatureCollection
 
     protected static final List<Feature>    END_OF_RESPONSE = Collections.EMPTY_LIST;
     
-    protected static final int              DEFAULT_QUEUE_SIZE = 5;  //2560 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
+    protected static final int              DEFAULT_QUEUE_SIZE = 3;  //2560 / DataSourceProcessor.DEFAULT_CHUNK_SIZE;
 
-    private static int                      fetcherCount = 0;
+    private static volatile int             fetcherCount = 0;
     
     protected PipelineFeatureSource         fs;
 
     protected Query                         query;
     
-    private int                             size = -1;
+    private Lazy<Integer>                   size = new LockedLazyInit();
     
-    private SessionContext                  sessionContext;
+    private Lazy<ReferencedEnvelope>        bounds = new LockedLazyInit();
 
-    private ReferencedEnvelope              bounds;
+    private SessionContext                  sessionContext;
 
 
     protected AsyncPipelineFeatureCollection( PipelineFeatureSource fs, Query query, SessionContext sessionContext ) {
@@ -88,36 +91,20 @@ class AsyncPipelineFeatureCollection
     
     @Override
     public int size() {
-        if (size < 0) {
-            size = fs.getFeaturesSize( query );
-        }
-        return size;
+        return size.get( () -> fs.getFeaturesSize( query ) );
     }
 
     
     @Override
     public ReferencedEnvelope getBounds() {
-        if (bounds == null) {
+        return bounds.get( () -> {
             try {
-                bounds = fs.getBounds( query );
+                return fs.getBounds( query );
             }
             catch (IOException e) {
                 throw new RuntimeException( "Why does GeoTool's FeatureSource throws exception while FeatureCollection does not?", e );
             }
-//            bounds = new ReferencedEnvelope();
-//            accepts( new FeatureVisitor() {
-//                public void visit( Feature feature ) {
-//                    BoundingBox geomBounds = feature.getBounds();
-//                    // as of 1.3, JTS expandToInclude ignores "null" Envelope
-//                    // and simply adds the new bounds...
-//                    // This check ensures this behavior does not occur.
-//                    if (! geomBounds.isEmpty()) {
-//                        bounds.include( geomBounds );
-//                    }
-//                }
-//            }, new NullProgressListener() );
-        }
-        return bounds;
+        });
     }
 
 
@@ -158,7 +145,7 @@ class AsyncPipelineFeatureCollection
                         fs.fetchFeatures( query, new FeatureResponseHandler() {
                             public void handle( List<Feature> features ) throws Exception {
                                 if (checkEnd()) {
-                                    //log.info( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() );
+                                    log.info( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() + ", chunk=" + features.size() );
                                     queue.put( features );
                                     Thread.yield();
                                 }

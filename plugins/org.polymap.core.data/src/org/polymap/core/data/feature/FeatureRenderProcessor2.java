@@ -51,6 +51,7 @@ import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.Polymap;
 
 /**
  * This processor renders features using the geotools {@link StreamingRenderer}. The
@@ -139,6 +140,7 @@ public class FeatureRenderProcessor2
 
         try {
             StreamingRenderer renderer = new StreamingRenderer();
+            renderer.setThreadPool( Polymap.executorService() );
 
             // error handler
             renderer.addRenderListener( new RenderListener() {

@@ -145,12 +145,20 @@ public class DataSourceProcessor
 
 
     @Override
+    public void getFeatureBoundsRequest( GetFeaturesBoundsRequest request, ProcessorContext context ) throws Exception {
+        FeatureCollection fc = fs.getFeatures( request.getQuery() );
+        context.sendResponse( new GetFeaturesBoundsResponse( fc.getBounds() ) );
+        context.sendResponse( ProcessorResponse.EOP );
+    }
+
+
+    @Override
     public void getFeatureRequest( GetFeaturesRequest request, ProcessorContext context ) throws Exception {
         Query query = request.getQuery();
         log.debug( "            Filter: " + query.getFilter() );
         FeatureCollection fc = fs.getFeatures( query );
 
-        int currentChunkSize = 64;
+        int currentChunkSize = 128; //DEFAULT_CHUNK_SIZE;
         ArrayList<Feature> chunk = new ArrayList( currentChunkSize );
         try (
             FeatureIterator it = fc.features();

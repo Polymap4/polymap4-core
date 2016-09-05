@@ -185,7 +185,7 @@ public final class LuceneQueryDialect
             resultSet = rs( fs ).find( rsQuery );
             double maxY = resultSet.get( 0 ).get( fieldName );
 
-            log.debug( "Bounds: ... (" + timer.elapsedTime() + "ms)" );
+            log.info( "Bounds: ... (" + timer.elapsedTime() + "ms)" );
             
             return new ReferencedEnvelope( minX, maxX, minY, maxY, schema.getCoordinateReferenceSystem() );
         }
