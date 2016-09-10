@@ -33,6 +33,7 @@ import org.geotools.filter.function.EnvFunction;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
 import org.geotools.renderer.RenderListener;
+import org.geotools.renderer.lite.NoThreadStreamingRenderer;
 import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
@@ -51,7 +52,6 @@ import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.Polymap;
 
 /**
  * This processor renders features using the geotools {@link StreamingRenderer}. The
@@ -139,8 +139,8 @@ public class FeatureRenderProcessor2
         //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
 
         try {
-            StreamingRenderer renderer = new StreamingRenderer();
-            renderer.setThreadPool( Polymap.executorService() );
+            StreamingRenderer renderer = new NoThreadStreamingRenderer();
+            //renderer.setThreadPool( Polymap.executorService() );
 
             // error handler
             renderer.addRenderListener( new RenderListener() {
