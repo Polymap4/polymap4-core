@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.internal.graphics.ResourceFactory;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -70,6 +71,11 @@ public class UIUtils {
 //    public static java.awt.Color awtColor( Color src ) {
 //        return new java.awt.Color( src.getRed(), src.getGreen(), src.getBlue() );
 //    }
+
+
+    public static Color getColor( RGB rgb ) {
+        return getColor( rgb.red, rgb.green, rgb.blue );
+    }
 
 
     /**
