@@ -194,6 +194,10 @@ public abstract class ProjectNode
             return (ProjectNode)super.getSource();
         }
         
+        public String getEntityId() {
+            return getSource().id();
+        }
+        
         /**
          * Returns the {@link #getSource() source} Entity of the event
          * {@link UnitOfWork#entity(Entity) belonging to} the given target
