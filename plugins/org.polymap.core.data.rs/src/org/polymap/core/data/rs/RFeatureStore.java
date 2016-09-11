@@ -244,6 +244,8 @@ public class RFeatureStore
 
         try {
             startModification();
+
+            List<Exception> exc = new ArrayList();
             features.accepts( new FeatureVisitor() {
                 public void visit( Feature feature ) {
                     //assert feature instanceof RFeature : "Added features must be RFeatures. See RFeatureStore#newFeature().";
@@ -259,6 +261,11 @@ public class RFeatureStore
                             for (Property prop : feature.getProperties()) {
                                 newFeature.getProperty( prop.getName() ).setValue( prop.getValue() );
                             }
+                            // sanity check: geom
+                            if (schema.getGeometryDescriptor() != null
+                                    && feature.getDefaultGeometryProperty().getValue() == null) {
+                                throw new RuntimeException( "Feature has no geometry: " + feature.getIdentifier().getID() );
+                            }
                             txState.updater().store( newFeature.state );
                             fids.add( newFeature.getIdentifier() );
                         }
@@ -267,10 +274,14 @@ public class RFeatureStore
                         }
                     }
                     catch (Exception e) {
-                        log.warn( "", e );
+                        exc.add( e );
                     }
                 }
             }, null );
+            
+            if (!exc.isEmpty()) {
+                throw exc.get( 0 );
+            }
             completeModification( true );
         }
         catch (IOException e) {
