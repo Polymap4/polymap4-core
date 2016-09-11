@@ -158,7 +158,7 @@ public class DataSourceProcessor
         log.debug( "            Filter: " + query.getFilter() );
         FeatureCollection fc = fs.getFeatures( query );
 
-        int currentChunkSize = 128; //DEFAULT_CHUNK_SIZE;
+        int currentChunkSize = 16; //DEFAULT_CHUNK_SIZE;
         ArrayList<Feature> chunk = new ArrayList( currentChunkSize );
         try (
             FeatureIterator it = fc.features();
