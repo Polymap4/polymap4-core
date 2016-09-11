@@ -165,7 +165,8 @@ public final class LuceneQueryDialect
             if (resultSet.count() == 0) {
                 return ReferencedEnvelope.EVERYTHING;
             }
-            double minX = resultSet.get( 0 ).get( fieldName );
+            IRecordState record = resultSet.get( 0 );
+            double minX = record.get( fieldName );
 
             // MaxX
             fieldName = geomName+GeometryValueCoder.FIELD_MAXX;
