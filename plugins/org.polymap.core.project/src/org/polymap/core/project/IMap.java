@@ -15,6 +15,10 @@
 package org.polymap.core.project;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.operation.TransformException;
 
 import org.polymap.core.data.util.Geometries;
 
@@ -72,6 +76,13 @@ public class IMap
         catch (Exception e) {
             throw new RuntimeException();
         }
+    }
+
+
+    public void setMaxExtent( ReferencedEnvelope extent ) 
+            throws NoSuchAuthorityCodeException, TransformException, FactoryException {
+        ReferencedEnvelope transformed = extent.transform( CRS.decode( srsCode.get() ), true );
+        maxExtent.createValue( EnvelopeComposite.defaults( transformed ) );
     }
 
 }

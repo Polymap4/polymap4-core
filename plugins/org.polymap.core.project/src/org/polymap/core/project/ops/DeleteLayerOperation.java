@@ -64,7 +64,7 @@ public class DeleteLayerOperation
         if (!map.layers.remove( layer.get() )) {
             throw new IllegalStateException( "Unable to remove layer from map." );
         }
-        assert !map.layers.contains( layer.get() );
+        //assert !map.layers.contains( layer.get() );
 
         // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
         map.label.set( map.label.get() );

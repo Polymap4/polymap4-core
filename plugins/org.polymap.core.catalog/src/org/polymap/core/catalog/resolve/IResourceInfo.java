@@ -14,6 +14,8 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+
 /**
  * Information about a resource in the context of an {@link IServiceInfo}.
  *
@@ -38,6 +40,8 @@ public interface IResourceInfo
      * @return name of this resource
      */
     public String getName();
+
+    public ReferencedEnvelope getBounds();
 
 
 //    /**
