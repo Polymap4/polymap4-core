@@ -14,25 +14,29 @@
  */
 package org.polymap.core.data;
 
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-
-import org.polymap.core.ui.ImageRegistryHelper;
-
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.FilterFactory2;
 import org.osgi.framework.BundleContext;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.swt.graphics.Image;
+
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.polymap.core.ui.ImageRegistryHelper;
 
 /**
  * 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.0
  */
 public class DataPlugin
         extends AbstractUIPlugin {
 
+    private static final Log log = LogFactory.getLog( DataPlugin.class );
+    
     public static final String PLUGIN_ID = "org.polymap.core.data";
 
     /**
@@ -66,18 +70,9 @@ public class DataPlugin
         super.start( context );
         plugin = this;
         
-//        LayerFeatureSelectionManager.setFeatureCollectionFactory(
-//                new FeatureCollectionFactory() {
-//                    public FeatureCollection newFeatureCollection( Object layer, Filter filter ) {
-//                        try {
-//                            PipelineFeatureSource fs = PipelineFeatureSource.forLayer( (ILayer)layer, false );
-//                            return fs.getFeatures( filter );
-//                        }
-//                        catch (Exception e) {
-//                            throw new RuntimeException( e );
-//                        }
-//                    }
-//                });
+        // does not seem to break things if not available
+        log.info( "Using Marlin render engine if avalable." );
+        System.setProperty( "sun.java2d.renderer", "org.marlin.pisces.PiscesRenderingEngine" );
     }
 
 
