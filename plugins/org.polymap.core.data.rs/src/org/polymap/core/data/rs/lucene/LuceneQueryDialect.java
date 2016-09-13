@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.rs.lucene;
 
+import static org.opengis.filter.sort.SortOrder.ASCENDING;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,6 +54,7 @@ import org.opengis.filter.expression.Multiply;
 import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.expression.Subtract;
 import org.opengis.filter.identity.Identifier;
+import org.opengis.filter.sort.SortBy;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.filter.spatial.Beyond;
 import org.opengis.filter.spatial.BinarySpatialOperator;
@@ -88,6 +91,7 @@ import org.polymap.recordstore.IRecordStore;
 import org.polymap.recordstore.QueryExpression;
 import org.polymap.recordstore.RecordQuery;
 import org.polymap.recordstore.ResultSet;
+import org.polymap.recordstore.SimpleQuery;
 import org.polymap.recordstore.lucene.LuceneRecordQuery;
 import org.polymap.recordstore.lucene.LuceneRecordState;
 import org.polymap.recordstore.lucene.LuceneRecordStore;
@@ -294,21 +298,28 @@ public final class LuceneQueryDialect
             else {
                 luceneQuery = typeQuery;
             }
-
-            // sort
-            if (query.getSortBy() != null && query.getSortBy().length > 0) {
-                throw new UnsupportedOperationException( "Not implemented yet: sortBy" );
-                //            for (SortBy sortby : query.getSortBy()) {
-                //                
-                //            }
-            }
             //log.debug( "LUCENE: " + luceneQuery );
 
             RecordQuery result = new LuceneRecordQuery( (LuceneRecordStore)rs( fs ), luceneQuery );
+            
+            // maxResults / first
             if (query.getStartIndex() != null && query.getStartIndex() > 0) {
                 result.setFirstResult( query.getStartIndex() );
             }
             result.setMaxResults( query.getMaxFeatures() );
+            
+            // sort
+            if (query.getSortBy() != null && query.getSortBy().length > 0) {
+                if (query.getSortBy().length > 1) {
+                    throw new UnsupportedOperationException( "Not implemented yet: multiple sortBy" );
+                }
+                
+                SortBy sortBy = query.getSortBy()[0];
+                result.sort( sortBy.getPropertyName().getPropertyName(), 
+                        sortBy.getSortOrder().equals( ASCENDING ) ? SimpleQuery.ASC : SimpleQuery.DESC,
+                        String.class );
+            }
+
             return result;
         }
 
