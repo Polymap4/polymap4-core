@@ -62,7 +62,7 @@ public class ProjectNodeLabelProvider
                 return ((ProjectNode)elm).label.get();
             }
             else if (propType == PropType.Description) {
-                return ((ProjectNode)elm).description.opt().orElse( "--" );
+                return ((ProjectNode)elm).description.opt().orElse( "..." );
             }
             else {
                 throw new RuntimeException( "Unknown: " + propType );

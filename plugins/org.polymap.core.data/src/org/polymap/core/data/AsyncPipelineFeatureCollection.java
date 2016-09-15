@@ -145,7 +145,7 @@ class AsyncPipelineFeatureCollection
                         fs.fetchFeatures( query, new FeatureResponseHandler() {
                             public void handle( List<Feature> features ) throws Exception {
                                 if (checkEnd()) {
-                                    log.info( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() + ", chunk=" + features.size() );
+                                    log.debug( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() + ", chunk=" + features.size() );
                                     queue.put( features );
                                     Thread.yield();
                                 }
