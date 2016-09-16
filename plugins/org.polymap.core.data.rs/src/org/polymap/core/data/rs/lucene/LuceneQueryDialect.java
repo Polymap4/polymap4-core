@@ -151,8 +151,9 @@ public final class LuceneQueryDialect
     @Override
     public ReferencedEnvelope getBounds( RFeatureStore fs, Query query ) throws IOException {
         Timer timer = new Timer();
+        
         FeatureType schema = fs.getSchema();
-//        String typeName = schema.getName().getLocalPart();
+        assert schema.getGeometryDescriptor() != null : "Schema has no Geometry: " + schema;
         String geomName = schema.getGeometryDescriptor().getLocalName();
 
         // type/name query

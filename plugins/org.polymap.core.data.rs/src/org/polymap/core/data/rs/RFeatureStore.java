@@ -191,7 +191,9 @@ public class RFeatureStore
 
     @Override
     public ReferencedEnvelope getBounds( Query query ) throws IOException {
-        return ds.queryDialect.getBounds( this, query );
+        return getSchema().getGeometryDescriptor() != null
+                ? ds.queryDialect.getBounds( this, query )
+                : new ReferencedEnvelope();
     }
 
     @Override
