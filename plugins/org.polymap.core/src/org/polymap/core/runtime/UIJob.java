@@ -73,7 +73,7 @@ public abstract class UIJob
     private static final IMessages          i18n = Messages.forClass( UIJob.class );
     
     
-    public static UIJob forThread() {
+    public static UIJob ofThread() {
         return threadJob.get();
     }
 
@@ -89,8 +89,8 @@ public abstract class UIJob
      * Returns the progress monitor of the job of the current thread a
      * {@link NullProgressMonitor} if the current thread is not a job.
      */
-    public static IProgressMonitor monitorForThread() {
-        UIJob job = forThread();
+    public static IProgressMonitor monitorOfThread() {
+        UIJob job = UIJob.ofThread();
         return job != null ? job.executionMonitor : nullMonitor;
     }
     

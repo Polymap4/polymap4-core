@@ -276,7 +276,7 @@ public class OperationSupport
         }
 
         // check nested
-        UIJob parent = UIJob.forThread();
+        UIJob parent = UIJob.ofThread();
         
         if (parent != null && parent instanceof OperationJob) {
             log.info( "Nested operation: " + op );
