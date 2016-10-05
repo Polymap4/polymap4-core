@@ -107,9 +107,7 @@ public class GeoServerPlugin
 		cacheDir = new File( CorePlugin.getDataLocation( getBundle() ), "cache" );
         if (cacheDir.exists()) {
             log.info( "Cleaning cache dir: " + cacheDir );
-            // readd if https://github.com/Mapzone/mapzone/issues/62 is fixed
-            //FileUtils.deleteDirectory( cacheDir );
-            //cacheDir.mkdir();
+            FileUtils.cleanDirectory( cacheDir );
         }
         else {
             log.info( "Creating cache dir: " + cacheDir );
