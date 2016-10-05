@@ -51,9 +51,9 @@ import org.polymap.core.runtime.UIThreadExecutor;
 @SuppressWarnings("restriction")
 public class UIUtils {
 
-    private static Log log = LogFactory.getLog( UIUtils.class );
+    private static final Log log = LogFactory.getLog( UIUtils.class );
     
-    public static boolean       debug = true;
+    //public static boolean       debug = true;
 
     
     public static Color getColor( int r, int g, int b ) {
@@ -120,7 +120,7 @@ public class UIUtils {
         
         control.setData( RWT.CUSTOM_VARIANT, variant );
         
-        if (debug) {
+        if (log.isDebugEnabled()) {
             setAttribute( control, "variant", variant );
         }
         return control;
@@ -128,7 +128,7 @@ public class UIUtils {
     
     
     public static <T extends Widget> T setTestId( T widget, String value ) {
-        if (debug) {
+        if (log.isDebugEnabled()) {
             setAttribute( widget, "test-id", value );
         }
         return widget;
