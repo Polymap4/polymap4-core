@@ -126,12 +126,6 @@ public class FeatureRenderProcessor2
         mapContent.getViewport().setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
         mapContent.addLayer( new FeatureLayer( fs.get(), style.get() ) );
 
-//            // watch layer for style changes
-//            LayerStyleListener listener = new LayerStyleListener( mapContextRef );
-//            if (watchedLayers.putIfAbsent( layer, listener ) == null) {
-//                layer.addPropertyChangeListener( listener );
-//            }
-
         // Render
         BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
         result.setAccelerationPriority( 1 );
@@ -140,7 +134,6 @@ public class FeatureRenderProcessor2
 
         try {
             StreamingRenderer renderer = new NoThreadStreamingRenderer();
-            //renderer.setThreadPool( Polymap.executorService() );
 
             // error handler
             renderer.addRenderListener( new RenderListener() {
@@ -149,12 +142,13 @@ public class FeatureRenderProcessor2
                 }
                 @Override
                 public void errorOccurred( Exception e ) {
-                    if (e.getMessage().contains( "Error transforming bbox" )) {
+                    if (e.getMessage().contains( "Error transforming bbox" )
+                            || e.getMessage().contains( "too close to a pole" )) {
                         log.warn( "Renderer: " + e.getMessage() );
                     }
                     else {
                         log.error( "Renderer error: ", e );
-                        drawErrorMsg( g, "Fehler bei der Darstellung.", e );
+                        drawErrorMsg( g, "Unable to render.", e );
                     }
                 }
             });
@@ -188,7 +182,7 @@ public class FeatureRenderProcessor2
         }
         catch (Throwable e) {
             log.error( "Renderer error: ", e );
-            drawErrorMsg( g, null, e );
+            drawErrorMsg( g, "Unable to render.", e );
         }
         finally {
             mapContent.dispose();
@@ -215,38 +209,16 @@ public class FeatureRenderProcessor2
     }
 
 
-//    /**
-//     * Static class listening to changes of the Style of a layer. This does not reference
-//     * the Processor, so it does not prevent the Processor from being GCed. The finalyze()
-//     * of the Processor clears the listeners. 
-//     */
-//    public static class LayerStyleListener {
-//        
-//        private LazyInit        mapContextRef;
-//        
-//        public LayerStyleListener( LazyInit mapContextRef ) {
-//            this.mapContextRef = mapContextRef;
-//        }
-//
-//        @EventHandler
-//        public void propertyChange( PropertyChangeEvent ev ) {
-//            if (ev.getPropertyName().equals( ILayer.PROP_STYLE )) {
-//                log.debug( "clearing: " + mapContextRef );
-//                mapContextRef.clear();
-//            }
-//        }
-//    }
-
-    
     protected void drawErrorMsg( Graphics2D g, String msg, Throwable e ) {
         g.setColor( Color.RED );
         g.setStroke( new BasicStroke( 1 ) );
-        g.getFont().deriveFont( Font.BOLD, 12 );
+        Font font = g.getFont().deriveFont( Font.PLAIN, 10 );
+        g.setFont( font );
         if (msg != null) {
-            g.drawString( msg, 10, 10 );
+            g.drawString( msg, 0, 0 );
         }
         if (e != null) {
-            g.drawString( e.toString(), 10, 30 );
+            g.drawString( e.getMessage(), 0, 20 );
         }
     }
 
