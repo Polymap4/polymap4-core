@@ -8,7 +8,7 @@
  
 <beans>
 	<import resource="applicationContext-wms.xml"/>
-	<!-- FIXME import resource="applicationContext-wfs.xml"/-->
+	<import resource="applicationContext-wfs.xml"/>
 
     <!--  lock providers -->
     <bean id="nullLockProvider" class="org.geoserver.platform.resource.NullLockProvider"/>

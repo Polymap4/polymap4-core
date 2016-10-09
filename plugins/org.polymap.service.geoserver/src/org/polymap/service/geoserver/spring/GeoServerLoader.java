@@ -27,9 +27,17 @@ import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.Wrapper;
 import org.geoserver.catalog.impl.WorkspaceInfoImpl;
 import org.geoserver.config.GeoServer;
+import org.geoserver.config.ServiceInfo;
 import org.geoserver.config.impl.GeoServerInfoImpl;
 import org.geoserver.platform.GeoServerResourceLoader;
+import org.geoserver.wfs.GMLInfo;
+import org.geoserver.wfs.GMLInfo.SrsNameStyle;
+import org.geoserver.wfs.GMLInfoImpl;
+import org.geoserver.wfs.WFSInfo;
+import org.geoserver.wfs.WFSInfo.ServiceLevel;
+import org.geoserver.wfs.WFSInfoImpl;
 import org.geoserver.wms.WMSInfoImpl;
+import org.geotools.util.Version;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -43,6 +51,7 @@ import com.google.common.collect.Lists;
 
 import org.polymap.core.project.ILayer;
 import org.polymap.core.project.IMap;
+
 import org.polymap.service.geoserver.GeoServerPlugin;
 import org.polymap.service.geoserver.GeoServerServlet;
 import org.polymap.service.geoserver.GeoServerUtils;
@@ -56,6 +65,7 @@ import org.polymap.service.geoserver.GeoServerUtils;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@SuppressWarnings( "deprecation" )
 public class GeoServerLoader
         implements BeanPostProcessor, DisposableBean, ApplicationContextAware {
 
@@ -152,13 +162,15 @@ public class GeoServerLoader
             P4DataStoreInfo dsInfo = new P4DataStoreInfo( catalog, layer );
             dsInfo.setWorkspace( wsInfo );
 
-            // Feature layers and upstream WMS are represented same way;
-            // all rendering is done by PipelineMapResponse
-            P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
-            catalog.add( ftInfo );
-            P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
-            layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
-            catalog.add( layerInfo );
+            if (dsInfo.getFeatureSource().getSchema().getGeometryDescriptor()!= null) {
+                // Feature layers and upstream WMS are represented same way;
+                // all rendering is done by PipelineMapResponse
+                P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
+                catalog.add( ftInfo );
+                P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
+                layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
+                catalog.add( layerInfo );
+            }
         }
     }
 
@@ -172,15 +184,14 @@ public class GeoServerLoader
         gsInfo.setId( "geoserver-polymap4" );
         gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() + service.alias + "/" );
         log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
-        // XXX indent XML output, make configurable
+
         gsInfo.setVerbose( true );
         gsInfo.setVerboseExceptions( true );
-        //gsInfo.setGlobalServices( true );
         geoserver.setGlobal( gsInfo );
         log.info( "    loaded: " + gsInfo );
 
         createWMSInfo( map );
-       // createAndAddWFSInfo( map, geoserver );
+        createWFSInfo( map );
     }
 
     
@@ -188,14 +199,9 @@ public class GeoServerLoader
         WMSInfoImpl wms = new WMSInfoImpl();
         wms.setGeoServer( geoserver );
         wms.setId( simpleName( map.label.get() ) + "-wms" );
-        wms.setMaintainer( "-maintainer-" );
-        wms.setAccessConstraints( "-none-" );
-        wms.setFees( "-none-" );
-        wms.setTitle( map.label.get() );
-        wms.setAbstract( map.description.opt().orElse( "" ) );
-        wms.setName( simpleName( map.label.get() ) );
         wms.setKeywords( Lists.newArrayList( new Keyword( "-Test-" ) ) );
         wms.setOutputStrategy( "SPEED" );
+        addMaintainer( wms, map );
 
         // XXX make this configurable; deliver all known EPSG codes for now :)
         // FIXME configure allowed EPSG codes
@@ -213,55 +219,58 @@ public class GeoServerLoader
         log.info( "    loaded: " + wms );
     }
 
+    
+    protected void createWFSInfo( IMap map ) {
+        WFSInfoImpl wfs = new WFSInfoImpl();
+        wfs.setGeoServer( geoserver );
+        // XXX make this configurable (where to get authentication from when TRANSACTIONAL?)
+        wfs.setServiceLevel( ServiceLevel.BASIC );
+        wfs.setId( simpleName( map.label.get() ) + "-wfs" );
+        wfs.setOutputStrategy( "SPEED" );
+        
+        addMaintainer( wfs, map );
+        
+        //gml2
+        GMLInfo gml = new GMLInfoImpl();
+        gml.setOverrideGMLAttributes( true );
+        Boolean srsXmlStyle = false; //(Boolean) properties.get( "srsXmlStyle" );
+        if( srsXmlStyle ) {
+            gml.setSrsNameStyle( SrsNameStyle.XML );    
+        }
+        else {
+            gml.setSrsNameStyle( SrsNameStyle.NORMAL );
+        }
+        wfs.getGML().put( WFSInfo.Version.V_10 , gml );
+        
+        //gml3
+        gml = new GMLInfoImpl();
+        gml.setSrsNameStyle( SrsNameStyle.URN );
+        gml.setOverrideGMLAttributes( false );
+        wfs.getGML().put( WFSInfo.Version.V_11 , gml );
 
-//    @SuppressWarnings("unchecked")
-//    private void createAndAddWFSInfo( IMap map, GeoServer geoserver ) {
-//        // WFS
-//        WFSInfoImpl wfs = new WFSInfoImpl();
-//        wfs.setGeoServer( geoserver );
-//        // XXX make this configurable (where to get authentication from when
-//        // TRANSACTIONAL?)
-//        wfs.setServiceLevel( ServiceLevel.BASIC );
-//        wfs.setId( simpleName( map.label.get() ) + "-wfs" );
-//        wfs.setMaintainer( "" );
-//        wfs.setTitle( simpleName( map.label.get() ) );
-//        wfs.setName( simpleName( map.label.get() ) + "-wfs" );
-//        // XXX
-//        wfs.setOutputStrategy( "SPEED" );
-//        // wfs.set( srs );
-//        // List<Version> versions = new ArrayList();
-//        // versions.add( new Version( "1.1.1" ) );
-//        // versions.add( new Version( "1.3" ) );
-//        // wfs.setVersions( versions );
-//        wfs.getVersions().add( new Version( "1.0.0" ) );
-//        wfs.getVersions().add( new Version( "1.1.0" ) );
-//        
-//        createGMLInfo2( wfs );
-//        createGMLInfo3( wfs );
-//
-//        geoserver.add( wfs );
-//        
-//        log.info( "    loaded WFS: '" + wfs.getTitle() + "'" );
-//    }
-//
-//
-//    private void createGMLInfo3( WFSInfoImpl wfs ) {
-//        GMLInfo gml = new GMLInfoImpl();
-//        gml.setSrsNameStyle( SrsNameStyle.URN );
-//        wfs.getGML().put( WFSInfo.Version.V_11, gml );
-//    }
-//
-//
-//    private void createGMLInfo2( WFSInfoImpl wfs ) {
-//        GMLInfo gml = new GMLInfoImpl();
-//        Boolean srsXmlStyle = true;
-//        if (srsXmlStyle) {
-//            gml.setSrsNameStyle( SrsNameStyle.XML );
-//        }
-//        else {
-//            gml.setSrsNameStyle( SrsNameStyle.NORMAL );
-//        }
-//        wfs.getGML().put( WFSInfo.Version.V_10, gml );
-//    }
+        //gml32
+        gml = new GMLInfoImpl();
+        gml.setSrsNameStyle( SrsNameStyle.URN2 );
+        gml.setOverrideGMLAttributes( false );
+        wfs.getGML().put( WFSInfo.Version.V_20 , gml );
+
+        wfs.getVersions().add( new Version( "1.0.0" ) );
+        wfs.getVersions().add( new Version( "1.1.0" ) );
+        wfs.getVersions().add( new Version( "2.0.0" ) );
+
+        geoserver.add( wfs );        
+        log.info( "    loaded: '" + wfs.getTitle() + "'" );
+    }
+
+
+    protected void addMaintainer( ServiceInfo service, IMap map ) {
+        service.setMaintainer( "-maintainer-" );
+        service.setAccessConstraints( "-none-" );
+        service.setFees( "-none-" );
+        service.setTitle( map.label.get() );
+        service.setAbstract( map.description.opt().orElse( "" ) );
+        service.setName( simpleName( map.label.get() ) );
+        service.setOutputStrategy( "SPEED" );
+    }
 
 }

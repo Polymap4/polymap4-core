@@ -34,7 +34,7 @@ public class GeoServerUtils {
     private static Log log = LogFactory.getLog( GeoServerUtils.class );
 
     /** FIXME The namespace of all features delivered via GeoServer. */
-    public static final String      NAMESPACE = "http://www.opengis.net/gml";
+    public static final String      NAMESPACE = "http://mapzone.io"; //"http://www.opengis.net/gml";
 
 
     public static Lazy<NamespaceInfo> defaultNsInfo = new PlainLazyInit( () -> {
@@ -44,7 +44,7 @@ public class GeoServerUtils {
 //                throw new RuntimeException( "not yet implemented." );
 //            }
 //        };
-        result.setPrefix( "gml" );
+        result.setPrefix( "mapzone" );
         result.setURI( NAMESPACE );
         return result;
     });

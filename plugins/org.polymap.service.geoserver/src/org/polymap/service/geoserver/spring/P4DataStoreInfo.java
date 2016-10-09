@@ -16,13 +16,9 @@ package org.polymap.service.geoserver.spring;
 
 import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import java.io.IOException;
-import java.io.Serializable;
-
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.impl.DataStoreInfoImpl;
@@ -58,15 +54,14 @@ import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.util.Geometries;
 import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.PlainLazyInit;
-
+import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.service.geoserver.GeoServerServlet;
 import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class P4DataStoreInfo
         extends DataStoreInfoImpl
@@ -76,7 +71,7 @@ public class P4DataStoreInfo
 
     private ILayer                      layer;
     
-    private Lazy<FeatureSource>         fs = new PlainLazyInit( () -> createFeatureSource() );
+    private Lazy<FeatureSource>         fs = new LockedLazyInit( () -> createFeatureSource() );
     
     
     protected P4DataStoreInfo( Catalog catalog, ILayer layer ) {
@@ -88,9 +83,9 @@ public class P4DataStoreInfo
         setName( layer.label.get() );
         setDescription( "DataStore of ILayer: " + layer.label.get() );
         setType( "PipelineDataStore" );
-        Map<String,Serializable> params = new HashMap<String,Serializable>();
-        // FIXME params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
-        setConnectionParameters( params );
+//        Map<String,Serializable> params = new HashMap<String,Serializable>();
+//        // FIXME params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
+//        setConnectionParameters( params );
         setEnabled( true );
         log.debug( "    loaded: " + this );
     }
