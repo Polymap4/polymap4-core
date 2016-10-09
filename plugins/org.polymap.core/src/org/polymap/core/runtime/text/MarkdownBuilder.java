@@ -103,8 +103,10 @@ public class MarkdownBuilder
     }
     
     public MarkdownBuilder add( CharSequence s, Object... args ) {
-       write( format( s, args ) );
-       return this;
+        if (notBlank( s )) {
+            write( format( s, args ) );
+        }
+        return this;
     }
     
     public MarkdownBuilder paragraph( CharSequence s, Object... args ) {
