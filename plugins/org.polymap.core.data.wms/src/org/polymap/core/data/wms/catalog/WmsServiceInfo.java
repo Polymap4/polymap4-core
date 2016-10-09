@@ -14,12 +14,14 @@
  */
 package org.polymap.core.data.wms.catalog;
 
+import java.util.LinkedList;
 import java.util.Map;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.geotools.data.ows.Layer;
 import org.geotools.data.wms.WebMapServer;
 import org.geotools.ows.ServiceException;
 
@@ -72,6 +74,14 @@ public class WmsServiceInfo
 
     @Override
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) {
+        LinkedList<Layer> queue = new LinkedList();
+        queue.add( wms.getCapabilities().getLayer() );
+        while (!queue.isEmpty()) {
+            Layer l = queue.removeFirst();
+            log.info( "    layer: " + l );
+            queue.addAll( l.getLayerChildren() );
+        }
+        
         return FluentIterable.from( wms.getCapabilities().getLayerList() )
                 .skip( 1 )  // first entry represents the service itself
                 .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ), layer ) );

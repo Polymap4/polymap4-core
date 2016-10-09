@@ -64,6 +64,7 @@
             <remoteRepository refid="geotools.repository" />
 
             <dependency groupId="org.geotools" artifactId="gt-wms" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-wfs-ng" version="${geotools.version}" />
 			
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
