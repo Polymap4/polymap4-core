@@ -159,17 +159,23 @@ public class GeoServerLoader
         log.info( "    loaded: " + GeoServerUtils.defaultNsInfo.get() );
 
         for (ILayer layer : map.layers) {
-            P4DataStoreInfo dsInfo = new P4DataStoreInfo( catalog, layer );
-            dsInfo.setWorkspace( wsInfo );
+            try {
+                P4DataStoreInfo dsInfo = new P4DataStoreInfo( catalog, layer );
+                dsInfo.setWorkspace( wsInfo );
 
-            if (dsInfo.getFeatureSource().getSchema().getGeometryDescriptor()!= null) {
-                // Feature layers and upstream WMS are represented same way;
-                // all rendering is done by PipelineMapResponse
-                P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
-                catalog.add( ftInfo );
-                P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
-                layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
-                catalog.add( layerInfo );
+                if (dsInfo.getFeatureSource().getSchema().getGeometryDescriptor()!= null) {
+                    // Feature layers and upstream WMS are represented same way;
+                    // all rendering is done by PipelineMapResponse
+                    P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
+                    catalog.add( ftInfo );
+                    P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
+                    layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
+                    catalog.add( layerInfo );
+                }
+            }
+            catch (Exception e) {
+                // don't break entire GeoServer if upstream WMS/WFS or else fails
+                log.warn( "Error loading layer: " + layer, e );
             }
         }
     }
