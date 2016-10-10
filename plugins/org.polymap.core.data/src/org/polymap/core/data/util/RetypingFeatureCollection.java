@@ -14,8 +14,6 @@
  */
 package org.polymap.core.data.util;
 
-import java.util.Iterator;
-
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.collection.DecoratingFeatureCollection;
@@ -46,17 +44,8 @@ public abstract class RetypingFeatureCollection<T extends FeatureType, F extends
         return targetSchema;
     }
 
-//    public Iterator<F> iterator() {
-//        return new RetypingIterator( delegate.iterator() );
-//    }
-//
-//    public void close( Iterator<F> iterator ) {
-//        RetypingIterator retyping = (RetypingIterator) iterator;
-//        delegate.close( retyping.delegateIt );
-//    }
-
     public FeatureIterator<F> features() {
-        throw new RuntimeException( "FIXME: return new DelegateFeatureIterator<F>( this, features() );" );
+        return new RetypingIterator( super.features() );
     }
 
     public void close( FeatureIterator<F> iterator ) {
@@ -72,18 +61,20 @@ public abstract class RetypingFeatureCollection<T extends FeatureType, F extends
      * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
      */
     public class RetypingIterator 
-            implements Iterator<F> {
+            implements FeatureIterator<F> {
         
-        private Iterator<F>         delegateIt;
+        private FeatureIterator<F>      delegateIt;
         
-        public RetypingIterator( Iterator<F> delegateIt ) {
+        public RetypingIterator( FeatureIterator<F> delegateIt ) {
             this.delegateIt = delegateIt;
         }
 
+        @Override
         public boolean hasNext() {
             return delegateIt.hasNext();
         }
 
+        @Override
         public F next() {
             try {
                 return retype( delegateIt.next() );
@@ -93,8 +84,9 @@ public abstract class RetypingFeatureCollection<T extends FeatureType, F extends
             }
         }
 
-        public void remove() {
-            delegateIt.remove();
+        @Override
+        public void close() {
+            delegateIt.close();
         }
     }
 

@@ -29,6 +29,7 @@ import org.geotools.feature.collection.AdaptorFeatureCollection;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.identity.FeatureId;
 
 import org.apache.commons.logging.Log;
@@ -39,7 +40,6 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
-import org.polymap.core.data.util.NameImpl;
 
 /**
  *
@@ -77,7 +77,19 @@ public class DataSourceProcessor
         if (fs == null) {
             ds = (DataAccess)site.dsd.get().service.get();
             String resName = site.dsd.get().resourceName.get();
-            fs = ds.getFeatureSource( new NameImpl( resName ) );
+            
+            List<Name> names = ds.getNames();
+            for (Name name : names) {
+                if (name.getLocalPart().equals( resName )) {
+                    if (fs != null) {
+                        throw new UnsupportedOperationException( "Multiple layers have same local name: " + resName );
+                    }
+                    fs = ds.getFeatureSource( name );
+                }
+            }
+            if (fs == null) {
+                throw new IllegalStateException( "Resource not found: " + resName );
+            }
         }
     }
 

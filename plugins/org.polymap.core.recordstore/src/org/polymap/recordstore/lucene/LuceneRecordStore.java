@@ -146,24 +146,6 @@ public final class LuceneRecordStore
      */
     private static Supplier<ExecutorService> defaultExecutorFactory = () -> {
         return Polymap.executorService();
-        
-//        //int procs = Runtime.getRuntime().availableProcessors();
-//        ThreadFactory threadFactory = new ThreadFactory() {
-//            volatile int threadNumber = 0;
-//            public Thread newThread( Runnable r ) {
-//                String prefix = "Lucene-searcher-";
-//                Thread t = new Thread( r, prefix + threadNumber++ );
-//                t.setDaemon( false );
-//                //t.setPriority( Thread.NORM_PRIORITY - 1 );
-//                return t;
-//            }
-//        };
-//        ThreadPoolExecutor result = new ThreadPoolExecutor( 0, 100,
-//                60L, TimeUnit.SECONDS,
-//                new SynchronousQueue<Runnable>(),
-//                threadFactory );
-//        result.allowCoreThreadTimeOut( true );
-//        return result;
     };
     
     
@@ -486,7 +468,7 @@ public final class LuceneRecordStore
     /**
      * Loads records triggered by the cache in {@link LuceneRecordStore#get(Object)}.
      */
-    class DocumentLoader
+    protected class DocumentLoader
             implements CacheLoader<Object,Document> {
         
         @Override
@@ -552,7 +534,7 @@ public final class LuceneRecordStore
     /*
      * 
      */
-    class LuceneUpdater
+    protected class LuceneUpdater
             implements Updater {
 
         private IndexWriter         writer;
