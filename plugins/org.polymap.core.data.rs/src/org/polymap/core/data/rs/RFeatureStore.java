@@ -17,14 +17,11 @@ package org.polymap.core.data.rs;
 import static java.util.Arrays.stream;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -54,6 +51,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.InternationalString;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -82,7 +80,7 @@ public class RFeatureStore
 
     public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
     
-    public static AtomicInteger         idcount = new AtomicInteger( (int)System.currentTimeMillis() );
+    public static AtomicInteger         idcount = new AtomicInteger( (int)Math.abs( System.currentTimeMillis() ) );
     
     protected RDataStore                ds;
     
@@ -135,12 +133,18 @@ public class RFeatureStore
                 return RFeatureStore.this.getSchema().getCoordinateReferenceSystem();
             }
             @Override
+            public String getTitle() {
+                Name name = RFeatureStore.this.getSchema().getName();
+                return name.getLocalPart();
+            }
+            @Override
             public String getDescription() {
-                return null;
+                InternationalString result = RFeatureStore.this.getSchema().getDescription();
+                return result != null ? result.toString() : null;
             }
             @Override
             public Set<String> getKeywords() {
-                return Arrays.stream( new String[] {"features", getName()} ).collect( Collectors.toSet() );
+                return Collections.EMPTY_SET;  //Arrays.stream( new String[] {"features", getName()} ).collect( Collectors.toSet() );
             }
             @Override
             public String getName() {
@@ -155,11 +159,6 @@ public class RFeatureStore
                 catch (URISyntaxException e) {
                     throw new RuntimeException( e );
                 }                
-            }
-            @Override
-            public String getTitle() {
-                Name name = RFeatureStore.this.getSchema().getName();
-                return name.getLocalPart();
             }            
         };
     }

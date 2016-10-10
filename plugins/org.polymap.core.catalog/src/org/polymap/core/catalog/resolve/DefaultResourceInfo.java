@@ -54,7 +54,7 @@ public class DefaultResourceInfo
 
     @Override
     public Optional<String> getDescription() {
-        return Optional.ofNullable(  delegate.getDescription() );
+        return Optional.ofNullable( delegate.getDescription() );
     }
 
     @Override
