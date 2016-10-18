@@ -596,18 +596,17 @@
     <bean id="OpenLayersMapResponse" class="org.geoserver.wms.map.RawMapResponse">
     </bean>
     
-
-	<bean id="AtomGeoRSSMapProducer"
-		singleton="true"
-		class="org.geoserver.wms.georss.AtomGeoRSSMapOutputFormat">
+    <bean id="AtomGeoRSSMapProducer"
+        scope="prototype"
+        class="org.geoserver.wms.georss.AtomGeoRSSMapOutputFormat">
         <constructor-arg index="0" ref="wms"/>
-	</bean>
+    </bean>
 
-	<bean id="RSSGeoRSSMapProducer"
-		singleton="true"
-		class="org.geoserver.wms.georss.RSSGeoRSSMapOutputFormat">
+    <bean id="RSSGeoRSSMapProducer"
+        scope="prototype"
+        class="org.geoserver.wms.georss.RSSGeoRSSMapOutputFormat">
         <constructor-arg index="0" ref="wms"/>
-	</bean>
+    </bean>
 
     <!--bean id="SVGBatikMapOutputFormat" class="org.geoserver.wms.svg.SVGBatikMapOutputFormat">
       <constructor-arg ref="wms" />
@@ -652,28 +651,28 @@
     <!-- Default Decoration Plugins -->
     <bean id="image" 
           class="org.geoserver.wms.decoration.WatermarkDecoration"
-          singleton="false"
+          scope="prototype"
      />
 
     <bean id="legend" 
           class="org.geoserver.wms.decoration.LegendDecoration"
-          singleton="false">
+          scope="prototype">
        <constructor-arg ref="wms"/>
     </bean>
 
     <bean id="scaleratio" 
           class="org.geoserver.wms.decoration.ScaleRatioDecoration"
-          singleton="false"
+          scope="prototype"
     />
     
     <bean id="scaleline" 
           class="org.geoserver.wms.decoration.ScaleLineDecoration"
-          singleton="false"
+          scope="prototype"
     />
     
     <bean id="text" 
           class="org.geoserver.wms.decoration.TextDecoration"
-          singleton="false"
+          scope="prototype"
     />
     
     <bean id="wmsWorkspaceQualifier" class="org.geoserver.wms.WMSWorkspaceQualifier">
