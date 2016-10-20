@@ -14,7 +14,9 @@
  */
 package org.polymap.core.data.wms.catalog;
 
-import java.util.LinkedList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.leftPad;
+
 import java.util.Map;
 
 import java.io.IOException;
@@ -74,17 +76,20 @@ public class WmsServiceInfo
 
     @Override
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) {
-        LinkedList<Layer> queue = new LinkedList();
-        queue.add( wms.getCapabilities().getLayer() );
-        while (!queue.isEmpty()) {
-            Layer l = queue.removeFirst();
-            log.info( "    layer: " + l );
-            queue.addAll( l.getLayerChildren() );
-        }
+        printLayer( wms.getCapabilities().getLayer(), 0 );
         
         return FluentIterable.from( wms.getCapabilities().getLayerList() )
                 .skip( 1 )  // first entry represents the service itself
+                .filter( layer -> !isBlank( layer.getName() ) )
                 .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ), layer ) );
+    }
+    
+    
+    protected void printLayer( Layer l, int level  ) {
+        log.info( leftPad( "", level*4 ) + "layer: " + l.getName() + "/" + l.getTitle() );
+        for (Layer child : l.getChildren()) {
+            printLayer( child, level + 1 );
+        }
     }
     
 }

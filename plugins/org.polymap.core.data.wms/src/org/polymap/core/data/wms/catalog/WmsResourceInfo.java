@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.wms.catalog;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -36,9 +38,22 @@ public class WmsResourceInfo
 
     private Layer       layer;
     
+    
     public WmsResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate, Layer layer ) {
         super( serviceInfo, delegate );
         this.layer = layer;
+    }
+        
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * <b>XXX</b> For layers without a name this method returns {@link #getTitle()}.
+     * This is not conform to the WMS spec (?) but some stupid WMS seems to expect
+     * this behaviour.
+     */
+    @Override
+    public String getName() {
+        return !isBlank( super.getName() ) ? super.getName() : super.getTitle();
     }
 
     @Override
