@@ -212,6 +212,8 @@ public class GeoServerLoader
         // XXX make this configurable; deliver all known EPSG codes for now :)
         // FIXME configure allowed EPSG codes
         List<String> srs = new ArrayList();
+        srs.add( "EPSG:25832" );
+        srs.add( "EPSG:25833" );
         srs.add( "EPSG:31468" );
         srs.add( "EPSG:4326" );
         srs.add( "EPSG:3857" );
