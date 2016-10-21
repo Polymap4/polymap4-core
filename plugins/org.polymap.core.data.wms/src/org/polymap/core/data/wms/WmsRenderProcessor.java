@@ -84,10 +84,13 @@ public class WmsRenderProcessor
         this.site = site;
         wms = (WebMapServer)site.dsd.get().service.get();
         layerName = site.dsd.get().resourceName.get();
-
-        layer = wms.getCapabilities().getLayerList().stream()
-                .filter( l -> layerName.equals( l.getName() ) )
-                .findFirst().orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
+        
+        layer = new Layer( layerName );
+        layer.setName( layerName );
+        
+//        layer = wms.getCapabilities().getLayerList().stream()
+//                .filter( l -> layerName.equals( l.getName() ) )
+//                .findFirst().orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
     }
 
 

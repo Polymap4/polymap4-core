@@ -14,7 +14,7 @@
  */
 package org.polymap.core.data.wms.catalog;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 
 import java.util.Map;
@@ -80,8 +80,8 @@ public class WmsServiceInfo
         
         return FluentIterable.from( wms.getCapabilities().getLayerList() )
                 .skip( 1 )  // first entry represents the service itself
-                .filter( layer -> !isBlank( layer.getName() ) )
-                .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ), layer ) );
+                .transform( layer -> (IResourceInfo)new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ), layer ) )
+                .filter( resInfo -> !isEmpty( resInfo.getName() ) );
     }
     
     

@@ -14,8 +14,6 @@
  */
 package org.polymap.core.data.wms.catalog;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import java.util.Collections;
 import java.util.Set;
 
@@ -53,7 +51,7 @@ public class WmsResourceInfo
      */
     @Override
     public String getName() {
-        return !isBlank( super.getName() ) ? super.getName() : super.getTitle();
+        return super.getName(); //!isBlank( super.getName() ) ? super.getName() : super.getTitle();
     }
 
     @Override
