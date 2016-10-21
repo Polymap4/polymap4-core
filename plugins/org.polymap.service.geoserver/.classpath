@@ -51,7 +51,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-tiff-1.1.15.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-utilities-1.1.15.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.17.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.10-RC1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.10-RC1.jar" sourcepath="lib/sources/gs-main-2.10-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gs-ows-2.10-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gs-platform-2.10-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gs-wfs-2.10-RC1.jar" sourcepath="lib/sources/gs-wfs-2.10-RC1-sources.zip"/>
@@ -84,8 +84,4 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="output" path="build/eclipse"/>
-	<referencedentry exported="true" kind="lib" path="lib/gt-main-13.2.jar" sourcepath="lib/sources/gt-main-13.2-sources.zip"/>
-	<referencedentry exported="true" kind="lib" path="lib/gt-api-13.2.jar" sourcepath="lib/sources/gt-api-13.2-sources.zip"/>
-	<referencedentry exported="true" kind="lib" path="lib/gt-referencing-13.2.jar" sourcepath="lib/sources/gt-referencing-13.2-sources.zip"/>
-	<referencedentry exported="true" kind="lib" path="lib/gt-opengis-13.2.jar" sourcepath="lib/sources/gt-opengis-13.2-sources.zip"/>
 </classpath>

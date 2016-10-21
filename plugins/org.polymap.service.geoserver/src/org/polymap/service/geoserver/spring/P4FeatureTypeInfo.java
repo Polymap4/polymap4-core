@@ -32,6 +32,7 @@ import org.geotools.data.FeatureSource;
 import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureTypes;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
 import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -43,7 +44,6 @@ import org.opengis.util.ProgressListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.util.Geometries;
 import org.polymap.core.project.ILayer;
 import org.polymap.service.geoserver.GeoServerUtils;
 
@@ -88,7 +88,7 @@ public class P4FeatureTypeInfo
             if (schema.getGeometryDescriptor() != null) {
                 CoordinateReferenceSystem crs = schema.getCoordinateReferenceSystem();
                 ReferencedEnvelope bbox = fs.getBounds();
-                setSRS( Geometries.srs( crs ) );
+                setSRS( CRS.toSRS( crs ) );
                 setNativeCRS( crs );
                 setNativeBoundingBox( bbox );
                 setProjectionPolicy( ProjectionPolicy.NONE );
