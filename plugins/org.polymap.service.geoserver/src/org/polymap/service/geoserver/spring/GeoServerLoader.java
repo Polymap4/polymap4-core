@@ -151,8 +151,8 @@ public class GeoServerLoader
 
         // workspace
         WorkspaceInfoImpl wsInfo = new WorkspaceInfoImpl();
-        wsInfo.setId( (String)map.id() );
-        wsInfo.setName( simpleName( map.label.get() ) );
+        wsInfo.setId( simpleName( map.id() ) + "-ws" );
+        //wsInfo.setName( simpleName( GeoServerPlugin.instance().baseName.orElse( map.label.get() ) ) );
         log.info( "    loaded: " + wsInfo );
         
         catalog.add( GeoServerUtils.defaultNsInfo.get() );
@@ -187,7 +187,7 @@ public class GeoServerLoader
         log.info( "Loading GeoServer..." );
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
         gsInfo.setTitle( "mapzone.io powered by GeoServer" );
-        gsInfo.setId( "geoserver-polymap4" );
+        gsInfo.setId( simpleName( map.id() ) + "-gs" );
         gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() + service.alias + "/" );
         log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
 
@@ -204,7 +204,7 @@ public class GeoServerLoader
     protected void createWMSInfo( IMap map ) {
         WMSInfoImpl wms = new WMSInfoImpl();
         wms.setGeoServer( geoserver );
-        wms.setId( simpleName( map.label.get() ) + "-wms" );
+        wms.setId( simpleName( map.id() ) + "-wms" );
         wms.setKeywords( Lists.newArrayList( new Keyword( "-Test-" ) ) );
         wms.setOutputStrategy( "SPEED" );
         addMaintainer( wms, map );
@@ -233,7 +233,7 @@ public class GeoServerLoader
         wfs.setGeoServer( geoserver );
         // XXX make this configurable (where to get authentication from when TRANSACTIONAL?)
         wfs.setServiceLevel( ServiceLevel.BASIC );
-        wfs.setId( simpleName( map.label.get() ) + "-wfs" );
+        wfs.setId( simpleName( map.id() ) + "-wfs" );
         wfs.setOutputStrategy( "SPEED" );
         
         addMaintainer( wfs, map );
@@ -272,12 +272,13 @@ public class GeoServerLoader
 
 
     protected void addMaintainer( ServiceInfo service, IMap map ) {
+        service.setTitle( simpleName( GeoServerPlugin.instance().baseName.orElse( map.label.get() ) ) );
+        //service.setName( simpleName( map.label.get() ) );
+        
         service.setMaintainer( "-maintainer-" );
         service.setAccessConstraints( "-none-" );
         service.setFees( "-none-" );
-        service.setTitle( map.label.get() );
         service.setAbstract( map.description.opt().orElse( "" ) );
-        service.setName( simpleName( map.label.get() ) );
         service.setOutputStrategy( "SPEED" );
     }
 
