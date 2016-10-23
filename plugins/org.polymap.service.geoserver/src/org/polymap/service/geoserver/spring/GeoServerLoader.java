@@ -186,7 +186,7 @@ public class GeoServerLoader
 
         log.info( "Loading GeoServer..." );
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
-        gsInfo.setTitle( "mapzone.io powered by GeoServer" );
+        gsInfo.setTitle( "Polymap4 powered by GeoServer" );
         gsInfo.setId( simpleName( map.id() ) + "-gs" );
         // service.alias is added by GeoServer and/or is already part of URL (set by ArenaConfig)
         gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() );
