@@ -188,7 +188,8 @@ public class GeoServerLoader
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
         gsInfo.setTitle( "mapzone.io powered by GeoServer" );
         gsInfo.setId( simpleName( map.id() ) + "-gs" );
-        gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() /*+ service.alias*/ );
+        // service.alias is added by GeoServer and/or is already part of URL (set by ArenaConfig)
+        gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() );
         log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
 
         gsInfo.setVerbose( true );
