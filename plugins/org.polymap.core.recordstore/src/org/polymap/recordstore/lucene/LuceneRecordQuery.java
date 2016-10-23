@@ -151,10 +151,16 @@ public class LuceneRecordQuery
         protected LuceneResultSet( ScoreDoc[] scoreDocs ) {
             assert scoreDocs != null;
 
-            // skip getFirstResult() as Lucene does not provide this feature
-            this.scoreDocs = getFirstResult() > 0
-                    ? Arrays.copyOfRange( scoreDocs, getFirstResult(), scoreDocs.length )
-                    : scoreDocs;
+            // skip getFirstResult(), Lucene does not provide this feature
+            this.scoreDocs = scoreDocs;
+            if (getFirstResult() > 0) {
+                if (getFirstResult() >= scoreDocs.length) {
+                    this.scoreDocs = new ScoreDoc[] {};
+                }
+                else {
+                    this.scoreDocs = Arrays.copyOfRange( scoreDocs, getFirstResult(), scoreDocs.length );
+                }
+            }
             
             // build fieldSelector
             final IRecordFieldSelector sel = getFieldSelector();
