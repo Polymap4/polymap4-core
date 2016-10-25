@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-13.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-tiff-1.1.11.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-utilities-1.1.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-image-16-RC1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-arcgrid-16-RC1.jar" sourcepath="lib/sources/gt-arcgrid-16-RC1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-16-RC1.jar" sourcepath="lib/sources/gt-geotiff-16-RC1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-arcgrid-1.1.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-geocore-1.1.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-streams-1.1.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-tiff-1.1.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-utilities-1.1.15.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="output" path="build/eclipse"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-coverage-16-RC1.jar" sourcepath="lib/sources/gt-coverage-16-RC1-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-opengis-16-RC1.jar" sourcepath="lib/sources/gt-opengis-16-RC1-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-main-16-RC1.jar" sourcepath="lib/sources/gt-main-16-RC1-sources.zip"/>
 </classpath>

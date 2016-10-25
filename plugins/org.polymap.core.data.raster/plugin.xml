@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.polymap.core.catalog.resolverProviders">
+      <resolver
+            class="org.polymap.core.data.raster.catalog.TiffServiceResolverProvider">
+      </resolver>
+      <resolver
+            class="org.polymap.core.data.raster.catalog.ArcGridServiceResolverProvider">
+      </resolver>
+   </extension>
+   <extension
+         point="org.polymap.core.data.pipeline.processors">
+      <processor
+            class="org.polymap.core.data.raster.RasterRenderProcessor"
+            id="org.polymap.core.data.raster.RasterRenderProcessor"
+            isTerminal="true"
+            name="Raster">
+      </processor>
+   </extension>
+
+</plugin>
