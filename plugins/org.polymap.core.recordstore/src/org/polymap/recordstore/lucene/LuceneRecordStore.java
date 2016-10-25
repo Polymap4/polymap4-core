@@ -159,8 +159,6 @@ public final class LuceneRecordStore
      */
     private Cache<Integer,Object>   doc2id = null;
 
-    private ExecutorService         executor;
-    
     /** Prevents {@link #reader} and {@link #searcher} to be changed while in use. */
     ReadWriteLock                   lock = new ReentrantReadWriteLock();
 
@@ -212,15 +210,12 @@ public final class LuceneRecordStore
             doc2id = cacheManager.createCache( "LuceneRecordStore-doc2id-" + hashCode(), new MutableConfiguration() );
         }
 
-        // init ExecutorService
-        executor = config.executor.get();
-        
         log.info( "Database: " + (indexDir != null ? indexDir.getAbsolutePath() : "RAM")
                 + "\n    size: " + (indexDir != null ? FileUtils.sizeOfDirectory( indexDir ) : "-")
                 + "\n    using: " + directory.getClass().getSimpleName()
                 + "\n    files in directry: " + Arrays.asList( directory.listAll() )
                 + "\n    cache: " + (cache != null ? cache.getClass().getSimpleName() : "none")
-                + "\n    executor: " + executor );
+                + "\n    executor: " + config.executor.get() );
     }
 
 
@@ -232,9 +227,7 @@ public final class LuceneRecordStore
      * @throws IOException
      */
     public LuceneRecordStore( File indexDir, boolean clean ) throws IOException {
-        this( newConfiguration()
-                .indexDir.put( indexDir )
-                .clean.put( clean ) );        
+        this( newConfiguration().indexDir.put( indexDir ).clean.put( clean ) );        
     }
 
 
@@ -262,7 +255,7 @@ public final class LuceneRecordStore
         }
 
         reader = IndexReader.open( directory );
-        searcher = new IndexSearcher( reader, executor );
+        searcher = new IndexSearcher( reader, config.executor.get() );
     }
     
     
@@ -650,7 +643,7 @@ public final class LuceneRecordStore
                             log.warn( "Reader refCount is: " + reader.getRefCount() + " > 0!" );
                         }
                         reader = newReader;
-                        searcher = new IndexSearcher( reader, executor );
+                        searcher = new IndexSearcher( reader, config.executor.get() );
                     }
                     finally {
                         lock.writeLock().unlock();
