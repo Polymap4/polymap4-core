@@ -213,7 +213,7 @@ public final class LuceneRecordStore
         log.info( "Database: " + (indexDir != null ? indexDir.getAbsolutePath() : "RAM")
                 + "\n    size: " + (indexDir != null ? FileUtils.sizeOfDirectory( indexDir ) : "-")
                 + "\n    using: " + directory.getClass().getSimpleName()
-                + "\n    files in directry: " + Arrays.asList( directory.listAll() )
+                + "\n    files in directry: " + directory.listAll().length
                 + "\n    cache: " + (cache != null ? cache.getClass().getSimpleName() : "none")
                 + "\n    executor: " + config.executor.get() );
     }
