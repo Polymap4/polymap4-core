@@ -90,9 +90,10 @@ public class NewLayerOperation
         });
         layer.set( newLayer );
         
-        map.get().layers.add( layer.get() );
-        // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
-        map.get().label.set( map.get().label.get() );
+        assert map.get().layers.contains( newLayer );
+//        map.get().layers.add( layer.get() );
+//        // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
+//        map.get().label.set( map.get().label.get() );
 
         return Status.OK_STATUS;
     }

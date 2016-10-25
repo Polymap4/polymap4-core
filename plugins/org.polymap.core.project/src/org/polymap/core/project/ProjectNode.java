@@ -68,6 +68,7 @@ public abstract class ProjectNode
     @Queryable
     public CollectionProperty<String>   keywords;
 
+    /** See {@link IMap#layers}. */
     public Association<IMap>            parentMap;
 
     

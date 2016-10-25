@@ -61,15 +61,15 @@ public class DeleteLayerOperation
         register( uow.get() );
 
         IMap map = layer.get().parentMap.get();
-        if (!map.layers.remove( layer.get() )) {
-            throw new IllegalStateException( "Unable to remove layer from map." );
-        }
-        //assert !map.layers.contains( layer.get() );
+//        if (!map.layers.remove( layer.get() )) {
+//            throw new IllegalStateException( "Unable to remove layer from map." );
+//        }
 
         // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
         map.label.set( map.label.get() );
 
         uow.get().removeEntity( layer.get() );
+        assert !map.layers.contains( layer.get() );
         monitor.worked( 1 );
 
         uow.get().commit();
