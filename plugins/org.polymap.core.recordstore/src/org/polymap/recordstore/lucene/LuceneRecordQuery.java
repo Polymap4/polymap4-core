@@ -85,8 +85,7 @@ public class LuceneRecordQuery
         // Lucene does not have a firstResult feature
         int requestedResults = getMaxResults() + getFirstResult();
                 
-        try {
-            store.lock.readLock().lock();
+        return store.readLocked( () -> {
             String sortKey = getSortKey();
             if (sortKey != null) {
                 int sortType = SortField.STRING;
@@ -119,10 +118,7 @@ public class LuceneRecordQuery
                 logResult( topDocs.scoreDocs.length, timer );
                 return new LuceneResultSet( topDocs.scoreDocs );
             }
-        }
-        finally {
-            store.lock.readLock().unlock();
-        }
+        });
     }
 
     

@@ -20,13 +20,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Supplier;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -58,19 +53,20 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Constants;
-import org.apache.lucene.util.DummyConcurrentLock;
 import org.apache.lucene.util.Version;
+
+import com.google.common.base.Throwables;
 
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.config.Config2;
-import org.polymap.core.runtime.config.ConfigurationFactory;
+import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.DefaultBoolean;
 import org.polymap.core.runtime.config.DefaultDouble;
-
 import org.polymap.recordstore.BaseRecordStore;
 import org.polymap.recordstore.IRecordState;
 import org.polymap.recordstore.IRecordStore;
@@ -100,13 +96,14 @@ public final class LuceneRecordStore
      * Returns a newly created configuration with default setting. 
      */
     public static Configuration newConfiguration() {
-        return ConfigurationFactory.create( Configuration.class );
+        return new Configuration();
     }
     
     /**
      * 
      */
-    public static class Configuration {
+    public static class Configuration
+            extends Configurable {
 
         public Config2<Configuration,File>             indexDir;
 
@@ -114,8 +111,9 @@ public final class LuceneRecordStore
         public Config2<Configuration,Boolean>          clean;
         
         /**
-         * The ExecutorService to be used for Lucene queries. If not set then a
-         * default executor configuration is used.
+         * The ExecutorService to be used for Lucene queries. Defaults to
+         * {@link Polymap#executorService()}. <code>null</code> specifies that the
+         * searcher runs single threaded.
          */
         public Config2<Configuration,ExecutorService>  executor;
         
@@ -133,20 +131,14 @@ public final class LuceneRecordStore
         
         public Config2<Configuration,CacheManager>     documentCache;
         
+        protected Configuration() {
+            executor.set( Polymap.executorService() );
+        }
         public LuceneRecordStore create() throws IOException {
             return new LuceneRecordStore( this );
         }
         
     }
-    
-    
-    /**
-     * The default {@link ExecutorService} used by the {@link #searcher} if no
-     * executor if specified in the config.
-     */
-    private static Supplier<ExecutorService> defaultExecutorFactory = () -> {
-        return Polymap.executorService();
-    };
     
     
     // instance *******************************************
@@ -169,13 +161,13 @@ public final class LuceneRecordStore
 
     private ExecutorService         executor;
     
+    /** Prevents {@link #reader} and {@link #searcher} to be changed while in use. */
+    ReadWriteLock                   lock = new ReentrantReadWriteLock();
+
     IndexSearcher                   searcher;
 
     IndexReader                     reader;
     
-    /** Prevents {@link #reader} close/reopen by {@link LuceneUpdater} while in use. */
-    ReadWriteLock                   lock;
-
     ValueCoders                     valueCoders = new ValueCoders( this );
     
 
@@ -221,7 +213,7 @@ public final class LuceneRecordStore
         }
 
         // init ExecutorService
-        executor = config.executor.orElse( defaultExecutorFactory );
+        executor = config.executor.get();
         
         log.info( "Database: " + (indexDir != null ? indexDir.getAbsolutePath() : "RAM")
                 + "\n    size: " + (indexDir != null ? FileUtils.sizeOfDirectory( indexDir ) : "-")
@@ -259,14 +251,8 @@ public final class LuceneRecordStore
     }
 
     
-    protected ReadWriteLock newLock() {
-        /*= new ReentrantReadWriteLock();*/
-        return new IndexReaderReadWriteLock( reader );    
-    }
-    
-    
     protected void open( boolean clean ) throws IOException {
-        // create or clear index
+        // create or clean index
         if (directory.listAll().length == 0 || clean) {
             IndexWriterConfig writerConfig = new IndexWriterConfig( VERSION, analyzer )
                     .setOpenMode( OpenMode.CREATE );
@@ -276,7 +262,6 @@ public final class LuceneRecordStore
         }
 
         reader = IndexReader.open( directory );
-        lock = newLock();
         searcher = new IndexSearcher( reader, executor );
     }
     
@@ -289,7 +274,6 @@ public final class LuceneRecordStore
         directory = closer.close( directory );
         cache = closer.close( cache );
         doc2id = closer.close( doc2id );
-        lock = null;
         closer.throwAnyException();
     }
 
@@ -407,14 +391,25 @@ public final class LuceneRecordStore
     }
 
     
-    protected <R,E extends Exception> R withReadLock( Task<R,E> task ) throws E {
-        ReadWriteLock l = lock;
-        l.readLock().lock();
+    protected <R,E extends Exception> R readLocked( Task<R,E> task ) throws E {
+        IndexReader r = reader;
         try {
+            r.incRef();
+            lock.readLock().lock();
+            
             return task.perform();
         }
         finally {
-            l.readLock().unlock();
+            lock.readLock().unlock();
+            try {
+                r.decRef();
+                if (r.getRefCount() == 0) {
+                    log.warn( "Reader refCount is: " + reader.getRefCount() + " -> closed." );
+                }
+            }
+            catch (IOException e) {
+                log.warn( "Error while decRef() -> closing IndexReader.", e );
+            }
         }
     }
 
@@ -451,7 +446,7 @@ public final class LuceneRecordStore
             }
         }
         
-        Document doc = withReadLock( () -> reader.document( docnum, fieldSelector ) );
+        Document doc = readLocked( () -> reader.document( docnum, fieldSelector ) );
         
         LuceneRecordState result = new LuceneRecordState( LuceneRecordStore.this, doc, false );
         if (cache != null) {
@@ -475,7 +470,7 @@ public final class LuceneRecordStore
         public Document load( Object id ) throws CacheLoaderException {
             log.trace( "LUCENE: termDocs: " + LuceneRecordState.ID_FIELD + " = " + id.toString() );
 
-            return withReadLock( () -> {
+            return readLocked( () -> {
                 Term term = new Term( LuceneRecordState.ID_FIELD, id.toString() );
 
                 try (TermDocs termDocs = reader.termDocs( term )) {
@@ -556,7 +551,16 @@ public final class LuceneRecordStore
                 mergePolicy.setMaxMergeMB( config.maxMergeSize.get() );
                 writerConfig.setMergePolicy( mergePolicy );
                 writerConfig.setMaxBufferedDocs( IndexWriterConfig.DISABLE_AUTO_FLUSH );
-                writer = new IndexWriter( directory, writerConfig );
+                for (boolean success=false; !success; ) { 
+                    try {
+                        writer = new IndexWriter( directory, writerConfig );
+                        success = true;
+                    }
+                    catch (LockObtainFailedException e) {
+                        log.warn( "Waiting for write.lock ..." );
+                        Thread.sleep( 250 );
+                    }
+                }
             }
             catch (Exception e) {
                 if (writer != null) {
@@ -619,11 +623,9 @@ public final class LuceneRecordStore
         public void apply( boolean optimizeIndex ) {
             assert writer != null : "Updater is closed.";
             Timer timer = new Timer();
-            ReadWriteLock l = lock;
-            l.writeLock().lock();
             try {
                 writer.commit();
-                log.debug( "Writer commited. (" + timer.elapsedTime() + "ms)"  );
+                log.debug( "Writer commit done. (" + timer.elapsedTime() + "ms)"  );
                 
                 double deleted = reader.numDeletedDocs();
                 double total = reader.numDocs();
@@ -634,27 +636,30 @@ public final class LuceneRecordStore
                     writer.forceMerge( 1, true );
                     log.debug( "Writer optimization done. (" + t.elapsedTime() + "ms)"  );
                 }
-                writer.close();
-                writer = null;
                 
-                searcher.close();
                 IndexReader newReader = IndexReader.openIfChanged( reader );
                 if (newReader != null) {
-                    IndexReader r = reader;
-          
-                    // XXX other threads can kick in between
-                    reader = newReader;
-                    lock = newLock();
+                    try {
+                        lock.writeLock().lock();
+                        searcher.close();
 
-                    l.writeLock().unlock();
-                    r.close();
-                    assert r.getRefCount() == 0;
+                        IndexReader oldReader = reader;
+                        reader = newReader;
+                        oldReader.close();
+                        if (oldReader.getRefCount() > 0) {
+                            log.warn( "Reader refCount is: " + reader.getRefCount() + " > 0!" );
+                        }
+                        reader = newReader;
+                        searcher = new IndexSearcher( reader, executor );
+                    }
+                    finally {
+                        lock.writeLock().unlock();
+                    }
                 }
-                else {
-                    l.writeLock().unlock();
-                    assert reader.getRefCount() > 0;                    
-                }
-                searcher = new IndexSearcher( reader, executor );
+
+                // close and remove write.lock after reader has been savely changed
+                writer.close();
+                writer = null;
                 
                 if (doc2id != null) {
                     doc2id.clear();
@@ -663,7 +668,10 @@ public final class LuceneRecordStore
                 log.info( "COMMIT: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
-                throw new RuntimeException( e );
+                throw Throwables.propagate( e );
+            }
+            finally {
+                close();
             }
         }
 
@@ -675,8 +683,6 @@ public final class LuceneRecordStore
             }
             try {
                 writer.rollback();
-                writer.close();
-                writer = null;
             }
             catch (AlreadyClosedException e) {
             }
@@ -684,72 +690,31 @@ public final class LuceneRecordStore
                 log.warn( "Error during discard()", e );
                 //throw new RuntimeException( e );
             }
-        }
-    }
-    
-
-    /**
-     * Use Lucene IndexReader internal mechanism to MROW lock. Maybe(?) less overhead
-     * than {@link ReentrantReadWriteLock}.
-     * 
-     * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
-     */
-    protected static class IndexReaderReadWriteLock
-            implements ReadWriteLock {
-
-        private IndexReader     reader;
-        
-        /**
-         * This is just a dummy. The writeLock is aquired just to call
-         * {@link IndexReader#close()}. This calls decRef() itself and so
-         * synchronizes with readers.
-         */
-        private Lock            writeLock = DummyConcurrentLock.INSTANCE;
-        
-        private Lock            readLock = new Lock() {
-            @Override
-            public void lock() {
-                reader.incRef();
+            finally {
+                close();
             }
-            @Override
-            public void unlock() {
+        }
+        
+        
+        protected void close() {
+            if (writer != null) {
                 try {
-                    reader.decRef();
+                    writer.close();
                 }
-                catch (IOException e) {
-                    throw new RuntimeException( e );
+                catch (Throwable e) {
+                    try {
+                        if (IndexWriter.isLocked( directory )) {
+                            IndexWriter.unlock( directory );
+                        }
+                    }
+                    catch (Throwable e2) {
+                        log.warn( "Error during close()", e2 );
+                    }
+                }
+                finally {
+                    writer = null;
                 }
             }
-            @Override
-            public void lockInterruptibly() throws InterruptedException {
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public boolean tryLock() {
-                return reader.tryIncRef();
-            }
-            @Override
-            public boolean tryLock( long time, TimeUnit unit ) throws InterruptedException {
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public Condition newCondition() {
-                throw new RuntimeException( "not yet implemented." );
-            }
-        };
-        
-        public IndexReaderReadWriteLock( IndexReader indexReader ) {
-            this.reader = indexReader;
-        }
-
-        @Override
-        public Lock readLock() {
-            return readLock;
-        }
-
-        @Override
-        public Lock writeLock() {
-            return writeLock;
         }
     }
     

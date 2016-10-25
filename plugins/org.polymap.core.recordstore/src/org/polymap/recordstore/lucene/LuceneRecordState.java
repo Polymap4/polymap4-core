@@ -119,27 +119,22 @@ public final class LuceneRecordState
                     
                     sharedDoc = false;
                     
-                    try {
-                        store.lock.readLock().lock();
-                        TermDocs termDocs = store.reader.termDocs( new Term( LuceneRecordState.ID_FIELD, (String)id() ) );
-                        try {
+                    store.readLocked( () -> {
+                        try (
+                            TermDocs termDocs = store.reader.termDocs( new Term( LuceneRecordState.ID_FIELD, (String)id() ) );
+                        ){
                             if (termDocs.next()) {
                                 doc = store.reader.document( termDocs.doc() );
+                                return null;
                             }
                             else {
                                 throw new RuntimeException( "Unable to copy Lucene document on write." );
                             }
                         }
-                        finally {
-                            termDocs.close();
+                        catch (Exception e) {
+                            throw new RuntimeException( "Unable to copy Lucene document on write." );                            
                         }
-                    }
-                    catch (Exception e) {
-                        throw new RuntimeException( "Unable to copy Lucene document on write." );
-                    }
-                    finally {
-                        store.lock.readLock().unlock();
-                    }
+                    });
                 }
             }
         }
