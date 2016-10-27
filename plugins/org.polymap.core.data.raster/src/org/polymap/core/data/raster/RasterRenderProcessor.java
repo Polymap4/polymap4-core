@@ -242,8 +242,8 @@ public class RasterRenderProcessor
             sct[i] = sf.createSelectedChannelType( String.valueOf( channelNum[i] ), ce );
         }
         RasterSymbolizer sym = sf.getDefaultRasterSymbolizer();
-        ChannelSelection sel = sf.channelSelection( sct[RED], sct[GREEN], sct[BLUE] );
-        sym.setChannelSelection( sel );
+//        ChannelSelection sel = sf.channelSelection( sct[RED], sct[GREEN], sct[BLUE] );
+//        sym.setChannelSelection( sel );
     
         return SLD.wrapSymbolizers( sym );
     }

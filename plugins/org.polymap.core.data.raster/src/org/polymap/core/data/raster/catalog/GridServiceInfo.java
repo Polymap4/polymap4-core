@@ -18,6 +18,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import java.io.File;
@@ -30,6 +31,8 @@ import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.ResourceInfo;
+import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.ows.ServiceException;
 
 import org.apache.commons.io.FileUtils;
@@ -125,10 +128,27 @@ public class GridServiceInfo
             return isBlank( super.getName() ) ? coverageName : super.getName();
         }
 
-//        @Override
-//        public Optional<String> getDescription() {
-//            return isBlank( super.getDescription() ) ? coverageName : super.getName();
-//        }
+        @Override
+        public Optional<String> getDescription() {
+            return Optional.ofNullable( super.getDescription().orElse( "Coverage" ) );
+        }
+
+        @Override
+        public ReferencedEnvelope getBounds() {
+            ReferencedEnvelope result = super.getBounds();
+            if (result == null) {
+                result = new ReferencedEnvelope();
+            }
+            if (result.isNull()) {
+                GeneralEnvelope envelope = grid.getOriginalEnvelope( coverageName );
+                result = new ReferencedEnvelope( envelope );
+            }
+            else if (result.isNull()) {
+                GeneralEnvelope envelope = grid.getOriginalEnvelope();
+                result = new ReferencedEnvelope( envelope );
+            }
+            return result;
+        }
     }
 
     
@@ -144,6 +164,8 @@ public class GridServiceInfo
         System.out.println( "reader: " + Arrays.asList( reader.getGridCoverageNames() ) );
         System.out.println( "reader: " + reader.getFormat().getName() );
         System.out.println( "reader: " + reader.getCoordinateReferenceSystem() );
+        System.out.println( "reader: " + reader.getOriginalEnvelope() );
+        System.out.println( "reader: " + reader.getOriginalGridRange() );
         
         for (String name : reader.getGridCoverageNames()) {
             ResourceInfo info = reader.getInfo( name );

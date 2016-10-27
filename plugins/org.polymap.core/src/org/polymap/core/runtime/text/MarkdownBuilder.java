@@ -56,7 +56,7 @@ public class MarkdownBuilder
     
     @FunctionalInterface
     public interface SubtreeBuilder {
-        public void build();
+        public void build( MarkdownBuilder builder );
     }
 
 
@@ -118,20 +118,20 @@ public class MarkdownBuilder
     
     public MarkdownBuilder paragraph( SubtreeBuilder builder ) {
         newline( 2 );
-        builder.build();
+        builder.build( this );
         return this;
     }
     
     public MarkdownBuilder bold( SubtreeBuilder builder ) {
         add( "**" );
-        builder.build();
+        builder.build( this );
         add( "**" );
         return this;
     }
     
     public MarkdownBuilder em( SubtreeBuilder builder ) {
         add( "*" );
-        builder.build();
+        builder.build( this );
         add( "*" );
         return this;
     }
