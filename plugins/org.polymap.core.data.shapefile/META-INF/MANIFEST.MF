@@ -5,18 +5,8 @@ Bundle-SymbolicName: org.polymap.core.data.shapefile;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ClassPath: .,
- lib/gt-shapefile-16-RC1.jar
-Export-Package: org.geotools.data.shapefile,
- org.geotools.data.shapefile.dbf,
- org.geotools.data.shapefile.fid,
- org.geotools.data.shapefile.files,
- org.geotools.data.shapefile.index,
- org.geotools.data.shapefile.index.quadtree,
- org.geotools.data.shapefile.index.quadtree.fs,
- org.geotools.data.shapefile.shp,
- org.geotools.data.shapefile.shp.xml,
- org.polymap.core.data.shapefile.catalog
+Bundle-ClassPath: .
+Export-Package: org.polymap.core.data.shapefile.catalog
 Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.data;bundle-version="4.0.0",
  org.polymap.core.catalog;bundle-version="4.0.0"

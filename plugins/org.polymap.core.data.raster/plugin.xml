@@ -4,10 +4,7 @@
    <extension
          point="org.polymap.core.catalog.resolverProviders">
       <resolver
-            class="org.polymap.core.data.raster.catalog.TiffServiceResolverProvider">
-      </resolver>
-      <resolver
-            class="org.polymap.core.data.raster.catalog.ArcGridServiceResolverProvider">
+            class="org.polymap.core.data.raster.catalog.GridServiceResolverProvider">
       </resolver>
    </extension>
    <extension
