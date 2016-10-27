@@ -17,8 +17,7 @@ package org.polymap.core.data.raster.catalog;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.geotools.gce.geotiff.GeoTiffReader;
-
+import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
@@ -30,10 +29,10 @@ import org.polymap.core.catalog.resolve.IResolvableInfo;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class TiffServiceResolver
+public class GridServiceResolver
         implements IMetadataResourceResolver {
 
-    public static final String      CONNECTION_TYPE = "GeoTiff";
+    public static final String      CONNECTION_TYPE = "Grid";
     
     
     @Override
@@ -46,13 +45,13 @@ public class TiffServiceResolver
     
     @Override
     public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception {
-        return ArcGridServiceInfo.of( metadata, metadata.getConnectionParams() );
+        return GridServiceInfo.of( metadata, metadata.getConnectionParams() );
     }
 
     
     @Override
     public Map<String,String> createParams( Object service ) {
-        assert service instanceof GeoTiffReader : "Service has to be an instanceof GeoTiffReader.";
+        assert service instanceof GridCoverage2DReader : "Service has to be an instanceof GridCoverage2DReader.";
         
         Map<String,String> result = new HashMap();
         result.put( CONNECTION_PARAM_TYPE, CONNECTION_TYPE );

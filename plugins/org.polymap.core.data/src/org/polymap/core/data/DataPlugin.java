@@ -14,6 +14,9 @@
  */
 package org.polymap.core.data;
 
+import java.io.File;
+
+import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.FilterFactory2;
 import org.osgi.framework.BundleContext;
@@ -73,6 +76,12 @@ public class DataPlugin
         // does not seem to break things if not available
         log.info( "Using Marlin render engine if avalable." );
         System.setProperty( "sun.java2d.renderer", "org.marlin.pisces.PiscesRenderingEngine" );
+        
+        // XXX seems that some imageio classes (?) have to be initialized by the data plugin;
+        // once loaded its possible to use/access from other plugins
+        File f = new File( "" ); //"/home/falko/Data/tiff/bluemarble.tif" );
+        GridFormatFinder.findFormat( f );
+        log.info( "Grid reader classes initialized." );
     }
 
 

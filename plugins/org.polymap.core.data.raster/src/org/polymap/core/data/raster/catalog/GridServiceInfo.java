@@ -14,15 +14,34 @@
  */
 package org.polymap.core.data.raster.catalog;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
+import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
+import org.geotools.coverage.grid.io.GridFormatFinder;
+import org.geotools.data.ResourceInfo;
+import org.geotools.ows.ServiceException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
 import org.polymap.core.catalog.resolve.DefaultResourceInfo;
 import org.polymap.core.catalog.resolve.DefaultServiceInfo;
+import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResourceInfo;
 
 /**
@@ -30,9 +49,32 @@ import org.polymap.core.catalog.resolve.IResourceInfo;
  *
  * @author Falko Bräutigam
  */
-public abstract class GridServiceInfo
+public class GridServiceInfo
         extends DefaultServiceInfo {
 
+    public static GridServiceInfo of( IMetadata metadata, Map<String,String> params ) 
+            throws ServiceException, MalformedURLException, IOException {
+        
+        String url = params.get( IMetadataResourceResolver.CONNECTION_PARAM_URL );
+        GridCoverage2DReader grid = open( FileUtils.toFile( new URL( url ) ) );
+        return new GridServiceInfo( metadata, grid );
+    }
+
+    /**
+     * 
+     *
+     * @param f
+     * @return Newly created reader.
+     */
+    public static AbstractGridCoverage2DReader open( File f ) {
+        AbstractGridFormat format = GridFormatFinder.findFormat( f );
+        AbstractGridCoverage2DReader reader = format.getReader( f );
+        return reader;
+    }
+    
+    
+    // instance *******************************************
+    
     private GridCoverage2DReader        grid;
 
 
@@ -40,32 +82,77 @@ public abstract class GridServiceInfo
         super( metadata, grid.getInfo() );
         this.grid = grid;
     }
-
     
+    @Override
+    public String getTitle() {
+        return StringUtils.isBlank( super.getTitle() )
+                ? FilenameUtils.getBaseName( delegate.getSource().toString() )
+                : super.getTitle();
+    }
+
     @Override
     public <T> T createService( IProgressMonitor monitor ) throws Exception {
         return (T)grid;
     }
 
-
     @Override
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) throws Exception {
         return Arrays.stream( grid.getGridCoverageNames() )
-                .map( name -> new DefaultResourceInfo( GridServiceInfo.this, grid.getInfo( name ) ) )
+                .map( name -> new GridResourceInfo( name ) )
                 .collect( Collectors.toList() );
+    }
+    
+    /**
+     * 
+     */
+    protected class GridResourceInfo
+            extends DefaultResourceInfo {
+
+        private String          coverageName;
+
+        public GridResourceInfo( String coverageName ) {
+            super( GridServiceInfo.this, grid.getInfo( coverageName ) );
+            this.coverageName = coverageName;
+        }
+
+        @Override
+        public String getTitle() {
+            return isBlank( super.getTitle() ) ? getName() : super.getTitle();
+        }
+
+        @Override
+        public String getName() {
+            return isBlank( super.getName() ) ? coverageName : super.getName();
+        }
+
+//        @Override
+//        public Optional<String> getDescription() {
+//            return isBlank( super.getDescription() ) ? coverageName : super.getName();
+//        }
     }
 
     
-//    /**
-//     * 
-//     */
-//    class ArcGridResourceInfo
-//            extends DefaultResourceInfo {
-//
-//        public ArcGridResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate ) {
-//            super( serviceInfo, delegate );
-//        }
-//        
-//    }
+    // test ***********************************************
+    
+    public static void main( String[] args ) {
+        File f = new File( "/home/falko/Data/tiff/bluemarble.tif" );
+
+        AbstractGridCoverage2DReader reader = open( f );
+        System.out.println( "reader: " + reader );
+        System.out.println( "reader: " + reader.getInfo().getSource() );
+        System.out.println( "reader: " + reader.getInfo().getTitle() );
+        System.out.println( "reader: " + Arrays.asList( reader.getGridCoverageNames() ) );
+        System.out.println( "reader: " + reader.getFormat().getName() );
+        System.out.println( "reader: " + reader.getCoordinateReferenceSystem() );
+        
+        for (String name : reader.getGridCoverageNames()) {
+            ResourceInfo info = reader.getInfo( name );
+            System.out.println( "coverage: " + info.getTitle() );
+            System.out.println( "coverage: " + info.getName() );
+            System.out.println( "coverage: " + info.getDescription() );
+            System.out.println( "coverage: " + info.getBounds() );
+        }
+        reader.dispose();
+    }
     
 }

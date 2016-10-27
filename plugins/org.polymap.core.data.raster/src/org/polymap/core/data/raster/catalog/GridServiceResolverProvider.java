@@ -22,12 +22,12 @@ import org.polymap.core.catalog.resolve.ResourceResolverProvider;
  *
  * @author Falko Bräutigam
  */
-public class TiffServiceResolverProvider
+public class GridServiceResolverProvider
         implements ResourceResolverProvider {
 
     @Override
     public IMetadataResourceResolver get() {
-        return new TiffServiceResolver();
+        return new GridServiceResolver();
     }
     
 }
