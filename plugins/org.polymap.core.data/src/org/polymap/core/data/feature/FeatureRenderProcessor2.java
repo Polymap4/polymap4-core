@@ -120,19 +120,18 @@ public class FeatureRenderProcessor2
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         long start = System.currentTimeMillis();
 
-        // MapContent
-        log.debug( "Creating new MapContext... " );
-        MapContent mapContent = new MapContent();
-        mapContent.getViewport().setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
-        mapContent.addLayer( new FeatureLayer( fs.get(), style.get() ) );
-
-        // Render
+        // result
         BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
         //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
 
+        MapContent mapContent = new MapContent();
         try {
+            // MapContent
+            mapContent.getViewport().setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
+            mapContent.addLayer( new FeatureLayer( fs.get(), style.get() ) );
+
             StreamingRenderer renderer = new NoThreadStreamingRenderer();
 
             // error handler
