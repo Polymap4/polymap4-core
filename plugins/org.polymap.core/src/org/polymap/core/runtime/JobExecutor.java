@@ -23,9 +23,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
@@ -37,7 +34,22 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public class JobExecutor
         implements ExecutorService {
 
-    private static Log log = LogFactory.getLog( JobExecutor.class );
+    /** The one and only instance. */
+    private static final JobExecutor instance = new JobExecutor();
+
+    /**
+     * This method returnes the {@link #instance}.
+     */
+    public static JobExecutor instance() {
+        return instance;
+    }
+    
+
+    // instance *******************************************
+    
+    protected JobExecutor() {
+    }
+
 
     @Override
     public <T> Future<T> submit( final Callable<T> task ) {
