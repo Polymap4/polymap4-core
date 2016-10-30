@@ -38,6 +38,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.filter.function.EnvFunction;
 import org.geotools.map.GridReaderLayer;
 import org.geotools.map.MapContent;
 import org.geotools.renderer.RenderListener;
@@ -106,15 +107,16 @@ public class RasterRenderProcessor
 
     @Override
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
-        // MapContent
-        MapContent mapContent = new MapContent();
-        mapContent.getViewport().setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
-        mapContent.addLayer( new GridReaderLayer( reader, style ) );
-    
-        // Render
+        // result
         BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), TYPE_INT_ARGB );
         final Graphics2D g = result.createGraphics();
+
+        MapContent mapContent = new MapContent();
         try {
+            mapContent.getViewport().setCoordinateReferenceSystem( request.getBoundingBox().getCoordinateReferenceSystem() );
+            mapContent.addLayer( new GridReaderLayer( reader, style ) );
+        
+            // renderer
             StreamingRenderer renderer = new StreamingRenderer();
     
             // error handler
@@ -147,6 +149,8 @@ public class RasterRenderProcessor
             drawErrorMsg( g, null, e );
         }
         finally {
+            mapContent.dispose();
+            EnvFunction.clearLocalValues();
             if (g != null) { g.dispose(); }
         }
         context.sendResponse( new ImageResponse( result ) );

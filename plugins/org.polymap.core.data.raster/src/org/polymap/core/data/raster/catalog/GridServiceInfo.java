@@ -46,6 +46,7 @@ import org.polymap.core.catalog.resolve.DefaultResourceInfo;
 import org.polymap.core.catalog.resolve.DefaultServiceInfo;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResourceInfo;
+import org.polymap.core.runtime.Mutex;
 
 /**
  * 
@@ -56,7 +57,7 @@ public class GridServiceInfo
         extends DefaultServiceInfo {
 
     public static GridServiceInfo of( IMetadata metadata, Map<String,String> params ) 
-            throws ServiceException, MalformedURLException, IOException {
+            throws ServiceException, MalformedURLException, IOException, InterruptedException {
         
         String url = params.get( IMetadataResourceResolver.CONNECTION_PARAM_URL );
         GridCoverage2DReader grid = open( FileUtils.toFile( new URL( url ) ) );
@@ -68,12 +69,21 @@ public class GridServiceInfo
      *
      * @param f
      * @return Newly created reader.
+     * @throws InterruptedException 
      */
-    public static AbstractGridCoverage2DReader open( File f ) {
-        AbstractGridFormat format = GridFormatFinder.findFormat( f );
-        AbstractGridCoverage2DReader reader = format.getReader( f );
-        return reader;
+    public static AbstractGridCoverage2DReader open( File f ) throws InterruptedException {
+        return initLock.lockedInterruptibly( () -> {
+            AbstractGridFormat format = GridFormatFinder.findFormat( f );
+            AbstractGridCoverage2DReader reader = format.getReader( f );
+            return reader; 
+        });
     }
+    
+    /**
+     * Initializing several readers (for different services/files) in concurrent
+     * threads results in deadlocks.
+     */
+    protected static final Mutex        initLock = new Mutex();
     
     
     // instance *******************************************
@@ -154,7 +164,7 @@ public class GridServiceInfo
     
     // test ***********************************************
     
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws InterruptedException {
         File f = new File( "/home/falko/Data/tiff/bluemarble.tif" );
 
         AbstractGridCoverage2DReader reader = open( f );
