@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012-2013, Falko Bräutigam. All rights reserved.
+ * Copyright 2012-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,18 +16,23 @@ package org.polymap.core.runtime.event;
 
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import java.lang.ref.WeakReference;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.MapMaker;
+
 import org.polymap.core.runtime.Timer;
-import org.polymap.core.runtime.cache.Cache;
-import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.runtime.session.SessionContext;
 import org.polymap.core.ui.UIUtils;
 
@@ -42,7 +47,9 @@ import org.polymap.core.ui.UIUtils;
  */
 public class EventManager {
 
-    private static Log log = LogFactory.getLog( EventManager.class );
+    private static final Log log = LogFactory.getLog( EventManager.class );
+    
+    private static final Optional<AtomicInteger> ONE = Optional.of( new AtomicInteger( 1 ) );
 
     /**
      * The session that the currently dispatched event is published from. The
@@ -75,7 +82,7 @@ public class EventManager {
     
     // instance *******************************************
     
-    private DispatcherThread                        dispatcher = new DispatcherThread();
+    private DispatcherThread            dispatcher = new DispatcherThread();
     
     /**
      * XXX check https://lmax-exchange.github.io/disruptor/
@@ -83,11 +90,15 @@ public class EventManager {
      */
     private CopyOnWriteArraySet<AnnotatedEventListener> listeners = new CopyOnWriteArraySet();
     
-    private volatile int                            statCount;
+    private volatile int                statCount;
     
-    private Timer                                   statTimer;
+    private Timer                       statTimer;
     
-    private Cache<Integer,Boolean>                  callbackActivatedThreads = CacheConfig.defaults().initSize( 32 ).createCache();
+    /** 
+     * The threads with pending events and {@link UIUtils#activateCallback(String)}. Entries
+     * are never removed, we rely on {@link WeakReference}. 
+     */
+    private Map<Thread,Optional<AtomicInteger>> uiThreads = new MapMaker().weakKeys().makeMap();
 
 
     protected EventManager() {
@@ -147,27 +158,58 @@ public class EventManager {
     protected SessionEventDispatcher doPublish( EventObject ev, Object... omitHandlers ) {
         assert ev != null;
         
-        // XXX #34: Delayed event UI update (http://github.com/Polymap4/polymap4-rhei/issues/issue/34)
-        // this is an easy hack that always activates UI callback for every Display thread;
-        // it is never deactivated;
-        Integer threadId = Thread.currentThread().hashCode();
-        callbackActivatedThreads.get( threadId, key -> {
-            try {
-                UIUtils.activateCallback( key.toString() );
-                log.info( "UICallback activated!" );
-                return true;
-            }
-            catch (Throwable e) {
-                return false;
-            }
-        });
+        Thread thread = Thread.currentThread();
+        activateUICallback( thread );
         
         Iterator<AnnotatedEventListener> snapshot = listeners.iterator();
-        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers );
+        SessionEventDispatcher d = new SessionEventDispatcher( ev, snapshot, omitHandlers, thread );
         dispatcher.dispatch( d );
         return d;
     }
 
+    
+    /**
+     *
+     */
+    protected void activateUICallback( Thread thread ) {
+        // commented out in favour of a simple timeout handled by BatikApplication 
+        
+//        // activate UI callback if not already done for this thread;
+//        // do it only if we are in UIThread; that is, we expect UI updates happens just for
+//        // events that are originated from UIThread; 
+//        Optional<AtomicInteger> callbackCount = uiThreads.computeIfAbsent( thread, key -> {
+//            return Optional.ofNullable( Display.getCurrent() != null ? new AtomicInteger( 0 ) : null );
+//        });
+//        callbackCount.ifPresent( count -> {
+//            if (count.getAndIncrement() == 0) {
+//                UIUtils.activateCallback( "EventManager" );
+//                log.warn( "ACTIVATED (actually): " + count.get() );
+//            }
+//            else {
+//                log.warn( "COUNT: " + count.get() );
+//            }
+//        });
+    }
+
+    
+    /**
+     * Check/deactivate UI callback.
+     */
+    protected void deactivateUICallback( Thread publishThread, SessionContext publishSession ) {
+//        uiThreads.get( publishThread ).ifPresent( count -> {
+//            // XXX entries are not removed as this would cause race cond between check
+//            // of the counter and the remove() call; I tried Map.remove(key,value) but no luck 
+//            if (count.decrementAndGet() == 0) {
+//                publishSession.execute( () -> {
+//                    UIThreadExecutor.async( () -> {
+//                        UIUtils.deactivateCallback( "EventManager" );
+//                        log.warn( "DEACTIVATED (actually): " + count.get() );
+//                    });
+//                });
+//                log.warn( "DEACTIVATED: " + count.get() + ", threads=" + uiThreads.size() );
+//            }
+//        });
+    }
     
     /**
      * Registeres the given {@link EventHandler annotated} handler as event listener.
@@ -246,15 +288,19 @@ public class EventManager {
         private EventObject         event;
         
         private volatile boolean    done;
+
+        private Thread              publishThread;
         
         
-        SessionEventDispatcher( EventObject event, Iterator<? extends EventListener> snapshot, Object[] omitHandlers ) {
+        SessionEventDispatcher( EventObject event, Iterator<? extends EventListener> snapshot, 
+                Object[] omitHandlers, Thread thread ) {
+//          assert publishSession != null;
+            assert omitHandlers != null;
             this.event = event;
             this.snapshot = snapshot;
             this.omitHandlers = omitHandlers;
             this.publishSession = SessionContext.current();
-//            assert publishSession != null;
-            assert omitHandlers != null;
+            this.publishThread = thread;
         }
     
         
@@ -264,10 +310,10 @@ public class EventManager {
                 assert threadPublishSession == null;
                 threadPublishSession = publishSession;
 
+                // dispatch event
                 while (snapshot.hasNext()) {
                     try {
                         EventListener listener = snapshot.next();
-                        
                         if (omitHandlers.length == 0 || !ArrayUtils.contains( omitHandlers, listener )) {
                             listener.handleEvent( event );
                         }
@@ -276,11 +322,13 @@ public class EventManager {
                         log.warn( "Error during event dispatch: " + e, e );
                     }
                 }
+                //
+                deactivateUICallback( publishThread, publishSession );
             } 
             finally {
                 threadPublishSession = null;
 
-                synchronized (this) {
+                synchronized (this) {  // XXX better sync method???
                     done = true;
                     notifyAll();
                 }
@@ -293,23 +341,23 @@ public class EventManager {
         }
         
         
-        @SuppressWarnings("hiding")
-        protected void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
-
-//            // statistics
-//            if (log.isDebugEnabled()) {
-//                statCount++;
-//                if (statTimer == null) {
-//                    statTimer = new Timer();
-//                }
-//                long elapsed = statTimer.elapsedTime();
-//                if (elapsed > 1000) {
-//                    log.debug( "********************************************** STATISTICS: " + statCount + " handlers/events in " + elapsed + "ms" );
-//                    statCount = 0;
-//                    statTimer = null;
-//                }
-//            }
-        }
+//        @SuppressWarnings("hiding")
+//        protected void dispatchEvent( Object listener, Object listenerObject, int action, Object event ) {
+//
+////            // statistics
+////            if (log.isDebugEnabled()) {
+////                statCount++;
+////                if (statTimer == null) {
+////                    statTimer = new Timer();
+////                }
+////                long elapsed = statTimer.elapsedTime();
+////                if (elapsed > 1000) {
+////                    log.debug( "********************************************** STATISTICS: " + statCount + " handlers/events in " + elapsed + "ms" );
+////                    statCount = 0;
+////                    statTimer = null;
+////                }
+////            }
+//        }
     }
 
     
