@@ -63,7 +63,7 @@ public class P4LayerInfo
         setResource( resInfo );
         setName( GeoServerUtils.simpleName( layer.label.get() ) );
         setTitle( layer.label.get() );
-        resInfo.setAbstract( layer.description.get() );
+        resInfo.setAbstract( layer.description.opt().orElse( "" ) );
         resInfo.setKeywords( layer.keywords.stream().map( kw -> new Keyword( kw ) ).collect( toList() ) );
 
         setEnabled( true );

@@ -16,6 +16,7 @@ package org.polymap.recordstore.lucene;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -81,8 +82,10 @@ public class LuceneRecordQuery
     public ResultSet execute() throws IOException {
         Timer timer = new Timer();
         
-        try {
-            store.lock.readLock().lock();
+        // Lucene does not have a firstResult feature
+        int requestedResults = getMaxResults() + getFirstResult();
+                
+        return store.readLocked( () -> {
             String sortKey = getSortKey();
             if (sortKey != null) {
                 int sortType = SortField.STRING;
@@ -106,21 +109,27 @@ public class LuceneRecordQuery
                     sortKey = sortKey + DateValueCoder.SUFFIX;
                 }
                 Sort sort = new Sort( new SortField( sortKey, sortType, getSortOrder() == DESC ) );
-                TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults(), sort );
-                log.debug( "LUCENE: " + abbreviate( luceneQuery.toString(), 256 ) + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
+                TopDocs topDocs = store.searcher.search( luceneQuery, requestedResults, sort );
+                logResult( topDocs.scoreDocs.length, timer );
                 return new LuceneResultSet( topDocs.scoreDocs );
             }
             else {
-                TopDocs topDocs = store.searcher.search( luceneQuery, getMaxResults() );
-                log.info( "LUCENE: " + abbreviate( luceneQuery.toString(), 256 ) + "  --  result: " + topDocs.scoreDocs.length + " (" + timer.elapsedTime() + "ms)" );
+                TopDocs topDocs = store.searcher.search( luceneQuery, requestedResults );
+                logResult( topDocs.scoreDocs.length, timer );
                 return new LuceneResultSet( topDocs.scoreDocs );
             }
-        }
-        finally {
-            store.lock.readLock().unlock();
-        }
+        });
     }
 
+    
+    protected void logResult( int length, Timer timer ) {
+        log.info( "LUCENE: " 
+                + abbreviate( luceneQuery.toString(), 256 ) 
+                + "  --  results: " + length
+                + " [" + getFirstResult() + "-" + getMaxResults() + "]"
+                + " (" + timer.elapsedTime() + "ms)" );        
+    }
+    
     
     /**
      * 
@@ -137,7 +146,17 @@ public class LuceneRecordQuery
 
         protected LuceneResultSet( ScoreDoc[] scoreDocs ) {
             assert scoreDocs != null;
+
+            // skip getFirstResult(), Lucene does not provide this feature
             this.scoreDocs = scoreDocs;
+            if (getFirstResult() > 0) {
+                if (getFirstResult() >= scoreDocs.length) {
+                    this.scoreDocs = new ScoreDoc[] {};
+                }
+                else {
+                    this.scoreDocs = Arrays.copyOfRange( scoreDocs, getFirstResult(), scoreDocs.length );
+                }
+            }
             
             // build fieldSelector
             final IRecordFieldSelector sel = getFieldSelector();
@@ -161,15 +180,19 @@ public class LuceneRecordQuery
                 throw new IllegalStateException( "LucenResultSet is closed." );
             }
         }
+        
+        @Override
         public void close() {
             scoreDocs = null;
         }
 
+        @Override
         public int count() {
             checkOpen();
             return scoreDocs.length;
         }
 
+        @Override
         public LuceneRecordState get( int index ) throws Exception {
             checkOpen();
             assert index < scoreDocs.length;
@@ -177,11 +200,10 @@ public class LuceneRecordQuery
             return store.get( doc, fieldSelector );
         }
 
+        @Override
         public Iterator<IRecordState> iterator() {
             return new Iterator<IRecordState>() {
-
                 private int         index;
-                
                 @Override
                 public boolean hasNext() {
                     checkOpen();
@@ -209,7 +231,6 @@ public class LuceneRecordQuery
             checkOpen();
             return StreamSupport.stream( spliterator(), false );
         }
-        
     }
 
     
@@ -219,6 +240,7 @@ public class LuceneRecordQuery
     protected class IdFieldSelector
             implements FieldSelector {
 
+        @Override
         public FieldSelectorResult accept( String fieldName ) {
             return fieldName == LuceneRecordState.ID_FIELD || fieldName.equals( LuceneRecordState.ID_FIELD )
                     ? FieldSelectorResult.LOAD

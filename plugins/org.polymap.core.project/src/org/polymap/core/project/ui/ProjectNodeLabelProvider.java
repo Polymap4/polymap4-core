@@ -14,6 +14,7 @@
  */
 package org.polymap.core.project.ui;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,6 +25,10 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 
 import org.polymap.core.project.ProjectNode;
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.ConfigurationFactory;
+import org.polymap.core.runtime.config.DefaultInt;
+import org.polymap.core.runtime.config.Mandatory;
 
 /**
  * 
@@ -35,7 +40,24 @@ public class ProjectNodeLabelProvider
 
     private static Log log = LogFactory.getLog( ProjectNodeLabelProvider.class );
     
+    public enum PropType {
+        Label, Description
+    }
     
+    @Mandatory
+    public Config2<ProjectNodeLabelProvider,PropType>   propType;
+    
+    @Mandatory
+    @DefaultInt( -1 )
+    public Config2<ProjectNodeLabelProvider,Integer>    abbreviate;
+    
+    
+    public ProjectNodeLabelProvider( PropType propType ) {
+        ConfigurationFactory.inject( this );
+        this.propType.set( propType );
+    }
+
+
     @Override
     public void update( ViewerCell cell ) {
         Object elm = cell.getElement();
@@ -46,7 +68,17 @@ public class ProjectNodeLabelProvider
     @Override
     public String getText( Object elm ) {
         if (elm instanceof ProjectNode) {
-            return ((ProjectNode)elm).label.get();
+            if (propType.get() == PropType.Label) {
+                String result = ((ProjectNode)elm).label.get();
+                return abbreviate( result );
+            }
+            else if (propType.get() == PropType.Description) {
+                String result = ((ProjectNode)elm).description.opt().orElse( "..." );
+                return abbreviate( result );
+            }
+            else {
+                throw new RuntimeException( "Unknown: " + propType );
+            }
         }
         else {
             log.warn( "Element is not instanceof Labeled: " + elm );
@@ -54,6 +86,9 @@ public class ProjectNodeLabelProvider
         }
     }
 
+    protected String abbreviate( String s ) {
+        return abbreviate.get() > 0 ? StringUtils.abbreviate( s, abbreviate.get() ) : s;
+    }
 
     @Override
     public Image getImage( Object elm ) {

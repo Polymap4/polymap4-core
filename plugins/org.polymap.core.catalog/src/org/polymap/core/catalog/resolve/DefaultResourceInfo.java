@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.geotools.data.ResourceInfo;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,7 +54,7 @@ public class DefaultResourceInfo
 
     @Override
     public Optional<String> getDescription() {
-        return Optional.ofNullable(  delegate.getDescription() );
+        return Optional.ofNullable( delegate.getDescription() );
     }
 
     @Override
@@ -61,4 +62,9 @@ public class DefaultResourceInfo
         return delegate.getName();
     }
 
+    @Override
+    public ReferencedEnvelope getBounds() {
+        return delegate.getBounds();
+    }
+    
 }

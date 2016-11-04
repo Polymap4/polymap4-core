@@ -14,12 +14,16 @@
  */
 package org.polymap.core.data.wms.catalog;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.leftPad;
+
 import java.util.Map;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.geotools.data.ows.Layer;
 import org.geotools.data.wms.WebMapServer;
 import org.geotools.ows.ServiceException;
 
@@ -72,9 +76,20 @@ public class WmsServiceInfo
 
     @Override
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) {
+        printLayer( wms.getCapabilities().getLayer(), 0 );
+        
         return FluentIterable.from( wms.getCapabilities().getLayerList() )
                 .skip( 1 )  // first entry represents the service itself
-                .transform( layer -> new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ) ) );
+                .transform( layer -> (IResourceInfo)new WmsResourceInfo( WmsServiceInfo.this, wms.getInfo( layer ), layer ) )
+                .filter( resInfo -> !isEmpty( resInfo.getName() ) );
+    }
+    
+    
+    protected void printLayer( Layer l, int level  ) {
+        log.info( leftPad( "", level*4 ) + "layer: " + l.getName() + "/" + l.getTitle() );
+        for (Layer child : l.getChildren()) {
+            printLayer( child, level + 1 );
+        }
     }
     
 }

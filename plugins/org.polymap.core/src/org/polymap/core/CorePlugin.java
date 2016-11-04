@@ -145,8 +145,8 @@ public class CorePlugin
         log.debug( "start..." );
         plugin = this;
         
-        System.setProperty( "http.agent", "Polymap3 (http://polymap.org/polymap3/)" );
-        System.setProperty( "https.agent", "Polymap3 (http://polymap.org/polymap3/)" );
+        System.setProperty( "http.agent", "Polymap4 (https://github.com/Polymap4)" );
+        System.setProperty( "https.agent", "Polymap4 (https://github.com/Polymap4)" );
 
         // RAP session context
         this.rapSessionContextProvider = new RapSessionContextProvider();

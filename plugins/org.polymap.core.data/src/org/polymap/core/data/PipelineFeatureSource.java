@@ -19,10 +19,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Throwables;
 
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
@@ -53,6 +57,8 @@ import org.geotools.util.SimpleInternationalString;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
+import org.polymap.core.data.feature.GetFeaturesBoundsRequest;
+import org.polymap.core.data.feature.GetFeaturesBoundsResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
 import org.polymap.core.data.feature.GetFeaturesResponse;
 import org.polymap.core.data.feature.GetFeaturesSizeRequest;
@@ -123,26 +129,36 @@ public class PipelineFeatureSource
 
     @Override
     public ReferencedEnvelope getBounds( Query query ) throws IOException {
-        // XXX optimize getBounds via dedicated request
-        log.info( "XXX: getBounds: iterating over collection!" );
-        ReferencedEnvelope result = new ReferencedEnvelope();
-        FeatureIterator<SimpleFeature> it = getFeatures( query ).features();
         try {
-            while (it.hasNext()) {
-                SimpleFeature feature = it.next();
-                result.include( feature.getBounds() );
-            }
+            GetFeaturesBoundsRequest request = new GetFeaturesBoundsRequest( query );
+            AtomicReference<ReferencedEnvelope> result = new AtomicReference();
+            createExecutor().execute( pipeline, request, (GetFeaturesBoundsResponse r) -> {
+                result.set( r.getBounds() );
+            });
+            return result.get();
         }
-        finally {
-            it.close();
+        catch (Exception e) {
+            Throwables.propagateIfInstanceOf( e, IOException.class );
+            throw Throwables.propagate( e );
         }
-        return result;
+        
+//        // XXX optimize getBounds via dedicated request
+//        log.info( "XXX: getBounds: iterating over collection!" );
+//        ReferencedEnvelope result = new ReferencedEnvelope();
+//        try (
+//            FeatureIterator<SimpleFeature> it = getFeatures( query ).features();
+//        ){
+//            while (it.hasNext()) {
+//                SimpleFeature feature = it.next();
+//                result.include( feature.getBounds() );
+//            }
+//        }
+//        return result;
     }
 
 
     @Override
-    public int getCount( Query query )
-            throws IOException {
+    public int getCount( Query query ) throws IOException {
         return getFeaturesSize( query );
     }
 

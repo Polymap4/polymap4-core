@@ -15,10 +15,14 @@
 package org.polymap.core.catalog.resolve;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import com.google.common.base.Throwables;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
+import org.polymap.core.runtime.JobExecutor;
+import org.polymap.core.runtime.UIJob;
 
 /**
  * Creates an {@link IServiceInfo} out of connection params provided by an
@@ -69,6 +73,25 @@ public interface IMetadataResourceResolver {
      */
     public IResolvableInfo resolve( IMetadata metadata, IProgressMonitor monitor ) throws Exception;
     
+    /**
+     * Asynchronously call {@link #resolve(IMetadata, IProgressMonitor)}. 
+     *
+     * @param metadata
+     * @return A new {@link CompletableFuture} that represents the result of
+     *         {@link #resolve(IMetadata, IProgressMonitor)}.
+     */
+    public default CompletableFuture<IResolvableInfo> resolve( IMetadata metadata ) {
+        return CompletableFuture.supplyAsync( () -> {
+            try {
+                IProgressMonitor monitor = UIJob.monitorOfThread();
+                return resolve( metadata, monitor );
+            }
+            catch (Exception e) {
+                throw Throwables.propagate( e );
+            }
+        }, JobExecutor.instance() );
+    }
+
     /**
      * 
      *

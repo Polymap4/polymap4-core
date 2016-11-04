@@ -35,6 +35,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.equinox.security.auth.ILoginContext;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.internal.lifecycle.LifeCycleUtil;
 import org.eclipse.rap.rwt.internal.service.ContextProvider;
 
@@ -193,9 +194,8 @@ public final class Polymap {
 
 
     public Locale getLocale() {
-        // FIXME
-        //return locale.get();
-        return Locale.GERMAN;
+        //return Locale.GERMAN;
+        return RWT.getLocale();
     }
 
 

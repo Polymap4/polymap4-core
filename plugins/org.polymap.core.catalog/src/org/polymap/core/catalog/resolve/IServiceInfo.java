@@ -14,12 +14,18 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.geotools.data.DataStore;
+
+import com.google.common.base.Throwables;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.catalog.IMetadata;
+import org.polymap.core.runtime.JobExecutor;
 import org.polymap.core.runtime.StreamIterable;
+import org.polymap.core.runtime.UIJob;
 
 /**
  * Information about a service which is coupled to an {@link IMetadata} entry.
@@ -45,6 +51,24 @@ public interface IServiceInfo
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) throws Exception;
     
     /**
+     * Asynchronously call {@link #createService(IProgressMonitor)}. 
+     *
+     * @return A new {@link CompletableFuture} that represents the result of
+     *         {@link #createService(IProgressMonitor)}.
+     */
+    public default CompletableFuture<Iterable<IResourceInfo>> getResources() {
+        return CompletableFuture.supplyAsync( () -> {
+            try {
+                IProgressMonitor monitor = UIJob.monitorOfThread();
+                return getResources( monitor );
+            }
+            catch (Exception e) {
+                throw Throwables.propagate( e );
+            }
+        }, JobExecutor.instance() );
+    }
+    
+    /**
      * 
      * <p/>
      * This may <b>block</b> execution until backend service is available and/or
@@ -55,4 +79,22 @@ public interface IServiceInfo
      */
     public <T> T createService( IProgressMonitor monitor ) throws Exception;
     
+    /**
+     * Asynchronously call {@link #createService(IProgressMonitor)}. 
+     *
+     * @return A new {@link CompletableFuture} that represents the result of
+     *         {@link #createService(IProgressMonitor)}.
+     */
+    public default <T> CompletableFuture<T> createService() {
+        return CompletableFuture.supplyAsync( () -> {
+            try {
+                IProgressMonitor monitor = UIJob.monitorOfThread();
+                return createService( monitor );
+            }
+            catch (Exception e) {
+                throw Throwables.propagate( e );
+            }
+        }, JobExecutor.instance() );
+    }
+
 }

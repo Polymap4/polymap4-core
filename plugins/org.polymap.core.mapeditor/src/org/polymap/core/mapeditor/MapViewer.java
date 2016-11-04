@@ -37,7 +37,6 @@ import org.polymap.core.runtime.config.Concern;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.DefaultPropertyConcern;
-import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.rap.openlayers.base.OlEvent;
@@ -85,9 +84,12 @@ public class MapViewer<CL>
     @Concern( PropagateResolutionToViewConcern.class )
     public Config<Float>                resolution;
     
-    /** Setting max extent also sets the {@link CoordinateReferenceSystem} of the map. */
+    /**
+     * Setting max extent also sets the {@link CoordinateReferenceSystem} of the map.
+     * <p/>
+     * <b>XXX</b> Not yet used/propagated to the {@link OlMap}.
+     */
     @Mandatory
-    @Immutable
     public Config<ReferencedEnvelope>   maxExtent;
     
     private Composite                   parent;
@@ -211,6 +213,7 @@ public class MapViewer<CL>
 
         // center
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();
+        log.info( "center: " + center );
         view.center.set( ToOlCoordinate.map( center ) );
         
         // read layers from contentProvider
@@ -344,17 +347,17 @@ public class MapViewer<CL>
     
     
     @Override
-    public void handleEvent( OlEvent event ) {
-        JSONArray extent = event.properties().optJSONArray( "extent" );
+    public void handleEvent( OlEvent ev ) {
+        JSONArray extent = ev.properties().optJSONArray( "extent" );
         if (extent != null) {
             Envelope envelope = new Envelope( extent.getDouble( 0 ), extent.getDouble( 2 ), extent.getDouble( 1 ),
                     extent.getDouble( 3 ) );
-            // bypass concern -> loop
+            // bypass concern, prevent loop
             this.mapExtent.info().setRawValue( envelope );
         }
-        Double resolution = event.properties().optDouble( "resolution" );
-        if (resolution != null) {
-            this.resolution.info().setRawValue( resolution.floatValue() );
+        Double newResolution = ev.properties().optDouble( "resolution" );
+        if (newResolution != null) {
+            this.resolution.info().setRawValue( newResolution.floatValue() );
         }
     }
 

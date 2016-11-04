@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.internal.graphics.ResourceFactory;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -50,9 +51,9 @@ import org.polymap.core.runtime.UIThreadExecutor;
 @SuppressWarnings("restriction")
 public class UIUtils {
 
-    private static Log log = LogFactory.getLog( UIUtils.class );
+    private static final Log log = LogFactory.getLog( UIUtils.class );
     
-    public static boolean       debug = true;
+    //public static boolean       debug = true;
 
     
     public static Color getColor( int r, int g, int b ) {
@@ -70,6 +71,11 @@ public class UIUtils {
 //    public static java.awt.Color awtColor( Color src ) {
 //        return new java.awt.Color( src.getRed(), src.getGreen(), src.getBlue() );
 //    }
+
+
+    public static Color getColor( RGB rgb ) {
+        return getColor( rgb.red, rgb.green, rgb.blue );
+    }
 
 
     /**
@@ -114,7 +120,7 @@ public class UIUtils {
         
         control.setData( RWT.CUSTOM_VARIANT, variant );
         
-        if (debug) {
+        if (log.isDebugEnabled()) {
             setAttribute( control, "variant", variant );
         }
         return control;
@@ -122,7 +128,7 @@ public class UIUtils {
     
     
     public static <T extends Widget> T setTestId( T widget, String value ) {
-        if (debug) {
+        if (log.isDebugEnabled()) {
             setAttribute( widget, "test-id", value );
         }
         return widget;

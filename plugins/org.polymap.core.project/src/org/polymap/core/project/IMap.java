@@ -15,12 +15,18 @@
 package org.polymap.core.project;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.operation.TransformException;
 
 import org.polymap.core.data.util.Geometries;
 
+import org.polymap.model2.BidiAssociationName;
+import org.polymap.model2.Computed;
+import org.polymap.model2.ComputedBidiManyAssocation;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.DefaultValue;
-import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Property;
@@ -42,11 +48,9 @@ public class IMap
 
     public static IMap                  TYPE;
     
-    // XXX make it BidiAssociationConcern
-    @Defaults
+    @Computed( ComputedBidiManyAssocation.class )
+    @BidiAssociationName( "parentMap" )
     public ManyAssociation<ILayer>      layers;
-
-    public ManyAssociation<IMap>        children;
 
     @DefaultValue( "EPSG:3857" )
     public Property<String>             srsCode;
@@ -59,6 +63,7 @@ public class IMap
 
     
     public boolean containsLayer( ILayer search ) {
+        assert search != null;
         return layers.stream()
                 .filter( l -> l.id().equals( search.id() ) )
                 .findAny().isPresent();
@@ -72,6 +77,13 @@ public class IMap
         catch (Exception e) {
             throw new RuntimeException();
         }
+    }
+
+
+    public void setMaxExtent( ReferencedEnvelope extent ) 
+            throws NoSuchAuthorityCodeException, TransformException, FactoryException {
+        ReferencedEnvelope transformed = extent.transform( CRS.decode( srsCode.get() ), true );
+        maxExtent.createValue( EnvelopeComposite.defaults( transformed ) );
     }
 
 }

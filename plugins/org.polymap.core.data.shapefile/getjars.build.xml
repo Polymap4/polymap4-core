@@ -11,7 +11,7 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property name="geotools.version" value="13.2.p4_1" />
+	<property name="geotools.version" value="16-RC1" />
     <available property="already_downloaded" type="dir" file="${lib}" />
 
     <!--
@@ -62,7 +62,12 @@
 			<remoteRepository refid="central.repository" />
             <remoteRepository refid="geotools.repository" />
 
-            <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+		    <!-- 
+		      All GeoTools jars are loaded by org.polymap.core.data. This is easier to maintain
+		      until we have a way to load *just* the needed jars in dependent plugins. 
+		    -->
+
+            <!--dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" /-->
 			
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />

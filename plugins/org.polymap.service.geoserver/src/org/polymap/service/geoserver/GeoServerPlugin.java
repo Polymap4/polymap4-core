@@ -80,11 +80,19 @@ public class GeoServerPlugin
 
     // instance *******************************************
 
-    /** 
-     * The base URL of services. This gets initialized as soon as a {@link HttpService}
-     * is found. This should be overwritten if we are running behind a HTTP proxy. 
+    /**
+     * The base URL of services. This gets initialized as soon as a
+     * {@link HttpService} is found. The default setting should be overwritten if we
+     * are running behind a HTTP proxy. Within mapzone this is configured by
+     * ArenaConfig.
      */
     public Config<String>               baseUrl;
+    
+    /**
+     * The base name of services. Within mapzone this is configured by
+     * ArenaConfig.
+     */
+    public Config<String>               baseName;
     
     private File                        cacheDir;
 
@@ -107,9 +115,7 @@ public class GeoServerPlugin
 		cacheDir = new File( CorePlugin.getDataLocation( getBundle() ), "cache" );
         if (cacheDir.exists()) {
             log.info( "Cleaning cache dir: " + cacheDir );
-            // readd if https://github.com/Mapzone/mapzone/issues/62 is fixed
-            //FileUtils.deleteDirectory( cacheDir );
-            //cacheDir.mkdir();
+            FileUtils.cleanDirectory( cacheDir );
         }
         else {
             log.info( "Creating cache dir: " + cacheDir );

@@ -208,10 +208,10 @@ public abstract class SimpleWmsServer
                         log.warn( "Pipeline exception: " + e, e );
                         response.setStatus( 502 );
                     }
-                    if (out.isInitialized()) {
-                        out.get().flush();
-                    }
-                    response.flushBuffer();
+//                    if (out.isInitialized()) {
+//                        out.get().flush();
+//                    }
+//                    response.flushBuffer();
                     return null;
                 }
             });

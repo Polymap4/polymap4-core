@@ -39,10 +39,7 @@ public class DeleteLayerOperation
 
     private static Log log = LogFactory.getLog( DeleteLayerOperation.class );
 
-    /**
-     * The UnitOfWork to work with. This UnitOfWork is committed/rolled back by this
-     * operation.
-     */
+    /** Inbound: The UnitOfWork to work with. */
     @Mandatory
     @Immutable
     public Config2<DeleteLayerOperation,UnitOfWork>    uow;
@@ -64,16 +61,15 @@ public class DeleteLayerOperation
         register( uow.get() );
 
         IMap map = layer.get().parentMap.get();
-        if (!map.layers.remove( layer.get() )) {
-            throw new IllegalStateException( "Unable to remove layer from map." );
-        }
+//        if (!map.layers.remove( layer.get() )) {
+//            throw new IllegalStateException( "Unable to remove layer from map." );
+//        }
+
         // force commit (https://github.com/Polymap4/polymap4-model/issues/6)
         map.label.set( map.label.get() );
 
-        // FIXME remove is not implemented (?)
-        assert !map.layers.contains( layer.get() );
-
         uow.get().removeEntity( layer.get() );
+        assert !map.layers.contains( layer.get() );
         monitor.worked( 1 );
 
         uow.get().commit();

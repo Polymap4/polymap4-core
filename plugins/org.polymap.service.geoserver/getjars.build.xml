@@ -16,8 +16,8 @@
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
     <available property="already_downloaded" type="dir" file="${lib}" />
 
-	<property name="geoserver.version" value="2.7.2" />
-	<property name="geotools.version" value="13.2" />
+	<property name="geoserver.version" value="2.10-RC1" />
+	<property name="geotools.version" value="16-RC1" />
 
     <!--
       Bootstrap maven libs
@@ -85,8 +85,8 @@
             <dependency groupId="org.geoserver" artifactId="gs-ows" version="${geoserver.version}" />
 		    
 		    <!-- XXX falko: bei mir lädt er sonst falsche versionen -->
-            <dependency groupId="org.springframework" artifactId="spring-expression" version="3.1.4.RELEASE" />
-            <dependency groupId="org.springframework" artifactId="spring-web" version="3.1.4.RELEASE" />
+            <!--dependency groupId="org.springframework" artifactId="spring-expression" version="3.1.4.RELEASE" />
+            <dependency groupId="org.springframework" artifactId="spring-web" version="3.1.4.RELEASE" /-->
 
             <dependency groupId="org.geotools" artifactId="gt-render" version="${geotools.version}" scope="provided" />
             <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" scope="provided" />

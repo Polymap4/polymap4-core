@@ -6,6 +6,9 @@
       <resolver
             class="org.polymap.core.data.wms.catalog.WmsServiceResolverProvider">
       </resolver>
+      <resolver
+            class="org.polymap.core.data.wfs.catalog.WfsServiceResolverProvider">
+      </resolver>
    </extension>
 
 </plugin>

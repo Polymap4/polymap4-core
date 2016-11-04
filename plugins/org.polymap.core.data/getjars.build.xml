@@ -11,7 +11,7 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property name="geotools.version" value="13.2" />
+	<property name="geotools.version" value="16-RC1" />
     <available property="already_downloaded" type="dir" file="${lib}" />
     
     <!--
@@ -74,12 +74,28 @@
             <dependency groupId="org.geotools" artifactId="gt-epsg-hsql" version="${geotools.version}" scope="provided" />
             <dependency groupId="org.geotools" artifactId="gt-epsg-wkt" version="${geotools.version}" />
 
-		    <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
-            <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
-
-            <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-render" version="${geotools.version}" />
 		    <dependency groupId="org.geotools" artifactId="gt-brewer" version="${geotools.version}" />
+
+            <!-- 
+              All GeoTools jars are loaded by org.polymap.core.data. This is easier to maintain
+              until we have a way to load *just* the needed jars in dependent plugins. 
+            -->
+		    
+            <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
+	        <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
+	        <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
+
+		    <!-- Shapefile -->
+            <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+		    
+		    <!-- OWS -->
+            <dependency groupId="org.geotools" artifactId="gt-wms" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-wfs-ng" version="${geotools.version}" />
+
+		    <!-- Raster -->
+            <dependency groupId="org.geotools" artifactId="gt-geotiff" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-arcgrid" version="${geotools.version}" />
 		    
 		    <!-- geoserver 2.7.2 seems to depend on 3.2 -->
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3.2" />
@@ -89,10 +105,7 @@
 	</target>
 
 	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
-		<description>Download the jars - used by a manual "clean"</description>
-
-		<!-- setproxy proxyhost="10.0.16.2" proxyport="3128"/-->
-
+		<description>Download the jars and dependencies</description>
 		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
 		<copy todir="${lib}" verbose="true" flatten="true">
 			<fileset refid="dependency.fileset" />

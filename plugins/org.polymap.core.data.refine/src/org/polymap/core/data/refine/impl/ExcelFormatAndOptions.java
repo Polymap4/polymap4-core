@@ -41,7 +41,7 @@ public class ExcelFormatAndOptions
     public static ExcelFormatAndOptions createDefault() {
         try {
             return new ExcelFormatAndOptions( new JSONObject(
-                    "{\"storeBlankRows\":true,\"sheetRecords\":[{\"name\":\"Sheet1\",\"rows\":69,\"selected\":true}],\"includeFileSources\":false,\"skipDataLines\":0,\"headerLines\":1,\"ignoreLines\":-1,\"storeBlankCellsAsNulls\":true}}" ) );
+                    "{\"storeBlankRows\":false,\"sheetRecords\":[{\"name\":\"Sheet1\",\"rows\":69,\"selected\":true}],\"includeFileSources\":false,\"skipDataLines\":0,\"headerLines\":1,\"ignoreLines\":-1,\"storeBlankCellsAsNulls\":true}}" ) );
         }
         catch (Exception e) {
             throw new RuntimeException( e );

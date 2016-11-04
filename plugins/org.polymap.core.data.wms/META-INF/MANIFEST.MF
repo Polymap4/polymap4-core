@@ -1,25 +1,15 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: WMS data and catalog
+Bundle-Name: WMS data and catalog support
 Bundle-SymbolicName: org.polymap.core.data.wms;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-Vendor: polymap.org
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ClassPath: lib/commons-codec-1.2.jar,
- lib/commons-httpclient-3.1.jar,
- lib/gt-render-13.2.jar,
- lib/gt-wms-13.2.jar,
- .
+Bundle-ClassPath: .
 Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.core.data;bundle-version="4.0.0",
  org.polymap.core.catalog;bundle-version="4.0.0",
  org.junit;bundle-version="4.11.0";resolution:=optional
-Export-Package: org.geotools.data.ows,
- org.geotools.data.wms,
- org.geotools.data.wms.request,
- org.geotools.data.wms.response,
- org.geotools.data.wms.xml,
- org.geotools.map,
- org.geotools.ows,
+Export-Package: org.polymap.core.data.wfs.catalog,
  org.polymap.core.data.wms,
  org.polymap.core.data.wms.catalog

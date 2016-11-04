@@ -16,12 +16,12 @@ package org.polymap.service.geoserver.spring;
 
 import java.util.Map;
 
-import org.geoserver.wfs.kvp.BBoxKvpParser;
 import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.map.GetMapKvpRequestReader;
-import org.geotools.util.Version;
-import com.vividsolutions.jts.geom.Envelope;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * TODO: This logic shouldn't be necessary as parsing the BBox parameters in a GetMap
@@ -37,6 +37,8 @@ import com.vividsolutions.jts.geom.Envelope;
 public class BBoxGetMapKvpRequestReader
         extends GetMapKvpRequestReader {
 
+    private static final Log log = LogFactory.getLog( BBoxGetMapKvpRequestReader.class );
+
     public BBoxGetMapKvpRequestReader( WMS wms ) {
         super( wms );
     }
@@ -44,22 +46,24 @@ public class BBoxGetMapKvpRequestReader
     
     @Override
     public GetMapRequest read( Object request, Map kvp, Map rawKvp ) throws Exception {
-        GetMapRequest getMapRequest = super.read( request, kvp, rawKvp );
+        GetMapRequest getMap = super.read( request, kvp, rawKvp );
         
-        String bbox = String.valueOf( kvp.get( "bbox" ) );
-        if (bbox != null) {
-            String version = String.valueOf( kvp.get( "version" ) );
-
-            BBoxKvpParser bboxKvpParser = new BBoxKvpParser();
-            bboxKvpParser.setRequest( kvp.get( "request" ).toString() );
-            bboxKvpParser.setService( kvp.get( "service" ).toString() );
-            bboxKvpParser.setVersion( new Version( version ) );
-
-            Envelope envelope = (Envelope)bboxKvpParser.parse( bbox );
-
-            getMapRequest.setBbox( envelope );
-        }
-        return getMapRequest;
+        log.info( "BBOX: " + rawKvp.get( "bbox" ) );
+        
+//        String bbox = String.valueOf( kvp.get( "bbox" ) );
+//        if (bbox != null) {
+//            String version = String.valueOf( kvp.get( "version" ) );
+//
+//            BBoxKvpParser bboxKvpParser = new BBoxKvpParser();
+//            bboxKvpParser.setRequest( kvp.get( "request" ).toString() );
+//            bboxKvpParser.setService( kvp.get( "service" ).toString() );
+//            bboxKvpParser.setVersion( new Version( version ) );
+//
+//            Envelope envelope = (Envelope)bboxKvpParser.parse( bbox );
+//
+//            getMap.setBbox( envelope );
+//        }
+        return getMap;
     }
     
 }

@@ -18,6 +18,7 @@ import static org.polymap.core.data.util.Geometries.WGS84;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import java.io.IOException;
 
 import org.geoserver.catalog.AttributeTypeInfo;
@@ -29,7 +30,9 @@ import org.geoserver.catalog.impl.FeatureTypeInfoImpl;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureSource;
 import org.geotools.factory.Hints;
+import org.geotools.feature.FeatureTypes;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
 import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -41,9 +44,7 @@ import org.opengis.util.ProgressListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.util.Geometries;
 import org.polymap.core.project.ILayer;
-
 import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
@@ -57,7 +58,11 @@ public class P4FeatureTypeInfo
 
     private static final Log log = LogFactory.getLog( GeoServerLoader.class );
 
-    protected P4DataStoreInfo   dsInfo;
+    protected P4DataStoreInfo           dsInfo;
+    
+    private FeatureSource               fs;
+
+    private SimpleFeatureType           schema;
     
 
     protected P4FeatureTypeInfo( Catalog catalog, P4DataStoreInfo dsInfo ) {
@@ -69,25 +74,27 @@ public class P4FeatureTypeInfo
 
         ILayer layer = dsInfo.getLayer();
 
-        FeatureSource fs = dsInfo.getFeatureSource();
-        SimpleFeatureType schema = (SimpleFeatureType)fs.getSchema();
+        fs = dsInfo.getFeatureSource();
+        schema = (SimpleFeatureType)fs.getSchema();
         
         setNamespace( GeoServerUtils.defaultNsInfo.get() );
         setName( GeoServerUtils.simpleName( layer.label.get() ) );
-        //setNativeName( schema.getTypeName() );
+        setNativeName( GeoServerUtils.simpleName( layer.label.get() ) );
         setTitle( layer.label.get() );
         // description and stuff is set in P4LayerInfo
 
         // bbox
         try {
-            CoordinateReferenceSystem crs = schema.getCoordinateReferenceSystem();
-            ReferencedEnvelope bbox = fs.getBounds();
-            setSRS( Geometries.srs( crs ) );
-            setNativeCRS( crs );
-            setNativeBoundingBox( bbox );
-            setProjectionPolicy( ProjectionPolicy.NONE );
-            ReferencedEnvelope latlong = bbox.transform( WGS84.get(), true );
-            setLatLonBoundingBox( latlong );
+            if (schema.getGeometryDescriptor() != null) {
+                CoordinateReferenceSystem crs = schema.getCoordinateReferenceSystem();
+                ReferencedEnvelope bbox = fs.getBounds();
+                setSRS( CRS.toSRS( crs ) );
+                setNativeCRS( crs );
+                setNativeBoundingBox( bbox );
+                setProjectionPolicy( ProjectionPolicy.NONE );
+                ReferencedEnvelope latlong = bbox.transform( WGS84.get(), true );
+                setLatLonBoundingBox( latlong );
+            }
         }
         catch (Exception e) {
             log.warn( e );
@@ -97,15 +104,30 @@ public class P4FeatureTypeInfo
         List<AttributeTypeInfo> attributeInfos = new ArrayList();
         for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
             AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
+            
             attributeInfo.setFeatureType( this );
-            attributeInfo.setAttribute( attribute );
-            attributeInfo.setId( attribute.toString() );
+            attributeInfo.setName( attribute.getName().getLocalPart() );
+            attributeInfo.setMinOccurs( attribute.getMinOccurs());
+            attributeInfo.setMaxOccurs( attribute.getMaxOccurs());
+            attributeInfo.setNillable( attribute.isNillable());
+            attributeInfo.setBinding( attribute.getType().getBinding());
+            int length = FeatureTypes.getFieldLength( attribute );
+            if (length > 0) {
+                attributeInfo.setLength( length );
+            }
+            attributeInfo.setId( "id-" + attribute.hashCode() );
         }
         setAttributes( attributeInfos );
-//        log.info( "    loaded: " + this );
+        log.info( "    loaded: " + this );
     }
 
     
+    @Override
+    public List<AttributeTypeInfo> attributes() throws IOException {
+        return getAttributes();
+    }
+
+
     protected DataStore ds( ProgressListener monitor ) throws IOException {
         return (DataStore)dsInfo.getDataStore( monitor );
     }

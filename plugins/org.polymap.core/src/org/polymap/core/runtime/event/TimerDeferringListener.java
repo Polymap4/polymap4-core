@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2014, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2014-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -45,7 +45,7 @@ import org.polymap.core.runtime.session.SessionContext;
 class TimerDeferringListener
         extends DeferringListener {
 
-    private static Log log = LogFactory.getLog( TimerDeferringListener.class );
+    private static final Log log = LogFactory.getLog( TimerDeferringListener.class );
 
     private static Timer                scheduler = new Timer( "TimerDeferringListener.Scheduler", true );
 
@@ -64,6 +64,34 @@ class TimerDeferringListener
         task.get().events.add( ev );
     }
 
+
+    /**
+     * Activating our own UI callback; EventManger will deactivate after our
+     * handleEvent() returnes.
+     */
+    protected void activateUICallback( String callbackId ) {
+        // commented out in favour of a simple timeout handled by BatikApplication 
+
+//        if (delegate instanceof DisplayingListener) {
+//            log.warn( "DEFERRED: " + callbackId );
+//            UIThreadExecutor.async( () -> {
+//                log.warn( "DEFERRED actually: " + callbackId );
+//                UIUtils.activateCallback( callbackId );
+//            });
+//        }        
+    }
+    
+    
+    protected void deactivateUICallback( String callbackId ) {
+//        if (delegate instanceof DisplayingListener) {
+//            log.warn( "DEFERRED deactivate: " + callbackId );
+//            UIThreadExecutor.async( () -> {
+//                log.warn( "DEFERRED deactivate (actually): " + callbackId );
+//                UIUtils.deactivateCallback( callbackId );
+//            });
+//        }
+    }
+    
     
     /**
      * 
@@ -73,14 +101,13 @@ class TimerDeferringListener
         
         private volatile List<EventObject>  events = new ArrayList( 128 );
         
+        private String callbackId = "SchedulerTask-" + hashCode();
+        
         public SchedulerTask() {
             try {
                 scheduler.schedule( this, delay );
-                
-                // this is to late! we are already in the EventManager#DispatcherThread;
-                // this must be done in the event publishing thread; the display thread
-                // may already have been returned to client here.
-                //SessionUICallbackCounter.jobStarted( delegate );
+
+                activateUICallback( callbackId );
             }
             catch (Exception e) {
                 // Timer already cancelled (?)
@@ -123,7 +150,7 @@ class TimerDeferringListener
             }
             finally {
                 // release current request *after* events have been handled in the display thread
-                //UIThreadExecutor.async( () -> SessionUICallbackCounter.jobFinished( delegate ) );
+                deactivateUICallback( callbackId );
             }
         }
 

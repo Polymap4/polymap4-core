@@ -60,7 +60,6 @@ public abstract class ProjectNode
     @Queryable
     public Property<String>             label;
 
-    @Defaults
     @Queryable
     @Nullable
     public Property<String>             description;
@@ -69,6 +68,7 @@ public abstract class ProjectNode
     @Queryable
     public CollectionProperty<String>   keywords;
 
+    /** See {@link IMap#layers}. */
     public Association<IMap>            parentMap;
 
     
@@ -193,6 +193,10 @@ public abstract class ProjectNode
         @Override
         public ProjectNode getSource() {
             return (ProjectNode)super.getSource();
+        }
+        
+        public String getEntityId() {
+            return getSource().id();
         }
         
         /**
