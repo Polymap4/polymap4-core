@@ -30,7 +30,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-16-RC1.jar" sourcepath="lib/sources/gt-render-16-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-ng-16-RC1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-wms-16-RC1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-wms-16-RC1.jar" sourcepath="lib/sources/gt-wms-16-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xml-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-fes-16-RC1.jar"/>

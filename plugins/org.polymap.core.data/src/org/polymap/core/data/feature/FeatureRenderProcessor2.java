@@ -84,7 +84,7 @@ public class FeatureRenderProcessor2
         style = site.getProperty( STYLE_SUPPLIER );
         if (style == null) {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
-            style = () -> new DefaultStyles().findStyle( fs.get() );
+            style = () -> DefaultStyles.findStyle( fs.get() );
         }
         
         // pipeline
