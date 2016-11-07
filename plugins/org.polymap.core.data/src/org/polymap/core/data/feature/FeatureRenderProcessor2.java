@@ -21,6 +21,9 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+
+import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.FeatureSource;
 import org.geotools.filter.function.EnvFunction;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
 import org.geotools.renderer.RenderListener;
@@ -39,7 +43,6 @@ import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
 import org.polymap.core.data.PipelineFeatureSource;
-import org.polymap.core.data.image.GetLayerTypesRequest;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
@@ -121,7 +124,7 @@ public class FeatureRenderProcessor2
         long start = System.currentTimeMillis();
 
         // result
-        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB );
+        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), TYPE_4BYTE_ABGR );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
         //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
@@ -202,9 +205,11 @@ public class FeatureRenderProcessor2
 
 
     @Override
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
+        ReferencedEnvelope result = request.query.isPresent()
+                ? fs.get().getBounds( request.query.get() )
+                : fs.get().getBounds();
+        context.sendResponse( new GetBoundsResponse( result ) );
     }
 
 

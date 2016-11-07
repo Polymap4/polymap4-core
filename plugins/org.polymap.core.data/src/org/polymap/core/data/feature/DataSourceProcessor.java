@@ -26,6 +26,7 @@ import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.collection.AdaptorFeatureCollection;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
@@ -157,10 +158,11 @@ public class DataSourceProcessor
 
 
     @Override
-    public void getFeatureBoundsRequest( GetFeaturesBoundsRequest request, ProcessorContext context ) throws Exception {
-        FeatureCollection fc = fs.getFeatures( request.getQuery() );
-        context.sendResponse( new GetFeaturesBoundsResponse( fc.getBounds() ) );
-        context.sendResponse( ProcessorResponse.EOP );
+    public void getFeatureBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
+        ReferencedEnvelope result = request.query.isPresent()
+                ? fs.getBounds( request.query.get() )
+                : fs.getBounds();
+        context.sendResponse( new GetBoundsResponse( result ) );
     }
 
 

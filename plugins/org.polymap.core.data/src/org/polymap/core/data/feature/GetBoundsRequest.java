@@ -15,25 +15,36 @@
 package org.polymap.core.data.feature;
 
 import org.geotools.data.Query;
-
 import org.polymap.core.data.pipeline.ProcessorRequest;
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.Configurable;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author Falko Bräutigam
  */
-public class GetFeaturesBoundsRequest
+public class GetBoundsRequest
+        extends Configurable
         implements ProcessorRequest {
 
-    private Query           query;
+    /**
+     * The optional feature query.
+     */
+    public Config2<GetBoundsRequest,Query>  query;
 
-    public GetFeaturesBoundsRequest( Query query ) {
-        this.query = query;
+//    /**
+//     * Mandatory target CRS.
+//     */
+//    @Mandatory
+//    private Config2<GetBoundsRequest,CoordinateReferenceSystem> crs;
+
+    
+    public GetBoundsRequest() {
     }
 
-    public Query getQuery() {
-        return query;
+    public GetBoundsRequest( Query query ) {
+        this.query.set( query );
     }
 
 }

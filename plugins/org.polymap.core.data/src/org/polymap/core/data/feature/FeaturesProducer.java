@@ -47,8 +47,8 @@ public interface FeaturesProducer
     @Produces(GetFeaturesSizeResponse.class)
     public void getFeatureSizeRequest( GetFeaturesSizeRequest request, ProcessorContext context ) throws Exception;
     
-    @Produces(GetFeaturesBoundsResponse.class)
-    public void getFeatureBoundsRequest( GetFeaturesBoundsRequest request, ProcessorContext context ) throws Exception;
+    @Produces(GetBoundsResponse.class)
+    public void getFeatureBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception;
     
     @Produces({GetFeaturesResponse.class, EndOfProcessing.class})
     public void getFeatureRequest( GetFeaturesRequest request, ProcessorContext context ) throws Exception;

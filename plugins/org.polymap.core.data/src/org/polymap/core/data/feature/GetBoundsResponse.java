@@ -17,24 +17,25 @@ package org.polymap.core.data.feature;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.polymap.core.data.pipeline.ProcessorResponse;
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.Mandatory;
 
 /**
- * The response of the {@link GetFeatureTypeRequest}.
+ * The response of the {@link GetBoundsRequest}.
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
+ * @author Falko Bräutigam
  */
-public class GetFeaturesBoundsResponse
+public class GetBoundsResponse
+        extends Configurable
         implements ProcessorResponse {
 
-    private ReferencedEnvelope      bounds;
+    @Mandatory
+    public Config2<GetBoundsResponse,ReferencedEnvelope>    bounds;
     
     
-    public GetFeaturesBoundsResponse( ReferencedEnvelope bounds ) {
-        this.bounds = bounds;
+    public GetBoundsResponse( ReferencedEnvelope bounds ) {
+        this.bounds.set( bounds );
     }
 
-    public ReferencedEnvelope getBounds() {
-        return bounds;
-    }
-    
 }

@@ -57,8 +57,8 @@ import org.geotools.util.SimpleInternationalString;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.GetFeatureTypeRequest;
 import org.polymap.core.data.feature.GetFeatureTypeResponse;
-import org.polymap.core.data.feature.GetFeaturesBoundsRequest;
-import org.polymap.core.data.feature.GetFeaturesBoundsResponse;
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.feature.GetFeaturesRequest;
 import org.polymap.core.data.feature.GetFeaturesResponse;
 import org.polymap.core.data.feature.GetFeaturesSizeRequest;
@@ -130,10 +130,10 @@ public class PipelineFeatureSource
     @Override
     public ReferencedEnvelope getBounds( Query query ) throws IOException {
         try {
-            GetFeaturesBoundsRequest request = new GetFeaturesBoundsRequest( query );
+            GetBoundsRequest request = new GetBoundsRequest( query );
             AtomicReference<ReferencedEnvelope> result = new AtomicReference();
-            createExecutor().execute( pipeline, request, (GetFeaturesBoundsResponse r) -> {
-                result.set( r.getBounds() );
+            createExecutor().execute( pipeline, request, (GetBoundsResponse r) -> {
+                result.set( r.bounds.get() );
             });
             return result.get();
         }

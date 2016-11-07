@@ -16,7 +16,6 @@ package org.polymap.core.data.pipeline;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 public class Pipeline
         implements Iterable<ProcessorDescription> {
 
-    private List<ProcessorDescription>  chain = new LinkedList();
+    private LinkedList<ProcessorDescription>  chain = new LinkedList();
     
     private ProcessorSignature          usecase;
     
@@ -70,6 +69,14 @@ public class Pipeline
     public ProcessorDescription get( int index ) {
         assert index < chain.size();
         return chain.get( index );
+    }
+
+    /**
+     * Get the last processor at the 'source' side of the pipeline.
+     */
+    public ProcessorDescription getLast() {
+        assert !chain.isEmpty();
+        return chain.getLast();
     }
 
 
