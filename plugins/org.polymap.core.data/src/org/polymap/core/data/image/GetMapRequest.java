@@ -1,7 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2009, Polymap GmbH, and individual contributors as indicated
- * by the @authors tag.
+ * Copyright (C) 2009-2016, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,21 +11,12 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * $Id$
  */
 package org.polymap.core.data.image;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import java.awt.Color;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -36,9 +26,7 @@ import org.polymap.core.data.pipeline.ProcessorRequest;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @version POLYMAP3 ($Revision$)
- * @since 3.0
+ * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class GetMapRequest
         implements ProcessorRequest {
@@ -63,15 +51,11 @@ public class GetMapRequest
     
     private List<String>            layers = new ArrayList();
 
-//    private List<Style>             styles = new ArrayList();
+//    private Map<LayerType,Interpolation> interpolations = new HashMap();
 //
-    private Map<LayerType,Interpolation> interpolations = new HashMap();
-
-    private Map<LayerType,Antialias> antialiases = new HashMap();
-
-    private Map<LayerType,Quality>   qualities = new HashMap();
-
-//    private HashMap<String, Filter> filters = new HashMap<String, Filter>();
+//    private Map<LayerType,Antialias> antialiases = new HashMap();
+//
+//    private Map<LayerType,Quality>   qualities = new HashMap();
 
     private long                     ifModifiedSince = -1;
     
@@ -220,30 +204,30 @@ public class GetMapRequest
         return scale;
     }
 
-    /**
-     * @return the quality settings for the layers
-     */
-    public Quality getQuality( LayerType layer) {
-        return qualities.get( layer );
-    }
-
-    void setQuality( LayerType layer, Quality quality ) {
-        qualities.put( layer, quality );
-    }
-    
-    /**
-     * @return the interpolation settings for the layers
-     */
-    public Interpolation getInterpolation( LayerType layer ) {
-        return interpolations.get( layer );
-    }
-
-    /**
-     * @return the antialias settings for the layers
-     */
-    public Antialias getAntialias( LayerType layer ) {
-        return antialiases.get( layer );
-    }
+//    /**
+//     * @return the quality settings for the layers
+//     */
+//    public Quality getQuality( LayerType layer) {
+//        return qualities.get( layer );
+//    }
+//
+//    void setQuality( LayerType layer, Quality quality ) {
+//        qualities.put( layer, quality );
+//    }
+//    
+//    /**
+//     * @return the interpolation settings for the layers
+//     */
+//    public Interpolation getInterpolation( LayerType layer ) {
+//        return interpolations.get( layer );
+//    }
+//
+//    /**
+//     * @return the antialias settings for the layers
+//     */
+//    public Antialias getAntialias( LayerType layer ) {
+//        return antialiases.get( layer );
+//    }
 
     /**
      * @return the value of the pixel size parameter (default is 0.28 mm).

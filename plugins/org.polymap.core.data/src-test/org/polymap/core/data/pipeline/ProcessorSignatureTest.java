@@ -17,20 +17,20 @@ package org.polymap.core.data.pipeline;
 import java.util.Arrays;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.feature.FeatureRenderProcessor2;
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.image.EncodedImageProcessor;
 import org.polymap.core.data.image.EncodedImageResponse;
-import org.polymap.core.data.image.GetLayerTypesRequest;
-import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageEncodeProcessor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+
+import junit.framework.TestCase;
 
 /**
  * 
@@ -49,10 +49,10 @@ public class ProcessorSignatureTest
             public void init( PipelineProcessorSite site ) { }
         };
         ProcessorSignature signature = new ProcessorSignature( proc );
-        assertTrue( equals( signature.requestIn, GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class ) );
-        assertTrue( equals( signature.requestOut, GetMapRequest.class, GetLegendGraphicRequest.class, GetLayerTypesRequest.class ) );
-        assertTrue( equals( signature.responseIn, EncodedImageResponse.class, EndOfProcessing.class, GetLayerTypesResponse.class ) );
-        assertTrue( equals( signature.responseOut, EncodedImageResponse.class, EndOfProcessing.class, GetLayerTypesResponse.class ) );
+        assertTrue( equals( signature.requestIn, GetMapRequest.class, GetLegendGraphicRequest.class, GetBoundsRequest.class ) );
+        assertTrue( equals( signature.requestOut, GetMapRequest.class, GetLegendGraphicRequest.class, GetBoundsRequest.class ) );
+        assertTrue( equals( signature.responseIn, EncodedImageResponse.class, EndOfProcessing.class, GetBoundsResponse.class ) );
+        assertTrue( equals( signature.responseOut, EncodedImageResponse.class, EndOfProcessing.class, GetBoundsResponse.class ) );
 
         signature.invoke( new GetMapRequest( null, null, null, null, 0, 0, 0 ), new TestProcessorContext() );
     }

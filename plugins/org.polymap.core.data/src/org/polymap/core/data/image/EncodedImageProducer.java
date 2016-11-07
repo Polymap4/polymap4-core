@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,9 +14,11 @@
  */
 package org.polymap.core.data.image;
 
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.pipeline.EndOfProcessing;
-import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
 
 /**
@@ -27,13 +29,13 @@ import org.polymap.core.data.pipeline.Produces;
 public interface EncodedImageProducer
         extends PipelineProcessor {
     
-    @Produces({EncodedImageResponse.class, EndOfProcessing.class})
+    @Produces( {EncodedImageResponse.class, EndOfProcessing.class} )
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception;
 
-    @Produces({EncodedImageResponse.class, EndOfProcessing.class})
+    @Produces( {EncodedImageResponse.class, EndOfProcessing.class} )
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception;
-    
-    @Produces(GetLayerTypesResponse.class)
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception;
-    
+
+    @Produces( GetBoundsResponse.class )
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception;
+
 }

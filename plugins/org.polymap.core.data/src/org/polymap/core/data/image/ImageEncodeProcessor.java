@@ -15,12 +15,9 @@
 package org.polymap.core.data.image;
 
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.imageio.IIOImage;
@@ -35,6 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.geotools.image.ImageWorker;
+
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.pipeline.Consumes;
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
@@ -66,7 +66,7 @@ public class ImageEncodeProcessor
 
 
     @Override
-    @Produces(GetMapRequest.class)
+    @Produces( GetMapRequest.class )
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         String requestFormat = request.getFormat();
         if (!ArrayUtils.contains( FORMATS, requestFormat)) {
@@ -78,27 +78,27 @@ public class ImageEncodeProcessor
 
     
     @Override
-    @Produces(GetLegendGraphicRequest.class)
+    @Produces( GetLegendGraphicRequest.class )
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
-    
+
     
     @Override
-    @Produces(GetLayerTypesRequest.class)
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
+    @Produces( GetBoundsRequest.class )
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
 
     
-    @Produces(GetLayerTypesResponse.class)
-    public void getLayerTypesResponse( GetLayerTypesResponse response, ProcessorContext context ) throws Exception {
+    @Produces( GetBoundsResponse.class )
+    public void handleBoundsResponse( GetBoundsResponse response, ProcessorContext context ) throws Exception {
         context.sendResponse( response );
     }
-
     
-    @Produces({EncodedImageResponse.class, EndOfProcessing.class})
+    
     @Consumes( ImageResponse.class )
+    @Produces( {EncodedImageResponse.class, EndOfProcessing.class} )
     public void encodeImageResponse( ImageResponse response, ProcessorContext context ) throws Exception {
         Timer timer = new Timer();
 
@@ -120,7 +120,7 @@ public class ImageEncodeProcessor
         else {
             opEncodePNG( response.getImage(), out );
         }
-        log.debug( "encode: ready. (" + timer.elapsedTime() + "ms)" );
+        log.info( "encode: ready. (" + timer.elapsedTime() + "ms)" );
         
         out.flush();
         context.sendResponse( ProcessorResponse.EOP );
@@ -135,6 +135,7 @@ public class ImageEncodeProcessor
         context.sendResponse( ProcessorResponse.EOP );
     }
 
+    
     private void gtEncodePNG( Image image, ChunkedResponseOutputStream out ) throws IOException {
         // using ImageWorker allows for native accelaration
         boolean nativeAcceleration = true;

@@ -23,6 +23,8 @@ import javax.imageio.ImageIO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.pipeline.Consumes;
 import org.polymap.core.data.pipeline.EndOfProcessing;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
@@ -47,28 +49,28 @@ public class ImageDecodeProcessor
     }
 
     @Override
-    @Produces(GetMapRequest.class)
+    @Produces( GetMapRequest.class )
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );        
     }
 
     @Override
-    @Produces(GetLegendGraphicRequest.class)
+    @Produces( GetLegendGraphicRequest.class )
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
 
     @Override
-    @Produces(GetLayerTypesRequest.class)
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
+    @Produces( GetBoundsRequest.class )
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
 
-    @Consumes(GetLayerTypesResponse.class)
-    public void handleLayerTypesResponse( GetLayerTypesResponse response, ProcessorContext context ) throws Exception {
-        context.sendResponse(response);
+    @Consumes( GetBoundsResponse.class )
+    public void handleBoundsResponse( GetBoundsResponse response, ProcessorContext context ) throws Exception {
+        context.sendResponse( response );
     }
-    
+
 
     /**
      * Collect enoded image chunks. 
@@ -104,7 +106,7 @@ public class ImageDecodeProcessor
         
         context.sendResponse( new ImageResponse( image ) );
         context.put( "data", null );
-        log.debug( "Decode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
+        log.info( "Decode: ready. (" + (System.currentTimeMillis()-start) + "ms)" );
         context.sendResponse( ProcessorResponse.EOP );
     }
    

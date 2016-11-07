@@ -14,10 +14,12 @@
  */
 package org.polymap.core.data.image;
 
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.pipeline.EndOfProcessing;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.data.pipeline.Produces;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
  * Provides the interface and empty implementation of a processor that intercepts
@@ -28,34 +30,34 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 public abstract class EncodedImageProcessor
         implements PipelineProcessor {
 
-    @Produces(GetMapRequest.class)
+    @Produces( GetMapRequest.class )
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
-    
-    @Produces(EncodedImageResponse.class)
+
+    @Produces( EncodedImageResponse.class )
     public void encodedImageResponse( EncodedImageResponse response, ProcessorContext context ) throws Exception {
         context.sendResponse( response );
     }
-    
-    @Produces(EndOfProcessing.class)
+
+    @Produces( EndOfProcessing.class )
     public void endOfProcessing( EndOfProcessing eop, ProcessorContext context ) throws Exception {
         context.sendResponse( eop );
     }
-    
-    @Produces(GetLegendGraphicRequest.class)
+
+    @Produces( GetLegendGraphicRequest.class )
     public void getLegendGraphicRequest( GetLegendGraphicRequest request, ProcessorContext context ) throws Exception {
         context.sendRequest( request );
     }
     
-    @Produces(GetLayerTypesRequest.class)
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
-        context.sendRequest( request );
+    @Produces( GetBoundsRequest.class )
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
+        context.sendRequest( request );        
     }
 
-    @Produces(GetLayerTypesResponse.class)
-    public void getLayerTypesResponse( GetLayerTypesResponse response, ProcessorContext context ) throws Exception {
-        context.sendResponse( response );
+    @Produces( GetBoundsResponse.class )
+    public void handleBoundsResponse( GetBoundsResponse response, ProcessorContext context ) throws Exception {
+        context.sendResponse( response );        
     }
 
 }
