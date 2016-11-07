@@ -265,7 +265,7 @@
 	<bean id="wfsURLMapping"
         class="org.geoserver.ows.OWSHandlerMapping">
         <constructor-arg ref="catalog"/> 
-		<property name="alwaysUseFullPath" value="false"/>
+		<property name="alwaysUseFullPath" value="true"/>
 		<property name="interceptors">
 			<list>
 				<ref bean="wfsCiteComplianceHack"/>
