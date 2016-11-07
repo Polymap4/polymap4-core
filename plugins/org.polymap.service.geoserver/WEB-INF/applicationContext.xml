@@ -176,7 +176,7 @@
   <bean id="dispatcherMapping" 
     class="org.geoserver.ows.OWSHandlerMapping">
     <constructor-arg ref="catalog"/>
-     <property name="alwaysUseFullPath" value="true"/>
+     <property name="alwaysUseFullPath" value="false"/>
      <property name="mappings">
       <props>
         <prop key="/ows">dispatcher</prop>
@@ -187,7 +187,7 @@
   
   <bean id="filePublisherMapping"
     class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-     <property name="alwaysUseFullPath" value="true"/>
+     <property name="alwaysUseFullPath" value="false"/>
      <property name="mappings">
        <props>
         <prop key="/www/**">filePublisher</prop>
@@ -197,7 +197,7 @@
   
   <bean id="stylePublisherMapping"
     class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-     <property name="alwaysUseFullPath" value="true"/>
+     <property name="alwaysUseFullPath" value="false"/>
      <property name="mappings">
        <props>
         <prop key="/styles/**">stylePublisher</prop>
@@ -207,7 +207,7 @@
   
   <bean id="classpathPublisherMapping"
     class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-     <property name="alwaysUseFullPath" value="true"/>
+     <property name="alwaysUseFullPath" value="false"/>
      <property name="mappings">
        <props>
         <prop key="/schemas/**">classpathPublisher</prop>

@@ -705,7 +705,7 @@
     
     <bean id="wmsClasspathPublisherMapping"
     class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-     <property name="alwaysUseFullPath" value="true"/>
+     <property name="alwaysUseFullPath" value="false"/>
      <property name="mappings">
        <props>
         <prop key="/openlayers/**">classpathPublisher</prop>
