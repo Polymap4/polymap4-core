@@ -14,11 +14,7 @@
  */
 package org.polymap.core.data.wms;
 
-import static java.util.Collections.singletonList;
-
-import java.util.ArrayList;
 import java.util.List;
-
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,15 +36,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.collect.FluentIterable;
 import com.vividsolutions.jts.geom.Envelope;
 
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.image.EncodedImageProducer;
 import org.polymap.core.data.image.EncodedImageResponse;
-import org.polymap.core.data.image.GetLayerTypesRequest;
-import org.polymap.core.data.image.GetLayerTypesResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
-import org.polymap.core.data.image.LayerType;
 import org.polymap.core.data.pipeline.DataSourceDescription;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
@@ -85,18 +81,37 @@ public class WmsRenderProcessor
         wms = (WebMapServer)site.dsd.get().service.get();
         layerName = site.dsd.get().resourceName.get();
         
-        layer = new Layer( layerName );
-        layer.setName( layerName );
-        
-//        layer = wms.getCapabilities().getLayerList().stream()
-//                .filter( l -> layerName.equals( l.getName() ) )
-//                .findFirst().orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
+//        layer = new Layer( layerName );
+//        layer.setName( layerName );
+
+//        for (Layer l : wms.getCapabilities().getLayerList()) {
+//            if (layerName.equals( l.getName() ) ) {
+//                layer = l;
+//                break;
+//            }
+//        }
+//        if (layer == null) {
+//            throw new RuntimeException( "No layer found for name: " + layerName );
+//        }
+
+        layer = wms.getCapabilities().getLayerList().stream()
+                .filter( l -> layerName.equals( l.getName() ) ).findFirst()
+                .orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
     }
 
 
     @Override
     public boolean isCompatible( DataSourceDescription dsd ) {
         return dsd.service.get() instanceof WebMapServer;
+    }
+    
+
+    public WebMapServer getWms() {
+        return wms;
+    }
+    
+    public Layer getWmsLayer() {
+        return layer;
     }
 
 
@@ -108,13 +123,15 @@ public class WmsRenderProcessor
 
 
     @Override
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
-        List<ReferencedEnvelope> boundingBoxes = new ArrayList();
-        for (CRSEnvelope env : layer.getBoundingBoxes().values()) {
-            boundingBoxes.add( new ReferencedEnvelope( env ) );
-        }
-        LayerType layerType = new LayerType( layer.getTitle(), layer.getName(), null, boundingBoxes );
-        context.sendResponse( new GetLayerTypesResponse( singletonList( layerType ) ) );
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
+//        Layer l = wms.getCapabilities().getLayerList().stream()
+//                .filter( ll -> layerName.equals( ll.getName() ) )
+//                .findFirst().orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
+      
+        List<CRSEnvelope> bboxes = layer.getLayerBoundingBoxes();
+        log.info( "BBOXES: " + bboxes );
+        ReferencedEnvelope result = new ReferencedEnvelope( FluentIterable.from( bboxes ).first().get() );
+        context.sendResponse( new GetBoundsResponse( result ) );
     }
 
 
@@ -123,7 +140,7 @@ public class WmsRenderProcessor
         int width = request.getWidth();
         int height = request.getHeight();
         BoundingBox bbox = request.getBoundingBox();
-        log.info( "bbox=" + bbox + ", imageSize=" + width + "x" + height );
+        log.debug( "bbox=" + bbox + ", imageSize=" + width + "x" + height );
 
         org.geotools.data.wms.request.GetMapRequest getMap = wms.createGetMapRequest();
         
@@ -134,12 +151,8 @@ public class WmsRenderProcessor
         if (color != null) {
             getMap.setBGColour( String.format( "#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue() ) );
         }
-        //getMap.setBGColour( "0xFFFFFF" );
         
-        BoundingBox requestBBox = bbox;
-        getMap.setBBox( requestBBox.getMinX() + "," + requestBBox.getMinY() //$NON-NLS-1$
-                + "," + requestBBox.getMaxX() //$NON-NLS-1$
-                + "," + requestBBox.getMaxY() ); //$NON-NLS-1$
+        getMap.setBBox( bbox );
         String srs = request.getCRS();
         getMap.setSRS( srs );
         
@@ -162,7 +175,7 @@ public class WmsRenderProcessor
 
         
         getMap.addLayer( layer );
-        log.debug( "    WMS URL:" + getMap.getFinalURL() );
+        log.info( "    WMS URL:" + getMap.getFinalURL() );
         
         InputStream in = null;
         try {

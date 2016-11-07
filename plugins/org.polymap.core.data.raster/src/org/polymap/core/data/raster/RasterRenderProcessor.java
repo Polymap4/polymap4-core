@@ -20,10 +20,11 @@ import static java.awt.RenderingHints.KEY_TEXT_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON;
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -39,6 +40,8 @@ import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.function.EnvFunction;
+import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.GridReaderLayer;
 import org.geotools.map.MapContent;
 import org.geotools.renderer.RenderListener;
@@ -52,12 +55,14 @@ import org.geotools.styling.Style;
 import org.geotools.styling.StyleFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.style.ContrastMethod;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.image.GetLayerTypesRequest;
+import org.polymap.core.data.feature.GetBoundsRequest;
+import org.polymap.core.data.feature.GetBoundsResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
@@ -78,18 +83,21 @@ public class RasterRenderProcessor
 
     private static final Log log = LogFactory.getLog( RasterRenderProcessor.class );
 
-    public static final StyleFactory        sf = CommonFactoryFinder.getStyleFactory( null );
+    public static final StyleFactory    sf = CommonFactoryFinder.getStyleFactory( null );
     
-    public static final FilterFactory2      ff = CommonFactoryFinder.getFilterFactory2( null );
+    public static final FilterFactory2  ff = CommonFactoryFinder.getFilterFactory2( null );
 
     private GridCoverage2DReader        reader;
 
-    private Style                       style;
+    private String                      coverageName;
     
+    private Style                       style;
+
     
     @Override
     public void init( PipelineProcessorSite site ) throws Exception {
         reader = (GridCoverage2DReader)site.dsd.get().service.get();
+        coverageName = site.dsd.get().resourceName.get();
 
         style = createRGBStyle( reader );
         if (style == null) {
@@ -108,7 +116,7 @@ public class RasterRenderProcessor
     @Override
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         // result
-        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), TYPE_INT_ARGB );
+        BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), TYPE_4BYTE_ABGR );
         final Graphics2D g = result.createGraphics();
 
         MapContent mapContent = new MapContent();
@@ -165,9 +173,18 @@ public class RasterRenderProcessor
 
 
     @Override
-    public void getLayerTypesRequest( GetLayerTypesRequest request, ProcessorContext context ) throws Exception {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
+        GeneralEnvelope envelope = reader.getOriginalEnvelope();
+        if (envelope != null) {
+            context.sendResponse( new GetBoundsResponse( new ReferencedEnvelope( envelope ) ) );
+            return;
+        } 
+        CoordinateReferenceSystem crs = reader.getCoordinateReferenceSystem();
+        if (crs != null) {
+            context.sendResponse( new GetBoundsResponse( new ReferencedEnvelope( crs ) ) );
+            return;
+        }
+        throw new IllegalStateException( "No bounds founds." );
     }
 
 
