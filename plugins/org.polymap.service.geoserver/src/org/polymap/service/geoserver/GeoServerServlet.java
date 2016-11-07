@@ -281,7 +281,7 @@ public abstract class GeoServerServlet
         
         final String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
-        log.debug( "Request: servletPath=" + servletPath + ", pathInfo=" + pathInfo );
+        log.info( "REQUEST: servletPath=" + servletPath + ", pathInfo=" + pathInfo + " ? " + req.getQueryString() );
         
         // schemas
         if (pathInfo != null && pathInfo.startsWith( "/schemas" )) {

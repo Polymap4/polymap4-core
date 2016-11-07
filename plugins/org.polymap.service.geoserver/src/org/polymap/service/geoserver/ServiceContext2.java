@@ -28,7 +28,7 @@ import org.polymap.core.security.SecurityContext;
  */
 public class ServiceContext2 {
 
-    private static Log log = LogFactory.getLog( ServiceContext2.class );
+    private static final Log log = LogFactory.getLog( ServiceContext2.class );
 
     private static final DefaultSessionContextProvider contextProvider;
     
@@ -90,7 +90,7 @@ public class ServiceContext2 {
         assert current == null : "Thread already mapped to a SessionContext: " + current.getSessionKey();
         try {
             boolean mapped = contextProvider.mapContext( sessionKey, true );
-            log.info( "SessionContext: " + SessionContext.current() );
+            log.debug( "SessionContext: " + SessionContext.current() );
             assert mapped : "Thread already mapped to a SessionContext: " + SessionContext.current().getSessionKey();
       
             SecurityContext securityContext = SecurityContext.instance();
