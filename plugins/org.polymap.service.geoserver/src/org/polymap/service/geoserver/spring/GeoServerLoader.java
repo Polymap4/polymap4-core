@@ -160,18 +160,34 @@ public class GeoServerLoader
 
         for (ILayer layer : map.layers) {
             try {
-                P4DataStoreInfo dsInfo = new P4DataStoreInfo( catalog, layer );
-                dsInfo.setWorkspace( wsInfo );
+                // Features
+                P4DataStoreInfo dsInfo = P4DataStoreInfo.canHandle( catalog, layer );
+                if (dsInfo != null) {
+                    dsInfo.setWorkspace( wsInfo );
 
-                if (dsInfo.getFeatureSource().getSchema().getGeometryDescriptor()!= null) {
-                    // Feature layers and upstream WMS are represented same way;
-                    // all rendering is done by PipelineMapResponse
-                    P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
-                    catalog.add( ftInfo );
-                    P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
+                    if (dsInfo.getFeatureSource().getSchema().getGeometryDescriptor()!= null) {
+                        P4FeatureTypeInfo ftInfo = new P4FeatureTypeInfo( catalog, dsInfo );
+                        catalog.add( ftInfo );
+                    
+                        P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, ftInfo, PublishedType.VECTOR );
+                        layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
+                        catalog.add( layerInfo );
+                    }
+                    continue;
+                }
+                // WMS or GridCoverage
+                P4ImageStoreInfo imInfo = P4ImageStoreInfo.canHandle( catalog, layer );
+                if (imInfo != null) {
+                    imInfo.setWorkspace( wsInfo );
+                    P4ImageResourceInfo resInfo = new P4ImageResourceInfo( catalog, imInfo );
+                    catalog.add( resInfo );
+
+                    P4LayerInfo layerInfo = new P4LayerInfo( catalog, layer, resInfo, PublishedType.WMS );
                     layerInfo.createFeatureStyleInfo( service.createSLD( layer ), resourceLoader );
                     catalog.add( layerInfo );
+                    continue;
                 }
+                throw new IllegalStateException( "Unable to handle layer: " + layer );
             }
             catch (Exception e) {
                 // don't break entire GeoServer if upstream WMS/WFS or else fails

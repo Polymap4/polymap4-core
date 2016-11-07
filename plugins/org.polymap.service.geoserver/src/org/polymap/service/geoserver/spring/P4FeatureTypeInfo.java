@@ -97,7 +97,7 @@ public class P4FeatureTypeInfo
             }
         }
         catch (Exception e) {
-            log.warn( e );
+            log.warn( "", e );
             setLatLonBoundingBox( new ReferencedEnvelope( WGS84.get() ) );
         }
         

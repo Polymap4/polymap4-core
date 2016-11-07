@@ -14,70 +14,79 @@
  */
 package org.polymap.service.geoserver.spring;
 
-import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
-
-import java.util.concurrent.atomic.AtomicReference;
-
 import java.io.IOException;
+
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.impl.DataStoreInfoImpl;
 import org.geotools.data.DataAccess;
 import org.geotools.data.FeatureSource;
+import org.geotools.data.FeatureStore;
 import org.geotools.data.memory.MemoryDataStore;
 import org.geotools.data.store.ContentFeatureSource;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
 import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.util.ProgressListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.vividsolutions.jts.geom.Polygon;
-
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
-import org.polymap.core.data.image.EncodedImageProducer;
-import org.polymap.core.data.image.GetLayerTypesRequest;
-import org.polymap.core.data.image.GetLayerTypesResponse;
-import org.polymap.core.data.image.LayerType;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineIncubationException;
-import org.polymap.core.data.util.Geometries;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.Lazy;
-import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.service.geoserver.GeoServerServlet;
-import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author Falko Bräutigam
  */
 public class P4DataStoreInfo
         extends DataStoreInfoImpl
         implements DataStoreInfo {
 
     private static final Log log = LogFactory.getLog( P4DataStoreInfo.class );
+    
+    /**
+     * Returns a newly created {@link P4DataStoreInfo}, or null if the layer is not
+     * connected to a {@link FeatureStore}.
+     * 
+     * @throws Exception 
+     */
+    public static P4DataStoreInfo canHandle( Catalog catalog, ILayer layer ) throws Exception {
+        try {
+            GeoServerServlet server = GeoServerServlet.instance.get();
+            Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
+            PipelineFeatureSource fs = new PipelineFeatureSource( pipeline );
+            if (fs == null || fs.getPipeline().length() == 0) {
+                throw new PipelineIncubationException( "WMS layer? : " + layer.label.get() );
+            }
+//            // set name/namespace for target schema
+//            Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
+//            fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
+            
+            return new P4DataStoreInfo( catalog, layer, fs );
+        }
+        // 
+        catch (PipelineIncubationException e) {
+            return null;
+        }
+    }
 
-    private ILayer                      layer;
+    // instance *******************************************
+
+    private ILayer                  layer;
     
-    private Lazy<FeatureSource>         fs = new LockedLazyInit( () -> createFeatureSource() );
+    private FeatureSource           fs;
     
     
-    protected P4DataStoreInfo( Catalog catalog, ILayer layer ) {
+    protected P4DataStoreInfo( Catalog catalog, ILayer layer, PipelineFeatureSource fs ) {
         super( catalog );
-        assert layer != null;
+        assert layer != null && fs != null;
         this.layer = layer;
+        this.fs = fs;
 
         setId( (String)layer.id() );
         setName( layer.label.get() );
@@ -99,7 +108,7 @@ public class P4DataStoreInfo
     @Override
     public DataAccess<? extends FeatureType, ? extends Feature> getDataStore( ProgressListener listener )
             throws IOException {
-        return fs.get().getDataStore();
+        return fs.getDataStore();
     }
 
 
@@ -108,118 +117,7 @@ public class P4DataStoreInfo
      * {@link ContentFeatureSource} and {@link MemoryDataStore} if layer is WMS.
      */
     public FeatureSource getFeatureSource() {
-        return fs.get();
+        return fs;
     }
     
-    
-    protected FeatureSource createFeatureSource() {
-        GeoServerServlet server = GeoServerServlet.instance.get();
-        try {
-            // feature resource
-            Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
-            PipelineFeatureSource result = new PipelineFeatureSource( pipeline );
-            if (result == null || result.getPipeline().length() == 0) {
-                throw new PipelineIncubationException( "WMS layer? : " + layer.label.get() );
-            }
-
-//            // set name/namespace for target schema
-//            Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
-//            fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
-            
-            return result;
-        }
-        // 
-        catch (PipelineIncubationException e) {
-            // WMS
-            // XXX howto skip layer in case of WFS!?
-            return wrapCoverageLayer( server );
-        }
-        // no geores found or something
-        catch (Exception e) {
-            log.error( "Error while creating catalog: " + e.getLocalizedMessage() );
-            throw new RuntimeException( e );
-        }
-    }
-
-    
-    /**
-     * Wraps a grid coverage into a Feature. Code lifted from ArcGridDataSource
-     * (temporary).
-     * @param server 
-     *
-     * @param reader the grid coverage reader.
-     * @return a feature with the grid coverage envelope as the geometry and the grid
-     *         coverage itself in the "grid" attribute.
-     */
-    protected ContentFeatureSource wrapCoverageLayer( GeoServerServlet server ) {
-        // createSurroundingPolygon();
-
-        SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
-        ftb.setName( simpleName( layer.label.get() ) );
-        ftb.setNamespaceURI( GeoServerUtils.NAMESPACE );
-        // required to have schema.getGeometryDescriptor() not 
-        // return null in org.geotools.renderer.lite.StreamingRenderer.processStylers()
-        // polygonProperty requires CoordinateReferenceSystem
-        ftb.setCRS( Geometries.WGS84.get() );
-        ftb.add( "geom", Polygon.class );
-        ftb.add( "params", GeneralParameterValue[].class );
-        final SimpleFeatureType schema = ftb.buildFeatureType();
-
-        // bounding box
-        AtomicReference<Polygon> bbox = new AtomicReference();
-        try {
-            Pipeline pipeline = server.getOrCreatePipeline( layer, EncodedImageProducer.class );
-            server.createPipelineExecutor().execute( pipeline, new GetLayerTypesRequest(), (GetLayerTypesResponse resp) -> {
-                assert resp.getTypes().size() == 1;
-                LayerType layerType = resp.getTypes().stream().findAny().get();
-                for (ReferencedEnvelope env : layerType.getBoundingBoxes()) {
-                    if (CRS.equalsIgnoreMetadata( env.getCoordinateReferenceSystem(), Geometries.WGS84.get() )) {
-                        bbox.set( JTS.toGeometry( env ) );
-                    }
-                }
-            });
-        }
-        catch (Exception e) {
-            log.warn( "Error while getting bounding box.", e );
-        }
-        
-        // create the feature
-        SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
-        fb.set( "geom", bbox.get() );
-        SimpleFeature feature = fb.buildFeature( null );
-        MemoryDataStore ds = new MemoryDataStore( new SimpleFeature[] {feature} );
-        try {
-            return ds.getFeatureSource( ftb.getName() );
-        }
-        catch (IOException e) {
-            throw new RuntimeException( "Does never happen: ", e );
-        }
-    }
-
-    
-//  private void createSurroundingPolygon() {
-    // final PrecisionModel pm = new PrecisionModel();
-    // final GeometryFactory gf = new GeometryFactory(pm, 0);
-    // final Rectangle2D rect = gridCoverageReader.getOriginalEnvelope()
-    // .toRectangle2D();
-    // final CoordinateReferenceSystem sourceCrs = CRS
-    // .getHorizontalCRS(gridCoverageReader.getCrs());
-    // if(sourceCrs==null)
-    // throw new UnsupportedOperationException(
-    // Errors.format(
-    // ErrorKeys.CANT_SEPARATE_CRS_$1,gridCoverageReader.getCrs()));
-    //
-    //
-    // final Coordinate[] coord = new Coordinate[5];
-    // coord[0] = new Coordinate(rect.getMinX(), rect.getMinY());
-    // coord[1] = new Coordinate(rect.getMaxX(), rect.getMinY());
-    // coord[2] = new Coordinate(rect.getMaxX(), rect.getMaxY());
-    // coord[3] = new Coordinate(rect.getMinX(), rect.getMaxY());
-    // coord[4] = new Coordinate(rect.getMinX(), rect.getMinY());
-    //
-    // // }
-    // final LinearRing ring = gf.createLinearRing(coord);
-    // final Polygon bounds = new Polygon(ring, null, gf);  
-//}
-
 }

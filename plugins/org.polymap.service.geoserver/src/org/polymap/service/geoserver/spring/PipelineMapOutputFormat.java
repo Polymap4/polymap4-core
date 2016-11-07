@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -59,26 +60,20 @@ import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.ProcessorRequest;
-import org.polymap.core.data.pipeline.ProcessorResponse;
-import org.polymap.core.data.pipeline.ResponseHandler;
 import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.UIJob;
 
 import org.polymap.service.geoserver.GeoServerServlet;
 
 /**
  * A {@link GetMapOutputFormat} that produces {@link RenderedImageMap} instances with
- * an ImageProducer pipeline to be encoded in the constructor supplied MIME-Type.
+ * an {@link ImageProducer} <b>pipeline</b> to be encoded in the constructor supplied
+ * MIME-Type.
+ * <p/>
+ * This producer does not actual render anything but delegates the rendering to the
+ * POLYMAP pipeline. Therefore we cannot share the code from GeoServer here.
  * 
- * This {@link GetMapProducer} allows to use the pipelines rendering of POLYMAP
- * via GeoServer.
- * <p>
- * This producer differs from the normal GeoServer {@link GetMapProducer} in that
- * it does not actual render anything but delegates the rendering to the POLYMAP
- * pipeline. Therefore we cannot share the code from GeoServer here.
- * 
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author Falko Bräutigam
  * @author Steffen Stundzig
  * 
  * @see RenderedImageMapOutputFormat
@@ -91,45 +86,27 @@ import org.polymap.service.geoserver.GeoServerServlet;
 public class PipelineMapOutputFormat
         extends AbstractMapOutputFormat {
 
-    public class Result<T> {
-
-        private BufferedImage image;
-
-
-        public void set( BufferedImage image ) {
-            this.image = image;
-        }
-
-
-        public RenderedImage get() {
-            return this.image;
-        }
-    }
-
-    private static final Log                          log                = LogFactory.getLog( PipelineMapOutputFormat.class );
+    private static final Log log = LogFactory.getLog( PipelineMapOutputFormat.class );
 
     /** Which format to encode the image in if one is not supplied */
-    private static final String                       DEFAULT_MAP_FORMAT = "image/png";
+    private static final String     DEFAULT_MAP_FORMAT = "image/png";
 
     /** WMS Service configuration * */
-    private final WMS                                 wms;
+    private final WMS               wms;
 
-    private GeoServerServlet                          server             = GeoServerServlet.instance.get();
+    private GeoServerServlet        server = GeoServerServlet.instance.get();
 
     /**
      * The file extension (minus the .)
      */
-    private String                                    extension          = null;
+    private String                  extension;
 
     /**
      * The known producer capabilities
      */
-    private final Map<String,MapProducerCapabilities> capabilities       = new HashMap<String,MapProducerCapabilities>();
+    private final Map<String,MapProducerCapabilities> capabilities = new HashMap();
 
 
-    /**
-     * 
-     */
     public PipelineMapOutputFormat( WMS wms ) {
         this( DEFAULT_MAP_FORMAT, wms );
     }
@@ -195,38 +172,28 @@ public class PipelineMapOutputFormat
     }
 
 
+    @Override
     public MapProducerCapabilities getCapabilities( String format ) {
         return capabilities.get( format );
     }
 
 
-    /**
-     * @see org.geoserver.wms.GetMapOutputFormat#produceMap(org.geoserver.wms.WMSMapContent)
-     */
+    @Override
     public final RenderedImageMap produceMap( WMSMapContent mapContent ) throws ServiceException {
-        Timer timer = new Timer();
-
         // single layer? -> request ENCODED_IMAGE
         if (mapContent.layers().size() == 1) {
-            Layer mapLayer = mapContent.layers().get( 0 );
-
-            ILayer layer = findLayer( mapLayer );
-
             try {
+                Layer mapLayer = mapContent.layers().get( 0 );
+                ILayer layer = findLayer( mapLayer );
                 Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
                 ProcessorRequest request = prepareProcessorRequest( mapContent );
 
-                final Result<BufferedImage> c = new Result<BufferedImage>();
-                server.createPipelineExecutor().execute( pipeline, request, new ResponseHandler() {
-
-                    @Override
-                    public void handle( ProcessorResponse pipeResponse ) throws Exception {
-                        BufferedImage layerImage = (BufferedImage)((ImageResponse)pipeResponse).getImage();
-                        c.set( layerImage );
-                    }
-                } );
-                return buildMap( mapContent, c.get() );
-
+                AtomicReference<BufferedImage> result = new AtomicReference<BufferedImage>();
+                server.createPipelineExecutor().execute( pipeline, request, (ImageResponse pipeResponse) -> {
+                    BufferedImage layerImage = (BufferedImage)pipeResponse.getImage();
+                    result.set( layerImage );
+                });
+                return buildMap( mapContent, result.get() );
             }
             catch (Exception e) {
                 throw new ServiceException( e );
@@ -239,28 +206,21 @@ public class PipelineMapOutputFormat
             final Map<Layer,Image> images = new HashMap();
 
             // run jobs for all layers
-            for (final Layer mapLayer : mapContent.layers()) {
-                final ILayer layer = findLayer( mapLayer );
-                // job
-                UIJob job = new UIJob( getClass().getSimpleName() + ": " + mapLayer.getTitle() ) {
-
-                    protected void runWithException( IProgressMonitor monitor )
-                            throws Exception {
+            for (final Layer mapLayer : mapContent.layers()) {                
+                UIJob job = new UIJob( "PipelineMapOutputFormat: " + mapLayer.getTitle() ) {
+                    @Override
+                    protected void runWithException( IProgressMonitor monitor ) throws Exception {
                         try {
+                            final ILayer layer = findLayer( mapLayer );
                             Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
                             GetMapRequest request = prepareProcessorRequest( mapContent );
-                            server.createPipelineExecutor().execute( pipeline, request, new ResponseHandler() {
-
-                                @Override
-                                public void handle( ProcessorResponse pipeResponse ) throws Exception {
-                                    BufferedImage layerImage = (BufferedImage)((ImageResponse)pipeResponse).getImage();
-                                    images.put( mapLayer, layerImage );
-                                }
-                            } );
+                            server.createPipelineExecutor().execute( pipeline, request, (ImageResponse pipeResponse) -> {
+                                BufferedImage layerImage = (BufferedImage)pipeResponse.getImage();
+                                images.put( mapLayer, layerImage );
+                            });
                         }
                         catch (Exception e) {
-                            // XXX put a special image in the map
-                            e.printStackTrace();
+                            // XXX put a error image in the map
                             log.warn( "", e );
                             images.put( mapLayer, null );
                             throw e;
@@ -277,7 +237,6 @@ public class PipelineMapOutputFormat
                     job.join();
                 }
                 catch (InterruptedException e) {
-                    // XXX put a special image in the map
                     log.warn( "", e );
                 }
             }
@@ -320,7 +279,7 @@ public class PipelineMapOutputFormat
     }
 
 
-    private ILayer findLayer( Layer mapLayer ) {
+    protected ILayer findLayer( Layer mapLayer ) {
         ILayer layer = null;
         String layerName = StringUtils.substringAfterLast( mapLayer.getTitle(), ":" );
         for (ILayer l : server.map.layers) {
@@ -358,13 +317,13 @@ public class PipelineMapOutputFormat
     }
 
 
-    private Graphics2D getGraphics( final boolean transparent, final Color bgColor,
+    protected Graphics2D getGraphics( final boolean transparent, final Color bgColor,
             final RenderedImage preparedImage, final Map<RenderingHints.Key,Object> hintsMap ) {
         return ImageUtils.prepareTransparency( transparent, bgColor, preparedImage, hintsMap );
     }
 
 
-    private RenderedImageMap buildMap( final WMSMapContent mapContent, RenderedImage image ) {
+    protected RenderedImageMap buildMap( final WMSMapContent mapContent, RenderedImage image ) {
         RenderedImageMap map = new RenderedImageMap( mapContent, image, getMimeType() );
         if (extension != null) {
             map.setContentDispositionHeader( mapContent, "." + extension, false );
