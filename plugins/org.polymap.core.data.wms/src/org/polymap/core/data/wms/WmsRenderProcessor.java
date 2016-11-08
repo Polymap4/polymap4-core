@@ -15,29 +15,33 @@
 package org.polymap.core.data.wms;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.geotools.data.ows.CRSEnvelope;
 import org.geotools.data.ows.Layer;
+import org.geotools.data.ows.Request;
 import org.geotools.data.wms.WebMapServer;
+import org.geotools.data.wms.request.AbstractGetMapRequest;
 import org.geotools.data.wms.response.GetMapResponse;
-import org.geotools.geometry.GeneralEnvelope;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.geometry.BoundingBox;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
+import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.operation.TransformException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
-import com.vividsolutions.jts.geom.Envelope;
 
 import org.polymap.core.data.feature.GetBoundsRequest;
 import org.polymap.core.data.feature.GetBoundsResponse;
@@ -84,16 +88,7 @@ public class WmsRenderProcessor
 //        layer = new Layer( layerName );
 //        layer.setName( layerName );
 
-//        for (Layer l : wms.getCapabilities().getLayerList()) {
-//            if (layerName.equals( l.getName() ) ) {
-//                layer = l;
-//                break;
-//            }
-//        }
-//        if (layer == null) {
-//            throw new RuntimeException( "No layer found for name: " + layerName );
-//        }
-
+        log.info( "Layers" + wms.getCapabilities().getLayerList().stream().map( l -> l.getName() ).collect( Collectors.toList() ) );
         layer = wms.getCapabilities().getLayerList().stream()
                 .filter( l -> layerName.equals( l.getName() ) ).findFirst()
                 .orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
@@ -124,10 +119,6 @@ public class WmsRenderProcessor
 
     @Override
     public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
-//        Layer l = wms.getCapabilities().getLayerList().stream()
-//                .filter( ll -> layerName.equals( ll.getName() ) )
-//                .findFirst().orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
-      
         List<CRSEnvelope> bboxes = layer.getLayerBoundingBoxes();
         log.info( "BBOXES: " + bboxes );
         ReferencedEnvelope result = new ReferencedEnvelope( FluentIterable.from( bboxes ).first().get() );
@@ -151,28 +142,14 @@ public class WmsRenderProcessor
         if (color != null) {
             getMap.setBGColour( String.format( "#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue() ) );
         }
-        
-        getMap.setBBox( bbox );
-        String srs = request.getCRS();
-        getMap.setSRS( srs );
-        
-        
-//        Map sortedLayersMap = MultiValueMap.decorate( new TreeMap() );
-//        for (Iterator it=visibleLayers.referencedLayers(); it.hasNext();) {
-//            Layer layer = (Layer)availableLayers.get( it.next() );
-//            Integer layerOrder = (Integer)layerOrderMap.get( layer.getName() );
-//            // reverse order; request.addLayer() works that way
-//            Integer key = Integer.valueOf( Integer.MAX_VALUE - layerOrder.intValue() );
-//            sortedLayersMap.put( key, layer );
-//        }
-        
-//        for (ILayer layer : layers) {
-//            IGeoResource geores = layer.getGeoResource();
-//            Layer wmsLayer = geores.resolve( org.geotools.data.ows.Layer.class, null );
-//            getMap.addLayer( wmsLayer );
-//            log.debug( "    request: layer: " + layer.getLabel() );
-//        }
 
+        CoordinateReferenceSystem crs = bbox.getCoordinateReferenceSystem();
+        if (crs instanceof GeographicCRS) {
+            log.info( "" );
+        }
+        
+        setBBox( getMap, bbox );
+        getMap.setSRS( request.getCRS() );
         
         getMap.addLayer( layer );
         log.info( "    WMS URL:" + getMap.getFinalURL() );
@@ -203,90 +180,123 @@ public class WmsRenderProcessor
         }
     }
 
+
+    protected void setBBox( org.geotools.data.wms.request.GetMapRequest getMap, Envelope envelope ) {
+       // getMap.setBBox( bbox );
+        
+        String version = getMap.getProperties().getProperty( Request.VERSION );
+        boolean forceXY = version == null || !version.startsWith( "1.3" );
+        String srsName = CRS.toSRS( envelope.getCoordinateReferenceSystem() );
+        
+        CoordinateReferenceSystem crs = AbstractGetMapRequest.toServerCRS( srsName, forceXY );
+        Envelope bbox = null;
+        try {
+            bbox = CRS.transform( envelope, crs );
+        } 
+        catch (TransformException e) {
+            bbox = envelope;
+        }
+        String s = srsName.contains( "31468" ) && version.startsWith( "1.3" )
+                ? Joiner.on( ',' ).join( bbox.getMinimum(1), bbox.getMinimum(0), bbox.getMaximum(1), bbox.getMaximum(0) )
+                : Joiner.on( ',' ).join( bbox.getMinimum(0), bbox.getMinimum(1), bbox.getMaximum(0), bbox.getMaximum(1) );
+        log.info( "Requested BBOX: " + s );
+        getMap.setBBox( s );
+    }
+
+
+//    /**
+//     * Using the viewport bounds and combined wms layer extents, determines an appropriate bounding
+//     * box by projecting the viewport into the request CRS, intersecting the bounds, and returning
+//     * the result.
+//     * 
+//     * @param wmsLayers all adjacent wms layers we are requesting
+//     * @param viewport map editor bounds and crs
+//     * @param requestCRS coordinate reference system supported by the server
+//     * @return the bbox to ask the server for
+//     * @throws MismatchedDimensionException
+//     * @throws TransformException
+//     * @throws FactoryException
+//     */
+//    public static ReferencedEnvelope calculateRequestBBox( List<Layer> wmsLayers,
+//            ReferencedEnvelope viewport, CoordinateReferenceSystem requestCRS )
+//            throws MismatchedDimensionException, TransformException, FactoryException {
+//        /* The bounds of all wms layers on this server combined */
+//        Envelope layersBBox = getLayersBoundingBox( requestCRS, wmsLayers );
+//        if (isEnvelopeNull( layersBBox )) {
+//            // the wms server has no bounds
+//            log.debug( "Zero width/height envelope: wmsLayers = " + layersBBox ); //$NON-NLS-1$
+//            layersBBox = null;
+//            // alternatively, we could impose a reprojected -180,180,-90,90
+//        }
+//
+//        /* The viewport bounds projected to the request crs */
+//        ReferencedEnvelope reprojectedViewportBBox = viewport.transform( requestCRS, true );
+//        if (isEnvelopeNull( reprojectedViewportBBox )) {
+//            // viewport couldn't be reprojected
+//            log.debug( "Zero width/height envelope: reprojected viewport from " + viewport //$NON-NLS-1$
+//                    + " to " + requestCRS + " returned " + reprojectedViewportBBox ); //$NON-NLS-1$ //$NON-NLS-2$
+//        }
+//        // alternative for better accuracy: new
+//        // ReferencedEnvelope(JTS.transform(viewport, null,
+//        // CRS.findMathTransform(viewportCRS, crs, true), 4), crs);
+//
+//        /* The intersection of the viewport and the combined wms layers */
+//        Envelope interestBBox;
+//        if (layersBBox == null) {
+//            interestBBox = reprojectedViewportBBox;
+//        }
+//        else {
+//            interestBBox = reprojectedViewportBBox.intersection( layersBBox );
+//        }
+//        if (isEnvelopeNull( interestBBox )) {
+//            // outside of bounds, do not draw
+//            log.debug( "Bounds of the data are outside the bounds of the viewscreen." ); //$NON-NLS-1$
+//            return NILL_BOX;
+//        }
+//
+//        /* The bounds of the request we are going to make */
+//        ReferencedEnvelope requestBBox = new ReferencedEnvelope( interestBBox, requestCRS );
+//        return requestBBox;
+//    }
+//
+//
+//    public static Envelope getLayersBoundingBox( CoordinateReferenceSystem crs, List<Layer> layers ) {
+//        Envelope envelope = null;
+//
+//        for (Layer layer : layers) {
+//
+//            GeneralEnvelope temp = layer.getEnvelope( crs );
+//
+//            if (temp != null) {
+//                Envelope jtsTemp = new Envelope( temp.getMinimum( 0 ), temp.getMaximum( 0 ), temp
+//                        .getMinimum( 1 ), temp.getMaximum( 1 ) );
+//                if (envelope == null) {
+//                    envelope = jtsTemp;
+//                }
+//                else {
+//                    envelope.expandToInclude( jtsTemp );
+//                }
+//            }
+//        }
+//        return envelope;
+//    }
+//
+//    
+//    protected static boolean isEnvelopeNull( Envelope bbox ) {
+//        if (bbox.getWidth() <= 0 || bbox.getHeight() <= 0) {
+//            return true;
+//        }
+//        return false;
+//    }
+
     
-    /**
-     * Using the viewport bounds and combined wms layer extents, determines an appropriate bounding
-     * box by projecting the viewport into the request CRS, intersecting the bounds, and returning
-     * the result.
-     * 
-     * @param wmsLayers all adjacent wms layers we are requesting
-     * @param viewport map editor bounds and crs
-     * @param requestCRS coordinate reference system supported by the server
-     * @return the bbox to ask the server for
-     * @throws MismatchedDimensionException
-     * @throws TransformException
-     * @throws FactoryException
-     */
-    public static ReferencedEnvelope calculateRequestBBox( List<Layer> wmsLayers,
-            ReferencedEnvelope viewport, CoordinateReferenceSystem requestCRS )
-            throws MismatchedDimensionException, TransformException, FactoryException {
-        /* The bounds of all wms layers on this server combined */
-        Envelope layersBBox = getLayersBoundingBox( requestCRS, wmsLayers );
-        if (isEnvelopeNull( layersBBox )) {
-            // the wms server has no bounds
-            log.debug( "Zero width/height envelope: wmsLayers = " + layersBBox ); //$NON-NLS-1$
-            layersBBox = null;
-            // alternatively, we could impose a reprojected -180,180,-90,90
-        }
-
-        /* The viewport bounds projected to the request crs */
-        ReferencedEnvelope reprojectedViewportBBox = viewport.transform( requestCRS, true );
-        if (isEnvelopeNull( reprojectedViewportBBox )) {
-            // viewport couldn't be reprojected
-            log.debug( "Zero width/height envelope: reprojected viewport from " + viewport //$NON-NLS-1$
-                    + " to " + requestCRS + " returned " + reprojectedViewportBBox ); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        // alternative for better accuracy: new
-        // ReferencedEnvelope(JTS.transform(viewport, null,
-        // CRS.findMathTransform(viewportCRS, crs, true), 4), crs);
-
-        /* The intersection of the viewport and the combined wms layers */
-        Envelope interestBBox;
-        if (layersBBox == null) {
-            interestBBox = reprojectedViewportBBox;
-        }
-        else {
-            interestBBox = reprojectedViewportBBox.intersection( layersBBox );
-        }
-        if (isEnvelopeNull( interestBBox )) {
-            // outside of bounds, do not draw
-            log.debug( "Bounds of the data are outside the bounds of the viewscreen." ); //$NON-NLS-1$
-            return NILL_BOX;
-        }
-
-        /* The bounds of the request we are going to make */
-        ReferencedEnvelope requestBBox = new ReferencedEnvelope( interestBBox, requestCRS );
-        return requestBBox;
-    }
-
-
-    public static Envelope getLayersBoundingBox( CoordinateReferenceSystem crs, List<Layer> layers ) {
-        Envelope envelope = null;
-
-        for (Layer layer : layers) {
-
-            GeneralEnvelope temp = layer.getEnvelope( crs );
-
-            if (temp != null) {
-                Envelope jtsTemp = new Envelope( temp.getMinimum( 0 ), temp.getMaximum( 0 ), temp
-                        .getMinimum( 1 ), temp.getMaximum( 1 ) );
-                if (envelope == null) {
-                    envelope = jtsTemp;
-                }
-                else {
-                    envelope.expandToInclude( jtsTemp );
-                }
-            }
-        }
-        return envelope;
-    }
-
+    // test ***********************************************
     
-    protected static boolean isEnvelopeNull( Envelope bbox ) {
-        if (bbox.getWidth() <= 0 || bbox.getHeight() <= 0) {
-            return true;
-        }
-        return false;
+    public static void main( String[] args ) throws Exception {
+        CoordinateReferenceSystem epsg31468 = CRS.decode( "EPSG:31468" );     
+        CoordinateReferenceSystem epsg25833 = CRS.decode( "EPSG:25833" );
+        System.out.println( "" + epsg31468 );
+        System.out.println( "" + epsg25833 );
     }
-
+    
 }
