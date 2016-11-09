@@ -82,8 +82,8 @@ public class GeoServerPlugin
 
     /**
      * The base URL of services. This gets initialized as soon as a
-     * {@link HttpService} is found. The default setting should be overwritten if we
-     * are running behind a HTTP proxy. Within mapzone this is configured by
+     * {@link HttpService} is found. The default setting should be overwritten if
+     * running behind a HTTP proxy. Within mapzone this is configured by
      * ArenaConfig.
      */
     public Config<String>               baseUrl;

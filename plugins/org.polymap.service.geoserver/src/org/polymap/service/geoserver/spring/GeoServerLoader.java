@@ -175,7 +175,7 @@ public class GeoServerLoader
                     }
                     continue;
                 }
-                // WMS or GridCoverage
+                // WMS
                 P4ImageStoreInfo imInfo = P4ImageStoreInfo.canHandle( catalog, layer );
                 if (imInfo != null) {
                     imInfo.setWorkspace( wsInfo );
@@ -187,7 +187,7 @@ public class GeoServerLoader
                     catalog.add( layerInfo );
                     continue;
                 }
-                throw new IllegalStateException( "Unable to handle layer: " + layer );
+                // XXX GridCoverage is not handled yet
             }
             catch (Exception e) {
                 // don't break entire GeoServer if upstream WMS/WFS or else fails
@@ -204,8 +204,10 @@ public class GeoServerLoader
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
         gsInfo.setTitle( "Polymap4 powered by GeoServer" );
         gsInfo.setId( simpleName( map.id() ) + "-gs" );
-        // service.alias is added by GeoServer and/or is already part of URL (set by ArenaConfig)
-        gsInfo.setProxyBaseUrl( GeoServerPlugin.instance().baseUrl.get() );
+        // XXX alias is added by ArenaConfig when running in mapzone (see comment there)
+        String proxyBaseUrl = GeoServerPlugin.instance().baseUrl.map( s -> 
+                !s.contains( service.alias ) ? s+service.alias : s ).get();
+        gsInfo.setProxyBaseUrl( proxyBaseUrl );
         log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
 
         gsInfo.setVerbose( true );
