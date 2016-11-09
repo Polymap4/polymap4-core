@@ -312,10 +312,11 @@ public abstract class GeoServerServlet
         resp.addHeader( "Access-Control-Allow-Headers", req.getHeader( "Access-Control-Request-Headers" ));
         resp.addHeader( "Access-Control-Allow-Methods", "GET,POST,OPTIONS" );
         
-        // Bad hack to work around an unresolved issue: after last commits it seems that
-        // in geoserver code the actual thread is working with a wrong request; it does
-        // not find serve und request param, even if they are there. This happens *only*
-        // behind mapzone dispatcher and with re-used HttpClient connection.
+        // FIXME bad hack to work around an unresolved issue: after last commits
+        // it seems that in geoserver code the actual thread is working with a wrong
+        // request; it does not find serve und request param, even if they are there.
+        // This happens *only* behind mapzone dispatcher and with re-used HttpClient
+        // connection.
         resp.setHeader( "Connection", "close" );
         
         // service

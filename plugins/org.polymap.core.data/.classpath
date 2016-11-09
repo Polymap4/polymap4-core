@@ -25,13 +25,13 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-graph-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-main-16-RC1.jar" sourcepath="lib/sources/gt-main-16-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-16-RC1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-16-RC1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-16-RC1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-16-RC1.jar" sourcepath="lib/sources/gt-opengis-16-RC1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-16-RC1.jar" sourcepath="lib/sources/gt-referencing-16-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-16-RC1.jar" sourcepath="lib/sources/gt-render-16-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-ng-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wms-16-RC1.jar" sourcepath="lib/sources/gt-wms-16-RC1-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xml-16-RC1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xml-16-RC1.jar" sourcepath="lib/sources/gt-xml-16-RC1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-fes-16-RC1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-16-RC1.jar"/>

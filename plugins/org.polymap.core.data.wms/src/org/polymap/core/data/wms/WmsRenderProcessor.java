@@ -33,7 +33,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.geometry.BoundingBox;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.operation.TransformException;
 
 import org.apache.commons.io.IOUtils;
@@ -143,11 +142,6 @@ public class WmsRenderProcessor
             getMap.setBGColour( String.format( "#%02X%02X%02X", color.getRed(), color.getGreen(), color.getBlue() ) );
         }
 
-        CoordinateReferenceSystem crs = bbox.getCoordinateReferenceSystem();
-        if (crs instanceof GeographicCRS) {
-            log.info( "" );
-        }
-        
         setBBox( getMap, bbox );
         getMap.setSRS( request.getCRS() );
         
@@ -182,8 +176,7 @@ public class WmsRenderProcessor
 
 
     protected void setBBox( org.geotools.data.wms.request.GetMapRequest getMap, Envelope envelope ) {
-       // getMap.setBBox( bbox );
-        
+        // code is from AbstractGetMapRequest
         String version = getMap.getProperties().getProperty( Request.VERSION );
         boolean forceXY = version == null || !version.startsWith( "1.3" );
         String srsName = CRS.toSRS( envelope.getCoordinateReferenceSystem() );
@@ -196,6 +189,7 @@ public class WmsRenderProcessor
         catch (TransformException e) {
             bbox = envelope;
         }
+        // FIXME
         String s = srsName.contains( "31468" ) && version.startsWith( "1.3" )
                 ? Joiner.on( ',' ).join( bbox.getMinimum(1), bbox.getMinimum(0), bbox.getMaximum(1), bbox.getMaximum(0) )
                 : Joiner.on( ',' ).join( bbox.getMinimum(0), bbox.getMinimum(1), bbox.getMaximum(0), bbox.getMaximum(1) );
