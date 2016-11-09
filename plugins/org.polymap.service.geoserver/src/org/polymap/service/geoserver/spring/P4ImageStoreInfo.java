@@ -38,7 +38,9 @@ import org.polymap.core.project.ILayer;
 import org.polymap.service.geoserver.GeoServerServlet;
 
 /**
- * WMS or GridCoverage.
+ * Upstream WMS.
+ * <p/>
+ * Started to support WMS and raster.
  *
  * @author Falko Bräutigam
  */
@@ -58,7 +60,7 @@ public class P4ImageStoreInfo
         try {
             GeoServerServlet server = GeoServerServlet.instance.get();
             Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
-            if (pipeline.length() == 0) {
+            if (pipeline.length() == 0 || !(pipeline.getLast().processor() instanceof WmsRenderProcessor)) {
                 throw new PipelineIncubationException( "No ImageProducer pipeline found : " + layer.label.get() );
             }
             return new P4ImageStoreInfo( catalog, layer, pipeline );
