@@ -14,11 +14,7 @@
  */
 package org.polymap.core.catalog.ui;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.graphics.Image;
-
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -38,8 +34,6 @@ import org.polymap.core.catalog.resolve.IServiceInfo;
 public class MetadataLabelProvider
         extends CellLabelProvider
         implements ILabelProvider {
-
-    private static Log log = LogFactory.getLog( MetadataLabelProvider.class );
 
     @Override
     public void update( ViewerCell cell ) {

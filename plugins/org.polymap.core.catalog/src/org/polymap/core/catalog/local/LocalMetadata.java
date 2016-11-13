@@ -25,6 +25,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.ImmutableSet;
+
+import org.polymap.core.catalog.IMetadataCatalog;
 import org.polymap.core.catalog.IUpdateableMetadata;
 
 import org.polymap.model2.CollectionProperty;
@@ -89,6 +91,8 @@ public class LocalMetadata
     @Defaults
     protected CollectionProperty<String> languages;
 
+    protected IMetadataCatalog          catalog;
+    
     /**
      * 
      */
@@ -107,6 +111,16 @@ public class LocalMetadata
         }
     }
     
+    LocalMetadata setCatalog( IMetadataCatalog catalog ) {
+        this.catalog = catalog;
+        return this;
+    }
+
+    @Override
+    public IMetadataCatalog getCatalog() {
+        return catalog;
+    }
+
     @Override
     public String getIdentifier() {
         return identifier.get();

@@ -112,7 +112,7 @@ public class LocalMetadataCatalog
         if (rs.size() > 1) {
             throw new IllegalStateException( "More than one result for identifier: " + identifier );
         }
-        return rs.stream().findFirst();
+        return rs.stream().findFirst().map( md -> md.setCatalog( this ) );
     }
 
 
@@ -135,7 +135,7 @@ public class LocalMetadataCatalog
                 return new ResultSet() {
                     @Override
                     public Iterator<IMetadata> iterator() {
-                        return rs.stream().map( md -> (IMetadata)md ).iterator();
+                        return rs.stream().map( md -> (IMetadata)md.setCatalog( LocalMetadataCatalog.this ) ).iterator();
                     }
                     @Override
                     public int size() {

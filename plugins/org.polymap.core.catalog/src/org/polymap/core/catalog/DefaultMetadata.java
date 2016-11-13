@@ -28,10 +28,17 @@ import java.util.Set;
 public abstract class DefaultMetadata
         implements IMetadata {
 
-//    @Override
-//    public String getTitle() {
-//        return "";
-//    }
+    private IMetadataCatalog        catalog;
+
+    
+    public DefaultMetadata( IMetadataCatalog catalog ) {
+        this.catalog = catalog;
+    }
+
+    @Override
+    public IMetadataCatalog getCatalog() {
+        return catalog;
+    }
 
     @Override
     public Optional<String> getDescription() {

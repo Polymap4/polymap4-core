@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2016, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.catalog.IMetadata;
 
-
 /**
  * Provides an implementation that delegates to GeoTools {@link ServiceInfo}. 
  *
@@ -43,6 +42,23 @@ public abstract class DefaultServiceInfo
     public DefaultServiceInfo( IMetadata metadata, ServiceInfo delegate ) {
         this.metadata = metadata;
         this.delegate = delegate;
+    }
+
+//    @Override
+//    public int hashCode() {
+//        return delegate.getSource().hashCode();
+//    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if (this == obj) {
+            return true;
+        }
+        else if (obj instanceof DefaultServiceInfo) {
+            DefaultServiceInfo rhs = (DefaultServiceInfo)obj;
+            return metadata.getIdentifier().equals( rhs.metadata.getIdentifier() );
+        }
+        return false;
     }
 
     @Override

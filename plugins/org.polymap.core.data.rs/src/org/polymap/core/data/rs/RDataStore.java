@@ -393,10 +393,12 @@ public class RDataStore
                     return result;
                 }
     
+                @Override
                 public URI getPublisher() {
                     return URI.create( "http://polymap.org/" );
                 }
     
+                @Override
                 public URI getSchema() {
                     // XXX Auto-generated method stub
                     throw new RuntimeException( "not yet implemented." );

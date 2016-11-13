@@ -63,6 +63,8 @@ public interface IMetadata {
         AccessRights
     }
     
+    public IMetadataCatalog getCatalog();
+    
     public String getIdentifier();
     
     /**

@@ -22,6 +22,7 @@ import java.net.URL;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.data.ResourceInfo;
+import org.opengis.feature.type.Name;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,8 @@ import org.polymap.core.data.rs.RDataStore;
 import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
 import org.polymap.core.runtime.Streams;
 import org.polymap.core.runtime.Streams.ExceptionCollector;
+import org.polymap.core.runtime.cache.Cache;
+import org.polymap.core.runtime.cache.CacheConfig;
 
 import org.polymap.recordstore.lucene.LuceneRecordStore;
 
@@ -62,7 +65,10 @@ public class RServiceInfo
 
     // instance *******************************************
     
-    private RDataStore          ds;
+    private RDataStore                  ds;
+    
+    /** Caching helps UI to identify (equals(), hashCode()) instances. */
+    private Cache<Name,IResourceInfo>   resources = CacheConfig.defaults().createCache();
 
 
     protected RServiceInfo( IMetadata metadata, RDataStore ds ) {
@@ -79,17 +85,21 @@ public class RServiceInfo
 
     @Override
     public Iterable<IResourceInfo> getResources( IProgressMonitor monitor ) throws Exception {
-        try (ExceptionCollector<?> exc = Streams.exceptions()) {
+        try (
+            ExceptionCollector<?> exc = Streams.exceptions(); 
+        ){
             return ds.getNames().stream()
-                    .map( name -> exc.check( () -> ds.getFeatureSource( name ).getInfo() ) )
-                    .map( info -> new RResourceInfo( RServiceInfo.this, info ) )
+                    .map( name -> exc.check( () -> ds.getFeatureSource( name ) ) )
+                    .map( fs -> resource( fs ) )
                     .collect( Collectors.toList() );
         }
     }
 
     
     public IResourceInfo resource( FeatureSource fs ) {
-        return new RResourceInfo( this, fs.getInfo() );
+        return resources.get( fs.getName(), key -> {
+            return new RResourceInfo( this, fs.getInfo() ); 
+        });
     }
     
     

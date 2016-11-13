@@ -17,6 +17,7 @@ package org.polymap.core.catalog.ui;
 import static org.polymap.core.runtime.UIThreadExecutor.logErrorMsg;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -26,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.Iterables;
 
 import org.eclipse.jface.viewers.ILazyTreeContentProvider;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -279,11 +281,43 @@ public class MetadataContentProvider
 
 
     @Override
-    public Object getParent( Object element ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public Object getParent( Object elm ) {
+        log.debug( "getParent( " + elm.getClass().getSimpleName() + "): ..." );
+        if (elm == input) {
+            return null;
+        }
+        else if (elm instanceof IResourceInfo) {
+            // skip service level, see #updateMetadata()
+            return ((IResourceInfo)elm).getServiceInfo().getMetadata();
+        }
+        else if (elm instanceof IServiceInfo) {
+            throw new IllegalArgumentException( "Service level is skipped!?" );
+            //return ((IServiceInfo)elm).getMetadata();
+        }
+        else if (elm instanceof IMetadata) {
+            return ((IMetadata)elm).getCatalog();
+        }
+        else if (elm instanceof IMetadataCatalog
+                && input instanceof Collection
+                /*&& ((Collection)input).contains( elm )*/) {
+            return input;
+        }
+        else {
+            throw new IllegalArgumentException( "Unknown element type: " + elm );
+        }
     }
 
+    
+    public TreePath treePathOf( Object elm ) {
+        LinkedList result = new LinkedList();
+        for (Object current = elm; current != null; current = getParent( current )) {
+            if (current != input) {
+                result.addFirst( current );
+            }
+        }
+        return new TreePath( result.toArray() );
+    }
+    
     
 //    // ITreeContentProvider *******************************
 //    

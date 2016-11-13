@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class DefaultResourceInfo
         extends DefaultResolveableInfo
         implements IResourceInfo {
 
-    private static Log log = LogFactory.getLog( DefaultResourceInfo.class );
+    private static final Log log = LogFactory.getLog( DefaultResourceInfo.class );
     
     private ResourceInfo        delegate;
 
@@ -40,6 +41,24 @@ public class DefaultResourceInfo
     public DefaultResourceInfo( IServiceInfo serviceInfo, ResourceInfo delegate ) {
         super( serviceInfo );
         this.delegate = delegate;
+    }
+
+//    @Override
+//    public int hashCode() {
+//        return delegate.getName().hashCode();
+//    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if (this == obj) {
+            return true;
+        }
+        else if (obj instanceof DefaultResourceInfo) {
+            DefaultResourceInfo rhs = (DefaultResourceInfo)obj;
+            return Objects.equals( delegate.getName(), rhs.delegate.getName() )
+                    && getServiceInfo().equals( rhs.getServiceInfo() );
+        }
+        return false;
     }
 
     @Override
