@@ -25,6 +25,11 @@ import java.util.concurrent.TimeoutException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.Configurable;
+import org.polymap.core.runtime.config.DefaultBoolean;
+import org.polymap.core.runtime.config.Mandatory;
+
 /**
  * Runs tasks in {@link UIJob}s.
  *
@@ -32,9 +37,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class JobExecutor
+        extends Configurable
         implements ExecutorService {
 
-    /** The one and only instance. */
+    /** The default instance with {@link #uiUpdate} disabled. */
     private static final JobExecutor instance = new JobExecutor();
 
     /**
@@ -47,10 +53,26 @@ public class JobExecutor
 
     // instance *******************************************
     
+    /** Use {@link UIJob#scheduleWithUIUpdate(long)} or {@link UIJob#schedule()}. */
+    @Mandatory
+    @DefaultBoolean( false )
+    public Config2<JobExecutor,Boolean> uiUpdate;
+    
+    
     protected JobExecutor() {
     }
 
+    
+    protected UIJob schedule( UIJob job ) {
+        if (uiUpdate.get()) {
+            job.scheduleWithUIUpdate();
+        } else {
+            job.schedule();
+        }
+        return job;
+    }
 
+    
     @Override
     public <T> Future<T> submit( final Callable<T> task ) {
         UIJob job = new UIJob( "JobExecutor" ) {
@@ -61,7 +83,7 @@ public class JobExecutor
             }
         };
         job.setSystem( true );
-        job.scheduleWithUIUpdate();
+        schedule( job );
         return new FutureJobAdapter( job );
     }
 
@@ -76,7 +98,7 @@ public class JobExecutor
         };
         job.setProperty( FutureJobAdapter.RESULT_VALUE_NAME, result );
         job.setSystem( true );
-        job.scheduleWithUIUpdate();
+        schedule( job );
         return new FutureJobAdapter( job );
     }
 

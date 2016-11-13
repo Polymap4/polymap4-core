@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2016, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -107,6 +107,11 @@ public abstract class UIJob
 
     private SessionContext      sessionContext;
 
+    /**
+     * @deprecated for Batik we have UI callback enabled all the time so we don't
+     *             need this here; current code does not make sure that callback is
+     *             disabled in all cases; so comment out this code altogether
+     */
     private String              uiCallbackHandle;
 
 
@@ -139,17 +144,17 @@ public abstract class UIJob
 
 
     /**
-     * Makes sure that
-     * <p/>
-     * XXX Not quite sure if setSystem(false) and/or setUser(true) will so the same
-     * with a special {@link IProgressMonitor}. However, this is usefull for system
-     * threads then.
+     * Makes sure that the UI is updated while this job is running.
      *
-     * @param delay
+     * @see #schedule(long)
+     * @param delay a time delay in milliseconds before the job should run
      */
     public void scheduleWithUIUpdate( long delay ) {
-        uiCallbackHandle = UIJob.this.toString() + "/" + UIJob.this.hashCode();
-        UIThreadExecutor.syncFast( () -> UIUtils.activateCallback( uiCallbackHandle ), runtimeException() );
+        // for BatikApplication there is always a callback active
+        assert UIUtils.isCallbackActive();
+//        uiCallbackHandle = getName() + "-" + hashCode();
+//        UIThreadExecutor.syncFast( () -> UIUtils.activateCallback( uiCallbackHandle ), runtimeException() );
+
         schedule( delay );
     }
 

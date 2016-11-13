@@ -176,8 +176,8 @@ public class UIUtils {
     
     /**
      * 
-     * @see ServerPushManager
      * @param id
+     * @see ServerPushManager
      */
     public static void activateCallback( String id ) {
         assert id != null;
@@ -188,13 +188,23 @@ public class UIUtils {
     
     /**
      * 
-     * @see ServerPushManager
      * @param id
+     * @see ServerPushManager
      */
     public static void deactivateCallback( String id ) {
         assert id != null;
         assert ContextProvider.hasContext();
         ServerPushManager.getInstance().deactivateServerPushFor( id );
+    }
+
+    
+    /**
+     * 
+     * @see ServerPushManager
+     */
+    public static boolean isCallbackActive() {
+        assert ContextProvider.hasContext();
+        return ServerPushManager.getInstance().isServerPushActive();
     }
 
     
