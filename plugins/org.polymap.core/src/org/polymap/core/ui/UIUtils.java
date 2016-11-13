@@ -23,7 +23,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.internal.graphics.ResourceFactory;
 import org.eclipse.swt.widgets.Composite;
@@ -32,6 +34,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
+
+import org.eclipse.jface.resource.FontDescriptor;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
@@ -55,22 +59,16 @@ public class UIUtils {
     
     //public static boolean       debug = true;
 
-    
+
+    /**
+     * 
+     * @see HSLColor
+     * @return Newly created {@link Color} instance.
+     */
     public static Color getColor( int r, int g, int b ) {
         ResourceFactory resourceFactory = ContextProvider.getApplicationContext().getResourceFactory();
         return resourceFactory.getColor( r, g, b );
     }
-
-
-//    public static Color getColor( java.awt.Color src ) {
-//        HS
-//        return getColor( src.getRed(), src.getGreen(), src.getBlue() );
-//    }
-//
-//
-//    public static java.awt.Color awtColor( Color src ) {
-//        return new java.awt.Color( src.getRed(), src.getGreen(), src.getBlue() );
-//    }
 
 
     public static Color getColor( RGB rgb ) {
@@ -234,5 +232,17 @@ public class UIUtils {
             }
         }
     }
-    
+
+
+    public static Font bold( Font font ) {
+        ResourceFactory resources = ContextProvider.getApplicationContext().getResourceFactory();
+        FontDescriptor bold = FontDescriptor.createFrom( font ).setStyle( SWT.BOLD );        
+        return resources.getFont( bold.getFontData()[0] );
+    }    
+
+    public static Font fontSize( Font font, int size ) {
+        ResourceFactory resources = ContextProvider.getApplicationContext().getResourceFactory();
+        FontDescriptor bold = FontDescriptor.createFrom( font ).setHeight( size );        
+        return resources.getFont( bold.getFontData()[0] );
+    }    
 }

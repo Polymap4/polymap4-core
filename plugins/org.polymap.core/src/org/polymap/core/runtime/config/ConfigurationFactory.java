@@ -228,6 +228,11 @@ public class ConfigurationFactory {
             if (defaultDouble != null) {
                 set( (V)new Double( defaultDouble.value() ) );
             }
+            // Float
+            DefaultFloat defaultFloat = f.getAnnotation( DefaultFloat.class );
+            if (defaultFloat != null) {
+                set( (V)new Float( defaultFloat.value() ) );
+            }
             // Int
             DefaultInt defaultInt = f.getAnnotation( DefaultInt.class );
             if (defaultInt != null) {
