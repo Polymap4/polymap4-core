@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2010-2015 Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2010-2016 Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -29,23 +29,23 @@ import org.polymap.core.project.ProjectNode;
 /**
  * 
  *
- * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
+ * @author Falko Bräutigam
  */
 public class ProjectNodeContentProvider
         implements ITreeContentProvider {
 
     private static final Log log = LogFactory.getLog( ProjectNodeContentProvider.class );
     
-
+    @Override
     public void inputChanged( Viewer viewer, Object oldInput, Object newInput ) {
         log.debug( "new: " + newInput );
     }
 
-
+    @Override
     public void dispose() {
     }
 
-
+    @Override
     public Object[] getChildren( Object elm ) {
         if (elm instanceof IMap) {
             return ((IMap)elm).layers.stream()
@@ -55,7 +55,7 @@ public class ProjectNodeContentProvider
         return null;
     }
 
-
+    @Override
     public Object getParent( Object elm ) {
         if (elm instanceof ProjectNode) {
             return ((ProjectNode)elm).parentMap.get();
@@ -63,12 +63,12 @@ public class ProjectNodeContentProvider
         return null;
     }
 
-
+    @Override
     public boolean hasChildren( Object elm ) {
         return getChildren( elm ) != null;
     }
 
-
+    @Override
     public Object[] getElements( Object input ) {
         return getChildren( input );
     }
