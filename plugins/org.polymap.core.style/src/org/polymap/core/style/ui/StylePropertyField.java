@@ -16,9 +16,6 @@ package org.polymap.core.style.ui;
 
 import static org.polymap.core.ui.FormDataFactory.on;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -54,29 +51,27 @@ public class StylePropertyField
 
     private final static IMessages i18n = Messages.forPrefix( "Field" );
 
-    private static Log log = LogFactory.getLog( StylePropertyField.class );
+    public Config<String>                   title;
     
-    public Config<String>                       title;
+    public Config<String>                   tooltip;
     
-    public Config<String>                       tooltip;
-    
-    private Property<StylePropertyValue>        prop;
+    private Property<StylePropertyValue>    prop;
 
-    private Composite                           contents;
+    private Composite                       contents;
 
-    private ComboViewer                         combo;
+    private ComboViewer                     combo;
     
-    private Composite                           valueContainer;
+    private Composite                       valueContainer;
 
     /**
      * The available editors for our {@link #propInfo} property type. Model of
      * {@link #combo}.
      */
-    private StylePropertyEditor[]               editors;
+    private StylePropertyEditor[]           editors;
 
-    private StylePropertyEditor                 selected;
+    private StylePropertyEditor             selected;
 
-    private final StylePropertyFieldSite fieldSite;
+    private final StylePropertyFieldSite    fieldSite;
 
     
     public StylePropertyField( StylePropertyFieldSite fieldSite ) {
