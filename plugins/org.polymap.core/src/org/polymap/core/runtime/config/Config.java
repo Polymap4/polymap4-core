@@ -26,7 +26,8 @@ import java.util.function.Supplier;
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface Config<T> {
+public interface Config<T>
+        extends Supplier<T> {
 
     /**
      * Attempts to set the value of this Property.
