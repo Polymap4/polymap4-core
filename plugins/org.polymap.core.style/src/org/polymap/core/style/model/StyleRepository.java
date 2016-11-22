@@ -12,9 +12,10 @@
  */
 package org.polymap.core.style.model;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,12 +24,9 @@ import javax.xml.transform.TransformerException;
 
 import org.geotools.styling.SLDTransformer;
 
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.runtime.cache.Cache;
-import org.polymap.core.runtime.cache.CacheConfig;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
@@ -58,13 +56,29 @@ import org.polymap.recordstore.lucene.LuceneRecordStore;
 public class StyleRepository
         implements AutoCloseable {
 
-    private static Log log = LogFactory.getLog( StyleRepository.class );
+    private static final Log log = LogFactory.getLog( StyleRepository.class );
 
-    private EntityRepository                    repo;
+    private EntityRepository            repo;
 
-    private Cache<Triple<String,String,OutputFormat>,Optional> serialized = CacheConfig.defaults().createCache();
+    /** 
+     * Cache forever; using Map instead of cache ensures that mapping function
+     * is called at most once; this may also fix the frontpage loading problem
+     * and help to avoid re-creating (Filter decode) Style/SLD after inactivity
+     */
+    private Map<CacheKey,Optional>      serialized = new ConcurrentHashMap( 32 ); // CacheConfig.defaults().createCache();
 
 
+    class CacheKey
+            extends ArrayList {
+        
+        public CacheKey( String id, String targetType, OutputFormat outputFormat ) {
+            add( id );
+            add( targetType );
+            add( outputFormat );
+        }
+    }
+    
+    
     /**
      * Creates a repository instance backed by a {@link LuceneRecordStore} in the
      * given dataDir.
@@ -173,56 +187,66 @@ public class StyleRepository
      * @throws RuntimeException If targetType is not supported.
      */
     public <T> Optional<T> serializedFeatureStyle( String id, Class<T> targetType, OutputFormat outputFormat ) {
-        return serialized.get( Triple.of( id, targetType.getName(), outputFormat ), key -> {
-            T result = null;
-            FeatureStyle fs = featureStyle( id ).orElse( null );
-            if (fs != null) {
-                Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
-                
-                // geotools.styling.Style
-                if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
-                    result = (T)new SLDSerializer().serialize( sc );
-                    // // only for easier debugging
-                    // try {
-                    // SLDTransformer styleTransform = new SLDTransformer();
-                    // styleTransform.setIndentation( 4 );
-                    // styleTransform.setOmitXMLDeclaration( false );
-                    // styleTransform.transform( result, System.err );
-                    // }
-                    // catch (TransformerException e) {
-                    // throw new RuntimeException( "Unable to transform style.", e );
-                    // }
-                }
-                // String/SLD
-                else if (String.class.isAssignableFrom( targetType )) {
-                    org.geotools.styling.Style style = new SLDSerializer().serialize( sc );
-                    try {
-                        SLDTransformer styleTransform = new SLDTransformer();
-                        styleTransform.setIndentation( 4 );
-                        styleTransform.setOmitXMLDeclaration( false );
-                        result = (T)styleTransform.transform( style );
-                        // only for easier debugging
-//                         System.err.println( result );
-                    }
-                    catch (TransformerException e) {
-                        throw new RuntimeException( "Unable to transform style.", e );
-                    }
-                }
-                else {
-                    throw new RuntimeException( "Unhandled serialization result type: " + targetType );
-                }
+        // build/cache geotools.styling.Style first
+        // avoid starting the SLDSerializer on the same style for different targetTypes;
+        CacheKey cacheKey = new CacheKey( id, org.geotools.styling.Style.class.getName(), outputFormat );
+        Optional<org.geotools.styling.Style> style = serialized.computeIfAbsent( cacheKey, key -> {
+            try {
+                log.warn( "serializedFeatureStyle(): start... (" + key +  ")" );
+                return featureStyle( id ).map( fs -> {
+                    Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
+                    return (T)new SLDSerializer().serialize( sc );
+                });
             }
-            return Optional.ofNullable( result );
-        } );
+            finally {
+                log.warn( "serializedFeatureStyle(): end." );
+            }
+        });
+        
+        // no style found
+        if (!style.isPresent()) {
+            return Optional.empty();
+        }
+        // geotools.styling.Style
+        else if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
+            return (Optional<T>)style;
+        }
+        // String / SLD
+        else if (String.class.isAssignableFrom( targetType )) {
+            CacheKey ck = new CacheKey( id, targetType.getName(), outputFormat );
+            return serialized.computeIfAbsent( ck, key -> {
+                try {
+                    log.warn( "serializedFeatureStyle(): start... (" + key +  ")" );
+                    SLDTransformer styleTransform = new SLDTransformer();
+                    styleTransform.setIndentation( 4 );
+                    styleTransform.setOmitXMLDeclaration( false );
+                    String result = styleTransform.transform( style.get() );
+                  // log.info( result );
+                    return Optional.of( result );
+                }
+                catch (TransformerException e) {
+                    throw new RuntimeException( "Unable to transform style.", e );
+                }
+                finally {
+                    log.warn( "serializedFeatureStyle(): end." );
+                }
+            });            
+        }
+        else {
+            throw new RuntimeException( "Unhandled serialization result type: " + targetType );
+        }        
     }
 
 
     protected void updated( FeatureStyle updated ) {
-        List<Triple<String,String,OutputFormat>> invalid = serialized.keySet().stream()
-                .filter( key -> key.getLeft().equals( updated.id() ) )
-                .collect( Collectors.toList() );
-
-        invalid.forEach( key -> serialized.remove( key ) );
+        for (CacheKey key : serialized.keySet()) {
+            if (key.get( 0 ).equals( updated.id() ) ) {
+                if (serialized.remove( key ) == null) {
+                    log.warn( "Unable to remove cached entry!!!" );
+                };
+            }
+        }
+        //log.info( "Cache count: " + serialized.size() );
     }
 
 }

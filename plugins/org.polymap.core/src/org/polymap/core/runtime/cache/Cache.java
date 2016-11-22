@@ -17,7 +17,7 @@ package org.polymap.core.runtime.cache;
 import java.util.Set;
 
 /**
- * 
+ * General cache API.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -42,6 +42,9 @@ public interface Cache<K,V> {
      * check would be done in the client code. The given loader should 'create' the
      * cache element right in the {@link CacheLoader#load(Object)} method and not
      * beforehand.
+     * <p/>
+     * The loader function might be called several times depending on the
+     * implementation used!
      * <p/>
      * This API allows to create the <b>CacheLoader as inner class</b> right within
      * the call. However, consider re-using an existing CacheLoader in order to avoid

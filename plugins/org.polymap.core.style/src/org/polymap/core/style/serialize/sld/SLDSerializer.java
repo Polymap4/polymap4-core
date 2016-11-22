@@ -53,7 +53,6 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer;
  * description.
  * <p/>
  * <b>Transform the resulting Style into SLD:</b>
- * 
  * <pre>
  *   {@link SLDTransformer} styleTransform = new {@link SLDTransformer}();
  *   String xml = styleTransform.transform( style );

@@ -130,13 +130,13 @@ public class FeaturePropertyMatchingStringEditor
     protected List<String> allowedProperties() {
         Collection<PropertyDescriptor> schemaDescriptors = featureType.getDescriptors();
         GeometryDescriptor geometryDescriptor = featureType.getGeometryDescriptor();
-        final List<String> columns = Lists.newArrayList();
+        final List<String> result = Lists.newArrayList();
         for (PropertyDescriptor descriptor : schemaDescriptors) {
             if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {
-                columns.add( descriptor.getName().getLocalPart() );
+                result.add( descriptor.getName().getLocalPart() );
             }
         }
-        return columns;
+        return result;
     }
 
 
