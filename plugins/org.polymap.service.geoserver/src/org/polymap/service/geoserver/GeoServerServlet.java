@@ -17,15 +17,12 @@ package org.polymap.service.geoserver;
 import static com.google.common.base.Throwables.propagateIfPossible;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -284,8 +281,8 @@ public abstract class GeoServerServlet
         final String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
         log.info( "REQUEST: servletPath=" + servletPath + ", pathInfo=" + pathInfo + " ? " + req.getQueryString() );
-        log.info( "COOKIES: " + Arrays.stream( req.getCookies() ).map( c -> c.getName() ).collect( Collectors.toList() ) );
-        log.info( "THREAD: " +  Thread.currentThread() );
+        //log.debug( "COOKIES: " + Arrays.stream( req.getCookies() ).map( c -> c.getName() ).collect( Collectors.toList() ) );
+        //log.debug( "THREAD: " +  Thread.currentThread() );
         
         // schemas
         if (pathInfo != null && pathInfo.startsWith( "/schemas" )) {

@@ -48,7 +48,7 @@ public class BBoxGetMapKvpRequestReader
     public GetMapRequest read( Object request, Map kvp, Map rawKvp ) throws Exception {
         GetMapRequest getMap = super.read( request, kvp, rawKvp );
         
-        log.info( "BBOX: " + rawKvp.get( "bbox" ) );
+        log.debug( "BBOX: " + rawKvp.get( "bbox" ) );
         
 //        String bbox = String.valueOf( kvp.get( "bbox" ) );
 //        if (bbox != null) {
