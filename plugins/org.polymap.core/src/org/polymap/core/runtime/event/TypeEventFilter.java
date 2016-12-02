@@ -32,6 +32,13 @@ public class TypeEventFilter<E extends EventObject>
      * @param check This check is performed *if* event has proper type.
      * @return Newly created event filter instance.
      */
+    public static <T extends EventObject> TypeEventFilter<T> isType( Class<T> type, Function<T,Boolean> check ) {
+        return ifType( type, check );
+    }
+    
+    /**
+     * Deprecated as of {@link #isType(Class, Function)}. 
+     */
     public static <T extends EventObject> TypeEventFilter<T> ifType( Class<T> type, Function<T,Boolean> check ) {
         return new TypeEventFilter<T>( type ) {
             @Override

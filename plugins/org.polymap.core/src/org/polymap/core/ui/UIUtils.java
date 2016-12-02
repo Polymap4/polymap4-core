@@ -17,6 +17,7 @@ package org.polymap.core.ui;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.RGB;
@@ -250,9 +253,24 @@ public class UIUtils {
         return resources.getFont( bold.getFontData()[0] );
     }    
 
+
     public static Font fontSize( Font font, int size ) {
         ResourceFactory resources = ContextProvider.getApplicationContext().getResourceFactory();
         FontDescriptor bold = FontDescriptor.createFrom( font ).setHeight( size );        
         return resources.getFont( bold.getFontData()[0] );
+    }
+
+
+    public static SelectionListener selectionListener( Consumer<SelectionEvent> task ) {
+        return new SelectionListener() {
+            @Override
+            public void widgetSelected( SelectionEvent ev ) {
+                task.accept( ev );
+            }
+            @Override
+            public void widgetDefaultSelected( SelectionEvent ev ) {
+                task.accept( ev );
+            }
+        };
     }    
 }
