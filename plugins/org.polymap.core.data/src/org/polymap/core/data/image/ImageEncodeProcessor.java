@@ -120,7 +120,7 @@ public class ImageEncodeProcessor
         else {
             opEncodePNG( response.getImage(), out );
         }
-        log.info( "encode: ready. (" + timer.elapsedTime() + "ms)" );
+        log.debug( "encode: ready. (" + timer.elapsedTime() + "ms)" );
         
         out.flush();
         context.sendResponse( ProcessorResponse.EOP );

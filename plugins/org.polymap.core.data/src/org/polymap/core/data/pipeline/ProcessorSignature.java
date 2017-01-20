@@ -41,7 +41,7 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
  */
 public class ProcessorSignature {
 
-    private static Log log = LogFactory.getLog( ProcessorSignature.class );
+    private static final Log log = LogFactory.getLog( ProcessorSignature.class );
 
     protected Set<Class<? extends ProcessorRequest>>    requestIn = new HashSet();
     
@@ -101,39 +101,36 @@ public class ProcessorSignature {
                 
                 // param
                 callMap.put( param, m );
-                if (ProcessorRequest.class.isAssignableFrom( param )) {
-                    requestIn.add( (Class<? extends ProcessorRequest>)param );
-                }
-                else {
-                    responseIn.add( (Class<? extends ProcessorResponse>)param );
-                }
+                addRequestOrResponse( requestIn, responseIn, param );
                 
                 // Consumes
                 if (consumes != null) {
                     for (Class c : consumes.value() ) {
-                        if (ProcessorRequest.class.isAssignableFrom( c )) {
-                            requestIn.add( (Class<? extends ProcessorRequest>)c );
-                        }
-                        else {
-                            responseIn.add( (Class<? extends ProcessorResponse>)c );
-                        }
+                        // allow method to declare a super type of the annotated type
+                        callMap.put( c, m );
+                        addRequestOrResponse( requestIn, responseIn, c );
                     }
                 }
                 // Produces
                 if (produces != null) {
                     for (Class c : produces.value() ) {
-                        if (ProcessorRequest.class.isAssignableFrom( c )) {
-                            requestOut.add( (Class<? extends ProcessorRequest>)c );
-                        }
-                        else {
-                            responseOut.add( (Class<? extends ProcessorResponse>)c );
-                        }
+                        addRequestOrResponse( requestOut, responseOut, c );
                     }
                 }
             }
         }
     }
 
+    
+    protected void addRequestOrResponse( Set requests, Set responses, Class cl ) {
+        if (ProcessorRequest.class.isAssignableFrom( cl )) {
+            requests.add( cl );
+        }
+        else {
+            responses.add( cl );
+        }
+    }
+    
     
     protected Class<? extends ProcessorProbe> checkMethodParam( Method m ) {
         Class<?>[] paramTypes = m.getParameterTypes();
@@ -151,6 +148,8 @@ public class ProcessorSignature {
         try {
             Method m = callMap.get( probe.getClass() );
             if (m == null) {
+//                // method has super type declared!?
+//                for (callMap
                 throw new IllegalStateException( "No method for: " + probe.getClass().getName() );
             }
             m.invoke( processor, new Object[] {probe, context} );
