@@ -153,7 +153,21 @@ public class ConfigurationFactory {
         
         @Override
         public String toString() {
-            return "Config[" + value + "]";
+            return "Config[" + f.getName() + "=" + value + "]";
+        }
+
+
+        @Override
+        public boolean equals( Object obj ) {
+            if (obj == this) {
+                return true;
+            }
+            else if (obj instanceof PropertyImpl) {
+                return f.equals( ((PropertyImpl)obj).f );
+            }
+            else {
+                return false;
+            }
         }
 
 

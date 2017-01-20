@@ -75,6 +75,8 @@
             <dependency groupId="com.google.guava" artifactId="guava" version="18.0" />
             <dependency groupId="javax.cache" artifactId="cache-api" version="1.0.0" />
             <dependency groupId="javax.cache" artifactId="cache-tests" version="1.0.1" />
+
+            <dependency groupId="org.json" artifactId="json" version="20141113" />
         </artifact:dependencies>
     </target>
 

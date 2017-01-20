@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-test"/>
+	<classpathentry exported="true" kind="lib" path="lib/json-20141113.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/test-domain-1.0.1.jar" sourcepath="lib/sources/test-domain-1.0.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/cache-tests-1.0.1.jar" sourcepath="lib/sources/cache-tests-1.0.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-collections4-4.0.jar" sourcepath="lib/sources/commons-collections4-4.0-sources.zip"/>

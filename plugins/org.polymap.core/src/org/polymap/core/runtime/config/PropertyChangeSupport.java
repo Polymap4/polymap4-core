@@ -16,9 +16,6 @@ package org.polymap.core.runtime.config;
 
 import java.beans.PropertyChangeEvent;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.runtime.event.EventManager;
 
 /**
@@ -32,13 +29,11 @@ import org.polymap.core.runtime.event.EventManager;
 public class PropertyChangeSupport
         extends DefaultPropertyConcern {
 
-    private static Log log = LogFactory.getLog( PropertyChangeSupport.class );
-
     @Override
     public Object doSet( Object obj, Config prop, Object value ) {
         PropertyInfo info = prop.info();
         EventManager.instance().publish( new PropertyChangeEvent( 
-                info.getHostObject(), prop.info().getName(), null, value ) );
+                info.getHostObject(), info.getName(), null, value ) );
         return value;
     }
     

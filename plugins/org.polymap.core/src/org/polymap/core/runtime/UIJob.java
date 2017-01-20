@@ -18,8 +18,8 @@ import static org.polymap.core.runtime.UIThreadExecutor.runtimeException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -77,13 +77,11 @@ public abstract class UIJob
         return threadJob.get();
     }
 
-    
-    public static void joinJobs( Iterable<UIJob> jobs ) throws InterruptedException {
-        for (UIJob job : jobs) {
+    public static void joinJobs( Iterable<? extends Job> jobs ) throws InterruptedException {
+        for (Job job : jobs) {
             job.join();
         }
     }
-
 
     /**
      * Returns the progress monitor of the job of the current thread a
@@ -92,6 +90,34 @@ public abstract class UIJob
     public static IProgressMonitor monitorOfThread() {
         UIJob job = UIJob.ofThread();
         return job != null ? job.executionMonitor : nullMonitor;
+    }
+
+    /**
+     * Creates and {@link UIJob#schedule()}s a new {@link UIJob} for the given task.
+     *
+     * @param name The name of the job. Must not be null.
+     * @param task The task to execute inside the newly created job.
+     * @return The newly created job.
+     */
+    public static UIJob schedule( String name, Task task ) {
+        UIJob job = new UIJob( name ) {
+            @Override
+            protected void runWithException( IProgressMonitor monitor ) throws Exception {
+                monitor.beginTask( name, IProgressMonitor.UNKNOWN );
+                task.perform( monitor );
+                monitor.done();
+            }
+        };
+        job.schedule();
+        return job;
+    }
+    
+    /**
+     * 
+     */
+    @FunctionalInterface
+    public static interface Task {
+        public void perform( IProgressMonitor monitor ) throws Exception;
     }
     
     
