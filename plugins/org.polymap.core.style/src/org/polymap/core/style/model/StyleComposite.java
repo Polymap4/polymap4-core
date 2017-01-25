@@ -14,9 +14,6 @@
  */
 package org.polymap.core.style.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.model2.Composite;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -29,8 +26,6 @@ import org.polymap.model2.runtime.ValueInitializer;
 public abstract class StyleComposite
         extends Composite {
 
-    private static Log log = LogFactory.getLog( StyleComposite.class );
-    
     /**
      * Initializes a newly created instance with default values.
      */

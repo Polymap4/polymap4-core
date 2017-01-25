@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2017, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -25,7 +25,7 @@ import org.polymap.model2.runtime.PropertyInfo;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * 
+ * This event is fired when a {@link StylePropertyValue} has been changed.
  *
  * @author Falko Bräutigam
  */
@@ -51,7 +51,7 @@ public class StylePropertyChange
 
     
     /**
-     * 
+     * Fires a {@link StylePropertyChange} event. 
      */
     public static class Concern
             extends PropertyConcernAdapter

@@ -17,6 +17,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.style,
  org.polymap.core.style.model,
+ org.polymap.core.style.model.feature,
+ org.polymap.core.style.model.raster,
  org.polymap.core.style.serialize,
  org.polymap.core.style.serialize.sld,
  org.polymap.core.style.ui

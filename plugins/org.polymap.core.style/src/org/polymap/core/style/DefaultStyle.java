@@ -17,6 +17,7 @@ import java.util.Random;
 
 import java.awt.Color;
 
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
@@ -32,20 +33,23 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
-import org.polymap.core.style.model.ConstantColor;
-import org.polymap.core.style.model.ConstantFontFamily;
-import org.polymap.core.style.model.ConstantFontStyle;
-import org.polymap.core.style.model.ConstantFontWeight;
-import org.polymap.core.style.model.ConstantNumber;
-import org.polymap.core.style.model.ConstantStrokeCapStyle;
-import org.polymap.core.style.model.ConstantStrokeDashStyle;
-import org.polymap.core.style.model.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.FeatureStyle;
-import org.polymap.core.style.model.LineStyle;
-import org.polymap.core.style.model.PointStyle;
-import org.polymap.core.style.model.PolygonStyle;
-import org.polymap.core.style.model.PropertyString;
-import org.polymap.core.style.model.TextStyle;
+import org.polymap.core.style.model.feature.ConstantColor;
+import org.polymap.core.style.model.feature.ConstantFontFamily;
+import org.polymap.core.style.model.feature.ConstantFontStyle;
+import org.polymap.core.style.model.feature.ConstantFontWeight;
+import org.polymap.core.style.model.feature.ConstantNumber;
+import org.polymap.core.style.model.feature.ConstantStrokeCapStyle;
+import org.polymap.core.style.model.feature.ConstantStrokeDashStyle;
+import org.polymap.core.style.model.feature.ConstantStrokeJoinStyle;
+import org.polymap.core.style.model.feature.LineStyle;
+import org.polymap.core.style.model.feature.PointStyle;
+import org.polymap.core.style.model.feature.PolygonStyle;
+import org.polymap.core.style.model.feature.PropertyString;
+import org.polymap.core.style.model.feature.TextStyle;
+import org.polymap.core.style.model.raster.ConstantRasterBand;
+import org.polymap.core.style.model.raster.RasterGrayStyle;
+import org.polymap.core.style.model.raster.RasterStyle;
 
 /**
  * Factory of simple default feature styles with some random settings.
@@ -169,4 +173,13 @@ public class DefaultStyle {
         }
         return text;
     }
+    
+
+    public static RasterStyle fillGrayscaleStyle( FeatureStyle fs, GridCoverage2D gridCoverage ) {
+        RasterGrayStyle gray = fs.members().createElement( RasterGrayStyle.defaults );
+        gray.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        gray.grayBand.createValue( ConstantRasterBand.defaults( 0 ) );
+        return gray;
+    }
+
 }

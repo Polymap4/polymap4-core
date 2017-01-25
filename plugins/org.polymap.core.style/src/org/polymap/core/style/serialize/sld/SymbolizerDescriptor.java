@@ -68,7 +68,7 @@ public abstract class SymbolizerDescriptor
 
     
     @Override
-    protected SymbolizerDescriptor clone() {
+    public SymbolizerDescriptor clone() {
         try {
             Class cl = getClass();
             Constructor ctor = cl.getConstructor( new Class[] {} );

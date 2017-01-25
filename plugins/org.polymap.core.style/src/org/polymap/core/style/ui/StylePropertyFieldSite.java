@@ -1,5 +1,5 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org Copyright (C) 2016-2017, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -12,10 +12,11 @@
  */
 package org.polymap.core.style.ui;
 
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.FeatureStore;
 import org.opengis.feature.type.FeatureType;
 
-import org.polymap.core.runtime.config.Config2;
+import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.style.model.StylePropertyValue;
@@ -25,14 +26,20 @@ import org.polymap.model2.Property;
 /**
  * 
  * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
 public class StylePropertyFieldSite
         extends Configurable {
 
     @Mandatory
-    public Config2<StylePropertyFieldSite,Property<StylePropertyValue>>  prop;
+    public Config<Property<StylePropertyValue>> prop;
 
-    public Config2<StylePropertyFieldSite,FeatureStore> featureStore;
+    /** Optional: present if layer is connected to a feature data source. */
+    public Config<FeatureStore>                 featureStore;
 
-    public Config2<StylePropertyFieldSite,FeatureType> featureType;
+    /** Optional: present if layer is connected to a feature data source. */
+    public Config<FeatureType>                  featureType;
+    
+    /** Optional: present if layer is connected to a raster data source. */
+    public Config<GridCoverage2D>               gridCoverage;
 }

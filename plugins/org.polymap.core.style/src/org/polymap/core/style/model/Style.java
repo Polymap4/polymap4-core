@@ -19,6 +19,8 @@ import org.opengis.filter.Filter;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.polymap.core.style.model.feature.ConstantFilter;
+
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
 import org.polymap.model2.Concerns;

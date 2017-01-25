@@ -27,6 +27,9 @@ import org.geotools.styling.SLDTransformer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.style.model.feature.*;
+import org.polymap.core.style.model.raster.ConstantRasterBand;
+import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
@@ -119,7 +122,10 @@ public class StyleRepository
                         PropertyMatchingStringFilter.class,
                         ScaleMappedNumbers.class,
                         ScaleRangeFilter.class,
-                        TextStyle.class
+                        TextStyle.class,
+                        
+                        RasterGrayStyle.class,
+                        ConstantRasterBand.class
                 } ).store.set(
                         new OptimisticLocking(
                         new RecordStoreAdapter( store ) ) )

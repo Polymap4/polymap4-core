@@ -32,12 +32,12 @@ import org.opengis.filter.expression.PropertyName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.ConstantFilter;
-import org.polymap.core.style.model.ConstantNumber;
 import org.polymap.core.style.model.FeatureStyle;
-import org.polymap.core.style.model.PointStyle;
-import org.polymap.core.style.model.ScaleRangeFilter;
 import org.polymap.core.style.model.StyleRepository;
+import org.polymap.core.style.model.feature.ConstantFilter;
+import org.polymap.core.style.model.feature.ConstantNumber;
+import org.polymap.core.style.model.feature.PointStyle;
+import org.polymap.core.style.model.feature.ScaleRangeFilter;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 import org.polymap.model2.runtime.ValueInitializer;

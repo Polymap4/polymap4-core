@@ -47,14 +47,24 @@ import com.google.common.collect.Lists;
 
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.style.model.FeatureStyle;
-import org.polymap.core.style.model.LineStyle;
-import org.polymap.core.style.model.PointStyle;
-import org.polymap.core.style.model.PolygonStyle;
-import org.polymap.core.style.model.RasterStyle;
 import org.polymap.core.style.model.StyleGroup;
 import org.polymap.core.style.model.StylePropertyValue;
-import org.polymap.core.style.model.TextStyle;
+import org.polymap.core.style.model.feature.LineStyle;
+import org.polymap.core.style.model.feature.PointStyle;
+import org.polymap.core.style.model.feature.PolygonStyle;
+import org.polymap.core.style.model.feature.TextStyle;
+import org.polymap.core.style.model.raster.RasterStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
+import org.polymap.core.style.serialize.sld.feature.FillDescriptor;
+import org.polymap.core.style.serialize.sld.feature.HaloDescriptor;
+import org.polymap.core.style.serialize.sld.feature.LabelPlacementDescriptor;
+import org.polymap.core.style.serialize.sld.feature.LineSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.feature.PointSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.feature.PolygonSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.feature.StrokeDescriptor;
+import org.polymap.core.style.serialize.sld.feature.TextSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.raster.RasterStyleSerializer;
+import org.polymap.core.style.serialize.sld.raster.RasterSymbolizerDescriptor;
 
 /**
  * Creates {@link org.geotools.styling.Style} out of a {@link FeatureStyle}
@@ -104,16 +114,16 @@ public class SLDSerializer
             if (style.active.get()) {
                 StyleSerializer serializer = null;
                 if (style instanceof PointStyle) {
-                    serializer = new PointStyleSerializer( context );
+                    serializer = new PointSymbolizerDescriptor.Serializer( context );
                 }
                 else if (style instanceof PolygonStyle) {
-                    serializer = new PolygonStyleSerializer( context );
+                    serializer = new PolygonSymbolizerDescriptor.Serializer( context );
                 }
                 else if (style instanceof TextStyle) {
-                    serializer = new TextStyleSerializer( context );
+                    serializer = new TextSymbolizerDescriptor.Serializer( context );
                 }
                 else if (style instanceof LineStyle) {
-                    serializer = new LineStyleSerializer( context );
+                    serializer = new LineSymbolizerDescriptor.Serializer( context );
                 }
                 else if (style instanceof RasterStyle) {
                     serializer = new RasterStyleSerializer( context );

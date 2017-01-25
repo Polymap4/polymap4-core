@@ -1,5 +1,5 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org Copyright (C) 2016-2017, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -22,7 +22,31 @@ import java.awt.Color;
 import org.opengis.filter.expression.Expression;
 
 import org.polymap.core.style.model.*;
+import org.polymap.core.style.model.feature.ConstantColor;
+import org.polymap.core.style.model.feature.ConstantFontFamily;
+import org.polymap.core.style.model.feature.ConstantFontStyle;
+import org.polymap.core.style.model.feature.ConstantFontWeight;
+import org.polymap.core.style.model.feature.ConstantNumber;
+import org.polymap.core.style.model.feature.ConstantString;
+import org.polymap.core.style.model.feature.ConstantStrokeCapStyle;
+import org.polymap.core.style.model.feature.ConstantStrokeDashStyle;
+import org.polymap.core.style.model.feature.ConstantStrokeJoinStyle;
+import org.polymap.core.style.model.feature.FilterMappedValues;
+import org.polymap.core.style.model.feature.FontFamily;
+import org.polymap.core.style.model.feature.FontStyle;
+import org.polymap.core.style.model.feature.FontWeight;
+import org.polymap.core.style.model.feature.PropertyNumber;
+import org.polymap.core.style.model.feature.PropertyString;
+import org.polymap.core.style.model.feature.ScaleMappedNumbers;
+import org.polymap.core.style.model.feature.StrokeCapStyle;
+import org.polymap.core.style.model.feature.StrokeDashStyle;
+import org.polymap.core.style.model.feature.StrokeJoinStyle;
+import org.polymap.core.style.model.raster.RasterColorMap;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
+import org.polymap.core.style.serialize.sld.feature.FilterMappedValuesHandler;
+import org.polymap.core.style.serialize.sld.feature.PropertyNumberHandler;
+import org.polymap.core.style.serialize.sld.feature.ScaleMappedNumbersHandler;
+import org.polymap.core.style.serialize.sld.raster.RasterColorMapHandler;
 
 /**
  * Handles one {@link StylePropertyValue} descriptor and provides it with actual
@@ -43,15 +67,17 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             if (spv == null) {
                 return Collections.singletonList( sd );
             }
+            else if (spv instanceof RasterColorMap) {
+                return new RasterColorMapHandler().doHandle( context, (RasterColorMap)spv, sd, setter );
+            }
             else if (spv instanceof ConstantNumber) {
-                return new ConstantNumberHandler().doHandle( context, (ConstantNumber)spv, sd, (Setter<SD>)setter );
+                return new ConstantNumberHandler().doHandle( context, (ConstantNumber)spv, sd, setter );
             }
             else if (spv instanceof FilterMappedValues) {
-                return new FilterMappedValuesHandler().doHandle( context, (FilterMappedValues)spv, sd,
-                        (Setter<SD>)setter );
+                return new FilterMappedValuesHandler().doHandle( context, (FilterMappedValues)spv, sd, setter );
             }
             else if (spv instanceof ConstantColor) {
-                return new ConstantColorHandler().doHandle( context, (ConstantColor)spv, sd, (Setter<SD>)setter );
+                return new ConstantColorHandler().doHandle( context, (ConstantColor)spv, sd, setter );
             }
             // handled in the FontSerializer
             // else if (spv instanceof ConstantFontFamily) {
@@ -59,8 +85,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             // (ConstantFontFamily)spv, sd, (Setter<SD>)setter );
             // }
             else if (spv instanceof ConstantFontStyle) {
-                return new ConstantFontStyleHandler().doHandle( context, (ConstantFontStyle)spv, sd,
-                        (Setter<SD>)setter );
+                return new ConstantFontStyleHandler().doHandle( context, (ConstantFontStyle)spv, sd, setter );
             }
             else if (spv instanceof ConstantFontWeight) {
                 return new ConstantFontWeightHandler().doHandle( context, (ConstantFontWeight)spv, sd,
@@ -175,9 +200,7 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantString src, SD sd,
                 Setter<SD> setter ) {
-            if (src.constantString.get() != null) {
-                setter.set( sd, ff.literal( src.constantString.get() ) );
-            }
+            src.constantString.opt().ifPresent( v -> setter.set( sd, ff.literal( v ) ) );
             return Collections.singletonList( sd );
         }
     }

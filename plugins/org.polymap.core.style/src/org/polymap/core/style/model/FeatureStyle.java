@@ -14,10 +14,6 @@
  */
 package org.polymap.core.style.model;
 
-import org.opengis.feature.type.FeatureType;
-
-import com.vividsolutions.jts.geom.Geometry;
-
 import org.polymap.core.runtime.event.EventManager;
 
 import org.polymap.model2.CollectionProperty;
@@ -29,11 +25,14 @@ import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Describes the visual representation (aka style) of a {@link FeatureType} and its
- * {@link Geometry}. This is <b>not tied</b> to any particular backend (SLD,
- * OpenLayers). It rather models the "user experience" we want to achieve.
+ * Describes the visual representation (aka the style) of a layer and its data. This
+ * is <b>not tied</b> to any particular backend (SLD, OpenLayers). It rather models
+ * the "user experience" we want to achieve.
  * <p/>
  * Every instance is created/loaded inside its own {@link UnitOfWork}.
+ * <p/>
+ * The name is misleading and will be changed in future versions. It should be
+ * MapStyle.
  *
  * @author Falko Bräutigam
  */

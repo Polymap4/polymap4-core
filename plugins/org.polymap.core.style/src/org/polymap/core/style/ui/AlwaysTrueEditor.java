@@ -21,8 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.widgets.Composite;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.ConstantFilter;
-import org.polymap.core.style.model.ConstantFontFamily;
+import org.polymap.core.style.model.feature.ConstantFilter;
+import org.polymap.core.style.model.feature.ConstantFontFamily;
 
 /**
  * Editor that creates one {@link ConstantFontFamily}.

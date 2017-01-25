@@ -12,9 +12,6 @@
  */
 package org.polymap.core.style.ui;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
@@ -26,12 +23,10 @@ import org.polymap.core.style.model.NoValue;
  *
  * @author Steffen Stundzig
  */
-class NoValueEditor
+public class NoValueEditor
         extends StylePropertyEditor<NoValue> {
 
     private static final IMessages i18n = Messages.forPrefix( "NoValue" );
-
-    private static Log log = LogFactory.getLog( NoValueEditor.class );
 
 
     @Override

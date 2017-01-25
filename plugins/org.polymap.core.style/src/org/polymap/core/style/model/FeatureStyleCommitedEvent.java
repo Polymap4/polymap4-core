@@ -16,9 +16,6 @@ package org.polymap.core.style.model;
 
 import java.util.EventObject;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * 
  *
@@ -27,9 +24,6 @@ import org.apache.commons.logging.LogFactory;
 public class FeatureStyleCommitedEvent
         extends EventObject {
 
-    private static Log log = LogFactory.getLog( FeatureStyleCommitedEvent.class );
-
-    
     public FeatureStyleCommitedEvent( FeatureStyle source ) {
         super( source );
     }

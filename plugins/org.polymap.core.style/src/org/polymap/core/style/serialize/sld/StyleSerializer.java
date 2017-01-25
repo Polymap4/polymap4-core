@@ -28,12 +28,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.style.model.ConstantFilter;
-import org.polymap.core.style.model.PropertyMatchingNumberFilter;
-import org.polymap.core.style.model.PropertyMatchingStringFilter;
-import org.polymap.core.style.model.ScaleRangeFilter;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.feature.ConstantFilter;
+import org.polymap.core.style.model.feature.PropertyMatchingNumberFilter;
+import org.polymap.core.style.model.feature.PropertyMatchingStringFilter;
+import org.polymap.core.style.model.feature.ScaleRangeFilter;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**

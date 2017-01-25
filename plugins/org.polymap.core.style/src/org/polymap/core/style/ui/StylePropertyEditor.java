@@ -17,20 +17,36 @@ import java.util.List;
 import java.util.Optional;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 import org.geotools.data.FeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.FilterFactory2;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.ui.feature.ConstantColorEditor;
+import org.polymap.core.style.ui.feature.ConstantFontFamilyEditor;
+import org.polymap.core.style.ui.feature.ConstantFontStyleEditor;
+import org.polymap.core.style.ui.feature.ConstantFontWeightEditor;
+import org.polymap.core.style.ui.feature.ConstantNumberEditor;
+import org.polymap.core.style.ui.feature.ConstantStrokeCapStyleEditor;
+import org.polymap.core.style.ui.feature.ConstantStrokeDashStyleEditor;
+import org.polymap.core.style.ui.feature.ConstantStrokeJoinStyleEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyBasedNumberEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyBasedStringEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyMappedColorsEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyMatchingNumberEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyMatchingStringEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedColorsEditor;
+import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedNumbersEditor;
+import org.polymap.core.style.ui.feature.ScaleRangeEditor;
+import org.polymap.core.style.ui.feature.ScaleRangeMappedNumbersEditor;
+import org.polymap.core.style.ui.raster.RasterBandEditor;
 
 import org.polymap.model2.Property;
 
@@ -40,8 +56,6 @@ import org.polymap.model2.Property;
  * @author Falko Bräutigam
  */
 public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
-
-    private static Log log = LogFactory.getLog( StylePropertyEditor.class );
 
     public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
     
@@ -64,7 +78,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             FeaturePropertyRangeMappedNumbersEditor.class,
             NoValueEditor.class,
             ScaleRangeEditor.class,
-            ScaleRangeMappedNumbersEditor.class};
+            ScaleRangeMappedNumbersEditor.class,
+            RasterBandEditor.class };
 
 
     /**
@@ -140,14 +155,21 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * type parameter of this editor.
      */
     public boolean canHandleCurrentValue() {
-        Class<? extends StylePropertyValue> targetType = (Class)((ParameterizedType)getClass().getGenericSuperclass())
-                .getActualTypeArguments()[0];
+        Type targetType = ((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        Class<? extends StylePropertyValue> targetClass = null;
+        if (targetType instanceof Class) {
+            targetClass = (Class<? extends StylePropertyValue>)targetType;
+        }
+        else {
+            throw new RuntimeException( "Target type: " + targetType);
+        }
+
         StylePropertyValue current = prop.get();
         if (current != null) {
             if (current.lastEditorHint.get() != null) {
                 return current.lastEditorHint.get().equals( hint() );
             }
-            return targetType.isAssignableFrom( current.getClass() );
+            return targetClass.isAssignableFrom( current.getClass() );
         }
         return false;
     }
