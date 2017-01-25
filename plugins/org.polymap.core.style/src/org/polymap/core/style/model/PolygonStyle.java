@@ -44,12 +44,12 @@ public class PolygonStyle
         }
     };
 
-    @UIOrder(10)
-    @Description("fill")
+    @UIOrder( 10 )
+    @Description( "fill" )
     @Concerns(StylePropertyChange.Concern.class)
     public Property<Fill>           fill;
 
     @UIOrder( 20 )
     @Description( "stroke" )
-    public Property<Stroke>                     stroke;
+    public Property<Stroke>         stroke;
 }

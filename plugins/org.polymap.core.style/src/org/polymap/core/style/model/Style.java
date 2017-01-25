@@ -17,9 +17,6 @@ package org.polymap.core.style.model;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.model2.CollectionProperty;
@@ -40,8 +37,6 @@ import org.polymap.model2.runtime.ValueInitializer;
 public abstract class Style
         extends StyleComposite {
 
-    private static Log log = LogFactory.getLog( Style.class );
-    
     /**
      * Initializes a newly created instance with default values.
      */

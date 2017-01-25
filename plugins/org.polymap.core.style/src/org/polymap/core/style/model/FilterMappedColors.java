@@ -19,9 +19,6 @@ import java.util.List;
 
 import java.awt.Color;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.google.common.collect.Lists;
 
 import org.polymap.model2.CollectionProperty;
@@ -35,15 +32,11 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class FilterMappedColors
         extends FilterMappedValues<Color> {
 
-    private static Log log = LogFactory.getLog( FilterMappedColors.class );
-
-
     /**
      * Initializes a newly created instance with default values.
      */
     public static ValueInitializer<FilterMappedColors> defaults() {
         return new ValueInitializer<FilterMappedColors>() {
-
             @Override
             public FilterMappedColors initialize( FilterMappedColors proto ) throws Exception {
                 return proto;

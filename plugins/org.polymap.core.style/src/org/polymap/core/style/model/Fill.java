@@ -33,7 +33,6 @@ public class Fill
      */
     @SuppressWarnings("hiding")
     public static final ValueInitializer<Fill> defaults = new ValueInitializer<Fill>() {
-
         @Override
         public Fill initialize( Fill proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );

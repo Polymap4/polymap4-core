@@ -41,6 +41,7 @@ public class ConstantNumber<T extends Number>
     
 
     // instance *******************************************
+    
     //@Nullable
     @Concerns( StylePropertyChange.Concern.class )
     public Property<Number>             constantNumber;

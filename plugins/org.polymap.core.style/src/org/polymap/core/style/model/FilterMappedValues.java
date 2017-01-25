@@ -21,9 +21,6 @@ import java.io.IOException;
 
 import org.opengis.filter.Filter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Nullable;
@@ -37,10 +34,6 @@ import org.polymap.model2.Property;
  */
 public abstract class FilterMappedValues<T>
         extends StylePropertyValue<T> {
-
-    private static Log log = LogFactory.getLog( FilterMappedValues.class );
-
-    // instance *******************************************
 
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
