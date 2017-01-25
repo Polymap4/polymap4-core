@@ -1,5 +1,5 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org Copyright (C) 2016-2017, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -11,9 +11,6 @@
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  */
 package org.polymap.core.style.serialize.sld;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PolygonStyle;
@@ -30,9 +27,6 @@ public class LineStyleSerializer
     public LineStyleSerializer( Context context ) {
         super( context );
     }
-
-
-    private static Log log = LogFactory.getLog( LineStyleSerializer.class );
 
 
     @Override

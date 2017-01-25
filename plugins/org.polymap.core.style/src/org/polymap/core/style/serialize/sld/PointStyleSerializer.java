@@ -16,9 +16,6 @@ package org.polymap.core.style.serialize.sld;
 
 import org.opengis.filter.expression.Expression;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
@@ -30,9 +27,6 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
  */
 public class PointStyleSerializer
         extends StyleSerializer<PointStyle,PointSymbolizerDescriptor> {
-
-    private static Log log = LogFactory.getLog( PointStyleSerializer.class );
-
 
     public PointStyleSerializer( Context context ) {
         super(context);
@@ -47,9 +41,9 @@ public class PointStyleSerializer
 
     @Override
     public void doSerializeStyle( PointStyle style ) {
-        setComposite( new StrokeSerializer(context()).serialize( style.stroke.get() ),
+        setComposite( new StrokeSerializer( context() ).serialize( style.stroke.get() ),
                 ( PointSymbolizerDescriptor sd, StrokeDescriptor value ) -> sd.stroke.set( value ) );
-        setComposite( new FillSerializer(context()).serialize( style.fill.get() ),
+        setComposite( new FillSerializer( context() ).serialize( style.fill.get() ),
                 ( PointSymbolizerDescriptor sd, FillDescriptor value ) -> sd.fill.set( value ) );
         setValue( style.diameter.get(),
                 ( PointSymbolizerDescriptor sd, Expression value ) -> sd.diameter.set( value ) );

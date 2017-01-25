@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2017, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,9 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opengis.filter.Filter;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StyleComposite;
@@ -41,14 +38,14 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
  */
 public abstract class StyleCompositeSerializer<S extends StyleComposite, SD extends SymbolizerDescriptor> {
 
-    private static final Log log = LogFactory.getLog( StyleCompositeSerializer.class );
+    /** The result of {@link #serialize(StyleComposite)}. */
+    protected List<SD>      descriptors;
 
-    protected List<SD> descriptors;
+    private Filter          defaultFilter;
 
-    private Filter defaultFilter;
+    private Context         context;
 
-    private Context context;
-
+    
     public StyleCompositeSerializer( Context context ) {
         this.context = context;
     }

@@ -16,9 +16,6 @@ package org.polymap.core.style.serialize.sld;
 
 import org.opengis.filter.expression.Expression;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.style.model.Fill;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
@@ -32,15 +29,10 @@ public class FillSerializer
         super( context );
     }
 
-
-    private static Log log = LogFactory.getLog( FillSerializer.class );
-
-
     @Override
     protected FillDescriptor createDescriptor() {
         return new FillDescriptor();
     }
-
 
     @Override
     public void doSerialize( Fill style ) {

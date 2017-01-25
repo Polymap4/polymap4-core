@@ -29,9 +29,6 @@ import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.google.common.collect.Lists;
 
 import org.polymap.core.style.model.FilterMappedValues;
@@ -43,9 +40,6 @@ import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
  */
 public class FilterMappedValuesHandler
         extends StylePropertyValueHandler<FilterMappedValues,Object> {
-
-    private static Log log = LogFactory.getLog( FilterMappedValuesHandler.class );
-
 
     @Override
     public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, FilterMappedValues spv, SD sd,

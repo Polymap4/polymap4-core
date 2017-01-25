@@ -12,9 +12,6 @@
  */
 package org.polymap.core.style.serialize.sld;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.style.model.PolygonStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
@@ -29,9 +26,6 @@ public class PolygonStyleSerializer
     public PolygonStyleSerializer( Context context ) {
         super( context );
     }
-
-
-    private static Log log = LogFactory.getLog( PolygonStyleSerializer.class );
 
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org Copyright (C) 2016-2017, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -12,7 +12,10 @@
  */
 package org.polymap.core.style.serialize.sld;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.styling.AnchorPoint;
 import org.geotools.styling.Displacement;
@@ -26,12 +29,15 @@ import org.geotools.styling.LineSymbolizer;
 import org.geotools.styling.Mark;
 import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.PolygonSymbolizer;
+import org.geotools.styling.RasterSymbolizer;
 import org.geotools.styling.Rule;
+import org.geotools.styling.SLD;
 import org.geotools.styling.SLDTransformer;
 import org.geotools.styling.Stroke;
 import org.geotools.styling.Style;
 import org.geotools.styling.StyleFactory;
 import org.geotools.styling.Symbolizer;
+import org.geotools.styling.TextSymbolizer;
 import org.opengis.filter.FilterFactory2;
 
 import org.apache.commons.logging.Log;
@@ -39,10 +45,12 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.Lists;
 
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.LineStyle;
 import org.polymap.core.style.model.PointStyle;
 import org.polymap.core.style.model.PolygonStyle;
+import org.polymap.core.style.model.RasterStyle;
 import org.polymap.core.style.model.StyleGroup;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.model.TextStyle;
@@ -68,7 +76,7 @@ public class SLDSerializer
 
     public static final StyleFactory sf = CommonFactoryFinder.getStyleFactory( null );
 
-    public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
+    public static final FilterFactory2 ff = DataPlugin.ff; //;CommonFactoryFinder.getFilterFactory2( null );
 
 
     /**
@@ -87,89 +95,88 @@ public class SLDSerializer
     public Style serialize( Context context ) {
         FeatureStyle featureStyle = context.featureStyle.get();
 
-        // XXX 1: gather scale and filter descriptions from StyleGroup hierarchy
-        // ...
+        // 1: gather scale and filter descriptions from StyleGroup hierarchy
+        // XXX ...
 
-        // 2: create flat list of SymbolizerDescriptor instances per style and add a
-        // feature type style for each
-        final Style sld = sf.createStyle();
+        // 2: create flat list of SymbolizerDescriptor instances per style
+        Map<org.polymap.core.style.model.Style,List<SymbolizerDescriptor>> descriptors = new HashMap();
         for (org.polymap.core.style.model.Style style : featureStyle.members()) {
-            // skip deactivated
-            if (!style.active.get()) {
-            }
-            else {
-                sld.featureTypeStyles().add( buildStyle( style, context ) );
+            if (style.active.get()) {
+                StyleSerializer serializer = null;
+                if (style instanceof PointStyle) {
+                    serializer = new PointStyleSerializer( context );
+                }
+                else if (style instanceof PolygonStyle) {
+                    serializer = new PolygonStyleSerializer( context );
+                }
+                else if (style instanceof TextStyle) {
+                    serializer = new TextStyleSerializer( context );
+                }
+                else if (style instanceof LineStyle) {
+                    serializer = new LineStyleSerializer( context );
+                }
+                else if (style instanceof RasterStyle) {
+                    serializer = new RasterStyleSerializer( context );
+                }
+                else {
+                    throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
+                }
+                descriptors.put( style, serializer.serialize( style ) );
             }
         }
+        
+        // 3: transform into FeatureTypeStyle and Rule instances
+        // XXX build a FTS regarding SymbolizerDescriptor#zIndex
+        Style result = sf.createStyle();
+        for (org.polymap.core.style.model.Style style : descriptors.keySet()) {
+            FeatureTypeStyle fts = sf.createFeatureTypeStyle();
+            fts.setName( style.title.get() );
+            fts.getDescription().setAbstract( style.description.get() );
 
-        return sld;
+            for (SymbolizerDescriptor descriptor : descriptors.get( style )) {
+                fts.rules().add( createRule( descriptor ) );
+            }
+            result.featureTypeStyles().add( fts );
+        }
+        
+        return result;
     }
 
 
-    private FeatureTypeStyle buildStyle( final org.polymap.core.style.model.Style style, final Context context ) {
-        FeatureTypeStyle featureTypeStyle = sf.createFeatureTypeStyle();
-        featureTypeStyle.setName( style.title.get() );
-        featureTypeStyle.getDescription().setAbstract( style.description.get() );
-        // featureTypeStyle.getDescription().setTitle( style.title.get() );
+    protected Rule createRule( SymbolizerDescriptor descriptor ) {
+        Rule rule = sf.createRule();
 
-        for (SymbolizerDescriptor descriptor : serializeStyle( style, context )) {
-            List<Symbolizer> sym = Lists.newArrayList();
-            if (descriptor instanceof LineSymbolizerDescriptor) {
-                sym.addAll( buildLineStyle( (LineSymbolizerDescriptor)descriptor ) );
-            }
-            else if (descriptor instanceof PointSymbolizerDescriptor) {
-                sym.add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
-            }
-            else if (descriptor instanceof PolygonSymbolizerDescriptor) {
-                sym.add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
-            }
-            else if (descriptor instanceof TextSymbolizerDescriptor) {
-                sym.add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
-            }
-            else {
-                throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
-            }
-
-            // Rule
-            Rule rule = sf.createRule();
-            // rule.setName( descriptor.description.get() );
-            rule.symbolizers().addAll( sym );
-
-            descriptor.filter.ifPresent( f -> rule.setFilter( f ) );
-            descriptor.scale.ifPresent( scale -> {
-                if (scale.getLeft() != null) {
-                    rule.setMinScaleDenominator( scale.getLeft() );
-                }
-                if (scale.getRight() != null) {
-                    rule.setMaxScaleDenominator( scale.getRight() );
-                }
-            } );
-            featureTypeStyle.rules().add( rule );
+        if (descriptor instanceof LineSymbolizerDescriptor) {
+            rule.symbolizers().addAll( buildLineStyle( (LineSymbolizerDescriptor)descriptor ) );
         }
-        return featureTypeStyle;
-    }
-
-
-    private List<? extends SymbolizerDescriptor> serializeStyle( org.polymap.core.style.model.Style style,
-            Context context ) {
-        if (PointStyle.class.isInstance( style )) {
-            return new PointStyleSerializer( context ).serialize( (PointStyle)style );
+        else if (descriptor instanceof PointSymbolizerDescriptor) {
+            rule.symbolizers().add( buildPointStyle( (PointSymbolizerDescriptor)descriptor ) );
         }
-        // Polygon
-        else if (PolygonStyle.class.isInstance( style )) {
-            return new PolygonStyleSerializer( context ).serialize( (PolygonStyle)style );
+        else if (descriptor instanceof PolygonSymbolizerDescriptor) {
+            rule.symbolizers().add( buildPolygonStyle( (PolygonSymbolizerDescriptor)descriptor ) );
         }
-        // Text
-        else if (TextStyle.class.isInstance( style )) {
-            return new TextStyleSerializer( context ).serialize( (TextStyle)style );
+        else if (descriptor instanceof TextSymbolizerDescriptor) {
+            rule.symbolizers().add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
         }
-        // Line
-        else if (LineStyle.class.isInstance( style )) {
-            return new LineStyleSerializer( context ).serialize( (LineStyle)style );
+        else if (descriptor instanceof RasterSymbolizerDescriptor) {
+            rule.symbolizers().add( buildRasterStyle( (RasterSymbolizerDescriptor)descriptor ) );
         }
         else {
-            throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
+            throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
         }
+
+        descriptor.filter.ifPresent( filter -> 
+                rule.setFilter( filter ) );
+
+        descriptor.scale.ifPresent( scale -> {
+            if (scale.getLeft() != null) {
+                rule.setMinScaleDenominator( scale.getLeft() );
+            }
+            if (scale.getRight() != null) {
+                rule.setMaxScaleDenominator( scale.getRight() );
+            }
+        });
+        return rule;
     }
 
 
@@ -212,7 +219,7 @@ public class SLDSerializer
     }
 
 
-    private Symbolizer buildTextStyle( TextSymbolizerDescriptor descriptor ) {
+    protected TextSymbolizer buildTextStyle( TextSymbolizerDescriptor descriptor ) {
         Fill foreground = null;
         if (descriptor.color.isPresent()) {
             foreground = sf.createFill( descriptor.color.get() );
@@ -229,8 +236,16 @@ public class SLDSerializer
         return sf.createTextSymbolizer( foreground, fonts, background, descriptor.text.get(), placement, null );
     }
 
+    
+    protected RasterSymbolizer buildRasterStyle( RasterSymbolizerDescriptor descriptor ) {
+        RasterSymbolizer symbolizer = sf.createRasterSymbolizer();
+        symbolizer.setChannelSelection( sf.channelSelection( ) );
+        symbolizer.setColorMap( );
+        SLD.wrapSymbolizers( )
+    }
 
-    private LabelPlacement buildLabelPlacement( LabelPlacementDescriptor lpd ) {
+    
+    protected LabelPlacement buildLabelPlacement( LabelPlacementDescriptor lpd ) {
         if (lpd != null && ((lpd.anchorPointX.isPresent() && lpd.anchorPointY.isPresent())
                 || (lpd.displacementX.isPresent() && lpd.displacementY.isPresent()) || lpd.rotation.isPresent())) {
             AnchorPoint anchorPoint = null;
@@ -249,7 +264,7 @@ public class SLDSerializer
     }
 
 
-    private Halo buildHalo( final HaloDescriptor hd ) {
+    protected Halo buildHalo( final HaloDescriptor hd ) {
         // check if one of the expressions is present
         if (hd != null && (hd.color.isPresent() || hd.width.isPresent() || hd.opacity.isPresent())) {
             Halo halo = sf.createHalo( sf.createFill( hd.color.get() ),
@@ -263,7 +278,7 @@ public class SLDSerializer
     }
 
 
-    private Stroke buildStroke( final StrokeDescriptor sd ) {
+    protected Stroke buildStroke( final StrokeDescriptor sd ) {
         if (sd != null && (sd.color.isPresent() || sd.width.isPresent() || sd.opacity.isPresent())) {
             Stroke stroke = sf.createStroke( sd.color.get(), sd.width.get(), sd.opacity.get() );
 
@@ -281,10 +296,11 @@ public class SLDSerializer
     }
 
 
-    private Fill buildFill( final FillDescriptor fd ) {
+    protected Fill buildFill( final FillDescriptor fd ) {
         if (fd != null && (fd.color.isPresent() || fd.opacity.isPresent())) {
             return sf.createFill( fd.color.get(), fd.opacity.get() );
         }
         return null;
     }
+    
 }
