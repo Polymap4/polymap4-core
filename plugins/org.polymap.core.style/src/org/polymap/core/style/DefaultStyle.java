@@ -49,6 +49,7 @@ import org.polymap.core.style.model.feature.PropertyString;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
+import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.model.raster.RasterStyle;
 
 /**
@@ -180,6 +181,16 @@ public class DefaultStyle {
         gray.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         gray.grayBand.createValue( ConstantRasterBand.defaults( 0 ) );
         return gray;
+    }
+
+
+    public static RasterStyle fillRGBStyle( FeatureStyle fs, GridCoverage2D gridCoverage ) {
+        RasterRGBStyle rgb = fs.members().createElement( RasterRGBStyle.defaults );
+        rgb.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        rgb.redBand.createValue( ConstantRasterBand.defaults( 0 ) );
+        rgb.greenBand.createValue( ConstantRasterBand.defaults( 1 ) );
+        rgb.blueBand.createValue( ConstantRasterBand.defaults( 2 ) );
+        return rgb;
     }
 
 }

@@ -76,15 +76,15 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
 
 
     /**
-     * Sets the value in all current {@link #descriptors} using the given setter.
+     * This method should be called from {@link #doSerialize(StyleComposite)}; it sets the
+     * value in all current {@link #descriptors} using the given setter.
      * <p/>
      * Here goes the magic of multiplying style descriptors :)
      *
-     * @param spv
+     * @param spv The {@link StylePropertyValue} of the {@link Style} to serialize.
      * @param setter
      */
-    protected void setValue( StylePropertyValue<? extends Object> spv,
-            org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter<SD> setter ) {
+    protected void setValue( StylePropertyValue<? extends Object> spv, StylePropertyValueHandler.Setter<SD> setter ) {
 
         if (descriptors.isEmpty()) {
             descriptors.add( createDescriptor() );
@@ -92,7 +92,7 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
 
         List<SD> updated = new ArrayList( descriptors.size() );
         for (SymbolizerDescriptor sd : descriptors) {
-            updated.addAll( StylePropertyValueHandler.handle(context, spv, (SD)sd, setter ) );
+            updated.addAll( StylePropertyValueHandler.handle( context, spv, (SD)sd, setter ) );
         }
         this.descriptors = updated;
     }

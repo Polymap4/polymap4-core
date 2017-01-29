@@ -14,33 +14,28 @@
  */
 package org.polymap.core.style.serialize.sld.raster;
 
-import org.polymap.core.style.model.raster.RasterStyle;
+import java.util.Collections;
+import java.util.List;
+
+import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
-import org.polymap.core.style.serialize.sld.StyleSerializer;
+import org.polymap.core.style.serialize.sld.SLDSerializer;
+import org.polymap.core.style.serialize.sld.StylePropertyValueHandler;
+import org.polymap.core.style.serialize.sld.SymbolizerDescriptor;
 
 /**
  * 
  *
  * @author Falko Bräutigam
  */
-public class RasterStyleSerializer
-        extends StyleSerializer<RasterStyle,RasterSymbolizerDescriptor> {
+public class ConstantRasterBandHandler
+        extends StylePropertyValueHandler<ConstantRasterBand,Integer> {
 
-    public RasterStyleSerializer( Context context ) {
-        super( context );
-    }
-
-    
     @Override
-    protected RasterSymbolizerDescriptor createStyleDescriptor() {
-        return new RasterSymbolizerDescriptor();
-    }
-
-    
-    @Override
-    protected void doSerializeStyle( RasterStyle style ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantRasterBand src, SD sd,
+            StylePropertyValueHandler.Setter<SD> setter ) {
+        src.band.opt().ifPresent( band -> setter.set( sd, SLDSerializer.ff.literal( band+1 ) ) );
+        return Collections.singletonList( sd );
     }
 
 }

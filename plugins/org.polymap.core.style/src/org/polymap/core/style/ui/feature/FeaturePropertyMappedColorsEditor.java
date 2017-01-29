@@ -108,7 +108,7 @@ public class FeaturePropertyMappedColorsEditor
             @Override
             public void widgetSelected( SelectionEvent e ) {
                 FeaturePropertyMappedColorsChooser cc = new FeaturePropertyMappedColorsChooser( propertyName,
-                        defaultColor, initialColors, featureStore, featureType );
+                        defaultColor, initialColors, featureStore(), featureType() );
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );
                 }, () -> {

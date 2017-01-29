@@ -41,11 +41,13 @@ import org.polymap.core.style.model.feature.ScaleMappedNumbers;
 import org.polymap.core.style.model.feature.StrokeCapStyle;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.StrokeJoinStyle;
+import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.RasterColorMap;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.sld.feature.FilterMappedValuesHandler;
 import org.polymap.core.style.serialize.sld.feature.PropertyNumberHandler;
 import org.polymap.core.style.serialize.sld.feature.ScaleMappedNumbersHandler;
+import org.polymap.core.style.serialize.sld.raster.ConstantRasterBandHandler;
 import org.polymap.core.style.serialize.sld.raster.RasterColorMapHandler;
 
 /**
@@ -66,6 +68,9 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         try {
             if (spv == null) {
                 return Collections.singletonList( sd );
+            }
+            else if (spv instanceof ConstantRasterBand) {
+                return new ConstantRasterBandHandler().doHandle( context, (ConstantRasterBand)spv, sd, setter );
             }
             else if (spv instanceof RasterColorMap) {
                 return new RasterColorMapHandler().doHandle( context, (RasterColorMap)spv, sd, setter );

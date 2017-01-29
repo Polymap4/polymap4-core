@@ -109,8 +109,8 @@ public class FeaturePropertyRangeMappedColorsEditor
             @Override
             public void widgetSelected( SelectionEvent e ) {
                 final FeaturePropertyRangeMappedColorsChooser cc = new FeaturePropertyRangeMappedColorsChooser(
-                        propertyName, lowerBound, upperBound, minimumValue, maximumValue, steps, featureStore,
-                        featureType );
+                        propertyName, lowerBound, upperBound, minimumValue, maximumValue, steps, featureStore(),
+                        featureType() );
 
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );

@@ -57,7 +57,6 @@ public class ConstantColorEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<ConstantColor>() {
-
             @Override
             public ConstantColor initialize( ConstantColor proto ) throws Exception {
                 // TODO default value here

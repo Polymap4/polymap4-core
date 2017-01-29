@@ -17,16 +17,12 @@ package org.polymap.core.style.serialize.sld.raster;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.graphics.Color;
 
 import org.polymap.core.style.model.raster.RasterColorMap;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.sld.StylePropertyValueHandler;
 import org.polymap.core.style.serialize.sld.SymbolizerDescriptor;
-import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
 
 /**
  * 
@@ -36,13 +32,11 @@ import org.polymap.core.style.serialize.sld.StylePropertyValueHandler.Setter;
 public class RasterColorMapHandler
         extends StylePropertyValueHandler<RasterColorMap,Color> {
 
-    private static final Log log = LogFactory.getLog( RasterColorMapHandler.class );
-
     @Override
     public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, RasterColorMap spv, SD sd,
             StylePropertyValueHandler.Setter<SD> setter ) {
     
-        setter.set( sd );        
+        //setter.set( sd );
         return Collections.singletonList( sd );
     }
     

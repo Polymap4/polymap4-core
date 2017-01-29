@@ -111,7 +111,7 @@ public class FeaturePropertyRangeMappedNumbersEditor
             public void widgetSelected( SelectionEvent e ) {
                 final FeaturePropertyRangeMappedNumbersChooser cc = new FeaturePropertyRangeMappedNumbersChooser(
                         propertyName, lowerBound, upperBound, minimumValue, maximumValue, steps,
-                        (NumberRange)prop.info().getAnnotation( NumberRange.class ), featureStore, featureType );
+                        (NumberRange)prop.info().getAnnotation( NumberRange.class ), featureStore(), featureType() );
 
                 UIService.instance().openDialog( cc.title(), dialogParent -> {
                     cc.createContents( dialogParent );

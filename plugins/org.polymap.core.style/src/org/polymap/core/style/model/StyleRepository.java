@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.style.model.feature.*;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
+import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
@@ -125,6 +126,7 @@ public class StyleRepository
                         TextStyle.class,
                         
                         RasterGrayStyle.class,
+                        RasterRGBStyle.class,
                         ConstantRasterBand.class
                 } ).store.set(
                         new OptimisticLocking(
@@ -215,6 +217,16 @@ public class StyleRepository
         }
         // geotools.styling.Style
         else if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
+            try {
+                SLDTransformer styleTransform = new SLDTransformer();
+                styleTransform.setIndentation( 4 );
+                styleTransform.setOmitXMLDeclaration( false );
+                log.info( "SLD: " + styleTransform.transform( style.get() ) );
+            }
+            catch (TransformerException e) {
+                log.warn( "SLD", e );
+            }
+            
             return (Optional<T>)style;
         }
         // String / SLD
@@ -227,7 +239,7 @@ public class StyleRepository
                     styleTransform.setIndentation( 4 );
                     styleTransform.setOmitXMLDeclaration( false );
                     String result = styleTransform.transform( style.get() );
-                  // log.info( result );
+                    log.info( result );
                     return Optional.of( result );
                 }
                 catch (TransformerException e) {

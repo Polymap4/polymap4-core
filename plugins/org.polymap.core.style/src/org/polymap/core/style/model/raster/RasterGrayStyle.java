@@ -40,6 +40,7 @@ public class RasterGrayStyle
         @Override
         public RasterGrayStyle initialize( RasterGrayStyle proto ) throws Exception {
             RasterStyle.defaults.initialize( proto );
+            proto.title.set( "Grayscale" );
             return proto;
         }
     };

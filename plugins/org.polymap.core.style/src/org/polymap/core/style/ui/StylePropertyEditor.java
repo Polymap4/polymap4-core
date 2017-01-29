@@ -46,7 +46,7 @@ import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedColorsEditor;
 import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedNumbersEditor;
 import org.polymap.core.style.ui.feature.ScaleRangeEditor;
 import org.polymap.core.style.ui.feature.ScaleRangeMappedNumbersEditor;
-import org.polymap.core.style.ui.raster.RasterBandEditor;
+import org.polymap.core.style.ui.raster.ConstantRasterBandEditor;
 
 import org.polymap.model2.Property;
 
@@ -79,7 +79,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             NoValueEditor.class,
             ScaleRangeEditor.class,
             ScaleRangeMappedNumbersEditor.class,
-            RasterBandEditor.class };
+            ConstantRasterBandEditor.class };
 
 
     /**
@@ -105,11 +105,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     // instance *******************************************
 
-    protected Property<SPV> prop;
+    private StylePropertyFieldSite  site;
 
-    protected FeatureStore featureStore;
-
-    protected FeatureType featureType;
+    /** Deprecated: use {@link #site()} instead. */
+    protected Property<SPV>         prop;
 
 
     /**
@@ -119,16 +118,35 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * @return True if this editor is able to handle the property's
      *         {@link StylePropertyValue}.
      */
-    public boolean init( StylePropertyFieldSite fieldSite) {
+    public boolean init( @SuppressWarnings("hiding") StylePropertyFieldSite site ) {
         try {
-            this.prop = (Property<SPV>)fieldSite.prop.get();
-            this.featureStore = fieldSite.featureStore.get();
-            this.featureType = fieldSite.featureType.get();
+            this.site = site;
+            this.prop = (Property<SPV>)site.prop.get();
             return true;
         }
         catch (ClassCastException e) {
             return false;
         }
+    }
+
+    protected StylePropertyFieldSite site() {
+        return site;
+    }
+
+    /**
+     * Shortcut to {@link #site()}.featureStore.get()
+     * @return The featureStore of the layer.
+     */
+    protected FeatureStore featureStore() {
+        return site.featureStore.get();
+    }
+
+    /**
+     * Shortcut to {@link #site()}.featureType.get()
+     * @return The schema of the {@link #featureStore}.
+     */
+    protected FeatureType featureType() {
+        return site.featureType.get();
     }
 
 
@@ -141,7 +159,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * @param site
      * @return
      */
-    protected Class targetType( StylePropertyFieldSite site ) {
+    protected Class targetType( @SuppressWarnings("hiding") StylePropertyFieldSite site ) {
         assert StylePropertyValue.class.isAssignableFrom( site.prop.get().info().getType() );
         Optional<ParameterizedType> o = site.prop.get().info().getParameterizedType();
         ParameterizedType p = o.orElseThrow(
@@ -161,7 +179,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             targetClass = (Class<? extends StylePropertyValue>)targetType;
         }
         else {
-            throw new RuntimeException( "Target type: " + targetType);
+            throw new RuntimeException( "Target type is not a Class: " + targetType );
         }
 
         StylePropertyValue current = prop.get();
@@ -193,8 +211,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
 
     /**
-     * Creates a control that displays the current value of this editor and a way for
-     * the user to modify the value.
+     * Creates a control that displays the current value of this editor and a way to
+     * modify the value.
      */
     public Composite createContents( Composite parent ) {
         Composite contents = parent; // new Composite( parent, SWT.BORDER );
@@ -205,6 +223,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     public abstract void updateProperty();
 
+    
     /**
      * Updates the property and sets also the hint for the current editor.
      */

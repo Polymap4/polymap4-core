@@ -38,21 +38,21 @@ public abstract class RasterStyle
     /**
      * Initializes a newly created instance with default values.
      */
-    @SuppressWarnings("hiding")
+    @SuppressWarnings( "hiding" )
     public static final ValueInitializer<RasterStyle>  defaults = new ValueInitializer<RasterStyle>() {
         @Override
         public RasterStyle initialize( RasterStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Raster style" );
+            proto.title.set( "[Raster style]" );
             return proto;
         }
     };
 
     @Nullable
-    @UIOrder(100)
-    @Description("opacity")
-    @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
-    @Concerns(StylePropertyChange.Concern.class)
+    @UIOrder( 100 )
+    @Description( "opacity" )
+    @NumberRange( from=0, to=1, defaultValue=1, increment=0.1 )
+    @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Double>> opacity;
     
 }

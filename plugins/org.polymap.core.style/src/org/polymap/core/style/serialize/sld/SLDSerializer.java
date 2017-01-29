@@ -31,14 +31,13 @@ import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.PolygonSymbolizer;
 import org.geotools.styling.RasterSymbolizer;
 import org.geotools.styling.Rule;
-import org.geotools.styling.SLD;
 import org.geotools.styling.SLDTransformer;
 import org.geotools.styling.Stroke;
 import org.geotools.styling.Style;
 import org.geotools.styling.StyleFactory;
-import org.geotools.styling.Symbolizer;
 import org.geotools.styling.TextSymbolizer;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.expression.Literal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,7 +52,8 @@ import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.TextStyle;
-import org.polymap.core.style.model.raster.RasterStyle;
+import org.polymap.core.style.model.raster.RasterGrayStyle;
+import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
 import org.polymap.core.style.serialize.sld.feature.FillDescriptor;
 import org.polymap.core.style.serialize.sld.feature.HaloDescriptor;
@@ -63,8 +63,8 @@ import org.polymap.core.style.serialize.sld.feature.PointSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.feature.PolygonSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.feature.StrokeDescriptor;
 import org.polymap.core.style.serialize.sld.feature.TextSymbolizerDescriptor;
-import org.polymap.core.style.serialize.sld.raster.RasterStyleSerializer;
-import org.polymap.core.style.serialize.sld.raster.RasterSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.raster.GrayscaleSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.raster.RGBSymbolizerDescriptor;
 
 /**
  * Creates {@link org.geotools.styling.Style} out of a {@link FeatureStyle}
@@ -82,7 +82,7 @@ import org.polymap.core.style.serialize.sld.raster.RasterSymbolizerDescriptor;
 public class SLDSerializer
         extends FeatureStyleSerializer<Style> {
 
-    private static Log log = LogFactory.getLog( SLDSerializer.class );
+    private static final Log log = LogFactory.getLog( SLDSerializer.class );
 
     public static final StyleFactory sf = CommonFactoryFinder.getStyleFactory( null );
 
@@ -125,8 +125,11 @@ public class SLDSerializer
                 else if (style instanceof LineStyle) {
                     serializer = new LineSymbolizerDescriptor.Serializer( context );
                 }
-                else if (style instanceof RasterStyle) {
-                    serializer = new RasterStyleSerializer( context );
+                else if (style instanceof RasterGrayStyle) {
+                    serializer = new GrayscaleSymbolizerDescriptor.Serializer( context );
+                }
+                else if (style instanceof RasterRGBStyle) {
+                    serializer = new RGBSymbolizerDescriptor.Serializer( context );
                 }
                 else {
                     throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
@@ -168,8 +171,11 @@ public class SLDSerializer
         else if (descriptor instanceof TextSymbolizerDescriptor) {
             rule.symbolizers().add( buildTextStyle( (TextSymbolizerDescriptor)descriptor ) );
         }
-        else if (descriptor instanceof RasterSymbolizerDescriptor) {
-            rule.symbolizers().add( buildRasterStyle( (RasterSymbolizerDescriptor)descriptor ) );
+        else if (descriptor instanceof GrayscaleSymbolizerDescriptor) {
+            rule.symbolizers().add( buildGrayscaleRasterStyle( (GrayscaleSymbolizerDescriptor)descriptor ) );
+        }
+        else if (descriptor instanceof RGBSymbolizerDescriptor) {
+            rule.symbolizers().add( buildRGBRasterStyle( (RGBSymbolizerDescriptor)descriptor ) );
         }
         else {
             throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
@@ -247,11 +253,26 @@ public class SLDSerializer
     }
 
     
-    protected RasterSymbolizer buildRasterStyle( RasterSymbolizerDescriptor descriptor ) {
-        RasterSymbolizer symbolizer = sf.createRasterSymbolizer();
-        symbolizer.setChannelSelection( sf.channelSelection( ) );
-        symbolizer.setColorMap( );
-        SLD.wrapSymbolizers( )
+    protected RasterSymbolizer buildGrayscaleRasterStyle( GrayscaleSymbolizerDescriptor descriptor ) {
+        RasterSymbolizer result = sf.createRasterSymbolizer();
+        String band = ((Literal)descriptor.grayBand.get()).getValue().toString();
+        result.setChannelSelection( sf.channelSelection( 
+                sf.createSelectedChannelType( band, sf.createContrastEnhancement() ) ) );
+        return result;
+    }
+
+    
+    protected RasterSymbolizer buildRGBRasterStyle( RGBSymbolizerDescriptor descriptor ) {
+        RasterSymbolizer result = sf.createRasterSymbolizer();
+        String redBand = ((Literal)descriptor.redBand.get()).getValue().toString();
+        String greenBand = ((Literal)descriptor.greenBand.get()).getValue().toString();
+        String blueBand = ((Literal)descriptor.blueBand.get()).getValue().toString();
+        
+        result.setChannelSelection( sf.channelSelection( 
+                sf.createSelectedChannelType( redBand, sf.createContrastEnhancement() ),
+                sf.createSelectedChannelType( greenBand, sf.createContrastEnhancement() ),
+                sf.createSelectedChannelType( blueBand, sf.createContrastEnhancement() ) ) );
+        return result;
     }
 
     

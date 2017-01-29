@@ -81,8 +81,8 @@ public class FeaturePropertyBasedNumberEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
-        Collection<PropertyDescriptor> schemaDescriptors = featureType.getDescriptors();
-        GeometryDescriptor geometryDescriptor = featureType.getGeometryDescriptor();
+        Collection<PropertyDescriptor> schemaDescriptors = featureType().getDescriptors();
+        GeometryDescriptor geometryDescriptor = featureType().getGeometryDescriptor();
         final List<String> columns = Lists.newArrayList();
         for (PropertyDescriptor descriptor : schemaDescriptors) {
             if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {

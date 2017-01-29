@@ -43,7 +43,7 @@ public class LineSymbolizerDescriptor
     
     
     /**
-     * Serialize {@link LineStyle}.
+     * Serializes {@link LineStyle}.
      */
     public static class Serializer
             extends StyleSerializer<LineStyle,LineSymbolizerDescriptor> {
