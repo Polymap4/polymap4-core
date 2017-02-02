@@ -14,55 +14,44 @@
  */
 package org.polymap.core.style.model.raster;
 
-import org.eclipse.swt.graphics.Color;
-
-import org.polymap.core.style.model.StylePropertyChange;
 import org.polymap.core.style.model.StylePropertyValue;
-import org.polymap.core.style.model.UIOrder;
-import org.polymap.core.style.model.feature.NumberRange;
-
-import org.polymap.model2.CollectionProperty;
-import org.polymap.model2.Composite;
-import org.polymap.model2.Concerns;
-import org.polymap.model2.Immutable;
-import org.polymap.model2.Nullable;
-import org.polymap.model2.Property;
 
 /**
- * 
+ * The target class of a {@link StylePropertyValue} member declaration. This
+ * is just an empty tagging class.
  *
  * @author Falko Bräutigam
  */
-public class RasterColorMap
-        extends StylePropertyValue<Color> {
-
-    @Nullable
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<String>                 fake;
-
-    // XXX Collections are not supported yet, use force-fire-fake prop?
-    //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<ColorMapEntry> entries;
-
-    /**
-     * 
-     */
-    public static class ColorMapEntry
-            extends Composite {
-        
-        @Immutable
-        public Property<Double>     bandValue;
-        
-        @Immutable
-        public Property<Color>      color;
-        
-        @Immutable
-        @Nullable
-        @UIOrder(20)
-        @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
-        @Concerns(StylePropertyChange.Concern.class)
-        public Property<Double>     opacity;
-        
-    }
+public class RasterColorMap {
+//        extends StylePropertyValue<Color> {
+//
+//    @Nullable
+//    @Concerns(StylePropertyChange.Concern.class)
+//    public Property<String>                 fake;
+//
+//    // XXX Collections are not supported yet, use force-fire-fake prop?
+//    //@Concerns( StylePropertyChange.Concern.class )
+//    public CollectionProperty<ColorMapEntry> entries;
+//
+//    /**
+//     * 
+//     */
+//    public static class ColorMapEntry
+//            extends Composite {
+//        
+//        @Immutable
+//        public Property<Double>     bandValue;
+//        
+//        @Immutable
+//        public Property<Color>      color;
+//        
+//        @Immutable
+//        @Nullable
+//        @UIOrder(20)
+//        @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
+//        @Concerns(StylePropertyChange.Concern.class)
+//        public Property<Double>     opacity;
+//        
+//    }
     
 }

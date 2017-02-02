@@ -29,6 +29,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.feature.*;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
+import org.polymap.core.style.model.raster.ConstantRasterColorMap;
+import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
@@ -127,7 +129,9 @@ public class StyleRepository
                         
                         RasterGrayStyle.class,
                         RasterRGBStyle.class,
-                        ConstantRasterBand.class
+                        RasterColorMapStyle.class,
+                        ConstantRasterBand.class,
+                        ConstantRasterColorMap.class
                 } ).store.set(
                         new OptimisticLocking(
                         new RecordStoreAdapter( store ) ) )

@@ -21,7 +21,6 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,6 +31,8 @@ import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.feature.ConstantColor;
@@ -48,9 +49,11 @@ import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.PropertyString;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
+import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.model.raster.RasterStyle;
+import org.polymap.core.style.ui.raster.PredefinedColorMap;
 
 /**
  * Factory of simple default feature styles with some random settings.
@@ -60,7 +63,7 @@ import org.polymap.core.style.model.raster.RasterStyle;
  */
 public class DefaultStyle {
 
-    private static Log log = LogFactory.getLog( DefaultStyle.class );
+    private static final Log log = LogFactory.getLog( DefaultStyle.class );
 
     public static Random        rand = new Random();
     
@@ -191,6 +194,16 @@ public class DefaultStyle {
         rgb.greenBand.createValue( ConstantRasterBand.defaults( 1 ) );
         rgb.blueBand.createValue( ConstantRasterBand.defaults( 2 ) );
         return rgb;
+    }
+
+
+    public static RasterStyle fillColorMapStyle( FeatureStyle fs, GridCoverage2D gridCoverage ) {
+        RasterColorMapStyle colormap = fs.members().createElement( RasterColorMapStyle.defaults );
+        colormap.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
+        colormap.band.createValue( ConstantRasterBand.defaults( 0 ) );
+
+        PredefinedColorMap.ELEVATION.fillModel( colormap, gridCoverage, new NullProgressMonitor() );
+        return colormap;
     }
 
 }

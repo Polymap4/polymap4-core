@@ -16,26 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.awt.Color;
+
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.styling.AnchorPoint;
-import org.geotools.styling.Displacement;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Fill;
-import org.geotools.styling.Font;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.Halo;
-import org.geotools.styling.LabelPlacement;
-import org.geotools.styling.LineSymbolizer;
-import org.geotools.styling.Mark;
-import org.geotools.styling.PointSymbolizer;
-import org.geotools.styling.PolygonSymbolizer;
-import org.geotools.styling.RasterSymbolizer;
-import org.geotools.styling.Rule;
-import org.geotools.styling.SLDTransformer;
-import org.geotools.styling.Stroke;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory;
-import org.geotools.styling.TextSymbolizer;
+import org.geotools.styling.*;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.Literal;
 
@@ -52,6 +36,8 @@ import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.TextStyle;
+import org.polymap.core.style.model.raster.ConstantRasterColorMap;
+import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
@@ -63,8 +49,10 @@ import org.polymap.core.style.serialize.sld.feature.PointSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.feature.PolygonSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.feature.StrokeDescriptor;
 import org.polymap.core.style.serialize.sld.feature.TextSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.raster.ColorMapSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.raster.GrayscaleSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.raster.RGBSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.raster.ColorMapSymbolizerDescriptor.DummyExpression;
 
 /**
  * Creates {@link org.geotools.styling.Style} out of a {@link FeatureStyle}
@@ -131,6 +119,9 @@ public class SLDSerializer
                 else if (style instanceof RasterRGBStyle) {
                     serializer = new RGBSymbolizerDescriptor.Serializer( context );
                 }
+                else if (style instanceof RasterColorMapStyle) {
+                    serializer = new ColorMapSymbolizerDescriptor.Serializer( context );
+                }
                 else {
                     throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
                 }
@@ -176,6 +167,9 @@ public class SLDSerializer
         }
         else if (descriptor instanceof RGBSymbolizerDescriptor) {
             rule.symbolizers().add( buildRGBRasterStyle( (RGBSymbolizerDescriptor)descriptor ) );
+        }
+        else if (descriptor instanceof ColorMapSymbolizerDescriptor) {
+            rule.symbolizers().add( buildColorMapRasterStyle( (ColorMapSymbolizerDescriptor)descriptor ) );
         }
         else {
             throw new RuntimeException( "Unhandled SymbolizerDescriptor type: " + descriptor.getClass().getName() );
@@ -276,6 +270,26 @@ public class SLDSerializer
     }
 
     
+    protected RasterSymbolizer buildColorMapRasterStyle( ColorMapSymbolizerDescriptor descriptor ) {
+        RasterSymbolizer result = sf.createRasterSymbolizer();
+        
+        ColorMapImpl colormap = new ColorMapImpl();
+        colormap.setType( ColorMap.TYPE_RAMP );
+        for (ConstantRasterColorMap.Entry entry : ((DummyExpression)descriptor.colorMap.get()).entries) {
+            ColorMapEntryImpl newEntry = new ColorMapEntryImpl();
+            Color color = new Color( entry.r.get(), entry.g.get(), entry.b.get() );
+            newEntry.setColor( ff.literal( color ));
+            newEntry.setQuantity( ff.literal( entry.value.get() ) );
+            colormap.addColorMapEntry( newEntry );
+        }
+        
+        //ColorMap colormap = sf.colorMap( ff.literal( "Rasterdata" ) );
+        
+        result.setColorMap( colormap );
+        return result;
+    }
+
+
     protected LabelPlacement buildLabelPlacement( LabelPlacementDescriptor lpd ) {
         if (lpd != null && ((lpd.anchorPointX.isPresent() && lpd.anchorPointY.isPresent())
                 || (lpd.displacementX.isPresent() && lpd.displacementY.isPresent()) || lpd.rotation.isPresent())) {

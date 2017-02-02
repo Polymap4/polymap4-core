@@ -47,6 +47,7 @@ import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedNumbersEditor
 import org.polymap.core.style.ui.feature.ScaleRangeEditor;
 import org.polymap.core.style.ui.feature.ScaleRangeMappedNumbersEditor;
 import org.polymap.core.style.ui.raster.ConstantRasterBandEditor;
+import org.polymap.core.style.ui.raster.PredefinedColorMapEditor;
 
 import org.polymap.model2.Property;
 
@@ -79,7 +80,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             NoValueEditor.class,
             ScaleRangeEditor.class,
             ScaleRangeMappedNumbersEditor.class,
-            ConstantRasterBandEditor.class };
+            ConstantRasterBandEditor.class,
+            PredefinedColorMapEditor.class };
 
 
     /**

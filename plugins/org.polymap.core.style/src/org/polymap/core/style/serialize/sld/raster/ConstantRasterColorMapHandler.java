@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.eclipse.swt.graphics.Color;
 
-import org.polymap.core.style.model.raster.RasterColorMap;
+import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.sld.StylePropertyValueHandler;
 import org.polymap.core.style.serialize.sld.SymbolizerDescriptor;
@@ -29,15 +29,16 @@ import org.polymap.core.style.serialize.sld.SymbolizerDescriptor;
  *
  * @author Falko Bräutigam
  */
-public class RasterColorMapHandler
-        extends StylePropertyValueHandler<RasterColorMap,Color> {
+public class ConstantRasterColorMapHandler
+        extends StylePropertyValueHandler<ConstantRasterColorMap,Color> {
 
     @Override
-    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, RasterColorMap spv, SD sd,
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantRasterColorMap spv, SD descriptor,
             StylePropertyValueHandler.Setter<SD> setter ) {
     
-        //setter.set( sd );
-        return Collections.singletonList( sd );
+        setter.set( descriptor, new ColorMapSymbolizerDescriptor.DummyExpression( spv.entries ) );
+        
+        return Collections.singletonList( descriptor );
     }
     
 }

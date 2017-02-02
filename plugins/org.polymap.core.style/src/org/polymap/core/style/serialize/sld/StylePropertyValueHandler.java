@@ -42,13 +42,13 @@ import org.polymap.core.style.model.feature.StrokeCapStyle;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.StrokeJoinStyle;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
-import org.polymap.core.style.model.raster.RasterColorMap;
+import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.sld.feature.FilterMappedValuesHandler;
 import org.polymap.core.style.serialize.sld.feature.PropertyNumberHandler;
 import org.polymap.core.style.serialize.sld.feature.ScaleMappedNumbersHandler;
 import org.polymap.core.style.serialize.sld.raster.ConstantRasterBandHandler;
-import org.polymap.core.style.serialize.sld.raster.RasterColorMapHandler;
+import org.polymap.core.style.serialize.sld.raster.ConstantRasterColorMapHandler;
 
 /**
  * Handles one {@link StylePropertyValue} descriptor and provides it with actual
@@ -72,8 +72,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             else if (spv instanceof ConstantRasterBand) {
                 return new ConstantRasterBandHandler().doHandle( context, (ConstantRasterBand)spv, sd, setter );
             }
-            else if (spv instanceof RasterColorMap) {
-                return new RasterColorMapHandler().doHandle( context, (RasterColorMap)spv, sd, setter );
+            else if (spv instanceof ConstantRasterColorMap) {
+                return new ConstantRasterColorMapHandler().doHandle( context, (ConstantRasterColorMap)spv, sd, setter );
             }
             else if (spv instanceof ConstantNumber) {
                 return new ConstantNumberHandler().doHandle( context, (ConstantNumber)spv, sd, setter );
