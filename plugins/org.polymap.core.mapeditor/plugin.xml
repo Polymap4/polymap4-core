@@ -3,58 +3,7 @@
 <plugin>
    <extension-point id="org.polymap.core.mapeditor.mapContextMenu" name="MapContextMenu" schema="schema/org.polymap.core.mapEditor.mapContextMenu.exsd"/>
    <extension-point id="org.polymap.core.mapeditor.editorTools" name="EditorTool" schema="schema/org.polymap.core.mapeditor.editorTool.exsd"/>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="false"
-            id="org.polymap.core.mapeditor.layersContribution"
-            objectClass="org.polymap.core.project.ILayer">
-         <action
-               class="org.polymap.core.mapeditor.actions.SetLayerBoundsAction"
-               enablesFor="1"
-               icon="icons/elcl16/zoom_layer_co.gif"
-               id="org.polymap.core.mapeditor.action.zoomToLayer_layers"
-               label="%actions_zoomToLayer"
-               style="push">
-         </action>
-         <!--action
-               class="org.polymap.core.mapeditor.edit.SetLayerEditableAction"
-               enablesFor="+"
-               icon="icons/etool16/edit_vertex_mode.gif"
-               id="org.polymap.core.mapeditor.action.editFeatures_layers"
-               label="%actions_editFeaturesMode"
-               style="toggle"
-               tooltip="%actions_editFeaturesModeTip">
-         </action-->
-         <!--action
-               class="org.polymap.core.mapeditor.selection.SetLayerSelectableAction"
-               enablesFor="+"
-               icon="icons/etool16/tb_buffer_fence.gif"
-               id="org.polymap.core.mapeditor.action.selectFeatures_layers"
-               label="%actions_selectFeaturesMode"
-               style="toggle">
-         </action-->
-      </objectContribution>
-   </extension>
-   <extension
-         point="org.polymap.core.mapeditor.mapContextMenu">
-      <contribution
-            class="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution"
-            id="org.polymap.core.mapeditor.contextmenu.LayerVisibleContribution">
-      </contribution>
-      <contribution
-            class="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfoContribution"
-            id="org.polymap.core.mapeditor.contextmenu.WmsFeatureInfo">
-      </contribution>
-   </extension>
-   <extension
-         point="org.eclipse.ui.elementFactories">
-      <factory
-            class="org.polymap.core.mapeditor.workbench.MapEditorInput"
-            id="org.polymap.core.mapeditor.MapEditorInputFactory">
-      </factory>
-   </extension>
-   <extension
+   <!--extension
          point="org.polymap.core.mapeditor.editorTools">
       <tool
             class="org.polymap.core.mapeditor.tooling.navi.NavigationTool"
@@ -110,45 +59,5 @@
             toolPath="digitize/snap"
             tooltip="%tools_snap_tip">
       </tool>
-   </extension>
-   <extension
-         point="org.eclipse.ui.decorators">
-      <decorator
-            adaptable="true"
-            class="org.polymap.core.mapeditor.tooling.select.LayerSelectableDecorator"
-            id="org.polymap.core.mapeditor.LayerSelectableDecorator"
-            label="Layer Selectable"
-            lightweight="true"
-            objectClass="org.polymap.core.project.ILayer"
-            state="true">
-      </decorator>
-      <decorator
-            adaptable="true"
-            class="org.polymap.core.mapeditor.tooling.edit.LayerEditableDecorator"
-            id="org.polymap.core.mapeditor.LayerEditableDecorator"
-            label="Layer Editable"
-            lightweight="true"
-            objectClass="org.polymap.core.project.ILayer"
-            state="true">
-      </decorator>
-   </extension>
-   <!--extension
-         point="org.eclipse.ui.decorators">
-      <decorator
-            adaptable="true"
-            class="org.polymap.core.mapeditor.ui.EditLayerDecorator"
-            id="org.polymap.core.mapeditor.ui.EditLayerDecorator"
-            label="EditLayer"
-            lightweight="true"
-            state="true">
-         <enablement>
-            <and>
-               <objectClass
-                     name="org.polymap.core.project.ILayer">
-               </objectClass>
-            </and>
-         </enablement>
-      </decorator>
    </extension-->
-
 </plugin>
