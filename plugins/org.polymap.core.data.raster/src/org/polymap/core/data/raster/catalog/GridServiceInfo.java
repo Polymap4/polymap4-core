@@ -22,8 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
@@ -33,8 +31,6 @@ import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.ResourceInfo;
 import org.geotools.geometry.GeneralEnvelope;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.ows.ServiceException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +53,7 @@ public class GridServiceInfo
         extends DefaultServiceInfo {
 
     public static GridServiceInfo of( IMetadata metadata, Map<String,String> params ) 
-            throws ServiceException, MalformedURLException, IOException, InterruptedException {
+            throws Exception {
         
         String url = params.get( IMetadataResourceResolver.CONNECTION_PARAM_URL );
         GridCoverage2DReader grid = open( FileUtils.toFile( new URL( url ) ) );
@@ -71,8 +67,12 @@ public class GridServiceInfo
      * @return Newly created reader.
      * @throws InterruptedException 
      */
-    public static AbstractGridCoverage2DReader open( File f ) throws InterruptedException {
+    public static AbstractGridCoverage2DReader open( File f ) throws Exception {
         return initLock.lockedInterruptibly( () -> {
+//            Hints hints = new Hints();
+//            hints.put( Hints.DEFAULT_COORDINATE_REFERENCE_SYSTEM, CRS.decode( "EPSG:9001" ) );    
+//            hints.put( Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE );
+            
             AbstractGridFormat format = GridFormatFinder.findFormat( f );
             AbstractGridCoverage2DReader reader = format.getReader( f );
             return reader; 
@@ -164,8 +164,9 @@ public class GridServiceInfo
     
     // test ***********************************************
     
-    public static void main( String[] args ) throws InterruptedException {
-        File f = new File( "/home/falko/Data/tiff/bluemarble.tif" );
+    public static void main( String[] args ) throws Exception {
+        //File f = new File( "/home/falko/Data/tiff/bluemarble.tif" );
+        File f = new File( "/home/falko/Data/ncrast/elevation_4326.tif" );
 
         AbstractGridCoverage2DReader reader = open( f );
         System.out.println( "reader: " + reader );
