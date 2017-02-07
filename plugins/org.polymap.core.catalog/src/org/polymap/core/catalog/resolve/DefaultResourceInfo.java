@@ -14,6 +14,7 @@
  */
 package org.polymap.core.catalog.resolve;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -68,7 +69,8 @@ public class DefaultResourceInfo
 
     @Override
     public Set<String> getKeywords() {
-        return delegate.getKeywords();
+        Set<String> result = delegate.getKeywords();
+        return result != null ? result : Collections.EMPTY_SET;
     }
 
     @Override
