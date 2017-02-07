@@ -40,4 +40,7 @@
 	<classpathentry kind="output" path="build/eclipse"/>
 	<referencedentry exported="true" kind="lib" path="lib/guava-17.0.jar" sourcepath="lib/sources/guava-17.0-sources.zip"/>
 	<referencedentry exported="true" kind="lib" path="lib/gt-metadata-16-RC1.jar" sourcepath="lib/sources/gt-metadata-16-RC1-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-api-16-RC1.jar" sourcepath="lib/sources/gt-api-16-RC1-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-main-16-RC1.jar" sourcepath="lib/sources/gt-main-16-RC1-sources.zip"/>
+	<referencedentry exported="true" kind="lib" path="lib/gt-coverage-16-RC1.jar" sourcepath="lib/sources/gt-coverage-16-RC1-sources.zip"/>
 </classpath>
