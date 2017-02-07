@@ -34,6 +34,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.model.raster.RasterColorMap;
 import org.polymap.core.style.ui.StylePropertyEditor;
@@ -48,6 +50,8 @@ import org.polymap.core.ui.UIUtils;
 public class PredefinedColorMapEditor
         extends StylePropertyEditor<ConstantRasterColorMap> {
 
+    private static final IMessages i18n = Messages.forPrefix( "PredefinedColorMapEditor" );
+
     @Override
     public boolean init( StylePropertyFieldSite site ) {
         Class targetType = targetType( site );
@@ -57,7 +61,7 @@ public class PredefinedColorMapEditor
     
     @Override
     public String label() {
-        return "Predefined";
+        return i18n.get( "title" );
     }
 
 
@@ -71,6 +75,7 @@ public class PredefinedColorMapEditor
                 .map( entry -> entry.name )
                 .collect( Collectors.toList() )
                 .toArray( new String[0] ) );
+
         combo.select( 0 );
 
         combo.addSelectionListener( UIUtils.selectionListener( ev -> {

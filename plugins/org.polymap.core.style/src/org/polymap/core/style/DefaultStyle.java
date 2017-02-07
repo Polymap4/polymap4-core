@@ -200,7 +200,7 @@ public class DefaultStyle {
     public static RasterStyle fillColorMapStyle( FeatureStyle fs, GridCoverage2D gridCoverage ) {
         RasterColorMapStyle colormap = fs.members().createElement( RasterColorMapStyle.defaults );
         colormap.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
-        colormap.band.createValue( ConstantRasterBand.defaults( 0 ) );
+//        colormap.band.createValue( ConstantRasterBand.defaults( 0 ) );
 
         PredefinedColorMap.ELEVATION.fillModel( colormap, gridCoverage, new NullProgressMonitor() );
         return colormap;

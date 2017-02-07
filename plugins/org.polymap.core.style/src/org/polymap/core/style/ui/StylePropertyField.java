@@ -139,7 +139,7 @@ public class StylePropertyField
         if (selected == null) {
             valueContainer.setLayout( new FillLayout() );
             Label msg = new Label( valueContainer, SWT.NONE );
-            msg.setText( "---" );
+            msg.setText( "" );
             //msg.setToolTipText( "No value" );
         }
         else {

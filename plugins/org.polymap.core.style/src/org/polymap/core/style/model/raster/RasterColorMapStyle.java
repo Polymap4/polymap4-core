@@ -39,22 +39,22 @@ public class RasterColorMapStyle
         @Override
         public RasterColorMapStyle initialize( RasterColorMapStyle proto ) throws Exception {
             RasterStyle.defaults.initialize( proto );
-            proto.title.set( "Colormap" );
+            proto.title.set( "Color map" );
             return proto;
         }
     };
 
     // instance *******************************************
     
-    //@Nullable
-    @UIOrder( 10 )
-    @Description( "band" )
-    @Concerns( StylePropertyChange.Concern.class )
-    public Property<StylePropertyValue<RasterBand>>     band;
+//    //@Nullable
+//    @UIOrder( 10 )
+//    @Description( "rasterBand" )
+//    @Concerns( StylePropertyChange.Concern.class )
+//    public Property<StylePropertyValue<RasterBand>>     band;
     
     //@Nullable
     @UIOrder( 20 )
-    @Description( "colorMap" )
+    @Description( "rasterColorMap" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<RasterColorMap>> colorMap;    
     

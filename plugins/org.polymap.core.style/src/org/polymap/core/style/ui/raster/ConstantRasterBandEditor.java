@@ -25,6 +25,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
+import org.polymap.core.runtime.i18n.IMessages;
+import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.RasterBand;
 import org.polymap.core.style.ui.StylePropertyEditor;
@@ -38,6 +40,8 @@ import org.polymap.core.style.ui.StylePropertyFieldSite;
 public class ConstantRasterBandEditor
         extends StylePropertyEditor<ConstantRasterBand> {
 
+    private static final IMessages i18n = Messages.forPrefix( "ConstantRasterBandEditor" );
+
     @Override
     public boolean init( StylePropertyFieldSite site ) {
         Class targetType = targetType( site );
@@ -47,7 +51,7 @@ public class ConstantRasterBandEditor
     
     @Override
     public String label() {
-        return "band";
+        return i18n.get( "title" );
     }
 
 
@@ -62,6 +66,7 @@ public class ConstantRasterBandEditor
                 .map( band -> band.getDescription().toString() )
                 .collect( Collectors.toList() )
                 .toArray( new String[0] ) );
+        
         combo.select( prop.get().band.get() );
 
         combo.addSelectionListener( new SelectionAdapter() {
