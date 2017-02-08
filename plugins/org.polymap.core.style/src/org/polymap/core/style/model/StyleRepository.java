@@ -27,6 +27,7 @@ import org.geotools.styling.SLDTransformer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.style.model.feature.*;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
@@ -207,7 +208,9 @@ public class StyleRepository
                 log.warn( "serializedFeatureStyle(): start... (" + key +  ")" );
                 return featureStyle( id ).map( fs -> {
                     Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
-                    return (T)new SLDSerializer().serialize( sc );
+                    org.geotools.styling.Style result = new SLDSerializer().serialize( sc );
+                    log.info( "SLD: " + toSLD( result ) );
+                    return result;
                 });
             }
             finally {
@@ -221,37 +224,13 @@ public class StyleRepository
         }
         // geotools.styling.Style
         else if (org.geotools.styling.Style.class.isAssignableFrom( targetType )) {
-            try {
-                SLDTransformer styleTransform = new SLDTransformer();
-                styleTransform.setIndentation( 4 );
-                styleTransform.setOmitXMLDeclaration( false );
-                log.info( "SLD: " + styleTransform.transform( style.get() ) );
-            }
-            catch (TransformerException e) {
-                log.warn( "SLD", e );
-            }
-            
             return (Optional<T>)style;
         }
         // String / SLD
         else if (String.class.isAssignableFrom( targetType )) {
             CacheKey ck = new CacheKey( id, targetType.getName(), outputFormat );
             return serialized.computeIfAbsent( ck, key -> {
-                try {
-                    log.warn( "serializedFeatureStyle(): start... (" + key +  ")" );
-                    SLDTransformer styleTransform = new SLDTransformer();
-                    styleTransform.setIndentation( 4 );
-                    styleTransform.setOmitXMLDeclaration( false );
-                    String result = styleTransform.transform( style.get() );
-                    log.info( result );
-                    return Optional.of( result );
-                }
-                catch (TransformerException e) {
-                    throw new RuntimeException( "Unable to transform style.", e );
-                }
-                finally {
-                    log.warn( "serializedFeatureStyle(): end." );
-                }
+                return Optional.of( toSLD( style.get() ) );
             });            
         }
         else {
@@ -259,7 +238,24 @@ public class StyleRepository
         }        
     }
 
+    
+    protected String toSLD( org.geotools.styling.Style style ) {
+        Timer timer = new Timer();
+        try {
+            SLDTransformer styleTransform = new SLDTransformer();
+            styleTransform.setIndentation( 4 );
+            styleTransform.setOmitXMLDeclaration( false );
+            return styleTransform.transform( style );
+        }
+        catch (TransformerException e) {
+            throw new RuntimeException( "Unable to transform style.", e );
+        }
+        finally {
+            log.info( "Style to SLD: " + timer.elapsedTime() + "ms." );
+        }    
+    }
 
+    
     protected void updated( FeatureStyle updated ) {
         for (CacheKey key : serialized.keySet()) {
             if (key.get( 0 ).equals( updated.id() ) ) {

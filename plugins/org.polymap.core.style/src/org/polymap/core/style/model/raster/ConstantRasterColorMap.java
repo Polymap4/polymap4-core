@@ -78,7 +78,7 @@ public class ConstantRasterColorMap
         @Nullable
         @NumberRange( from=0, to=1, defaultValue=1, increment=0.1 )
         @Concerns( StylePropertyChange.Concern.class )
-        public Property<StylePropertyValue<Double>> opacity;
+        public Property<Double>             opacity;
 
     }
     

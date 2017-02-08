@@ -50,9 +50,9 @@ import org.polymap.core.style.serialize.sld.feature.PolygonSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.feature.StrokeDescriptor;
 import org.polymap.core.style.serialize.sld.feature.TextSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.raster.ColorMapSymbolizerDescriptor;
+import org.polymap.core.style.serialize.sld.raster.ColorMapSymbolizerDescriptor.DummyExpression;
 import org.polymap.core.style.serialize.sld.raster.GrayscaleSymbolizerDescriptor;
 import org.polymap.core.style.serialize.sld.raster.RGBSymbolizerDescriptor;
-import org.polymap.core.style.serialize.sld.raster.ColorMapSymbolizerDescriptor.DummyExpression;
 
 /**
  * Creates {@link org.geotools.styling.Style} out of a {@link FeatureStyle}
@@ -278,11 +278,12 @@ public class SLDSerializer
         for (ConstantRasterColorMap.Entry entry : ((DummyExpression)descriptor.colorMap.get()).entries) {
             ColorMapEntryImpl newEntry = new ColorMapEntryImpl();
             Color color = new Color( entry.r.get(), entry.g.get(), entry.b.get() );
-            newEntry.setColor( ff.literal( color ));
+            newEntry.setColor( ff.literal( color ) );
+            entry.opacity.opt().ifPresent( opacity -> 
+                    newEntry.setOpacity( ff.literal( opacity ) ) );
             newEntry.setQuantity( ff.literal( entry.value.get() ) );
             colormap.addColorMapEntry( newEntry );
         }
-        
         //ColorMap colormap = sf.colorMap( ff.literal( "Rasterdata" ) );
         
         result.setColorMap( colormap );

@@ -70,6 +70,7 @@ public class PredefinedColorMapEditor
         Composite contents = super.createContents( parent );
         
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
+        combo.setVisibleItemCount( 10 );
 
         combo.setItems( PredefinedColorMap.all.get().stream()
                 .map( entry -> entry.name )
