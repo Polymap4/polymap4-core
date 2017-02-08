@@ -49,19 +49,19 @@ public class RasterRGBStyle
     
     @Nullable
     @UIOrder( 10 )
-    @Description( "redBand" )
+    @Description( "rasterRedBand" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<RasterBand>> redBand;
 
     @Nullable
     @UIOrder( 20 )
-    @Description( "greenBand" )
+    @Description( "rasterGreenBand" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<RasterBand>> greenBand;
 
     @Nullable
     @UIOrder( 30 )
-    @Description( "blueBand" )
+    @Description( "rasterBlueBand" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<RasterBand>> blueBand;
 

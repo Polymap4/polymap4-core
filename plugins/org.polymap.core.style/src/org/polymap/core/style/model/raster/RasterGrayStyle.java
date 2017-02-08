@@ -49,7 +49,7 @@ public class RasterGrayStyle
     
     @Nullable
     @UIOrder( 10 )
-    @Description( "grayBand" )
+    @Description( "rasterGrayBand" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<RasterBand>> grayBand;
 
