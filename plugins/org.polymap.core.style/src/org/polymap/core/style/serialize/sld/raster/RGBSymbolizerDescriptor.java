@@ -44,6 +44,9 @@ public class RGBSymbolizerDescriptor
     @Immutable
     public Config<Expression>       blueBand;
     
+    @Immutable
+    public Config<Expression>       opacity;
+
     
     @Override
     public RGBSymbolizerDescriptor clone() {
@@ -68,6 +71,7 @@ public class RGBSymbolizerDescriptor
 
         @Override
         public void doSerializeStyle( RasterRGBStyle style ) {
+            setValue( style.opacity.get(), (descriptor,value) -> descriptor.opacity.set( value ) );
             setValue( style.redBand.get(), (descriptor,value) -> descriptor.redBand.set( value ) );
             setValue( style.greenBand.get(), (descriptor,value) -> descriptor.greenBand.set( value ) );
             setValue( style.blueBand.get(), (descriptor,value) -> descriptor.blueBand.set( value ) );

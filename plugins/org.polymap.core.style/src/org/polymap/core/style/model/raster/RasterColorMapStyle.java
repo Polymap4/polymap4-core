@@ -52,7 +52,6 @@ public class RasterColorMapStyle
 //    @Concerns( StylePropertyChange.Concern.class )
 //    public Property<StylePropertyValue<RasterBand>>     band;
     
-    //@Nullable
     @UIOrder( 20 )
     @Description( "rasterColorMap" )
     @Concerns( StylePropertyChange.Concern.class )

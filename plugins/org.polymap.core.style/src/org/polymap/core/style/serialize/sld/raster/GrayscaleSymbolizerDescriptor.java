@@ -37,6 +37,8 @@ public class GrayscaleSymbolizerDescriptor
     @Immutable
     public Config<Expression>       grayBand;
     
+    @Immutable
+    public Config<Expression>       opacity;
     
     @Override
     public GrayscaleSymbolizerDescriptor clone() {
@@ -61,6 +63,7 @@ public class GrayscaleSymbolizerDescriptor
 
         @Override
         public void doSerializeStyle( RasterGrayStyle style ) {
+            setValue( style.opacity.get(), (descriptor,value) -> descriptor.opacity.set( value ) );
             setValue( style.grayBand.get(), (descriptor,value) -> descriptor.grayBand.set( value ) );
         }
     }

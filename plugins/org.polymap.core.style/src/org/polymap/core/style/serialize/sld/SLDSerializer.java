@@ -249,6 +249,7 @@ public class SLDSerializer
     
     protected RasterSymbolizer buildGrayscaleRasterStyle( GrayscaleSymbolizerDescriptor descriptor ) {
         RasterSymbolizer result = sf.createRasterSymbolizer();
+        descriptor.opacity.ifPresent( opacity -> result.setOpacity( opacity ) );
         String band = ((Literal)descriptor.grayBand.get()).getValue().toString();
         result.setChannelSelection( sf.channelSelection( 
                 sf.createSelectedChannelType( band, sf.createContrastEnhancement() ) ) );
@@ -258,6 +259,8 @@ public class SLDSerializer
     
     protected RasterSymbolizer buildRGBRasterStyle( RGBSymbolizerDescriptor descriptor ) {
         RasterSymbolizer result = sf.createRasterSymbolizer();
+        descriptor.opacity.ifPresent( opacity -> result.setOpacity( opacity ) );
+        
         String redBand = ((Literal)descriptor.redBand.get()).getValue().toString();
         String greenBand = ((Literal)descriptor.greenBand.get()).getValue().toString();
         String blueBand = ((Literal)descriptor.blueBand.get()).getValue().toString();
@@ -272,6 +275,7 @@ public class SLDSerializer
     
     protected RasterSymbolizer buildColorMapRasterStyle( ColorMapSymbolizerDescriptor descriptor ) {
         RasterSymbolizer result = sf.createRasterSymbolizer();
+        descriptor.opacity.ifPresent( opacity -> result.setOpacity( opacity ) );
         
         ColorMapImpl colormap = new ColorMapImpl();
         colormap.setType( ColorMap.TYPE_RAMP );
