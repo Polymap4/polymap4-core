@@ -45,6 +45,9 @@ public class ColorMapSymbolizerDescriptor
     @Immutable
     public Config<Expression>       opacity;
     
+    @Immutable
+    public Config<Expression>       type;
+    
     
     @Override
     public ColorMapSymbolizerDescriptor clone() {
@@ -71,6 +74,7 @@ public class ColorMapSymbolizerDescriptor
         public void doSerializeStyle( RasterColorMapStyle style ) {
             setValue( style.opacity.get(), (descriptor,value) -> descriptor.opacity.set( value ) );
             setValue( style.colorMap.get(), (descriptor,value) -> descriptor.colorMap.set( value ) );
+            setValue( style.type.get(), (descriptor,value) -> descriptor.type.set( value ) );
         }
     }
 

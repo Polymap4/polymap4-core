@@ -40,6 +40,7 @@ public class RasterColorMapStyle
         public RasterColorMapStyle initialize( RasterColorMapStyle proto ) throws Exception {
             RasterStyle.defaults.initialize( proto );
             proto.title.set( "Color map" );
+            proto.type.createValue( ConstantRasterColorMapType.defaults( RasterColorMapType.RAMP ) );
             return proto;
         }
     };
@@ -56,5 +57,10 @@ public class RasterColorMapStyle
     @Description( "rasterColorMap" )
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<RasterColorMap>> colorMap;    
+    
+    @UIOrder( 30 )
+    @Description( "rasterColorMapType" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<StylePropertyValue<RasterColorMapType>> type;    
     
 }

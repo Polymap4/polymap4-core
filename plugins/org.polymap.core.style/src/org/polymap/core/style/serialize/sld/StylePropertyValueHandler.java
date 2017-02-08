@@ -21,7 +21,9 @@ import java.awt.Color;
 
 import org.opengis.filter.expression.Expression;
 
-import org.polymap.core.style.model.*;
+import org.polymap.core.style.model.NoValue;
+import org.polymap.core.style.model.Style;
+import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.model.feature.ConstantColor;
 import org.polymap.core.style.model.feature.ConstantFontFamily;
 import org.polymap.core.style.model.feature.ConstantFontStyle;
@@ -43,12 +45,14 @@ import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.StrokeJoinStyle;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
+import org.polymap.core.style.model.raster.ConstantRasterColorMapType;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.sld.feature.FilterMappedValuesHandler;
 import org.polymap.core.style.serialize.sld.feature.PropertyNumberHandler;
 import org.polymap.core.style.serialize.sld.feature.ScaleMappedNumbersHandler;
 import org.polymap.core.style.serialize.sld.raster.ConstantRasterBandHandler;
 import org.polymap.core.style.serialize.sld.raster.ConstantRasterColorMapHandler;
+import org.polymap.core.style.serialize.sld.raster.ConstantRasterColorMapTypeHandler;
 
 /**
  * Handles one {@link StylePropertyValue} descriptor and provides it with actual
@@ -74,6 +78,9 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             }
             else if (spv instanceof ConstantRasterColorMap) {
                 return new ConstantRasterColorMapHandler().doHandle( context, (ConstantRasterColorMap)spv, sd, setter );
+            }
+            else if (spv instanceof ConstantRasterColorMapType) {
+                return new ConstantRasterColorMapTypeHandler().doHandle( context, (ConstantRasterColorMapType)spv, sd, setter );
             }
             else if (spv instanceof ConstantNumber) {
                 return new ConstantNumberHandler().doHandle( context, (ConstantNumber)spv, sd, setter );

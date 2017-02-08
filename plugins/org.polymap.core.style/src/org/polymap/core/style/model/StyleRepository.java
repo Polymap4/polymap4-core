@@ -31,6 +31,7 @@ import org.polymap.core.runtime.Timer;
 import org.polymap.core.style.model.feature.*;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
+import org.polymap.core.style.model.raster.ConstantRasterColorMapType;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
@@ -132,7 +133,8 @@ public class StyleRepository
                         RasterRGBStyle.class,
                         RasterColorMapStyle.class,
                         ConstantRasterBand.class,
-                        ConstantRasterColorMap.class
+                        ConstantRasterColorMap.class,
+                        ConstantRasterColorMapType.class
                 } ).store.set(
                         new OptimisticLocking(
                         new RecordStoreAdapter( store ) ) )

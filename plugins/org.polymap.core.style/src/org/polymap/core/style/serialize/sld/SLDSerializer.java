@@ -38,6 +38,7 @@ import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
+import org.polymap.core.style.model.raster.RasterColorMapType;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
@@ -278,7 +279,14 @@ public class SLDSerializer
         descriptor.opacity.ifPresent( opacity -> result.setOpacity( opacity ) );
         
         ColorMapImpl colormap = new ColorMapImpl();
-        colormap.setType( ColorMap.TYPE_RAMP );
+        descriptor.type.ifPresent( literal -> {
+            RasterColorMapType type = (RasterColorMapType)((Literal)literal).getValue();
+            switch (type) {
+                case RAMP: colormap.setType( ColorMap.TYPE_RAMP ); break;
+                case VALUES: colormap.setType( ColorMap.TYPE_VALUES ); break;
+                case INTERVALLS: colormap.setType( ColorMap.TYPE_INTERVALS ); break;
+            }
+        });
         for (ConstantRasterColorMap.Entry entry : ((DummyExpression)descriptor.colorMap.get()).entries) {
             ColorMapEntryImpl newEntry = new ColorMapEntryImpl();
             Color color = new Color( entry.r.get(), entry.g.get(), entry.b.get() );
