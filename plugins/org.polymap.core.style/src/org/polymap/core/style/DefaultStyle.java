@@ -21,8 +21,6 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.PropertyDescriptor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
@@ -62,8 +60,6 @@ import org.polymap.core.style.ui.raster.PredefinedColorMap;
  * @author Steffen Stundzig
  */
 public class DefaultStyle {
-
-    private static final Log log = LogFactory.getLog( DefaultStyle.class );
 
     public static Random        rand = new Random();
     
