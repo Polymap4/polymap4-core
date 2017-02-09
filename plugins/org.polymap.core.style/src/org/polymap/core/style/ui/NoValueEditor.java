@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
-import org.polymap.core.style.model.NoValue;
+import org.polymap.core.style.model.feature.NoValue;
 
 /**
  * Editor that simply sets null values, if necessary.

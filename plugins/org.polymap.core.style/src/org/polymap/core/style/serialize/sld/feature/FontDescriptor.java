@@ -16,11 +16,11 @@ import org.geotools.styling.Font;
 import org.opengis.filter.expression.Expression;
 
 import org.polymap.core.runtime.config.Config;
-import org.polymap.core.style.model.NoValue;
 import org.polymap.core.style.model.feature.ConstantFontFamily;
 import org.polymap.core.style.model.feature.FontFamily;
 import org.polymap.core.style.model.feature.FontStyle;
 import org.polymap.core.style.model.feature.FontWeight;
+import org.polymap.core.style.model.feature.NoValue;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
 import org.polymap.core.style.serialize.sld.StyleCompositeSerializer;

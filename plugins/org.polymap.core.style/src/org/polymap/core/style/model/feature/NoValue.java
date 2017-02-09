@@ -12,7 +12,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.style.model;
+package org.polymap.core.style.model.feature;
+
+import org.polymap.core.style.model.StylePropertyChange;
+import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.StylePropertyChange.Concern;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;

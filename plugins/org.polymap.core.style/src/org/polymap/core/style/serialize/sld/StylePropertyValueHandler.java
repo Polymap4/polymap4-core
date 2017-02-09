@@ -21,7 +21,6 @@ import java.awt.Color;
 
 import org.opengis.filter.expression.Expression;
 
-import org.polymap.core.style.model.NoValue;
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.model.feature.ConstantColor;
@@ -37,6 +36,7 @@ import org.polymap.core.style.model.feature.FilterMappedValues;
 import org.polymap.core.style.model.feature.FontFamily;
 import org.polymap.core.style.model.feature.FontStyle;
 import org.polymap.core.style.model.feature.FontWeight;
+import org.polymap.core.style.model.feature.NoValue;
 import org.polymap.core.style.model.feature.PropertyNumber;
 import org.polymap.core.style.model.feature.PropertyString;
 import org.polymap.core.style.model.feature.ScaleMappedNumbers;

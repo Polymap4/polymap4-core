@@ -18,10 +18,10 @@ import org.opengis.filter.expression.Expression;
 
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Immutable;
-import org.polymap.core.style.model.NoValue;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.model.feature.ConstantNumber;
 import org.polymap.core.style.model.feature.ConstantStrokeDashStyle;
+import org.polymap.core.style.model.feature.NoValue;
 import org.polymap.core.style.model.feature.Stroke;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.StrokeStyle;
