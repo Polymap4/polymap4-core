@@ -20,6 +20,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.feature.ConstantColor;
@@ -72,10 +73,9 @@ public class ConstantColorEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.BORDER);
+        final Button button = new Button( parent, SWT.FLAT|SWT.LEFT );
         button.setText( i18n.get( "choose" ) );
         button.addSelectionListener( new SelectionAdapter() {
-
             @Override
             public void widgetSelected( SelectionEvent e ) {
                 ColorChooser cc = new ColorChooser(
@@ -99,13 +99,10 @@ public class ConstantColorEditor
 
 
     protected void updateButtonColor( Button button, RGB rgb ) {
-        button.setBackground( new org.eclipse.swt.graphics.Color( button.getDisplay(), rgb ) );
-        if (rgb.red * rgb.blue * rgb.green > 8000000) {
-            button.setForeground( UIUtils.getColor( 0, 0, 0 ) );
-        }
-        else {
-            button.setForeground( UIUtils.getColor( 255, 255, 255 ) );
-        }
+        button.setBackground( UIUtils.getColor( rgb ) );
+        button.setForeground( rgb.red * rgb.blue * rgb.green > 8000000
+                 ? UIUtils.getColor( 0, 0, 0 )
+                 : UIUtils.getColor( 255, 255, 255 ) );
         button.setText( "#" + Integer.toHexString( (new Color( rgb.red, rgb.green, rgb.blue ).getRGB() & 0xffffff)
                 | 0x1000000 ).substring( 1 ).toUpperCase());
     }

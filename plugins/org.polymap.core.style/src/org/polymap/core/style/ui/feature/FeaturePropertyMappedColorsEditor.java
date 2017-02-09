@@ -26,8 +26,6 @@ import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -46,7 +44,6 @@ import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
 import org.polymap.core.style.ui.feature.FeaturePropertyMappedColorsChooser.Triple;
-import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -66,13 +63,13 @@ public class FeaturePropertyMappedColorsEditor
 
     private Map<String,Color> initialColors;
 
+    private org.eclipse.swt.graphics.Color defaultFg;
+
 
     @Override
     public String label() {
         return i18n.get( "title" );
     }
-
-    private static Log log = LogFactory.getLog( FeaturePropertyMappedColorsEditor.class );
 
 
     @Override
@@ -99,7 +96,8 @@ public class FeaturePropertyMappedColorsEditor
     @Override
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.BORDER);
+        Button button = new Button( parent, SWT.FLAT|SWT.LEFT );
+        defaultFg = button.getForeground();
 
         initialize();
 
@@ -147,7 +145,7 @@ public class FeaturePropertyMappedColorsEditor
     }
 
 
-    private void initialize() {
+    protected void initialize() {
         List<Filter> expressions = prop.get().filters();
         List<Color> values = prop.get().values();
         initialColors = Maps.newHashMap();
@@ -172,20 +170,26 @@ public class FeaturePropertyMappedColorsEditor
     protected void updateButtonColor( Button button, Color color ) {
         if (!StringUtils.isBlank( propertyName ) && !initialColors.isEmpty()) {
             button.setText( i18n.get( "rechoose", propertyName, initialColors.size() ) );
+            button.setBackground( StylePlugin.okColor() );
+            button.setForeground( defaultFg );
         }
         else {
             button.setText( i18n.get( "choose" ) );
+            button.setBackground( StylePlugin.okColor() );
+            button.setForeground( StylePlugin.errorColor() );
         }
 
-        org.eclipse.swt.graphics.Color rgb = color != null
-                ? UIUtils.getColor( color.getRed(), color.getGreen(), color.getBlue() ) : StylePlugin.errorColor();
-        button.setBackground( rgb );
-        if (rgb.getRed() * rgb.getBlue() * rgb.getGreen() > (255 * 255 * 255) / 2) {
-            button.setForeground( UIUtils.getColor( 0, 0, 0 ) );
-        }
-        else {
-            button.setForeground( UIUtils.getColor( 255, 255, 255 ) );
-        }
+//        org.eclipse.swt.graphics.Color rgb = color != null
+//                ? UIUtils.getColor( color.getRed(), color.getGreen(), color.getBlue() ) 
+//                : StylePlugin.errorColor();
+//                
+//        button.setBackground( rgb );
+//        if (rgb.getRed() * rgb.getBlue() * rgb.getGreen() > (255 * 255 * 255) / 2) {
+//            button.setForeground( UIUtils.getColor( 0, 0, 0 ) );
+//        }
+//        else {
+//            button.setForeground( UIUtils.getColor( 255, 255, 255 ) );
+//        }
     }
 
 

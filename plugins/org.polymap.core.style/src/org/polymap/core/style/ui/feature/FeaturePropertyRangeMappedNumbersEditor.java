@@ -24,12 +24,11 @@ import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
@@ -41,7 +40,6 @@ import org.polymap.core.style.model.feature.NumberRange;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
-import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -68,13 +66,13 @@ public class FeaturePropertyRangeMappedNumbersEditor
 
     private String propertyName;
 
+    private Color defaultFg;
+
 
     @Override
     public String label() {
         return i18n.get( "title" );
     }
-
-    private static Log log = LogFactory.getLog( FeaturePropertyRangeMappedNumbersEditor.class );
 
 
     @Override
@@ -87,7 +85,6 @@ public class FeaturePropertyRangeMappedNumbersEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<FilterMappedNumbers<Double>>() {
-
             @Override
             public FilterMappedNumbers<Double> initialize( FilterMappedNumbers<Double> proto ) throws Exception {
                 proto.encodedFilters.clear();
@@ -104,9 +101,9 @@ public class FeaturePropertyRangeMappedNumbersEditor
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.BORDER);
+        Button button = new Button( parent, SWT.FLAT|SWT.LEFT );
+        defaultFg = button.getForeground();
         button.addSelectionListener( new SelectionAdapter() {
-
             @Override
             public void widgetSelected( SelectionEvent e ) {
                 final FeaturePropertyRangeMappedNumbersChooser cc = new FeaturePropertyRangeMappedNumbersChooser(
@@ -172,7 +169,7 @@ public class FeaturePropertyRangeMappedNumbersEditor
     }
 
 
-    private void initialize() {
+    protected void initialize() {
         // lowerBound is first literal value
         // upperBound is last literal value
         List<Filter> filters = prop.get().filters();
@@ -227,23 +224,21 @@ public class FeaturePropertyRangeMappedNumbersEditor
             df.setMinimumFractionDigits( digits );
 
             if (minimumValue != null && maximumValue != null) {
-                button.setText( i18n.get( "chooseBetween", propertyName, df.format( minimumValue ),
-                        df.format( maximumValue ) ) );
+                button.setText( i18n.get( "chooseBetween", propertyName, 
+                        df.format( minimumValue ), df.format( maximumValue ) ) );
             }
             else {
-                button.setText(
-                        i18n.get( "chooseFrom", propertyName, df.format( minimumValue ), df.format( maximumValue ) ) );
+                button.setText( i18n.get( "chooseFrom", propertyName, 
+                        df.format( minimumValue ), df.format( maximumValue ) ) );
             }
-            // green, all ok
             button.setBackground( StylePlugin.okColor() );
-//            button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
+            button.setForeground( defaultFg );
         }
         else {
             button.setText( i18n.get( "choose" ) );
-            // red, must be fixed
-            button.setBackground( StylePlugin.errorColor() );
+            button.setBackground( StylePlugin.okColor() );
+            button.setForeground( StylePlugin.errorColor() );
         }
-        button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
 
 

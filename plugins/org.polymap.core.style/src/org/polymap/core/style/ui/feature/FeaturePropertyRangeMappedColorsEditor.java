@@ -24,8 +24,6 @@ import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -40,7 +38,6 @@ import org.polymap.core.style.model.feature.FilterMappedColors;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
-import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -67,13 +64,13 @@ public class FeaturePropertyRangeMappedColorsEditor
 
     private String propertyName;
 
+    private org.eclipse.swt.graphics.Color defaultFg;
+
 
     @Override
     public String label() {
         return i18n.get( "title" );
     }
-
-    private static Log log = LogFactory.getLog( FeaturePropertyRangeMappedColorsEditor.class );
 
 
     @Override
@@ -86,7 +83,6 @@ public class FeaturePropertyRangeMappedColorsEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<FilterMappedColors>() {
-
             @Override
             public FilterMappedColors initialize( FilterMappedColors proto ) throws Exception {
                 proto.encodedFilters.clear();
@@ -99,13 +95,12 @@ public class FeaturePropertyRangeMappedColorsEditor
 
     @Override
     public Composite createContents( Composite parent ) {
-
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.BORDER );
+        Button button = new Button( parent, SWT.FLAT|SWT.LEFT );
+        defaultFg = button.getForeground();
         button.addSelectionListener( new SelectionAdapter() {
-
             @Override
             public void widgetSelected( SelectionEvent e ) {
                 final FeaturePropertyRangeMappedColorsChooser cc = new FeaturePropertyRangeMappedColorsChooser(
@@ -177,7 +172,7 @@ public class FeaturePropertyRangeMappedColorsEditor
     }
 
 
-    private void initialize() {
+    protected void initialize() {
         // lowerBound is first literal value
         // upperBound is last literal value
         List<Filter> filters = prop.get().filters();
@@ -226,16 +221,14 @@ public class FeaturePropertyRangeMappedColorsEditor
     protected void updateButton( Button button ) {
         if (!StringUtils.isBlank( propertyName )) {
             button.setText( i18n.get( "chooseFrom", propertyName ) );
-            // green, all ok
             button.setBackground( StylePlugin.okColor() );
-            // button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
+            button.setForeground( defaultFg );
         }
         else {
             button.setText( i18n.get( "choose" ) );
-            // red not ok
-            button.setBackground( StylePlugin.errorColor() );
+            button.setBackground( StylePlugin.okColor() );
+            button.setForeground( StylePlugin.errorColor() );
         }
-        button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
 
 

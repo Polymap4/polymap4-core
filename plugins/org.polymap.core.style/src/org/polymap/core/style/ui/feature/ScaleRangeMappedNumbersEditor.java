@@ -18,12 +18,10 @@ import java.util.List;
 
 import java.text.DecimalFormat;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
@@ -35,7 +33,6 @@ import org.polymap.core.style.model.feature.ScaleMappedNumbers;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
-import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -50,23 +47,23 @@ public class ScaleRangeMappedNumbersEditor
 
     private static final IMessages i18n = Messages.forPrefix( "ScaleRangeMappedNumbersEditor" );
 
-    private Integer lowerBound;
+    private Integer     lowerBound;
 
-    private Integer upperBound;
+    private Integer     upperBound;
 
-    private Number minimumValue;
+    private Number      minimumValue;
 
-    private Number maximumValue;
+    private Number      maximumValue;
 
-    private int steps;
+    private int         steps;
 
+    private Color       defaultFgColor;
+    
 
     @Override
     public String label() {
         return i18n.get( "title" );
     }
-
-    private static Log log = LogFactory.getLog( ScaleRangeMappedNumbersEditor.class );
 
 
     @Override
@@ -78,7 +75,6 @@ public class ScaleRangeMappedNumbersEditor
     @Override
     public void updateProperty() {
         prop.createValue( new ValueInitializer<ScaleMappedNumbers<Double>>() {
-
             @Override
             public ScaleMappedNumbers<Double> initialize( ScaleMappedNumbers<Double> proto ) throws Exception {
                 proto.scales.clear();
@@ -86,19 +82,18 @@ public class ScaleRangeMappedNumbersEditor
                 proto.defaultNumberValue.set( null );
                 return proto;
             }
-        } );
+        });
     }
 
 
     @Override
     public Composite createContents( Composite parent ) {
-
         initialize();
 
         Composite contents = super.createContents( parent );
-        final Button button = new Button( parent, SWT.BORDER);
+        Button button = new Button( parent, SWT.FLAT|SWT.PUSH|SWT.LEFT );
+        defaultFgColor = button.getForeground();
         button.addSelectionListener( new SelectionAdapter() {
-
             @Override
             public void widgetSelected( SelectionEvent e ) {
                 final ScaleRangeMappedNumbersChooser cc = new ScaleRangeMappedNumbersChooser( lowerBound, upperBound,
@@ -143,7 +138,7 @@ public class ScaleRangeMappedNumbersEditor
     }
 
 
-    private void initialize() {
+    protected void initialize() {
         List<Double> values = prop.get().numbers();
         if (prop.get().defaultNumberValue.get() != null) {
             minimumValue = (Number)prop.get().defaultNumberValue.get();
@@ -174,16 +169,16 @@ public class ScaleRangeMappedNumbersEditor
             df.setMinimumFractionDigits( digits );
 
             button.setText( i18n.get( "chooseBetween", df.format( minimumValue ), df.format( maximumValue ) ) );
-            // green, all ok
+            button.setForeground( defaultFgColor );
             button.setBackground( StylePlugin.okColor() );
         }
         else {
             button.setText( i18n.get( "choose" ) );
-            // red not ok
-            button.setBackground( StylePlugin.errorColor() );
+            button.setForeground( StylePlugin.errorColor() );
+            button.setBackground( StylePlugin.okColor() );
         }
-        button.setForeground( UIUtils.getColor( 74, 74, 74 ) );
     }
+    
     
     @Override
     public boolean isValid() {
