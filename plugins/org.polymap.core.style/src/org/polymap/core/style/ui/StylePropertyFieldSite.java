@@ -31,6 +31,10 @@ import org.polymap.model2.Property;
 public class StylePropertyFieldSite
         extends Configurable {
 
+    /**
+     * The {@link Property} of the Style that contains the {@link StylePropertyValue}
+     * this editor is working on.
+     */
     @Mandatory
     public Config<Property<StylePropertyValue>> prop;
 

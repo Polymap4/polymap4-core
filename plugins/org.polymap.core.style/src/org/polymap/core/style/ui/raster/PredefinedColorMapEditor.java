@@ -14,6 +14,7 @@
  */
 package org.polymap.core.style.ui.raster;
 
+import java.util.Iterator;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,7 @@ public class PredefinedColorMapEditor
                 .collect( Collectors.toList() )
                 .toArray( new String[0] ) );
 
-        combo.select( 0 );
+        combo.select( findSelected() );
 
         combo.addSelectionListener( UIUtils.selectionListener( ev -> {
             ConstantRasterColorMap newColorMap = prop.createValue( ConstantRasterColorMap.defaults() );
@@ -89,6 +90,38 @@ public class PredefinedColorMapEditor
         return contents;
     }
 
+    
+    /**
+     * Checks if a predefined colormap exists that has the same color sequence as the
+     * current value.
+     *
+     * @return The index of the found predefined colormap or 0.
+     */
+    protected int findSelected() {
+        ConstantRasterColorMap current = prop.get();
+        if (current != null) {
+            int count = 0;
+            nextPredefined: for (PredefinedColorMap predefined : PredefinedColorMap.all.get()) {
+                if (current.entries.size() == predefined.entries.size()) {
+                    Iterator<ConstantRasterColorMap.Entry> currentEntries =  current.entries.iterator();
+                    Iterator<PredefinedColorMap.Entry> predefinedEntries = predefined.entries.iterator();
+                    while (predefinedEntries.hasNext()) {
+                        ConstantRasterColorMap.Entry currentEntry = currentEntries.next();
+                        PredefinedColorMap.Entry predefinedEntry = predefinedEntries.next();
+                        if (predefinedEntry.color.getRed() != currentEntry.r.get()
+                                || predefinedEntry.color.getGreen() != currentEntry.g.get()
+                                || predefinedEntry.color.getBlue() != currentEntry.b.get()) {
+                            continue nextPredefined;
+                        }
+                    }
+                    return count;
+                }
+                count ++;
+            }
+        }
+        return 0;
+    }
+    
     
     @Override
     public void updateProperty() {
