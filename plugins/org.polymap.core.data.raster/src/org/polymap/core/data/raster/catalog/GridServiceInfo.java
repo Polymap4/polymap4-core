@@ -25,12 +25,11 @@ import java.io.File;
 import java.net.URL;
 
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
-import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
-import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.ResourceInfo;
 import org.geotools.geometry.GeneralEnvelope;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +41,7 @@ import org.polymap.core.catalog.resolve.DefaultResourceInfo;
 import org.polymap.core.catalog.resolve.DefaultServiceInfo;
 import org.polymap.core.catalog.resolve.IMetadataResourceResolver;
 import org.polymap.core.catalog.resolve.IResourceInfo;
-import org.polymap.core.runtime.Mutex;
+import org.polymap.core.data.raster.GridCoverageReaderFactory;
 
 /**
  * 
@@ -56,34 +55,34 @@ public class GridServiceInfo
             throws Exception {
         
         String url = params.get( IMetadataResourceResolver.CONNECTION_PARAM_URL );
-        GridCoverage2DReader grid = open( FileUtils.toFile( new URL( url ) ) );
+        GridCoverage2DReader grid = GridCoverageReaderFactory.open( FileUtils.toFile( new URL( url ) ) );
         return new GridServiceInfo( metadata, grid );
     }
 
-    /**
-     * 
-     *
-     * @param f
-     * @return Newly created reader.
-     * @throws InterruptedException 
-     */
-    public static AbstractGridCoverage2DReader open( File f ) throws Exception {
-        return initLock.lockedInterruptibly( () -> {
-//            Hints hints = new Hints();
-//            hints.put( Hints.DEFAULT_COORDINATE_REFERENCE_SYSTEM, CRS.decode( "EPSG:9001" ) );    
-//            hints.put( Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE );
-            
-            AbstractGridFormat format = GridFormatFinder.findFormat( f );
-            AbstractGridCoverage2DReader reader = format.getReader( f );
-            return reader; 
-        });
-    }
-    
-    /**
-     * Initializing several readers (for different services/files) in concurrent
-     * threads results in deadlocks.
-     */
-    protected static final Mutex        initLock = new Mutex();
+//    /**
+//     * 
+//     *
+//     * @param f
+//     * @return Newly created reader.
+//     * @throws InterruptedException 
+//     */
+//    public static AbstractGridCoverage2DReader open( File f ) throws Exception {
+//        return initLock.lockedInterruptibly( () -> {
+////            Hints hints = new Hints();
+////            hints.put( Hints.DEFAULT_COORDINATE_REFERENCE_SYSTEM, CRS.decode( "EPSG:9001" ) );    
+////            hints.put( Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE );
+//            
+//            AbstractGridFormat format = GridFormatFinder.findFormat( f );
+//            AbstractGridCoverage2DReader reader = format.getReader( f );
+//            return reader; 
+//        });
+//    }
+//    
+//    /**
+//     * Initializing several readers (for different services/files) in concurrent
+//     * threads results in deadlocks.
+//     */
+//    protected static final Mutex        initLock = new Mutex();
     
     
     // instance *******************************************
@@ -168,7 +167,7 @@ public class GridServiceInfo
         //File f = new File( "/home/falko/Data/tiff/bluemarble.tif" );
         File f = new File( "/home/falko/Data/ncrast/elevation_4326.tif" );
 
-        AbstractGridCoverage2DReader reader = open( f );
+        AbstractGridCoverage2DReader reader = GridCoverageReaderFactory.open( f );
         System.out.println( "reader: " + reader );
         System.out.println( "reader: " + reader.getInfo().getSource() );
         System.out.println( "reader: " + reader.getInfo().getTitle() );
