@@ -39,7 +39,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/jt-zonalstats-1.4.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-api-16.1.jar" sourcepath="lib/sources/gt-api-16.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-app-schema-resolver-16.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-arcgrid-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-brewer-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-complex-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-16.1.jar" sourcepath="lib/sources/gt-coverage-16.1-sources.zip"/>
@@ -47,7 +46,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-data-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-geojson-16.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-16.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-16.1.jar" sourcepath="lib/sources/gt-geotiff-16.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-graph-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-main-16.1.jar" sourcepath="lib/sources/gt-main-16.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-16.1.jar"/>
