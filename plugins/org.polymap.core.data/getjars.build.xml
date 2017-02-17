@@ -86,8 +86,9 @@
 	        <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
 	        <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
 
-		    <!-- Shapefile -->
+		    <!-- Features -->
             <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
+            <dependency groupId="org.geotools.jdbc" artifactId="gt-jdbc-spatialite" version="${geotools.version}" />
 		    
 		    <!-- OWS -->
             <dependency groupId="org.geotools" artifactId="gt-wms" version="${geotools.version}" />

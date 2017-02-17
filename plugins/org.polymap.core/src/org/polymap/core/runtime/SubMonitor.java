@@ -14,9 +14,6 @@
  */
 package org.polymap.core.runtime;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
@@ -35,8 +32,6 @@ import org.polymap.core.runtime.config.DefaultInt;
 public class SubMonitor
         extends SubProgressMonitor {
 
-    private static Log log = LogFactory.getLog( SubMonitor.class );
-
     public static SubMonitor on( IProgressMonitor monitor, int ticks ) {
         return new SubMonitor( monitor, ticks );
     }
@@ -51,6 +46,13 @@ public class SubMonitor
     private int                         worked = 0;
     
     
+    /**
+     * Creates a new sub-progress monitor for the given monitor. The sub progress
+     * monitor uses the given number of work ticks from its parent monitor.
+     *
+     * @param monitor The parent progress monitor.
+     * @param ticks The number of work ticks allocated from the parent monitor.
+     */
     public SubMonitor( IProgressMonitor monitor, int ticks ) {
         super( monitor, ticks );
         ConfigurationFactory.inject( this );

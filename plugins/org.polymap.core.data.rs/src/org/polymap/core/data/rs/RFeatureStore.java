@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,6 +42,7 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureVisitor;
+import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -263,8 +265,8 @@ public class RFeatureStore
                                 newFeature.getProperty( prop.getName() ).setValue( prop.getValue() );
                             }
                             // sanity check: geom
-                            if (schema.getGeometryDescriptor() != null
-                                    && feature.getDefaultGeometryProperty().getValue() == null) {
+                            GeometryAttribute geom = feature.getDefaultGeometryProperty();
+                            if (geom != null && geom.getValue() == null) {
                                 throw new RuntimeException( "Feature has no geometry: " + feature.getIdentifier().getID() );
                             }
                             txState.updater().store( newFeature.state );
