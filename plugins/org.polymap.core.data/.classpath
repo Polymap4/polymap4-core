@@ -43,7 +43,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-complex-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-coverage-16.1.jar" sourcepath="lib/sources/gt-coverage-16.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-cql-16.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-data-16.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-data-16.1.jar" sourcepath="lib/sources/gt-data-16.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-epsg-wkt-16.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-geojson-16.1.jar" sourcepath="lib/sources/gt-geojson-16.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-geotiff-16.1.jar" sourcepath="lib/sources/gt-geotiff-16.1-sources.zip"/>
