@@ -218,6 +218,7 @@ public abstract class UIJob
     
 
     protected final IStatus run( final IProgressMonitor monitor ) {
+        assert sessionContext != null : "No session context for job: " + getName() + " - Did you call from servlet? Consider DefaultSessionContextProvider to give it a proper context.";
         sessionContext.execute( () -> {
             try {
                 executionMonitor = monitor;
