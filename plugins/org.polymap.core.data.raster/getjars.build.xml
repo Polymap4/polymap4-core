@@ -17,12 +17,12 @@
     <!--
       Bootstrap: maven jars, ant task
       -->
-    <property name="maven_download_dir" value="${user.home}/.m2/repository/org/apache/maven/maven-ant-tasks/2.0.10/" />
+    <property name="maven_download_dir" value="${user.home}/.m2/repository/org/apache/maven/maven-ant-tasks/2.1.3/" />
     <available property="bootstrapped" type="dir" file="${maven_download_dir}" />
 
     <target name="bootstrap" unless="bootstrapped">
         <mkdir dir="${maven_download_dir}" />
-        <get src="http://central.maven.org/maven2/org/apache/maven/maven-ant-tasks/2.0.10/maven-ant-tasks-2.0.10.jar" 
+        <get src="http://central.maven.org/maven2/org/apache/maven/maven-ant-tasks/2.0.10/maven-ant-tasks-2.1.3.jar" 
              dest="${maven_download_dir}" />
     </target>
     
@@ -72,7 +72,11 @@
             <dependency groupId="org.geotools" artifactId="gt-image" version="${geotools.version}" /-->
 		    
             <!--dependency groupId="org.geotools" artifactId="gt-imagemosaic" version="${geotools.version}" /-->
-			
+		    
+		    <!-- JGrasstools -->
+		    <!--dependency groupId="org.jgrasstools" artifactId="jgt-hortonmachine" version="0.8.1-SNAPSHOT"/>
+		    <dependency groupId="org.geotools" artifactId="*" version="16.1" scope="provided" /-->
+		    
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />
