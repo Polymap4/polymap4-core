@@ -51,9 +51,11 @@ import org.polymap.model2.runtime.event.PropertyChangeSupport;
 public class ILayer
         extends ProjectNode {
 
-    private static Log log = LogFactory.getLog( ILayer.class );
+    private static final Log log = LogFactory.getLog( ILayer.class );
 
     public static final Comparator<ILayer>  ORDER_KEY_ORDERING = (l1,l2) -> l1.orderKey.get().compareTo( l2.orderKey.get() );
+    
+    public static ILayer            TYPE;
     
     /**
      *
@@ -85,6 +87,7 @@ public class ILayer
     public static class LayerUserSettings
             extends UserSettings {
 
+        @SuppressWarnings( "hiding" )
         public static LayerUserSettings TYPE;
 
         /**

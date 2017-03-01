@@ -11,7 +11,7 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property name="geotools.version" value="16-RC1" />
+	<property name="geotools.version" value="16.1" />
     <available property="already_downloaded" type="dir" file="${lib}" />
 
     <!--
@@ -66,17 +66,14 @@
 		      All GeoTools jars are loaded by org.polymap.core.data. This is easier to maintain
 		      until we have a way to load *just* the needed jars in dependent plugins. 
 		    -->
-		    
             <!--dependency groupId="org.geotools" artifactId="gt-geotiff" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-arcgrid" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-image" version="${geotools.version}" /-->
-		    
-            <!--dependency groupId="org.geotools" artifactId="gt-imagemosaic" version="${geotools.version}" /-->
-		    
+		    		    
 		    <!-- JGrasstools -->
-		    <!--dependency groupId="org.jgrasstools" artifactId="jgt-hortonmachine" version="0.8.1-SNAPSHOT"/>
-		    <dependency groupId="org.geotools" artifactId="*" version="16.1" scope="provided" /-->
+		    <dependency groupId="org.jgrasstools" artifactId="jgt-modules" version="0.8.1"/>
 		    
+            <dependency groupId="com.google.guava" artifactId="guava" version="17.0" scope="provided" />
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />

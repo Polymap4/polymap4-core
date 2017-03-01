@@ -20,6 +20,8 @@ import java.lang.annotation.Annotation;
 
 import org.jgrasstools.gears.libs.modules.JGTModel;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.collect.FluentIterable;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -67,6 +69,13 @@ public class ModuleInfo
     @Override
     protected <A extends Annotation> Optional<A> annotation(Class<A> atype) {
         return Optional.ofNullable( type.getAnnotation( atype ) );
+    }
+    
+    /**
+     * Standard title made of {@link #label} and/or {@link #name}.
+     */
+    public String title() {
+        return StringUtils.capitalize( name.get().orElse( simpleClassname.get() ) );
     }
     
     /**

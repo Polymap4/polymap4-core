@@ -19,6 +19,8 @@ import java.util.function.Supplier;
 
 import java.lang.annotation.Annotation;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.PlainLazyInit;
 
@@ -33,21 +35,35 @@ import oms3.annotations.Name;
  */
 public abstract class BaseInfo {
 
-    /** The value of the {@link Name} annotation. */
+    /** 
+     * The value of the {@link Name} annotation. 
+     * @see #title() 
+     */
     public Lazy<Optional<String>>   name = lazy( () -> annotation( Name.class ).map( a -> a.value() ) );
     
-    /** The value of the {@link Label} annotation. */
+    /** 
+     * The value of the {@link Label} annotation.
+     * @see #title() 
+     */
     public Lazy<Optional<String>>   label = lazy( () -> annotation( Label.class ).map( a -> a.value() ) );
     
-    /** The value of the {@link Description} annotation. */
+    /** 
+     * The value of the {@link Description} annotation. 
+     */
     public Lazy<Optional<String>>   description = lazy( () -> annotation( Description.class ).map( a -> a.value() ) );
     
+    /**
+     * Standard title made of {@link #label} and or {@link #name}.
+     */
+    public String title() {
+        return StringUtils.capitalize( name.get().orElse( "???" ) );
+    }
     
     protected <T> Lazy<T> lazy( Supplier<T> supplier ) {
         return new PlainLazyInit( supplier );
     }
     
     
-    protected abstract <A extends Annotation> Optional<A> annotation(Class<A> atype);
+    protected abstract <A extends Annotation> Optional<A> annotation( Class<A> atype );
     
 }
