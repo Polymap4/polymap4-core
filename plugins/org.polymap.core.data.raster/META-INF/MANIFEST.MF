@@ -19,7 +19,8 @@ Bundle-ClassPath: .,
  lib/jgt-jgrassgears-0.8.1.jar,
  lib/jgt-oms3-0.8.1.jar,
  lib/jgt-lesto-0.8.1.jar,
- lib/jgt-modules-0.8.1.jar
+ lib/jgt-modules-0.8.1.jar,
+ lib/scannotation-1.0.3.jar
 Export-Package: oms3,
  oms3.annotations,
  oms3.compiler,
@@ -269,5 +270,8 @@ Export-Package: oms3,
  org.polymap.core.data.process,
  org.polymap.core.data.process.ui,
  org.polymap.core.data.raster,
- org.polymap.core.data.raster.catalog
+ org.polymap.core.data.raster.catalog,
+ org.scannotation,
+ org.scannotation.archiveiterator
 Import-Package: org.polymap.core.project
+Bundle-Activator: org.polymap.core.data.raster.RasterDataPlugin

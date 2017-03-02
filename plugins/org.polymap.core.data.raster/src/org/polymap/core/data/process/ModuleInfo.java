@@ -41,7 +41,7 @@ import oms3.annotations.Initialize;
 public class ModuleInfo
         extends BaseInfo {
 
-    public static ModuleInfo of( Class<? extends JGTModel> moduleClass ) {
+    public static ModuleInfo of( Class<?> moduleClass ) {
         return new ModuleInfo( moduleClass );
     }
 
@@ -52,7 +52,7 @@ public class ModuleInfo
     
     // instance *******************************************
     
-    private Class<? extends JGTModel>   type;
+    private Class<?>                    type;
 
     /** Shortcut to {@link Class#getSimpleName()}.  */
     public Lazy<String>                 simpleClassname = lazy( () -> type.getSimpleName() );
@@ -62,12 +62,16 @@ public class ModuleInfo
             FluentIterable.of( type.getFields() ).transform( f -> new FieldInfo( f ) ) );
     
     
-    protected ModuleInfo( Class<? extends JGTModel> type ) {
+    protected ModuleInfo( Class<?> type ) {
         this.type = type;
     }
     
+    public Class<?> type() {
+        return type;
+    }
+    
     @Override
-    protected <A extends Annotation> Optional<A> annotation(Class<A> atype) {
+    public <A extends Annotation> Optional<A> annotation( Class<A> atype ) {
         return Optional.ofNullable( type.getAnnotation( atype ) );
     }
     
@@ -95,7 +99,7 @@ public class ModuleInfo
 
     public JGTModel createInstance() {
         try {
-            return type.newInstance();
+            return (JGTModel)type.newInstance();
         }
         catch (Exception e) {
             throw new RuntimeException( e );

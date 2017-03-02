@@ -72,8 +72,9 @@
 		    		    
 		    <!-- JGrasstools -->
 		    <dependency groupId="org.jgrasstools" artifactId="jgt-modules" version="0.8.1"/>
-		    
-            <dependency groupId="com.google.guava" artifactId="guava" version="17.0" scope="provided" />
+		    <dependency groupId="org.reflections" artifactId="reflections" version="0.9.10"/> 
+            
+		    <dependency groupId="com.google.guava" artifactId="guava" version="17.0" scope="provided" />
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3" scope="provided" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />
             <dependency groupId="commons-logging" artifactId="commons-logging" version="1" scope="provided" />

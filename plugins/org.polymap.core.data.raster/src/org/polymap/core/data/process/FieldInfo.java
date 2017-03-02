@@ -49,7 +49,7 @@ public class FieldInfo
     /** The value of the {@link Out} annotation. */
     public Lazy<Boolean>    isOutput = lazy( () -> annotation( Out.class ).isPresent() );
 
-    /** The value of the {@link Out} annotation. */
+    /** The type of the {@link Field}. */
     public Lazy<Class<?>>   type = lazy( () -> field.getType() );
 
     
@@ -86,7 +86,7 @@ public class FieldInfo
     
     
     @Override
-    protected <A extends Annotation> Optional<A> annotation(Class<A> atype) {
+    public <A extends Annotation> Optional<A> annotation( Class<A> atype ) {
         return Optional.ofNullable( field.getAnnotation( atype ) );
     }
 
