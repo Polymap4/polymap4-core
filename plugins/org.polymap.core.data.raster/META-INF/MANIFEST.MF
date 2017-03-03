@@ -276,3 +276,4 @@ Export-Package: oms3,
 Import-Package: org.polymap.core.project,
  org.polymap.rhei.field
 Bundle-Activator: org.polymap.core.data.raster.RasterDataPlugin
+Bundle-ActivationPolicy: lazy
