@@ -18,8 +18,8 @@ import java.util.Map;
 
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.MapMaker;
 
@@ -33,7 +33,7 @@ import org.polymap.core.runtime.cache.Soft2Cache.CacheEntry;
 public class Soft2CacheManager
         extends CacheManager {
 
-    private static Log log = LogFactory.getLog( Soft2CacheManager.class );
+    private static final Log log = LogFactory.getLog( Soft2CacheManager.class );
     
     private static final Soft2CacheManager  instance = new Soft2CacheManager();
     
@@ -115,9 +115,11 @@ public class Soft2CacheManager
                     if (entry == null) {
                         // use spare time to reclaim heap and system memory (G1GC); 
                         // plus check SoftReferences -XX:SoftRefLRUPolicyMSPerMB
+                        logMemory( "Before GC: " );
                         System.gc();
+                        logMemory( "After GC: " );
                     }
-                    else {                    
+                    else {
                         entry.cache().removeEntry( entry.key(), entry );
 
                         //log.debug( "reclaimed: " + entry.key() );
@@ -140,6 +142,13 @@ public class Soft2CacheManager
             }
         }
         
+        protected void logMemory( String prefix ) {
+            System.gc();
+            long total = Runtime.getRuntime().totalMemory();
+            long free = Runtime.getRuntime().freeMemory();            
+            log.info( prefix + (total-free) / (1024*1024) + "MB");
+        }
+
     }
 
 }

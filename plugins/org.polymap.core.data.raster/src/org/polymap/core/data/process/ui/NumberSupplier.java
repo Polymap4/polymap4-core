@@ -18,8 +18,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+
+import org.polymap.core.runtime.Polymap;
+import org.polymap.core.ui.StatusDispatcher;
+
+import org.polymap.rhei.field.IFormFieldValidator;
+import org.polymap.rhei.field.NumberValidator;
 
 /**
  * 
@@ -31,7 +38,11 @@ public class NumberSupplier
 
     private static final Log log = LogFactory.getLog( NumberSupplier.class );
     
-    private Text            text;
+    private Text                text;
+    
+    private IFormFieldValidator<String,? extends Number> validator;
+
+    private Color               defaultForeground;
 
     
     @Override
@@ -45,9 +56,22 @@ public class NumberSupplier
         if (super.init( site )) {
             Class<?> fieldType = site.fieldInfo.get().type.get();
             log.info( "Type: " + fieldType );
-            return Number.class.isAssignableFrom( fieldType ) 
-                    || Integer.TYPE.equals( fieldType )
-                    || Double.TYPE.equals( fieldType );
+            if (Integer.class.isAssignableFrom( fieldType ) || Integer.TYPE.equals( fieldType )) {
+                validator = new NumberValidator( Integer.class, Polymap.getSessionLocale(), 10, 0, 1, 0 );
+                return true;                
+            }
+            else if (Long.class.isAssignableFrom( fieldType ) || Long.TYPE.equals( fieldType )) {
+                validator = new NumberValidator( Integer.class, Polymap.getSessionLocale(), 10, 0, 1, 0 );
+                return true;                
+            }
+            else if (Double.class.isAssignableFrom( fieldType ) || Double.TYPE.equals( fieldType )) {
+                validator = new NumberValidator( Double.class, Polymap.getSessionLocale(), 10, 5, 1, 1 );
+                return true;                
+            }
+            else if (Float.class.isAssignableFrom( fieldType ) || Float.TYPE.equals( fieldType )) {
+                validator = new NumberValidator( Double.class, Polymap.getSessionLocale(), 10, 5, 1, 1 );
+                return true;                
+            }
         }
         return false;
     }
@@ -57,17 +81,64 @@ public class NumberSupplier
     public void createContents( Composite parent ) {
         text = new Text( parent, SWT.BORDER );
         text.setFont( parent.getFont() );
+        defaultForeground = text.getForeground();
+
+        // init text value
+        try {
+            String textValue = validator.transform2Field( site.getFieldValue() );
+            text.setText( textValue != null ? textValue : "" );
+        }
+        catch (Exception e) {
+            log.warn( "", e );
+        }
         
-        text.setText( site.getFieldValue().toString() );
         text.addModifyListener( ev -> {
-            supply();
+            // validate
+            String msg = validator.validate( text.getText() );
+            if (msg != null) {
+                text.setForeground( FieldViewer.errorColor() );
+                text.setToolTipText( msg );
+            }
+            else {
+                text.setForeground( defaultForeground );
+                text.setToolTipText( null );
+                try {
+                    // set value
+                    Number value = validator.transform2Model( text.getText() );
+                    site.setFieldValue( value );
+                }
+                catch (Exception e) {
+                    StatusDispatcher.handleError( "Value was not set properly.", e );
+                }
+            }
         });
     }
 
 
-    public void supply() {
-        throw new RuntimeException( "not yet implemented" );
-        //site.setFieldValue( text.getText() );
-    }
-
+//    /**
+//     * 
+//     */
+//    protected abstract class Validator<T extends Number> {
+//        
+//        public abstract String value2Text( T value );
+//        
+//        public abstract String text2Value( T value ) throws Exception;
+//    }
+//    
+//    
+//    protected class IntegerValidator
+//            extends Validator<Integer> {
+//
+//        @Override
+//        public String value2Text( Integer value ) {
+//            NumberFormat
+//        }
+//
+//        @Override
+//        public String text2Value( Integer value ) throws Exception {
+//            // XXX Auto-generated method stub
+//            throw new RuntimeException( "not yet implemented." );
+//        }
+//    }
+    
 }

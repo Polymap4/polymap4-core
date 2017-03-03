@@ -65,16 +65,24 @@ public class Modules {
     
     public List<ModuleInfo> rasterExecutables() {
         return executables.get( () -> {
+            logMemory();            
             List<ModuleInfo> result = new ArrayList( 256 );
             Bundle bundle = RasterDataPlugin.instance().getBundle();
             Predicate<ModuleInfo> filter = hasAnnotatedMethod( Execute.class ).and( hasInputField( GridCoverage2D.class ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-hortonmachine-0.8.1.jar" ), filter ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-jgrassgears-0.8.1.jar" ), filter ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-lesto-0.8.1.jar" ), filter ) );
+            logMemory();
             return result;
         });
     }
 
+    protected void logMemory() {
+        System.gc();
+        long total = Runtime.getRuntime().totalMemory();
+        long free = Runtime.getRuntime().freeMemory();            
+        log.info( "Memory used: " + (total-free) / (1024*1024) + "MB");
+    }
 
     /**
      * 
@@ -86,21 +94,22 @@ public class Modules {
         try (
             JarInputStream jar = new JarInputStream( jarUrl.openStream() );
         ){
+            log.info( "Scanning: " + jarUrl.getFile() + " ..." );
             Timer timer = new Timer();
             List<ModuleInfo> result = new ArrayList( 256 );
             ClassLoader cl = getClass().getClassLoader();
             for (JarEntry entry=jar.getNextJarEntry(); entry!=null; entry=jar.getNextJarEntry()) {
                 if (entry.getName().endsWith( ".class" )) {
+                    String classname = replace( removeEnd( entry.getName(), ".class" ), "/", "." );
                     try {
-                        String classname = replace( removeEnd( entry.getName(), ".class" ), "/", "." );
                         ModuleInfo candidate = ModuleInfo.of( (Class<? extends JGTModel>)cl.loadClass( classname ) );
                         if (filters.test( candidate )) {
-                            log.info( "entry: " + classname );
+                            log.info( "    entry: " + classname );
                             result.add( candidate );                            
                         }
                     }
                     catch (Throwable e) {
-                        log.warn( e.getMessage() );
+                        log.warn( "    failed: " + classname + " (" + e.getMessage() + ")" );
                     }
                 }
             }

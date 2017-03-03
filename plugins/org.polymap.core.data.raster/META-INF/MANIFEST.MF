@@ -273,5 +273,6 @@ Export-Package: oms3,
  org.polymap.core.data.raster.catalog,
  org.scannotation,
  org.scannotation.archiveiterator
-Import-Package: org.polymap.core.project
+Import-Package: org.polymap.core.project,
+ org.polymap.rhei.field
 Bundle-Activator: org.polymap.core.data.raster.RasterDataPlugin

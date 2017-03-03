@@ -34,7 +34,7 @@ public class NotSupportedSupplier
     @Override
     public void createContents( Composite parent ) {
         Label l = new Label( parent, SWT.NONE );
-        l.setText( "Type: " + site.fieldInfo.get().type.get().getSimpleName() );
+        l.setText( "[" + site.fieldInfo.get().type.get().getSimpleName() + "]" );
     }
 
 }

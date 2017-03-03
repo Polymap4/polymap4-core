@@ -18,6 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -43,6 +44,10 @@ public class FieldViewer {
 
     private static final Log log = LogFactory.getLog( FieldViewer.class );
     
+    public static Color errorColor() {
+        return UIUtils.getColor( 240, 20, 20 );
+    }
+
     private FieldViewerSite     site;
     
     private ComboViewer         combo;
