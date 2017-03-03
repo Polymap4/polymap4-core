@@ -55,7 +55,6 @@ public class NumberSupplier
     public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
         if (super.init( site )) {
             Class<?> fieldType = site.fieldInfo.get().type.get();
-            log.info( "Type: " + fieldType );
             if (Integer.class.isAssignableFrom( fieldType ) || Integer.TYPE.equals( fieldType )) {
                 validator = new NumberValidator( Integer.class, Polymap.getSessionLocale(), 10, 0, 1, 0 );
                 return true;                
