@@ -280,7 +280,7 @@ public class OperationSupport
         
         if (parent != null && parent instanceof OperationJob) {
             log.info( "Nested operation: " + op );
-            run( job, true, progress );
+            run( job, async, progress );
 
 //            IUndoableOperation parentOp = ((OperationJob)parent).op;
 //            
