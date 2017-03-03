@@ -114,31 +114,4 @@ public class NumberSupplier
         });
     }
 
-
-//    /**
-//     * 
-//     */
-//    protected abstract class Validator<T extends Number> {
-//        
-//        public abstract String value2Text( T value );
-//        
-//        public abstract String text2Value( T value ) throws Exception;
-//    }
-//    
-//    
-//    protected class IntegerValidator
-//            extends Validator<Integer> {
-//
-//        @Override
-//        public String value2Text( Integer value ) {
-//            NumberFormat
-//        }
-//
-//        @Override
-//        public String text2Value( Integer value ) throws Exception {
-//            // XXX Auto-generated method stub
-//            throw new RuntimeException( "not yet implemented." );
-//        }
-//    }
-    
 }

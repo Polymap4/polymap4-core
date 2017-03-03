@@ -59,6 +59,22 @@ public class SubMonitor
     }
 
 
+    /**
+     * Creates a new sub-progress monitor for the given monitor. The sub progress
+     * monitor uses the given number of work ticks from its parent monitor.
+     *
+     * @param monitor The parent progress monitor.
+     * @param ticks The number of work ticks allocated from the parent monitor.
+     * @param taskName Call {@link #beginTask(String, int)}.
+     * @param totalWork Call {@link #beginTask(String, int)}.
+     */
+    public SubMonitor( IProgressMonitor monitor, int ticks, String taskName, int totalWork ) {
+        super( monitor, ticks );
+        ConfigurationFactory.inject( this );
+        beginTask( taskName, totalWork );
+    }
+
+    @Override
     public void beginTask( String name, int totalWork ) {
         super.beginTask( name, totalWork );
         mainTaskName = name;

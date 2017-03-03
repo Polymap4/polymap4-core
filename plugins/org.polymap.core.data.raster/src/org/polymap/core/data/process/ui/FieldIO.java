@@ -38,7 +38,8 @@ public abstract class FieldIO {
     // XXX make this extensible
     public static final List<Class<? extends FieldIO>> ALL = Lists.newArrayList(
         BooleanSupplier.class,
-        NumberSupplier.class
+        NumberSupplier.class,
+        StringSupplier.class
     );
 
     
