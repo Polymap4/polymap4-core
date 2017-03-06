@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.process.ui;
 
+import org.eclipse.swt.widgets.Composite;
+
 /**
  * 
  *
@@ -22,9 +24,24 @@ package org.polymap.core.data.process.ui;
 public abstract class OutputFieldConsumer
         extends FieldIO {
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public abstract String label();
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
         return super.init( site ) && site.fieldInfo.get().isOutput.get();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public abstract void createContents( Composite parent );
 
 }

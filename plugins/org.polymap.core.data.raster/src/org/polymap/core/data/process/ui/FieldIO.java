@@ -78,16 +78,19 @@ public abstract class FieldIO {
     public abstract String label();
 
     /**
-     * 
+     * Checks if this field can handle the given {@link FieldInfo#type}.
      *
-     * @param site
-     * @return True if this supplier can handle the {@link FieldInfo field} in the given site. 
+     * @return True if this supplier can handle the {@link FieldInfo field} in the
+     *         given site.
      */
     public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
         this.site = site;
         return true;
     }
-    
+
+    /**
+     * Creates the UI of this field. 
+     */
     public abstract void createContents( Composite parent );
     
 }
