@@ -76,10 +76,10 @@ public class ModuleInfo
     }
     
     /**
-     * Standard title made of {@link #label} and/or {@link #name}.
+     * Standard title made of the class name.
      */
     public String title() {
-        return StringUtils.capitalize( name.get().orElse( simpleClassname.get() ) );
+        return StringUtils.capitalize( simpleClassname.get().substring( 3 ) );
     }
     
     /**

@@ -15,7 +15,6 @@
 package org.polymap.core.data.wms;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -87,7 +86,7 @@ public class WmsRenderProcessor
 //        layer = new Layer( layerName );
 //        layer.setName( layerName );
 
-        log.info( "Layers" + wms.getCapabilities().getLayerList().stream().map( l -> l.getName() ).collect( Collectors.toList() ) );
+//        log.info( "Layers" + wms.getCapabilities().getLayerList().stream().map( l -> l.getName() ).collect( Collectors.toList() ) );
         layer = wms.getCapabilities().getLayerList().stream()
                 .filter( l -> layerName.equals( l.getName() ) ).findFirst()
                 .orElseThrow( () -> new RuntimeException( "No layer found for name: " + layerName ) );
@@ -119,7 +118,7 @@ public class WmsRenderProcessor
     @Override
     public void getBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
         List<CRSEnvelope> bboxes = layer.getLayerBoundingBoxes();
-        log.info( "BBOXES: " + bboxes );
+//        log.info( "BBOXES: " + bboxes );
         ReferencedEnvelope result = new ReferencedEnvelope( FluentIterable.from( bboxes ).first().get() );
         context.sendResponse( new GetBoundsResponse( result ) );
     }
@@ -146,7 +145,7 @@ public class WmsRenderProcessor
         getMap.setSRS( request.getCRS() );
         
         getMap.addLayer( layer );
-        log.info( "    WMS URL:" + getMap.getFinalURL() );
+//        log.info( "    WMS URL:" + getMap.getFinalURL() );
         
         InputStream in = null;
         try {
@@ -193,7 +192,7 @@ public class WmsRenderProcessor
         String s = srsName.contains( "31468" ) && version.startsWith( "1.3" )
                 ? Joiner.on( ',' ).join( bbox.getMinimum(1), bbox.getMinimum(0), bbox.getMaximum(1), bbox.getMaximum(0) )
                 : Joiner.on( ',' ).join( bbox.getMinimum(0), bbox.getMinimum(1), bbox.getMaximum(0), bbox.getMaximum(1) );
-        log.info( "Requested BBOX: " + s );
+        //log.info( "Requested BBOX: " + s );
         getMap.setBBox( s );
     }
 
