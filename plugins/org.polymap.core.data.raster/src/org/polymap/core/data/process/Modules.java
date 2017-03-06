@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 
 import org.geotools.coverage.grid.GridCoverage2D;
+import org.jgrasstools.gears.libs.modules.JGTConstants;
 import org.jgrasstools.gears.libs.modules.JGTModel;
 import org.osgi.framework.Bundle;
 
@@ -41,6 +42,7 @@ import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.Timer;
 
 import oms3.annotations.Execute;
+import oms3.annotations.UI;
 
 /**
  * 
@@ -68,7 +70,7 @@ public class Modules {
             logMemory();            
             List<ModuleInfo> result = new ArrayList( 256 );
             Bundle bundle = RasterDataPlugin.instance().getBundle();
-            Predicate<ModuleInfo> filter = hasAnnotatedMethod( Execute.class ).and( hasInputField( GridCoverage2D.class ) );
+            Predicate<ModuleInfo> filter = hasAnnotatedMethod( Execute.class ).and(isVisibleOmsModule( )).and( hasInputField( GridCoverage2D.class ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-hortonmachine-0.8.1.jar" ), filter ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-jgrassgears-0.8.1.jar" ), filter ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-lesto-0.8.1.jar" ), filter ) );
@@ -122,6 +124,20 @@ public class Modules {
     }
 
     
+    protected Predicate<ModuleInfo> isVisibleOmsModule() {
+        return (ModuleInfo candidate) -> {
+            boolean isOmsAndVisible = candidate.simpleClassname.get().startsWith( "Oms" );
+            UI uiHints = candidate.type().getAnnotation(UI.class);
+            if (uiHints != null) {
+                String uiHintStr = uiHints.value();
+                if (uiHintStr.contains(JGTConstants.HIDE_UI_HINT)) {
+                    isOmsAndVisible = false;
+                }
+            }
+            return isOmsAndVisible;
+        };
+    }
+
     protected Predicate<ModuleInfo> hasAnnotatedMethod( Class<? extends Annotation> type ) {
         return (ModuleInfo candidate) -> {
             for (Method m : candidate.type().getMethods()) {
