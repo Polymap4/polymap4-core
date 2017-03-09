@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
+import org.polymap.core.runtime.PlainLazyInit;
 import org.polymap.core.runtime.SubMonitor;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
@@ -325,10 +326,12 @@ public class PredefinedColorMap {
         assert !entries.isEmpty();
         
         monitor.beginTask( "Color map", 10 );
-        double[] minMax = minMax( grid, SubMonitor.on( monitor, 9 ) );
-        assert minMax[0] < minMax[1] : "Min/max: " + minMax[0] + " / " + minMax[1];
-        double range = minMax[1] - minMax[0];
-        double step = range / entries.size();
+        
+        Lazy<double[]> minmax = new PlainLazyInit( () -> {
+            double[] result = minMax( grid, SubMonitor.on( monitor, 9 ) );
+            assert result[0] < result[1] : "Min/max: " + result[0] + " / " + result[1];
+            return result;
+        });
         
         monitor.subTask( "creating entries" );
         if (novalue != null) {
@@ -337,12 +340,12 @@ public class PredefinedColorMap {
                 proto.g.set( novalue.getGreen() );
                 proto.b.set( novalue.getBlue() );
                 proto.opacity.set( ((double)novalue.getAlpha())/255 );
-                proto.value.set( minMax[2] );
+                proto.value.set( minmax.get()[2] );
                 return proto;
             });
         }
         
-        AtomicDouble breakpoint = new AtomicDouble( minMax[0] );
+        AtomicDouble breakpoint = new AtomicDouble( -1 );
         for (Entry entry : entries) {
             newColorMap.entries.createElement( proto -> {
                 //log.info( "Breakpoint: " + finalBreakpoint + " -> " + entry.color );
@@ -350,10 +353,22 @@ public class PredefinedColorMap {
                 proto.g.set( entry.color.getGreen() );
                 proto.b.set( entry.color.getBlue() );
                 proto.opacity.set( ((double)entry.color.getAlpha())/255 );
-                proto.value.set( entry.value != UNDEFINED ? entry.value : breakpoint.get() );
+                
+                if (entry.value != UNDEFINED) {
+                    proto.value.set( entry.value );
+                }
+                else {
+                    if (breakpoint.get() == -1) {
+                        breakpoint.set( minmax.get()[0] );
+                    }
+                    proto.value.set( breakpoint.get() );
+
+                    double range = minmax.get()[1] - minmax.get()[0];
+                    double step = range / entries.size();
+                    breakpoint.addAndGet( step );
+                }
                 return proto;
             });
-            breakpoint.addAndGet( step );
         }
         monitor.done();
     }
