@@ -115,9 +115,9 @@ public class Soft2CacheManager
                     if (entry == null) {
                         // use spare time to reclaim heap and system memory (G1GC); 
                         // plus check SoftReferences -XX:SoftRefLRUPolicyMSPerMB
-                        logMemory( "Before GC: " );
+                       // logMemory( "Before GC: " );
                         System.gc();
-                        logMemory( "After GC: " );
+                       // logMemory( "After GC: " );
                     }
                     else {
                         entry.cache().removeEntry( entry.key(), entry );

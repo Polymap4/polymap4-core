@@ -65,7 +65,9 @@ abstract class ScopeEventFilter
         
         @Override
         public boolean apply( EventObject ev ) {
-            return session != null && session.equals( EventManager.publishSession() );
+            SessionContext publishSession = EventManager.publishSession();
+            assert publishSession != null : "Event was published outside any session context: " + ev;
+            return session != null && session.equals( publishSession );
         }
 
         public String toString() {

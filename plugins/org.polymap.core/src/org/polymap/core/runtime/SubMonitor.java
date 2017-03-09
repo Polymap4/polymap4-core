@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2017, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -17,15 +17,9 @@ package org.polymap.core.runtime;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
-import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.ConfigurationFactory;
-import org.polymap.core.runtime.config.DefaultInt;
 
 /**
- * Extends {@link SubProgressMonitor} as follows:
- * <ul>
- * <li></li>
- * </ul> 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -38,12 +32,7 @@ public class SubMonitor
     
     // instance *******************************************
     
-    @DefaultInt( 1 )
-    public Config2<SubMonitor,Integer>  updateDelayCount;
-    
     private String                      mainTaskName;
-    
-    private int                         worked = 0;
     
     
     /**
@@ -74,6 +63,7 @@ public class SubMonitor
         beginTask( taskName, totalWork );
     }
 
+    
     @Override
     public void beginTask( String name, int totalWork ) {
         super.beginTask( name, totalWork );
@@ -86,16 +76,6 @@ public class SubMonitor
         super.subTask( mainTaskName + " - " + name );
     }
     
-    
-    @Override
-    public void worked( int work ) {
-        worked += work;
-        if ((++worked % updateDelayCount.get()) == 0) {
-            super.worked( updateDelayCount.get() );
-            //setTaskName( "Objekte: " + worked );
-        }
-    }
-
     
     public <E extends Exception> void complete( Task<E> task ) throws Exception {
         try { 
@@ -113,4 +93,5 @@ public class SubMonitor
         public void execute( SubMonitor monitor ) throws E;
         
     }
+    
 }

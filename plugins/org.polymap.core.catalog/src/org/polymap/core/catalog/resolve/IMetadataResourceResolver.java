@@ -16,6 +16,7 @@ package org.polymap.core.catalog.resolve;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
 import com.google.common.base.Throwables;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -89,7 +90,7 @@ public interface IMetadataResourceResolver {
             catch (Exception e) {
                 throw Throwables.propagate( e );
             }
-        }, JobExecutor.instance() );
+        }, JobExecutor.withProgress() );
     }
 
     /**

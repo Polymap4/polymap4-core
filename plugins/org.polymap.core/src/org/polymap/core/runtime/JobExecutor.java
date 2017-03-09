@@ -40,14 +40,20 @@ public class JobExecutor
         extends Configurable
         implements ExecutorService {
 
-    /** The default instance with {@link #uiUpdate} disabled. */
-    private static final JobExecutor instance = new JobExecutor();
+    /** The default instance returned by {@link #instance}. */
+    private static final JobExecutor instance = new JobExecutor().uiUpdate.put( false );
 
-    /**
-     * This method returnes the {@link #instance}.
-     */
+    /** The default instance returned by {@link #withProgress}. */
+    private static final JobExecutor withProgress = new JobExecutor().uiUpdate.put( true );
+
+    /** The default instance with {@link #uiUpdate} disabled. */
     public static JobExecutor instance() {
         return instance;
+    }
+    
+    /** The default instance with {@link #uiUpdate} enabled. */
+    public static JobExecutor withProgress() {
+        return withProgress;
     }
     
 
@@ -59,14 +65,16 @@ public class JobExecutor
     public Config2<JobExecutor,Boolean> uiUpdate;
     
     
-    protected JobExecutor() {
+    public JobExecutor() {
     }
 
     
     protected UIJob schedule( UIJob job ) {
         if (uiUpdate.get()) {
             job.scheduleWithUIUpdate();
-        } else {
+        } 
+        else {
+            job.setSystem( true );
             job.schedule();
         }
         return job;
@@ -82,7 +90,6 @@ public class JobExecutor
                 setProperty( FutureJobAdapter.RESULT_VALUE_NAME, resultValue );
             }
         };
-        job.setSystem( true );
         schedule( job );
         return new FutureJobAdapter( job );
     }
@@ -97,7 +104,6 @@ public class JobExecutor
             }
         };
         job.setProperty( FutureJobAdapter.RESULT_VALUE_NAME, result );
-        job.setSystem( true );
         schedule( job );
         return new FutureJobAdapter( job );
     }

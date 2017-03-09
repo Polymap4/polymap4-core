@@ -92,8 +92,13 @@ public abstract class UIJob
         return job != null ? job.executionMonitor : nullMonitor;
     }
 
+    
     /**
      * Creates and {@link UIJob#schedule()}s a new {@link UIJob} for the given task.
+     * <p/>
+     * By default {@link IProgressMonitor#beginTask(String, int)} is called with the
+     * given name and {@link IProgressMonitor#UNKNOWN} work units. Caller should
+     * change this.
      *
      * @param name The name of the job. Must not be null.
      * @param task The task to execute inside the newly created job.

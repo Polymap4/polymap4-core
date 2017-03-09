@@ -71,12 +71,12 @@ public class EventManager {
      * This method can be called from within an event handler or filter method to
      * retrieve the session the current event was published from.
      * 
+     * @param ev 
      * @result The session, or null if published outside session.
      * @throws AssertionError If the method was called from outside an event handler
      *         or filter method.
      */
     public static SessionContext publishSession() {
-        assert threadPublishSession != null : "Event was published outside any session context.";
         return threadPublishSession; 
     }
     

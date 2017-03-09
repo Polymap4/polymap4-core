@@ -65,7 +65,7 @@ public interface IServiceInfo
             catch (Exception e) {
                 throw Throwables.propagate( e );
             }
-        }, JobExecutor.instance() );
+        }, JobExecutor.withProgress() );
     }
     
     /**
@@ -94,7 +94,7 @@ public interface IServiceInfo
             catch (Exception e) {
                 throw Throwables.propagate( e );
             }
-        }, JobExecutor.instance() );
+        }, JobExecutor.withProgress() );
     }
 
 }
