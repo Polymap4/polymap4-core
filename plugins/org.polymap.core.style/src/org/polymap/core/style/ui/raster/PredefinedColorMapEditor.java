@@ -15,8 +15,9 @@
 package org.polymap.core.style.ui.raster;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 import java.io.File;
 
@@ -28,20 +29,28 @@ import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.opengis.coverage.grid.GridEnvelope;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 
 import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.UIJob;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.model.raster.RasterColorMap;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
-import org.polymap.core.ui.UIUtils;
+import org.polymap.core.ui.SelectionAdapter;
 
 /**
  * 
@@ -51,7 +60,12 @@ import org.polymap.core.ui.UIUtils;
 public class PredefinedColorMapEditor
         extends StylePropertyEditor<ConstantRasterColorMap> {
 
+    private static final Log log = LogFactory.getLog( PredefinedColorMapEditor.class );
+    
     private static final IMessages i18n = Messages.forPrefix( "PredefinedColorMapEditor" );
+
+    private List<PredefinedColorMap> input;
+    
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
@@ -70,23 +84,38 @@ public class PredefinedColorMapEditor
     public Composite createContents( Composite parent ) {
         Composite contents = super.createContents( parent );
         
-        Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
-        combo.setVisibleItemCount( 10 );
+        ComboViewer combo = new ComboViewer( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
+        combo.getCombo().setVisibleItemCount( 10 );
+        combo.setLabelProvider( new LabelProvider() {
+            @Override
+            public String getText( Object elm ) {
+                return ((PredefinedColorMap)elm).name;
+            }
+        });
+        combo.setComparator( new ViewerComparator() {
+            @Override
+            public int compare( Viewer viewer, Object elm1, Object elm2 ) {
+                PredefinedColorMap cm1 = (PredefinedColorMap)elm1;
+                PredefinedColorMap cm2 = (PredefinedColorMap)elm2;
+                return cm1.name.compareToIgnoreCase( cm2.name );
+            }
+        });
+        combo.setContentProvider( ArrayContentProvider.getInstance() );
+        combo.setInput( input = PredefinedColorMap.all.get() );
 
-        combo.setItems( PredefinedColorMap.all.get().stream()
-                .map( entry -> entry.name )
-                .collect( Collectors.toList() )
-                .toArray( new String[0] ) );
+        findSelected()
+                .ifPresent( selected -> combo.setSelection( new StructuredSelection( selected ) ) );
 
-        combo.select( findSelected() );
-
-        combo.addSelectionListener( UIUtils.selectionListener( ev -> {
+        combo.addSelectionChangedListener( ev -> {
             ConstantRasterColorMap newColorMap = prop.createValue( ConstantRasterColorMap.defaults() );
             newColorMap.entries.clear();
 
-            PredefinedColorMap colorMap = PredefinedColorMap.all.get().get( combo.getSelectionIndex() );
-            colorMap.fillModel( newColorMap, site().gridCoverage.get(), new NullProgressMonitor() );
-        }));
+            PredefinedColorMap colorMap = SelectionAdapter.on( ev.getSelection() ).first( PredefinedColorMap.class ).get();
+            UIJob.schedule( "Color map", monitor -> {
+                //Thread.sleep( 3000 );
+                colorMap.fillModel( newColorMap, site().gridCoverage.get(), monitor );
+            });
+        });
         return contents;
     }
 
@@ -94,14 +123,11 @@ public class PredefinedColorMapEditor
     /**
      * Checks if a predefined colormap exists that has the same color sequence as the
      * current value.
-     *
-     * @return The index of the found predefined colormap or 0.
      */
-    protected int findSelected() {
+    protected Optional<PredefinedColorMap> findSelected() {
         ConstantRasterColorMap current = prop.get();
         if (current != null) {
-            int count = 0;
-            nextPredefined: for (PredefinedColorMap predefined : PredefinedColorMap.all.get()) {
+            nextPredefined: for (PredefinedColorMap predefined : input) {
                 if (current.entries.size() == predefined.entries.size()) {
                     Iterator<ConstantRasterColorMap.Entry> currentEntries =  current.entries.iterator();
                     Iterator<PredefinedColorMap.Entry> predefinedEntries = predefined.entries.iterator();
@@ -114,12 +140,12 @@ public class PredefinedColorMapEditor
                             continue nextPredefined;
                         }
                     }
-                    return count;
+                    log.info( "found: " + predefined.name );
+                    return Optional.of( predefined );
                 }
-                count ++;
             }
         }
-        return 0;
+        return Optional.empty();
     }
     
     

@@ -8,6 +8,7 @@ Bundle-Vendor: polymap.org
 Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.polymap.model2;bundle-version="3.0.0",
  org.polymap.core.data;bundle-version="4.0.0",
+ org.polymap.core.data.raster,
  org.polymap.core.recordstore,
  org.polymap.model2.store.recordstore,
  org.eclipse.rap.rwt;bundle-version="2.3.1",

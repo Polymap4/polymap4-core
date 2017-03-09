@@ -16,7 +16,6 @@ package org.polymap.core.style.ui.raster;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import java.awt.Color;
 
@@ -35,7 +34,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
-import org.polymap.core.runtime.Timer;
+import org.polymap.core.runtime.SubMonitor;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterColorMapType;
@@ -67,7 +66,7 @@ public class PredefinedColorMap {
 
         List<PredefinedColorMap> result = new ArrayList();
         result.add( ELEVATION );
-        result.add( reverse );
+        //result.add( reverse );
         result.add( FALKOS );
         result.add( new PredefinedColorMap( "Aspect" )
                 .add( 255, 255, 255 )
@@ -105,63 +104,63 @@ public class PredefinedColorMap {
                 .add( 255, 180, 0 )
                 .add( 255, 0, 0 ) );
         result.add( new PredefinedColorMap( "Grayscale" )
-                .addNoValue( 0, 0, 0, 0xff )
+                .addNoValue( 0, 0, 0, 0 )
                 .add( 0x000000 )
                 .add( 0xffffff ) );
         result.add( new PredefinedColorMap( "Grayscale invers" )
-                .addNoValue( 0, 0, 0, 0xff )
+                .addNoValue( 0, 0, 0, 0 )
                 .add( 0xffffff )
                 .add( 0x000000 ) );
         result.add( new PredefinedColorMap( "Red" )
-                .addNoValue( 0, 0, 0, 0xff )
+                .addNoValue( 0, 0, 0, 0 )
                 .add( 0x000000 )
                 .add( 0xff0000 ) );
         result.add( new PredefinedColorMap( "Green" )
-                .addNoValue( 0, 0, 0, 0xff )
+                .addNoValue( 0, 0, 0, 0 )
                 .add( 0x000000 )
                 .add( 0x00ff00 ) );
         result.add( new PredefinedColorMap( "Blue" )
-                .addNoValue( 0, 0, 0, 0xff )
+                .addNoValue( 0, 0, 0, 0 )
                 .add( 0x000000 )
                 .add( 0x0000ff ) );
 
         result.add( new PredefinedColorMap( "Bathymetric" )
-               .addValue( -30000, 0, 0, 0 )
-               .addValue( -20000, 0, 0, 0 )
-               .addValue( -20000, 0, 0, 0 )
-               .addValue( -10000, 0, 0, 59 )
-               .addValue( -10000, 0, 0, 59 )
-               .addValue( -9000, 0, 0, 130 )
-               .addValue( -9000, 0, 0, 130 )
-               .addValue( -8000, 0, 0, 202 )
-               .addValue( -8000, 0, 0, 202 )
-               .addValue( -7000, 0, 18, 255 )
-               .addValue( -7000, 0, 18, 255 )
-               .addValue( -6000, 0, 90, 255 )
-               .addValue( -6000, 0, 90, 255 )
-               .addValue( -5000, 0, 157, 255 )
-               .addValue( -5000, 0, 157, 255 )
-               .addValue( -4000, 0, 227, 255 )
-               .addValue( -4000, 0, 227, 255 )
-               .addValue( -3000, 43, 255, 255 )
-               .addValue( -3000, 43, 255, 255 )
-               .addValue( -2000, 115, 255, 255 )
-               .addValue( -2000, 115, 255, 255 )
-               .addValue( -1000, 184, 255, 255 )
-               .addValue( -1000, 184, 255, 255 )
-               .addValue( 0, 250, 255, 255 )
-               .addValue( 0, 0, 128, 0 )
-               .addValue( 500, 133, 5, 0 )
-               .addValue( 500, 133, 5, 0 )
-               .addValue( 1000, 255, 128, 0 )
-               .addValue( 1000, 255, 128, 0 )
-               .addValue( 2000, 255, 255, 0 )
-               .addValue( 2000, 255, 255, 0 )
-               .addValue( 3000, 255, 255, 127 )
-               .addValue( 3000, 255, 255, 127 )
-               .addValue( 4000, 255, 255, 244 )
-               .addValue( 4000, 255, 255, 255 )
-               .addValue( 10000, 255, 255, 255 ) );        
+                .addValue( -30000, 0, 0, 0 )
+                .addValue( -20000, 0, 0, 0 )
+                .addValue( -20000, 0, 0, 0 )
+                .addValue( -10000, 0, 0, 59 )
+                .addValue( -10000, 0, 0, 59 )
+                .addValue( -9000, 0, 0, 130 )
+                .addValue( -9000, 0, 0, 130 )
+                .addValue( -8000, 0, 0, 202 )
+                .addValue( -8000, 0, 0, 202 )
+                .addValue( -7000, 0, 18, 255 )
+                .addValue( -7000, 0, 18, 255 )
+                .addValue( -6000, 0, 90, 255 )
+                .addValue( -6000, 0, 90, 255 )
+                .addValue( -5000, 0, 157, 255 )
+                .addValue( -5000, 0, 157, 255 )
+                .addValue( -4000, 0, 227, 255 )
+                .addValue( -4000, 0, 227, 255 )
+                .addValue( -3000, 43, 255, 255 )
+                .addValue( -3000, 43, 255, 255 )
+                .addValue( -2000, 115, 255, 255 )
+                .addValue( -2000, 115, 255, 255 )
+                .addValue( -1000, 184, 255, 255 )
+                .addValue( -1000, 184, 255, 255 )
+                .addValue( 0, 250, 255, 255 )
+                .addValue( 0, 0, 128, 0 )
+                .addValue( 500, 133, 5, 0 )
+                .addValue( 500, 133, 5, 0 )
+                .addValue( 1000, 255, 128, 0 )
+                .addValue( 1000, 255, 128, 0 )
+                .addValue( 2000, 255, 255, 0 )
+                .addValue( 2000, 255, 255, 0 )
+                .addValue( 3000, 255, 255, 127 )
+                .addValue( 3000, 255, 255, 127 )
+                .addValue( 4000, 255, 255, 244 )
+                .addValue( 4000, 255, 255, 255 )
+                .addValue( 10000, 255, 255, 255 ) );        
         result.add( new PredefinedColorMap( "Flow" )
                 .addValue( 1, 255, 255, 0 )
                 .addValue( 2, 0, 255, 0 )
@@ -325,11 +324,13 @@ public class PredefinedColorMap {
     public void fillModel( ConstantRasterColorMap newColorMap, GridCoverage2D grid, IProgressMonitor monitor ) {
         assert !entries.isEmpty();
         
-        double[] minMax = minMax( grid, monitor );
-        assert minMax[0] < minMax[1];
+        monitor.beginTask( "Color map", 10 );
+        double[] minMax = minMax( grid, SubMonitor.on( monitor, 9 ) );
+        assert minMax[0] < minMax[1] : "Min/max: " + minMax[0] + " / " + minMax[1];
         double range = minMax[1] - minMax[0];
         double step = range / entries.size();
         
+        monitor.subTask( "creating entries" );
         if (novalue != null) {
             newColorMap.entries.createElement( proto -> {
                 proto.r.set( novalue.getRed() );
@@ -339,7 +340,6 @@ public class PredefinedColorMap {
                 proto.value.set( minMax[2] );
                 return proto;
             });
-            
         }
         
         AtomicDouble breakpoint = new AtomicDouble( minMax[0] );
@@ -355,6 +355,7 @@ public class PredefinedColorMap {
             });
             breakpoint.addAndGet( step );
         }
+        monitor.done();
     }
     
     /**
@@ -362,30 +363,37 @@ public class PredefinedColorMap {
      * @return double[] {min, max, novalue}
      */
     protected double[] minMax( GridCoverage2D grid, IProgressMonitor monitor ) {
+        // really, someday I have to learn about all this stuff :/
         GridGeometry2D geometry = grid.getGridGeometry();
         GridEnvelope gridRange = geometry.getGridRange();
         int w = gridRange.getHigh( 0 );
-        int h = gridRange.getHigh( 1 );
+        monitor.beginTask( "calculating min/max", w );
 
-        Timer timer = new Timer(); 
-        Random random = new Random();
         @SuppressWarnings( "hiding" )
-        double novalue = Double.MAX_VALUE; 
-        double min = Double.MAX_VALUE; 
-        double max = Double.MIN_VALUE;
+        double novalue = -9999.0; // see OmsRasterReader 
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+        
         double[] values = new double[1];
-        int count;
-        for (count=0; count<10000 || timer.elapsedTime() < 1000; count++) {
-            grid.evaluate( new GridCoordinates2D( random.nextInt( w ), random.nextInt( h ) ), values );
-            if (values[0] < novalue) {
-                min = novalue;
-                novalue = values[0];
+        for (int x = gridRange.getLow( 0 ); x < gridRange.getHigh( 0 ); x++) {
+            for (int y = gridRange.getLow( 1 ); y < gridRange.getHigh( 1 ); y++) {
+                grid.evaluate( new GridCoordinates2D( x, y ), values );
+                if (values[0] == novalue) {
+                    continue;
+                }
+                if (values[0] < novalue) {
+                    throw new IllegalStateException( "XXX value < novalue : " + values[0] );
+                }
+                if (values[0] < min) {
+                    min = values[0];
+                }
+                if (values[0] > max) {
+                    max = values[0];
+                }
             }
-            if (values[0] > max) {
-                max = values[0];
-            }
+            monitor.worked( 1 );
         }
-        log.info( "minMax(): " + count + " samples in 1s" );
+        monitor.done();
         // XXX check novalue
         return new double[] {min, max, novalue};
     }
