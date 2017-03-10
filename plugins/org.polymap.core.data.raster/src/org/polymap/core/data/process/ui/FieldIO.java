@@ -39,7 +39,8 @@ public abstract class FieldIO {
     public static final List<Class<? extends FieldIO>> ALL = Lists.newArrayList(
         BooleanSupplier.class,
         NumberSupplier.class,
-        StringSupplier.class
+        StringSupplier.class,
+        NumberConsumer.class
     );
 
     
@@ -87,9 +88,13 @@ public abstract class FieldIO {
         this.site = site;
         return true;
     }
-
+    
     /**
-     * Creates the UI of this field. 
+     * Creates the UI of this field.
+     * <p/>
+     * This method might be called several times. This happens when the user switches
+     * between options. Implementations have to check and release resources from
+     * previous invocations.
      */
     public abstract void createContents( Composite parent );
     
