@@ -50,18 +50,19 @@ public class OmsAreaOfInterestGridCoverage extends JGTModel {
     private static final Log log = LogFactory.getLog(OmsAreaOfInterestGridCoverage.class);
 
     @In
-    @Description("The source raster data")
+    @Description("The source raster data.")
     public GridCoverage2DReader inCoverageReader;
 
     @In
-    @Description("The source raster data")
+    @Description("The requested are aof interest bounds.")
     public ReferencedEnvelope aoi;
 
     @In
-    @Description("The source raster data")
+    @Description("The requested resampling resolution factor.")
     @Range(min = 1, max = 100)
     public int resolutionFactor = 1;
 
+    @Description("The resampled and cropped gridcoverage.")
     @Out
     public GridCoverage2D outCoverage;
 
