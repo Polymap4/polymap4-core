@@ -38,6 +38,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.common.collect.Lists;
 
+import org.polymap.core.data.process.aoi.OmsAreaOfInterestGridCoverage;
 import org.polymap.core.data.raster.RasterDataPlugin;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.Lazy;
