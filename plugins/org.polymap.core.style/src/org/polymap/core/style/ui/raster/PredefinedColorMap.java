@@ -330,7 +330,7 @@ public class PredefinedColorMap {
         
         Lazy<double[]> minmax = new PlainLazyInit( () -> {
             double[] result = minMax( grid, SubMonitor.on( monitor, 9 ) );
-            assert result[0] < result[1] : "Min/max: " + result[0] + " / " + result[1];
+            //assert result[0] < result[1] : "Min/max: " + result[0] + " / " + result[1];
             return result;
         });
         
