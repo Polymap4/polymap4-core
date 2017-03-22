@@ -22,6 +22,7 @@ import java.awt.Color;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridGeometry2D;
+import org.jgrasstools.gears.modules.r.summary.OmsRasterSummary;
 import org.opengis.coverage.grid.GridEnvelope;
 
 import org.apache.commons.logging.Log;
@@ -372,7 +373,24 @@ public class PredefinedColorMap {
         }
         monitor.done();
     }
-    
+
+    /**
+     * 
+     * @return double[] {min, max, novalue}
+     * @throws Exception 
+     */
+    protected double[] minMax2( GridCoverage2D grid, IProgressMonitor monitor ) {
+        try {
+            monitor.beginTask( "calculating min/max", IProgressMonitor.UNKNOWN );
+            double[] minMax = OmsRasterSummary.getMinMax( grid );
+            monitor.done();
+            return new double[] {minMax[0], minMax[1], -9999.0};        
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+    }
+
     /**
      * 
      * @return double[] {min, max, novalue}
@@ -390,8 +408,12 @@ public class PredefinedColorMap {
         double max = Double.NEGATIVE_INFINITY;
         
         double[] values = new double[1];
-        for (int x = gridRange.getLow( 0 ); x < gridRange.getHigh( 0 ); x++) {
-            for (int y = gridRange.getLow( 1 ); y < gridRange.getHigh( 1 ); y++) {
+        int startX = gridRange.getLow( 0 );
+        int endX = Math.min( 2000, gridRange.getHigh( 0 ) );
+        int startY = gridRange.getLow( 1 );
+        int endY = Math.min( 2000, gridRange.getHigh( 1 ) );
+        for (int x = startX; x < endX; x++) {
+            for (int y = startY; y < endY; y++) {
                 grid.evaluate( new GridCoordinates2D( x, y ), values );
                 if (values[0] == novalue) {
                     continue;
