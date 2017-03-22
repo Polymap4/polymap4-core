@@ -77,7 +77,7 @@ public class Modules {
             List<ModuleInfo> result = new ArrayList( 256 );
             Bundle bundle = RasterDataPlugin.instance().getBundle();
             Predicate<ModuleInfo> filter = hasAnnotatedMethod( Execute.class ).and(isVisibleOmsModule( )).and( hasInputField( GridCoverage2D.class ) );
-            String version = "0.8.2-SNAPSHOT";  //"0.8.1";
+            String version = "0.8.1";
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-hortonmachine-" + version + ".jar" ), filter ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-jgrassgears-" + version + ".jar" ), filter ) );
             result.addAll( scanJar( bundle.getEntry( "/lib/jgt-lesto-" + version + ".jar" ), filter ) );
