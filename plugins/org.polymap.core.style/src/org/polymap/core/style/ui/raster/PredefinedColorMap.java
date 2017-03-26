@@ -18,6 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.awt.Color;
+import java.awt.image.RenderedImage;
+
+import javax.media.jai.iterator.RectIter;
+import javax.media.jai.iterator.RectIterFactory;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -37,6 +41,7 @@ import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.PlainLazyInit;
 import org.polymap.core.runtime.SubMonitor;
+import org.polymap.core.runtime.Timer;
 import org.polymap.core.style.model.raster.ConstantRasterColorMap;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterColorMapType;
@@ -332,7 +337,7 @@ public class PredefinedColorMap {
         monitor.beginTask( "Color map", 10 );
         
         Lazy<double[]> minmax = new PlainLazyInit( () -> {
-            double[] result = minMax( grid, SubMonitor.on( monitor, 9 ) );
+            double[] result = minMax3( grid, SubMonitor.on( monitor, 9 ) );
             //assert result[0] < result[1] : "Min/max: " + result[0] + " / " + result[1];
             return result;
         });
@@ -378,24 +383,51 @@ public class PredefinedColorMap {
     }
     
     /**
-     * This version uses {@link OmsRasterSummary} which is faster and more robust
-     * than {@link #minMax(GridCoverage2D, IProgressMonitor)}. But, it assumes
-     * <code>novalue</code> to be NaN which is the default in JGrasstools.
-     * JGrasstools transforms -9999 from background data source into NaN while reading.
      * 
      * @return double[] {min, max, novalue}
-     * @throws Exception
      */
-    protected double[] minMax2( GridCoverage2D grid, IProgressMonitor monitor ) {
-        try {
-            monitor.beginTask( "calculating min/max", IProgressMonitor.UNKNOWN );
-            double[] minMax = OmsRasterSummary.getMinMax( grid );
-            monitor.done();
-            return new double[] {minMax[0], minMax[1], -9999.0};        
+    protected double[] minMax3( GridCoverage2D grid, IProgressMonitor monitor ) {
+        @SuppressWarnings( "hiding" )
+        double novalue = -9999.0; // see OmsRasterReader 
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+        
+        RenderedImage renderedImage = grid.getRenderedImage();
+        monitor.beginTask( "calculating min/max", renderedImage.getHeight() );
+        RectIter iter = RectIterFactory.create( renderedImage, null );
+        Timer timer = new Timer();
+        int sampleCount = 0;
+        do {
+            do {
+                double value = iter.getSampleDouble();
+
+                if (value == novalue) {
+                    continue;
+                }
+                if (value < novalue) {
+                    throw new IllegalStateException( "XXX value < novalue : " + value );
+                }
+                if (value < min) {
+                    min = value;
+                }
+                if (value > max) {
+                    max = value;
+                }
+                sampleCount ++;
+            } 
+            while( !iter.nextPixelDone() );
+            iter.startPixels();
+            monitor.worked( 1 );
+            //monitor.subTask( String.valueOf( sampleCount ) );
         }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+        // XXX still a time limit 
+        // http://github.com/Polymap4/polymap4-core/issues/108 will be better/faster
+        while( !iter.nextLineDone() && timer.elapsedTime()<5000 );
+        monitor.done();
+        log.info( "minMax(): " + sampleCount + " samples in " + timer.elapsedTime() + "ms" );
+      
+        // XXX check novalue
+        return new double[] {min, max, novalue};
     }
 
     /**
@@ -413,7 +445,7 @@ public class PredefinedColorMap {
         double novalue = -9999.0; // see OmsRasterReader 
         double min = Double.POSITIVE_INFINITY;
         double max = Double.NEGATIVE_INFINITY;
-        
+              
         // FIXME http://github.com/Polymap4/polymap4-p4/issues/129 does not come to an end
         // without the limit
         double[] values = new double[1];
@@ -445,6 +477,27 @@ public class PredefinedColorMap {
         
         // XXX check novalue
         return new double[] {min, max, novalue};
+    }
+
+    /**
+     * This version uses {@link OmsRasterSummary} which is faster and more robust
+     * than {@link #minMax(GridCoverage2D, IProgressMonitor)}. But, it assumes
+     * <code>novalue</code> to be NaN which is the default in JGrasstools.
+     * JGrasstools transforms -9999 from background data source into NaN while reading.
+     * 
+     * @return double[] {min, max, novalue}
+     * @throws Exception
+     */
+    protected double[] minMax2( GridCoverage2D grid, IProgressMonitor monitor ) {
+        try {
+            monitor.beginTask( "calculating min/max", IProgressMonitor.UNKNOWN );
+            double[] minMax = OmsRasterSummary.getMinMax( grid );
+            monitor.done();
+            return new double[] {minMax[0], minMax[1], -9999.0};        
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
     }
 
 }
