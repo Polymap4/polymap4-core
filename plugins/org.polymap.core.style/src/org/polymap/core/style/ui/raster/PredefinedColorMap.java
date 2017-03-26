@@ -373,11 +373,15 @@ public class PredefinedColorMap {
         }
         monitor.done();
     }
-
+    
     /**
+     * This version uses {@link OmsRasterSummary} which is faster and more robust
+     * than {@link #minMax(GridCoverage2D, IProgressMonitor)}. But, it assumes
+     * <code>novalue</code> to be NaN which is the default in JGrasstools.
+     * JGrasstools transforms -9999 from background data source into NaN while reading.
      * 
      * @return double[] {min, max, novalue}
-     * @throws Exception 
+     * @throws Exception
      */
     protected double[] minMax2( GridCoverage2D grid, IProgressMonitor monitor ) {
         try {
@@ -407,11 +411,15 @@ public class PredefinedColorMap {
         double min = Double.POSITIVE_INFINITY;
         double max = Double.NEGATIVE_INFINITY;
         
+        // FIXME http://github.com/Polymap4/polymap4-p4/issues/129 does not come to an end
+        // without the limit
         double[] values = new double[1];
         int startX = gridRange.getLow( 0 );
         int endX = Math.min( 2000, gridRange.getHigh( 0 ) );
         int startY = gridRange.getLow( 1 );
         int endY = Math.min( 2000, gridRange.getHigh( 1 ) );
+        
+        // XXX using an iterator could be faster
         for (int x = startX; x < endX; x++) {
             for (int y = startY; y < endY; y++) {
                 grid.evaluate( new GridCoordinates2D( x, y ), values );
@@ -431,6 +439,7 @@ public class PredefinedColorMap {
             monitor.worked( 1 );
         }
         monitor.done();
+        
         // XXX check novalue
         return new double[] {min, max, novalue};
     }
