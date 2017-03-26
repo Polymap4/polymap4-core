@@ -253,7 +253,8 @@ public class SLDSerializer
         descriptor.opacity.ifPresent( opacity -> result.setOpacity( opacity ) );
         String band = ((Literal)descriptor.grayBand.get()).getValue().toString();
         result.setChannelSelection( sf.channelSelection( 
-                sf.createSelectedChannelType( band, sf.createContrastEnhancement() ) ) );
+                sf.createSelectedChannelType( band, noGammaCorrection() ) ) );
+        result.setContrastEnhancement( noGammaCorrection() );
         return result;
     }
 
@@ -267,12 +268,20 @@ public class SLDSerializer
         String blueBand = ((Literal)descriptor.blueBand.get()).getValue().toString();
         
         result.setChannelSelection( sf.channelSelection( 
-                sf.createSelectedChannelType( redBand, sf.createContrastEnhancement() ),
-                sf.createSelectedChannelType( greenBand, sf.createContrastEnhancement() ),
-                sf.createSelectedChannelType( blueBand, sf.createContrastEnhancement() ) ) );
+                sf.createSelectedChannelType( redBand, noGammaCorrection() ),
+                sf.createSelectedChannelType( greenBand, noGammaCorrection() ),
+                sf.createSelectedChannelType( blueBand, noGammaCorrection() ) ) );
         return result;
     }
 
+    
+    protected ContrastEnhancement noGammaCorrection() {
+        // XXX SLD is properly generated without ContrastEnhancement, renderer does enhancement however :(
+//        return sf.createContrastEnhancement( null );
+//        return sf.createContrastEnhancement( ff.literal( 1.0 ) );
+        return null;
+    }
+    
     
     protected RasterSymbolizer buildColorMapRasterStyle( ColorMapSymbolizerDescriptor descriptor ) {
         RasterSymbolizer result = sf.createRasterSymbolizer();

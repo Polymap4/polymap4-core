@@ -63,7 +63,14 @@ public class DefaultStyle {
 
     public static Random        rand = new Random();
     
-
+    
+    /**
+     * Fills the given FeatureStyle with a default style for the given
+     * {@link FeatureType}.
+     * 
+     * @param fs
+     * @param schema
+     */
     public static FeatureStyle create( FeatureStyle fs, FeatureType schema ) {
         if (schema.getGeometryDescriptor() != null) {
             Class<?> geometryType = schema.getGeometryDescriptor().getType().getBinding();
@@ -173,8 +180,22 @@ public class DefaultStyle {
         }
         return text;
     }
-    
 
+
+    /**
+     * Fills the given FeatureStyle with a default style for the given raster.
+     * Usually this is {@link PredefinedColorMap#RAINBOW}.
+     *
+     * @param fs
+     * @param gridCoverage
+     * @return The given FeatureStyle.
+     */
+    public static FeatureStyle create( FeatureStyle fs, GridCoverage2D gridCoverage ) {
+        fillColorMapStyle( fs, gridCoverage, PredefinedColorMap.RAINBOW );
+        return fs;
+    }
+
+    
     public static RasterStyle fillGrayscaleStyle( FeatureStyle fs, GridCoverage2D gridCoverage ) {
         RasterGrayStyle gray = fs.members().createElement( RasterGrayStyle.defaults );
         gray.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
@@ -193,12 +214,11 @@ public class DefaultStyle {
     }
 
 
-    public static RasterStyle fillColorMapStyle( FeatureStyle fs, GridCoverage2D gridCoverage ) {
+    public static RasterStyle fillColorMapStyle( FeatureStyle fs, GridCoverage2D gridCoverage, PredefinedColorMap predef ) {
         RasterColorMapStyle colormap = fs.members().createElement( RasterColorMapStyle.defaults );
         colormap.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
-//        colormap.band.createValue( ConstantRasterBand.defaults( 0 ) );
 
-        PredefinedColorMap.ELEVATION.fillModel( colormap, gridCoverage, new NullProgressMonitor() );
+        predef.fillModel( colormap, gridCoverage, new NullProgressMonitor() );
         return colormap;
     }
 

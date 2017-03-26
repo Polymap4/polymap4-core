@@ -85,7 +85,7 @@ public class PredefinedColorMapEditor
         Composite contents = super.createContents( parent );
         
         ComboViewer combo = new ComboViewer( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
-        combo.getCombo().setVisibleItemCount( 10 );
+        combo.getCombo().setVisibleItemCount( 13 );
         combo.setLabelProvider( new LabelProvider() {
             @Override
             public String getText( Object elm ) {

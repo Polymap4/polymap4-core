@@ -58,6 +58,15 @@ public class PredefinedColorMap {
             .add( 191, 127, 63 )
             .add( 20, 21, 20 );
 
+    public static final PredefinedColorMap RAINBOW = new PredefinedColorMap( "Rainbow" )
+            //.addNoValue( 255, 255, 255, 0 )
+            .add( 255, 255, 0 )
+            .add( 0, 255, 0 )
+            .add( 0, 255, 255 )
+            .add( 0, 0, 255 )
+            .add( 255, 0, 255 )
+            .add( 255, 0, 0 );
+
     /** Falko's special, first ever colormap :) */
     public static final PredefinedColorMap FALKOS = new PredefinedColorMap( "Falko's special" )
             .add( 0x000000 ).add( 0xff0000 ).add( 0x00ff00 ).add( 0x0000ff );
@@ -74,13 +83,7 @@ public class PredefinedColorMap {
                 .add( 255, 255, 255 )
                 .add( 0, 0, 0 )
                 .add( 255, 255, 255 ) );
-        result.add( new PredefinedColorMap( "Rainbow" )
-                .add( 255, 255, 0 )
-                .add( 0, 255, 0 )
-                .add( 0, 255, 255 )
-                .add( 0, 0, 255 )
-                .add( 255, 0, 255 )
-                .add( 255, 0, 0 ) );
+        result.add( RAINBOW );
         result.add( new PredefinedColorMap( "Rainbow extended" )
                 .add( 255, 255, 0 )
                 .add( 128, 255, 0 )
