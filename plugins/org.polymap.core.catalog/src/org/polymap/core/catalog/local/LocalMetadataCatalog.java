@@ -14,6 +14,8 @@
  */
 package org.polymap.core.catalog.local;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,9 @@ import org.polymap.core.catalog.IUpdateableMetadata;
 import org.polymap.core.catalog.IUpdateableMetadataCatalog;
 import org.polymap.core.catalog.MetadataQuery;
 
+import org.polymap.rhei.fulltext.FullQueryProposalDecorator;
+import org.polymap.rhei.fulltext.FulltextIndex;
+import org.polymap.rhei.fulltext.indexing.LowerCaseTokenFilter;
 import org.polymap.rhei.fulltext.model2.EntityFeatureTransformer;
 import org.polymap.rhei.fulltext.model2.FulltextIndexer;
 import org.polymap.rhei.fulltext.update.UpdateableFulltextIndex;
@@ -52,19 +57,27 @@ import org.polymap.model2.store.StoreSPI;
 public class LocalMetadataCatalog
         implements IUpdateableMetadataCatalog {
 
-    private static Log log = LogFactory.getLog( LocalMetadataCatalog.class );
+    private static final Log log = LogFactory.getLog( LocalMetadataCatalog.class );
 
     private EntityRepository        repo;
     
     private UnitOfWork              uow;
 
+    /** The updateable backend index given to this catalog. */
     private UpdateableFulltextIndex index;
+    
+    /** The decorated index used for querying. */
+    private FulltextIndex           queryIndex;
     
     
     @SuppressWarnings( "hiding" )
     protected void init( StoreSPI store, UpdateableFulltextIndex index ) {
         this.index = index;
-        
+        this.index.addTokenFilter( new LowerCaseTokenFilter() );
+
+        this.queryIndex = new FullQueryProposalDecorator( 
+                new LowerCaseTokenFilter( this.index ).capitalizeProposals.put( false ) );
+
         EntityFeatureTransformer transformer = new EntityFeatureTransformer().honorQueryableAnnotation.put( true );
         List<EntityFeatureTransformer> transformers = Lists.newArrayList( transformer );
         
@@ -123,10 +136,10 @@ public class LocalMetadataCatalog
             public ResultSet execute() throws Exception {
                 Query<LocalMetadata> query = uow.query( LocalMetadata.class );
                         
-//                // fulltext
-//                if (!queryString.equals( ALL_QUERY )) {
-//                    query.where( FulltextIndexer.query( index, queryString, maxResults.get() ) );
-//                }
+                // fulltext
+                if (!isBlank( queryString ) && !queryString.equals( ALL_QUERY )) {
+                    query.where( FulltextIndexer.query( queryIndex, queryString, maxResults.get() ) );
+                }
                 
                 // execute the query
                 org.polymap.model2.query.ResultSet<LocalMetadata> rs = query.execute();
@@ -155,6 +168,12 @@ public class LocalMetadataCatalog
     }
 
     
+    @Override
+    public Iterable<String> propose( String prefix, int maxResults, IProgressMonitor monitor ) throws Exception {
+        return queryIndex.propose( prefix, maxResults, null );
+    }
+
+
     @Override
     public Updater prepareUpdate() {
         return new Updater() {

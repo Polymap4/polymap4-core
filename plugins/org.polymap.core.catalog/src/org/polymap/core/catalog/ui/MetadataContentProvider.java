@@ -59,7 +59,7 @@ public class MetadataContentProvider
         extends Configurable
         implements /*ITreeContentProvider,*/ ILazyTreeContentProvider {
 
-    private static Log log = LogFactory.getLog( MetadataContentProvider.class );
+    private static final Log log = LogFactory.getLog( MetadataContentProvider.class );
     
     public static final Object          LOADING = new Object();
     
@@ -172,11 +172,16 @@ public class MetadataContentProvider
         UIJob job = new UIJob( "Query catalog" ) {
             @Override
             protected void runWithException( IProgressMonitor monitor ) throws Exception {
-                Object[] children = ((IMetadataCatalog)elm)
-                        .query( catalogQuery.get(), monitor )
-                        .maxResults.put( maxResults.get() )
-                        .execute().stream().toArray();
-                updateChildren( elm, children, currentChildCount );
+                try {
+                    Object[] children = ((IMetadataCatalog)elm)
+                            .query( catalogQuery.get(), monitor )
+                            .maxResults.put( maxResults.get() )
+                            .execute().stream().toArray();
+                    updateChildren( elm, children, currentChildCount );
+                }
+                catch (Exception e) {
+                    log.warn( e );
+                }
             }
         };
         job.scheduleWithUIUpdate();
