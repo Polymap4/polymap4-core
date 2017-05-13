@@ -47,7 +47,6 @@ public class FieldViewerSite
     /**
      * The source layer of the processing.
      */
-    @Mandatory
     @Immutable
     public Config2<FieldViewerSite,ILayer>      layer;
 
