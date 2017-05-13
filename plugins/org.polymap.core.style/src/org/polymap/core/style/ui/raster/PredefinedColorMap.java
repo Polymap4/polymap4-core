@@ -415,14 +415,14 @@ public class PredefinedColorMap {
                 }
                 sampleCount ++;
             } 
-            while( !iter.nextPixelDone() );
+            while (!iter.nextPixelDone());
             iter.startPixels();
             monitor.worked( 1 );
             //monitor.subTask( String.valueOf( sampleCount ) );
         }
         // XXX still a time limit 
         // http://github.com/Polymap4/polymap4-core/issues/108 will be better/faster
-        while( !iter.nextLineDone() && timer.elapsedTime()<5000 );
+        while (!iter.nextLineDone() && timer.elapsedTime()<5000);
         monitor.done();
         log.info( "minMax(): " + sampleCount + " samples in " + timer.elapsedTime() + "ms" );
       
@@ -430,8 +430,12 @@ public class PredefinedColorMap {
         return new double[] {min, max, novalue};
     }
 
+    
     /**
+     * Row/col iteration.
      * 
+     * @deprecated Slower than {@link #minMax3(GridCoverage2D, IProgressMonitor)} and
+     *             white-locks sometimes for unknown reason.
      * @return double[] {min, max, novalue}
      */
     protected double[] minMax( GridCoverage2D grid, IProgressMonitor monitor ) {
