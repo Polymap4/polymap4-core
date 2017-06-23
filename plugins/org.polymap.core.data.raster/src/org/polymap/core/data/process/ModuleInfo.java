@@ -106,7 +106,13 @@ public class ModuleInfo
         }
     }
 
-    
+    /**
+     * 
+     *
+     * @param module
+     * @param monitor
+     * @throws RuntimeException Wrapping root causes.
+     */
     public void execute( JGTModel module, IProgressMonitor monitor ) {
         ComponentAccess.callAnnotated( module, Initialize.class, true );
         ComponentAccess.callAnnotated( module, Execute.class, false );
