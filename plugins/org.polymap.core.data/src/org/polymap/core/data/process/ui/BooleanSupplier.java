@@ -44,7 +44,7 @@ public class BooleanSupplier
     @Override
     public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
         if (super.init( site )) {
-            Class<?> fieldType = site.fieldInfo.get().type.get();
+            Class<?> fieldType = site.fieldInfo.get().type();
             return Boolean.class.isAssignableFrom( fieldType ) || Boolean.TYPE.equals( fieldType );
         }
         return false;

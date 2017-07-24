@@ -3,9 +3,8 @@
 <plugin>
    <extension-point id="org.polymap.core.data.pipeline.processors" name="PipelineProcessors" schema="schema/org.polymap.core.data.pipeline.processors.exsd"/>
    <extension-point id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners" schema="schema/org.polymap.core.data.pipeline.listeners.exsd"/>
-   <extension-point id="org.polymap.core.data.featureOperations" name="FeatureOperations" schema="schema/org.polymap.core.data.featureOperations.exsd"/>
-   <extension-point id="org.polymap.core.data.csvimport.operations" name="CSV Import Operation" schema="schema/org.polymap.core.data.csvimport.operations.exsd"/>
-   <extension-point id="org.polymap.core.data.reports" name="Reports" schema="schema/org.polymap.core.data.reports.exsd"/>
+   <extension-point id="org.polymap.core.data.process.providers" name="Module Providers" schema="schema/org.polymap.core.data.process.providers.exsd"/>
+   <extension-point id="org.polymap.core.data.process.fieldIO" name="Input Field Suppliers" schema="schema/org.polymap.core.data.process.fieldIO.exsd"/>
    <extension
          point="org.polymap.core.data.pipeline.processors">
       <processor
@@ -16,5 +15,14 @@
             name="%processor_grayscale"
             propertyPage="org.polymap.core.data.image.ImageGrayscaleProcessorConfig">
       </processor>
+   </extension>
+   <extension
+         point="org.polymap.core.data.process.fieldIO">
+      <fieldIO
+            class="org.polymap.core.data.process.ui.StringSupplier">
+      </fieldIO>
+      <fieldIO
+            class="org.polymap.core.data.process.ui.BooleanSupplier">
+      </fieldIO>
    </extension>
 </plugin>

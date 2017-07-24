@@ -71,7 +71,7 @@ public class FieldViewer {
         
         // label
         Label t = new Label( contents, SWT.WRAP );
-        t.setText( site.fieldInfo.get().description.get().orElse( "?" ) );
+        t.setText( site.fieldInfo.get().description().orElse( "?" ) );
         t.setEnabled( false );
         //t.setFont( UIUtils.bold( t.getFont() ) );
 

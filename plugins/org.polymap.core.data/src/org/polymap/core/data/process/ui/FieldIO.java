@@ -15,40 +15,59 @@
 package org.polymap.core.data.process.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.Lists;
-
 import org.eclipse.swt.widgets.Composite;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.Platform;
+
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.process.FieldInfo;
 
 /**
  * 
  *
- * @author Falko Br√§utigam
+ * @author Falko Br‰utigam
  */
 public abstract class FieldIO {
     
     private static final Log log = LogFactory.getLog( FieldIO.class );
+    
+    protected static final String EXTENSION_POINT_NAME = "process.fieldIO";
 
-    // XXX make this extensible
-    public static final List<Class<? extends FieldIO>> ALL = Lists.newArrayList(
-        BooleanSupplier.class,
-        NumberSupplier.class,
-        StringSupplier.class,
-        NumberConsumer.class
-    );
+    /**
+     * 
+     *
+     * @return
+     */
+    protected static final List<FieldIO> available() {
+        IConfigurationElement[] elms = Platform.getExtensionRegistry()
+                .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
+
+        return Arrays.stream( elms )
+                .map( elm -> {
+                    try {
+                        return (FieldIO)elm.createExecutableExtension( "class" );
+                    }
+                    catch (CoreException e) {
+                        throw new RuntimeException( e );
+                    }
+                })
+                .collect( Collectors.toList() );
+    }
 
     
     public static FieldIO[] forField( FieldViewerSite site ) {
         List<FieldIO> result = new ArrayList();
-        for (Class<? extends FieldIO> cl : ALL) {
+        for (FieldIO editor : available()) {
             try {
-                FieldIO editor = cl.newInstance();
                 if (editor.init( site )) {
                     result.add( editor );
                 }

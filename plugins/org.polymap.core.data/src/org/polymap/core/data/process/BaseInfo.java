@@ -12,29 +12,29 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.process.ui;
+package org.polymap.core.data.process;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import java.util.Optional;
 
 /**
  * 
  *
- * @author Falko Br√§utigam
+ * @author <a href="http://mapzone.io">Falko Br‰utigam</a>
  */
-public class NotSupportedSupplier
-        extends InputFieldSupplier {
+public interface BaseInfo {
+    
+    /**
+     * The internal name. 
+     */
+    public abstract String name();
 
-    @Override
-    public String label() {
-        return "Not supported";
-    }
+    /**
+     * The human readable, translatable label.
+     */
+    public abstract String label();
 
-    @Override
-    public void createContents( Composite parent ) {
-        Label l = new Label( parent, SWT.NONE );
-        l.setText( "[" + site.fieldInfo.get().type.get().getSimpleName() + "]" );
-    }
-
+    /**
+     * The human readable, translatable description.
+     */
+    public abstract Optional<String> description();
 }

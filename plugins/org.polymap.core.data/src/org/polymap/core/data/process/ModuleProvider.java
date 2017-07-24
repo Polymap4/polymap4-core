@@ -12,36 +12,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.process.ui;
+package org.polymap.core.data.process;
 
-import org.eclipse.swt.widgets.Composite;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * 
+ * Allows to provide multiple processing modules to the system.
  *
- * @author Falko Br√§utigam
+ * @author <a href="http://mapzone.io">Falko Br‰utigam</a>
  */
-public abstract class OutputFieldConsumer
-        extends FieldIO {
+public interface ModuleProvider {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public abstract String label();
+    public List<ModuleInfo> createModuleInfos();
     
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
-        return super.init( site ) && site.fieldInfo.get().isOutput.get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public abstract void createContents( Composite parent );
-
+    public Optional<ModuleInfo> findModuleInfo( Object module );
 }

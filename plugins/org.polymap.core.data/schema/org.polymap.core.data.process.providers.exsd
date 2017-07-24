@@ -3,10 +3,10 @@
 <schema targetNamespace="org.polymap.core.data" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.polymap.core.data" id="csvimport.operations" name="CSV Import Operations"/>
+         <meta.schema plugin="org.polymap.core.data" id="process.providers" name="Module Providers"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         Allows to define a new processing module provider.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="operation"/>
+            <element ref="provider"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,42 +47,15 @@
       </complexType>
    </element>
 
-   <element name="operation">
+   <element name="provider">
       <complexType>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  An implementation of class eu.hydrologis.jgrass.csv2shape.importwizard.CsvOperation.
+                  The processing module provider implementing org.polymap.core.data.process.ModuleProvider.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":eu.hydrologis.jgrass.csv2shape.importwizard.CsvOperation"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="label" type="string" use="required">
-            <annotation>
-               <documentation>
-                  The label that is used in the UI.
-               </documentation>
-               <appinfo>
-                  <meta.attribute translatable="true"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="tooltip" type="string" use="required">
-            <annotation>
-               <documentation>
-                  The tooltip to be displayed in the UI.
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="icon" type="string">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="resource"/>
+                  <meta.attribute kind="java" basedOn=":org.polymap.core.data.process.ModuleProvider"/>
                </appinfo>
             </annotation>
          </attribute>

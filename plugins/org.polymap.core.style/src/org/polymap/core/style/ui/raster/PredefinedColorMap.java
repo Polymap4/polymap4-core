@@ -26,7 +26,6 @@ import javax.media.jai.iterator.RectIterFactory;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridGeometry2D;
-import org.jgrasstools.gears.modules.r.summary.OmsRasterSummary;
 import org.opengis.coverage.grid.GridEnvelope;
 
 import org.apache.commons.logging.Log;
@@ -483,25 +482,25 @@ public class PredefinedColorMap {
         return new double[] {min, max, novalue};
     }
 
-    /**
-     * This version uses {@link OmsRasterSummary} which is faster and more robust
-     * than {@link #minMax(GridCoverage2D, IProgressMonitor)}. But, it assumes
-     * <code>novalue</code> to be NaN which is the default in JGrasstools.
-     * JGrasstools transforms -9999 from background data source into NaN while reading.
-     * 
-     * @return double[] {min, max, novalue}
-     * @throws Exception
-     */
-    protected double[] minMax2( GridCoverage2D grid, IProgressMonitor monitor ) {
-        try {
-            monitor.beginTask( "calculating min/max", IProgressMonitor.UNKNOWN );
-            double[] minMax = OmsRasterSummary.getMinMax( grid );
-            monitor.done();
-            return new double[] {minMax[0], minMax[1], -9999.0};        
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
-    }
+//    /**
+//     * This version uses {@link OmsRasterSummary} which is faster and more robust
+//     * than {@link #minMax(GridCoverage2D, IProgressMonitor)}. But, it assumes
+//     * <code>novalue</code> to be NaN which is the default in JGrasstools.
+//     * JGrasstools transforms -9999 from background data source into NaN while reading.
+//     * 
+//     * @return double[] {min, max, novalue}
+//     * @throws Exception
+//     */
+//    protected double[] minMax2( GridCoverage2D grid, IProgressMonitor monitor ) {
+//        try {
+//            monitor.beginTask( "calculating min/max", IProgressMonitor.UNKNOWN );
+//            double[] minMax = OmsRasterSummary.getMinMax( grid );
+//            monitor.done();
+//            return new double[] {minMax[0], minMax[1], -9999.0};        
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException( e );
+//        }
+//    }
 
 }

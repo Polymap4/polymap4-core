@@ -28,7 +28,7 @@ import org.polymap.core.ui.StatusDispatcher;
 /**
  * 
  *
- * @author Falko Br√§utigam
+ * @author Falko Br‰utigam
  */
 public class StringSupplier
         extends InputFieldSupplier {
@@ -46,7 +46,7 @@ public class StringSupplier
     
     @Override
     public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
-        return super.init( site ) && String.class.isAssignableFrom( site.fieldInfo.get().type.get() );
+        return super.init( site ) && String.class.isAssignableFrom( site.fieldInfo.get().type() );
     }
 
 

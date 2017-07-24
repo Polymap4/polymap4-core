@@ -14,11 +14,8 @@
  */
 package org.polymap.core.data.process.ui;
 
-import org.jgrasstools.gears.libs.modules.JGTModel;
-
 import org.polymap.core.data.process.FieldInfo;
 import org.polymap.core.data.process.ModuleInfo;
-import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Immutable;
@@ -27,7 +24,7 @@ import org.polymap.core.runtime.config.Mandatory;
 /**
  * The site of a {@link FieldViewer} and its {@link FieldIO}s.
  *
- * @author Falko Br√§utigam
+ * @author Falko Br‰utigam
  */
 public class FieldViewerSite
         extends Configurable {
@@ -42,13 +39,13 @@ public class FieldViewerSite
 
     @Mandatory
     @Immutable
-    public Config2<FieldViewerSite,JGTModel>    module;
+    public Config2<FieldViewerSite,Object>      module;
 
     /**
      * The source layer of the processing.
      */
     @Immutable
-    public Config2<FieldViewerSite,ILayer>      layer;
+    public Config2<FieldViewerSite,Object>      layer;
 
     
     /**
@@ -64,7 +61,7 @@ public class FieldViewerSite
      * <code>{@link #fieldInfo}.get().{@link FieldInfo#getValue(JGTModel, Object) getValue}( {@link #module}.get() )</code>
      */
     public <R> R getFieldValue() {
-        return fieldInfo.get().getValue( module.get() );
+        return (R)fieldInfo.get().getValue( module.get() );
     }
     
 }

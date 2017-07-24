@@ -14,27 +14,27 @@
  */
 package org.polymap.core.data.process.ui;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+
 /**
  * 
  *
- * @author Falko Br√§utigam
+ * @author Falko Br‰utigam
  */
-public abstract class InputFieldSupplier
-        extends FieldIO {
-    
+public class NotSupportedSupplier
+        extends InputFieldSupplier {
+
     @Override
-    public boolean init( @SuppressWarnings( "hiding" ) FieldViewerSite site ) {
-        return super.init( site ) && site.fieldInfo.get().isInput.get();
+    public String label() {
+        return "Not supported";
     }
 
-
-    /**
-     * True if the value if the field is valid and process can start.
-     * <p/>
-     * The default implementation always returns <code>true</code>.
-     */
-    public boolean isValid() {
-        return true;
+    @Override
+    public void createContents( Composite parent ) {
+        Label l = new Label( parent, SWT.NONE );
+        l.setText( "[" + site.fieldInfo.get().type().getSimpleName() + "]" );
     }
 
 }
