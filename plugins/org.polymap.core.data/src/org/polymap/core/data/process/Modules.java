@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.coverage.grid.io.GridCoverage2DReader;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,7 +54,7 @@ public class Modules
         for (ModuleProviderExtension ext : ModuleProviderExtension.allExtensions()) {
             try {
                 ext.newProvider().createModuleInfos().stream()
-                        .filter( hasInputField( GridCoverage2D.class ) )
+                        .filter( hasInputField( GridCoverage2D.class ).or( hasInputField( GridCoverage2DReader.class ) ) )
                         .forEach( info -> result.add( info ) );
             }
             catch (CoreException e) {
