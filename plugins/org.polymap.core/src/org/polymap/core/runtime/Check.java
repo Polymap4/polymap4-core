@@ -108,6 +108,10 @@ public class Check<T> {
         return conditionMet ? ifTrue.apply( value ) : ifFalse.apply( value );
     }
 
+    public <E extends Exception> Check<T> ifNotNull() throws E {
+        return _if( v -> v != null );
+    }
+    
     public <E extends Exception> Check<T> whenever( Predicate<T,E> condition ) throws E {
         return _if( condition );
     }

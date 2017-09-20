@@ -14,8 +14,6 @@
  */
 package org.polymap.service.fs.spi;
 
-import io.milton.http.XmlWriter;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,6 +26,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
+
+import io.milton.http.XmlWriter;
 
 /**
  * 
@@ -87,7 +87,7 @@ public class DefaultContentFolder
         XmlWriter w = new XmlWriter( out );
         w.open( "html" );
         w.open( "body" );
-        w.begin( "h1" ).open().writeText( "Folder: webdav" + getPath().toString() ).close();
+        w.begin( "h1" ).open().writeText( "webdav" + getPath().toString() ).close();
 
         // description
         String description = getDescription( contentType );

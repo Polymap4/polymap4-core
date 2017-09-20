@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Widget;
 
 import org.eclipse.jface.resource.FontDescriptor;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.rap.rwt.internal.lifecycle.CurrentPhase;
@@ -48,6 +49,7 @@ import org.eclipse.rap.rwt.internal.serverpush.ServerPushManager;
 import org.eclipse.rap.rwt.internal.service.ContextProvider;
 import org.eclipse.rap.rwt.widgets.WidgetUtil;
 
+import org.polymap.core.runtime.SubMonitor;
 import org.polymap.core.runtime.UIThreadExecutor;
 
 /**
@@ -63,6 +65,16 @@ public class UIUtils {
     //public static boolean       debug = true;
 
 
+    /**
+     * Provides a standard way to create a sub monitor.
+     * <p/>
+     * Current implementation uses {@link SubMonitor}.
+     */
+    public static IProgressMonitor submon( IProgressMonitor monitor, int ticks ) {
+        return new SubMonitor( monitor, ticks );
+    }
+
+    
     /**
      * 
      * @see HSLColor

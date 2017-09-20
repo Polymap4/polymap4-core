@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2017, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -57,7 +57,7 @@ import org.polymap.service.fs.spi.IContentSite;
  */
 public class ContentManager {
 
-    private static Log log = LogFactory.getLog( ContentManager.class );
+    private static final Log log = LogFactory.getLog( ContentManager.class );
 
     private static ConcurrentHashMap<String,ContentManager> managers = new ConcurrentHashMap( 64, 0.75f, 4 );
 
@@ -225,6 +225,11 @@ public class ContentManager {
     
     
     public void dispose() {
+        for (IContentProvider provider : providers) {
+            provider.dispose();
+        }
+        providers = null;
+        
         for (Map<String,IContentNode> children : nodes.values()) {
             for (IContentNode child : children.values()) {
                 child.dispose();
@@ -232,6 +237,7 @@ public class ContentManager {
         }
         nodes.clear();
         nodes.dispose();
+        nodes = null;
     }
     
     
