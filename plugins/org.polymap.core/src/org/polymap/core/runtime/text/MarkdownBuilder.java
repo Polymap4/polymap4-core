@@ -47,6 +47,7 @@ import org.polymap.core.runtime.config.DefaultBoolean;
  * <p/>
  * Add more methods as needed.
  *
+ * @deprecated See {@link TextBuilder} and {@link FormTextBuilder}
  * @author Falko Bräutigam
  */
 public class MarkdownBuilder
