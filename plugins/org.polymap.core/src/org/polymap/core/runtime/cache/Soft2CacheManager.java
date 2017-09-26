@@ -143,7 +143,6 @@ public class Soft2CacheManager
         }
         
         protected void logMemory( String prefix ) {
-            System.gc();
             long total = Runtime.getRuntime().totalMemory();
             long free = Runtime.getRuntime().freeMemory();            
             log.info( prefix + (total-free) / (1024*1024) + "MB");
