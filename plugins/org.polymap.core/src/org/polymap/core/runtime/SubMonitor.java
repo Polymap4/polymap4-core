@@ -32,9 +32,6 @@ public class SubMonitor
     
     // instance *******************************************
     
-    private String                      mainTaskName;
-    
-    
     /**
      * Creates a new sub-progress monitor for the given monitor. The sub progress
      * monitor uses the given number of work ticks from its parent monitor.
@@ -67,13 +64,12 @@ public class SubMonitor
     @Override
     public void beginTask( String name, int totalWork ) {
         super.beginTask( name, totalWork );
-        mainTaskName = name;
-        super.subTask( mainTaskName );
+        super.subTask( name );
     }
 
 
     public void subTask( String name ) {
-        super.subTask( mainTaskName + " - " + name );
+        super.subTask( name );
     }
     
     
