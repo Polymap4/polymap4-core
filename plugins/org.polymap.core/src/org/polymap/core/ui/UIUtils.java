@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 import org.eclipse.jface.resource.FontDescriptor;
+import org.eclipse.jface.viewers.ISelection;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.rap.rwt.RWT;
@@ -284,5 +285,15 @@ public class UIUtils {
                 task.accept( ev );
             }
         };
-    }    
+    }
+    
+    
+    public static SelectionAdapter selection( ISelection sel ) {
+        return new SelectionAdapter( sel );
+    }
+    
+//    public static SelectionAdapter selection( SelectionEvent ev ) {
+//        return new SelectionAdapter( ev.g );
+//    }
+    
 }

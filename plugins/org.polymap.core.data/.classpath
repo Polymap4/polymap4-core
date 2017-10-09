@@ -89,7 +89,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jgridshift-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr-275-1.0-beta-2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jts-1.13.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jts-1.13.jar" sourcepath="lib/sources/jts-1.13-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/picocontainer-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/SuperCSV-1.52.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xml-commons-resolver-1.2.jar"/>
