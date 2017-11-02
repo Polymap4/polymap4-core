@@ -14,9 +14,6 @@
  */
 package org.polymap.core.runtime.text;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 
 import java.io.Writer;
@@ -26,8 +23,6 @@ import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.common.collect.Lists;
 
 import org.eclipse.rap.rwt.RWT;
 
@@ -99,7 +94,8 @@ public class TextBuilder {
     
     
     /**
-     * Specifies that null content strings are replaced by the given string.
+     * Specifies that null content strings and format arguments are replaced by the
+     * given string. Defaults to "[null]".
      */
     public <R extends TextBuilder> R useForNull( @SuppressWarnings( "hiding" ) String useForNull ) {
         this.useForNull = useForNull;
@@ -180,7 +176,7 @@ public class TextBuilder {
         String s = cs.toString();
         if (s.indexOf( "{" ) > -1) {
             return new MessageFormat( s, locale )
-                    .format( flatten( args ), new StringBuffer(), null )
+                    .format( substituteNull( args ), new StringBuffer(), null )
                     .toString();
         }
         else {
@@ -189,30 +185,38 @@ public class TextBuilder {
     }
 
     
-    protected Object[] flatten( Object... args ) {
-        return flatten( Arrays.asList( args ) ).toArray();
-    }
-    
-    
-    /**
-     * Convert Collections and arrays into their elements.
-     */
-    protected <T> List<T> flatten( Iterable<T> args ) {
-        List flatten = new LinkedList();
-        for (Object arg : args) {
-            if (arg == null) {
-            }
-            else if (arg instanceof Iterable) {
-                flatten.addAll( Lists.newArrayList( (Iterable)arg ) );
-            }
-            else if (arg.getClass().isArray()) {
-                
-            }
-            else {
-                flatten.add( arg );
-            }
+    protected Object[] substituteNull( Object[] args ) {
+        for (int i=0; i<args.length; i++) {
+            args[i] = args[i] != null ? args[i] : useForNull;
         }
-        return flatten;
+        return args;
     }
+    
+    
+//    protected Object[] flatten( Object... args ) {
+//        return flatten( Arrays.asList( args ) ).toArray();
+//    }
+//    
+//    
+//    /**
+//     * Convert Collections and Arrays into their elements.
+//     */
+//    protected <T> List<T> flatten( Iterable<T> args ) {
+//        List flatten = new LinkedList();
+//        for (Object arg : args) {
+//            if (arg == null) {
+//            }
+//            else if (arg instanceof Iterable) {
+//                flatten.addAll( Lists.newArrayList( (Iterable)arg ) );
+//            }
+//            else if (arg.getClass().isArray()) {
+//                
+//            }
+//            else {
+//                flatten.add( arg );
+//            }
+//        }
+//        return flatten;
+//    }
 
 }

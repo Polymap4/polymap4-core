@@ -16,6 +16,8 @@ package org.polymap.core.runtime.text;
 
 import java.util.Locale;
 
+import java.text.MessageFormat;
+
 import org.apache.commons.lang3.StringUtils;
 
 import org.polymap.core.runtime.Polymap;
@@ -59,8 +61,28 @@ public class FormTextBuilder
     }
 
     
+    /**
+     * Creates a form field with the given label and value.
+     *
+     * @param label The label. If null then {@link #useForNull(String)} is used.
+     * @param value The value, formatted via default settings for the type in {@link MessageFormat}.
+     */
     public FormTextBuilder formField( String label, Object value ) {
         build( Element.NOOP, "<span style=\"width:100px;display:inline-block;\"><b>{0}</b></span> {1}<br/>", label, value );
+        return this;
+    }
+
+    
+    /**
+     * Creates a form field with the given label and value.
+     *
+     * @param label The label. If null then {@link #useForNull(String)} is used.
+     * @param value The value, formatted via default settings for the type in {@link MessageFormat}.
+     * @param format A fromat string to use to explicitly specify the format of the given value. For example: "date,short".
+     */
+    public FormTextBuilder formField( String label, Object value, String format ) {
+        assert format != null;
+        build( Element.NOOP, "<span style=\"width:100px;display:inline-block;\"><b>{0}</b></span> {1," + format + "}<br/>", label, value );
         return this;
     }
 }
