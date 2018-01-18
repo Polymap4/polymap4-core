@@ -14,14 +14,6 @@
  */
 package org.polymap.core.data.feature;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
 import java.util.Collections;
@@ -29,8 +21,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.filter.function.EnvFunction;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -42,7 +41,11 @@ import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
-import org.polymap.core.data.PipelineFeatureSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
@@ -104,7 +107,12 @@ public class FeatureRenderProcessor2
         
         // fs
         this.fs = new CachedLazyInit( () -> {
-            return new PipelineFeatureSource( pipeline.get() );
+            try {
+                return new PipelineDataStore( pipeline.get() ).getFeatureSource();
+            }
+            catch (IOException e) {
+                throw new RuntimeException( e );
+            }
         });
     }
 

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,133 +14,48 @@
  */
 package org.polymap.core.data;
 
+import java.util.Collections;
+import java.util.List;
+
 import java.io.IOException;
 
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-
-import org.geotools.data.AbstractDataStore;
 import org.geotools.data.DataStore;
-import org.geotools.data.FeatureListenerManager;
-import org.geotools.data.FeatureReader;
-import org.geotools.data.FeatureWriter;
-import org.geotools.data.Query;
-import org.geotools.data.Transaction;
-import org.geotools.data.collection.DelegateFeatureReader;
-import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.data.store.ContentDataStore;
+import org.geotools.data.store.ContentEntry;
+import org.geotools.feature.NameImpl;
+import org.opengis.feature.type.Name;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.polymap.core.data.pipeline.Pipeline;
 
 /**
  * The <code>DataStore</code> of a {@link PipelineFeatureSource}. 
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-@SuppressWarnings("deprecation")
 public class PipelineDataStore
-        extends AbstractDataStore
+        extends ContentDataStore
         implements DataStore {
 
-    protected FeatureListenerManager  listeners = new FeatureListenerManager();
-    
-    protected PipelineFeatureSource   fs;
+    private Pipeline        pipeline;
     
     
-    public PipelineDataStore( PipelineFeatureSource fs ) {
-        this.fs = fs;
+    public PipelineDataStore( Pipeline pipeline ) {
+        this.pipeline = pipeline;
     }
 
-    
-//    @Override
-//    public PipelineFeatureSource getFeatureSource() {
-//        return fs;
-//    }
-    
+    public PipelineFeatureSource getFeatureSource() throws IOException {
+        return (PipelineFeatureSource)getFeatureSource( getTypeNames()[0] );
+    }
     
     @Override
-    protected FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( String typeName ) throws IOException {
-        return new DelegateFeatureReader( fs.getSchema(), fs.getFeatures().features() );
+    protected List<Name> createTypeNames() throws IOException {
+        Name name = new NameImpl( pipeline.dataSourceDescription().resourceName.get() );
+        return Collections.singletonList( name );
     }
-
-    
-    @Override
-    public FeatureReader<SimpleFeatureType,SimpleFeature> getFeatureReader( Query query, Transaction transaction ) throws IOException {
-        return new DelegateFeatureReader( fs.getSchema(), fs.getFeatures( query ).features() );
-    }
-
-    
-    @Override
-    protected FeatureWriter<SimpleFeatureType,SimpleFeature> createFeatureWriter( String typeName, Transaction transaction)
-            throws IOException {
-        return new FeatureWriter<SimpleFeatureType,SimpleFeature>() {
-            @Override
-            public SimpleFeatureType getFeatureType() {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public SimpleFeature next() throws IOException {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public void remove() throws IOException {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public void write() throws IOException {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public boolean hasNext() throws IOException {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-            @Override
-            public void close() throws IOException {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
-            }
-        };
-    }
-
-    
-    @Override
-    public SimpleFeatureType getSchema( String _typeName ) throws IOException {
-        assert _typeName != null : "typeName must not be null.";
-//        if (fs.getSchema().getTtypeName.equals( _typeName ) ) {
-            return fs.getSchema();
-//        }
-//        else {
-//            throw new IOException( "TypeName cannot be found: " + _typeName );
-//        }
-    }
-
-    
-    @Override
-    public String[] getTypeNames() throws IOException {
-        return new String[] {fs.getSchema().getTypeName()};
-    }
-
-    
-    @Override
-    protected ReferencedEnvelope getBounds( Query query ) throws IOException {
-        if (query.getFilter() == Filter.EXCLUDE) {
-            return new ReferencedEnvelope( new Envelope(), 
-                    getSchema( query.getTypeName() ).getCoordinateReferenceSystem());
-        }
-        else {
-            return fs.getBounds( query );
-        }
-    }
-
 
     @Override
-    protected int getCount( Query query ) throws IOException {
-        return fs.getCount( query );
+    protected PipelineFeatureSource createFeatureSource( ContentEntry entry ) throws IOException {
+        return new PipelineFeatureSource( entry, pipeline );
     }
-    
+
 }

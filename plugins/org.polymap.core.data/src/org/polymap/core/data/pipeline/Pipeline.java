@@ -40,6 +40,11 @@ public class Pipeline
         this.dsd = dsd;
     }
 
+    
+    public DataSourceDescription dataSourceDescription() {
+        return dsd;
+    }
+
 
     /**
      * Add the given procesor at the 'source' side of the pipeline.

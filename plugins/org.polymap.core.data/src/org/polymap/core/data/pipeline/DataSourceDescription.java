@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2018, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,7 +20,8 @@ import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 
 /**
- * Describes a data source a {@link TerminalPipelineProcessor} can handle, or not. 
+ * Describes a data source so that a {@link TerminalPipelineProcessor} can decide if
+ * it is able to handle it.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2012-2016, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2018, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -32,6 +32,7 @@ import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureImpl;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.GeometryBuilder;
 import org.geotools.referencing.CRS;
 import org.geotools.util.Utilities;
 import org.opengis.feature.Feature;
@@ -48,7 +49,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.Point;
 
 import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
 
@@ -64,7 +65,7 @@ import junit.framework.TestCase;
 public class RFeatureStoreTests
         extends TestCase {
 
-    private static Log log = LogFactory.getLog( RFeatureStoreTests.class );
+    private static final Log log = LogFactory.getLog( RFeatureStoreTests.class );
 
     private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory( null );
     
@@ -73,7 +74,7 @@ public class RFeatureStoreTests
 
     protected void setUp() throws Exception {
         super.setUp();
-        LuceneRecordStore rs = new LuceneRecordStore( /*new File( "/tmp/LuceneRecordStoreTest" ), true*/ );
+        LuceneRecordStore rs = new LuceneRecordStore( /*RAM*/ );
         ds = new RDataStore( rs, new LuceneQueryDialect() );
     }
 
@@ -88,9 +89,10 @@ public class RFeatureStoreTests
         builder.setName( "Test1" );
         builder.setCRS( CRS.decode( "EPSG:4326" ) );
         builder.add( "name", String.class );
-        builder.add( "geom", MultiLineString.class, "EPSG:4326" );
+        builder.add( "geom", Point.class, "EPSG:4326" );
         return builder.buildFeatureType();        
     }
+    
     
     public void testCreateSimpleSchemaAndFeatureWithoutId() throws Exception {
         log.debug( "creating schema..." );
@@ -110,6 +112,7 @@ public class RFeatureStoreTests
         assertEquals( 1, Iterables.size( iterable( fs.getFeatures() ) ) );
     }
     
+    
     public void testCreateSimpleSchemaAndFeature() throws Exception {
         log.debug( "creating schema..." );
         SimpleFeatureType schema = createSimpleSchema();
@@ -120,8 +123,9 @@ public class RFeatureStoreTests
 
         // add feature
         SimpleFeatureBuilder fb = new SimpleFeatureBuilder( schema );
+        Point point = new GeometryBuilder().point( 10, 100 );
         fb.set( "name", "value" );
-        fb.set( "geom", null );
+        fb.set( "geom", point );
         DefaultFeatureCollection features = new DefaultFeatureCollection();
         features.add( fb.buildFeature( null ) );
         fs.addFeatures( features );
@@ -134,8 +138,8 @@ public class RFeatureStoreTests
             public void visit( Feature feature ) {
                 log.debug( "Feature: " + feature );
                 assertEquals( "value", ((SimpleFeature)feature).getAttribute( "name" ) );
-                assertEquals( null, ((SimpleFeature)feature).getAttribute( "geom" ) );
-                assertEquals( null, ((SimpleFeature)feature).getDefaultGeometry() );
+                assertEquals( point, ((SimpleFeature)feature).getAttribute( "geom" ) );
+                assertEquals( point, ((SimpleFeature)feature).getDefaultGeometry() );
             }
         }, null );
         

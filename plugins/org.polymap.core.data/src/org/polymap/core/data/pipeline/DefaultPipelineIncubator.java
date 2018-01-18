@@ -107,7 +107,7 @@ public class DefaultPipelineIncubator
                 && !usecase.responseOut.isEmpty()
                 && usecase.responseIn.isEmpty() : "PipelineUsecase must have requestIn and reponseOut only.";
                 
-        // swap requestIn/Out and reposnseIn/Out to make an emitter signature for the start processor
+        // swap requestIn/Out and reponseIn/Out to make an emitter signature for the start processor
         usecase.requestOut = usecase.requestIn;
         usecase.requestIn = Collections.EMPTY_SET;
         usecase.responseIn = usecase.responseOut;

@@ -40,7 +40,7 @@ import junit.framework.TestCase;
 public class ProcessorSignatureTest
         extends TestCase {
 
-    private static Log log = LogFactory.getLog( ProcessorSignatureTest.class );
+    private static final Log log = LogFactory.getLog( ProcessorSignatureTest.class );
     
     
     public void testEncodedImageProducer() throws Exception {
