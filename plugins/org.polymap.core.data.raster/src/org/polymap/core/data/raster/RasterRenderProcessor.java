@@ -60,7 +60,7 @@ import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
@@ -104,7 +104,7 @@ public class RasterRenderProcessor
 
 
     @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
+    public boolean isCompatible( DataSourceDescriptor dsd ) {
         return dsd.service.get() instanceof AbstractGridCoverage2DReader;
     }
 

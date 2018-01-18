@@ -50,10 +50,10 @@ import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.data.pipeline.PipelineIncubator;
+import org.polymap.core.data.pipeline.PipelineBuilder;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.runtime.CachedLazyInit;
@@ -96,8 +96,8 @@ public class FeatureRenderProcessor2
         // pipeline
         this.pipeline = new CachedLazyInit( () -> {
             try {
-                PipelineIncubator incubator = site.incubator.get();
-                DataSourceDescription dsd = new DataSourceDescription( site.dsd.get() );
+                PipelineBuilder incubator = site.builder.get();
+                DataSourceDescriptor dsd = new DataSourceDescriptor( site.dsd.get() );
                 return incubator.newPipeline( FeaturesProducer.class, dsd, null );
             }
             catch (Exception e) {
@@ -118,7 +118,7 @@ public class FeatureRenderProcessor2
 
 
     @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
+    public boolean isCompatible( DataSourceDescriptor dsd ) {
         // we are compatible to everything a feature pipeline can be build for
         if (new DataSourceProcessor().isCompatible( dsd )) {
             return true;

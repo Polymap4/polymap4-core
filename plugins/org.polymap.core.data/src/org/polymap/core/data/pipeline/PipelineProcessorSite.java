@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2018, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,13 +16,14 @@ package org.polymap.core.data.pipeline;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Immutable;
 import org.polymap.core.runtime.config.Mandatory;
 
 /**
- * 
+ * The runtime environment of a {@link PipelineProcessor}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -35,10 +36,10 @@ public class PipelineProcessorSite
     
     @Mandatory
     @Immutable
-    public Config<DataSourceDescription>    dsd;
+    public Config<DataSourceDescriptor>     dsd;
 
     @Immutable
-    public Config<PipelineIncubator>        incubator;
+    public Config<PipelineBuilder>          builder;
 
     private Map<String,Object>              props = new HashMap();
     
@@ -54,7 +55,7 @@ public class PipelineProcessorSite
     }
     
     public Iterable<String> propertyKeys() {
-        throw new RuntimeException( "" );
+        throw new RuntimeException( "..." );
     }
     
 }

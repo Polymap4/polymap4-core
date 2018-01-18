@@ -33,6 +33,7 @@ public class ShapeSimpleReadTest
 
     public void setUp() throws Exception {
         // DataStore
+        // FIXME add to resources
         File f = new File( "/home/falko/Data/WGN_SAX_INFO/Datenuebergabe_Behoerden_Stand_1001/Shapedateien/Chem_Zustand_Fliessgew_WK_Liste_CHEM_0912.shp" );
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 

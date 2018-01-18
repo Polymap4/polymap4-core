@@ -23,21 +23,21 @@
 package org.polymap.core.data.pipeline;
 
 /**
- * Thrown if an {@link PipelineIncubator} cannot find and/or instantiate
+ * Thrown if an {@link PipelineBuilder} cannot find and/or instantiate
  * all processors of a pipeline. 
  *
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
  * @version POLYMAP3 ($Revision$)
  * @since 3.0
  */
-public class PipelineIncubationException
+public class PipelineBuilderException
         extends Exception {
 
-    public PipelineIncubationException( String msg ) {
+    public PipelineBuilderException( String msg ) {
         super( msg );
     }
 
-    public PipelineIncubationException( String msg, Throwable cause ) {
+    public PipelineBuilderException( String msg, Throwable cause ) {
         super( msg, cause );
     }
 

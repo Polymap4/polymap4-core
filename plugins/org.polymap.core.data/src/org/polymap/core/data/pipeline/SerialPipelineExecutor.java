@@ -53,7 +53,7 @@ public class SerialPipelineExecutor
         
         // create contexts
         int i = 0;
-        for (ProcessorDescription procDesc : pipe) {
+        for (ProcessorDescriptor procDesc : pipe) {
             SerialContext context = new SerialContext( procDesc, i++ );
             contexts.add( context );
         }
@@ -111,7 +111,7 @@ public class SerialPipelineExecutor
 
         int                     pipePos;
         
-        ProcessorDescription    procDesc;
+        ProcessorDescriptor    procDesc;
         
         /** Pending request for this processor. */
         List<ProcessorRequest>  requests = new LinkedList();
@@ -125,7 +125,7 @@ public class SerialPipelineExecutor
         boolean                 contextEop = false;
         
         
-        public SerialContext( ProcessorDescription procDesc, int pipePos ) {
+        public SerialContext( ProcessorDescriptor procDesc, int pipePos ) {
             this.pipePos = pipePos;
             this.procDesc = procDesc;
         }

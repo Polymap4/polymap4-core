@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
+import org.polymap.core.data.pipeline.PipelineBuilderException;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.geoserver.GeoServerServlet;
@@ -62,7 +62,7 @@ public class P4DataStoreInfo
             Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
             PipelineFeatureSource fs = new PipelineFeatureSource( pipeline );
             if (fs == null || fs.pipeline().length() == 0) {
-                throw new PipelineIncubationException( "WMS layer? : " + layer.label.get() );
+                throw new PipelineBuilderException( "WMS layer? : " + layer.label.get() );
             }
 //            // set name/namespace for target schema
 //            Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
@@ -71,7 +71,7 @@ public class P4DataStoreInfo
             return new P4DataStoreInfo( catalog, layer, fs );
         }
         // 
-        catch (PipelineIncubationException e) {
+        catch (PipelineBuilderException e) {
             return null;
         }
     }

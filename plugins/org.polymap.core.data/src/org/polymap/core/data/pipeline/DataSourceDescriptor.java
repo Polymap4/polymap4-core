@@ -25,29 +25,34 @@ import org.polymap.core.runtime.config.Mandatory;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class DataSourceDescription
+public class DataSourceDescriptor
         extends Configurable {
 
     @Mandatory
     @Immutable
-    public Config2<DataSourceDescription,Object>   service;
+    public Config2<DataSourceDescriptor,Object>   service;
 
     @Mandatory
     @Immutable
-    public Config2<DataSourceDescription,String>   resourceName;
+    public Config2<DataSourceDescriptor,String>   resourceName;
     
     
-    public DataSourceDescription() {
+    public DataSourceDescriptor() {
     }
 
-    public DataSourceDescription( DataSourceDescription other ) {
+    public DataSourceDescriptor( Object service, String resourceName ) {
+        this.service.set( service );
+        this.resourceName.set( resourceName );
+    }
+
+    public DataSourceDescriptor( DataSourceDescriptor other ) {
         service.set( other.service.get() );
         resourceName.set( other.resourceName.get() );    
     }
 
     @Override
     public String toString() {
-        return "DataSourceDescription[service=" + service.get() + ", resourceName=" + resourceName.get() + "]";
+        return "DataSourceDescription [service=" + service.get() + ", resourceName=" + resourceName.get() + "]";
     }
     
 }

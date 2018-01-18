@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,11 +18,12 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * 
+ * Describes a processor in a {@link Pipeline}. Allows to create actual processor
+ * instances to be executed by an {@link PipelineExecutor}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ProcessorDescription<P extends PipelineProcessor> {
+public class ProcessorDescriptor<P extends PipelineProcessor> {
 
     private Class<? extends PipelineProcessor> cl;
 
@@ -41,13 +42,13 @@ public class ProcessorDescription<P extends PipelineProcessor> {
      *        {@link PipelineProcessor#init(Properties)} method.
      * @param usecase 
      */
-    public ProcessorDescription( Class<? extends PipelineProcessor> cl, Map<String,Object> props ) {
+    public ProcessorDescriptor( Class<? extends PipelineProcessor> cl, Map<String,Object> props ) {
         this.cl = cl;
         this.props = props;
     }
 
 
-    public ProcessorDescription( ProcessorSignature signature ) {
+    public ProcessorDescriptor( ProcessorSignature signature ) {
         this.signature = signature;
     }
 
@@ -64,8 +65,8 @@ public class ProcessorDescription<P extends PipelineProcessor> {
         if (this == obj) {
             return true;
         }
-        else if (obj instanceof ProcessorDescription) {
-            ProcessorDescription rhs = (ProcessorDescription)obj;
+        else if (obj instanceof ProcessorDescriptor) {
+            ProcessorDescriptor rhs = (ProcessorDescriptor)obj;
             return cl.equals( rhs.cl );
         }
         return false;
@@ -79,7 +80,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
     }
 
 
-    public ProcessorSignature signature() throws PipelineIncubationException {
+    public ProcessorSignature signature() throws PipelineBuilderException {
         if (signature == null) {  // no concurrent check, multi init is ok
             signature = new ProcessorSignature( processor() );
         }
@@ -92,7 +93,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
     }
 
 
-    public P processor() throws PipelineIncubationException { 
+    public P processor() throws PipelineBuilderException { 
         assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
         if (processor == null) {  // no concurrent check, multi init ok
             try {
@@ -102,7 +103,7 @@ public class ProcessorDescription<P extends PipelineProcessor> {
                 throw e;
             }
             catch (Exception e) {
-                throw new PipelineIncubationException( "", e );
+                throw new PipelineBuilderException( "", e );
             }
         }
         return processor;
@@ -119,9 +120,9 @@ public class ProcessorDescription<P extends PipelineProcessor> {
      * the given data source. 
      *
      * @param dsd The data source description to handle.
-     * @throws PipelineIncubationException 
+     * @throws PipelineBuilderException 
      */
-    public boolean isCompatible( DataSourceDescription dsd ) throws PipelineIncubationException {
+    public boolean isCompatible( DataSourceDescriptor dsd ) throws PipelineBuilderException {
         return ((TerminalPipelineProcessor)processor()).isCompatible( dsd );
     }
 

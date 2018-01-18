@@ -23,6 +23,6 @@ package org.polymap.core.data.pipeline;
 public interface TerminalPipelineProcessor
         extends PipelineProcessor {
 
-    public boolean isCompatible( DataSourceDescription dsd );
+    public boolean isCompatible( DataSourceDescriptor dsd );
     
 }

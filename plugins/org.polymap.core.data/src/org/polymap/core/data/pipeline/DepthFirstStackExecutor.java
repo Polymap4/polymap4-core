@@ -56,7 +56,7 @@ public class DepthFirstStackExecutor
 
         // create contexts
         int i = 0;
-        for (ProcessorDescription desc : pipeline) {
+        for (ProcessorDescriptor desc : pipeline) {
             DepthFirstContext context = new DepthFirstContext( desc, i++ );
             contexts.add( context );
         }
@@ -90,7 +90,7 @@ public class DepthFirstStackExecutor
 
         int                     pipePos;
         
-        ProcessorDescription    procDesc;
+        ProcessorDescriptor    procDesc;
         
         /** The processor specific data. */
         Map                     procData = new HashMap();
@@ -98,7 +98,7 @@ public class DepthFirstStackExecutor
         boolean                 contextEop = false;
         
         
-        public DepthFirstContext( ProcessorDescription procDesc, int pipePos ) {
+        public DepthFirstContext( ProcessorDescriptor procDesc, int pipePos ) {
             this.pipePos = pipePos;
             this.procDesc = procDesc;
         }

@@ -47,7 +47,7 @@ import org.polymap.core.data.image.EncodedImageProducer;
 import org.polymap.core.data.image.EncodedImageResponse;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
-import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
@@ -94,7 +94,7 @@ public class WmsRenderProcessor
 
 
     @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
+    public boolean isCompatible( DataSourceDescriptor dsd ) {
         return dsd.service.get() instanceof WebMapServer;
     }
     

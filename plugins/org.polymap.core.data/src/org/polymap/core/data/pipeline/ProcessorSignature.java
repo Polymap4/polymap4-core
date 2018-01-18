@@ -67,18 +67,18 @@ public class ProcessorSignature {
 //        this.responseIn.addAll( Arrays.asList( responseIn ) );
 //    }
     
-    public ProcessorSignature( PipelineProcessor processor ) throws PipelineIncubationException {
+    public ProcessorSignature( PipelineProcessor processor ) throws PipelineBuilderException {
         this.processor = processor;
         buildSignature( processor.getClass() );
     }
     
     
-    public ProcessorSignature( Class<? extends PipelineProcessor> type ) throws PipelineIncubationException {
+    public ProcessorSignature( Class<? extends PipelineProcessor> type ) throws PipelineBuilderException {
         buildSignature( type );
     }
     
     
-    protected void buildSignature( Class<? extends PipelineProcessor> type ) throws PipelineIncubationException {
+    protected void buildSignature( Class<? extends PipelineProcessor> type ) throws PipelineBuilderException {
         Deque<Class> deque = new ArrayDeque();
         deque.push( type );
         
@@ -94,7 +94,7 @@ public class ProcessorSignature {
                 
                 if (param == null) {
                     if (consumes != null || produces != null) {
-                        throw new PipelineIncubationException( "Method has annotations but not correct signature: " + m );
+                        throw new PipelineBuilderException( "Method has annotations but not correct signature: " + m );
                     }
                     continue;
                 }

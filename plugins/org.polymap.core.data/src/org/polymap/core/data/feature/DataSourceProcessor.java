@@ -36,7 +36,7 @@ import org.opengis.filter.identity.FeatureId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
@@ -68,7 +68,7 @@ public class DataSourceProcessor
 
     
     @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
+    public boolean isCompatible( DataSourceDescriptor dsd ) {
         return dsd.service.get() instanceof DataAccess;
     }
 
