@@ -50,7 +50,7 @@ import org.polymap.core.data.util.NameImpl;
  */
 class JsonSchemaCoder {
 
-    private static Log log = LogFactory.getLog( JsonSchemaCoder.class );
+    private static final Log log = LogFactory.getLog( JsonSchemaCoder.class );
 
 
     public String encode( FeatureType schema ) throws Exception {
@@ -65,7 +65,7 @@ class JsonSchemaCoder {
     /**
      * 
      */
-    class Encoder {
+    static class Encoder {
 
         private FeatureType     schema;
         
@@ -143,10 +143,9 @@ class JsonSchemaCoder {
         }
 
         
-        protected JSONObject encode( JSONObject parent, AttributeType type )
-        throws Exception {
+        protected JSONObject encode( JSONObject parent, AttributeType type ) throws Exception {
             if (type.getRestrictions() != null && !type.getRestrictions().isEmpty()) {
-                log.warn( "Restrictions are not supported yet." );
+                log.warn( "Unsupported restrictions: " + type.getRestrictions() );
                 //throw new RuntimeException( "Restrictions are not supported yet.");
             }
             String name = encode( type.getName() );
@@ -192,7 +191,7 @@ class JsonSchemaCoder {
     /**
      * 
      */
-    class Decoder {
+    static class Decoder {
 
         private JSONObject          input;
         
@@ -317,10 +316,20 @@ class JsonSchemaCoder {
                     ? SimpleInternationalString.wrap( json.getString( "description" ) )
                     : null;
             
-            AttributeType superType = json.has( "super" )
-                    ? decodeAttributeType( json.getJSONObject( "super" ) )
-                    : null;
-                    
+            AttributeType superType = null;
+            if (json.has( "super" )) {
+                 superType = decodeAttributeType( json.getJSONObject( "super" ) );
+                 
+                 // FIXME SimpleFeatureTypeBuilder.retype() fails (triggered by projektion in
+                 // ContentFeatureCollection in new gt 18.1) because super type of SimpleFeatureType
+                 // needs to be SimpleFeatureType; other (simple) things does not seem to habe superType,
+                 // so this hack seem to work at least for SimpleFeatureType
+                 //
+                 // For e real FIX we need to properly handle different AttributeTypes
+                 superType = factory.createSimpleFeatureType( superType.getName(), /*attrs*/null,
+                         /*geom*/null, superType.isAbstract(), superType.getRestrictions(),
+                         null, superType.getDescription() );                
+            }                    
             return factory.createAttributeType( name, binding, false, isAbstract, restrictions, superType, description ); 
         }
         
@@ -331,22 +340,4 @@ class JsonSchemaCoder {
         
     }
     
-    
-//    // Test ***********************************************
-//    
-//    public static void main( String[] args ) 
-//    throws Exception {
-//        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-//        builder.setName( "Test" );
-//        builder.setCRS( CRS.decode( "EPSG:4326" ) );
-//        builder.add( "name", String.class );
-//        builder.add( "geom", MultiLineString.class, "EPSG:4326" );
-//        
-//        String encoded = new JsonSchemaCoder().encode( builder.buildFeatureType() );
-//        System.out.println( encoded );
-//
-//        FeatureType schema = new JsonSchemaCoder().decode( encoded );
-//        System.out.println( "\n\n" + schema );
-//    }
-//    
 }

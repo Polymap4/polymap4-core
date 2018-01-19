@@ -37,13 +37,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.pipeline.DataSourceDescriptor;
+import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 
 /**
- *
+ * Connects a a backend {@link FeatureSource} to a {@link Pipeline}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */

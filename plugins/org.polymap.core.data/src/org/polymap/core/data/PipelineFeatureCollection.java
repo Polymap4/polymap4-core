@@ -20,7 +20,7 @@ import org.opengis.feature.type.FeatureType;
 
 /**
  *
- *
+ * @deprecated
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface PipelineFeatureCollection<T extends FeatureType, F extends Feature>

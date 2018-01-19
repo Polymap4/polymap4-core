@@ -106,7 +106,7 @@ public class PipelineAsyncFeatureReader<T extends FeatureType, F extends Feature
                     @Override
                     public void handle( List<Feature> features ) throws Exception {
                         if (checkEnd()) {
-                            log.debug( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() + ", chunk=" + features.size() );
+                            log.info( "Async fetcher[" + fetcherNumber + "]: queue=" + queue.size() + ", chunk=" + features.size() );
                             queue.put( features );
                             Thread.yield();
                         }
@@ -122,7 +122,7 @@ public class PipelineAsyncFeatureReader<T extends FeatureType, F extends Feature
                         return queue != null;
                     }
                 });
-                log.debug( "Async fetcher: done." );
+                log.info( "Async fetcher: done." );
             }
             catch (Throwable e) {
                 try {

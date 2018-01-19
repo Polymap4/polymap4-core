@@ -15,14 +15,14 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-spatialite-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-main-18.1.jar" sourcepath="lib/sources/gt-main-18.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-18.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-18.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-18.1.jar" sourcepath="lib/sources/gt-opengis-18.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-shapefile-18.1.jar" sourcepath="lib/sources/gt-shapefile-18.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wfs-ng-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-wms-18.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xml-18.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-18.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xml-18.1.jar" sourcepath="lib/sources/gt-xml-18.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-core-18.1.jar" sourcepath="lib/sources/gt-xsd-core-18.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-fes-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-filter-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-gml2-18.1.jar"/>

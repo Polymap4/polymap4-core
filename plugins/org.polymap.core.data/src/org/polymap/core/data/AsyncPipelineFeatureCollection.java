@@ -41,7 +41,7 @@ import org.polymap.core.runtime.session.SessionContext;
 
 /**
  * 
- *
+ * @deprecated
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class AsyncPipelineFeatureCollection

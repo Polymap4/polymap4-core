@@ -32,7 +32,7 @@ import org.polymap.core.data.PipelineFeatureSource.FeatureResponseHandler;
 
 /**
  * 
- *
+ * @deprecated
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 class SyncPipelineFeatureCollection

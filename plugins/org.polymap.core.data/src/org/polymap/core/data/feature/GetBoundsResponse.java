@@ -19,7 +19,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.polymap.core.data.pipeline.ProcessorResponse;
 import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
-import org.polymap.core.runtime.config.Mandatory;
+import org.polymap.core.runtime.config.Immutable;
 
 /**
  * The response of the {@link GetBoundsRequest}.
@@ -30,7 +30,8 @@ public class GetBoundsResponse
         extends Configurable
         implements ProcessorResponse {
 
-    @Mandatory
+    //@Mandatory null result is allowed
+    @Immutable
     public Config2<GetBoundsResponse,ReferencedEnvelope>    bounds;
     
     

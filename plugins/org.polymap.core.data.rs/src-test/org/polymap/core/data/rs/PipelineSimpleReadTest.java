@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.polymap.core.data.pipeline;
+package org.polymap.core.data.rs;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,31 +22,46 @@ import java.io.Serializable;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.store.ContentFeatureSource;
 
 import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.pipeline.SimplePipelineBuilder;
+import org.polymap.core.data.pipeline.SimpleReadTest;
+import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
+
+import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 /**
- * Test against {@link ShapefileDataStore}.
+ * Test against {@link RDataStore}.
  *
  * @author Falko Bräutigam
  */
-public class ShapeSimpleReadTest
+public class PipelineSimpleReadTest
         extends SimpleReadTest {
 
     public void setUp() throws Exception {
         // DataStore
+        LuceneRecordStore rs = new LuceneRecordStore( /*RAM*/ );
+        origDs = new RDataStore( rs, new LuceneQueryDialect() );
+
         // FIXME add to resources
         File f = new File( "/home/falko/Data/WGN_SAX_INFO/Datenuebergabe_Behoerden_Stand_1001/Shapedateien/Chem_Zustand_Fliessgew_WK_Liste_CHEM_0912.shp" );
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
-
         Map<String, Serializable> params = new HashMap<String, Serializable>();
         params.put( "url", f.toURI().toURL() );
         params.put( "create spatial index", Boolean.TRUE );
-
-        origDs = dataStoreFactory.createNewDataStore( params );
-        origFs = ((ShapefileDataStore)origDs).getFeatureSource();
+        ShapefileDataStore shapeDs = (ShapefileDataStore)dataStoreFactory.createNewDataStore( params );
+        ContentFeatureSource shapeFs = shapeDs.getFeatureSource();
         
+        // creating schema / add features
+        origDs.createSchema( shapeFs.getSchema() );
+        origFs = origDs.getFeatureSource( shapeFs.getSchema().getName() );        
+        ((RFeatureStore)origFs).addFeatures( shapeFs.getFeatures() );
+        
+        // check size
+        //assertEquals( 669, fs.getFeatures().size() );
+
         // Pipeline
         pipeline = SimplePipelineBuilder.newFeaturePipeline( origFs, DataSourceProcessor.class );
         pipeDs = new PipelineDataStore( pipeline );
