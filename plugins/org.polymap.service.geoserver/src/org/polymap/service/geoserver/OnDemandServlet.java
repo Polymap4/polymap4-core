@@ -39,7 +39,7 @@ import org.polymap.core.runtime.LockedLazyInit;
 public class OnDemandServlet
         extends HttpServlet {
 
-    private static Log log = LogFactory.getLog( OnDemandServlet.class );
+    private static final Log log = LogFactory.getLog( OnDemandServlet.class );
     
     private Lazy<HttpServlet>       delegate;
     

@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-png-1.1.13.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/cglib-nodep-2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/xpp3-1.1.3.4.O.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-sld-16-RC1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-expression-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-web-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.17.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.10-RC1.jar" sourcepath="lib/sources/gs-main-2.10-RC1-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-ows-2.10-RC1.jar" sourcepath="lib/sources/gs-ows-2.10-RC1-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-platform-2.10-RC1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-wfs-2.10-RC1.jar" sourcepath="lib/sources/gs-wfs-2.10-RC1-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gs-wms-2.10-RC1.jar" sourcepath="lib/sources/gs-wms-2.10-RC1-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-aop-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-beans-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-context-4.2.5.RELEASE.jar" sourcepath="lib/sources/spring-context-4.2.5.RELEASE-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-context-support-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-core-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-jdbc-4.2.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xstream-1.4.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/imageio-ext-png-1.1.17.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-xsd-sld-18.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-aop-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-beans-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-context-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-context-support-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-core-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-jdbc-4.3.7.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-security-config-4.0.4.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-security-core-4.0.4.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-security-web-4.0.4.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-tx-4.2.5.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-webmvc-4.2.5.RELEASE.jar" sourcepath="lib/sources/spring-webmvc-4.2.5.RELEASE-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-tx-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-webmvc-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-main-2.12.1.jar" sourcepath="lib/sources/gs-main-2.12.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-ows-2.12.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-platform-2.12.1.jar" sourcepath="lib/sources/gs-platform-2.12.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-wfs-2.12.1.jar" sourcepath="lib/sources/gs-wfs-2.12.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/gs-wms-2.12.1.jar" sourcepath="lib/sources/gs-wms-2.12.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/cglib-nodep-2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xpp3-1.1.3.4.O.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-expression-4.2.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-web-4.2.5.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.17.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-beanutils-1.7.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xmlpull-1.1.3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-fileupload-1.2.1.jar"/>
@@ -33,7 +34,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/aopalliance-1.0.jar" sourcepath="lib/sources/aopalliance-1.0-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/freemarker-2.3.18.jar" sourcepath="lib/sources/freemarker-2.3.18-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/itext-2.1.5.jar" sourcepath="lib/sources/itext-2.1.5-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/xstream-1.4.7.jar" sourcepath="lib/sources/xstream-1.4.7-sources.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>

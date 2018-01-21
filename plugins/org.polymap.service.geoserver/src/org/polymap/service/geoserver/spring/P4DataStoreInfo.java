@@ -31,6 +31,7 @@ import org.opengis.util.ProgressListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.pipeline.Pipeline;
@@ -60,7 +61,7 @@ public class P4DataStoreInfo
         try {
             GeoServerServlet server = GeoServerServlet.instance.get();
             Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
-            PipelineFeatureSource fs = new PipelineFeatureSource( pipeline );
+            PipelineFeatureSource fs = new PipelineDataStore( pipeline ).getFeatureSource();
             if (fs == null || fs.pipeline().length() == 0) {
                 throw new PipelineBuilderException( "WMS layer? : " + layer.label.get() );
             }
@@ -97,7 +98,7 @@ public class P4DataStoreInfo
 //        // FIXME params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
 //        setConnectionParameters( params );
         setEnabled( true );
-        log.debug( "    loaded: " + this );
+        log.debug( "DataStore: " + this );
     }
 
     

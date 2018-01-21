@@ -45,6 +45,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.project.ILayer;
+
 import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
@@ -56,7 +57,7 @@ public class P4FeatureTypeInfo
         extends FeatureTypeInfoImpl
         implements FeatureTypeInfo {
 
-    private static final Log log = LogFactory.getLog( GeoServerLoader.class );
+    private static final Log log = LogFactory.getLog( P4FeatureTypeInfo.class );
 
     protected P4DataStoreInfo           dsInfo;
     
@@ -118,7 +119,7 @@ public class P4FeatureTypeInfo
             attributeInfo.setId( "id-" + attribute.hashCode() );
         }
         setAttributes( attributeInfos );
-        log.info( "    loaded: " + this );
+        log.info( "FeatureType: " + this );
     }
 
     
