@@ -95,6 +95,7 @@
 		    <!-- OWS -->
             <dependency groupId="org.geotools" artifactId="gt-wms" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-wfs-ng" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-wmts" version="${geotools.version}" />
 
 		    <!-- Raster -->
             <dependency groupId="org.geotools" artifactId="gt-geotiff" version="${geotools.version}" />

@@ -59,7 +59,8 @@ import org.polymap.core.runtime.session.SessionContext;
  * This <code>FeatureSource</code> provides the features of an {@link ILayer}
  * (its underlaying {@link IService}), processed by the layer specific
  * {@link Pipeline}, instantiated for use-case {@link LayerUseCase#FEATURES}.
- *
+ * 
+ * @see <a href="http://docs.geotools.org/maintenance/userguide/tutorial/datastore/index.html">Tutorial</a>
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class PipelineFeatureSource

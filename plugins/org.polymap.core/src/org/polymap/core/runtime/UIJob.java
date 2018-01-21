@@ -181,8 +181,9 @@ public abstract class UIJob
      * @param delay a time delay in milliseconds before the job should run
      */
     public void scheduleWithUIUpdate( long delay ) {
-        // for BatikApplication there is always a callback active
-        assert UIUtils.isCallbackActive();
+        // for BatikApplication there is always a callback active;
+        // JobExecutor Jobs we must not check as there might be no ContextProvider.hasContext()
+        
 //        uiCallbackHandle = getName() + "-" + hashCode();
 //        UIThreadExecutor.syncFast( () -> UIUtils.activateCallback( uiCallbackHandle ), runtimeException() );
 
