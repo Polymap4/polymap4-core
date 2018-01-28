@@ -21,8 +21,8 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
  * {@link Pipeline} and executed inside of a {@link PipelineExecutor}. A processor
  * can process requests, reponses or both.
  * <p/>
- * A processor has to be thread-safe and stateless. The state of the processor can be
- * stored in its {@link ProcessorContext}.
+ * A processor has to be <b>thread-safe</b> and <b>stateless</b>. The state of the
+ * processor can be stored in its {@link ProcessorContext}.
  * 
  * @see Produces
  * @see Consumes

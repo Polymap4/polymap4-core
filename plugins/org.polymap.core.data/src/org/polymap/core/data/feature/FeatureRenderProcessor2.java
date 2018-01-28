@@ -52,8 +52,8 @@ import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineBuilder;
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.runtime.CachedLazyInit;
@@ -98,7 +98,7 @@ public class FeatureRenderProcessor2
             try {
                 PipelineBuilder incubator = site.builder.get();
                 DataSourceDescriptor dsd = new DataSourceDescriptor( site.dsd.get() );
-                return incubator.newPipeline( FeaturesProducer.class, dsd, null );
+                return incubator.newPipeline( FeaturesProducer.class, dsd );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

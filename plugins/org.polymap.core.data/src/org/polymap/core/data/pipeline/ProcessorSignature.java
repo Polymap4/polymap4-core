@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-15, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -35,7 +35,8 @@ import com.google.common.base.Throwables;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 
 /**
- * Describes the signature of a {@link PipelineProcessor}.
+ * Describes the signature of a {@link PipelineProcessor} and allows to efficiently
+ * invoke methods depending on {@link ProcessorProbe} type.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
@@ -52,25 +53,6 @@ public class ProcessorSignature {
     protected Set<Class<? extends ProcessorResponse>>   responseOut = new HashSet();
     
     protected Map<Class,Method>                         callMap = new HashMap( 32 );
-    
-    protected PipelineProcessor                         processor;
-    
-    
-//    public ProcessorSignature( Class<? extends ProcessorRequest>[] requestIn,
-//            Class<? extends ProcessorRequest>[] requestOut,
-//            Class<? extends ProcessorResponse>[] responseIn,
-//            Class<? extends ProcessorResponse>[] responseOut ) {
-//        
-//        this.requestIn.addAll( Arrays.asList( requestIn ) );
-//        this.requestOut.addAll( Arrays.asList( requestOut ) );
-//        this.responseOut.addAll( Arrays.asList( responseOut ) );
-//        this.responseIn.addAll( Arrays.asList( responseIn ) );
-//    }
-    
-    public ProcessorSignature( PipelineProcessor processor ) throws PipelineBuilderException {
-        this.processor = processor;
-        buildSignature( processor.getClass() );
-    }
     
     
     public ProcessorSignature( Class<? extends PipelineProcessor> type ) throws PipelineBuilderException {
@@ -143,7 +125,7 @@ public class ProcessorSignature {
     }
 
     
-    public void invoke( ProcessorProbe probe, ProcessorContext context ) throws Exception {
+    public void invoke( PipelineProcessor processor, ProcessorProbe probe, ProcessorContext context ) throws Exception {
         assert processor != null : "This ProcessorSignature was constructed from a type, not a processor instance.";
         try {
             Method m = callMap.get( probe.getClass() );

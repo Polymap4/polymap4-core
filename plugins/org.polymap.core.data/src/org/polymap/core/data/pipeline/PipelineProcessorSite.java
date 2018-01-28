@@ -14,7 +14,7 @@
  */
 package org.polymap.core.data.pipeline;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import org.polymap.core.runtime.config.Config;
@@ -32,26 +32,24 @@ public class PipelineProcessorSite
 
     @Mandatory
     @Immutable
-    public Config<ProcessorSignature>       usecase;
+    public Config<ProcessorSignature>   usecase;
     
     @Mandatory
     @Immutable
-    public Config<DataSourceDescriptor>     dsd;
+    public Config<DataSourceDescriptor> dsd;
 
     @Immutable
-    public Config<PipelineBuilder>          builder;
+    public Config<PipelineBuilder>      builder;
 
-    private Map<String,Object>              props = new HashMap();
+    private Map<String,Object>          properties;
     
     
-    public PipelineProcessorSite( Map<String,Object> props ) {
-        if (props != null) {
-            this.props.putAll( props );
-        }
+    public PipelineProcessorSite( Map<String,Object> properties ) {
+        this.properties = properties != null ? properties : Collections.EMPTY_MAP;
     }
 
     public <T> T getProperty( String key ) {
-        return (T)props.get( key );
+        return (T)properties.get( key );
     }
     
     public Iterable<String> propertyKeys() {

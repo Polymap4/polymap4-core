@@ -14,40 +14,61 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.util.Collections;
 import java.util.Map;
-import java.util.Properties;
+
+import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 
 /**
- * Describes a processor in a {@link Pipeline}. Allows to create actual processor
- * instances to be executed by an {@link PipelineExecutor}.
+ * Describes a processor in a {@link Pipeline}. Creates an actual processor instance
+ * to be executed by an {@link PipelineExecutor}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class ProcessorDescriptor<P extends PipelineProcessor> {
 
-    private Class<? extends PipelineProcessor> cl;
+    private Class<? extends PipelineProcessor> type;
 
-    /** Lazily inited by {@link #signature()}. */
+    /** Lazily initialized by {@link #signature()}. */
     private ProcessorSignature          signature;
     
-    private Map<String,Object>          props;
+    private Map<String,String>          properties;
     
-    private P                           processor;
+    private Lazy<P>                     processor;
 
 
     /**
      * 
-     * @param cl
-     * @param props The properties that are given to the
-     *        {@link PipelineProcessor#init(Properties)} method.
-     * @param usecase 
+     * @param type
+     * @param properties The properties that are given to the
+     *        {@link PipelineProcessor#init(PipelineProcessorSite)} method, or null.
+     * @throws PipelineBuilderException 
      */
-    public ProcessorDescriptor( Class<? extends PipelineProcessor> cl, Map<String,Object> props ) {
-        this.cl = cl;
-        this.props = props;
+    public ProcessorDescriptor( Class<? extends PipelineProcessor> type, Map<String,String> properties )
+            throws PipelineBuilderException {
+        this.type = type;
+        this.properties = properties != null ? properties : Collections.EMPTY_MAP;
+        this.signature = new ProcessorSignature( type );
+
+        this.processor = new LockedLazyInit( () -> {
+            try {
+                return (P)type.newInstance();
+            }
+            catch (RuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new RuntimeException( e );
+            }
+        });
     }
 
 
+    /**
+     * Constructs a descriptor for a use case.
+     */
     public ProcessorDescriptor( ProcessorSignature signature ) {
         this.signature = signature;
     }
@@ -55,7 +76,7 @@ public class ProcessorDescriptor<P extends PipelineProcessor> {
 
     public int hashCode() {
         int result = 1;
-        result = 31 * result + ((cl == null) ? 0 : cl.getName().hashCode());
+        result = 31 * result + ((type == null) ? 0 : type.getName().hashCode());
 //        result = 31 * result + ((usecase == null) ? 0 : usecase.asString().hashCode());
         return result;
     }
@@ -67,7 +88,7 @@ public class ProcessorDescriptor<P extends PipelineProcessor> {
         }
         else if (obj instanceof ProcessorDescriptor) {
             ProcessorDescriptor rhs = (ProcessorDescriptor)obj;
-            return cl.equals( rhs.cl );
+            return type.equals( rhs.type );
         }
         return false;
     }
@@ -75,43 +96,29 @@ public class ProcessorDescriptor<P extends PipelineProcessor> {
 
     public String toString() {
         return /*getClass().getSimpleName() + */ "[" 
-                + (cl != null ? cl.getSimpleName() : "null")
+                + (type != null ? type.getSimpleName() : "null")
                 + "]";
     }
 
 
     public ProcessorSignature signature() throws PipelineBuilderException {
-        if (signature == null) {  // no concurrent check, multi init is ok
-            signature = new ProcessorSignature( processor() );
-        }
         return signature;
     }
 
     
-    public Map<String,Object> getProps() {
-        return props;
+    /** Immutable properties Map. */
+    public Map<String,String> properties() {
+        return properties;
     }
 
 
     public P processor() throws PipelineBuilderException { 
-        assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
-        if (processor == null) {  // no concurrent check, multi init ok
-            try {
-                processor = (P)cl.newInstance();
-            }
-            catch (RuntimeException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new PipelineBuilderException( "", e );
-            }
-        }
-        return processor;
+        return processor.get();
     }
 
     
     public Class<? extends PipelineProcessor> processorType() {
-        return cl;
+        return type;
     }
 
 
@@ -126,34 +133,9 @@ public class ProcessorDescriptor<P extends PipelineProcessor> {
         return ((TerminalPipelineProcessor)processor()).isCompatible( dsd );
     }
 
-    
-//    /**
-//     * In case this processor is an {@link ITerminalPipelineProcessor}, check
-//     * if it can handle the given service.
-//     * 
-//     * @param service
-//     * @throws IllegalArgumentException If this processor is not a terminal.
-//     */
-//    public boolean isCompatible( IService service ) {
-//        assert cl != null : "This ProcessorDescription was initialized without a processor class - it can only be used as the start of a chain.";
-//        if (! ITerminalPipelineProcessor.class.isAssignableFrom( cl )) {
-//            throw new IllegalArgumentException( "Processor is not a terminal: " + cl.getName() );
-//        }
-//        try {
-//            Method m = cl.getMethod( "isCompatible", IService.class );
-//            if (Modifier.isStatic( m.getModifiers() )) {
-//                return (Boolean)m.invoke( cl, service );
-//            }
-//            else {
-//                throw new IllegalStateException( "Method isCompatible() must be static." );
-//            }
-//        }
-//        catch (RuntimeException e) {
-//            throw e;
-//        }
-//        catch (Exception e) {
-//            throw new RuntimeException( e );
-//        }
-//    }
+
+    public void invoke( ProcessorProbe probe, ProcessorContext context ) throws Exception {
+        signature().invoke( processor(), probe, context );
+    }
 
 }

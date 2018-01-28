@@ -27,14 +27,14 @@ public interface PipelineBuilder {
      *
      * @param usecaseType A processor interface that defines the interface of the pipeline. 
      * @param dsd
-     * @param procConfigs
+     * @param procs (Additional) processors to add to the pipeline.
      * @return Newly created {@link Pipeline} instance.
      * @throws PipelineBuilderException
      */
     public Pipeline newPipeline( 
             Class<? extends PipelineProcessor> usecaseType,
             DataSourceDescriptor dsd,
-            PipelineProcessorConfiguration[] procConfigs ) 
+            ProcessorDescriptor... procs ) 
             throws PipelineBuilderException;
 
 }

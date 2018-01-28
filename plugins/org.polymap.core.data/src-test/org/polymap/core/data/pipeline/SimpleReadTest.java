@@ -69,7 +69,6 @@ public abstract class SimpleReadTest {
     @After
     public void tearDown() throws Exception {
         pipeDs.dispose();
-        origDs.dispose();
     }
 
 
@@ -90,7 +89,7 @@ public abstract class SimpleReadTest {
         query = new Query( null, Filter.INCLUDE );
         assertEquals( origFs.getCount( query ), fs.getCount( query ) );
         query = new Query( null, Filter.EXCLUDE );
-        assertEquals( origFs.getCount( query ), fs.getCount( query ) );
+        assertEquals( 0 /*origFs.getCount( query )*/, fs.getCount( query ) );
     }
     
 

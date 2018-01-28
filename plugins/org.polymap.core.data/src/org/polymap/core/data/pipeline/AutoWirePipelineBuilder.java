@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright 2009, Polymap GmbH. All rights reserved.
+ * Copyright 2009-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,6 +13,8 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.core.data.pipeline;
+
+import static java.util.Collections.EMPTY_MAP;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,14 +29,12 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.CoreException;
 
 import org.polymap.core.runtime.ListenerList;
-import org.polymap.core.runtime.Streams;
-import org.polymap.core.runtime.Streams.ExceptionCollector;
 import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
  * Once constructed this incubator stores and re-uses terminal and transformation
- * processors. Subsequent invocations
- * {@link #newPipeline(Class, DataSourceDescriptor, PipelineProcessorConfiguration[])}
+ * processors. Subsequent invocations of
+ * {@link #newPipeline(Class, DataSourceDescriptor, PipelineProcessor.Configuration[])}
  * will produce pipeline that may contain the same terminal or transformer instances!
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
@@ -44,24 +44,26 @@ public class AutoWirePipelineBuilder
 
     private static final Log log = LogFactory.getLog( AutoWirePipelineBuilder.class );
 
-    private List<ProcessorDescriptor<PipelineProcessor>>         transformers = new ArrayList();
+    // hold types instead of ProcessorDescriptors to make sure
+    // that new processor instances are created for each pipeline
+    
+    private List<Class<? extends PipelineProcessor>>    transformers = new ArrayList();
 
-    private List<ProcessorDescriptor<TerminalPipelineProcessor>> terminals = new ArrayList();
-
-
-    public AutoWirePipelineBuilder( ProcessorExtension... extensions ) {
-        throw new RuntimeException( "not yet..." );
-    }
+    private List<Class<? extends TerminalPipelineProcessor>> terminals = new ArrayList();
 
 
-    public AutoWirePipelineBuilder( Class<? extends PipelineProcessor>... procTypes ) {
-        for (Class<? extends PipelineProcessor> procType : procTypes) {
-            ProcessorDescriptor procDesc = new ProcessorDescriptor( procType, null );
-            if (TerminalPipelineProcessor.class.isAssignableFrom( procType )) {
-                terminals.add( procDesc );
+//    public AutoWirePipelineBuilder( ProcessorExtension... extensions ) {
+//        throw new RuntimeException( "not yet..." );
+//    }
+
+
+    public AutoWirePipelineBuilder( Class<? extends PipelineProcessor>... types ) {
+        for (Class<? extends PipelineProcessor> type : types) {
+            if (TerminalPipelineProcessor.class.isAssignableFrom( type )) {
+                terminals.add( (Class<? extends TerminalPipelineProcessor>)type );
             }
             else {
-                transformers.add( procDesc );
+                transformers.add( type );
             }
         }
     }
@@ -98,7 +100,7 @@ public class AutoWirePipelineBuilder
     public Pipeline newPipeline( 
             Class<? extends PipelineProcessor> usecaseType, 
             DataSourceDescriptor dsd,
-            PipelineProcessorConfiguration[] procConfigs) 
+            ProcessorDescriptor... procs)
             throws PipelineBuilderException {
         ProcessorSignature usecase = new ProcessorSignature( usecaseType );
         
@@ -119,11 +121,10 @@ public class AutoWirePipelineBuilder
         Iterable<ProcessorDescriptor<TerminalPipelineProcessor>> terms = findTerminals( usecase, dsd );
 
         // transformer chain
-        LinkedList<ProcessorDescriptor> chain = null;
+        LinkedList<ProcessorDescriptor> chain = new LinkedList();
         int termCount = 0;
         for (ProcessorDescriptor term : terms) {
             termCount ++;
-            chain = new LinkedList();
             if (findTransformation( start, term, usecase, chain )) {
                 break;
             }
@@ -134,8 +135,23 @@ public class AutoWirePipelineBuilder
         if (termCount == 0) {
             throw new PipelineBuilderException( "No terminal for data source: " + dsd );
         }
-        else if (chain == null) {
+        else if (chain.isEmpty()) {
             throw new PipelineBuilderException( "No transformer chain for: data source=" + dsd + ", usecase="  + usecase );
+        }
+        
+        // additional processors
+        for (ProcessorDescriptor candidate : procs) {
+            if (usecase.isCompatible( candidate.signature() )) {
+                chain.add( 0, candidate );                
+            }
+            int index = 1;
+            for (ProcessorDescriptor cursor : chain) {
+                if (cursor.signature().isCompatible( candidate.signature() )) {
+                    chain.add( index, candidate );
+                    break;
+                }
+                index ++;
+            }
         }
         return createPipeline( usecase, dsd, chain );
     }
@@ -144,12 +160,16 @@ public class AutoWirePipelineBuilder
     protected Iterable<ProcessorDescriptor<TerminalPipelineProcessor>> findTerminals( 
             ProcessorSignature usecase, DataSourceDescriptor dsd ) 
             throws PipelineBuilderException {
-        try (
-            ExceptionCollector<PipelineBuilderException> excs = Streams.exceptions()
-        ){
-            return Streams.iterable( terminals.stream()
-                    .filter( desc -> excs.check( () -> desc.isCompatible( dsd ) ) ) );
+        // f*ck streaming has no Exception handling
+        //return FluentIterable.from( terminals ).filter( desc -> desc.isCompatible( dsd ) );
+        List<ProcessorDescriptor<TerminalPipelineProcessor>> result = new ArrayList( terminals.size() );
+        for (Class<? extends TerminalPipelineProcessor> type : terminals) {
+            ProcessorDescriptor candidate = new ProcessorDescriptor( type, EMPTY_MAP );
+            if (candidate.isCompatible( dsd )) {
+                result.add( candidate );
+            }
         }
+        return result;
     }
     
 
@@ -173,10 +193,11 @@ public class AutoWirePipelineBuilder
 
         // recursion step
         else {
-            for (ProcessorDescriptor desc : transformers) {
-                if (from.signature().isCompatible( desc.signature() ) && !chain.contains( desc )) {
-                    chain.addLast( desc );
-                    if (findTransformation( desc, to, usecase, chain )) {
+            for (Class<? extends PipelineProcessor> type : transformers) {
+                ProcessorDescriptor candidate = new ProcessorDescriptor( type, EMPTY_MAP );
+                if (from.signature().isCompatible( candidate.signature() ) && !chain.contains( candidate )) {
+                    chain.addLast( candidate );
+                    if (findTransformation( candidate, to, usecase, chain )) {
                         //log.debug( "      transformation found: " + desc );
                         return true;
                     }

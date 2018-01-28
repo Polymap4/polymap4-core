@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.pipeline;
 
+import static java.util.Collections.EMPTY_MAP;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +38,7 @@ public class SimplePipelineBuilder
         DataSourceDescriptor dsd = new DataSourceDescriptor( fs.getDataStore(), fs.getName().getLocalPart() );
     
         List<ProcessorDescriptor> procs = Arrays.stream( procTypes )
-                .map( procType -> new ProcessorDescriptor( procType, null ) )
+                .map( procType -> new ProcessorDescriptor( procType, EMPTY_MAP ) )
                 .collect( Collectors.toList() );
         
         return new SimplePipelineBuilder().createPipeline( usecase, dsd, procs );
@@ -44,7 +46,7 @@ public class SimplePipelineBuilder
     
     @Override
     public Pipeline newPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd,
-            PipelineProcessorConfiguration[] procConfigs ) throws PipelineBuilderException {
+            ProcessorDescriptor... procs ) throws PipelineBuilderException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }

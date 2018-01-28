@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -70,13 +71,13 @@ public class SerialPipelineExecutor
                 // process request
                 if (!context.requests.isEmpty()) {
                     ProcessorRequest r = context.requests.remove( 0 );
-                    context.procDesc.signature().invoke( r, context );
+                    context.procDesc.invoke( r, context );
                     matched = true;
                 }
                 // process response
                 else if (!context.responses.isEmpty()) {
                     ProcessorResponse r = context.responses.remove( 0 );
-                    context.procDesc.signature().invoke( r, context );
+                    context.procDesc.invoke( r, context );
                     matched = true;
                 }
             }
