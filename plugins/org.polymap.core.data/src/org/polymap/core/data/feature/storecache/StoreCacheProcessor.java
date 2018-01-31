@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.feature.storecache;
 
+import static java.util.Collections.EMPTY_MAP;
+
 import java.util.function.Supplier;
 
 import org.geotools.data.DataAccess;
@@ -33,8 +35,10 @@ import org.polymap.core.data.feature.GetFeaturesSizeRequest;
 import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
 import org.polymap.core.data.feature.TransactionRequest;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.ProcessorProbe;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
 
@@ -54,98 +58,102 @@ public class StoreCacheProcessor
     
     /**
      * Initialize the global cache store.
-     *
-     * @param cachestoreSupplier
      */
-    public static void init( Supplier<DataAccess> cachestoreSupplier ) {
-        cachestore = new LockedLazyInit( cachestoreSupplier );
+    public static void init( Supplier<DataAccess> cacheStoreSupplier ) {
+        assert cachestore == null : "cachestore is set already.";
+        cachestore = new LockedLazyInit( cacheStoreSupplier );
     }
     
-//    protected static RDataStore initBuffers() {
-//        try {
-//            File dataDir = CorePlugin.getDataLocation( DataPlugin.getDefault() );
-//            LuceneRecordStore store = new LuceneRecordStore( new File( dataDir, "feature-buffer" ), false );
-//            return new RDataStore( store, new LuceneQueryDialect() );
-//        }
-//        catch (Exception e) {
-//            throw new RuntimeException( e );
-//        }
-//    }
-//    
-//    
-//    protected static FeatureSource cacheFor( PipelineProcessorSite site ) throws IOException {
-//        DataAccess ds = (DataAccess)site.dsd.get().service.get();
-//        String resName = ds.getInfo().getSource() + ":" + site.dsd.get().resourceName.get();
-//        Name name = new NameImpl( resName );
-//
-//        if (!cachestore.get().getNames().contains( name )) {
-//            // XXX check concurrent create
-//            
-//        }
-//    }
     
     // instance *******************************************
     
     private PipelineProcessorSite       site;
 
-    private Lazy<DataSourceProcessor>   cache = new LockedLazyInit( () -> initCache() );
+    private DataSourceProcessor         cache;
+    
+    private SyncStrategy                sync = new NoSyncStrategy();
 
     
-    protected DataSourceProcessor initCache() {
-        throw new RuntimeException( "" );
-        
-//        PipelineProcessorSite bufferSite = new PipelineProcessorSite( null );
-//        bufferSite.usecase.set( new ProcessorSignature( FeaturesProducer.class ) );
-//        bufferSite.builder.set( site.builder.get() );
-//        bufferSite.dsd.set( bufferDsd );
-//        
-//        cache = new DataSourceProcessor();
-//        cache.init( site );        
-    }
-
     @Override
     public void init( @SuppressWarnings( "hiding" ) PipelineProcessorSite site ) throws Exception {
         this.site = site;
+
+        // XXX shouldn't the ressource name come from upstream schema?
+        assert cachestore != null : "cachestore is not yet initialized.";
+        DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cachestore.get(), site.dsd.get().resourceName.get() );
+        
+        PipelineProcessorSite cacheSite = new PipelineProcessorSite( EMPTY_MAP );
+        cacheSite.usecase.set( site.usecase.get() );
+        cacheSite.builder.set( site.builder.get() );
+        cacheSite.dsd.set( cacheDsd );
+
+        cache = new DataSourceProcessor();
+        cache.init( cacheSite );
     }
 
+    
+    @FunctionalInterface
+    interface Task<E extends Exception> {
+        public void run() throws E;
+    }
+    
+    protected <E extends Exception> void withSync( ProcessorProbe probe, ProcessorContext context, Task<E> task ) throws E {
+        // XXX Exception?
+        sync.before( this, probe, context );
+        try {
+            task.run();
+        }
+        finally {
+            sync.after( this, probe, context );
+        }
+    }
+    
     @Override
     public void setTransactionRequest( TransactionRequest request, ProcessorContext context ) throws Exception {
-        cache.get().setTransactionRequest( request, context );
+        withSync( request, context, () -> 
+                cache.setTransactionRequest( request, context ) );
     }
 
     @Override
     public void modifyFeaturesRequest( ModifyFeaturesRequest request, ProcessorContext context ) throws Exception {
-        cache.get().modifyFeaturesRequest( request, context );
+        withSync( request, context, () -> 
+                cache.modifyFeaturesRequest( request, context ) );
     }
 
     @Override
     public void removeFeaturesRequest( RemoveFeaturesRequest request, ProcessorContext context ) throws Exception {
-        cache.get().removeFeaturesRequest( request, context );
+        withSync( request, context, () -> 
+                cache.removeFeaturesRequest( request, context ) );
     }
 
     @Override
     public void addFeaturesRequest( AddFeaturesRequest request, ProcessorContext context ) throws Exception {
-        cache.get().addFeaturesRequest( request, context );
+        withSync( request, context, () -> 
+                cache.addFeaturesRequest( request, context ) );
     }
 
     @Override
     public void getFeatureTypeRequest( GetFeatureTypeRequest request, ProcessorContext context ) throws Exception {
-        cache.get().getFeatureTypeRequest( request, context );
+        withSync( request, context, () -> 
+                cache.getFeatureTypeRequest( request, context ) );
     }
 
     @Override
     public void getFeatureSizeRequest( GetFeaturesSizeRequest request, ProcessorContext context ) throws Exception {
-        cache.get().getFeatureSizeRequest( request, context );
+        withSync( request, context, () -> 
+                cache.getFeatureSizeRequest( request, context ) );
     }
 
     @Override
     public void getFeatureBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
-        cache.get().getFeatureBoundsRequest( request, context );
+        withSync( request, context, () -> 
+                cache.getFeatureBoundsRequest( request, context ) );
     }
 
     @Override
     public void getFeatureRequest( GetFeaturesRequest request, ProcessorContext context ) throws Exception {
-        cache.get().getFeatureRequest( request, context );
+        withSync( request, context, () -> 
+                cache.getFeatureRequest( request, context ) );
     }
     
 }

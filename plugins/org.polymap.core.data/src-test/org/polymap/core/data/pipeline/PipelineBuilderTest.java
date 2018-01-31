@@ -17,18 +17,13 @@ package org.polymap.core.data.pipeline;
 import static java.util.Collections.EMPTY_MAP;
 import static org.junit.Assert.assertEquals;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import java.io.File;
-import java.io.Serializable;
-
 import org.geotools.data.DataStore;
 import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.store.ContentFeatureSource;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +32,11 @@ import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.feature.storecache.StoreCacheProcessor;
 
-
+/**
+ * 
+ * @author Falko Bräutigam
+ */
+@RunWith(JUnit4.class)
 public class PipelineBuilderTest {
 
     private static final Log log = LogFactory.getLog( PipelineBuilderTest.class );
@@ -50,15 +49,7 @@ public class PipelineBuilderTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // FIXME add to resources
-        File f = new File( "/home/falko/Data/mittelsachen-alkis/GemeindenMittelsachsen.shp" );
-        ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
-
-        Map<String, Serializable> params = new HashMap<String, Serializable>();
-        params.put( "url", f.toURI().toURL() );
-        params.put( "create spatial index", Boolean.TRUE );
-
-        ds = dataStoreFactory.createNewDataStore( params );
+        ds = Shapefile.openTestfile();
         fs = ((ShapefileDataStore)ds).getFeatureSource();
         dsd = new DataSourceDescriptor( ds, fs.getName().getLocalPart() );
     }

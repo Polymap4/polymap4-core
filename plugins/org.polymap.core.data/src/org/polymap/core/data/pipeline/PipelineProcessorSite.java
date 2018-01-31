@@ -41,7 +41,7 @@ public class PipelineProcessorSite
     @Immutable
     public Config<PipelineBuilder>      builder;
 
-    private Map<String,Object>          properties;
+    protected Map<String,Object>        properties;
     
     
     public PipelineProcessorSite( Map<String,Object> properties ) {

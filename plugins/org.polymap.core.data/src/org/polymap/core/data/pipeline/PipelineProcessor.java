@@ -32,7 +32,7 @@ public interface PipelineProcessor {
     
     /**
      * Initializes the processor. Called from {@link PipelineBuilder} right after the
-     * instance was created.
+     * new instance was created.
      */
     public void init( PipelineProcessorSite site ) throws Exception;
 

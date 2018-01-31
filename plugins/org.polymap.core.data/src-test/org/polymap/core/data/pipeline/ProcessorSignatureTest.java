@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Set;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +41,7 @@ import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
+@RunWith(JUnit4.class)
 public class ProcessorSignatureTest {
 
     private static final Log log = LogFactory.getLog( ProcessorSignatureTest.class );

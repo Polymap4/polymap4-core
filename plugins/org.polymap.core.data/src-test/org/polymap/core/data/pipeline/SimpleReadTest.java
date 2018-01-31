@@ -29,6 +29,7 @@ import org.geotools.data.Query;
 import org.geotools.data.store.ContentFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.NullProgressListener;
 import org.junit.After;
 import org.junit.Before;
@@ -36,9 +37,7 @@ import org.junit.Test;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.PipelineFeatureSource;
@@ -50,34 +49,46 @@ import org.polymap.core.data.PipelineFeatureSource;
  */
 public abstract class SimpleReadTest {
 
-    private static final Log log = LogFactory.getLog( SimpleReadTest.class );
-
+    /**
+     * Expected results of {@link SimpleReadTest}.
+     */
+    public static class Expected {
+        public String               SCHEMA_NAME;    
+        public int                  COUNT;
+        public CoordinateReferenceSystem   CRS;
+        public ReferencedEnvelope   BOUNDS;
+    }
+    
     /** The backend  {@link DataStore}. */
-    protected DataAccess                origDs;
+    protected DataAccess            origDs;
             
     /** The backend  {@link FeatureSource}. */
-    protected FeatureSource             origFs;
+    protected FeatureSource         origFs;
 
-    protected Pipeline                  pipeline;
+    protected Pipeline              pipeline;
     
-    protected PipelineDataStore         pipeDs;
+    protected PipelineDataStore     pipeDs;
 
+    protected Expected              expected;
+    
     
     @Before
     public abstract void setUp() throws Exception;
 
     @After
     public void tearDown() throws Exception {
-        pipeDs.dispose();
+        if (pipeDs != null) {
+            pipeDs.dispose();
+        }
     }
 
 
     @Test
     public void testSchema() throws IOException {
         SimpleFeatureType schema = pipeDs.getFeatureSource().getSchema();
-        log.info( "Schema: " + schema );
-        assertEquals( "Chem_Zustand_Fliessgew_WK_Liste_CHEM_0912", schema.getName().getLocalPart() );
-        assertEquals( "Chem_Zustand_Fliessgew_WK_Liste_CHEM_0912", schema.getTypeName() );
+        //System.out.println( "" +  schema );
+        assertEquals( expected.SCHEMA_NAME, schema.getName().getLocalPart() );
+        assertEquals( expected.SCHEMA_NAME, schema.getTypeName() );
     }
     
 
@@ -85,9 +96,11 @@ public abstract class SimpleReadTest {
     public void testCount() throws IOException {
         PipelineFeatureSource fs = pipeDs.getFeatureSource();
         Query query = Query.ALL;
-        assertEquals( origFs.getCount( query ), fs.getCount( query ) );
+        assertEquals( expected.COUNT, fs.getCount( query ) );
+
         query = new Query( null, Filter.INCLUDE );
-        assertEquals( origFs.getCount( query ), fs.getCount( query ) );
+        assertEquals( expected.COUNT, fs.getCount( query ) );
+        
         query = new Query( null, Filter.EXCLUDE );
         assertEquals( 0 /*origFs.getCount( query )*/, fs.getCount( query ) );
     }
@@ -97,11 +110,13 @@ public abstract class SimpleReadTest {
     public void testBounds() throws IOException {
         PipelineFeatureSource fs = pipeDs.getFeatureSource();
         Query query = Query.ALL;
-        assertEquals( origFs.getBounds( query ), fs.getBounds( query ) );
+        assertEquals( expected.BOUNDS, fs.getBounds( query ) );
+
         query = new Query( null, Filter.INCLUDE );
-        assertEquals( origFs.getBounds( query ), fs.getBounds( query ) );
+        assertEquals( expected.BOUNDS, fs.getBounds( query ) );
+        
         query = new Query( null, Filter.EXCLUDE );
-        assertEquals( origFs.getBounds( query ), fs.getBounds( query ) );
+        assertEquals( null, fs.getBounds( query ) );
     }
     
 
@@ -124,8 +139,7 @@ public abstract class SimpleReadTest {
             assertNotNull( feature.getIdentifier() );
             assertNotNull( feature.getDefaultGeometryProperty().getValue() );
         });
-        
-        assertEquals( origFs.getCount( Query.ALL ) * 2, count.get() );
+        assertEquals( expected.COUNT * 2, count.get() );
     }
     
     
