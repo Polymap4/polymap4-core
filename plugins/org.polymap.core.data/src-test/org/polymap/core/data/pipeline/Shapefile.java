@@ -51,7 +51,7 @@ public class Shapefile {
     }
     
     public static ShapefileDataStore openTestfile() {
-        URL url = Thread.currentThread().getContextClassLoader().getResource( "GemeindenMittelsachsen.shp" );
+        URL url = Shapefile.class.getClassLoader().getResource( "GemeindenMittelsachsen.shp" );
         return open( url );
         //return open( "/home/falko/Data/WGN_SAX_INFO/Datenuebergabe_Behoerden_Stand_1001/Shapedateien/Chem_Zustand_Fliessgew_WK_Liste_CHEM_0912.shp" );
     }
