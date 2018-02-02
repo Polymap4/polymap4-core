@@ -14,8 +14,6 @@
  */
 package org.polymap.core.data.pipeline;
 
-import static java.util.Collections.EMPTY_MAP;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +21,8 @@ import java.util.stream.Collectors;
 import org.geotools.data.FeatureSource;
 
 import org.polymap.core.data.feature.FeaturesProducer;
+import org.polymap.core.data.pipeline.Param.ParamsHolder;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 
 /**
  * 
@@ -30,25 +30,36 @@ import org.polymap.core.data.feature.FeaturesProducer;
  * @author Falko Bräutigam
  */
 public class SimplePipelineBuilder
-        extends PipelineBuilderBase {
+        extends PipelineBuilderBase
+        implements ParamsHolder {
 
-    public static Pipeline newFeaturePipeline( FeatureSource fs, Class<? extends PipelineProcessor>... procTypes ) 
+    private Params          params = new Params();
+    
+
+    public Pipeline newFeaturePipeline( FeatureSource fs, Class<? extends PipelineProcessor>... procTypes ) 
             throws PipelineBuilderException {
         ProcessorSignature usecase = new ProcessorSignature( FeaturesProducer.class );
         DataSourceDescriptor dsd = new DataSourceDescriptor( fs.getDataStore(), fs.getName().getLocalPart() );
     
         List<ProcessorDescriptor> procs = Arrays.stream( procTypes )
-                .map( procType -> new ProcessorDescriptor( procType, EMPTY_MAP ) )
+                .map( procType -> new ProcessorDescriptor( procType, params ) )
                 .collect( Collectors.toList() );
         
         return new SimplePipelineBuilder().createPipeline( usecase, dsd, procs );
     }
+    
     
     @Override
     public Pipeline newPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd,
             ProcessorDescriptor... procs ) throws PipelineBuilderException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
+    }
+
+    
+    @Override
+    public Params params() {
+        return params;
     }
 
 }

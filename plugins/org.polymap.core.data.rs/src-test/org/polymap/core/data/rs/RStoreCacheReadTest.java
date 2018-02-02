@@ -16,55 +16,67 @@ package org.polymap.core.data.rs;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.feature.storecache.NoSyncStrategy;
+import org.polymap.core.data.feature.storecache.StoreCacheProcessor;
+import org.polymap.core.data.pipeline.PipelineReadTest;
 import org.polymap.core.data.pipeline.Shapefile;
 import org.polymap.core.data.pipeline.SimplePipelineBuilder;
-import org.polymap.core.data.pipeline.SimpleReadTest;
 import org.polymap.core.data.rs.lucene.LuceneQueryDialect;
 
 import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 /**
- * Test against {@link RDataStore}.
+ * {@link PipelineReadTest} with {@link StoreCacheProcessor} with
+ * {@link RDataStore} and {@link ShapefileDataStore} backend.
  *
  * @author Falko Bräutigam
  */
-public class PipelineSimpleReadTest
-        extends SimpleReadTest {
-
+@RunWith(JUnit4.class)
+public class RStoreCacheReadTest
+        extends PipelineReadTest {
+    
     /** Cached {@link ShapefileDataStore} for all tests. */
-    private static RDataStore       _ds;
-    
-    private static RFeatureStore    _fs;
-    
-    private static Expected         _expected;
+    private static ShapefileDataStore   _ds;
 
+    private static Expected             _expected;
+    
+    private static RDataStore           _cacheDs;
+    
     @BeforeClass
     public static void setUpClass() throws Exception {
-        LuceneRecordStore rs = new LuceneRecordStore( /*RAM*/ );
-        _ds = new RDataStore( rs, new LuceneQueryDialect() );
-        
-        // creating schema / add features
-        ShapefileDataStore shapeDs = Shapefile.openTestfile();
-        _ds.createSchema( shapeDs.getSchema() );
-        _fs = (RFeatureStore)_ds.getFeatureSource( shapeDs.getSchema().getName() );        
-        _fs.addFeatures( shapeDs.getFeatureSource().getFeatures() );
-        
         _expected = Shapefile.testfileExpectations();
+        _ds = Shapefile.openTestfile();
+        //SimpleFeatureType schema = _cacheDs.getSchema();
+        
+        LuceneRecordStore rs = new LuceneRecordStore( /*RAM*/ );
+        _cacheDs = new RDataStore( rs, new LuceneQueryDialect() );
+        StoreCacheProcessor.init( () -> _cacheDs );
     }
     
     @AfterClass
     public static void tearDownClass() {
         _ds.dispose();
+        //_cacheDs.dispose();
     }
-
+    
+    
+    @Before
     public void setUp() throws Exception {
         origDs = _ds;
-        origFs = _fs;
-        pipeline = SimplePipelineBuilder.newFeaturePipeline( origFs, DataSourceProcessor.class );
+        origFs = origDs.getFeatureSource( _ds.getSchema().getName() );
+        
+        SimplePipelineBuilder builder = new SimplePipelineBuilder();
+        StoreCacheProcessor.SYNC_TYPE.set( builder, NoSyncStrategy.class );
+        pipeline = builder.newFeaturePipeline( origFs, 
+                StoreCacheProcessor.class,
+                DataSourceProcessor.class );
         pipeDs = new PipelineDataStore( pipeline );
         expected = _expected;
     }

@@ -14,13 +14,14 @@
  */
 package org.polymap.core.data.feature.storecache;
 
-import static java.util.Collections.EMPTY_MAP;
-
 import java.util.function.Supplier;
+
+import java.io.IOException;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureStore;
+import org.geotools.feature.NameImpl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,8 +37,10 @@ import org.polymap.core.data.feature.ModifyFeaturesRequest;
 import org.polymap.core.data.feature.RemoveFeaturesRequest;
 import org.polymap.core.data.feature.TransactionRequest;
 import org.polymap.core.data.pipeline.DataSourceDescriptor;
+import org.polymap.core.data.pipeline.Param;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 import org.polymap.core.data.pipeline.ProcessorProbe;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
@@ -54,6 +57,8 @@ public class StoreCacheProcessor
 
     private static final Log log = LogFactory.getLog( StoreCacheProcessor.class );
 
+    public static final Param<Class>    SYNC_TYPE = new Param( "syncType", Class.class );
+
     private static Lazy<DataAccess>     cachestore;
     
     /**
@@ -69,29 +74,43 @@ public class StoreCacheProcessor
     
     private PipelineProcessorSite       site;
 
+    private DataAccess                  cacheDs;
+
+    private String                      resName;
+
     private DataSourceProcessor         cache;
     
-    private SyncStrategy                sync = new NoSyncStrategy();
+    private SyncStrategy                sync;
 
     
     @Override
     public void init( @SuppressWarnings( "hiding" ) PipelineProcessorSite site ) throws Exception {
         this.site = site;
+        
+        // init sync strategy
+        sync = (SyncStrategy)SYNC_TYPE.get( site ).newInstance();
+        sync.beforeInit( site );
 
         // XXX shouldn't the ressource name come from upstream schema?
         assert cachestore != null : "cachestore is not yet initialized.";
-        DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cachestore.get(), site.dsd.get().resourceName.get() );
+        cacheDs = cachestore.get();
+        resName = site.dsd.get().resourceName.get();
+        DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cacheDs, resName );
         
-        PipelineProcessorSite cacheSite = new PipelineProcessorSite( EMPTY_MAP );
+        PipelineProcessorSite cacheSite = new PipelineProcessorSite( Params.EMPTY );
         cacheSite.usecase.set( site.usecase.get() );
         cacheSite.builder.set( site.builder.get() );
         cacheSite.dsd.set( cacheDsd );
 
         cache = new DataSourceProcessor();
         cache.init( cacheSite );
+        sync.afterInit( site );
     }
 
-    
+    protected FeatureStore cacheFeatureStore() throws IOException {
+        return (FeatureStore)cacheDs.getFeatureSource( new NameImpl( resName ) );
+    }
+
     @FunctionalInterface
     interface Task<E extends Exception> {
         public void run() throws E;

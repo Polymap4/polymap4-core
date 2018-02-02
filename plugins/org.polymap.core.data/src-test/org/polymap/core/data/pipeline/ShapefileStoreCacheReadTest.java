@@ -20,40 +20,57 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.opengis.feature.simple.SimpleFeatureType;
 
 import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.feature.DataSourceProcessor;
+import org.polymap.core.data.feature.storecache.NoSyncStrategy;
+import org.polymap.core.data.feature.storecache.StoreCacheProcessor;
 
 /**
- * {@link SimpleReadTest} against {@link ShapefileDataStore}.
+ * {@link PipelineReadTest} with {@link StoreCacheProcessor} against
+ * {@link ShapefileDataStore}.
  *
  * @author Falko Bräutigam
  */
 @RunWith(JUnit4.class)
-public class ShapeSimpleReadTest
-        extends SimpleReadTest {
+public class ShapefileStoreCacheReadTest
+        extends PipelineReadTest {
     
     /** Cached {@link ShapefileDataStore} for all tests. */
     private static ShapefileDataStore   _ds;
-    
-    private static Expected             _expected;
 
+    private static Expected             _expected;
+    
+    private static ShapefileDataStore   _cacheDs;
+    
     @BeforeClass
     public static void setUpClass() throws Exception {
-        _ds = Shapefile.openTestfile();
         _expected = Shapefile.testfileExpectations();
+        _cacheDs = Shapefile.openTestfile();
+        SimpleFeatureType schema = _cacheDs.getSchema();
+        
+        _ds = Shapefile.createTemp( schema );
+        StoreCacheProcessor.init( () -> _cacheDs );
     }
     
     @AfterClass
     public static void tearDownClass() {
         _ds.dispose();
+        //_cacheDs.dispose();
     }
+    
     
     @Before
     public void setUp() throws Exception {
         origDs = _ds;
-        origFs = _ds.getFeatureSource();
-        pipeline = SimplePipelineBuilder.newFeaturePipeline( origFs, DataSourceProcessor.class );
+        origFs = origDs.getFeatureSource( _ds.getSchema().getName() );
+        
+        SimplePipelineBuilder builder = new SimplePipelineBuilder();
+        StoreCacheProcessor.SYNC_TYPE.set( builder, NoSyncStrategy.class );
+        pipeline = builder.newFeaturePipeline( origFs, 
+                StoreCacheProcessor.class,
+                DataSourceProcessor.class );
         pipeDs = new PipelineDataStore( pipeline );
         expected = _expected;
     }

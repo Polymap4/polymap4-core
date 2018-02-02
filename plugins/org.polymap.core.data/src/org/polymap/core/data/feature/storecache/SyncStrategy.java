@@ -15,17 +15,26 @@
 package org.polymap.core.data.feature.storecache;
 
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorProbe;
 
 /**
- * 
+ * Provides sync strategy SPI and default no-op implementation.
  *
  * @author Falko Bräutigam
  */
 public abstract class SyncStrategy {
 
-    public abstract void before( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context );
+    public void before( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
+    }
 
-    public abstract void after( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context );
+    public void after( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
+    }
+
+    public void beforeInit( PipelineProcessorSite site ) {
+    }
+
+    public void afterInit( PipelineProcessorSite site ) {
+    }
 
 }

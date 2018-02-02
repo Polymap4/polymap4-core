@@ -47,10 +47,10 @@ import org.polymap.core.data.PipelineFeatureSource;
  * 
  * @author Falko Bräutigam
  */
-public abstract class SimpleReadTest {
+public abstract class PipelineReadTest {
 
     /**
-     * Expected results of {@link SimpleReadTest}.
+     * Expected results of {@link PipelineReadTest}.
      */
     public static class Expected {
         public String               SCHEMA_NAME;    

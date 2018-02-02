@@ -14,10 +14,9 @@
  */
 package org.polymap.core.data.pipeline;
 
-import java.util.Collections;
-import java.util.Map;
-
+import org.polymap.core.data.pipeline.Param.ParamsHolder;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
 
@@ -27,14 +26,15 @@ import org.polymap.core.runtime.LockedLazyInit;
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class ProcessorDescriptor<P extends PipelineProcessor> {
+public class ProcessorDescriptor<P extends PipelineProcessor>
+        implements ParamsHolder {
 
     private Class<? extends PipelineProcessor> type;
 
     /** Lazily initialized by {@link #signature()}. */
     private ProcessorSignature          signature;
     
-    private Map<String,String>          properties;
+    private Params                      params;
     
     private Lazy<P>                     processor;
 
@@ -42,14 +42,14 @@ public class ProcessorDescriptor<P extends PipelineProcessor> {
     /**
      * 
      * @param type
-     * @param properties The properties that are given to the
+     * @param params The properties that are given to the
      *        {@link PipelineProcessor#init(PipelineProcessorSite)} method, or null.
-     * @throws PipelineBuilderException 
+     * @throws PipelineBuilderException
      */
-    public ProcessorDescriptor( Class<? extends PipelineProcessor> type, Map<String,String> properties )
+    public ProcessorDescriptor( Class<? extends PipelineProcessor> type, Params params )
             throws PipelineBuilderException {
         this.type = type;
-        this.properties = properties != null ? properties : Collections.EMPTY_MAP;
+        this.params = params != null ? params : Params.EMPTY;
         this.signature = new ProcessorSignature( type );
 
         this.processor = new LockedLazyInit( () -> {
@@ -106,9 +106,9 @@ public class ProcessorDescriptor<P extends PipelineProcessor> {
     }
 
     
-    /** Immutable properties Map. */
-    public Map<String,String> properties() {
-        return properties;
+    @Override
+    public Params params() {
+        return params;
     }
 
 

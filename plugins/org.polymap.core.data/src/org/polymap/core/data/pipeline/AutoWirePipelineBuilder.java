@@ -14,8 +14,6 @@
  */
 package org.polymap.core.data.pipeline;
 
-import static java.util.Collections.EMPTY_MAP;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -28,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.CoreException;
 
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.session.SessionSingleton;
 
@@ -164,7 +163,7 @@ public class AutoWirePipelineBuilder
         //return FluentIterable.from( terminals ).filter( desc -> desc.isCompatible( dsd ) );
         List<ProcessorDescriptor<TerminalPipelineProcessor>> result = new ArrayList( terminals.size() );
         for (Class<? extends TerminalPipelineProcessor> type : terminals) {
-            ProcessorDescriptor candidate = new ProcessorDescriptor( type, EMPTY_MAP );
+            ProcessorDescriptor candidate = new ProcessorDescriptor( type, Params.EMPTY );
             if (candidate.isCompatible( dsd )) {
                 result.add( candidate );
             }
@@ -194,7 +193,7 @@ public class AutoWirePipelineBuilder
         // recursion step
         else {
             for (Class<? extends PipelineProcessor> type : transformers) {
-                ProcessorDescriptor candidate = new ProcessorDescriptor( type, EMPTY_MAP );
+                ProcessorDescriptor candidate = new ProcessorDescriptor( type, Params.EMPTY );
                 if (from.signature().isCompatible( candidate.signature() ) && !chain.contains( candidate )) {
                     chain.addLast( candidate );
                     if (findTransformation( candidate, to, usecase, chain )) {

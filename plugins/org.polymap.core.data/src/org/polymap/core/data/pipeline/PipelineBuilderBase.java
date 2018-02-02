@@ -44,7 +44,7 @@ public abstract class PipelineBuilderBase
     
     
     protected PipelineProcessorSite createProcessorSite( ProcessorDescriptor procDesc ) {
-        return new PipelineProcessorSite( procDesc.properties() );
+        return new PipelineProcessorSite( procDesc.params() );
     }
 
 }

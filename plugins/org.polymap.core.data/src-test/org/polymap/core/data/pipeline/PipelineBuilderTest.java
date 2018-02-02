@@ -14,7 +14,6 @@
  */
 package org.polymap.core.data.pipeline;
 
-import static java.util.Collections.EMPTY_MAP;
 import static org.junit.Assert.assertEquals;
 
 import org.geotools.data.DataStore;
@@ -30,7 +29,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.FeaturesProducer;
+import org.polymap.core.data.feature.storecache.NoSyncStrategy;
 import org.polymap.core.data.feature.storecache.StoreCacheProcessor;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 
 /**
  * 
@@ -67,9 +68,12 @@ public class PipelineBuilderTest {
     @Test
     public void testBufferDataSourceAutoWire() throws PipelineBuilderException {
         AutoWirePipelineBuilder builder = new AutoWirePipelineBuilder( DataSourceProcessor.class );
+        
+        Params storeCacheProcessorParams = new Params();
+        StoreCacheProcessor.SYNC_TYPE.set( storeCacheProcessorParams, NoSyncStrategy.class );
         Pipeline pipeline = builder.newPipeline( 
                 FeaturesProducer.class, dsd, 
-                new ProcessorDescriptor( StoreCacheProcessor.class, EMPTY_MAP ) );
+                new ProcessorDescriptor( StoreCacheProcessor.class, storeCacheProcessorParams ) );
         assertEquals( 2, pipeline.length() );
         assertEquals( StoreCacheProcessor.class, pipeline.get( 0 ).processorType() );
         assertEquals( DataSourceProcessor.class, pipeline.getLast().processorType() );

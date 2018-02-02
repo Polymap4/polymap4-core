@@ -51,6 +51,7 @@ import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
 import org.polymap.core.data.pipeline.DataSourceDescriptor;
+import org.polymap.core.data.pipeline.Param;
 import org.polymap.core.data.pipeline.Pipeline;
 import org.polymap.core.data.pipeline.PipelineBuilder;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
@@ -71,7 +72,7 @@ public class FeatureRenderProcessor2
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
 
     /** Site property key to retrieve {@link #style}. */
-    public static final String          STYLE_SUPPLIER = "styleSupplier";
+    public static final Param<Supplier<Style>>  STYLE_SUPPLIER = new Param( "styleSupplier", Supplier.class );
     
     private PipelineProcessorSite       site;
     
@@ -79,7 +80,7 @@ public class FeatureRenderProcessor2
 
     private Lazy<FeatureSource>         fs;
 
-    private Supplier<Style>             style;  // = new CachedLazyInit( () -> new DefaultStyles().findStyle( fs.get() ) );
+    private Supplier<Style>             style;
 
     
     @Override
@@ -87,11 +88,10 @@ public class FeatureRenderProcessor2
         this.site = site;
         
         // styleSupplier
-        style = site.getProperty( STYLE_SUPPLIER );
-        if (style == null) {
+        style = STYLE_SUPPLIER.opt( site ).orElseGet( () -> {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
-            style = () -> DefaultStyles.findStyle( fs.get() );
-        }
+            return () -> DefaultStyles.findStyle( fs.get() );
+        });
         
         // pipeline
         this.pipeline = new CachedLazyInit( () -> {

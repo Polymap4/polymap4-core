@@ -33,6 +33,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.factory.CommonFactoryFinder;
@@ -50,6 +51,7 @@ import org.geotools.styling.StyleFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -93,13 +95,10 @@ public class RasterRenderProcessor
         coverageName = site.dsd.get().resourceName.get();
         
         // styleSupplier
-        style = site.getProperty( FeatureRenderProcessor2.STYLE_SUPPLIER );
-        if (style == null) {
+        style = FeatureRenderProcessor2.STYLE_SUPPLIER.opt( site ).orElseGet( () -> {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
-            style = () -> createGreyscaleStyle( 1 );
-            //style = () -> DefaultStyles.findStyle( fs.get() );
-        }
-
+            return () -> createGreyscaleStyle( 1 );
+        });
     }
 
 

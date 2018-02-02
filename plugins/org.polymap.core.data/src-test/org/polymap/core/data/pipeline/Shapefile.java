@@ -28,7 +28,7 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import org.polymap.core.data.pipeline.SimpleReadTest.Expected;
+import org.polymap.core.data.pipeline.PipelineReadTest.Expected;
 import org.polymap.core.data.util.Geometries;
 
 /**
