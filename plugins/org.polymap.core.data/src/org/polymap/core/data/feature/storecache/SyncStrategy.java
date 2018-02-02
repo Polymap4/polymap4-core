@@ -25,16 +25,16 @@ import org.polymap.core.data.pipeline.ProcessorProbe;
  */
 public abstract class SyncStrategy {
 
-    public void before( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
+    public void beforeProbe( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) throws Exception {
     }
 
-    public void after( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
+    public void afterProbe( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
     }
 
-    public void beforeInit( PipelineProcessorSite site ) {
+    public void beforeInit( StoreCacheProcessor processor, PipelineProcessorSite site ) throws Exception {
     }
 
-    public void afterInit( PipelineProcessorSite site ) {
+    public void afterInit( StoreCacheProcessor processor, PipelineProcessorSite site ) throws Exception {
     }
 
 }

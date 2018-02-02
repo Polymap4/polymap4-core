@@ -16,12 +16,9 @@ package org.polymap.core.data.feature.storecache;
 
 import java.util.function.Supplier;
 
-import java.io.IOException;
-
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureStore;
-import org.geotools.feature.NameImpl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -86,17 +83,17 @@ public class StoreCacheProcessor
     @Override
     public void init( @SuppressWarnings( "hiding" ) PipelineProcessorSite site ) throws Exception {
         this.site = site;
-        
-        // init sync strategy
-        sync = (SyncStrategy)SYNC_TYPE.get( site ).newInstance();
-        sync.beforeInit( site );
 
         // XXX shouldn't the ressource name come from upstream schema?
         assert cachestore != null : "cachestore is not yet initialized.";
         cacheDs = cachestore.get();
         resName = site.dsd.get().resourceName.get();
-        DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cacheDs, resName );
         
+        // init sync strategy
+        sync = (SyncStrategy)SYNC_TYPE.get( site ).newInstance();
+        sync.beforeInit( this, site );
+
+        DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cacheDs, resName );
         PipelineProcessorSite cacheSite = new PipelineProcessorSite( Params.EMPTY );
         cacheSite.usecase.set( site.usecase.get() );
         cacheSite.builder.set( site.builder.get() );
@@ -104,11 +101,12 @@ public class StoreCacheProcessor
 
         cache = new DataSourceProcessor();
         cache.init( cacheSite );
-        sync.afterInit( site );
+        
+        sync.afterInit( this, site );
     }
 
-    protected FeatureStore cacheFeatureStore() throws IOException {
-        return (FeatureStore)cacheDs.getFeatureSource( new NameImpl( resName ) );
+    protected DataAccess cacheDataStore() {
+        return cacheDs;
     }
 
     @FunctionalInterface
@@ -116,14 +114,14 @@ public class StoreCacheProcessor
         public void run() throws E;
     }
     
-    protected <E extends Exception> void withSync( ProcessorProbe probe, ProcessorContext context, Task<E> task ) throws E {
+    protected void withSync( ProcessorProbe probe, ProcessorContext context, Task task ) throws Exception {
         // XXX Exception?
-        sync.before( this, probe, context );
+        sync.beforeProbe( this, probe, context );
         try {
             task.run();
         }
         finally {
-            sync.after( this, probe, context );
+            sync.afterProbe( this, probe, context );
         }
     }
     

@@ -31,13 +31,13 @@ public class NoSyncStrategy
     private static final Log log = LogFactory.getLog( NoSyncStrategy.class );
 
     @Override
-    public void before( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
-        log.debug( "before(): " + probe.getClass().getSimpleName() );
+    public void beforeProbe( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
+        log.debug( "beforeProbe(): " + probe.getClass().getSimpleName() );
     }
 
     @Override
-    public void after( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
-        log.debug( "after(): " + probe.getClass().getSimpleName() );
+    public void afterProbe( StoreCacheProcessor processor, ProcessorProbe probe, ProcessorContext context ) {
+        log.debug( "afterProbe(): " + probe.getClass().getSimpleName() );
     }
     
 }

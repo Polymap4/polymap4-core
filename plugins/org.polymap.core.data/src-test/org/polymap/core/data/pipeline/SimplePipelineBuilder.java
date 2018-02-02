@@ -45,7 +45,7 @@ public class SimplePipelineBuilder
                 .map( procType -> new ProcessorDescriptor( procType, params ) )
                 .collect( Collectors.toList() );
         
-        return new SimplePipelineBuilder().createPipeline( usecase, dsd, procs );
+        return createPipeline( usecase, dsd, procs );
     }
     
     

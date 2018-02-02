@@ -23,7 +23,7 @@ import org.junit.runners.JUnit4;
 
 import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.feature.DataSourceProcessor;
-import org.polymap.core.data.feature.storecache.NoSyncStrategy;
+import org.polymap.core.data.feature.storecache.FullDataStoreSyncStrategy;
 import org.polymap.core.data.feature.storecache.StoreCacheProcessor;
 import org.polymap.core.data.pipeline.PipelineReadTest;
 import org.polymap.core.data.pipeline.Shapefile;
@@ -73,7 +73,7 @@ public class RStoreCacheReadTest
         origFs = origDs.getFeatureSource( _ds.getSchema().getName() );
         
         SimplePipelineBuilder builder = new SimplePipelineBuilder();
-        StoreCacheProcessor.SYNC_TYPE.set( builder, NoSyncStrategy.class );
+        StoreCacheProcessor.SYNC_TYPE.set( builder, FullDataStoreSyncStrategy.class );
         pipeline = builder.newFeaturePipeline( origFs, 
                 StoreCacheProcessor.class,
                 DataSourceProcessor.class );

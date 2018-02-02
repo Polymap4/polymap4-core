@@ -18,7 +18,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-jdbc-spatialite-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-main-18.1.jar" sourcepath="lib/sources/gt-main-18.1-sources.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-18.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gt-metadata-18.1.jar" sourcepath="lib/sources/gt-metadata-18.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-opengis-18.1.jar" sourcepath="lib/sources/gt-opengis-18.1-sources.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-referencing-18.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gt-render-18.1.jar"/>
