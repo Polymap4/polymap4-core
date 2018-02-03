@@ -48,18 +48,29 @@ public class Param<T> {
     private Class       type;
 
     /**
+     * Construct with no default value set.
      * 
-     * @param procType The type of the processor this parameter is associated with.
      * @param localpart The suffix part of the name of this parameter.
      * @param type The type of this parameter.
      */
-    public Param( /*Class<? extends PipelineProcessor> procType,*/ String localpart, Class type ) {
+    public Param( String localpart, Class<T> type ) {
+        this( localpart, type, null );
+    }
+    
+    /**
+     * 
+     * @param localpart The suffix part of the name of this parameter.
+     * @param type The type of this parameter.
+     * @param defaultValue The default value.
+     */
+    public Param( String localpart, Class<T> type, T defaultValue ) {
         StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
         StackTraceElement elm = stacktrace[2];
         //System.out.println( "" + elm.getClassName() );
         
         this.name = elm.getClassName() + "." + localpart;
         this.type = type;
+        this.defaultValue = defaultValue;
     }
 
     public void set( ParamsHolder params, T value ) throws IllegalStateException{

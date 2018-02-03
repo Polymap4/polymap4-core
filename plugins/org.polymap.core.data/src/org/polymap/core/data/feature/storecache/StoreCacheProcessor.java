@@ -14,7 +14,12 @@
  */
 package org.polymap.core.data.feature.storecache;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+
+import java.time.Duration;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
@@ -56,6 +61,14 @@ public class StoreCacheProcessor
 
     public static final Param<Class>    SYNC_TYPE = new Param( "syncType", Class.class );
 
+    /** The minimum timeout between updates of the cache. */
+    public static final Param<Long>     MIN_UPDATE_TIMEOUT = new Param( "minTimeout", Long.class, Duration.ofMinutes( 5 ).toMillis() );
+
+    /** The maximum timeout between updates of the cache. */
+    public static final Param<Long>     MAX_UPDATE_TIMEOUT = new Param( "maxTimeout", Long.class, Duration.ofDays( 1 ).toMillis() );
+
+    static ConcurrentMap<String,AtomicLong> lastUpdated = new ConcurrentHashMap();
+    
     private static Lazy<DataAccess>     cachestore;
     
     /**
@@ -89,6 +102,8 @@ public class StoreCacheProcessor
         cacheDs = cachestore.get();
         resName = site.dsd.get().resourceName.get();
         
+        lastUpdated.computeIfAbsent( resName, k -> new AtomicLong() );
+        
         // init sync strategy
         sync = (SyncStrategy)SYNC_TYPE.get( site ).newInstance();
         sync.beforeInit( this, site );
@@ -105,10 +120,30 @@ public class StoreCacheProcessor
         sync.afterInit( this, site );
     }
 
+    
     protected DataAccess cacheDataStore() {
         return cacheDs;
     }
 
+    
+    protected <E extends Exception> void ifUpdateNeeded( Task<E> task ) throws E {
+        AtomicLong updated = lastUpdated.get( resName );
+        long current = updated.get();
+
+        // update function should be side-effect free, so we cannot call
+        // the task from within the update function
+        long newValue = updated.updateAndGet( last -> {
+            long minTimeOut = MIN_UPDATE_TIMEOUT.get( site );
+            Long now = System.currentTimeMillis();
+            return last + minTimeOut < now ? now : last;
+        });
+        
+        if (newValue != current) {
+            task.run();
+        }
+    }
+    
+    
     @FunctionalInterface
     interface Task<E extends Exception> {
         public void run() throws E;

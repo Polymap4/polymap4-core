@@ -77,10 +77,9 @@ public class FullDataStoreSyncStrategy
         else {
             checkUpdateSchema();
         }        
-        
         // schedule sync
         assert syncJob.getState() == Job.NONE;
-        syncJob.schedule();
+        proc.ifUpdateNeeded( () -> syncJob.schedule() );
     }
 
     
@@ -105,6 +104,7 @@ public class FullDataStoreSyncStrategy
 
     @Override
     public void beforeProbe( StoreCacheProcessor proc, ProcessorProbe probe, ProcessorContext context ) throws Exception {
+        proc.ifUpdateNeeded( () -> syncJob.schedule() );
         syncJob.join();
     }
 
@@ -117,10 +117,12 @@ public class FullDataStoreSyncStrategy
 
         public SyncJob() {
             super( "Cache synchronization", false );
+            assert getJobManager().isIdle();
         }
 
         @Override
         protected void runWithException( IProgressMonitor monitor ) throws Exception {
+            log.info( "Start cache update..." );
             FeatureStore cacheFs = (FeatureStore)cacheDs.getFeatureSource( resName );
             
             // fill cache
