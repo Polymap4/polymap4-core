@@ -88,7 +88,7 @@ public class FeatureRenderProcessor2
         this.site = site;
         
         // styleSupplier
-        style = STYLE_SUPPLIER.opt( site ).orElseGet( () -> {
+        style = STYLE_SUPPLIER.rawopt( site ).orElseGet( () -> {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
             return () -> DefaultStyles.findStyle( fs.get() );
         });
@@ -96,9 +96,9 @@ public class FeatureRenderProcessor2
         // pipeline
         this.pipeline = new CachedLazyInit( () -> {
             try {
-                PipelineBuilder incubator = site.builder.get();
+                PipelineBuilder builder = site.builder.get();
                 DataSourceDescriptor dsd = new DataSourceDescriptor( site.dsd.get() );
-                return incubator.newPipeline( FeaturesProducer.class, dsd );
+                return builder.createPipeline( FeaturesProducer.class, dsd );
             }
             catch (Exception e) {
                 throw new RuntimeException( e );

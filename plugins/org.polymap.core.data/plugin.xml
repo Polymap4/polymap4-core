@@ -15,6 +15,12 @@
             name="%processor_grayscale"
             propertyPage="org.polymap.core.data.image.ImageGrayscaleProcessorConfig">
       </processor>
+      <processor
+            class="org.polymap.core.data.feature.storecache.StoreCacheProcessor"
+            description="Caches the entire contents of the upstream data source. You can specify the min and max time between the updates of the cache."
+            id="org.polymap.core.data.StoreCacheProcessor"
+            name="Feature: Store Cache">
+      </processor>
    </extension>
    <extension
          point="org.polymap.core.data.process.fieldIO">

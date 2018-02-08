@@ -14,13 +14,17 @@
  */
 package org.polymap.core.data.pipeline;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.eclipse.core.runtime.CoreException;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 
 import org.polymap.core.data.DataPlugin;
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 
 /**
  * Provides access the data of an extension of extension point
@@ -32,38 +36,20 @@ public class ProcessorExtension {
 
     public static final String          EXTENSION_POINT_NAME = "pipeline.processors";
 
-    
-    public static ProcessorExtension[] allExtensions() {
+    /**
+     * Return all currently known extensions.
+     */
+    public static List<ProcessorExtension> all() {
         IConfigurationElement[] elms = Platform.getExtensionRegistry()
                 .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
-        
-        ProcessorExtension[] result = new ProcessorExtension[ elms.length ];
-        for (int i=0; i<elms.length; i++) {
-            result[i] = new ProcessorExtension( elms[i] );
-        }
-        return result;
+        return Arrays.stream( elms ).map( elm -> new ProcessorExtension( elm ) ).collect( Collectors.toList() );
     }
 
     
-    public static ProcessorExtension forExtensionId( String id ) {
-        IConfigurationElement[] elms = Platform.getExtensionRegistry().getConfigurationElementsFor(
-                DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
-        
-        List<ProcessorExtension> result = new ArrayList( elms.length );
-        for (int i=0; i<elms.length; i++) {
-            ProcessorExtension ext = new ProcessorExtension( elms[i] );
-            if (ext.getId().equals( id )) {
-                result.add( ext );
-            }
-        }
-
-        if (result.size() > 1) {
-            throw new IllegalStateException( "More than 1 extension: " + elms );
-        }
-//        if (result.isEmpty()) {
-//            throw new IllegalArgumentException( "No extension for id: " + id );
-//        }
-        return !result.isEmpty() ? result.get( 0 ) : null;
+    public static Optional<ProcessorExtension> forType( String processorClassname ) {
+        return all().stream()
+                .filter( ext -> ext.getClassname().equals( processorClassname ) )
+                .findAny();
     }
     
     
@@ -71,6 +57,8 @@ public class ProcessorExtension {
     
     private IConfigurationElement       ext;
 
+    private Lazy<Class<? extends PipelineProcessor>> type = new LockedLazyInit( () -> newProcessor().getClass() );
+    
     
     public ProcessorExtension( IConfigurationElement ext ) {
         this.ext = ext;
@@ -84,13 +72,17 @@ public class ProcessorExtension {
         return ext.getAttribute( "name" );
     }
     
-    public String getDescription() {
-        return ext.getAttribute( "description" );
+    public String getClassname() {
+        return ext.getAttribute( "class" );
     }
     
-    public boolean isTerminal() {
-        return ext.getAttribute( "isTerminal" ).equalsIgnoreCase( "true" );
+    public Optional<String> getDescription() {
+        return Optional.ofNullable( ext.getAttribute( "description" ) );
     }
+    
+//    public boolean isTerminal() {
+//        return ext.getAttribute( "isTerminal" ).equalsIgnoreCase( "true" );
+//    }
 
 // does not seem to load through proper ClassLoader
 //    public Class getProcessorClass() 
@@ -99,8 +91,7 @@ public class ProcessorExtension {
 //                Thread.currentThread().getContextClassLoader().loadClass( ext.getAttribute( "class" ) );
 //    }
     
-    public PipelineProcessor newProcessor()
-    throws CoreException {
+    public PipelineProcessor newProcessor() throws RuntimeException {
         try {
             return (PipelineProcessor)ext.createExecutableExtension( "class" );
         }
@@ -109,8 +100,8 @@ public class ProcessorExtension {
         }
     }
 
-    public boolean hasPropertyPage() {
-        return ext.getAttribute( "propertyPage" ) != null;
+    public Class<? extends PipelineProcessor> getProcessorType() {
+        return type.get();
     }
     
 }

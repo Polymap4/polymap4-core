@@ -67,7 +67,7 @@ public class ShapefileStoreCacheReadTest
         origFs = origDs.getFeatureSource( _ds.getSchema().getName() );
         
         SimplePipelineBuilder builder = new SimplePipelineBuilder();
-        StoreCacheProcessor.SYNC_TYPE.set( builder, NoSyncStrategy.class );
+        StoreCacheProcessor.SYNC_TYPE.set( builder, NoSyncStrategy.class.getSimpleName() );
         pipeline = builder.newFeaturePipeline( origFs, 
                 StoreCacheProcessor.class,
                 DataSourceProcessor.class );

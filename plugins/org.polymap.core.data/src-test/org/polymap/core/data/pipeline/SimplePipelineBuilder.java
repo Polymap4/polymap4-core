@@ -50,8 +50,8 @@ public class SimplePipelineBuilder
     
     
     @Override
-    public Pipeline newPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd,
-            ProcessorDescriptor... procs ) throws PipelineBuilderException {
+    public Pipeline createPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd ) 
+            throws PipelineBuilderException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }

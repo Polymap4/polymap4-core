@@ -65,7 +65,7 @@ public class FullDataStoreSyncStrategy
     
     @Override
     public void beforeInit( StoreCacheProcessor proc, PipelineProcessorSite site ) throws Exception {
-        this.ds = (DataStore)site.dsd.get().service.get();
+        this.ds = (DataAccess)site.dsd.get().service.get();
         this.resName = new NameImpl( site.dsd.get().resourceName.get() );
         this.fs = ds.getFeatureSource( resName );
         this.cacheDs = proc.cacheDataStore();
@@ -98,13 +98,16 @@ public class FullDataStoreSyncStrategy
         }
         
         if (needsUpdate) {
-            throw new RuntimeException( "Not implemented: schema update" );
+            // XXX
+            log.warn( "Not implemented: schema update" );
         }
     }
 
     @Override
     public void beforeProbe( StoreCacheProcessor proc, ProcessorProbe probe, ProcessorContext context ) throws Exception {
         proc.ifUpdateNeeded( () -> syncJob.schedule() );
+        
+        // wait for (possible) sync to complete
         syncJob.join();
     }
 
@@ -117,7 +120,6 @@ public class FullDataStoreSyncStrategy
 
         public SyncJob() {
             super( "Cache synchronization", false );
-            assert getJobManager().isIdle();
         }
 
         @Override
@@ -138,6 +140,7 @@ public class FullDataStoreSyncStrategy
                 log.info( "Cache committed: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
+                log.warn( "", e );
                 tx.rollback();
             }
             finally {

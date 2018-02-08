@@ -95,7 +95,7 @@ public class RasterRenderProcessor
         coverageName = site.dsd.get().resourceName.get();
         
         // styleSupplier
-        style = FeatureRenderProcessor2.STYLE_SUPPLIER.opt( site ).orElseGet( () -> {
+        style = FeatureRenderProcessor2.STYLE_SUPPLIER.rawopt( site ).orElseGet( () -> {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
             return () -> createGreyscaleStyle( 1 );
         });

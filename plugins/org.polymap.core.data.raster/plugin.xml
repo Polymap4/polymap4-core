@@ -7,14 +7,5 @@
             class="org.polymap.core.data.raster.catalog.GridServiceResolverProvider">
       </resolver>
    </extension>
-   <extension
-         point="org.polymap.core.data.pipeline.processors">
-      <processor
-            class="org.polymap.core.data.raster.RasterRenderProcessor"
-            id="org.polymap.core.data.raster.RasterRenderProcessor"
-            isTerminal="true"
-            name="Raster">
-      </processor>
-   </extension>
 
 </plugin>

@@ -31,7 +31,7 @@ import org.polymap.core.runtime.ListenerList;
 import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
- * Once constructed this incubator stores and re-uses terminal and transformation
+ * Once constructed this builder stores and re-uses terminal and transformation
  * processors. Subsequent invocations of
  * {@link #newPipeline(Class, DataSourceDescriptor, PipelineProcessor.Configuration[])}
  * will produce pipeline that may contain the same terminal or transformer instances!
@@ -96,35 +96,41 @@ public class AutoWirePipelineBuilder
 
 
     @Override
-    public Pipeline newPipeline( 
-            Class<? extends PipelineProcessor> usecaseType, 
-            DataSourceDescriptor dsd,
-            ProcessorDescriptor... procs)
+    public Pipeline createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd )
             throws PipelineBuilderException {
-        ProcessorSignature usecase = new ProcessorSignature( usecaseType );
+        return createPipeline( usecase, dsd, Collections.EMPTY_LIST );
+    }
+
+
+    protected Pipeline createPipeline( 
+            Class<? extends PipelineProcessor> usecase, 
+            DataSourceDescriptor dsd,
+            List<ProcessorDescriptor> procs)
+            throws PipelineBuilderException {
+        ProcessorSignature usecaseSig = new ProcessorSignature( usecase );
         
-        assert !usecase.requestIn.isEmpty()
-                && usecase.requestOut.isEmpty()
-                && !usecase.responseOut.isEmpty()
-                && usecase.responseIn.isEmpty() : "PipelineUsecase must have requestIn and reponseOut only.";
+        assert !usecaseSig.requestIn.isEmpty()
+                && usecaseSig.requestOut.isEmpty()
+                && !usecaseSig.responseOut.isEmpty()
+                && usecaseSig.responseIn.isEmpty() : "PipelineUsecase must have requestIn and reponseOut only.";
                 
         // swap requestIn/Out and reponseIn/Out to make an emitter signature for the start processor
-        usecase.requestOut = usecase.requestIn;
-        usecase.requestIn = Collections.EMPTY_SET;
-        usecase.responseIn = usecase.responseOut;
-        usecase.responseOut = Collections.EMPTY_SET;
+        usecaseSig.requestOut = usecaseSig.requestIn;
+        usecaseSig.requestIn = Collections.EMPTY_SET;
+        usecaseSig.responseIn = usecaseSig.responseOut;
+        usecaseSig.responseOut = Collections.EMPTY_SET;
         
-        ProcessorDescriptor start = new ProcessorDescriptor( usecase );
+        ProcessorDescriptor start = new ProcessorDescriptor( usecaseSig );
 
         // terminal
-        Iterable<ProcessorDescriptor<TerminalPipelineProcessor>> terms = findTerminals( usecase, dsd );
+        Iterable<ProcessorDescriptor<TerminalPipelineProcessor>> terms = findTerminals( usecaseSig, dsd );
 
         // transformer chain
         LinkedList<ProcessorDescriptor> chain = new LinkedList();
         int termCount = 0;
         for (ProcessorDescriptor term : terms) {
             termCount ++;
-            if (findTransformation( start, term, usecase, chain )) {
+            if (findTransformation( start, term, usecaseSig, chain )) {
                 break;
             }
             else {
@@ -135,12 +141,12 @@ public class AutoWirePipelineBuilder
             throw new PipelineBuilderException( "No terminal for data source: " + dsd );
         }
         else if (chain.isEmpty()) {
-            throw new PipelineBuilderException( "No transformer chain for: data source=" + dsd + ", usecase="  + usecase );
+            throw new PipelineBuilderException( "No transformer chain for: data source=" + dsd + ", usecase="  + usecaseSig );
         }
         
         // additional processors
         for (ProcessorDescriptor candidate : procs) {
-            if (usecase.isCompatible( candidate.signature() )) {
+            if (usecaseSig.isCompatible( candidate.signature() )) {
                 chain.add( 0, candidate );                
             }
             int index = 1;
@@ -152,7 +158,7 @@ public class AutoWirePipelineBuilder
                 index ++;
             }
         }
-        return createPipeline( usecase, dsd, chain );
+        return createPipeline( usecaseSig, dsd, chain );
     }
 
 

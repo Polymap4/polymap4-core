@@ -17,6 +17,7 @@ package org.polymap.core.data.feature.storecache;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import java.time.Duration;
@@ -59,20 +60,40 @@ public class StoreCacheProcessor
 
     private static final Log log = LogFactory.getLog( StoreCacheProcessor.class );
 
-    public static final Param<Class>    SYNC_TYPE = new Param( "syncType", Class.class );
+    @Param.UI( description="The sync strategy to use", values={"FullDataStoreSyncStrategy"} )
+    public static final Param<String>   SYNC_TYPE = new Param( "syncType", String.class, "FullDataStoreSyncStrategy" );
 
-    /** The minimum timeout between updates of the cache. */
-    public static final Param<Long>     MIN_UPDATE_TIMEOUT = new Param( "minTimeout", Long.class, Duration.ofMinutes( 5 ).toMillis() );
+    @Param.UI( description="The minimum time between updates of the cache" )
+    public static final Param<Duration> MIN_UPDATE_TIMEOUT = new Param( "minTimeout", Duration.class, Duration.ofMinutes( 5 ) );
 
     /** The maximum timeout between updates of the cache. */
-    public static final Param<Long>     MAX_UPDATE_TIMEOUT = new Param( "maxTimeout", Long.class, Duration.ofDays( 1 ).toMillis() );
+    public static final Param<Duration> MAX_UPDATE_TIMEOUT = new Param( "maxTimeout", Duration.class, Duration.ofDays( 1 ) );
 
-    static ConcurrentMap<String,AtomicLong> lastUpdated = new ConcurrentHashMap();
+    /**
+     * XXX I'm to stupid to use AtomicLong check/set methods?
+     */
+    class AtomicLong2
+            extends AtomicLong {
+
+        public <E extends Exception> void checkSet( Function<Long,Boolean> check, Task<E> set ) throws E {
+            if (check.apply( get() )) {
+                synchronized (this) {
+                    if (check.apply( get() )) {
+                        set.run();
+                    }
+                }
+            }
+        }
+    }
+    
+    static ConcurrentMap<String,AtomicLong2> lastUpdated = new ConcurrentHashMap();
     
     private static Lazy<DataAccess>     cachestore;
     
     /**
      * Initialize the global cache store.
+     * <p/>
+     * XXX
      */
     public static void init( Supplier<DataAccess> cacheStoreSupplier ) {
         assert cachestore == null : "cachestore is set already.";
@@ -102,10 +123,11 @@ public class StoreCacheProcessor
         cacheDs = cachestore.get();
         resName = site.dsd.get().resourceName.get();
         
-        lastUpdated.computeIfAbsent( resName, k -> new AtomicLong() );
+        lastUpdated.computeIfAbsent( resName, k -> new AtomicLong2() );
         
         // init sync strategy
-        sync = (SyncStrategy)SYNC_TYPE.get( site ).newInstance();
+        String classname = getClass().getPackage().getName() + "." + SYNC_TYPE.get( site );
+        sync = (SyncStrategy)getClass().getClassLoader().loadClass( classname ).newInstance();
         sync.beforeInit( this, site );
 
         DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cacheDs, resName );
@@ -127,20 +149,15 @@ public class StoreCacheProcessor
 
     
     protected <E extends Exception> void ifUpdateNeeded( Task<E> task ) throws E {
-        AtomicLong updated = lastUpdated.get( resName );
-        long current = updated.get();
-
-        // update function should be side-effect free, so we cannot call
-        // the task from within the update function
-        long newValue = updated.updateAndGet( last -> {
-            long minTimeOut = MIN_UPDATE_TIMEOUT.get( site );
-            Long now = System.currentTimeMillis();
-            return last + minTimeOut < now ? now : last;
-        });
+        AtomicLong2 timestamp = lastUpdated.get( resName );
+        long timeout = MIN_UPDATE_TIMEOUT.get( site ).toMillis();
         
-        if (newValue != current) {
+        log.info( "Cache timeout: T - " + Math.max(0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );
+        
+        timestamp.checkSet( c -> c+timeout < System.currentTimeMillis(), () -> {
             task.run();
-        }
+            timestamp.set( System.currentTimeMillis() );            
+        });
     }
     
     
@@ -168,20 +185,23 @@ public class StoreCacheProcessor
 
     @Override
     public void modifyFeaturesRequest( ModifyFeaturesRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.modifyFeaturesRequest( request, context ) );
+        throw new UnsupportedOperationException( "Modifying a cached layer is not yet supported." );
+//        withSync( request, context, () -> 
+//                cache.modifyFeaturesRequest( request, context ) );
     }
 
     @Override
     public void removeFeaturesRequest( RemoveFeaturesRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.removeFeaturesRequest( request, context ) );
+        throw new UnsupportedOperationException( "Modifying a cached layer is not yet supported." );
+//        withSync( request, context, () -> 
+//                cache.removeFeaturesRequest( request, context ) );
     }
 
     @Override
     public void addFeaturesRequest( AddFeaturesRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.addFeaturesRequest( request, context ) );
+        throw new UnsupportedOperationException( "Modifying a cached layer is not yet supported." );
+//        withSync( request, context, () -> 
+//                cache.addFeaturesRequest( request, context ) );
     }
 
     @Override

@@ -73,7 +73,7 @@ public class RStoreCacheReadTest
         origFs = origDs.getFeatureSource( _ds.getSchema().getName() );
         
         SimplePipelineBuilder builder = new SimplePipelineBuilder();
-        StoreCacheProcessor.SYNC_TYPE.set( builder, FullDataStoreSyncStrategy.class );
+        StoreCacheProcessor.SYNC_TYPE.set( builder, FullDataStoreSyncStrategy.class.getSimpleName() );
         pipeline = builder.newFeaturePipeline( origFs, 
                 StoreCacheProcessor.class,
                 DataSourceProcessor.class );
