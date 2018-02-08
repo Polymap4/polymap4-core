@@ -28,17 +28,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.osgi.framework.ServiceException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
 
 import org.polymap.core.data.image.EncodedImageProducer;
 import org.polymap.core.data.image.EncodedImageResponse;
@@ -95,6 +94,11 @@ public abstract class SimpleWmsServer
      * This is called inside the servlet request thread.
      */
     protected abstract Pipeline createPipeline( String layerName );
+    
+    
+    public boolean disposePipeline( String layerName ) {
+        return pipelines.remove( layerName ) != null;
+    }
     
     
     /**

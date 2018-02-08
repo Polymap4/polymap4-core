@@ -42,6 +42,7 @@ import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -230,7 +231,7 @@ public class FeatureRenderProcessor2
             g.drawString( msg, 0, 0 );
         }
         if (e != null) {
-            g.drawString( e.getMessage(), 0, 20 );
+            g.drawString( StringUtils.defaultString( e.getMessage(), "Unknown error." ), 0, 20 );
         }
     }
 

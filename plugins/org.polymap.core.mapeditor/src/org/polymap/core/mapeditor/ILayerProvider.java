@@ -14,20 +14,31 @@
  */
 package org.polymap.core.mapeditor;
 
+import org.eclipse.jface.viewers.LabelProvider;
+
 import org.polymap.rap.openlayers.layer.Layer;
 
 /**
+ * An {@link ILayerProvider} converts input elements of {@link MapViewer} to
+ * {@link Layer} instances. This interface acts like a {@link LabelProvider} for
+ * viewer.
  * 
  * @param <CL>
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public interface ILayerProvider<CL> {
 
-    public Layer getLayer( CL elm );
-    
     /**
-     * The render priority for the given layer. Higher priorities are rendered above
-     * other layers.
+     * Creates a {@link Layer} for the given element.
+     *
+     * @param elm The input element of the {@link MapViewer}.
+     * @return Newly created {@link Layer} instance.
+     */
+    public Layer getLayer( CL elm );
+        
+    /**
+     * Returns the render priority for the given layer. Higher priorities are
+     * rendered above other layers.
      */
     public int getPriority( CL elm );
     
