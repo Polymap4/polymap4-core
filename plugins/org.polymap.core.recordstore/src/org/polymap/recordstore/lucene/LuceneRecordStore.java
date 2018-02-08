@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -61,12 +62,15 @@ import org.apache.lucene.util.Version;
 
 import com.google.common.base.Throwables;
 
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.DefaultBoolean;
 import org.polymap.core.runtime.config.DefaultDouble;
+
 import org.polymap.recordstore.BaseRecordStore;
 import org.polymap.recordstore.IRecordState;
 import org.polymap.recordstore.IRecordStore;
@@ -361,11 +365,8 @@ public final class LuceneRecordStore
     @Override
     public IRecordState newRecord( Object id ) {
         assert !isClosed() : "Store is closed already.";
-        
-        // FIXME fails for entities that are removed in this UnitOfWork
-        try { assert get( id ) == null : "Id already exists: " + id; }
-        catch (AssertionError e) { throw e; }
-        catch (Exception e) { throw new RuntimeException( e ); }
+
+        // check if ID is valid/unique is done by the updater
         
         LuceneRecordState result = new LuceneRecordState( this, new Document(), false );
         result.createId( id );
@@ -527,6 +528,7 @@ public final class LuceneRecordStore
 
         private IndexWriter         writer;
         
+        private Lazy<IndexReader>   writerReader = new LockedLazyInit( () -> createReader() ); 
 
         LuceneUpdater() {
             assert !isClosed() : "Store is closed already.";
@@ -576,7 +578,8 @@ public final class LuceneRecordStore
             
             // add
             if (((LuceneRecordState)record).isNew()) {
-                //((LuceneRecordState)record).createId();
+                // XXX assert uniqueID? this a heavy check; shouldn't this configured elsewhere?
+                assert isUniqueId( record.id().toString() ) : "ID is not unique: " + record.id();
                 ((LuceneRecordState)record).setIsNew( false );
                 writer.addDocument( doc );
                 
@@ -595,6 +598,23 @@ public final class LuceneRecordStore
             }
         }
 
+        
+        @SuppressWarnings( "deprecation" )
+        protected IndexReader createReader() {
+            try { return writer.getReader(); }
+            catch (Exception e) { throw Throwables.propagate( e ); }
+        }
+        
+
+        protected boolean isUniqueId( String id ) {
+            Term term = new Term( LuceneRecordState.ID_FIELD, id );
+            try (TermDocs termDocs = writerReader.get().termDocs( term )) {
+                return !termDocs.next();
+            }
+            catch (IOException e) {
+                throw new CacheLoaderException( e );
+            }
+        }
         
         public void remove( IRecordState record ) throws Exception {
             assert record.id() != null : "Record is not yet stored.";
