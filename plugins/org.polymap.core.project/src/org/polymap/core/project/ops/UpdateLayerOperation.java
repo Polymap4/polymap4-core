@@ -14,9 +14,6 @@
  */
 package org.polymap.core.project.ops;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -36,8 +33,6 @@ import org.polymap.model2.runtime.UnitOfWork;
  */
 public class UpdateLayerOperation
         extends TwoPhaseCommitOperation {
-
-    private static Log log = LogFactory.getLog( UpdateLayerOperation.class );
 
     @Mandatory
     @Immutable

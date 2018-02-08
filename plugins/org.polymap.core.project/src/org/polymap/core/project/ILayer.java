@@ -23,17 +23,21 @@ import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.pipeline.PipelineProcessor;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.security.SecurityContext;
 
 import org.polymap.model2.Association;
+import org.polymap.model2.CollectionProperty;
+import org.polymap.model2.Composite;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.runtime.ValueInitializer;
 import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
@@ -57,19 +61,50 @@ public class ILayer
     
     public static ILayer            TYPE;
     
-    /**
-     *
-     */
     public Property<String>         resourceIdentifier;
 
-    /**
-     *
-     */
     @Nullable
     public Property<String>         styleIdentifier;
 
     @Defaults
     public Property<Integer>        orderKey;
+    
+    /**
+     * Configuration properties of processors that are set up for this layer. This
+     * might by {@link PipelineProcessor}s or any other kind of additional
+     * processing thing.
+     */
+    @Defaults
+    public CollectionProperty<ProcessorConfig> processorConfigs;
+    
+    /**  */
+    public static class ProcessorConfig
+            extends Composite {
+    
+        public static final ValueInitializer<ProcessorConfig> defaults( String id, String type ) {
+            return (ProcessorConfig proto) -> {
+                proto.id.set( id );
+                proto.type.set( type );
+                return proto;
+            };
+        }
+        
+        public Property<String>     id;
+        
+        public Property<String>     type;
+        
+        @Defaults
+        public CollectionProperty<KeyValue> params;
+    }
+
+    /**  */
+    public static class KeyValue
+            extends Composite {
+        
+        public Property<String>     key;
+        
+        public Property<String>     value;
+    }
     
     /**
      * The user settings for this ProjectNode and the current user/session (
@@ -80,10 +115,7 @@ public class ILayer
     public Lazy<LayerUserSettings>  userSettings = new LockedLazyInit( () -> 
             findUserSettings( LayerUserSettings.class, LayerUserSettings.TYPE.layer ) );
 
-    
-    /**
-     * 
-     */
+    /**  */
     public static class LayerUserSettings
             extends UserSettings {
 

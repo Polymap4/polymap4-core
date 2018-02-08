@@ -16,7 +16,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.ui.navigator;bundle-version="3.5.0";resolution:=optional;visibility:=reexport,
  org.polymap.model2;visibility:=reexport,
  org.polymap.core;bundle-version="4.0.0",
- org.polymap.core.data;bundle-version="4.0.0",
- org.polymap.rhei.batik;bundle-version="4.0.0"
+ org.polymap.core.data;bundle-version="4.0.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.polymap.core.project.ProjectPlugin
