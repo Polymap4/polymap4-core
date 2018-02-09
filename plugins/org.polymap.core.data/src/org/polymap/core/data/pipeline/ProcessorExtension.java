@@ -47,9 +47,7 @@ public class ProcessorExtension {
 
     
     public static Optional<ProcessorExtension> forType( String processorClassname ) {
-        return all().stream()
-                .filter( ext -> ext.getClassname().equals( processorClassname ) )
-                .findAny();
+        return all().stream().filter( ext -> ext.getClassname().equals( processorClassname ) ).findAny();
     }
     
     

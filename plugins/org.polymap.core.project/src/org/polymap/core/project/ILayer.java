@@ -14,9 +14,13 @@
  */
 package org.polymap.core.project;
 
+import static org.polymap.core.data.pipeline.ProcessorExtension.forType;
+
 import java.util.Comparator;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,6 +28,8 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import org.polymap.core.data.pipeline.PipelineProcessor;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
+import org.polymap.core.data.pipeline.ProcessorExtension;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.security.SecurityContext;
@@ -81,10 +87,10 @@ public class ILayer
     public static class ProcessorConfig
             extends Composite {
     
-        public static final ValueInitializer<ProcessorConfig> defaults( String id, String type ) {
+        public static final ValueInitializer<ProcessorConfig> init( ProcessorExtension ext ) {
             return (ProcessorConfig proto) -> {
-                proto.id.set( id );
-                proto.type.set( type );
+                proto.id.set( UUID.randomUUID().toString() );
+                proto.type.set( ext.getProcessorType().getName() );
                 return proto;
             };
         }
@@ -93,8 +99,35 @@ public class ILayer
         
         public Property<String>     type;
         
+        public Lazy<Optional<ProcessorExtension>>   ext = new LockedLazyInit( () -> forType( type.get() ) );
+        
         @Defaults
-        public CollectionProperty<KeyValue> params;
+        public CollectionProperty<KeyValue>         params;
+        
+        public UnitOfWork belongsTo() {
+            return context.getUnitOfWork();
+        }
+        
+        @Override
+        public boolean equals( Object obj ) {
+            return obj instanceof ProcessorConfig
+                    ? ((ProcessorConfig)obj).id.get().equals( id.get() )
+                    : false;
+        }
+
+        public Params params() {
+            Params result = new Params();
+            params.forEach( param -> result.put( param.key.get(), param.value.get() ) );
+            return result;
+        }
+        
+        public void updateParams( Params newParams ) {
+            params.clear();
+            newParams.entrySet().forEach( param -> params.createElement( (KeyValue proto) -> {
+                proto.key.set( param.getKey() ); proto.value.set( (String)param.getValue() ); return proto;
+            }));
+            
+        }
     }
 
     /**  */

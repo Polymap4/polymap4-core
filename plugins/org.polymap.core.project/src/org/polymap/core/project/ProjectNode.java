@@ -19,8 +19,6 @@ import static org.polymap.model2.query.Expressions.eq;
 import static org.polymap.model2.query.Expressions.is;
 
 import java.util.EventObject;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.runtime.event.EventManager;
 import org.polymap.core.security.SecurityContext;
@@ -53,10 +51,6 @@ public abstract class ProjectNode
         extends Entity
         implements Lifecycle {
 
-    private static Log log = LogFactory.getLog( ProjectNode.class );
-
-    // instance *******************************************
-    
     @Queryable
     public Property<String>             label;
 

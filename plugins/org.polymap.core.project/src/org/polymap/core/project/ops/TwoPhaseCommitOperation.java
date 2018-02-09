@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IStatus;
 
 import org.polymap.core.operation.DefaultOperation;
 import org.polymap.core.runtime.config.ConfigurationFactory;
+
 import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.TwoPhaseCommit;
 import org.polymap.model2.runtime.TwoPhaseCommit.CommitType;
@@ -33,7 +34,8 @@ import org.polymap.model2.runtime.UnitOfWork;
 /**
  * Provides a {@link DefaultOperation} for typical user interface operations
  * that modify {@link Entity} or other transaction aware resources and do a
- * {@link TwoPhaseCommit}.
+ * {@link TwoPhaseCommit}. It can be used to commit a nested {@link UnitOfWork}
+ * and its parent.
  *
  * @author Falko Bräutigam
  */
