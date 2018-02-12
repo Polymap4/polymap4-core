@@ -17,11 +17,11 @@
  */
 package org.polymap.core.operation;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.FluentIterable;
+
 import org.eclipse.core.commands.operations.IUndoableOperation;
-import org.eclipse.core.runtime.CoreException;
 
 /**
  * This API allows to intercept the execution of other operations. A new factory
@@ -33,33 +33,13 @@ import org.eclipse.core.runtime.CoreException;
  * @since 3.1
  */
 public abstract class IOperationConcernFactory {
-
-    private static List<IOperationConcernFactory>   factories = null;
     
-    
-    static List<IUndoableOperation> concernsForOperation( IUndoableOperation op,
-            OperationInfo info ) {
-        // not synchronized, double init is no problem
-        if (factories == null) {
-            factories = new ArrayList();
-            for (OperationConcernExtension ext : OperationConcernExtension.extensions) {
-                 try {
-                    factories.add( ext.newFactory() );
-                }
-                catch (CoreException e) {
-                    throw new RuntimeException( e );
-                }
-            }
-        }
-        //
-        List<IUndoableOperation> result = new ArrayList();
-        for (IOperationConcernFactory factory : factories) {
-            IUndoableOperation concern = factory.newInstance( op, info );
-            if (concern != null) {
-                result.add( concern );
-            }
-        }
-        return result;
+    static List<IUndoableOperation> concernsForOperation( IUndoableOperation op, OperationInfo info ) {
+        return FluentIterable.from( OperationConcernExtension.all() )
+                .transform( ext -> ext.newInstance() )
+                .transform( factory -> factory.newInstance( op, info ) )
+                .filter( concern -> concern != null )
+                .toList();
     }
     
     

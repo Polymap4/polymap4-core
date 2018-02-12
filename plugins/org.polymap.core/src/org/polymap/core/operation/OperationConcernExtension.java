@@ -14,11 +14,10 @@
  */
 package org.polymap.core.operation;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.FluentIterable;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -33,26 +32,15 @@ import org.polymap.core.CorePlugin;
  */
 class OperationConcernExtension {
 
-    private static Log log = LogFactory.getLog( OperationConcernExtension.class );
+    private static final Log log = LogFactory.getLog( OperationConcernExtension.class );
 
     static final String         EXTENSION_POINT_ID = CorePlugin.PLUGIN_ID + ".operation.concerns";
     
-    static List<OperationConcernExtension> extensions = new ArrayList();
-
-    
-    static {
-        IConfigurationElement[] exts = Platform.getExtensionRegistry()
+    public static Iterable<OperationConcernExtension> all() {
+        IConfigurationElement[] elms = Platform.getExtensionRegistry()
                 .getConfigurationElementsFor( EXTENSION_POINT_ID );
-        log.info( "Operation concern extensions found: " + exts.length ); //$NON-NLS-1$
-        
-        for (IConfigurationElement ext : exts) {
-            try {
-                extensions.add( new OperationConcernExtension( ext ) );
-            }
-            catch (CoreException e) {
-                log.warn( "Failed to init extension: ", e );
-            }
-        }
+        log.info( "Operation concern extensions found: " + elms.length ); //$NON-NLS-1$
+        return FluentIterable.of( elms ).transform( elm -> new OperationConcernExtension( elm ) );
     }
 
     
@@ -61,14 +49,18 @@ class OperationConcernExtension {
     private IConfigurationElement       elm;
     
 
-    OperationConcernExtension( IConfigurationElement elm ) 
-    throws CoreException {
+    OperationConcernExtension( IConfigurationElement elm ) {
         this.elm = elm;
+        log.info( "    " + elm.getAttribute( "class" ) );
     }
 
-    public IOperationConcernFactory newFactory() 
-    throws CoreException {
-        return (IOperationConcernFactory)elm.createExecutableExtension( "class" );
+    public IOperationConcernFactory newInstance() {
+        try {
+            return (IOperationConcernFactory)elm.createExecutableExtension( "class" );
+        }
+        catch (CoreException e) {
+            throw new RuntimeException( e );
+        }
     }
     
 }
