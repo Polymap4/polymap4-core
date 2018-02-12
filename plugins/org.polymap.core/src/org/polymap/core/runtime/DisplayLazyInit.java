@@ -38,11 +38,7 @@ public class DisplayLazyInit<T>
         if (value == null) {
             synchronized (this) {
                 if (value == null) {
-                    Polymap.getSessionDisplay().syncExec( new Runnable() {
-                        public void run() {
-                            value = DisplayLazyInit.this.supplier.get();
-                        }
-                    });
+                    UIThreadExecutor.sync( () -> value = DisplayLazyInit.this.supplier.get() );
                 }
             }
         }

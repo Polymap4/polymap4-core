@@ -125,6 +125,7 @@ import java.lang.ref.WeakReference;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
+@SuppressWarnings( {"hiding","unused"} )
 public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         implements java.util.concurrent.ConcurrentMap<K, V>, Serializable {
     private static final long serialVersionUID = 7249069246763182397L;
@@ -384,7 +385,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             return value;
         }
 
-        @SuppressWarnings("unchecked")
+        //@SuppressWarnings("unchecked")
         final K key() {
             if (keyRef instanceof KeyReference)
                 return ((Reference<K>)keyRef).get();
@@ -396,7 +397,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             return dereferenceValue(valueRef);
         }
 
-        @SuppressWarnings("unchecked")
+        //@SuppressWarnings("unchecked")
         final V dereferenceValue(Object value) {
             if (value instanceof KeyReference)
                 return ((Reference<V>)value).get();
@@ -408,7 +409,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             this.valueRef = newValueReference(value, valueType, refQueue);
         }
 
-        @SuppressWarnings("unchecked")
+        //@SuppressWarnings("unchecked")
         static final <K,V> HashEntry<K,V>[] newArray(int i) {
             return new HashEntry[i];
         }
@@ -515,7 +516,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             setTable(HashEntry.<K,V>newArray(initialCapacity));
         }
 
-        @SuppressWarnings("unchecked")
+        //@SuppressWarnings("unchecked")
         static final <K,V> Segment<K,V>[] newArray(int i) {
             return new Segment[i];
         }
@@ -1549,7 +1550,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            @SuppressWarnings("unchecked")
+            //@SuppressWarnings("unchecked")
             Map.Entry e = (Map.Entry) o;
             return eq(key, e.getKey()) && eq(value, e.getValue());
         }
@@ -1717,7 +1718,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * stream (i.e., deserialize it).
      * @param s the stream
      */
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream s)
         throws IOException, ClassNotFoundException  {
         s.defaultReadObject();
