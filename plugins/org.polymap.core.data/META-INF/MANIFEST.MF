@@ -3,14 +3,14 @@ Eclipse-BuddyPolicy: registered
 Bundle-ManifestVersion: 2
 Bundle-Name: Data Access and Processing
 Bundle-SymbolicName: org.polymap.core.data;singleton:=true
-Bundle-Version: 4.0.1.qualifier
+Bundle-Version: 4.0.2.qualifier
 Bundle-Activator: org.polymap.core.data.DataPlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.rap.rwt;bundle-version="2.3.1",
  org.eclipse.rap.ui;bundle-version="2.3.1",
- org.polymap.core;bundle-version="4.0.0",
- org.junit;resolution:=optional,
- org.polymap.core.recordstore
+ org.polymap.core;bundle-version="4.0.2",
+ org.polymap.core.recordstore;bundle-version="4.0.0",
+ org.junit;resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.objectplanet.image,
@@ -570,9 +570,8 @@ Import-Package: org.eclipse.core.resources,
  org.osgi.service.http;version="1.2.1"
 Bundle-Localization: plugin
 Bundle-ClassPath: .,
- lib/common-2.6.0.jar,
- lib/commons-codec-1.2.jar,
  lib/commons-collections-3.2.jar,
+ lib/commons-codec-1.2.jar,
  lib/commons-httpclient-3.1.jar,
  lib/commons-io-2.1.jar,
  lib/commons-jxpath-1.3.jar,
@@ -593,7 +592,6 @@ Bundle-ClassPath: .,
  lib/xml-commons-resolver-1.2.jar,
  lib/xmlunit-1.3.jar,
  lib/xpp3_min-1.1.4c.jar,
- lib/xsd-2.6.0.jar,
  lib-static/com.objectplanet.image.PngEncoder.jar,
  lib/jts-core-1.14.0.jar,
  lib/jts-io-1.14.0.jar,

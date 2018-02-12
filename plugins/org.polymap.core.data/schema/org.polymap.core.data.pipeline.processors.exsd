@@ -3,10 +3,10 @@
 <schema targetNamespace="org.polymap.core.data" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.polymap.core.data" id="pipeline.processors" name="PipelineProcessors"/>
+         <meta.schema plugin="org.polymap.core.data" id="org.polymap.core.data.pipeline.processors" name="Pipeline Processors"/>
       </appinfo>
       <documentation>
-         This extension point allows to define new pipeline processors.
+         This extension point allows to define new processors for the render pipeline of a layer.
       </documentation>
    </annotation>
 
