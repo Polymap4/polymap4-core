@@ -245,7 +245,7 @@ public class MapViewer<CL>
                 // XXX refresh() gives newly created layer a default/unique value for the t param;
                 // this prevents reload after refresh to display old tiles - but it also re-renders
                 // unchanged layers
-                addLayer( layer ).refresh();
+                addLayer( layer ); //.refresh();
             }
         }
     }
@@ -268,8 +268,9 @@ public class MapViewer<CL>
             addLayer( layer );
         }
         else {
-            Layer olayer = layers.get( layer );
-            olayer.refresh();
+            throw new RuntimeException( "refresh() with added param is a bad idea, see code" );
+//            Layer olayer = layers.get( layer );
+//            olayer.refresh();
         }
     }
 

@@ -14,11 +14,11 @@
  */
 package org.polymap.core.data.feature.storecache;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import java.time.Duration;
 
@@ -28,6 +28,8 @@ import org.geotools.data.FeatureStore;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Throwables;
 
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.DataSourceProcessor;
@@ -63,11 +65,11 @@ public class StoreCacheProcessor
     @Param.UI( description="The sync strategy to use", values={"FullDataStoreSyncStrategy"} )
     public static final Param<String>   SYNC_TYPE = new Param( "syncType", String.class, "FullDataStoreSyncStrategy" );
 
-    @Param.UI( description="The minimum time between updates of the cache" )
-    public static final Param<Duration> MIN_UPDATE_TIMEOUT = new Param( "minTimeout", Duration.class, Duration.ofMinutes( 5 ) );
+    @Param.UI( description="The minimum time between subsequent updates of the cache" )
+    public static final Param<Duration> MIN_UPDATE_TIMEOUT = new Param( "minTimeout", Duration.class, Duration.ofHours( 24 ) );
 
     /** The maximum timeout between updates of the cache. */
-    public static final Param<Duration> MAX_UPDATE_TIMEOUT = new Param( "maxTimeout", Duration.class, Duration.ofDays( 1 ) );
+    public static final Param<Duration> MAX_UPDATE_TIMEOUT = new Param( "maxTimeout", Duration.class, Duration.ofDays( 3 ) );
 
     /**
      * XXX I'm to stupid to use AtomicLong check/set methods?
@@ -86,18 +88,23 @@ public class StoreCacheProcessor
         }
     }
     
-    static ConcurrentMap<String,AtomicLong2> lastUpdated = new ConcurrentHashMap();
+    static ConcurrentMap<String,AtomicLong2>    lastUpdated = new ConcurrentHashMap();
     
-    private static Lazy<DataAccess>     cachestore;
+    private static Lazy<DataAccess>             cachestore;
     
     /**
      * Initialize the global cache store.
-     * <p/>
-     * XXX
      */
-    public static void init( Supplier<DataAccess> cacheStoreSupplier ) {
+    public static void init( Callable<DataAccess> cacheStoreSupplier ) {
         assert cachestore == null : "cachestore is set already.";
-        cachestore = new LockedLazyInit( cacheStoreSupplier );
+        cachestore = new LockedLazyInit( () -> {
+            try {
+                return cacheStoreSupplier.call();
+            }
+            catch (Exception e) {
+                throw Throwables.propagate( e );
+            }
+        });
     }
     
     

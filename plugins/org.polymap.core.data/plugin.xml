@@ -8,18 +8,22 @@
    <extension
          point="org.polymap.core.data.pipeline.processors">
       <processor
-            class="org.polymap.core.data.image.ImageGrayscaleProcessor"
+            class="org.polymap.core.data.image.grayscale.ImageGrayscaleProcessor"
             description="%processor_grayscaleDesc"
-            id="org.polymap.core.data.image.ImageGrayscaleProcessor"
-            isTerminal="false"
-            name="%processor_grayscale"
-            propertyPage="org.polymap.core.data.image.ImageGrayscaleProcessorConfig">
+            id="org.polymap.core.data.ImageGrayscaleProcessor"
+            name="%processor_grayscale">
       </processor>
       <processor
             class="org.polymap.core.data.feature.storecache.StoreCacheProcessor"
             description="Caches the entire contents of the upstream data source. You can specify the min and max time between the updates of the cache."
             id="org.polymap.core.data.StoreCacheProcessor"
             name="Feature: Store Cache">
+      </processor>
+      <processor
+            class="org.polymap.core.data.image.cache304.ImageCacheProcessor"
+            description="Cache of rendered tiles. Greatly improves render performance of the layer. You can specify the min and max time between the updates of tiles."
+            id="org.polymap.core.data.ImageCacheProcessor"
+            name="Image: Tile Cache">
       </processor>
    </extension>
    <extension

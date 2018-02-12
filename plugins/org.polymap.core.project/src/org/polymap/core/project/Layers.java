@@ -18,6 +18,8 @@ import java.util.Comparator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.common.base.Objects;
+
 /**
  * Static factory of utils to work with {@link ILayer}. 
  *
@@ -44,7 +46,7 @@ public class Layers {
     public static Predicate<ILayer> hasLabel( final String label ) {
         return new Predicate<ILayer>() {
             public boolean test( ILayer input ) {
-                return input.label.equals( label );
+                return Objects.equal( input.label.get(), label );
             }
         };
     }

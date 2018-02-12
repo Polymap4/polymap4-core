@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.util.Optional;
+
 /**
  * Provides the logic to create a {@link Pipeline} out of a usecase defined by a
  * {@link PipelineProcessor} interface.
@@ -31,7 +33,7 @@ public interface PipelineBuilder {
      * @return Newly created {@link Pipeline} instance.
      * @throws PipelineBuilderException
      */
-    public Pipeline createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd ) 
+    public Optional<Pipeline> createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd ) 
             throws PipelineBuilderException;
 
 }

@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.eclipse.core.runtime.Plugin;
+
 import org.polymap.core.http.HttpServiceTracker;
 import org.polymap.core.runtime.session.RapSessionContextProvider;
 import org.polymap.core.runtime.session.SessionContext;
@@ -48,6 +49,8 @@ public class CorePlugin
     public static final String      PLUGIN_ID = "org.polymap.core";
 
     public static final String      DATA_DIR = "data";
+
+    public static final String      CACHE_DIR = "cache";
 
     private static CorePlugin       plugin;
 
@@ -72,22 +75,21 @@ public class CorePlugin
 
 
     /**
-     * @see #getDataLocation(Bundle) 
+     * See {@link #getDataLocation(Bundle)}. 
      */
     public static File getDataLocation( @SuppressWarnings("hiding") Plugin plugin ) {
        return getDataLocation( plugin.getBundle() );
     }
     
-    
     /**
-     * Returns the location in the local file system of the plug-in data area for
-     * this plug-in. If the plug-in data area did not exist prior to this call, it
-     * is created.
+     * Returns the location in the local file system of the data area for the given
+     * bundle. If the plug-in data area did not exist prior to this call, it is
+     * created.
      * <p/>
-     * The plug-in data area is a file directory within the platform's data area
-     * where a plug-in is free to create files. The content and structure of this
-     * area is defined by the plug-in, and the particular plug-in is solely
-     * responsible for any files it puts there.
+     * The data area is a file directory within the platform's data area where a
+     * plug-in is free to create files. The content and structure of this area is
+     * defined by the plug-in, and the particular plug-in is solely responsible for
+     * any files it puts there.
      * 
      * @throws IllegalStateException If the system is running with no data area
      *         (-data @none), or when a data area has not been set yet.
@@ -95,6 +97,33 @@ public class CorePlugin
     public static File getDataLocation( Bundle bundle ) {
         File workspace = instance().getStateLocation().toFile().getParentFile().getParentFile().getParentFile();
         File result = new File( new File( workspace, DATA_DIR ), bundle.getSymbolicName() );
+        result.mkdirs();
+        return result;
+    }
+    
+    /**
+     * See {@link #getCacheLocation(Bundle)}. 
+     */
+    public static File getCacheLocation( @SuppressWarnings("hiding") Plugin plugin ) {
+       return getCacheLocation( plugin.getBundle() );
+    }    
+    
+    /**
+     * Returns the location in the local file system of the cache area for the given
+     * bundle. If the directory did not exist prior to this call, it is created.
+     * <p/>
+     * The plug-in data area is a file directory within the platform's data area
+     * where a plug-in is free to create files. The content and structure of this
+     * area is defined by the plug-in, and the particular plug-in is solely
+     * responsible for any files it puts there.
+     * <p/>
+     * The contents of the cache area might be <b>cleared</b> when the instance
+     * starts. Client code must not depend on the existence of any contents of the
+     * cache area.
+     */
+    public static File getCacheLocation( Bundle bundle ) {
+        File workspace = instance().getStateLocation().toFile().getParentFile().getParentFile().getParentFile();
+        File result = new File( new File( workspace, CACHE_DIR ), bundle.getSymbolicName() );
         result.mkdirs();
         return result;
     }

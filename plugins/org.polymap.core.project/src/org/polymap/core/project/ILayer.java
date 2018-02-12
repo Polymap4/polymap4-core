@@ -77,8 +77,10 @@ public class ILayer
     
     /**
      * Configuration properties of processors that are set up for this layer. This
-     * might by {@link PipelineProcessor}s or any other kind of additional
-     * processing thing.
+     * might by {@link PipelineProcessor}s or any other kind of additional processing
+     * thing.
+     * <p/>
+     * Use {@link ProcessorConfig#init(ProcessorExtension)} to create a new entry.
      */
     @Defaults
     public CollectionProperty<ProcessorConfig> processorConfigs;

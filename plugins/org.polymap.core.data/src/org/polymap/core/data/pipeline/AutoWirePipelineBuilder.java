@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -96,9 +97,9 @@ public class AutoWirePipelineBuilder
 
 
     @Override
-    public Pipeline createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd )
+    public Optional<Pipeline> createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd )
             throws PipelineBuilderException {
-        return createPipeline( usecase, dsd, Collections.EMPTY_LIST );
+        return Optional.ofNullable( createPipeline( usecase, dsd, Collections.EMPTY_LIST ) );
     }
 
 
@@ -138,10 +139,12 @@ public class AutoWirePipelineBuilder
             }
         }
         if (termCount == 0) {
-            throw new PipelineBuilderException( "No terminal for data source: " + dsd );
+            //throw new PipelineBuilderException( "No terminal for data source: " + dsd );
+            return null;
         }
         else if (chain.isEmpty()) {
-            throw new PipelineBuilderException( "No transformer chain for: data source=" + dsd + ", usecase="  + usecaseSig );
+            //throw new PipelineBuilderException( "No transformer chain for: data source=" + dsd + ", usecase="  + usecaseSig );
+            return null;
         }
         
         // additional processors
@@ -157,6 +160,9 @@ public class AutoWirePipelineBuilder
                 }
                 index ++;
             }
+//            if (index > chain.size()) {
+//                throw new RuntimeException( "No compatible parent found for: " + candidate );
+//            }
         }
         return createPipeline( usecaseSig, dsd, chain );
     }

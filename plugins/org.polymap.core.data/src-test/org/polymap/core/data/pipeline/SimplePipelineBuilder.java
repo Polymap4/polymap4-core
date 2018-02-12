@@ -16,6 +16,7 @@ package org.polymap.core.data.pipeline;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.geotools.data.FeatureSource;
@@ -50,7 +51,7 @@ public class SimplePipelineBuilder
     
     
     @Override
-    public Pipeline createPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd ) 
+    public Optional<Pipeline> createPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd ) 
             throws PipelineBuilderException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );

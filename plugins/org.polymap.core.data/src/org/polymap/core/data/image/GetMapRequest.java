@@ -14,9 +14,9 @@
  */
 package org.polymap.core.data.image;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import java.awt.Color;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -49,7 +49,9 @@ public class GetMapRequest
 
     private double                  pixelSize = 0.28;
     
-    private List<String>            layers = new ArrayList();
+    private List<String>            layers;
+
+    private List<String>            styles;
 
 //    private Map<LayerType,Interpolation> interpolations = new HashMap();
 //
@@ -60,9 +62,10 @@ public class GetMapRequest
     private long                     ifModifiedSince = -1;
     
 
-    public GetMapRequest( List<String> layers, String crs, ReferencedEnvelope bbox, String format, int width, int height,
-            long ifModifiedSince ) {
+    public GetMapRequest( List<String> layers, List<String> styles, String crs, ReferencedEnvelope bbox, 
+            String format, int width, int height, long ifModifiedSince ) {
         this.layers = layers;
+        this.styles = styles;
         this.crs = crs;
         this.bbox = bbox;
         this.format = format;
@@ -72,8 +75,8 @@ public class GetMapRequest
     }
 
     public GetMapRequest( GetMapRequest rhs ) {
-        // XXX copy all other fields too
         this.layers = rhs.layers;
+        this.styles = rhs.styles;
         this.crs = rhs.crs;
         this.bbox = rhs.bbox;
         this.format = rhs.format;
@@ -94,26 +97,17 @@ public class GetMapRequest
         return crs;
     }
 
-    /**
-     * @return the bbox
-     */
     public ReferencedEnvelope getBoundingBox() {
         return bbox;
     }
 
-    /**
-     * @return a copy of the layers list
-     */
     public List<String> getLayers() {
         return layers;
     }
 
-//    /**
-//     * @return a copy of the styles list
-//     */
-//    public List<Style> getStyles() {
-//        return styles;
-//    }
+    public List<String> getStyles() {
+        return styles;
+    }
 
     /**
      * @return the image format
@@ -122,23 +116,14 @@ public class GetMapRequest
         return format;
     }
 
-    /**
-     * @return the width
-     */
     public int getWidth() {
         return width;
     }
 
-    /**
-     * @return the height
-     */
     public int getHeight() {
         return height;
     }
 
-    /**
-     * @return the transparent parameter
-     */
     public boolean getTransparent() {
         return transparent;
     }

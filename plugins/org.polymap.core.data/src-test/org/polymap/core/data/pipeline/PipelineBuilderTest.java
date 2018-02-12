@@ -60,7 +60,7 @@ public class PipelineBuilderTest {
     @Test
     public void testSimpleDataSourceAutoWire() throws PipelineBuilderException {
         AutoWirePipelineBuilder builder = new AutoWirePipelineBuilder( DataSourceProcessor.class );
-        Pipeline pipeline = builder.createPipeline( FeaturesProducer.class, dsd );
+        Pipeline pipeline = builder.createPipeline( FeaturesProducer.class, dsd ).orElse( null );
         assertEquals( 1, pipeline.length() );
         assertEquals( DataSourceProcessor.class, pipeline.getLast().processorType() );
     }

@@ -98,9 +98,9 @@ public class Param<T> {
 
     // instance *******************************************
 
-    public String       name;
+    private String      name;
 
-    public T            defaultValue;
+    private T           defaultValue;
 
     private Class       type;
 
@@ -130,8 +130,8 @@ public class Param<T> {
         this.defaultValue = defaultValue;
     }
 
-    public T defaultValue() {
-        return defaultValue;
+    public Optional<T> defaultValue() {
+        return Optional.ofNullable( defaultValue );
     }
     
     public Class type() {

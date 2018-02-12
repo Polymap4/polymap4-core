@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011-2012, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2012-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,13 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.runtime.recordstore.QueryExpression;
-import org.polymap.core.runtime.recordstore.RecordQuery;
-import org.polymap.core.runtime.recordstore.SimpleQuery;
-import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
+import org.polymap.recordstore.IRecordStore.Updater;
+import org.polymap.recordstore.QueryExpression;
+import org.polymap.recordstore.RecordQuery;
+import org.polymap.recordstore.SimpleQuery;
 
 /**
  * 
@@ -33,7 +34,7 @@ import org.polymap.core.runtime.recordstore.IRecordStore.Updater;
  */
 public class CacheUpdateQueue {
 
-    private static Log log = LogFactory.getLog( CacheUpdateQueue.class );
+    private static final Log log = LogFactory.getLog( CacheUpdateQueue.class );
 
     private Cache304            cache;
 
@@ -59,7 +60,7 @@ public class CacheUpdateQueue {
 
     /**
      * Called during {@link Cache304#get()} in order to adapt the result according
-     * the commands in the queue.
+     * to the commands in the queue.
      */
     public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
         log.debug( "adaptCacheResult(): elements in queue: " + queue.size() );
@@ -70,7 +71,7 @@ public class CacheUpdateQueue {
 
 
     /**
-     * Makes a stable copy for the updater. The returned alements are
+     * Makes a stable copy for the updater. The returned elements are
      * {@link #remove(List)} from the queue after they are applied to persistent
      * backend.
      */

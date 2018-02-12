@@ -9,7 +9,8 @@ Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.rap.rwt;bundle-version="2.3.1",
  org.eclipse.rap.ui;bundle-version="2.3.1",
  org.polymap.core;bundle-version="4.0.0",
- org.junit;resolution:=optional
+ org.junit;resolution:=optional,
+ org.polymap.core.recordstore
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.objectplanet.image,
@@ -547,6 +548,7 @@ Export-Package: com.objectplanet.image,
  org.polymap.core.data.feature,
  org.polymap.core.data.feature.storecache,
  org.polymap.core.data.image,
+ org.polymap.core.data.image.cache304,
  org.polymap.core.data.pipeline,
  org.polymap.core.data.process,
  org.polymap.core.data.process.ui,

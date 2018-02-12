@@ -57,7 +57,7 @@ public interface PipelineExecutor {
          * @param key The key of the element.
          * @return The element for the given key or null.
          */
-        public Object get( String key );
+        public <R> R get( String key );
 
 
         /**
