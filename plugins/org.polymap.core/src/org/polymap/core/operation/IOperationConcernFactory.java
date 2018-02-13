@@ -17,10 +17,6 @@
  */
 package org.polymap.core.operation;
 
-import java.util.List;
-
-import com.google.common.collect.FluentIterable;
-
 import org.eclipse.core.commands.operations.IUndoableOperation;
 
 /**
@@ -34,17 +30,6 @@ import org.eclipse.core.commands.operations.IUndoableOperation;
  */
 public abstract class IOperationConcernFactory {
     
-    static List<IUndoableOperation> concernsForOperation( IUndoableOperation op, OperationInfo info ) {
-        return FluentIterable.from( OperationConcernExtension.all() )
-                .transform( ext -> ext.newInstance() )
-                .transform( factory -> factory.newInstance( op, info ) )
-                .filter( concern -> concern != null )
-                .toList();
-    }
-    
-    
-    // interface ******************************************
-
     /**
      * Checks if the given operation is supported by this factory and returns a newly
      * created concern instance for it, or null if the given operation is not handled by
