@@ -14,9 +14,6 @@
  */
 package org.polymap.core.project.ops;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -41,8 +38,6 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class NewLayerOperation
         extends TwoPhaseCommitOperation {
 
-    private static Log log = LogFactory.getLog( NewLayerOperation.class );
-
     /**
      * Inbound: The UnitOfWork to work with.
      */
@@ -56,8 +51,6 @@ public class NewLayerOperation
     public Config2<NewLayerOperation,IMap>          map;
     
     /** Inbound:  */
-    @Mandatory
-    @Immutable
     public Config2<NewLayerOperation,ValueInitializer<ILayer>>  initializer;
     
     /** Outbound: Newly created layer. */
@@ -67,6 +60,9 @@ public class NewLayerOperation
 
     public NewLayerOperation() {
         super( "New layer" );
+        
+        // initialize with empty initializer so that sub-classes and concers can chain away
+        initializer.set( (ILayer proto) -> proto );
     }
 
 
