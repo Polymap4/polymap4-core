@@ -35,7 +35,7 @@ import org.polymap.core.runtime.config.Mandatory;
 public class CommitOperation
         extends DefaultOperation {
 
-    private static Log log = LogFactory.getLog( CommitOperation.class );
+    private static final Log log = LogFactory.getLog( CommitOperation.class );
 
     @Mandatory
     public Config2<CommitOperation,UnitOfWork>  uow;
