@@ -132,11 +132,14 @@ public class PipelineFeatureSource
         return true;
     }
 
-
     public Pipeline pipeline() {
         return pipeline;
     }
     
+    public PipelineFeatureSource setPipeline( Pipeline pipeline ) {
+        this.pipeline = pipeline;
+        return this;
+    }
     
     protected PipelineExecutor newExecutor() throws InstantiationException, IllegalAccessException {
         return pipelineExecutor.get().newInstance();

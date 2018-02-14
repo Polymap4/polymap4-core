@@ -193,6 +193,10 @@ public abstract class ProjectNode
             return getSource().id();
         }
         
+        public boolean isEntity( Entity entity ) {
+            return entity.id().equals( getEntityId() );
+        }
+        
         /**
          * Returns the {@link #getSource() source} Entity of the event
          * {@link UnitOfWork#entity(Entity) belonging to} the given target
