@@ -25,11 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.eclipse.core.runtime.CoreException;
-
 import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
-import org.polymap.core.runtime.ListenerList;
-import org.polymap.core.runtime.session.SessionSingleton;
 
 /**
  * Once constructed this builder stores and re-uses terminal and transformation
@@ -52,11 +48,6 @@ public class AutoWirePipelineBuilder
     private List<Class<? extends TerminalPipelineProcessor>> terminals = new ArrayList();
 
 
-//    public AutoWirePipelineBuilder( ProcessorExtension... extensions ) {
-//        throw new RuntimeException( "not yet..." );
-//    }
-
-
     public AutoWirePipelineBuilder( Class<? extends PipelineProcessor>... types ) {
         for (Class<? extends PipelineProcessor> type : types) {
             if (TerminalPipelineProcessor.class.isAssignableFrom( type )) {
@@ -69,41 +60,41 @@ public class AutoWirePipelineBuilder
     }
 
 
-    /**
-     * Session bound incubation listeners. 
-     */
-    static class Session
-            extends SessionSingleton {
-
-        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
-
-        public static Session instance() {
-            return instance( Session.class );
-        }
-
-        protected Session() {
-            for (PipelineListenerExtension ext : PipelineListenerExtension.allExtensions()) {
-                try {
-                    IPipelineIncubationListener listener = ext.newListener();
-                    listeners.add( listener );
-                }
-                catch (CoreException e) {
-                    log.error( "Unable to create a new IPipelineIncubationListener: " + ext.getId() );
-                }
-            }
-        }
-        
-    }
+//    /**
+//     * Session bound incubation listeners. 
+//     */
+//    static class Session
+//            extends SessionSingleton {
+//
+//        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
+//
+//        public static Session instance() {
+//            return instance( Session.class );
+//        }
+//
+//        protected Session() {
+//            for (PipelineListenerExtension ext : PipelineListenerExtension.allExtensions()) {
+//                try {
+//                    IPipelineIncubationListener listener = ext.newListener();
+//                    listeners.add( listener );
+//                }
+//                catch (CoreException e) {
+//                    log.error( "Unable to create a new IPipelineIncubationListener: " + ext.getId() );
+//                }
+//            }
+//        }        
+//    }
 
 
     @Override
-    public Optional<Pipeline> createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd )
-            throws PipelineBuilderException {
-        return Optional.ofNullable( createPipeline( usecase, dsd, Collections.EMPTY_LIST ) );
+    public Optional<Pipeline> createPipeline( String layerId, Class<? extends PipelineProcessor> usecase, 
+            DataSourceDescriptor dsd ) throws PipelineBuilderException {
+        return Optional.ofNullable( createPipeline( layerId, usecase, dsd, Collections.EMPTY_LIST ) );
     }
 
 
-    protected Pipeline createPipeline( 
+    protected Pipeline createPipeline(
+            String layerId,
             Class<? extends PipelineProcessor> usecase, 
             DataSourceDescriptor dsd,
             List<ProcessorDescriptor> procs)
@@ -164,7 +155,7 @@ public class AutoWirePipelineBuilder
 //                throw new RuntimeException( "No compatible parent found for: " + candidate );
 //            }
         }
-        return createPipeline( usecaseSig, dsd, chain );
+        return createPipeline( layerId, usecaseSig, dsd, chain );
     }
 
 

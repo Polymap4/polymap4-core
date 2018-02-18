@@ -22,17 +22,20 @@ package org.polymap.core.data.pipeline;
 public abstract class PipelineBuilderBase
         implements PipelineBuilder {
 
-    protected Pipeline createPipeline( ProcessorSignature usecase, DataSourceDescriptor dsd, Iterable<ProcessorDescriptor> chain ) 
+    protected Pipeline createPipeline( String layerId, ProcessorSignature usecase, 
+            DataSourceDescriptor dsd, Iterable<ProcessorDescriptor> chain ) 
             throws PipelineBuilderException {
+        
         Pipeline pipeline = new Pipeline( usecase, dsd );
         for (ProcessorDescriptor procDesc : chain) {
             try {
                 PipelineProcessor processor = procDesc.processor();
-                PipelineProcessorSite procSite = createProcessorSite( procDesc );
-                procSite.usecase.set( usecase );
-                procSite.dsd.set( dsd );
-                procSite.builder.set( this );
-                processor.init( procSite );
+                PipelineProcessorSite site = createProcessorSite( procDesc );
+                site.layerId.set( layerId );
+                site.usecase.set( usecase );
+                site.dsd.set( dsd );
+                site.builder.set( this );
+                processor.init( site );
                 pipeline.addLast( procDesc );
             }
             catch (Exception e) {

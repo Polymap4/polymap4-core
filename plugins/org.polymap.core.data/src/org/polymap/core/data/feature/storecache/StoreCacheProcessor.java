@@ -71,10 +71,14 @@ public class StoreCacheProcessor
     /** The maximum timeout between updates of the cache. */
     public static final Param<Duration> MAX_UPDATE_TIMEOUT = new Param( "maxTimeout", Duration.class, Duration.ofDays( 3 ) );
 
+    /** Dummy param that displays statistics in the UI. */
+    @Param.UI( description="Statistics", custom=StatisticsSupplier.class )
+    public static final Param           STATISTICS = new Param( "resname", String.class );
+
     /**
      * XXX I'm to stupid to use AtomicLong check/set methods?
      */
-    class AtomicLong2
+    static class AtomicLong2
             extends AtomicLong {
 
         public <E extends Exception> void checkSet( Function<Long,Boolean> check, Task<E> set ) throws E {
@@ -88,6 +92,7 @@ public class StoreCacheProcessor
         }
     }
     
+    /** Maps {@link PipelineProcessorSite#layerId} into atomic timestamp. */
     static ConcurrentMap<String,AtomicLong2>    lastUpdated = new ConcurrentHashMap();
     
     private static Lazy<DataAccess>             cachestore;
@@ -114,8 +119,6 @@ public class StoreCacheProcessor
 
     private DataAccess                  cacheDs;
 
-    private String                      resName;
-
     private DataSourceProcessor         cache;
     
     private SyncStrategy                sync;
@@ -128,9 +131,9 @@ public class StoreCacheProcessor
         // XXX shouldn't the ressource name come from upstream schema?
         assert cachestore != null : "cachestore is not yet initialized.";
         cacheDs = cachestore.get();
-        resName = site.dsd.get().resourceName.get();
+        String resName = site.dsd.get().resourceName.get();
         
-        lastUpdated.computeIfAbsent( resName, k -> new AtomicLong2() );
+        lastUpdated.computeIfAbsent( site.layerId.get(), k -> new AtomicLong2() );
         
         // init sync strategy
         String classname = getClass().getPackage().getName() + "." + SYNC_TYPE.get( site );
@@ -139,6 +142,7 @@ public class StoreCacheProcessor
 
         DataSourceDescriptor cacheDsd = new DataSourceDescriptor( cacheDs, resName );
         PipelineProcessorSite cacheSite = new PipelineProcessorSite( Params.EMPTY );
+        cacheSite.layerId.set( site.layerId.get() );
         cacheSite.usecase.set( site.usecase.get() );
         cacheSite.builder.set( site.builder.get() );
         cacheSite.dsd.set( cacheDsd );
@@ -156,7 +160,7 @@ public class StoreCacheProcessor
 
     
     protected <E extends Exception> void ifUpdateNeeded( Task<E> task ) throws E {
-        AtomicLong2 timestamp = lastUpdated.get( resName );
+        AtomicLong2 timestamp = lastUpdated.get( site.layerId.get() );
         long timeout = MIN_UPDATE_TIMEOUT.get( site ).toMillis();
         
         log.info( "Cache timeout: T - " + Math.max(0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );

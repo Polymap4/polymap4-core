@@ -40,6 +40,10 @@ public class PipelineProcessorSite
     @Immutable
     public Config<DataSourceDescriptor> dsd;
 
+    @Mandatory
+    @Immutable
+    public Config<String>               layerId;
+
     @Immutable
     public Config<PipelineBuilder>      builder;
 

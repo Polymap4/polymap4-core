@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
-import java.time.Duration;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
@@ -51,6 +50,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.cache304.CacheUpdateQueue.StoreCommand;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
 import org.polymap.core.runtime.Timer;
@@ -79,17 +79,9 @@ public class Cache304 {
 
     private static final Log log = LogFactory.getLog( Cache304.class );
     
-//    /** The unit of livetime values: hours */
-//    public static final TimeUnit        liveTimeUnit = TimeUnit.HOURS;
-//
-//    public static final String          PROP_MAX_TILE_LIVETIME = "maxTileLivetime";
-    
     public static final String          PREF_TOTAL_STORE_SIZE = "totalStoreSize";
     
-    public static final Duration        DEFAULT_MAX_TILE_LIVETIME = Duration.ofHours( 24 );
     public static final int             DEFAULT_MAX_STORE_SIZE = 100 * 1024 * 1024;
-    
-    private static CacheStatistics      statistics = new CacheStatistics();
     
     /**
      * No one should hold a permanent ref to the cache as every access uses {@link #instance()}.
@@ -125,16 +117,14 @@ public class Cache304 {
         }
     };
     
-    public static CacheStatistics statistics() {
-        return statistics;
-    }
-    
     public static final Cache304 instance() {
         return instance.get();
     }
 
     
     // instance *******************************************
+    
+    private CacheStatistics     statistics = new CacheStatistics( this );
     
     protected IRecordStore      store;
     
@@ -209,6 +199,10 @@ public class Cache304 {
     }
 
 
+    public CacheStatistics statistics() {
+        return statistics;
+    }
+    
     public long getMaxTotalSize() {
         return maxStoreSizeInByte;    
     }
@@ -232,14 +226,14 @@ public class Cache304 {
      * @param props The processor properties for this layer.
      * @return The cached tile or null.
      */
-    public CachedTile get( GetMapRequest request ) {
+    public CachedTile get( PipelineProcessorSite site, GetMapRequest request ) {
         try {
             // keep store and queue stable; prevent race between removing
             // Command from queue and writing to store
             lock.readLock().lock();
             
             // search the store
-            RecordQuery query = buildQuery( request );
+            RecordQuery query = buildQuery( site, request );
             query.setMaxResults( 2 );
             ResultSet resultSet = store.find( query );
             if (resultSet.count() > 1) {
@@ -275,11 +269,11 @@ public class Cache304 {
                     updater.reSchedule();
                 }
                 
-                statistics.incLayerHitCounter( request.getLayers(), false );
+                statistics.incLayerCounter( site.layerId.get(), false );
                 return cachedTile;
             }
             else {
-                statistics.incLayerHitCounter( request.getLayers(), true );
+                statistics.incLayerCounter( site.layerId.get(), true );
                 return null;
             }
         }
@@ -295,6 +289,7 @@ public class Cache304 {
 
     /**
      * Add a new {@link CachedTile}, or update the existing tile with the given data.
+     * @param site 
      * 
      * @param request
      * @param layers
@@ -304,9 +299,9 @@ public class Cache304 {
      * @return The cached tile if the given request maps to a cached tile, or a newly
      *         created tile for the given request.
      */
-    public CachedTile put( GetMapRequest request, byte[] data, long created, long timeout ) {
+    public CachedTile put( PipelineProcessorSite site, GetMapRequest request, byte[] data, long created, long timeout ) {
         try {
-            CachedTile cachedTile = get( request );
+            CachedTile cachedTile = get( site, request );
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord(), dataDir );
 
@@ -325,8 +320,6 @@ public class Cache304 {
             cachedTile.lastModified.put( created );
             cachedTile.lastAccessed.put( created );
 
-            String layer = request.getLayers().get( 0 );
-
             cachedTile.expires.put( created + timeout );
 
             cachedTile.width.put( request.getWidth() );
@@ -337,7 +330,8 @@ public class Cache304 {
 
             cachedTile.format.put( request.getFormat() );
             
-            cachedTile.layerId.put( layer );
+            //String layer = request.getLayers().get( 0 );
+            cachedTile.layerId.put( site.layerId.get() );
 
             ReferencedEnvelope bbox = request.getBoundingBox();
             cachedTile.minx.put( bbox.getMinX() );
@@ -392,7 +386,7 @@ public class Cache304 {
     }
 
 
-    protected RecordQuery buildQuery( GetMapRequest request ) {
+    protected RecordQuery buildQuery( PipelineProcessorSite site, GetMapRequest request ) {
         SimpleQuery query = new SimpleQuery();
 
         if (request.getWidth() != -1) {
@@ -419,11 +413,8 @@ public class Cache304 {
 //            query.less( CachedTile.TYPE.miny.name(), bbox.getMaxY() );
         }
 
-        assert request.getLayers().size() == 1 : "put(): more than one layer in request: " + request.getLayers();
-        String layer = request.getLayers().get( 0 );
-
         // layerId
-        query.eq( CachedTile.TYPE.layerId.name(), layer );
+        query.eq( CachedTile.TYPE.layerId.name(), site.layerId.get() );
 
         // style
         String styleHash = StringUtils.defaultString( request.getStyles().get( 0 ), "_" );

@@ -14,7 +14,6 @@
  */
 package org.polymap.core.data.image.cache304;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,21 +29,25 @@ import org.polymap.recordstore.SimpleQuery;
  */
 public class CacheStatistics {
 
+    private Cache304                            cache;
+    
     private ConcurrentMap<String,AtomicInteger> layerHitCounters = new ConcurrentHashMap( 128 );
     
     private ConcurrentMap<String,AtomicInteger> layerMissCounters = new ConcurrentHashMap( 128 );
     
-    
-    void incLayerHitCounter( List<String> layers, boolean miss ) {
-        for (String layer : layers) {
-            if (miss) {
-                AtomicInteger counter = layerMissCounters.computeIfAbsent( layer, key -> new AtomicInteger() );
-                counter.incrementAndGet();
-            }
-            else {
-                AtomicInteger counter = layerHitCounters.computeIfAbsent( layer, key -> new AtomicInteger() );
-                counter.incrementAndGet();
-            }
+
+    CacheStatistics( Cache304 cache ) {
+        this.cache = cache;
+    }
+
+    void incLayerCounter( String layer, boolean miss ) {
+        if (miss) {
+            AtomicInteger counter = layerMissCounters.computeIfAbsent( layer, key -> new AtomicInteger() );
+            counter.incrementAndGet();
+        }
+        else {
+            AtomicInteger counter = layerHitCounters.computeIfAbsent( layer, key -> new AtomicInteger() );
+            counter.incrementAndGet();
         }
     }
     
@@ -60,7 +63,7 @@ public class CacheStatistics {
         return counter != null ? counter.intValue() : 0;
     }
     
-    public long layerStoreSize( Cache304 cache, String layer ) {
+    public long layerStoreSize( String layer ) {
         try {
             SimpleQuery query = new SimpleQuery();
             query.setMaxResults( Integer.MAX_VALUE );
@@ -81,7 +84,7 @@ public class CacheStatistics {
         }
     }
     
-    public int layerTileCount( Cache304 cache, String layer ) {
+    public int layerTileCount( String layer ) {
         try {
             SimpleQuery query = new SimpleQuery();
             query.setMaxResults( Integer.MAX_VALUE );
@@ -96,7 +99,7 @@ public class CacheStatistics {
         }
     }
     
-    public long totalStoreSize( Cache304 cache ) {
+    public long totalStoreSize() {
         return cache.dataDirSize.get();  //store.storeSizeInByte();
     }
     

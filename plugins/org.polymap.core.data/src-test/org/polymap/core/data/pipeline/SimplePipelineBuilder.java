@@ -46,13 +46,13 @@ public class SimplePipelineBuilder
                 .map( procType -> new ProcessorDescriptor( procType, params ) )
                 .collect( Collectors.toList() );
         
-        return createPipeline( usecase, dsd, procs );
+        return createPipeline( "layerId", usecase, dsd, procs );
     }
     
     
     @Override
-    public Optional<Pipeline> createPipeline( Class<? extends PipelineProcessor> usecaseType, DataSourceDescriptor dsd ) 
-            throws PipelineBuilderException {
+    public Optional<Pipeline> createPipeline( String layerId, Class<? extends PipelineProcessor> usecaseType, 
+            DataSourceDescriptor dsd ) throws PipelineBuilderException {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }

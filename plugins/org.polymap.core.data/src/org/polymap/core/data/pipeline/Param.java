@@ -75,16 +75,23 @@ public class Param<T> {
         /** The color to be used for field foreground in case of validation error. */
         public static Color errorColor() { return UIUtils.getColor( 240, 20, 20 ); }
         
-        public Control createContents( Composite parent, Param<T> param, Params params );
+        /**
+         * 
+         * @param parent The {@link Composite} to create the UI controls.
+         * @param param The Param we are working for.
+         * @param site The site of the processor, delivering {@link Params} to get a value from.
+         * @return The control that was created or a container.
+         */
+        public Control createContents( Composite parent, Param<T> param, PipelineProcessorSite site );
     }
     
     /**
      * Specifies that the default UI element should be used.
      */
     public static class DEFAULT_UI 
-            implements UISupplier {
+            implements UISupplier<Object> {
         @Override
-        public Control createContents( Composite parent, Param param, Params params ) {
+        public Control createContents( Composite parent, Param<Object> param, PipelineProcessorSite site ) {
             throw new RuntimeException( "Must never be called" );
         }
     };

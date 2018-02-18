@@ -50,6 +50,11 @@ public class ImageCacheProcessor
     @Param.UI( description="The minimum time before re-requesting a tile from the source" )
     public static final Param<Duration> MIN_UPDATE_TIMEOUT = new Param( "minTimeout", Duration.class, Duration.ofHours( 24 ) );
 
+    /** Dummy param that displays statistics in the UI. */
+    @Param.UI( description="Statistics", custom=StatisticsSupplier.class )
+    public static final Param           STATISTICS = new Param( "resname", String.class );
+
+
     static Lazy<File>           cachedir;
     
     /**
@@ -79,22 +84,10 @@ public class ImageCacheProcessor
     }
 
 
-//    protected void updateAndActivate( boolean updateCache ) {
-//        log.debug( "CACHE: activating for layer: " + layer.getLabel() );
-//        if (!active) {
-//            if (updateCache) {
-//                Cache304.instance().updateLayer( layer, null );
-//            }
-//            active = true;
-//            layer.setEditable( false );
-//        }
-//    }
-
-    
     @Override
     public void getMapRequest( GetMapRequest request, ProcessorContext context ) throws Exception {
         Timer timer = new Timer();
-        CachedTile cachedTile = cache.get( request );
+        CachedTile cachedTile = cache.get( site, request );
 
         // cached
         if (cachedTile != null) {
@@ -144,7 +137,7 @@ public class ImageCacheProcessor
         ByteArrayOutputStream cacheBuf = (ByteArrayOutputStream)context.get( "cacheBuf" ); 
         GetMapRequest request = (GetMapRequest)context.get( "request" );
         if (cacheBuf.size() > 0) {
-            cache.put( request, cacheBuf.toByteArray(), context.get( "created" ), MIN_UPDATE_TIMEOUT.get( site ).toMillis() );
+            cache.put( site, request, cacheBuf.toByteArray(), context.get( "created" ), MIN_UPDATE_TIMEOUT.get( site ).toMillis() );
         }
         else {
             log.warn( "Empty response buf! -> not stored in Cache." );

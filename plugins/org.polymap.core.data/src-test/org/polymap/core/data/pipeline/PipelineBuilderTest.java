@@ -60,7 +60,7 @@ public class PipelineBuilderTest {
     @Test
     public void testSimpleDataSourceAutoWire() throws PipelineBuilderException {
         AutoWirePipelineBuilder builder = new AutoWirePipelineBuilder( DataSourceProcessor.class );
-        Pipeline pipeline = builder.createPipeline( FeaturesProducer.class, dsd ).orElse( null );
+        Pipeline pipeline = builder.createPipeline( "test", FeaturesProducer.class, dsd ).orElse( null );
         assertEquals( 1, pipeline.length() );
         assertEquals( DataSourceProcessor.class, pipeline.getLast().processorType() );
     }
@@ -69,11 +69,10 @@ public class PipelineBuilderTest {
     @Test
     public void testBufferDataSourceAutoWire() throws PipelineBuilderException {
         AutoWirePipelineBuilder builder = new AutoWirePipelineBuilder( DataSourceProcessor.class );
-        
         Params storeCacheProcessorParams = new Params();
         StoreCacheProcessor.SYNC_TYPE.set( storeCacheProcessorParams, NoSyncStrategy.class.getSimpleName() );
-        Pipeline pipeline = builder.createPipeline( 
-                FeaturesProducer.class, dsd, 
+        Pipeline pipeline = builder.createPipeline(
+                "test", FeaturesProducer.class, dsd, 
                 asList( new ProcessorDescriptor( StoreCacheProcessor.class, storeCacheProcessorParams ) ) );
         assertEquals( 2, pipeline.length() );
         assertEquals( StoreCacheProcessor.class, pipeline.get( 0 ).processorType() );

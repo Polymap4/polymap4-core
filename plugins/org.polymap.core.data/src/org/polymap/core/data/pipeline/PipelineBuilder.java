@@ -27,13 +27,13 @@ public interface PipelineBuilder {
     /**
      * Attempts to create a new {@link Pipeline} for the given configuration. 
      *
+     * @param layerId An identifier of the layer the pipeline is created for.
      * @param usecase A processor interface that defines the interface of the pipeline. 
-     * @param dsd
-     * @param procs (Additional) processors to add to the pipeline.
+     * @param dsd Describes the data source.
      * @return Newly created {@link Pipeline} instance.
      * @throws PipelineBuilderException
      */
-    public Optional<Pipeline> createPipeline( Class<? extends PipelineProcessor> usecase, DataSourceDescriptor dsd ) 
-            throws PipelineBuilderException;
+    public Optional<Pipeline> createPipeline( String layerId, Class<? extends PipelineProcessor> usecase, 
+            DataSourceDescriptor dsd ) throws PipelineBuilderException;
 
 }

@@ -99,7 +99,7 @@ public class FeatureRenderProcessor2
             try {
                 PipelineBuilder builder = site.builder.get();
                 DataSourceDescriptor dsd = new DataSourceDescriptor( site.dsd.get() );
-                return builder.createPipeline( FeaturesProducer.class, dsd ).get();
+                return builder.createPipeline( site.layerId.get(), FeaturesProducer.class, dsd ).get();
             }
             catch (Exception e) {
                 throw new RuntimeException( e );
