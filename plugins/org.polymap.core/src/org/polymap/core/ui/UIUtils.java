@@ -267,6 +267,13 @@ public class UIUtils {
     }    
 
 
+    public static Font italic( Font font ) {
+        ResourceFactory resources = ContextProvider.getApplicationContext().getResourceFactory();
+        FontDescriptor bold = FontDescriptor.createFrom( font ).setStyle( SWT.ITALIC );        
+        return resources.getFont( bold.getFontData()[0] );
+    }    
+
+
     public static Font fontSize( Font font, int size ) {
         ResourceFactory resources = ContextProvider.getApplicationContext().getResourceFactory();
         FontDescriptor bold = FontDescriptor.createFrom( font ).setHeight( size );        
