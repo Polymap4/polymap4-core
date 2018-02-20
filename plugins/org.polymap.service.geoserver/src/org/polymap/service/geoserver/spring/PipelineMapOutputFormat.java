@@ -186,7 +186,7 @@ public class PipelineMapOutputFormat
             try {
                 Layer mapLayer = mapContent.layers().get( 0 );
                 ILayer layer = findLayer( mapLayer );
-                Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
+                Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class ).get();
                 ProcessorRequest request = prepareProcessorRequest( mapContent );
 
                 AtomicReference<BufferedImage> result = new AtomicReference<BufferedImage>();
@@ -213,7 +213,7 @@ public class PipelineMapOutputFormat
                     protected void runWithException( IProgressMonitor monitor ) throws Exception {
                         try {
                             final ILayer layer = findLayer( mapLayer );
-                            Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
+                            Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class ).get();
                             GetMapRequest request = prepareProcessorRequest( mapContent );
                             server.createPipelineExecutor().execute( pipeline, request, (ImageResponse pipeResponse) -> {
                                 BufferedImage layerImage = (BufferedImage)pipeResponse.getImage();

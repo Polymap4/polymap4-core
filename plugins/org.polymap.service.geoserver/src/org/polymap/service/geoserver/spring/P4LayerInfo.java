@@ -49,7 +49,7 @@ public class P4LayerInfo
         extends LayerInfoImpl
         implements LayerInfo {
 
-    private static Log log = LogFactory.getLog( P4LayerInfo.class );
+    private static final Log log = LogFactory.getLog( P4LayerInfo.class );
     
     private Catalog             catalog;
 

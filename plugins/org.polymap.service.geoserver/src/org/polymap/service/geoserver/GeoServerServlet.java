@@ -21,8 +21,10 @@ import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,23 +93,23 @@ public abstract class GeoServerServlet
     
     private List<ServletContextListener>    loaders = new ArrayList();
     
+    private Cache<String,Optional<Pipeline>> pipelines = CacheConfig.defaults().initSize( 64 ).createCache();
+
     private DispatcherServlet               dispatcher;
     
     private BundleServletContext            servletContext;
     
     private File                            dataDir;
     
-    private Cache<String,Pipeline>          pipelines;
-
     public String                           alias;
 
     public IMap                             map;
 
     private ServiceContext2                 session;
     
+    
     public GeoServerServlet( String alias ) {
         this.alias = alias;
-        this.pipelines = CacheConfig.defaults().initSize( 128 ).createCache();
         this.session = new ServiceContext2( alias );
     }
 
@@ -126,14 +128,14 @@ public abstract class GeoServerServlet
      * This is called inside the servlet request thread.
      * @throws Exception 
      */
-    protected abstract Pipeline createPipeline( ILayer layer, Class<? extends PipelineProcessor> usecase )
+    protected abstract Optional<Pipeline> createPipeline( ILayer layer, Class<? extends PipelineProcessor> usecase )
             throws Exception;
 
     
     public abstract String createSLD( ILayer layer );
 
 
-    public Pipeline getOrCreatePipeline( final ILayer layer, Class<? extends PipelineProcessor> usecase ) 
+    public Optional<Pipeline> getOrCreatePipeline( final ILayer layer, Class<? extends PipelineProcessor> usecase ) 
             throws Exception {
         try {
             String key = layer.id().toString() + usecase.getSimpleName();

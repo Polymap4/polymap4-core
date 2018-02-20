@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2010-2016, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2010-2016-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,6 +13,8 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.service.geoserver.spring;
+
+import java.util.Optional;
 
 import java.io.IOException;
 
@@ -35,7 +37,6 @@ import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineBuilderException;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.geoserver.GeoServerServlet;
@@ -58,21 +59,17 @@ public class P4DataStoreInfo
      * @throws Exception 
      */
     public static P4DataStoreInfo canHandle( Catalog catalog, ILayer layer ) throws Exception {
-        try {
-            GeoServerServlet server = GeoServerServlet.instance.get();
-            Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
-            PipelineFeatureSource fs = new PipelineDataStore( pipeline ).getFeatureSource();
-            if (fs == null || fs.pipeline().length() == 0) {
-                throw new PipelineBuilderException( "WMS layer? : " + layer.label.get() );
-            }
+        GeoServerServlet server = GeoServerServlet.instance.get();
+        Optional<Pipeline> pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
+        if (pipeline.isPresent()) {
+            PipelineFeatureSource fs = new PipelineDataStore( pipeline.get() ).getFeatureSource();
 //            // set name/namespace for target schema
 //            Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
 //            fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
-            
+
             return new P4DataStoreInfo( catalog, layer, fs );
         }
-        // 
-        catch (PipelineBuilderException e) {
+        else {
             return null;
         }
     }

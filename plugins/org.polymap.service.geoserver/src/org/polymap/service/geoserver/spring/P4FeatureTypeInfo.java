@@ -80,7 +80,7 @@ public class P4FeatureTypeInfo
         
         setNamespace( GeoServerUtils.defaultNsInfo.get() );
         setName( GeoServerUtils.simpleName( layer.label.get() ) );
-        setNativeName( GeoServerUtils.simpleName( layer.label.get() ) );
+        setNativeName( fs.getName().getLocalPart() );  // GeoServerUtils.simpleName( layer.label.get() ) );
         setTitle( layer.label.get() );
         // description and stuff is set in P4LayerInfo
 
