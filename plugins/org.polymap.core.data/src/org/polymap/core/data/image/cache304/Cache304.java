@@ -489,11 +489,11 @@ public class Cache304 {
                 log.debug( "writing commands done. (" + timer.elapsedTime() + "ms)" );
                 
                 // external synchronization of Lucene is not a good idea in general;
-                // I don't see another way to make apply() and remove() one atomar
+                // I don't see another way to make apply() and remove() an atomar
                 // operation; but use tryLock() instead of block-forever lock()
                 lock.writeLock().tryLock( 5, TimeUnit.SECONDS );
                 if (!lock.isWriteLockedByCurrentThread()) {
-                    log.warn( "Unable to aquire write lock! (3 seconds)" );
+                    log.warn( "Unable to aquire write lock! (5 seconds)" );
                 }
                 timer.start();
                 tx.apply( false );                
@@ -515,7 +515,6 @@ public class Cache304 {
             }
 
             // check max livetime *************************
-            log.debug( "Updater: pruning expired tiles..." );
             tx = store.prepareUpdate();
             try {
                 long deadline = System.currentTimeMillis();
@@ -525,6 +524,7 @@ public class Cache304 {
                 query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC, String.class );
                 
                 ResultSet expiredTiles = store.find( query );
+                log.info( "Updater: pruning expired tiles: " + expiredTiles.count() );
                 
                 for (IRecordState state : expiredTiles) {
                     deleteTile( state, tx );
@@ -544,7 +544,7 @@ public class Cache304 {
 
             // check store size ***************************
             if (dataDirSize.get() > maxStoreSizeInByte) {
-                log.debug( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
+                log.info( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
                 tx = store.prepareUpdate();
                 try {
                     // check max livetime
