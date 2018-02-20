@@ -105,8 +105,13 @@ public class P4FeatureTypeInfo
         List<AttributeTypeInfo> attributeInfos = new ArrayList();
         for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
             AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
+            attributeInfos.add( attributeInfo );
             
-            attributeInfo.setFeatureType( this );
+            // XXX hashCode() of AttributeTypeInfoImpl and FeatureTypeInfoImpl
+            // are referencing each other, yes! With this set calling hashCode()
+            // results in an StackOverflow
+            //attributeInfo.setFeatureType( P4FeatureTypeInfo.this );
+            
             attributeInfo.setName( attribute.getName().getLocalPart() );
             attributeInfo.setMinOccurs( attribute.getMinOccurs());
             attributeInfo.setMaxOccurs( attribute.getMaxOccurs());
