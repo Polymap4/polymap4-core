@@ -27,13 +27,11 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.catalog.impl.AttributeTypeInfoImpl;
 import org.geoserver.catalog.impl.FeatureTypeInfoImpl;
-import org.geotools.data.DataStore;
 import org.geotools.data.FeatureSource;
 import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureTypes;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -134,9 +132,9 @@ public class P4FeatureTypeInfo
     }
 
 
-    protected DataStore ds( ProgressListener monitor ) throws IOException {
-        return (DataStore)dsInfo.getDataStore( monitor );
-    }
+//    protected DataStore ds( ProgressListener monitor ) throws IOException {
+//        return (DataStore)dsInfo.getDataStore( monitor );
+//    }
     
     
     public P4DataStoreInfo getDsInfo() {
@@ -148,13 +146,13 @@ public class P4FeatureTypeInfo
     public FeatureSource<? extends FeatureType, ? extends Feature> getFeatureSource(
             ProgressListener monitor, Hints hints )
             throws IOException {
-        return ds( monitor ).getFeatureSource( getNativeName() );
+        return fs;  //ds( monitor ).getFeatureSource( getNativeName() );
     }
 
     
     @Override
     public FeatureType getFeatureType() throws IOException {
-        return ds( new NullProgressListener() ).getSchema( getNativeName() );
+        return schema;
     }
     
 }

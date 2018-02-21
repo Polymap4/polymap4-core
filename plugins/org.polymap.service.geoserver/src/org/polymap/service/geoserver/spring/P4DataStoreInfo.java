@@ -26,8 +26,10 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.memory.MemoryDataStore;
 import org.geotools.data.store.ContentFeatureSource;
+import org.geotools.feature.NameImpl;
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.Name;
 import org.opengis.util.ProgressListener;
 
 import org.apache.commons.logging.Log;
@@ -37,9 +39,13 @@ import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.pipeline.Pipeline;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
+import org.polymap.core.data.pipeline.ProcessorDescriptor;
 import org.polymap.core.project.ILayer;
 
 import org.polymap.service.geoserver.GeoServerServlet;
+import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * 
@@ -63,9 +69,15 @@ public class P4DataStoreInfo
         Optional<Pipeline> pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
         if (pipeline.isPresent()) {
             PipelineFeatureSource fs = new PipelineDataStore( pipeline.get() ).getFeatureSource();
-//            // set name/namespace for target schema
-//            Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
-//            fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
+            
+            // check with P4FeatureTypeInfo
+            Name name = new NameImpl( GeoServerUtils.defaultNsInfo.get().getName(), GeoServerUtils.simpleName( layer.label.get() ) );
+            Params params = new Params();
+            FeatureRenameProcessor.NAME.rawput( params, name );
+            PipelineProcessorSite procSite = new PipelineProcessorSite( params );
+            ProcessorDescriptor proc = new ProcessorDescriptor( FeatureRenameProcessor.class, params );
+            proc.processor().init( procSite );
+            fs.pipeline().addFirst( proc );
 
             return new P4DataStoreInfo( catalog, layer, fs );
         }
