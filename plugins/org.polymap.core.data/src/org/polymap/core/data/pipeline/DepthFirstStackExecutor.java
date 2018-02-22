@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -56,13 +57,13 @@ public class DepthFirstStackExecutor
 
         // create contexts
         int i = 0;
-        for (ProcessorDescription desc : pipeline) {
+        for (ProcessorDescriptor desc : pipeline) {
             DepthFirstContext context = new DepthFirstContext( desc, i++ );
             contexts.add( context );
         }
         // recursivly call processors
         DepthFirstContext sinkContext = contexts.get( 0 );
-        sinkContext.procDesc.signature().invoke( request, sinkContext );
+        sinkContext.procDesc.invoke( request, sinkContext );
     }
 
     
@@ -90,7 +91,7 @@ public class DepthFirstStackExecutor
 
         int                     pipePos;
         
-        ProcessorDescription    procDesc;
+        ProcessorDescriptor    procDesc;
         
         /** The processor specific data. */
         Map                     procData = new HashMap();
@@ -98,7 +99,7 @@ public class DepthFirstStackExecutor
         boolean                 contextEop = false;
         
         
-        public DepthFirstContext( ProcessorDescription procDesc, int pipePos ) {
+        public DepthFirstContext( ProcessorDescriptor procDesc, int pipePos ) {
             this.pipePos = pipePos;
             this.procDesc = procDesc;
         }
@@ -117,18 +118,18 @@ public class DepthFirstStackExecutor
 
         public void sendRequest( ProcessorRequest r ) throws Exception {
             DepthFirstContext upstream = contexts.get( pipePos+1 );
-            upstream.procDesc.signature().invoke( r, upstream );
+            upstream.procDesc.invoke( r, upstream );
         }
 
         public void sendResponse( ProcessorResponse r ) throws Exception {
             if (pipePos > 0) {
                 DepthFirstContext downstream = contexts.get( pipePos-1 );
                 if (r != ProcessorResponse.EOP) {
-                    downstream.procDesc.signature().invoke( r, downstream );
+                    downstream.procDesc.invoke( r, downstream );
                 }
                 else {
                     // send EOP 
-                    downstream.procDesc.signature().invoke( r, downstream );
+                    downstream.procDesc.invoke( r, downstream );
                     // close context!?
                 }
             }

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2012, Polymap GmbH. All rights reserved.
+ * Copyright 2012-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,15 +14,13 @@
  */
 package org.polymap.core.data.image.cache304;
 
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.polymap.core.project.ILayer;
-import org.polymap.core.runtime.recordstore.IRecordState;
-import org.polymap.core.runtime.recordstore.ResultSet;
-import org.polymap.core.runtime.recordstore.SimpleQuery;
+import org.polymap.recordstore.IRecordState;
+import org.polymap.recordstore.ResultSet;
+import org.polymap.recordstore.SimpleQuery;
 
 /**
  * 
@@ -31,59 +29,53 @@ import org.polymap.core.runtime.recordstore.SimpleQuery;
  */
 public class CacheStatistics {
 
+    private Cache304                            cache;
+    
     private ConcurrentMap<String,AtomicInteger> layerHitCounters = new ConcurrentHashMap( 128 );
     
     private ConcurrentMap<String,AtomicInteger> layerMissCounters = new ConcurrentHashMap( 128 );
     
-    
-    CacheStatistics() {
+
+    CacheStatistics( Cache304 cache ) {
+        this.cache = cache;
     }
 
-    
-    void incLayerHitCounter( Set<ILayer> layers, boolean miss ) {
-        assert layers != null;
-        
-        for (ILayer layer : layers) {
-            
-            AtomicInteger counter = layerHitCounters.get( layer.id() );
-            if (counter == null) {
-                layerHitCounters.putIfAbsent( layer.id(), counter = new AtomicInteger() );
-            }
+    void incLayerCounter( String layer, boolean miss ) {
+        if (miss) {
+            AtomicInteger counter = layerMissCounters.computeIfAbsent( layer, key -> new AtomicInteger() );
             counter.incrementAndGet();
-
-            if (miss) {
-                counter = layerMissCounters.get( layer.id() );
-                if (counter == null) {
-                    layerMissCounters.putIfAbsent( layer.id(), counter = new AtomicInteger() );
-                }
-                counter.incrementAndGet();
-            }
+        }
+        else {
+            AtomicInteger counter = layerHitCounters.computeIfAbsent( layer, key -> new AtomicInteger() );
+            counter.incrementAndGet();
         }
     }
     
-    
-    public int layerHitCount( ILayer layer ) {
+    public int layerHitCount( String layer ) {
         assert layer != null;
-        AtomicInteger counter = layerHitCounters.get( layer.id() );
+        AtomicInteger counter = layerHitCounters.get( layer );
         return counter != null ? counter.intValue() : 0;
     }
     
-    public int layerMissCount( ILayer layer ) {
+    public int layerMissCount( String layer ) {
         assert layer != null;
-        AtomicInteger counter = layerMissCounters.get( layer.id() );
+        AtomicInteger counter = layerMissCounters.get( layer );
         return counter != null ? counter.intValue() : 0;
     }
     
-    public long layerStoreSize( Cache304 cache, ILayer layer ) {
+    public long layerStoreSize( String layer ) {
         try {
             SimpleQuery query = new SimpleQuery();
             query.setMaxResults( Integer.MAX_VALUE );
-            query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
+            query.eq( CachedTile.TYPE.layerId.name(), layer );
 
             long result = 0;
-            ResultSet resultSet = cache.store.find( query );
-            for (IRecordState state : resultSet) {
-                result += new CachedTile( state, null ).filesize.get();
+            try (
+                ResultSet resultSet = cache.store.find( query );
+            ){
+                for (IRecordState state : resultSet) {
+                    result += new CachedTile( state, null ).filesize.get();
+                }
             }
             return result;
         }
@@ -92,21 +84,22 @@ public class CacheStatistics {
         }
     }
     
-    public int layerTileCount( Cache304 cache, ILayer layer ) {
+    public int layerTileCount( String layer ) {
         try {
             SimpleQuery query = new SimpleQuery();
             query.setMaxResults( Integer.MAX_VALUE );
-            query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
+            query.eq( CachedTile.TYPE.layerId.name(), layer );
 
-            ResultSet resultSet = cache.store.find( query );
-            return resultSet.count();
+            try (ResultSet resultSet = cache.store.find( query )) {
+                return resultSet.count();
+            }
         }
         catch (Exception e) {
             return -1;
         }
     }
     
-    public long totalStoreSize( Cache304 cache ) {
+    public long totalStoreSize() {
         return cache.dataDirSize.get();  //store.storeSizeInByte();
     }
     

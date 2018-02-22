@@ -1,6 +1,6 @@
 /*
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,27 +14,26 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.util.Optional;
+
 /**
  * Provides the logic to create a {@link Pipeline} out of a usecase defined by a
  * {@link PipelineProcessor} interface.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public interface PipelineIncubator {
+public interface PipelineBuilder {
 
     /**
      * Attempts to create a new {@link Pipeline} for the given configuration. 
      *
-     * @param usecaseType A processor interface that defines the interface of the pipeline. 
-     * @param dsd
-     * @param procConfigs
+     * @param layerId An identifier of the layer the pipeline is created for.
+     * @param usecase A processor interface that defines the interface of the pipeline. 
+     * @param dsd Describes the data source.
      * @return Newly created {@link Pipeline} instance.
-     * @throws PipelineIncubationException
+     * @throws PipelineBuilderException
      */
-    public Pipeline newPipeline( 
-            Class<? extends PipelineProcessor> usecaseType,
-            DataSourceDescription dsd,
-            PipelineProcessorConfiguration[] procConfigs ) 
-            throws PipelineIncubationException;
+    public Optional<Pipeline> createPipeline( String layerId, Class<? extends PipelineProcessor> usecase, 
+            DataSourceDescriptor dsd ) throws PipelineBuilderException;
 
 }

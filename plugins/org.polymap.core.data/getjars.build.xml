@@ -11,7 +11,7 @@
 	<property name="libs_src_dir" value="${lib}${file.separator}sources" />
 	<property environment="env" />
 	<dirname file="${ant.file.refresh_libs}" property="refresh_libs_basedir" />
-	<property name="geotools.version" value="16.1" />
+	<property name="geotools.version" value="18.1" />
     <available property="already_downloaded" type="dir" file="${lib}" />
     
     <!--
@@ -84,7 +84,9 @@
 		    
             <dependency groupId="org.geotools" artifactId="gt-xml" version="${geotools.version}" />
 	        <dependency groupId="org.geotools.xsd" artifactId="gt-xsd-kml" version="${geotools.version}" />
-	        <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-geojson" version="${geotools.version}" />
+
+		    <!--dependency groupId="org.geotools" artifactId="gt-graph" version="${geotools.version}" /-->
 
 		    <!-- Features -->
             <dependency groupId="org.geotools" artifactId="gt-shapefile" version="${geotools.version}" />
@@ -93,6 +95,7 @@
 		    <!-- OWS -->
             <dependency groupId="org.geotools" artifactId="gt-wms" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-wfs-ng" version="${geotools.version}" />
+            <dependency groupId="org.geotools" artifactId="gt-wmts" version="${geotools.version}" />
 
 		    <!-- Raster -->
             <dependency groupId="org.geotools" artifactId="gt-geotiff" version="${geotools.version}" />

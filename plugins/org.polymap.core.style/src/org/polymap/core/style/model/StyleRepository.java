@@ -207,16 +207,16 @@ public class StyleRepository
         CacheKey cacheKey = new CacheKey( id, org.geotools.styling.Style.class.getName(), outputFormat );
         Optional<org.geotools.styling.Style> style = serialized.computeIfAbsent( cacheKey, key -> {
             try {
-                log.warn( "serializedFeatureStyle(): start... (" + key +  ")" );
+                log.debug( "serializedFeatureStyle(): start... (" + key +  ")" );
                 return featureStyle( id ).map( fs -> {
                     Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
                     org.geotools.styling.Style result = new SLDSerializer().serialize( sc );
-                    log.info( "SLD: " + toSLD( result ) );
+                    log.debug( "SLD: " + toSLD( result ) );
                     return result;
                 });
             }
             finally {
-                log.warn( "serializedFeatureStyle(): end." );
+                log.debug( "serializedFeatureStyle(): end." );
             }
         });
         

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2009-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,10 +14,10 @@
  */
 package org.polymap.core.mapeditor.services;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.concurrent.Callable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -28,17 +28,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.osgi.framework.ServiceException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.geotools.referencing.CRS;
 
 import org.polymap.core.data.image.EncodedImageProducer;
 import org.polymap.core.data.image.EncodedImageResponse;
@@ -97,6 +96,11 @@ public abstract class SimpleWmsServer
     protected abstract Pipeline createPipeline( String layerName );
     
     
+    public boolean disposePipeline( String layerName ) {
+        return pipelines.remove( layerName ) != null;
+    }
+    
+    
     /**
      * This default implementation creates {@link DepthFirstStackExecutor}.
      *
@@ -122,98 +126,93 @@ public abstract class SimpleWmsServer
     @Override
     protected void doGet( final HttpServletRequest request, final HttpServletResponse response )
             throws ServletException, IOException {
-        log.debug( "Request: " + request.getQueryString() );
-        
-        final Map<String,String> kvp = parseKvpSet( request.getQueryString() );
-        
+        log.debug( "Request: " + request.getQueryString() );        
         try {
-            sessionContext.execute( new Callable() {
-                public Object call() throws Exception {
-                    final String layerRenderKey = kvp.get( "LAYERS" );
-                    assert !layerRenderKey.contains( INNER_DELIMETER );
+            final Map<String,String> kvp = parseKvpSet( request.getQueryString() );
+            
+            sessionContext.execute( () -> {
+                // LAYERS
+                final String layer = kvp.get( "LAYERS" );
+                assert !layer.contains( INNER_DELIMETER );
+                final String style = kvp.get( "STYLES" );
+                assert style == null || !style.contains( INNER_DELIMETER );
+                log.info( "layers=" + layer + ", style=" + style );
 
-                    // width/height
-                    int width = Integer.parseInt( kvp.get( "WIDTH" ) );
-                    int height = Integer.parseInt( kvp.get( "HEIGHT" ) );
+                // WIDTH/HEIGHT
+                int width = Integer.parseInt( kvp.get( "WIDTH" ) );
+                int height = Integer.parseInt( kvp.get( "HEIGHT" ) );
 
-                    // BBOX
-                    ReferencedEnvelope bbox = parseBBox( kvp.get( "BBOX" ) );
-                    String srsCode = kvp.get( "SRS" );
-                    // XXX hack support for EPSG:3857 : send different srs and crs
-//                    CoordinateReferenceSystem crs = srsCode.equals( "EPSG:3857" )
-//                            ? CRS.decode( "EPSG:900913" )
-//                            : CRS.decode( srsCode );
-                    CoordinateReferenceSystem crs = CRS.decode( srsCode );
-                    bbox = new ReferencedEnvelope( bbox, crs );
+                // BBOX
+                ReferencedEnvelope bbox = parseBBox( kvp.get( "BBOX" ) );
+                String srsCode = kvp.get( "SRS" );
+                CoordinateReferenceSystem crs = CRS.decode( srsCode );
+                bbox = new ReferencedEnvelope( bbox, crs );
 
-                    // FORMAT
-                    String format = kvp.get( "FORMAT" );
-                    format = format != null ? format : "image/png";
+                // FORMAT
+                String format = kvp.get( "FORMAT" );
+                format = format != null ? format : "image/png";
 
-                    log.debug( "    --layers= " + layerRenderKey );
-                    log.debug( "    --imageSize= " + width + "x" + height );
-                    log.debug( "    --bbox= " + bbox );
-                    crs = bbox.getCoordinateReferenceSystem();
-                    log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
+                log.debug( "    --layers= " + layer );
+                log.debug( "    --imageSize= " + width + "x" + height );
+                log.debug( "    --bbox= " + bbox );
+                crs = bbox.getCoordinateReferenceSystem();
+                log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
 
-                    // find/create pipeline
-                    final Pipeline pipeline = pipelines.get( layerRenderKey, key -> 
-                            createPipeline( key ) );
+                // find/create pipeline
+                final Pipeline pipeline = pipelines.get( layer, key -> 
+                createPipeline( key ) );
 
-                    long modifiedSince = request.getDateHeader( "If-Modified-Since" );
-                    final ProcessorRequest pr = new GetMapRequest( null, // layers 
-                            srsCode, bbox, format, width, height, modifiedSince );  
+                long modifiedSince = request.getDateHeader( "If-Modified-Since" );
+                final ProcessorRequest pr = new GetMapRequest( 
+                        Collections.singletonList( layer ), Collections.singletonList( style ), 
+                        srsCode, bbox, format, width, height, modifiedSince );  
 
-                    // process
-                    Lazy<ServletOutputStream> out = new PlainLazyInit( () -> {
-                        try {
-                            return response.getOutputStream();
-                        }
-                        catch (Exception e) {
-                            log.warn( "Pipeline exception: " + e, e );
-                            response.setStatus( 502 );
-                            return null;
-                        }
-                    });
+                // process
+                Lazy<ServletOutputStream> out = new PlainLazyInit( () -> {
                     try {
-                        createPipelineExecutor().execute( pipeline, pr, new ResponseHandler() {
-                            @Override
-                            public void handle( ProcessorResponse pipeResponse ) throws Exception {                                
-                                if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
-                                    response.setStatus( 304 );
-                                }
-                                else {
-                                    long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
-                                    // lastModified is only set if response comes from cache ->
-                                    // allow the browser to use a cached tile for max-age without a request
-                                    if (lastModified > 0) {
-                                        response.setDateHeader( "Last-Modified", lastModified );
-                                        response.setHeader( "Cache-Control", "max-age=180,must-revalidate" );
-                                    }
-                                    // disable browser cache if there is no internal Cache for this layer 
-                                    else {
-                                        response.setHeader( "Cache-Control", "no-cache,no-store,must-revalidate" );
-                                        response.setDateHeader( "Expires", 0 );
-                                        response.setHeader( "Pragma", "no-cache" );
-                                    }
-
-                                    byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
-                                    int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
-                                    out.get().write( chunk, 0, len );
-                                }
-                            }
-                        });
+                        return response.getOutputStream();
                     }
-                    catch (Throwable e) {
+                    catch (Exception e) {
                         log.warn( "Pipeline exception: " + e, e );
                         response.setStatus( 502 );
+                        return null;
                     }
-//                    if (out.isInitialized()) {
-//                        out.get().flush();
-//                    }
-//                    response.flushBuffer();
-                    return null;
+                });
+                try {
+                    createPipelineExecutor().execute( pipeline, pr, new ResponseHandler() {
+                        @Override
+                        public void handle( ProcessorResponse pipeResponse ) throws Exception {                                
+                            if (pipeResponse == EncodedImageResponse.NOT_MODIFIED) {
+                                response.setStatus( 304 );
+                            }
+                            else {
+                                long lastModified = ((EncodedImageResponse)pipeResponse).getLastModified();
+                                // lastModified is only set if response comes from cache ->
+                                // allow the browser to use a cached tile for max-age without a request
+                                if (lastModified > 0) {
+                                    long maxAge = ((EncodedImageResponse)pipeResponse).getExpires() - System.currentTimeMillis() / 1000;
+                                    response.setDateHeader( "Last-Modified", lastModified );
+                                    response.setHeader( "Cache-Control", "public,must-revalidate" );
+                                }
+                                // disable browser cache if there is no internal Cache for this layer 
+                                else {
+                                    response.setHeader( "Cache-Control", "no-cache,no-store,must-revalidate" );
+                                    response.setDateHeader( "Expires", 0 );
+                                    response.setHeader( "Pragma", "no-cache" );
+                                }
+
+                                byte[] chunk = ((EncodedImageResponse)pipeResponse).getChunk();
+                                int len = ((EncodedImageResponse)pipeResponse).getChunkSize();
+                                out.get().write( chunk, 0, len );
+                            }
+                        }
+                    });
                 }
+                catch (Throwable e) {
+                    log.warn( "Pipeline exception: " + e, e );
+                    response.setStatus( 502 );
+                }
+                return null;
             });
         }
         catch (IOException e) {
@@ -232,14 +231,13 @@ public abstract class SimpleWmsServer
     
     public static Map<String,String> parseKvpSet( String qString ) throws UnsupportedEncodingException {
         // uses the request cleaner to remove HTTP junk
-        String cleanRequest = java.net.URLDecoder.decode( qString, "UTF-8");
+        String cleanRequest = java.net.URLDecoder.decode( qString, "UTF-8" );
 
         Map<String,String> kvps = new HashMap();
-        StringTokenizer requestKeywords = new StringTokenizer( 
-                cleanRequest.trim(), KVP_DELIMITER);
+        StringTokenizer params = new StringTokenizer( cleanRequest.trim(), KVP_DELIMITER );
 
-        while (requestKeywords.hasMoreTokens()) {
-            String kvp = requestKeywords.nextToken();
+        while (params.hasMoreTokens()) {
+            String kvp = params.nextToken();
             StringTokenizer requestValues = new StringTokenizer( kvp, VALUE_DELIMITER );
 
             // make sure that there is a key token
@@ -251,7 +249,7 @@ public abstract class SimpleWmsServer
                 if (requestValues.hasMoreTokens()) {
                     String value = requestValues.nextToken();
                     log.debug( "parseKvpSet(): putting kvp: " + key + " = " + value);
-                    kvps.put(key, value);
+                    kvps.put( key, value );
                 }
             }
         }
@@ -260,8 +258,7 @@ public abstract class SimpleWmsServer
     }
 
     
-    public static ReferencedEnvelope parseBBox( String value ) 
-            throws NoSuchAuthorityCodeException, FactoryException {
+    public static ReferencedEnvelope parseBBox( String value ) throws NoSuchAuthorityCodeException, FactoryException {
         String[] unparsed = StringUtils.split( value, INNER_DELIMETER );
 
         // check to make sure that the bounding box has 4 coordinates

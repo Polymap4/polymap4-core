@@ -3,10 +3,10 @@
 <schema targetNamespace="org.polymap.core.data" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.polymap.core.data" id="pipeline.processors" name="PipelineProcessors"/>
+         <meta.schema plugin="org.polymap.core.data" id="org.polymap.core.data.pipeline.processors" name="Pipeline Processors"/>
       </appinfo>
       <documentation>
-         This extension point allows to define new pipeline processors.
+         This extension point allows to define new processors for the render pipeline of a layer.
       </documentation>
    </annotation>
 
@@ -79,6 +79,9 @@
                <documentation>
                   Describes the function of this processor.
                </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="class" type="string" use="required">
@@ -89,23 +92,6 @@
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.polymap.core.data.pipeline.PipelineProcessor"/>
                </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="propertyPage" type="string">
-            <annotation>
-               <documentation>
-                  org.polymap.core.data.pipeline.ProcessorExtension$ProcessorPropertyPage
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.polymap.core.data.pipeline.ProcessorExtension$ProcessorPropertyPage"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="isTerminal" type="boolean" use="required">
-            <annotation>
-               <documentation>
-                  Specifies whether this processor is a terminal processor (implementing ITerminalProcessor) or not.
-               </documentation>
             </annotation>
          </attribute>
       </complexType>

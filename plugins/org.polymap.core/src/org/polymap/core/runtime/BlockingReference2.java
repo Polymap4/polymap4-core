@@ -14,8 +14,8 @@
  */
 package org.polymap.core.runtime;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 
 /**
@@ -25,18 +25,20 @@ import org.apache.commons.logging.Log;
  * @see BlockingReference
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class BlockingReference2<T> {
+public class BlockingReference2<T>
+        extends BlockingReference<T> {
 
-    private static Log          log = LogFactory.getLog( BlockingReference2.class );
+    private static final Log log = LogFactory.getLog( BlockingReference2.class );
 
-    private volatile T          value = null;
+    private volatile T      value = null;
 
-    private Object              lock = new Object();
+    private Object          lock = new Object();
     
     
     /**
      * Returns <code>true</code> if subsequent {@link #waitAndGet()} will not wait.
      */
+    @Override
     public boolean isInitialized() {
         return value != null;
     }
@@ -47,6 +49,7 @@ public class BlockingReference2<T> {
      *
      * @return The reference.
      */
+    @Override
     public T waitAndGet() {
         if (value == null) {
             synchronized (lock) {
@@ -71,6 +74,7 @@ public class BlockingReference2<T> {
      *
      * @param value
      */
+    @Override
     public void set( T value ) {
         synchronized (lock) {
             assert value != null && this.value == null;

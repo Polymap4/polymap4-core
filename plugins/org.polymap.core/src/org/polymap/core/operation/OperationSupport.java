@@ -265,10 +265,10 @@ public class OperationSupport
                 monitor.setTaskName( op.getLabel() );
                 
                 OperationExecutor executor = OperationExecutor.newInstance( op );
-                IUndoableOperation executorOp = executor.getOperation();
+                IUndoableOperation executorOp = executor.operation();
                 executorOp.addContext( context );
                 
-                history.execute( executorOp, monitor, executor.getInfo() );
+                history.execute( executorOp, monitor, executor.newOperationInfo( -1 ) );
             }
         };
         for (IJobChangeListener l : listeners) {

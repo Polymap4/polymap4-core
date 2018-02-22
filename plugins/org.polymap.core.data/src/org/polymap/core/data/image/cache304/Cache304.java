@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011-2013, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2013-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,13 +14,14 @@
  */
 package org.polymap.core.data.image.cache304;
 
+import static org.polymap.core.data.image.cache304.ImageCacheProcessor.cachedir;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,10 +30,10 @@ import java.lang.ref.SoftReference;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.base.Supplier;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -49,12 +50,11 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.cache304.CacheUpdateQueue.StoreCommand;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.runtime.CachedLazyInit;
 import org.polymap.core.runtime.LazyInit;
-import org.polymap.core.runtime.Polymap;
 import org.polymap.core.runtime.Timer;
 
-import org.polymap.recordstore.IRecordFieldSelector;
 import org.polymap.recordstore.IRecordState;
 import org.polymap.recordstore.IRecordStore;
 import org.polymap.recordstore.RecordQuery;
@@ -63,7 +63,7 @@ import org.polymap.recordstore.SimpleQuery;
 import org.polymap.recordstore.lucene.LuceneRecordStore;
 
 /**
- * The central API and mediator of the module.
+ * The API and mediator of the module.
  * <p/>
  * The cache uses the {@link org.polymap.core.runtime.recordstore} package to provide
  * a fast, persistent, plugable persistent backend store. By default the based Lucene
@@ -74,23 +74,14 @@ import org.polymap.recordstore.lucene.LuceneRecordStore;
  * bufferes updates as queue of {@link CacheUpdateQueue#Command}s.
  * 
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
- * @since 3.1
  */
 public class Cache304 {
 
-    private static Log log = LogFactory.getLog( Cache304.class );
-    
-    /** The unit of livetime values: hours */
-    public static final TimeUnit        liveTimeUnit = TimeUnit.HOURS;
-
-    public static final String          PROP_MAX_TILE_LIVETIME = "maxTileLivetime";
+    private static final Log log = LogFactory.getLog( Cache304.class );
     
     public static final String          PREF_TOTAL_STORE_SIZE = "totalStoreSize";
     
-    public static final int             DEFAULT_MAX_TILE_LIVETIME = 8;
     public static final int             DEFAULT_MAX_STORE_SIZE = 100 * 1024 * 1024;
-    
-    private static CacheStatistics      statistics = new CacheStatistics();
     
     /**
      * No one should hold a permanent ref to the cache as every access uses {@link #instance()}.
@@ -126,16 +117,14 @@ public class Cache304 {
         }
     };
     
-    public static CacheStatistics statistics() {
-        return statistics;
-    }
-    
     public static final Cache304 instance() {
         return instance.get();
     }
 
     
     // instance *******************************************
+    
+    private CacheStatistics     statistics = new CacheStatistics( this );
     
     protected IRecordStore      store;
     
@@ -160,30 +149,21 @@ public class Cache304 {
     /** Update lastAccessed() time (for LRU), only if it is older then this time (30min.) */
     private long                accessTimeRasterMillis = 30 * 60 * 1000;
     
-    private IPersistentPreferenceStore    prefs = new ScopedPreferenceStore( 
-            new InstanceScope(), DataPlugin.getDefault().getBundle().getSymbolicName() );
+    private IPersistentPreferenceStore prefs = new ScopedPreferenceStore( 
+            InstanceScope.INSTANCE, DataPlugin.getDefault().getBundle().getSymbolicName() );
     
     
     protected Cache304() {
         try {
-            store = new LuceneRecordStore( new File( Polymap.getCacheDir(), "tiles.index" ), false );            
-            store.setIndexFieldSelector( new IRecordFieldSelector() {
-                public boolean accept( String key ) {
-                    return !key.equals( CachedTile.TYPE.data.name() );
-                }
-            });
+            store = new LuceneRecordStore( new File( cachedir.get(), "tiles.index" ), false );
+            store.setIndexFieldSelector( key -> !key.equals( CachedTile.TYPE.data.name() ) );
             
-            dataDir = new File( Polymap.getCacheDir(), "tiles.data" );
+            dataDir = new File( cachedir.get(), "tiles.data" );
             dataDir.mkdirs();
             log.info( "Data dir: "  + dataDir + " - Checking size..." );
+            
             Timer timer = new Timer();
             long fileSize = 0, count = 0;
-//            SimpleQuery query = new SimpleQuery();
-//            query.setMaxResults( 1000000 );
-//            for (IRecordState record : store.find( query )) {
-//                fileSize += new CachedTile( record ).filesize.get();
-//                count ++;
-//            }
             for (File f : dataDir.listFiles()) {
                 fileSize += f.length(); 
                 count ++;
@@ -219,6 +199,10 @@ public class Cache304 {
     }
 
 
+    public CacheStatistics statistics() {
+        return statistics;
+    }
+    
     public long getMaxTotalSize() {
         return maxStoreSizeInByte;    
     }
@@ -242,14 +226,14 @@ public class Cache304 {
      * @param props The processor properties for this layer.
      * @return The cached tile or null.
      */
-    public CachedTile get( GetMapRequest request, Set<ILayer> layers, Properties props ) {
+    public CachedTile get( PipelineProcessorSite site, GetMapRequest request ) {
         try {
-            // keep store and queue stable; prevent race cond between removing
+            // keep store and queue stable; prevent race between removing
             // Command from queue and writing to store
             lock.readLock().lock();
             
             // search the store
-            RecordQuery query = buildQuery( request, layers );
+            RecordQuery query = buildQuery( site, request );
             query.setMaxResults( 2 );
             ResultSet resultSet = store.find( query );
             if (resultSet.count() > 1) {
@@ -285,11 +269,11 @@ public class Cache304 {
                     updater.reSchedule();
                 }
                 
-                statistics.incLayerHitCounter( layers, false );
+                statistics.incLayerCounter( site.layerId.get(), false );
                 return cachedTile;
             }
             else {
-                statistics.incLayerHitCounter( layers, true );
+                statistics.incLayerCounter( site.layerId.get(), true );
                 return null;
             }
         }
@@ -304,7 +288,8 @@ public class Cache304 {
 
 
     /**
-     * Add a new CachedTile, or update the existing tile with the given data.
+     * Add a new {@link CachedTile}, or update the existing tile with the given data.
+     * @param site 
      * 
      * @param request
      * @param layers
@@ -314,9 +299,9 @@ public class Cache304 {
      * @return The cached tile if the given request maps to a cached tile, or a newly
      *         created tile for the given request.
      */
-    public CachedTile put( GetMapRequest request, Set<ILayer> layers, byte[] data, long created, Properties props ) {
+    public CachedTile put( PipelineProcessorSite site, GetMapRequest request, byte[] data, long created, long timeout ) {
         try {
-            CachedTile cachedTile = get( request, layers, props );
+            CachedTile cachedTile = get( site, request );
             if (cachedTile == null) {
                 cachedTile = new CachedTile( store.newRecord(), dataDir );
 
@@ -335,23 +320,18 @@ public class Cache304 {
             cachedTile.lastModified.put( created );
             cachedTile.lastAccessed.put( created );
 
-            assert layers.size() == 1 : "put(): more than one layer in request.";
-            ILayer layer = layers.iterator().next();
-
-            int maxLivetime = Integer.parseInt( props.getProperty( 
-                    PROP_MAX_TILE_LIVETIME, 
-                    String.valueOf (DEFAULT_MAX_TILE_LIVETIME ) ) );
-            cachedTile.expires.put( created + liveTimeUnit.toMillis( maxLivetime ) );
+            cachedTile.expires.put( created + timeout );
 
             cachedTile.width.put( request.getWidth() );
             cachedTile.height.put( request.getHeight() );
 
-            String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
+            String styleHash = StringUtils.defaultString( request.getStyles().get( 0 ), "_" );
             cachedTile.style.put( styleHash );
 
             cachedTile.format.put( request.getFormat() );
             
-            cachedTile.layerId.put( layer.id() );
+            //String layer = request.getLayers().get( 0 );
+            cachedTile.layerId.put( site.layerId.get() );
 
             ReferencedEnvelope bbox = request.getBoundingBox();
             cachedTile.minx.put( bbox.getMinX() );
@@ -370,7 +350,7 @@ public class Cache304 {
     }
     
     
-    public void updateLayer( ILayer layer, Geometry changed ) {
+    public void updateLayer( String layer, Geometry changed ) {
         // flush queue
         if (!updateQueue.isEmpty()) {
             log.warn( "Queue is not empty before updateLayer()!" );
@@ -382,7 +362,7 @@ public class Cache304 {
             lock.writeLock().tryLock( 3, TimeUnit.SECONDS );
             
             SimpleQuery query = new SimpleQuery();
-            query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
+            query.eq( CachedTile.TYPE.layerId.name(), layer );
             query.setMaxResults( 1000000 );
             ResultSet resultSet = store.find( query );
             log.debug( "Removing tiles: " + resultSet.count() );
@@ -406,7 +386,7 @@ public class Cache304 {
     }
 
 
-    protected RecordQuery buildQuery( GetMapRequest request, Set<ILayer> layers ) {
+    protected RecordQuery buildQuery( PipelineProcessorSite site, GetMapRequest request ) {
         SimpleQuery query = new SimpleQuery();
 
         if (request.getWidth() != -1) {
@@ -433,23 +413,18 @@ public class Cache304 {
 //            query.less( CachedTile.TYPE.miny.name(), bbox.getMaxY() );
         }
 
-        if (layers != null && !layers.isEmpty()) {
-            assert layers.size() == 1 : "put(): more than one layer in request: " + layers;
-            ILayer layer = layers.iterator().next();
+        // layerId
+        query.eq( CachedTile.TYPE.layerId.name(), site.layerId.get() );
 
-            // layerId
-            query.eq( CachedTile.TYPE.layerId.name(), layer.id() );
+        // style
+        String styleHash = StringUtils.defaultString( request.getStyles().get( 0 ), "_" );
+        query.eq( CachedTile.TYPE.style.name(), styleHash );
 
-            // style
-            String styleHash = "hash" + layer.getStyle().createSLD( new NullProgressMonitor() ).hashCode();
-            query.eq( CachedTile.TYPE.style.name(), styleHash );
-            
-            // format
-            query.eq( CachedTile.TYPE.format.name(), request.getFormat() );
-            
-            // not expired
-            query.greater( CachedTile.TYPE.expires.name(), System.currentTimeMillis() );
-        }
+        // format
+        query.eq( CachedTile.TYPE.format.name(), request.getFormat() );
+
+        // not expired
+        query.greater( CachedTile.TYPE.expires.name(), System.currentTimeMillis() );
         return query;
     }
     
@@ -495,7 +470,7 @@ public class Cache304 {
             try {
                 Timer timer = new Timer();
                 queueState = updateQueue.state(); 
-                log.debug( "Updater: flushing elements in queue: " + queueState.size() );
+                log.info( "Updater: flushing elements in queue: " + queueState.size() );
                 for (CacheUpdateQueue.Command command: queueState) {
                     try {
                         command.apply( tx );
@@ -514,11 +489,11 @@ public class Cache304 {
                 log.debug( "writing commands done. (" + timer.elapsedTime() + "ms)" );
                 
                 // external synchronization of Lucene is not a good idea in general;
-                // I don't see another way to make apply() and remove() one atomar
+                // I don't see another way to make apply() and remove() an atomar
                 // operation; but use tryLock() instead of block-forever lock()
                 lock.writeLock().tryLock( 5, TimeUnit.SECONDS );
                 if (!lock.isWriteLockedByCurrentThread()) {
-                    log.warn( "Unable to aquire write lock! (3 seconds)" );
+                    log.warn( "Unable to aquire write lock! (5 seconds)" );
                 }
                 timer.start();
                 tx.apply( false );                
@@ -540,7 +515,6 @@ public class Cache304 {
             }
 
             // check max livetime *************************
-            log.debug( "Updater: pruning expired tiles..." );
             tx = store.prepareUpdate();
             try {
                 long deadline = System.currentTimeMillis();
@@ -550,6 +524,7 @@ public class Cache304 {
                 query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC, String.class );
                 
                 ResultSet expiredTiles = store.find( query );
+                log.info( "Updater: pruning expired tiles: " + expiredTiles.count() );
                 
                 for (IRecordState state : expiredTiles) {
                     deleteTile( state, tx );
@@ -569,7 +544,7 @@ public class Cache304 {
 
             // check store size ***************************
             if (dataDirSize.get() > maxStoreSizeInByte) {
-                log.debug( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
+                log.info( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
                 tx = store.prepareUpdate();
                 try {
                     // check max livetime

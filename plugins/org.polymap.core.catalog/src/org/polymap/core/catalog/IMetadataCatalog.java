@@ -55,7 +55,6 @@ public interface IMetadataCatalog
      * @param prefix
      * @param maxResults
      * @param monitor
-     * @return
      * @throws Exception
      */
     public Iterable<String> propose( String prefix, int maxResults, IProgressMonitor monitor ) throws Exception;

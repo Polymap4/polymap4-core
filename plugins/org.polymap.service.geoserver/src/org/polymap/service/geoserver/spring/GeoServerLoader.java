@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2009-2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2009-2015-2018, Falko Bräutigam. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -27,8 +27,11 @@ import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.Wrapper;
 import org.geoserver.catalog.impl.WorkspaceInfoImpl;
 import org.geoserver.config.GeoServer;
+import org.geoserver.config.GeoServerInitializer;
+import org.geoserver.config.GeoServerReinitializer;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.config.impl.GeoServerInfoImpl;
+import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.wfs.GMLInfo;
 import org.geoserver.wfs.GMLInfo.SrsNameStyle;
@@ -111,20 +114,20 @@ public class GeoServerLoader
         // find our GeoServerWms / IMap
         GeoServerServlet service = GeoServerServlet.instance.get();
         assert service != null : "No GeoServerServlet registered for this thread!";
-        
+
         try {
             // Catalog
             if (bean instanceof Catalog) {
                 if (bean instanceof Wrapper && ((Wrapper)bean).isWrapperFor( Catalog.class )) {
                     return bean;
                 }
-                Catalog catalog = (Catalog)bean;
-                loadCatalog( catalog, service );
+                loadCatalog( (Catalog)bean, service );
             }
             // GeoServer
             else if (bean instanceof GeoServer) {
                 geoserver = (GeoServer)bean;
                 loadGeoServer( service );
+                loadInitializers( geoserver );
             }
         }
         catch (BeansException e) {
@@ -152,11 +155,13 @@ public class GeoServerLoader
         // workspace
         WorkspaceInfoImpl wsInfo = new WorkspaceInfoImpl();
         wsInfo.setId( simpleName( map.id() ) + "-ws" );
-        //wsInfo.setName( simpleName( GeoServerPlugin.instance().baseName.orElse( map.label.get() ) ) );
-        log.info( "    loaded: " + wsInfo );
+        wsInfo.setDefault( true );
+        wsInfo.setName( "the-one-and-only" ); //simpleName( GeoServerPlugin.instance().baseName.orElse( map.label.get() ) ) );
+        //catalog.add( MapInfo );
+        log.info( "Workspace: " + wsInfo );
         
         catalog.add( GeoServerUtils.defaultNsInfo.get() );
-        log.info( "    loaded: " + GeoServerUtils.defaultNsInfo.get() );
+        log.info( "Namespace: " + GeoServerUtils.defaultNsInfo.get() );
 
         for (ILayer layer : map.layers) {
             try {
@@ -194,6 +199,7 @@ public class GeoServerLoader
                 log.warn( "Error loading layer: " + layer, e );
             }
         }
+        catalog.add( wsInfo );
     }
 
 
@@ -202,21 +208,46 @@ public class GeoServerLoader
 
         log.info( "Loading GeoServer..." );
         GeoServerInfoImpl gsInfo = new GeoServerInfoImpl( geoserver );
-        gsInfo.setTitle( "Polymap4 powered by GeoServer" );
+        gsInfo.setTitle( "GeoServer powered by mapzone.io" );
         gsInfo.setId( simpleName( map.id() ) + "-gs" );
         // XXX alias is added by ArenaConfig when running in mapzone (see comment there)
         String proxyBaseUrl = GeoServerPlugin.instance().baseUrl.map( s -> 
                 !s.contains( service.alias ) ? s+service.alias : s ).get();
         gsInfo.setProxyBaseUrl( proxyBaseUrl );
-        log.info( "    proxy base URL: " + gsInfo.getProxyBaseUrl() );
+        log.info( "Proxy base URL: " + gsInfo.getProxyBaseUrl() );
 
         gsInfo.setVerbose( true );
         gsInfo.setVerboseExceptions( true );
         geoserver.setGlobal( gsInfo );
-        log.info( "    loaded: " + gsInfo );
+        log.info( "GeoServer: " + gsInfo );
 
         createWMSInfo( map );
         createWFSInfo( map );
+    }
+
+    
+    protected void loadInitializers(GeoServer geoServer) throws Exception {
+        List<GeoServerInitializer> initializers = GeoServerExtensions.extensions( GeoServerInitializer.class );
+        for (GeoServerInitializer initer : initializers) {
+            try {
+                initer.initialize( geoServer );
+            }
+            catch( Throwable t ) {
+                log.warn( "Failed to run initializer " + initer, t );
+            }
+        }
+    }
+    
+    protected void reloadInitializers(GeoServer geoServer) throws Exception {
+        List<GeoServerReinitializer> initializers = GeoServerExtensions.extensions( GeoServerReinitializer.class );
+        for (GeoServerReinitializer initer : initializers) {
+            try {
+                initer.reinitialize( geoServer );
+            }
+            catch( Throwable t ) {
+                log.warn( "Failed to run initializer " + initer, t );
+            }
+        }
     }
 
     
@@ -243,7 +274,7 @@ public class GeoServerLoader
 //        versions.add( new Version( "1.3" ) );
 //        wms.setVersions( versions );
         geoserver.add( wms );
-        log.info( "    loaded: " + wms );
+        log.info( "WMS: " + wms );
     }
 
     
@@ -286,7 +317,7 @@ public class GeoServerLoader
         wfs.getVersions().add( new Version( "2.0.0" ) );
 
         geoserver.add( wfs );        
-        log.info( "    loaded: '" + wfs.getTitle() + "'" );
+        log.info( "WFS: '" + wfs.getTitle() + "'" );
     }
 
 

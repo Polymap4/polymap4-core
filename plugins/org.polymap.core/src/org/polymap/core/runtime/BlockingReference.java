@@ -14,6 +14,7 @@
  */
 package org.polymap.core.runtime;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,6 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * {@link BlockingReference2} for a simpler and faster (?) implementation.
  * 
  * @see BlockingReference2
+ * @see AtomicReference
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class BlockingReference<T> {
@@ -38,10 +40,20 @@ public class BlockingReference<T> {
     
     /**
      * Returns <code>true</code> if subsequent {@link #waitAndGet()} would not wait.
+     * @see #isEventuallyInitialized()
      */
     public boolean isInitialized() {
         return value != null;
     }
+
+    
+//    /**
+//     * Returns <code>true</code> if subsequent {@link #waitAndGet()} would eventually
+//     * return a value. That is, returns true if the value is already initialized or
+//     * another {@link Thread} is already about to initialize the value.
+//     */
+//    public boolean isEventuallyInitialized() {
+//    }
 
     
     /**
@@ -49,8 +61,8 @@ public class BlockingReference<T> {
      * @throws InterruptedException 
      */
     public T waitAndGet() {
-        lock.lock();
         try {
+            lock.lock();
             while (value == null) {
                 notNull.awaitUninterruptibly();
             }

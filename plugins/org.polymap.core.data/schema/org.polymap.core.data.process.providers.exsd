@@ -3,7 +3,7 @@
 <schema targetNamespace="org.polymap.core.data" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.polymap.core.data" id="process.providers" name="Module Providers"/>
+         <meta.schema plugin="org.polymap.core.data" id="org.polymap.core.data.process.providers" name="Module Providers"/>
       </appinfo>
       <documentation>
          Allows to define a new processing module provider.

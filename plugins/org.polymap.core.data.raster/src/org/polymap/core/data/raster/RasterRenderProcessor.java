@@ -33,6 +33,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.factory.CommonFactoryFinder;
@@ -50,6 +51,7 @@ import org.geotools.styling.StyleFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -60,7 +62,7 @@ import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
@@ -93,18 +95,15 @@ public class RasterRenderProcessor
         coverageName = site.dsd.get().resourceName.get();
         
         // styleSupplier
-        style = site.getProperty( FeatureRenderProcessor2.STYLE_SUPPLIER );
-        if (style == null) {
+        style = FeatureRenderProcessor2.STYLE_SUPPLIER.rawopt( site ).orElseGet( () -> {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
-            style = () -> createGreyscaleStyle( 1 );
-            //style = () -> DefaultStyles.findStyle( fs.get() );
-        }
-
+            return () -> createGreyscaleStyle( 1 );
+        });
     }
 
 
     @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
+    public boolean isCompatible( DataSourceDescriptor dsd ) {
         return dsd.service.get() instanceof AbstractGridCoverage2DReader;
     }
 

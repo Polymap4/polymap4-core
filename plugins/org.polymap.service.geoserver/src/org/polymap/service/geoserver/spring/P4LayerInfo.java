@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toList;
 import static org.polymap.service.geoserver.GeoServerUtils.simpleName;
 
 import java.util.Collections;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -48,7 +49,7 @@ public class P4LayerInfo
         extends LayerInfoImpl
         implements LayerInfo {
 
-    private static Log log = LogFactory.getLog( P4LayerInfo.class );
+    private static final Log log = LogFactory.getLog( P4LayerInfo.class );
     
     private Catalog             catalog;
 
@@ -70,7 +71,7 @@ public class P4LayerInfo
         setAdvertised( true );
         setType( type );
         setId( layer.id() );
-        log.info( "    loaded: " + this );
+        log.info( "Layer: " + this );
     }
 
     

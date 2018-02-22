@@ -43,8 +43,8 @@ public abstract class OperationConcernAdapter
      * Cache the next pointer. getInfo().next() must not be called more than once
      * to prevent concernIndex to get out of order.
      */
-    private IUndoableOperation next() {
-        return next = (next == null) ? getInfo().next() : next;
+    protected IUndoableOperation next() {
+        return next == null ? next = getInfo().next() : next;
     }
     
     // IUndoableOperation *********************************

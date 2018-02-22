@@ -14,26 +14,36 @@
  */
 package org.polymap.core.project;
 
+import static org.polymap.core.data.pipeline.ProcessorExtension.forType;
+
 import java.util.Comparator;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import org.polymap.core.data.pipeline.PipelineProcessor;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
+import org.polymap.core.data.pipeline.ProcessorExtension;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
 import org.polymap.core.security.SecurityContext;
 
 import org.polymap.model2.Association;
+import org.polymap.model2.CollectionProperty;
+import org.polymap.model2.Composite;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Mixins;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.runtime.ValueInitializer;
 import org.polymap.model2.runtime.event.PropertyChangeSupport;
 
 /**
@@ -57,19 +67,79 @@ public class ILayer
     
     public static ILayer            TYPE;
     
-    /**
-     *
-     */
     public Property<String>         resourceIdentifier;
 
-    /**
-     *
-     */
     @Nullable
     public Property<String>         styleIdentifier;
 
     @Defaults
     public Property<Integer>        orderKey;
+    
+    /**
+     * Configuration properties of processors that are set up for this layer. This
+     * might by {@link PipelineProcessor}s or any other kind of additional processing
+     * thing.
+     * <p/>
+     * Use {@link ProcessorConfig#init(ProcessorExtension)} to create a new entry.
+     */
+    @Defaults
+    public CollectionProperty<ProcessorConfig> processorConfigs;
+    
+    /**  */
+    public static class ProcessorConfig
+            extends Composite {
+    
+        public static final ValueInitializer<ProcessorConfig> init( ProcessorExtension ext ) {
+            return (ProcessorConfig proto) -> {
+                proto.id.set( UUID.randomUUID().toString() );
+                proto.type.set( ext.getProcessorType().getName() );
+                return proto;
+            };
+        }
+        
+        public Property<String>     id;
+        
+        public Property<String>     type;
+        
+        public Lazy<Optional<ProcessorExtension>>   ext = new LockedLazyInit( () -> forType( type.get() ) );
+        
+        @Defaults
+        public CollectionProperty<KeyValue>         params;
+        
+        public UnitOfWork belongsTo() {
+            return context.getUnitOfWork();
+        }
+        
+        @Override
+        public boolean equals( Object obj ) {
+            return obj instanceof ProcessorConfig
+                    ? ((ProcessorConfig)obj).id.get().equals( id.get() )
+                    : false;
+        }
+
+        public Params params() {
+            Params result = new Params();
+            params.forEach( param -> result.put( param.key.get(), param.value.get() ) );
+            return result;
+        }
+        
+        public void updateParams( Params newParams ) {
+            params.clear();
+            newParams.entrySet().forEach( param -> params.createElement( (KeyValue proto) -> {
+                proto.key.set( param.getKey() ); proto.value.set( (String)param.getValue() ); return proto;
+            }));
+            
+        }
+    }
+
+    /**  */
+    public static class KeyValue
+            extends Composite {
+        
+        public Property<String>     key;
+        
+        public Property<String>     value;
+    }
     
     /**
      * The user settings for this ProjectNode and the current user/session (
@@ -80,10 +150,7 @@ public class ILayer
     public Lazy<LayerUserSettings>  userSettings = new LockedLazyInit( () -> 
             findUserSettings( LayerUserSettings.class, LayerUserSettings.TYPE.layer ) );
 
-    
-    /**
-     * 
-     */
+    /**  */
     public static class LayerUserSettings
             extends UserSettings {
 

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,8 +23,8 @@ import java.io.RandomAccessFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.polymap.core.runtime.recordstore.IRecordState;
-import org.polymap.core.runtime.recordstore.RecordModel;
+import org.polymap.recordstore.IRecordState;
+import org.polymap.recordstore.RecordModel;
 
 /**
  * 
@@ -34,7 +34,7 @@ import org.polymap.core.runtime.recordstore.RecordModel;
 public class CachedTile
         extends RecordModel {
 
-    private static Log log = LogFactory.getLog( CachedTile.class );
+    private static final Log log = LogFactory.getLog( CachedTile.class );
     
     public static final CachedTile TYPE = type( CachedTile.class );
 
@@ -91,9 +91,9 @@ public class CachedTile
 
         @Override
         public byte[] get() {
-            RandomAccessFile raf = null;
-            try {
-                raf = new RandomAccessFile( new File( basedir, filename.get() ), "r" );
+            try (
+                RandomAccessFile raf = new RandomAccessFile( new File( basedir, filename.get() ), "r" )
+            ){
                 // assuming that File#length ist faster than mem copy in ByteArrayOutputStream(?)
                 byte[] buf = new byte[(int)raf.length()];
                 raf.readFully( buf );
@@ -101,9 +101,6 @@ public class CachedTile
             }
             catch (IOException e) {
                 throw new RuntimeException( e );
-            }
-            finally {
-                closeQuietly( raf );
             }
         }
         
@@ -119,36 +116,22 @@ public class CachedTile
             }
             // write file
             else {
-                RandomAccessFile raf = null;
-                try {
-                    if (filename.get() == null) {
-                        filename.put( String.valueOf( filenameCount.getAndIncrement() ) );
-                    }
-                    raf = new RandomAccessFile( new File( basedir, filename.get() ), "rw" );
+                if (filename.get() == null) {
+                    filename.put( String.valueOf( filenameCount.getAndIncrement() ) );
+                }
+                try (
+                    RandomAccessFile raf = new RandomAccessFile( new File( basedir, filename.get() ), "rw" )
+                ){
                     raf.write( value );
                     filesize.put( value.length );
                 }
                 catch (IOException e) {
                     throw new RuntimeException( e );
                 }
-                finally {
-                    closeQuietly( raf );
-                }
             }
             return CachedTile.this;
         }
 
-        protected void closeQuietly( RandomAccessFile raf ) {
-            if (raf != null) {
-                try {
-                    raf.close();
-                }
-                catch (IOException e) {
-                    throw new RuntimeException( e );
-                }
-            }
-        }
-        
         @Override
         public RecordModel add( byte[] value ) {
             throw new RuntimeException( "not supported." );

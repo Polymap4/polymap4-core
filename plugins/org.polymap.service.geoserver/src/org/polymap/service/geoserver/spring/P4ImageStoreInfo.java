@@ -14,6 +14,8 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import java.util.Optional;
+
 import java.io.IOException;
 
 import org.geoserver.catalog.Catalog;
@@ -31,7 +33,6 @@ import com.google.common.base.Throwables;
 
 import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
 import org.polymap.core.data.wms.WmsRenderProcessor;
 import org.polymap.core.project.ILayer;
 
@@ -57,15 +58,15 @@ public class P4ImageStoreInfo
      * @throws Exception 
      */
     public static P4ImageStoreInfo canHandle( Catalog catalog, ILayer layer ) throws Exception {
-        try {
-            GeoServerServlet server = GeoServerServlet.instance.get();
-            Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
-            if (pipeline.length() == 0 || !(pipeline.getLast().processor() instanceof WmsRenderProcessor)) {
-                throw new PipelineIncubationException( "No ImageProducer pipeline found : " + layer.label.get() );
+        GeoServerServlet server = GeoServerServlet.instance.get();
+        Optional<Pipeline> pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
+        if (pipeline.isPresent()) {
+            if (!(pipeline.get().getLast().processor() instanceof WmsRenderProcessor)) {
+                return null;
             }
-            return new P4ImageStoreInfo( catalog, layer, pipeline );
+            return new P4ImageStoreInfo( catalog, layer, pipeline.get() );
         }
-        catch (PipelineIncubationException e) {
+        else {
             return null;
         }
     }

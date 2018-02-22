@@ -21,17 +21,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.json.JSONArray;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.Viewer;
+
 import org.polymap.core.data.util.Geometries;
 import org.polymap.core.runtime.config.Concern;
 import org.polymap.core.runtime.config.Config;
@@ -39,6 +50,7 @@ import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.DefaultPropertyConcern;
 import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.runtime.i18n.IMessages;
+
 import org.polymap.rap.openlayers.base.OlEvent;
 import org.polymap.rap.openlayers.base.OlEventListener;
 import org.polymap.rap.openlayers.base.OlMap;
@@ -49,10 +61,6 @@ import org.polymap.rap.openlayers.types.Extent;
 import org.polymap.rap.openlayers.types.Projection;
 import org.polymap.rap.openlayers.types.Projection.Units;
 import org.polymap.rap.openlayers.view.View;
-
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
 
 /**
  * Provides a JFace style {@link Viewer} on an OpenLayers map.
@@ -163,37 +171,6 @@ public class MapViewer<CL>
         return input;
     }
 
-    @Override
-    public void setSelection( ISelection selection, boolean reveal ) {
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-    @Override
-    public ISelection getSelection() {
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-    @Override
-    public void refresh() {
-        readLayers();
-    }
-
-    
-    public void refresh( CL layer ) {
-        Layer olayer = layers.get( layer );
-        if (olayer != null) {
-            olayer.refresh();
-        }
-    }
-
-    
-    public void removeLayer( CL layer ) {
-        Layer olayer = layers.remove( layer );
-        assert olayer != null : "No such layer: " + layer;
-        olmap.removeLayer( olayer );
-        olayer.dispose();  // ???
-    }
-
     
     @Override
     protected void inputChanged( @SuppressWarnings("hiding") Object input, Object oldInput ) {
@@ -210,47 +187,23 @@ public class MapViewer<CL>
         view.addEventListener( View.Event.resolution, this );
         view.addEventListener( View.Event.rotation, this );
         view.addEventListener( View.Event.center, this );
-
+    
         // center
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();
         log.info( "center: " + center );
         view.center.set( ToOlCoordinate.map( center ) );
         
         // read layers from contentProvider
-        readLayers();
-
+        refresh( true );
+    
         // every layer is visible by default
         layers.keySet().stream().forEach( layer -> visibleLayers.add( layer ) );
         
         // add controls
         controls.forEach( control -> olmap.addControl( control ) );
-
+    
         // add interactions
         interactions.forEach( interaction -> olmap.addInteraction( interaction ) );
-    }
-
-    
-    /**
-     * Read layers from {@link #contentProvider}.
-     */
-    protected void readLayers() {
-        // remove current layers
-        for (Layer layer : layers.values()) {
-            olmap.removeLayer( layer );
-        }
-        layers.clear();
-        
-        // build layers map
-        ILayerProvider<CL> lp = layerProvider.get();
-        for (Object elm : contentProvider.get().getElements( input )) {
-            layers.put( (CL)elm, lp.getLayer( (CL)elm ) );
-        }
-        
-        // add sorted layers to the map
-        layers.keySet().stream()
-                .sorted( (elm1, elm2) -> (lp.getPriority(elm1) - lp.getPriority(elm2)) )
-                .map( elm -> layers.get( elm ) )
-                .forEach( layer -> olmap.addLayer( layer ) );
     }
 
     
@@ -262,10 +215,114 @@ public class MapViewer<CL>
                 .projection.put( new Projection( srs, units ) )
                 // without this map is not displayed at all
                 .zoom.put( 5 ) );
-        
-//        olmap.addEventListener( EVENT.view, this );
+       // olmap.addEventListener( EVENT.view, this );
     }
 
+    @Override
+    public void refresh() {
+        refresh( true );
+    }
+
+
+    public void refresh( boolean changed ) {
+        if (!changed) {
+            for (CL layer : layers.keySet()) {
+                refresh( layer, false );
+            }
+        }
+        else {
+            Map<CL,Layer> copy = new HashMap( layers );
+            for (CL layer : copy.keySet()) {
+                removeLayer( layer );
+            }
+            // zIndex is not (yet) supported by our OpenLayers version (?)
+            Multimap<Integer,CL> sorted = Multimaps.newListMultimap( new TreeMap(), () -> new ArrayList() );
+            for (Object layer : contentProvider.get().getElements( input ) ) {
+                int prio = layerProvider.get().getPriority( (CL)layer );
+                sorted.put( prio, (CL)layer );
+            }
+            for (CL layer : sorted.values()) {
+                // XXX refresh() gives newly created layer a default/unique value for the t param;
+                // this prevents reload after refresh to display old tiles - but it also re-renders
+                // unchanged layers
+                addLayer( layer ); //.refresh();
+            }
+        }
+    }
+
+    
+    /**
+     * Refresh this layer by {@link Layer#refresh() re-fetching} data from the
+     * server.
+     * <p/>
+     * If <b>changed</b> is <code>true</code> then the layer is completely
+     * re-created, in order to reflect (structural) changes of the backend layer and
+     * its rendering. Otherwise neither the {@link Layer} instance nor its connected
+     * backend is changed.
+     * 
+     * @param changed Force layer and its complete backend to be re-created.
+     */
+    public void refresh( CL layer, boolean changed ) {
+        if (changed) {
+            removeLayer( layer );
+            addLayer( layer );
+        }
+        else {
+            throw new RuntimeException( "refresh() with added param is a bad idea, see code" );
+//            Layer olayer = layers.get( layer );
+//            olayer.refresh();
+        }
+    }
+
+    
+    protected Layer addLayer( CL layer ) {
+        // create new layer
+        assert !layers.containsKey( layer ) : "Layer is already added: " + layer;
+        Layer olayer = layerProvider.get().getLayer( layer );
+        olmap.addLayer( olayer );
+        layers.put( layer, olayer );
+        return olayer;
+    }
+    
+    
+    protected void removeLayer( CL layer ) {
+        Layer olayer = layers.remove( layer );
+        assert olayer != null : "No such layer: " + layer;
+        olmap.removeLayer( olayer );
+        olayer.dispose();  // ???
+    }
+
+    
+//    /**
+//     * Read layers from {@link #contentProvider}.
+//     */
+//    protected void refreshLayers() {
+//        // remove current layers
+//        new ArrayList<CL>( layers.keySet() ).forEach( layer -> removeLayer( layer ) );
+//        assert layers.isEmpty();
+//        
+//        // build layers map
+//        ILayerProvider<CL> lp = layerProvider.get();
+//        Arrays.stream( contentProvider.get().getElements( input ) )
+//                .forEach( elm -> layers.put( (CL)elm, lp.getLayer( (CL)elm ) ) );
+//        
+//        // add sorted layers to the map
+//        layers.keySet().stream()
+//                .sorted( (elm1, elm2) -> (lp.getPriority(elm1) - lp.getPriority(elm2)) )
+//                .map( elm -> layers.get( elm ) )
+//                .forEach( layer -> olmap.addLayer( layer ) );
+//    }
+
+    
+    @Override
+    public void setSelection( ISelection selection, boolean reveal ) {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    @Override
+    public ISelection getSelection() {
+        throw new RuntimeException( "not yet implemented." );
+    }
 
     @Override
     public Composite getControl() {

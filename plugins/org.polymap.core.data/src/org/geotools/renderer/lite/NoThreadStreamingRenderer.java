@@ -27,8 +27,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.geotools.renderer.lite.StreamingRenderer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -69,7 +67,7 @@ public class NoThreadStreamingRenderer
     /**
      * 
      */
-    protected class NoThreadBlockingQueue
+    protected static class NoThreadBlockingQueue
             extends AbstractQueue<RenderingRequest>
             implements BlockingQueue<RenderingRequest> {
         
@@ -132,7 +130,7 @@ public class NoThreadStreamingRenderer
     /**
      * 
      */
-    protected class NoThreadExecutorService
+    protected static class NoThreadExecutorService
             implements ExecutorService {
         
         private Runnable        painter;

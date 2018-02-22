@@ -129,7 +129,7 @@ public class PolymapServiceController {
             log( "execute: ", pb.command() );
             pb.redirectOutput( checkLogFile() );
             pb.redirectErrorStream();
-            Process proc = pb.start();
+            pb.start();
             System.out.println( serviceName.value + " started." );
             return 0;
         }
@@ -150,7 +150,7 @@ public class PolymapServiceController {
         try {
             String cmd = "kill -- -" + pid; 
             log( "execute: ", cmd );
-            Process proc = Runtime.getRuntime().exec( cmd );
+            Runtime.getRuntime().exec( cmd );
             System.out.println( serviceName.value + " stopped." );
             return 0;
         }

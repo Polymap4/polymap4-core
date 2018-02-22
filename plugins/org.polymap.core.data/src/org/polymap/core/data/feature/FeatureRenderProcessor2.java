@@ -14,14 +14,6 @@
  */
 package org.polymap.core.data.feature;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
 import java.util.Collections;
@@ -29,8 +21,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
 import org.geotools.data.FeatureSource;
 import org.geotools.filter.function.EnvFunction;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -42,15 +41,21 @@ import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.Style;
 import org.opengis.feature.simple.SimpleFeature;
-import org.polymap.core.data.PipelineFeatureSource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.image.GetLegendGraphicRequest;
 import org.polymap.core.data.image.GetMapRequest;
 import org.polymap.core.data.image.ImageProducer;
 import org.polymap.core.data.image.ImageResponse;
-import org.polymap.core.data.pipeline.DataSourceDescription;
+import org.polymap.core.data.pipeline.DataSourceDescriptor;
+import org.polymap.core.data.pipeline.Param;
 import org.polymap.core.data.pipeline.Pipeline;
+import org.polymap.core.data.pipeline.PipelineBuilder;
 import org.polymap.core.data.pipeline.PipelineExecutor.ProcessorContext;
-import org.polymap.core.data.pipeline.PipelineIncubator;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.TerminalPipelineProcessor;
 import org.polymap.core.runtime.CachedLazyInit;
@@ -68,7 +73,7 @@ public class FeatureRenderProcessor2
     private static final Log log = LogFactory.getLog( FeatureRenderProcessor2.class );
 
     /** Site property key to retrieve {@link #style}. */
-    public static final String          STYLE_SUPPLIER = "styleSupplier";
+    public static final Param<Supplier<Style>>  STYLE_SUPPLIER = new Param( "styleSupplier", Supplier.class );
     
     private PipelineProcessorSite       site;
     
@@ -76,7 +81,7 @@ public class FeatureRenderProcessor2
 
     private Lazy<FeatureSource>         fs;
 
-    private Supplier<Style>             style;  // = new CachedLazyInit( () -> new DefaultStyles().findStyle( fs.get() ) );
+    private Supplier<Style>             style;
 
     
     @Override
@@ -84,18 +89,17 @@ public class FeatureRenderProcessor2
         this.site = site;
         
         // styleSupplier
-        style = site.getProperty( STYLE_SUPPLIER );
-        if (style == null) {
+        style = STYLE_SUPPLIER.rawopt( site ).orElseGet( () -> {
             log.warn( "No style for resource: " + site.dsd.get().resourceName.get() );
-            style = () -> DefaultStyles.findStyle( fs.get() );
-        }
+            return () -> DefaultStyles.findStyle( fs.get() );
+        });
         
         // pipeline
         this.pipeline = new CachedLazyInit( () -> {
             try {
-                PipelineIncubator incubator = site.incubator.get();
-                DataSourceDescription dsd = new DataSourceDescription( site.dsd.get() );
-                return incubator.newPipeline( FeaturesProducer.class, dsd, null );
+                PipelineBuilder builder = site.builder.get();
+                DataSourceDescriptor dsd = new DataSourceDescriptor( site.dsd.get() );
+                return builder.createPipeline( site.layerId.get(), FeaturesProducer.class, dsd ).get();
             }
             catch (Exception e) {
                 throw new RuntimeException( e );
@@ -104,13 +108,18 @@ public class FeatureRenderProcessor2
         
         // fs
         this.fs = new CachedLazyInit( () -> {
-            return new PipelineFeatureSource( pipeline.get() );
+            try {
+                return new PipelineDataStore( pipeline.get() ).getFeatureSource();
+            }
+            catch (IOException e) {
+                throw new RuntimeException( e );
+            }
         });
     }
 
 
     @Override
-    public boolean isCompatible( DataSourceDescription dsd ) {
+    public boolean isCompatible( DataSourceDescriptor dsd ) {
         // we are compatible to everything a feature pipeline can be build for
         if (new DataSourceProcessor().isCompatible( dsd )) {
             return true;
@@ -222,7 +231,7 @@ public class FeatureRenderProcessor2
             g.drawString( msg, 0, 0 );
         }
         if (e != null) {
-            g.drawString( e.getMessage(), 0, 20 );
+            g.drawString( StringUtils.defaultString( e.getMessage(), "Unknown error." ), 0, 20 );
         }
     }
 

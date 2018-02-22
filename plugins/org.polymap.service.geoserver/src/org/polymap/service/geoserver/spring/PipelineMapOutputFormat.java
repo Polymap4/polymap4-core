@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -185,7 +186,7 @@ public class PipelineMapOutputFormat
             try {
                 Layer mapLayer = mapContent.layers().get( 0 );
                 ILayer layer = findLayer( mapLayer );
-                Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
+                Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class ).get();
                 ProcessorRequest request = prepareProcessorRequest( mapContent );
 
                 AtomicReference<BufferedImage> result = new AtomicReference<BufferedImage>();
@@ -212,7 +213,7 @@ public class PipelineMapOutputFormat
                     protected void runWithException( IProgressMonitor monitor ) throws Exception {
                         try {
                             final ILayer layer = findLayer( mapLayer );
-                            Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class );
+                            Pipeline pipeline = server.getOrCreatePipeline( layer, ImageProducer.class ).get();
                             GetMapRequest request = prepareProcessorRequest( mapContent );
                             server.createPipelineExecutor().execute( pipeline, request, (ImageResponse pipeResponse) -> {
                                 BufferedImage layerImage = (BufferedImage)pipeResponse.getImage();
@@ -302,18 +303,21 @@ public class PipelineMapOutputFormat
      * @throws FactoryException
      */
     protected GetMapRequest prepareProcessorRequest( WMSMapContent mapContent ) throws FactoryException {
+        org.geoserver.wms.GetMapRequest request = mapContent.getRequest();
+        
         // FIXME we need a long from the header
-        String modifiedSince = mapContent.getRequest().getHttpRequestHeader( "If-Modified-Since" );
+        String modifiedSince = request.getHttpRequestHeader( "If-Modified-Since" );
         log.info( "Request: If-Modified-Since: " + modifiedSince );
 
-        GetMapRequest request = new GetMapRequest( null, // layers
+        List<String> layers = request.getLayers().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+        List<String> styles = layers.stream().map( l -> (String)null ).collect( Collectors.toList() );
+        return new GetMapRequest( layers, styles, 
                 "EPSG:" + CRS.lookupEpsgCode( mapContent.getCoordinateReferenceSystem(), false ), 
                 mapContent.getRenderingArea(), 
-                StringUtils.defaultIfEmpty( mapContent.getRequest().getFormat(), DEFAULT_MAP_FORMAT ), 
+                StringUtils.defaultIfEmpty( request.getFormat(), DEFAULT_MAP_FORMAT ), 
                 mapContent.getMapWidth(), 
                 mapContent.getMapHeight(), 
                 0L /* Date.valueOf( modifiedSince )*/ );
-        return request;
     }
 
 

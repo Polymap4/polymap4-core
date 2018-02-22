@@ -17,9 +17,6 @@ package org.polymap.service.geoserver;
 import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.catalog.impl.NamespaceInfoImpl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.PlainLazyInit;
 import org.polymap.core.runtime.Stringer;
@@ -31,21 +28,10 @@ import org.polymap.core.runtime.Stringer;
  */
 public class GeoServerUtils {
 
-    private static Log log = LogFactory.getLog( GeoServerUtils.class );
-
-    /** FIXME The namespace of all features delivered via GeoServer. */
-    public static final String      NAMESPACE = "http://mapzone.io"; //"http://www.opengis.net/gml";
-
-
-    public static Lazy<NamespaceInfo> defaultNsInfo = new PlainLazyInit( () -> {
+    public static final Lazy<NamespaceInfo> defaultNsInfo = new PlainLazyInit( () -> {
         NamespaceInfoImpl result = new NamespaceInfoImpl();
-//            @Override
-//            public String getId() {
-//                throw new RuntimeException( "not yet implemented." );
-//            }
-//        };
-        result.setPrefix( "mapzone" );
-        result.setURI( NAMESPACE );
+        result.setPrefix( "mapzone" );  // XXX make it something like: <user>-<project>
+        result.setURI( "http://mapzone.io" );  // "http://www.opengis.net/gml"
         return result;
     });
     

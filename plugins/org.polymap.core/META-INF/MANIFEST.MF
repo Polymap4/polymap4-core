@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Polymap Runtime
+Bundle-Name: Runtime
 Bundle-SymbolicName: org.polymap.core;singleton:=true
-Bundle-Version: 4.0.1.qualifier
+Bundle-Version: 4.0.2.qualifier
 Bundle-Activator: org.polymap.core.CorePlugin
 Require-Bundle: javax.servlet;bundle-version="2.5.0";visibility:=reexport,
  org.eclipse.core.runtime;bundle-version="3.8.0";visibility:=reexport,

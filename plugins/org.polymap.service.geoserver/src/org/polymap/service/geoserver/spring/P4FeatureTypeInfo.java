@@ -27,13 +27,11 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.catalog.impl.AttributeTypeInfoImpl;
 import org.geoserver.catalog.impl.FeatureTypeInfoImpl;
-import org.geotools.data.DataStore;
 import org.geotools.data.FeatureSource;
 import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureTypes;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.geotools.util.NullProgressListener;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -45,6 +43,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.project.ILayer;
+
 import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
@@ -56,7 +55,7 @@ public class P4FeatureTypeInfo
         extends FeatureTypeInfoImpl
         implements FeatureTypeInfo {
 
-    private static final Log log = LogFactory.getLog( GeoServerLoader.class );
+    private static final Log log = LogFactory.getLog( P4FeatureTypeInfo.class );
 
     protected P4DataStoreInfo           dsInfo;
     
@@ -79,7 +78,7 @@ public class P4FeatureTypeInfo
         
         setNamespace( GeoServerUtils.defaultNsInfo.get() );
         setName( GeoServerUtils.simpleName( layer.label.get() ) );
-        setNativeName( GeoServerUtils.simpleName( layer.label.get() ) );
+        setNativeName( fs.getName().getLocalPart() );  // GeoServerUtils.simpleName( layer.label.get() ) );
         setTitle( layer.label.get() );
         // description and stuff is set in P4LayerInfo
 
@@ -104,8 +103,13 @@ public class P4FeatureTypeInfo
         List<AttributeTypeInfo> attributeInfos = new ArrayList();
         for (AttributeDescriptor attribute : schema.getAttributeDescriptors()) {
             AttributeTypeInfoImpl attributeInfo = new AttributeTypeInfoImpl();
+            attributeInfos.add( attributeInfo );
             
-            attributeInfo.setFeatureType( this );
+            // XXX hashCode() of AttributeTypeInfoImpl and FeatureTypeInfoImpl
+            // are referencing each other, yes! With this set calling hashCode()
+            // results in an StackOverflow
+            //attributeInfo.setFeatureType( P4FeatureTypeInfo.this );
+            
             attributeInfo.setName( attribute.getName().getLocalPart() );
             attributeInfo.setMinOccurs( attribute.getMinOccurs());
             attributeInfo.setMaxOccurs( attribute.getMaxOccurs());
@@ -118,7 +122,7 @@ public class P4FeatureTypeInfo
             attributeInfo.setId( "id-" + attribute.hashCode() );
         }
         setAttributes( attributeInfos );
-        log.info( "    loaded: " + this );
+        log.info( "FeatureType: " + this );
     }
 
     
@@ -128,9 +132,9 @@ public class P4FeatureTypeInfo
     }
 
 
-    protected DataStore ds( ProgressListener monitor ) throws IOException {
-        return (DataStore)dsInfo.getDataStore( monitor );
-    }
+//    protected DataStore ds( ProgressListener monitor ) throws IOException {
+//        return (DataStore)dsInfo.getDataStore( monitor );
+//    }
     
     
     public P4DataStoreInfo getDsInfo() {
@@ -142,13 +146,13 @@ public class P4FeatureTypeInfo
     public FeatureSource<? extends FeatureType, ? extends Feature> getFeatureSource(
             ProgressListener monitor, Hints hints )
             throws IOException {
-        return ds( monitor ).getFeatureSource( getNativeName() );
+        return fs;  //ds( monitor ).getFeatureSource( getNativeName() );
     }
 
     
     @Override
     public FeatureType getFeatureType() throws IOException {
-        return ds( new NullProgressListener() ).getSchema( getNativeName() );
+        return schema;
     }
     
 }

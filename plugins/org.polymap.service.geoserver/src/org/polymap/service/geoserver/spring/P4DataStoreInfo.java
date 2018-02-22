@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2010-2016, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2010-2016-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,6 +14,8 @@
  */
 package org.polymap.service.geoserver.spring;
 
+import java.util.Optional;
+
 import java.io.IOException;
 
 import org.geoserver.catalog.Catalog;
@@ -24,19 +26,26 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.memory.MemoryDataStore;
 import org.geotools.data.store.ContentFeatureSource;
+import org.geotools.feature.NameImpl;
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.Name;
 import org.opengis.util.ProgressListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.polymap.core.data.PipelineDataStore;
 import org.polymap.core.data.PipelineFeatureSource;
 import org.polymap.core.data.feature.FeaturesProducer;
 import org.polymap.core.data.pipeline.Pipeline;
-import org.polymap.core.data.pipeline.PipelineIncubationException;
+import org.polymap.core.data.pipeline.PipelineProcessorSite;
+import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
+import org.polymap.core.data.pipeline.ProcessorDescriptor;
 import org.polymap.core.project.ILayer;
+
 import org.polymap.service.geoserver.GeoServerServlet;
+import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * 
@@ -56,21 +65,23 @@ public class P4DataStoreInfo
      * @throws Exception 
      */
     public static P4DataStoreInfo canHandle( Catalog catalog, ILayer layer ) throws Exception {
-        try {
-            GeoServerServlet server = GeoServerServlet.instance.get();
-            Pipeline pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
-            PipelineFeatureSource fs = new PipelineFeatureSource( pipeline );
-            if (fs == null || fs.getPipeline().length() == 0) {
-                throw new PipelineIncubationException( "WMS layer? : " + layer.label.get() );
-            }
-//            // set name/namespace for target schema
-//            Name name = new NameImpl( NAMESPACE, simpleName( layer.getLabel() ) );
-//            fs.getPipeline().addFirst( new FeatureRenameProcessor( name ) );
+        GeoServerServlet server = GeoServerServlet.instance.get();
+        Optional<Pipeline> pipeline = server.getOrCreatePipeline( layer, FeaturesProducer.class );
+        if (pipeline.isPresent()) {
+            PipelineFeatureSource fs = new PipelineDataStore( pipeline.get() ).getFeatureSource();
             
+            // check with P4FeatureTypeInfo
+            Name name = new NameImpl( GeoServerUtils.defaultNsInfo.get().getName(), GeoServerUtils.simpleName( layer.label.get() ) );
+            Params params = new Params();
+            FeatureRenameProcessor.NAME.rawput( params, name );
+            PipelineProcessorSite procSite = new PipelineProcessorSite( params );
+            ProcessorDescriptor proc = new ProcessorDescriptor( FeatureRenameProcessor.class, params );
+            proc.processor().init( procSite );
+            fs.pipeline().addFirst( proc );
+
             return new P4DataStoreInfo( catalog, layer, fs );
         }
-        // 
-        catch (PipelineIncubationException e) {
+        else {
             return null;
         }
     }
@@ -96,7 +107,7 @@ public class P4DataStoreInfo
 //        // FIXME params.put( PipelineDataStoreFactory.PARAM_LAYER.key, layer );
 //        setConnectionParameters( params );
         setEnabled( true );
-        log.debug( "    loaded: " + this );
+        log.debug( "DataStore: " + this );
     }
 
     

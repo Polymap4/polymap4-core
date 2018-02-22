@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -53,7 +54,7 @@ public class SerialPipelineExecutor
         
         // create contexts
         int i = 0;
-        for (ProcessorDescription procDesc : pipe) {
+        for (ProcessorDescriptor procDesc : pipe) {
             SerialContext context = new SerialContext( procDesc, i++ );
             contexts.add( context );
         }
@@ -70,13 +71,13 @@ public class SerialPipelineExecutor
                 // process request
                 if (!context.requests.isEmpty()) {
                     ProcessorRequest r = context.requests.remove( 0 );
-                    context.procDesc.signature().invoke( r, context );
+                    context.procDesc.invoke( r, context );
                     matched = true;
                 }
                 // process response
                 else if (!context.responses.isEmpty()) {
                     ProcessorResponse r = context.responses.remove( 0 );
-                    context.procDesc.signature().invoke( r, context );
+                    context.procDesc.invoke( r, context );
                     matched = true;
                 }
             }
@@ -111,7 +112,7 @@ public class SerialPipelineExecutor
 
         int                     pipePos;
         
-        ProcessorDescription    procDesc;
+        ProcessorDescriptor    procDesc;
         
         /** Pending request for this processor. */
         List<ProcessorRequest>  requests = new LinkedList();
@@ -125,7 +126,7 @@ public class SerialPipelineExecutor
         boolean                 contextEop = false;
         
         
-        public SerialContext( ProcessorDescription procDesc, int pipePos ) {
+        public SerialContext( ProcessorDescriptor procDesc, int pipePos ) {
             this.pipePos = pipePos;
             this.procDesc = procDesc;
         }

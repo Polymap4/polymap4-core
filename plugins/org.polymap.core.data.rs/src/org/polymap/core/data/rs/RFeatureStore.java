@@ -75,10 +75,9 @@ import org.polymap.recordstore.IRecordStore.Updater;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class RFeatureStore
-        //extends AbstractFeatureSource
         implements FeatureStore, FeatureFactory {
 
-    private static Log log = LogFactory.getLog( RFeatureStore.class );
+    private static final Log log = LogFactory.getLog( RFeatureStore.class );
 
     public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
     

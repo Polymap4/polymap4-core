@@ -20,24 +20,29 @@ import java.util.stream.Collectors;
 
 /**
  * A data processing pipeline is a chain of processors, represented by
- * {@link ProcessorDescription}s. A pipeline is created by a
- * {@link PipelineIncubator} and executed by a {@link PipelineExecutor}.
+ * {@link ProcessorDescriptor}s. A pipeline is created by a
+ * {@link PipelineBuilder} and executed by a {@link PipelineExecutor}.
  *
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class Pipeline
-        implements Iterable<ProcessorDescription> {
+        implements Iterable<ProcessorDescriptor> {
 
-    private LinkedList<ProcessorDescription>  chain = new LinkedList();
+    private LinkedList<ProcessorDescriptor> chain = new LinkedList();
     
     private ProcessorSignature          usecase;
     
-    private DataSourceDescription       dsd;
+    private DataSourceDescriptor        dsd;
 
 
-    public Pipeline( ProcessorSignature usecase, DataSourceDescription dsd ) {
+    public Pipeline( ProcessorSignature usecase, DataSourceDescriptor dsd ) {
         this.usecase = usecase;
         this.dsd = dsd;
+    }
+
+    
+    public DataSourceDescriptor dataSourceDescription() {
+        return dsd;
     }
 
 
@@ -46,7 +51,7 @@ public class Pipeline
      *
      * @param processor The processor to add.
      */
-    public void addLast( ProcessorDescription procDesc ) {
+    public void addLast( ProcessorDescriptor procDesc ) {
         chain.add( chain.size(), procDesc );
     }
 
@@ -56,17 +61,17 @@ public class Pipeline
      *
      * @param processor The processor to add.
      */
-    public void addFirst( ProcessorDescription procDesc ) {
+    public void addFirst( ProcessorDescriptor procDesc ) {
         chain.add( 0, procDesc );
     }
 
 
-    public void add( int i, ProcessorDescription procDesc ) {
+    public void add( int i, ProcessorDescriptor procDesc ) {
         chain.add( i, procDesc );
     }
 
 
-    public ProcessorDescription get( int index ) {
+    public ProcessorDescriptor get( int index ) {
         assert index < chain.size();
         return chain.get( index );
     }
@@ -74,7 +79,7 @@ public class Pipeline
     /**
      * Get the last processor at the 'source' side of the pipeline.
      */
-    public ProcessorDescription getLast() {
+    public ProcessorDescriptor getLast() {
         assert !chain.isEmpty();
         return chain.getLast();
     }
@@ -89,7 +94,7 @@ public class Pipeline
      * The iterator returns the processors in order from sink to source.
      */
     @Override
-    public Iterator<ProcessorDescription> iterator() {
+    public Iterator<ProcessorDescriptor> iterator() {
         return chain.iterator();
     }
 

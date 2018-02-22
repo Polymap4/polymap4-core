@@ -22,8 +22,8 @@ import java.util.concurrent.Future;
 
 import java.lang.ref.WeakReference;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -322,6 +322,7 @@ public class ListenerList<T>
      * An Iterator is needed when {@link WeakReference}s are used to check if an
      * entry is still valid when it is requested.
      */
+    @SuppressWarnings( "hiding" )
     class ListenerListIterator<T>
             implements Iterator<T> {
 

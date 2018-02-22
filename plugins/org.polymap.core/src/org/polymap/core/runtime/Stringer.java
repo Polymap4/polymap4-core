@@ -263,7 +263,7 @@ public final class Stringer
     
     // joining ********************************************
     
-    public Stringer separator( String separator ) {
+    public Stringer separator( @SuppressWarnings("hiding") String separator ) {
         this.separator = separator;
         return this;
     }

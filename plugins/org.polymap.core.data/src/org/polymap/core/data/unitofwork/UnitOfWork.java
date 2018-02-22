@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2011-2016, Polymap GmbH. All rights reserved.
+ * Copyright (C) 2011-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,7 +20,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import java.io.IOException;
+
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureEvent;
 import org.geotools.data.FeatureListener;
@@ -50,9 +52,12 @@ import org.polymap.core.runtime.cache.Cache;
 import org.polymap.core.runtime.event.EventManager;
 
 /**
+ * UnitOfWork is a more model-driven, session-oriented API to work with FeatureStore
+ * and friends.
+ * <p/>
  * A UnitOfWork tracks modifications of a set of {@link Feature} instances. Modified
  * features are held in memory until all modifications are committed in a single
- * {@link Transaction}. On commit it automatically finds modified properties and and
+ * {@link Transaction}. On commit it automatically finds modified properties and
  * updates {@link FeatureStore} accordingly.
  * <p/>
  * <b>Usage:</b>
@@ -93,13 +98,14 @@ public class UnitOfWork
      * Not fully tested.
      */
 
-    private static Log log = LogFactory.getLog( UnitOfWork.class );
+    private static final Log log = LogFactory.getLog( UnitOfWork.class );
 
     public static final FilterFactory   ff = CommonFactoryFinder.getFilterFactory( null );
 
     
     // instance *******************************************
     
+    /** The underlying {@link FeatureStore}. */
     private FeatureStore                        fs;
     
     /**
