@@ -50,8 +50,8 @@
 	</target>
 	
 	<target name="initRemoteMavenRepos" description="use real Maven repositories directly" unless="nexusURL">
-	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
-	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
+	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2/" />
+	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools/" />
 	    <artifact:remoteRepository id="redhat.repository" url="https://maven.repository.redhat.com/earlyaccess/" />
 	</target>
 
