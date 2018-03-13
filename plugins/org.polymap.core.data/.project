@@ -11,7 +11,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/org.polymap.core.data.getjars.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/org.polymap.core.data getjars.build.xml [Builder].launch</value>
 				</dictionary>
 				<dictionary>
 					<key>incclean</key>
