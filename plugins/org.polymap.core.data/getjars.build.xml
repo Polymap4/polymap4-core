@@ -58,7 +58,7 @@
 	<target name="initMavenRepos" description="init Maven repositories to use when downloading artifacts" 
 			depends="initNexus, initRemoteMavenRepos" />	
 
-	<target name="load_m2_deps" depends="init, initMavenRepos" unless="already_downloaded">
+	<target name="load_m2_deps" depends="init, initMavenRepos">
 	    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 
 		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
@@ -108,7 +108,7 @@
 		</artifact:dependencies>
 	</target>
 
-	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">
+	<target name="build" depends="create, load_m2_deps"> <!-- unless="already_downloaded"-->
 		<description>Download the jars and dependencies</description>
 		<!-- (flat) copy all downloaded JARs (classes) to plugin directory ${lib} -->
 		<copy todir="${lib}" verbose="true" flatten="true">
