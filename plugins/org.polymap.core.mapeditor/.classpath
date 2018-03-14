@@ -2,6 +2,6 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry excluding="org/polymap/core/mapeditor/ContextMenuControl.java|org/polymap/core/mapeditor/ContextMenuExtension.java|org/polymap/core/mapeditor/ContextMenuSite.java|org/polymap/core/mapeditor/DrawFeatureMapAction.java|org/polymap/core/mapeditor/FindFeaturesMenuContribution.java|org/polymap/core/mapeditor/HomeMapAction.java|org/polymap/core/mapeditor/IContextMenuContribution.java|org/polymap/core/mapeditor/IContextMenuProvider.java|org/polymap/core/mapeditor/LayerMapAction.java|org/polymap/core/mapeditor/ScaleMapAction.java|org/polymap/core/mapeditor/contextmenu/|org/polymap/core/mapeditor/services/GsJsonEncoder.java|org/polymap/core/mapeditor/services/GtJsonEncoder.java|org/polymap/core/mapeditor/services/JsonEncoder.java|org/polymap/core/mapeditor/services/JsonVectorLayer.java|org/polymap/core/mapeditor/services/SimpleJsonServer.java|org/polymap/core/mapeditor/tooling/" kind="src" path="src"/>
+	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="output" path="build/eclipse"/>
 </classpath>
