@@ -52,7 +52,7 @@
 	<target name="initRemoteMavenRepos" description="use real Maven repositories directly" unless="nexusURL">
 	    <!-- remote repositories as defined in copy.properties -->
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
-	    <artifact:remoteRepository id="ettrema.repository" url="http://milton.io/maven" />
+	    <artifact:remoteRepository id="ettrema.repository" url="http://dl.bintray.com/milton/Milton" />
 	</target>
 
 	<target name="initMavenRepos" description="init Maven repositories to use when downloading artifacts" 
@@ -72,8 +72,8 @@
 			<remoteRepository refid="ettrema.repository" />
 			<remoteRepository refid="central.repository" />
 
-		    <dependency groupId="io.milton" artifactId="milton-api" version="2.6.4.0"/>
-            <dependency groupId="io.milton" artifactId="milton-server-ce" version="2.6.4.0"/>
+		    <dependency groupId="io.milton" artifactId="milton-api" version="2.7.4.4"/>
+            <dependency groupId="io.milton" artifactId="milton-server-ce" version="2.7.4.4"/>
 		    
             <!--dependency groupId="com.ettrema" artifactId="milton-json" version="${milton.version}"/-->
             <!--dependency groupId="com.ettrema" artifactId="milton-filesystem" version="${milton.version}"/-->
@@ -103,25 +103,6 @@
             </rsel:not>
 		</restrict>
 
-	</target>
-
-	<target name="print" depends="load_m2_deps">
-		<description>Print the dependencies the jars</description>
-
-		<!-- setproxy proxyhost="10.0.16.2" proxyport="3128"/-->
-        
-		<path id="jars">
-			<fileset refid="filtered.dependencies" />
-		</path>
-		<property name="myjars" refid="jars" />
-		<echo message="Jars = ${myjars}" />
-		<!--propertyregex property="listjars"
-		              input="${myjars}"
-		              regexp="\;"
-		              select="{$line.seperator}"
-		              casesensitive="false" /-->
-		<echo message="Jars = ${myjars}" />
-		<echo message="Jars = ${listjars}" />
 	</target>
 
 	<target name="build" depends="create, load_m2_deps" unless="already_downloaded">

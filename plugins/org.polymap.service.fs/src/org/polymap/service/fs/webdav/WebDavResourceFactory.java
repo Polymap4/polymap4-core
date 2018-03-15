@@ -14,20 +14,6 @@
  */
 package org.polymap.service.fs.webdav;
 
-import io.milton.http.Request;
-import io.milton.http.ResourceFactory;
-import io.milton.resource.CollectionResource;
-import io.milton.resource.DeletableResource;
-import io.milton.resource.GetableResource;
-import io.milton.resource.MakeCollectionableResource;
-import io.milton.resource.MoveableResource;
-import io.milton.resource.PostableResource;
-import io.milton.resource.PropFindableResource;
-import io.milton.resource.PutableResource;
-import io.milton.resource.ReplaceableResource;
-import io.milton.resource.Resource;
-import io.milton.http.SecurityManager;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +38,20 @@ import org.polymap.service.fs.spi.IContentNode;
 import org.polymap.service.fs.spi.IContentPutable;
 import org.polymap.service.fs.spi.IContentWriteable;
 import org.polymap.service.fs.spi.IMakeFolder;
+
+import io.milton.http.Request;
+import io.milton.http.ResourceFactory;
+import io.milton.http.SecurityManager;
+import io.milton.resource.CollectionResource;
+import io.milton.resource.DeletableResource;
+import io.milton.resource.GetableResource;
+import io.milton.resource.MakeCollectionableResource;
+import io.milton.resource.MoveableResource;
+import io.milton.resource.PostableResource;
+import io.milton.resource.PropFindableResource;
+import io.milton.resource.PutableResource;
+import io.milton.resource.ReplaceableResource;
+import io.milton.resource.Resource;
 
 /**
  * A {@link ResourceFactory} that provides the content of several
@@ -176,8 +176,11 @@ class WebDavResourceFactory
         throws Throwable {
             //log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
 
-            Object handler = handlers.get( method.getDeclaringClass() );
+            if (method.getName().equals( "toString" )) {
+                return WebDavFileHandler.class.getSimpleName() + ".toString()";
+            }
             
+            Object handler = handlers.get( method.getDeclaringClass() );
             if (handler == null) {
                 throw new IllegalStateException( "No handler for declaringClass: " + method.getDeclaringClass().getName() );
             }
@@ -249,8 +252,11 @@ class WebDavResourceFactory
         throws Throwable {
             //log.debug( "invoke(): method= " + method.getName() + ", declaringClass= " + method.getDeclaringClass().getSimpleName() );
 
-            Object handler = handlers.get( method.getDeclaringClass() );
+            if (method.getName().equals( "toString" )) {
+                return WebDavFileHandler.class.getSimpleName() + ".toString()";
+            }
             
+            Object handler = handlers.get( method.getDeclaringClass() );
             if (handler == null) {
                 throw new IllegalStateException( "No handler for declaringClass: " + method.getDeclaringClass().getName() );
             }

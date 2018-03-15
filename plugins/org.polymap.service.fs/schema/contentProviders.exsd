@@ -3,7 +3,7 @@
 <schema targetNamespace="org.polymap.service.fs" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.polymap.service.fs" id="org.polymap.service.fs.contentProviders" name="Content Providers"/>
+         <meta.schema plugin="org.polymap.service.fs" id="contentProviders" name="Content Providers"/>
       </appinfo>
       <documentation>
          This extension point allows to add content to the filesystem interface.
