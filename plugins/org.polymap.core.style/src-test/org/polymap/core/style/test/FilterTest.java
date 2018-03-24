@@ -22,6 +22,7 @@ import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.Rule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
@@ -45,6 +46,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 /**
  * @author Steffen Stundzig
  */
+@Ignore
 public class FilterTest {
 
     private static Log log = LogFactory.getLog( FilterTest.class );

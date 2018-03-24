@@ -13,7 +13,6 @@
 package org.polymap.core.style.model.feature;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -25,19 +24,16 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Steffen Stundzig
  */
 public class ConstantFontFamily
-        extends StylePropertyValue<FontFamily> {
+        extends ConstantValue<FontFamily> {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    /** Initializes a newly created instance with default values. */
     public static ValueInitializer<ConstantFontFamily> defaults() {
         return defaults( FontFamily.sansSerif );
     }
 
-
+    /** Initializes a newly created instance with default values. */
     public static ValueInitializer<ConstantFontFamily> defaults( final FontFamily family ) {
         return new ValueInitializer<ConstantFontFamily>() {
-
             @Override
             public ConstantFontFamily initialize( final ConstantFontFamily proto ) throws Exception {
                 proto.value.set( family );
@@ -48,4 +44,10 @@ public class ConstantFontFamily
 
     @Concerns(StylePropertyChange.Concern.class)
     public Property<FontFamily> value;
+
+    @Override
+    public FontFamily value() {
+        return value.get();
+    }
+    
 }

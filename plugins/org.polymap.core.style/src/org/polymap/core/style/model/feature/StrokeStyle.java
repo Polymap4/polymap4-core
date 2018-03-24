@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,9 +13,6 @@
  * Lesser General Public License for more details.
  */
 package org.polymap.core.style.model.feature;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.StyleComposite;
 import org.polymap.core.style.model.StylePropertyChange;
@@ -33,12 +30,8 @@ import org.polymap.model2.runtime.ValueInitializer;
  */
 public class StrokeStyle
         extends StyleComposite {
-
-    private static Log log = LogFactory.getLog( StrokeStyle.class );
-
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    
+    /** Initializes a newly created instance with default values. */
     @SuppressWarnings("hiding")
     public static final ValueInitializer<StrokeStyle> defaults = new ValueInitializer<StrokeStyle>() {
         @Override

@@ -16,12 +16,7 @@ package org.polymap.core.style.ui.feature;
 
 import static org.polymap.core.ui.FormDataFactory.on;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
@@ -30,11 +25,13 @@ import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.feature.NumberRange;
 import org.polymap.core.ui.FormLayoutFactory;
+import org.polymap.core.ui.UIUtils;
 
 /**
  * Chooser which loads scales and add a lower and upper
  * bound spinner, and also high and low values for the mapped numbers.
  *
+ * @deprecated
  * @author Steffen Stundzig
  */
 public class ScaleRangeMappedNumbersChooser {
@@ -79,8 +76,6 @@ public class ScaleRangeMappedNumbersChooser {
         return i18n.get( "title" );
     }
 
-    private static Log log = LogFactory.getLog( ScaleRangeMappedNumbersChooser.class );
-
 
     public void createContents( Composite parent ) {
         parent.setLayout( FormLayoutFactory.defaults().spacing( 16 ).create() );
@@ -96,28 +91,22 @@ public class ScaleRangeMappedNumbersChooser {
         lowerBoundSpinner.setIncrement( 1000 );
         lowerBoundSpinner.setPageIncrement(20000 );
         lowerBoundSpinner.setSelection( lowerBound );
-        lowerBoundSpinner.addSelectionListener( new SelectionAdapter() {
-
-            public void widgetSelected( SelectionEvent e ) {
-                int selection = lowerBoundSpinner.getSelection();
-                lowerBound = selection;
-                upperBoundSpinner.setMinimum( selection );
-            }
-        } );
+        lowerBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
+            int selection = lowerBoundSpinner.getSelection();
+            lowerBound = selection;
+            upperBoundSpinner.setMinimum( selection );
+        }));
 
         upperBoundSpinner.setMinimum( Integer.MIN_VALUE );
         upperBoundSpinner.setMaximum( Integer.MAX_VALUE );
         upperBoundSpinner.setIncrement( 1000 );
         upperBoundSpinner.setPageIncrement(20000 );
         upperBoundSpinner.setSelection( upperBound );
-        upperBoundSpinner.addSelectionListener( new SelectionAdapter() {
-
-            public void widgetSelected( SelectionEvent e ) {
-                int selection = upperBoundSpinner.getSelection();
-                upperBound = selection;
-                lowerBoundSpinner.setMaximum( selection );
-            }
-        } );
+        upperBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
+            int selection = upperBoundSpinner.getSelection();
+            upperBound = selection;
+            lowerBoundSpinner.setMaximum( selection );
+        }));
         upperBoundSpinner.setMinimum( lowerBound );
         lowerBoundSpinner.setMaximum( upperBound );
         
@@ -128,14 +117,11 @@ public class ScaleRangeMappedNumbersChooser {
         mappedMinimumSpinner.setIncrement( (int)(range.increment() * factorX) );
         mappedMinimumSpinner.setPageIncrement( (int)(range.increment() * factorX * 10) );
         mappedMinimumSpinner.setSelection( (int)(mappedMinimum.doubleValue() * factorX) );
-        mappedMinimumSpinner.addSelectionListener( new SelectionAdapter() {
-
-            public void widgetSelected( SelectionEvent e ) {
-                int selection = mappedMinimumSpinner.getSelection();
-                mappedMinimum = selection / Math.pow( 10, digits );
-                // maximumMappedSpinner.setMinimum( selection );
-            }
-        } );
+        mappedMinimumSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
+            int selection = mappedMinimumSpinner.getSelection();
+            mappedMinimum = selection / Math.pow( 10, digits );
+            // maximumMappedSpinner.setMinimum( selection );
+        }));
 
         mappedMaximumSpinner = new Spinner( parent, SWT.BORDER );
         mappedMaximumSpinner.setDigits( digits );
@@ -144,26 +130,20 @@ public class ScaleRangeMappedNumbersChooser {
         mappedMaximumSpinner.setIncrement( (int)(range.increment() * factorX) );
         mappedMaximumSpinner.setPageIncrement( (int)(range.increment() * factorX * 10) );
         mappedMaximumSpinner.setSelection( (int)(mappedMaximum.doubleValue() * factorX) );
-        mappedMaximumSpinner.addSelectionListener( new SelectionAdapter() {
-
-            public void widgetSelected( SelectionEvent e ) {
-                int selection = mappedMaximumSpinner.getSelection();
-                mappedMaximum = selection / Math.pow( 10, digits );
-                // minimumMappedSpinner.setMaximum( selection );
-            }
-        } );
+        mappedMaximumSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
+            int selection = mappedMaximumSpinner.getSelection();
+            mappedMaximum = selection / Math.pow( 10, digits );
+            // minimumMappedSpinner.setMaximum( selection );
+        }));
 
         stepsSpinner = new Spinner( parent, SWT.BORDER );
         stepsSpinner.setDigits( 0 );
         stepsSpinner.setMinimum( 1 );
         stepsSpinner.setMaximum( 100 );
         stepsSpinner.setSelection( steps );
-        stepsSpinner.addSelectionListener( new SelectionAdapter() {
-
-            public void widgetSelected( SelectionEvent e ) {
+        stepsSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 steps = stepsSpinner.getSelection();
-            }
-        } );
+        }));
 
         final int labelWidth = 120;
         final int spinnerWidth = 120;
@@ -198,21 +178,17 @@ public class ScaleRangeMappedNumbersChooser {
         return mappedMinimum;
     }
 
-
     public Number mappedMaximum() {
         return mappedMaximum;
     }
-
 
     public Integer lowerBound() {
         return lowerBound;
     }
 
-
     public Integer upperBound() {
         return upperBound;
     }
-
 
     public Integer steps() {
         return steps;

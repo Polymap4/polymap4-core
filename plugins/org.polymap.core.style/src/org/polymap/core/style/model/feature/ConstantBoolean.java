@@ -15,7 +15,6 @@
 package org.polymap.core.style.model.feature;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -27,11 +26,8 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantBoolean
-        extends StylePropertyValue<Boolean> {
+        extends ConstantValue<Boolean> {
 
-    /**
-     * 
-     */
     public static final ValueInitializer<ConstantBoolean> defaultsTrue = new ValueInitializer<ConstantBoolean>() {
         @Override
         public ConstantBoolean initialize( ConstantBoolean proto ) throws Exception {
@@ -40,9 +36,6 @@ public class ConstantBoolean
         }
     };
 
-    /**
-     * 
-     */
     public static final ValueInitializer<ConstantBoolean> defaultsFalse = new ValueInitializer<ConstantBoolean>() {
         @Override
         public ConstantBoolean initialize( ConstantBoolean proto ) throws Exception {
@@ -55,5 +48,10 @@ public class ConstantBoolean
     
     @Concerns(StylePropertyChange.Concern.class)
     public Property<Boolean>            value;
+
+    @Override
+    public Boolean value() {
+        return value.get();
+    }
     
 }

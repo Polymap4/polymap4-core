@@ -30,7 +30,7 @@ import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 
 /**
- * Base class for all fitler mapped values, like numbers and colors.
+ * Base class for all filter mapped values, like numbers and colors.
  * 
  * @author Falko Bräutigam
  * @author Steffen Stundzig
@@ -40,11 +40,11 @@ public abstract class FilterMappedValues<T>
 
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<String> fake;
+    public Property<String>             fake;
 
     // XXX Collections are not supported yet, use force-fire-fake prop?
     //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<String> encodedFilters;
+    public CollectionProperty<String>   encodedFilters;
 
 
     public List<Filter> filters() {

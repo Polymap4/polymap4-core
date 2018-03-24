@@ -30,9 +30,11 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.ui.feature.ConstantColorEditor;
+import org.polymap.core.style.ui.feature.ConstantExternalGraphicEditor;
 import org.polymap.core.style.ui.feature.ConstantFontFamilyEditor;
 import org.polymap.core.style.ui.feature.ConstantFontStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantFontWeightEditor;
+import org.polymap.core.style.ui.feature.ConstantMarkGraphicEditor;
 import org.polymap.core.style.ui.feature.ConstantNumberEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeCapStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeDashStyleEditor;
@@ -68,6 +70,8 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             ConstantFontFamilyEditor.class,
             ConstantFontStyleEditor.class,
             ConstantFontWeightEditor.class,
+            ConstantMarkGraphicEditor.class,
+            ConstantExternalGraphicEditor.class,
             ConstantNumberEditor.class, 
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,

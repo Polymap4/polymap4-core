@@ -33,16 +33,13 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class LineStyle
         extends Style {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    /** Initializes a newly created instance with default values. */
     @SuppressWarnings("hiding")
     public static final ValueInitializer<LineStyle> defaults = new ValueInitializer<LineStyle>() {
-
         @Override
         public LineStyle initialize( LineStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Line style" );
+            proto.title.set( "Line" );
             proto.fill.createValue( Stroke.defaults );
             proto.stroke.createValue( Stroke.defaults );
             return proto;
@@ -65,4 +62,5 @@ public class LineStyle
 //    @DoubleRange(from = 0, to = Double.MAX_VALUE, defaultValue = 8)
 //    @Concerns(StylePropertyChange.Concern.class)
 //    public Property<StylePropertyValue<Double>> offset;
+    
 }

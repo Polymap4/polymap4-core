@@ -184,8 +184,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
         @Override
         public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, ConstantColor constantColor, SD sd,
                 Setter<SD> setter ) {
-            if (constantColor.color() != null) {
-                setter.set( sd, ff.literal( constantColor.color() ) );
+            if (constantColor.value() != null) {
+                setter.set( sd, ff.literal( constantColor.value() ) );
             }
             return Collections.singletonList( sd );
         }

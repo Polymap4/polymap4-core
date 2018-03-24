@@ -14,7 +14,6 @@
  */
 package org.polymap.core.style.model.feature;
 
-
 import org.polymap.core.style.model.StylePropertyChange;
 import org.polymap.core.style.model.StylePropertyValue;
 

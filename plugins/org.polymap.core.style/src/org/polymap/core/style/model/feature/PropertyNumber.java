@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -29,13 +29,9 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class PropertyNumber<T extends Number>
         extends PropertyValue<T> {
     
-
-    /**
-     * Initializes a newly created instance with the given default value.
-     */
+    /** Initializes a newly created instance with the given default value. */
     public static ValueInitializer<PropertyNumber> defaults( final String value, final Double minimum, final Double maximum ) {
         return new ValueInitializer<PropertyNumber>() {
-
             @Override
             public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
                 proto.propertyName.set( value );
@@ -49,13 +45,13 @@ public class PropertyNumber<T extends Number>
     // instance *******************************************
 
     @Nullable
-    @NumberRange(defaultValue=0)
+    @NumberRange(defaultValue=0, from=-1, to=-1, increment=-1)
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<Double> minimumValue;
+    public Property<Double>             minimumValue;
 
     @Nullable
-    @NumberRange(defaultValue=10000)
+    @NumberRange(defaultValue=10000, from=-1, to=-1, increment=-1)
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<Double> maximumValue;
+    public Property<Double>             maximumValue;
     
 }

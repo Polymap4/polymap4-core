@@ -37,7 +37,7 @@ import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
-import org.polymap.core.style.serialize.sld.SLDSerializer;
+import org.polymap.core.style.serialize.sld2.SLDSerializer2;
 
 import org.polymap.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.model2.runtime.EntityRepository;
@@ -110,6 +110,8 @@ public class StyleRepository
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
+                        ConstantGraphic.class,
+                        
                         FeatureStyle.class,
                         FilterMappedColors.class,
                         FilterMappedNumbers.class,
@@ -210,8 +212,8 @@ public class StyleRepository
                 log.debug( "serializedFeatureStyle(): start... (" + key +  ")" );
                 return featureStyle( id ).map( fs -> {
                     Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
-                    org.geotools.styling.Style result = new SLDSerializer().serialize( sc );
-                    log.debug( "SLD: " + toSLD( result ) );
+                    org.geotools.styling.Style result = new SLDSerializer2().serialize( sc );
+                    log.info( "SLD: " + toSLD( result ) );
                     return result;
                 });
             }

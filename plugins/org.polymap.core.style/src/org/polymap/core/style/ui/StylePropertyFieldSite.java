@@ -14,7 +14,12 @@ package org.polymap.core.style.ui;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.FeatureStore;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.type.FeatureType;
+
+import com.vividsolutions.jts.geom.Envelope;
+
+import org.eclipse.swt.graphics.Point;
 
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
@@ -46,4 +51,13 @@ public class StylePropertyFieldSite
     
     /** Optional: present if layer is connected to a raster data source. */
     public Config<GridCoverage2D>               gridCoverage;
+    
+    /** Optional: the current extent of the map. */
+    public Config<Envelope>                     mapExtent;
+
+    /** Optional: the maximum extent of the map. */
+    public Config<ReferencedEnvelope>           maxExtent;
+
+    /** Optional: the maximum extent of the map. */
+    public Config<Point>                        mapSize;
 }

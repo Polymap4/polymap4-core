@@ -102,6 +102,9 @@
             <dependency groupId="org.geotools" artifactId="gt-geotiff" version="${geotools.version}" />
             <dependency groupId="org.geotools" artifactId="gt-arcgrid" version="${geotools.version}" />
 		    
+		    <!-- SVG graphics -->
+            <dependency groupId="org.geotools" artifactId="gt-svg" version="${geotools.version}" />
+		    
 		    <!-- geoserver 2.7.2 seems to depend on 3.2 -->
             <dependency groupId="commons-collections" artifactId="commons-collections" version="3.2" />
             <dependency groupId="commons-lang" artifactId="commons-lang" version="2" scope="provided" />

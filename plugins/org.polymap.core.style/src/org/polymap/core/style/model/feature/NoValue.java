@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,6 @@ package org.polymap.core.style.model.feature;
 
 import org.polymap.core.style.model.StylePropertyChange;
 import org.polymap.core.style.model.StylePropertyValue;
-import org.polymap.core.style.model.StylePropertyChange.Concern;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -32,7 +31,6 @@ public class NoValue
 
     public static ValueInitializer defaults() {
         return new ValueInitializer<NoValue>() {
-
             @Override
             public NoValue initialize( NoValue proto ) throws Exception {
                 return proto;
@@ -40,7 +38,7 @@ public class NoValue
         };
     }
 
-    // only to trigger the events in the editor
+    /** Only to trigger the events in the editor. */
     @Concerns({ StylePropertyChange.Concern.class })
     public Property<Object> noValue;
 }

@@ -17,7 +17,6 @@ package org.polymap.core.style.model.feature;
 import java.awt.Color;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -29,11 +28,9 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantColor
-        extends StylePropertyValue<Color> {
+        extends ConstantValue<Color> {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    /** Initializes a newly created instance with default values. */
     public static ValueInitializer<ConstantColor> defaults( int r, int g, int b ) {
         return new ValueInitializer<ConstantColor>() {
             @Override
@@ -73,7 +70,8 @@ public class ConstantColor
     public Property<Integer>            b;
     
     
-    public Color color() {
+    @Override
+    public Color value() {
         return new Color( r.get(), g.get(), b.get() );
     }
     

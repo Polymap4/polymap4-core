@@ -109,7 +109,7 @@ public abstract class StyleCompositeSerializer<S extends StyleComposite, SD exte
                 }
             }
             else {
-                // if its only one composite, don't clone
+                // if its only one composite, don't CLONE_METHOD
                 if (composites.size() == 1) {
                     for (SD sd : descriptors) {
                         setter.set( sd, composites.get( 0 ) );

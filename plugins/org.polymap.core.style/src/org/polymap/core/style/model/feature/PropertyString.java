@@ -30,7 +30,6 @@ public class PropertyString
      */
     public static ValueInitializer<PropertyString> defaults( final String value ) {
         return new ValueInitializer<PropertyString>() {
-
             @Override
             public PropertyString initialize( PropertyString proto ) throws Exception {
                 proto.propertyName.set( value );

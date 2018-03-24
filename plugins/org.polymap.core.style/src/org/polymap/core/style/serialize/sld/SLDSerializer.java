@@ -58,12 +58,6 @@ import org.polymap.core.style.serialize.sld.raster.RGBSymbolizerDescriptor;
 /**
  * Creates {@link org.geotools.styling.Style} out of a {@link FeatureStyle}
  * description.
- * <p/>
- * <b>Transform the resulting Style into SLD:</b>
- * <pre>
- *   {@link SLDTransformer} styleTransform = new {@link SLDTransformer}();
- *   String xml = styleTransform.transform( style );
- * </pre>
  * 
  * @author Falko Bräutigam
  * @author Steffen Stundzig

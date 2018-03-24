@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org 
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -26,20 +27,21 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
+ * 
  * @author Steffen Stundzig
  */
 public class Halo
         extends StyleComposite {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    /** Initializes a newly created instance with default values. */
     @SuppressWarnings("hiding")
     public static final ValueInitializer<Halo> defaults = new ValueInitializer<Halo>() {
-
         @Override
         public Halo initialize( Halo proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );
+            proto.color.createValue( ConstantColor.defaults( Color.WHITE ) );
+            proto.width.createValue( ConstantNumber.defaults( 1.8 ) );
+            proto.opacity.createValue( ConstantNumber.defaults( 0.8 ) );
             return proto;
         }
     };
@@ -47,7 +49,7 @@ public class Halo
     @Nullable
     @UIOrder(50)
     @Description("width")
-    @NumberRange( from=0, to=100, defaultValue=2, increment=0.1 )
+    @NumberRange(from = 0, to = 100, defaultValue = 2, increment = 0.1)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> width;
 
@@ -55,12 +57,13 @@ public class Halo
     @UIOrder(60)
     @Description("color")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Color>> color;
+    public Property<StylePropertyValue<Color>>  color;
 
     @Nullable
     @UIOrder(70)
     @Description("opacity")
-    @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
+    @NumberRange(from = 0, to = 1, defaultValue = 1, increment = 0.1)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
+    
 }

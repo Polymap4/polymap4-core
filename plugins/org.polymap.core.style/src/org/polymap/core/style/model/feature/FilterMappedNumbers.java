@@ -17,9 +17,6 @@ package org.polymap.core.style.model.feature;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -31,8 +28,6 @@ import org.polymap.model2.runtime.ValueInitializer;
  */
 public class FilterMappedNumbers<T extends Number>
         extends FilterMappedValues<T> {
-
-    private static Log log = LogFactory.getLog( FilterMappedNumbers.class );
 
     /**
      * Initializes a newly created instance with default values.

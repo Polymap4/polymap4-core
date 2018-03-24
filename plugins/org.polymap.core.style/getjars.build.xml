@@ -56,7 +56,9 @@
         <artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
             <localRepository refid="local.repository" />
             <remoteRepository refid="central.repository" />
-
+            
+            <dependency groupId="uk.com.robust-it" artifactId="cloning" version="1.9.9" />
+            
             <!-- testing -->
             <dependency groupId="org.mockito" artifactId="mockito-all" version="1.10.19" />
         </artifact:dependencies>
