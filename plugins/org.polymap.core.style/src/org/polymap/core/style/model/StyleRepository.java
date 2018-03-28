@@ -99,6 +99,16 @@ public class StyleRepository
 
         repo = EntityRepository.newConfiguration()
                 .entities.set( new Class[] {
+                        FeatureStyle.class,
+                        LineStyle.class,
+                        PointStyle.class,
+                        PolygonStyle.class,
+                        TextStyle.class,
+
+                        Halo.class,
+                        LabelPlacement.class,
+                        
+                        NoValue.class,
                         ConstantBoolean.class,
                         ConstantColor.class,
                         ConstantFilter.class,
@@ -112,24 +122,17 @@ public class StyleRepository
                         ConstantStrokeJoinStyle.class,
                         ConstantGraphic.class,
                         
-                        FeatureStyle.class,
                         FilterMappedColors.class,
-                        FilterMappedNumbers.class,
-                        Halo.class,
-                        LabelPlacement.class,
-                        LineStyle.class,
-                        NoValue.class,
-                        // ScaleMappedNumbers.class,
-                        PointStyle.class,
-                        PolygonStyle.class,
+                        FilterMappedPrimitives.class,
+
+                        ScaleMappedPrimitives.class,
+
                         PropertyNumber.class,
                         PropertyString.class,
                         // PropertyValue.class,
                         PropertyMatchingNumberFilter.class,
                         PropertyMatchingStringFilter.class,
-                        ScaleMappedNumbers.class,
                         ScaleRangeFilter.class,
-                        TextStyle.class,
                         
                         RasterGrayStyle.class,
                         RasterRGBStyle.class,
@@ -216,6 +219,10 @@ public class StyleRepository
                     log.info( "SLD: " + toSLD( result ) );
                     return result;
                 });
+            }
+            catch (Exception e) {
+                log.warn( "Unable to load and/or serialize the style.", e );
+                return Optional.empty();
             }
             finally {
                 log.debug( "serializedFeatureStyle(): end." );

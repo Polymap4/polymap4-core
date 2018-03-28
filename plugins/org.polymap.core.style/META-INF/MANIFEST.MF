@@ -5,8 +5,8 @@ Bundle-SymbolicName: org.polymap.core.style;singleton:=true
 Bundle-Version: 4.0.1.qualifier
 Bundle-Activator: org.polymap.core.style.StylePlugin
 Bundle-Vendor: polymap.org
-Require-Bundle: org.polymap.core;bundle-version="4.0.0",
- org.polymap.model2;bundle-version="3.0.0",
+Require-Bundle: org.polymap.core;bundle-version="4.0.3",
+ org.polymap.model2;bundle-version="3.0.1",
  org.polymap.core.data;bundle-version="4.0.3",
  org.polymap.core.data.raster,
  org.polymap.core.recordstore,
@@ -14,7 +14,8 @@ Require-Bundle: org.polymap.core;bundle-version="4.0.0",
  org.eclipse.rap.rwt;bundle-version="2.3.1",
  org.eclipse.rap.jface,
  org.junit;resolution:=optional,
- org.polymap.rap.updownload;bundle-version="2.0.0"
+ org.polymap.rap.updownload;bundle-version="2.0.0",
+ org.eclipse.rap.ui.forms
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.style,

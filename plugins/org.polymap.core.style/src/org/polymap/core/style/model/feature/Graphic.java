@@ -36,7 +36,7 @@ import org.polymap.core.style.StylePlugin;
 public class Graphic {
 
     public enum WellKnownMark {
-        Square, Circle, Cross, X, Triangle, Star
+        Circle, Square, Cross, X, Triangle, Star
     }
 
     private String          markOrName;

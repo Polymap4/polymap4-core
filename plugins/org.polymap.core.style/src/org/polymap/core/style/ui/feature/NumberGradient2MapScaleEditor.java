@@ -34,11 +34,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 
+import org.polymap.core.runtime.Numbers;
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.StylePlugin;
+import org.polymap.core.style.model.feature.MappedValues.Mapped;
 import org.polymap.core.style.model.feature.NumberRange;
-import org.polymap.core.style.model.feature.ScaleMappedNumbers;
+import org.polymap.core.style.model.feature.ScaleMappedPrimitives;
+import org.polymap.core.style.model.feature.ScaleMappedValues.ScaleRange;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
@@ -47,38 +50,44 @@ import org.polymap.core.ui.FormLayoutFactory;
 import org.polymap.core.ui.StatusDispatcher;
 import org.polymap.core.ui.UIUtils;
 
-import org.polymap.model2.runtime.ValueInitializer;
-
 /**
- * Editor that creates a number based on a feature attribute and with min and max
- * values.
+ * Editor that creates a (linear) gradient of {@link Number}s between adjustable
+ * bounds with an adjustable number of breakpoints. The numbers a mapped to
+ * an adjustable map scale range.
  *
  * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
-public class ScaleRangeMappedNumbersEditor
-        extends StylePropertyEditor<ScaleMappedNumbers> {
+public class NumberGradient2MapScaleEditor<N extends Number>
+        extends StylePropertyEditor<ScaleMappedPrimitives<N>> {
 
-    private static final Log log = LogFactory.getLog( ScaleRangeMappedNumbersEditor.class );
+    private static final Log log = LogFactory.getLog( NumberGradient2MapScaleEditor.class );
     
     private static final IMessages i18n = Messages.forPrefix( "ScaleRangeMappedNumbersEditor" );
 
     private static final IMessages chooser_i18n = Messages.forPrefix( "ScaleRangeMappedNumbersChooser" );
 
-    private Integer     lowerBound;
+    public static final double      UNINITIALIZED = Double.NaN;
+    
+    /** Map scale value range lower bound. */
+    private double      lowerBound;
 
-    private Integer     upperBound;
+    /** Map scale value range upper bound. */
+    private double      upperBound;
 
-    private Number      minimumValue;
+    /** Generated number gradient minimum value. */
+    private double      minimumValue = UNINITIALIZED;
 
-    private Number      maximumValue;
+    /** Generated number gradient maximum value. */
+    private double      maximumValue = UNINITIALIZED;
 
     private int         breakpoints;
 
     private Color       defaultFgColor;
 
-    private double      mapScale = -1;
+    private double      mapScale = UNINITIALIZED;
     
-    private double      maxScale = -1;
+    private double      maxScale = UNINITIALIZED;
 
     private NumberRange annotation;
     
@@ -90,20 +99,13 @@ public class ScaleRangeMappedNumbersEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Double.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
+        return Number.class.isAssignableFrom( targetType( site ) ) ? super.init( site ) : false;
     }
 
 
     @Override
     public void updateProperty() {
-        prop.createValue( new ValueInitializer<ScaleMappedNumbers<Double>>() {
-            @Override
-            public ScaleMappedNumbers<Double> initialize( ScaleMappedNumbers<Double> proto ) throws Exception {
-                proto.scales.clear();
-                proto.numberValues.clear();
-                return proto;
-            }
-        });
+        prop.createValue( ScaleMappedPrimitives.defaults() );
     }
 
 
@@ -124,8 +126,7 @@ public class ScaleRangeMappedNumbersEditor
         }
 
         annotation = (NumberRange)prop.info().getAnnotation( NumberRange.class );
-        List<Double> values = prop.get().numbers();
-        List<Number> scales = prop.get().scales();
+        List<Mapped<ScaleRange,N>> values = prop.get().values();
         
         // defaults
         if (values.isEmpty()) {
@@ -137,10 +138,10 @@ public class ScaleRangeMappedNumbersEditor
         }
         // from prop
         else {
-            minimumValue = values.get( 0 );
-            maximumValue = values.get( values.size() - 1 );
-            lowerBound = scales.get( 0 ).intValue();
-            upperBound = scales.get( values.size() - 1 ).intValue();
+            lowerBound = values.get( 0 ).key().min.get();
+            upperBound = values.get( values.size() - 1 ).key().max.get();
+            minimumValue = values.get( 0 ).value().doubleValue();
+            maximumValue = values.get( values.size() - 1 ).value().doubleValue();
             breakpoints = values.size();
         }
     }
@@ -154,10 +155,9 @@ public class ScaleRangeMappedNumbersEditor
         Button button = new Button( parent, SWT.FLAT|SWT.PUSH|SWT.LEFT );
         defaultFgColor = button.getForeground();
         button.addSelectionListener( UIUtils.selectionListener( ev -> {
-            ScaleRangeMappedNumbersChooser chooser = new ScaleRangeMappedNumbersChooser();
-
-            UIService.instance().openDialog( chooser.title(), dialogParent -> {
-                chooser.createContents( dialogParent );
+            Dialog dialog = new Dialog();
+            UIService.instance().openDialog( dialog.title(), dialogParent -> {
+                dialog.createContents( dialogParent );
             }, () -> {
                 submit();
                 updateButton( button );
@@ -165,50 +165,42 @@ public class ScaleRangeMappedNumbersEditor
             });
         }));
         updateButton( button );
-
         return contents;
     }
 
-
+    
     protected void submit() {
-        prop.get().scales.clear();
-        prop.get().numberValues.clear();
+        prop.get().clear();
 
         // only linear currently
-        double valueStep = (maximumValue.doubleValue() - minimumValue.doubleValue()) / breakpoints;
-        double scaleStep = (upperBound.doubleValue() - lowerBound.doubleValue()) / breakpoints;
-        double currentValue = minimumValue.doubleValue();
-        double currentScale = lowerBound.doubleValue();
-        int intervals = breakpoints + 1;
+        int intervals = breakpoints - 1;
+        double valueStep = (maximumValue - minimumValue) / intervals;
+        double scaleStep = (upperBound - lowerBound) / intervals;
+        double currentValue = minimumValue;
+        double currentLower = lowerBound;
 
-        // in order to cover the entire scale range we add 0th interval starting at scale 0
-        // if user did not explicitly cover lower limits
-        if (lowerBound > 0 || currentValue > annotation.from()) {
-            prop.get().add( currentValue, 0d );
-            currentValue += valueStep;
-            currentScale += scaleStep;
-            intervals --;
-        }
-        
         for (int i = 0; i < intervals; i++) {
-            prop.get().add( roundToDigits( currentValue ), currentScale );
+            Double round = Numbers.roundToDigits( currentValue, annotation.digits() );
+            prop.get().add( currentLower, currentLower + scaleStep, Numbers.cast( round, site().targetType() ) );
             currentValue += valueStep;
-            currentScale += scaleStep;
+            currentLower += scaleStep;
         }
-        // don't add another number -> last intervall is open
 
-        prop.get().fake.set( String.valueOf( System.currentTimeMillis() ) );
+        handle top/bottom interval
+        
+//        // in order to cover the entire scale range we add 0th interval starting at scale 0
+//        // if user did not explicitly cover lower limits
+//        if (lowerBound > 0 || currentValue > annotation.from()) {
+//            prop.get().add( 0d, lowerBound, (N)Double.valueOf( 0d ) );
+//            currentValue += valueStep;
+//            currentScale += scaleStep;
+//            intervals --;
+//        }
     }
 
-    
-    protected double roundToDigits( double d ) {
-        double digitsScale = Math.pow( 10, annotation.digits() );
-        return Math.round( d * digitsScale  ) / digitsScale; 
-    }
-    
     
     protected void updateButton( Button button ) {
-        if (minimumValue != null && maximumValue != null) {
+        if (minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED) {
             DecimalFormat df = new DecimalFormat();
             df.setMaximumFractionDigits( annotation.digits() );
             df.setMinimumFractionDigits( annotation.digits() );
@@ -227,15 +219,16 @@ public class ScaleRangeMappedNumbersEditor
     
     @Override
     public boolean isValid() {
-        return lowerBound != null && upperBound != null && minimumValue != null && maximumValue != null && breakpoints != 0;
+        return lowerBound != UNINITIALIZED && upperBound != UNINITIALIZED 
+                && minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED 
+                && breakpoints > 0;
     }
     
     
     /**
-     * Chooser which loads scales and add a lower and upper
-     * bound spinner, and also high and low values for the mapped numbers.
+     * 
      */
-    public class ScaleRangeMappedNumbersChooser {
+    public class Dialog {
 
         private Spinner stepsSpinner;
 
@@ -267,7 +260,7 @@ public class ScaleRangeMappedNumbersEditor
             lowerBoundSpinner.setMaximum( Integer.MAX_VALUE );
             lowerBoundSpinner.setIncrement( 1000 );
             lowerBoundSpinner.setPageIncrement(20000 );
-            lowerBoundSpinner.setSelection( lowerBound );
+            lowerBoundSpinner.setSelection( (int)lowerBound );
             lowerBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = lowerBoundSpinner.getSelection();
                 lowerBound = selection;
@@ -278,14 +271,14 @@ public class ScaleRangeMappedNumbersEditor
             upperBoundSpinner.setMaximum( Integer.MAX_VALUE );
             upperBoundSpinner.setIncrement( 1000 );
             upperBoundSpinner.setPageIncrement( 20000 );
-            upperBoundSpinner.setSelection( upperBound );
+            upperBoundSpinner.setSelection( (int)upperBound );
             upperBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = upperBoundSpinner.getSelection();
                 upperBound = selection;
                 lowerBoundSpinner.setMaximum( selection );
             }));
-            upperBoundSpinner.setMinimum( lowerBound );
-            lowerBoundSpinner.setMaximum( upperBound );
+            upperBoundSpinner.setMinimum( (int)lowerBound );
+            lowerBoundSpinner.setMaximum( (int)upperBound );
             
             mappedMinimumSpinner = new Spinner( parent, SWT.BORDER );
             mappedMinimumSpinner.setDigits( digits );
@@ -293,7 +286,7 @@ public class ScaleRangeMappedNumbersEditor
             mappedMinimumSpinner.setMaximum( (int)(range.to() * factorX) );
             mappedMinimumSpinner.setIncrement( (int)(range.increment() * factorX) );
             mappedMinimumSpinner.setPageIncrement( (int)(range.increment() * factorX * 10) );
-            mappedMinimumSpinner.setSelection( (int)(minimumValue.doubleValue() * factorX) );
+            mappedMinimumSpinner.setSelection( (int)(minimumValue * factorX) );
             mappedMinimumSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = mappedMinimumSpinner.getSelection();
                 minimumValue = selection / Math.pow( 10, digits );
@@ -306,7 +299,7 @@ public class ScaleRangeMappedNumbersEditor
             mappedMaximumSpinner.setMaximum( (int)(range.to() * factorX) );
             mappedMaximumSpinner.setIncrement( (int)(range.increment() * factorX) );
             mappedMaximumSpinner.setPageIncrement( (int)(range.increment() * factorX * 10) );
-            mappedMaximumSpinner.setSelection( (int)(maximumValue.doubleValue() * factorX) );
+            mappedMaximumSpinner.setSelection( (int)(maximumValue * factorX) );
             mappedMaximumSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = mappedMaximumSpinner.getSelection();
                 maximumValue = selection / Math.pow( 10, digits );

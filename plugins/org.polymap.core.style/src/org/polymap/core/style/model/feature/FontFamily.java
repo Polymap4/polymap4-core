@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org 
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -12,6 +13,13 @@
  */
 package org.polymap.core.style.model.feature;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.collect.Lists;
+
 /**
  * Commonly used web save fonts from
  * http://www.w3schools.com/cssref/css_websafe_fonts.asp
@@ -19,33 +27,33 @@ package org.polymap.core.style.model.feature;
  * @author Steffen Stundzig
  */
 public enum FontFamily {
-    monospaced("Monospaced"), sansSerif("SansSerif"), serif("Serif");
+    Arial( "Arial" ),
+    Monospaced( "Monospaced" ),
+    SansSerif( "sans-serif" ),
+    Serif( "Serif" );
 
-    private String value;
+    private String      families;
 
 
-    FontFamily( final String value ) {
-        this.value = value;
+    FontFamily( String families ) {
+        this.families = families;
     }
 
-
-    public String value() {
-        return value;
+    public String families() {
+        return families;
     }
 
-
-    public String[] families() {
-        return value.split( "," );
+    public List<String> splitted() {
+        return Lists.newArrayList( StringUtils.split( families, ", " ) );
     }
 
-
-    public static FontFamily forValue( String currentValue ) {
-        for (FontFamily family : values()) {
-            if (family.value.equals( currentValue )) {
-                return family;
+    public static Optional<FontFamily> find( String searchFamily ) {
+        for (FontFamily ff : values()) {
+            if (ff.splitted().stream().anyMatch( family -> family.equals( searchFamily ) )) {
+                return Optional.of( ff );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
 }

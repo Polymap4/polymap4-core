@@ -12,17 +12,14 @@
  */
 package org.polymap.core.style.ui.feature;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.common.collect.Lists;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
@@ -32,6 +29,7 @@ import org.polymap.core.style.model.feature.ConstantFontFamily;
 import org.polymap.core.style.model.feature.FontFamily;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
+import org.polymap.core.ui.UIUtils;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -46,8 +44,6 @@ public class ConstantFontFamilyEditor
     private static final IMessages i18n = Messages.forPrefix( "FontFamily" );
 
     private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
-
-    private final static List<FontFamily> families = Lists.newArrayList( FontFamily.values() );
 
 
     @Override
@@ -68,7 +64,7 @@ public class ConstantFontFamilyEditor
 
             @Override
             public ConstantFontFamily initialize( ConstantFontFamily proto ) throws Exception {
-                proto.value.set( FontFamily.sansSerif );
+                proto.value.set( FontFamily.SansSerif );
                 return proto;
             }
         } );
@@ -80,18 +76,18 @@ public class ConstantFontFamilyEditor
         Composite contents = super.createContents( parent );
         Combo combo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
 
-        final List<String> content = families.stream().map( FontFamily::value ).collect( Collectors.toList() );
+        final List<String> content = Arrays.stream( FontFamily.values() ).map( FontFamily::name ).collect( Collectors.toList() );
         combo.setItems( content.toArray( new String[content.size()] ) );
-        combo.select( content.indexOf( prop.get().value.get().value() ) );
+        try {
+            combo.select( content.indexOf( prop.get().value.get().families() ) );
+        }
+        catch (Exception e) {
+            log.warn( "Unable to load enum value.", e );
+        }
 
-        combo.addSelectionListener( new SelectionAdapter() {
-
-            @Override
-            public void widgetSelected( SelectionEvent e ) {
-                // XXX rethink for sorted values
-                prop.get().value.set( FontFamily.forValue( content.get( combo.getSelectionIndex() ) ) );
-            }
-        } );
+        combo.addSelectionListener( UIUtils.selectionListener( ev -> {
+                prop.get().value.set( FontFamily.valueOf( content.get( combo.getSelectionIndex() ) ) );
+        }));
         return contents;
     }
 }

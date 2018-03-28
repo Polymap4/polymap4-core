@@ -32,6 +32,8 @@ import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.ui.UIUtils;
 
+import org.polymap.model2.runtime.NotNullableException;
+
 /**
  * 
  * @author Falko Bräutigam
@@ -70,7 +72,13 @@ public class ConstantMarkGraphicEditor
 
         List<String> items = VALUES.stream().map( v -> /*i18n.get(*/ v.name() ).collect( Collectors.toList() );
         combo.setItems( items.toArray( new String[items.size()]) );
-        combo.select( items.indexOf( prop.get().markOrName.get() ) );
+        try {
+            combo.select( items.indexOf( prop.get().markOrName.get() ) );
+        }
+        catch (NotNullableException e) {
+            // previous code without .markOrName
+            combo.select( 0 );
+        }
 
         combo.addSelectionListener( UIUtils.selectionListener( e -> {
             prop.get().markOrName.set( VALUES.get( combo.getSelectionIndex() ).name() );

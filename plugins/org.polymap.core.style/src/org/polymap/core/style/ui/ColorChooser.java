@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright (C) 2016 individual contributors as indicated by
+ * polymap.org 
+ * Copyright (C) 2016-2018 individual contributors as indicated by
  * the @authors tag. All rights reserved.
  * 
  * This is free software; you can redistribute it and/or modify it under the terms of

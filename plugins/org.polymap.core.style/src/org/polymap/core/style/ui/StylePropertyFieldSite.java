@@ -12,6 +12,10 @@
  */
 package org.polymap.core.style.ui;
 
+import java.util.Optional;
+
+import java.lang.reflect.ParameterizedType;
+
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.FeatureStore;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -21,6 +25,8 @@ import com.vividsolutions.jts.geom.Envelope;
 
 import org.eclipse.swt.graphics.Point;
 
+import org.polymap.core.runtime.Lazy;
+import org.polymap.core.runtime.PlainLazyInit;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Mandatory;
@@ -60,4 +66,27 @@ public class StylePropertyFieldSite
 
     /** Optional: the maximum extent of the map. */
     public Config<Point>                        mapSize;
+    
+    /**
+     * Returns the <b>declared</b> type of the given property:
+     * <pre>
+     * Property&lt;StylePropertyValue&lt;Number&gt;&gt; -> Number
+     * </pre>
+     */
+    public Lazy<Class>                          targetType = new PlainLazyInit( () -> {
+        assert StylePropertyValue.class.isAssignableFrom( prop.get().info().getType() );
+        Optional<ParameterizedType> o = prop.get().info().getParameterizedType();
+        ParameterizedType p = o.orElseThrow( () -> 
+                new RuntimeException( "StylePropertyValue has no type parameter: " + prop.toString() ) );
+        return (Class)p.getActualTypeArguments()[0];
+    });
+
+    /**
+     * 
+     *
+     * @see #targetType
+     */
+    public <R> Class<R> targetType() {
+        return targetType.get();
+    }
 }

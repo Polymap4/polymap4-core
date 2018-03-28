@@ -14,62 +14,33 @@
  */
 package org.polymap.core.style.model.feature;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import java.io.IOException;
-
 import org.opengis.filter.Filter;
 
-import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
-
 import org.polymap.model2.CollectionProperty;
-import org.polymap.model2.Concerns;
-import org.polymap.model2.Nullable;
-import org.polymap.model2.Property;
 
 /**
  * Base class for all filter mapped values, like numbers and colors.
  * 
  * @author Falko Bräutigam
- * @author Steffen Stundzig
  */
-public abstract class FilterMappedValues<T>
-        extends StylePropertyValue<T> {
+public abstract class FilterMappedValues<V>
+        extends MappedValues<Filter,V> {
 
-    @Nullable
-    @Concerns(StylePropertyChange.Concern.class)
-    public Property<String>             fake;
-
-    // XXX Collections are not supported yet, use force-fire-fake prop?
     //@Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<String>   encodedFilters;
+    protected CollectionProperty<String>    encodedFilters;
 
-
-    public List<Filter> filters() {
-        return encodedFilters.stream().map( encoded -> decode( encoded ) ).collect( Collectors.toList() );
+    
+    @Override
+    public MappedValues<Filter,V> add( Filter key, V value ) {
+        encodedFilters.add( ConstantFilter.encode( key ) );
+        return this;
     }
 
 
-    private Filter decode( final String encoded ) {
-        try {
-            return ConstantFilter.decode( encoded );
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+    @Override
+    public void clear() {
+        encodedFilters.clear();
+        super.clear();
     }
-
-
-    public FilterMappedValues add( final Filter filter, final T value ) throws IOException {
-        encodedFilters.add( ConstantFilter.encode( filter ) );
-        return addValue( value );
-    }
-
-
-    protected abstract FilterMappedValues addValue( T value );
-
-
-    public abstract List<T> values();
+    
 }

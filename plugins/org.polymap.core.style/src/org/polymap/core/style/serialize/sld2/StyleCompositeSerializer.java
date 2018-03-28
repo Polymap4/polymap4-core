@@ -19,8 +19,6 @@ import static java.util.Collections.singletonList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Rule;
@@ -42,9 +40,11 @@ import org.polymap.core.style.model.StyleComposite;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.model.feature.ConstantValue;
 import org.polymap.core.style.model.feature.FilterMappedValues;
+import org.polymap.core.style.model.feature.MappedValues.Mapped;
 import org.polymap.core.style.model.feature.NoValue;
 import org.polymap.core.style.model.feature.PropertyValue;
-import org.polymap.core.style.model.feature.ScaleMappedNumbers;
+import org.polymap.core.style.model.feature.ScaleMappedValues;
+import org.polymap.core.style.model.feature.ScaleMappedValues.ScaleRange;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 import org.polymap.model2.Property;
@@ -152,24 +152,28 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
         }
         // FilterMappedValues
         else if (propValue instanceof FilterMappedValues) {
-            List<Filter> filters = ((FilterMappedValues)propValue).filters();
-            List<V> values = ((FilterMappedValues)propValue).values();
-            return IntStream.range( 0, filters.size() )
-                    .mapToObj( i -> new SimpleRuleModifier( values.get( i ), filters.get( i ) ) )
-                    .collect( Collectors.toList() );
+            List<Mapped<Filter,Object>> values = ((FilterMappedValues)propValue).values();
+            return FluentIterable.from( values )
+                    .transform( mapped -> new SimpleRuleModifier( mapped.value(), mapped.key() ) );
         }
         // ScaleMappedValues
-        else if (propValue instanceof ScaleMappedNumbers) {
-            List<V> values = ((ScaleMappedNumbers)propValue).numbers();
-            List<Double> scales = ((ScaleMappedNumbers)propValue).scales();
-            List<RuleModifier<V,S>> result = new ArrayList( scales.size() + 1 );
-            for (int i=0; i<values.size(); i++) {
-                double lowerBound = scales.get( i );
-                double upperBound = scales.size() > (i+1) ? scales.get( i+1 ) : Double.POSITIVE_INFINITY;
-                result.add( new SimpleRuleModifier( values.get( i ), lowerBound, upperBound ) );
-            }
-            return result;
+        else if (propValue instanceof ScaleMappedValues) {
+            List<Mapped<ScaleRange,Object>> values = ((ScaleMappedValues)propValue).values();
+            return FluentIterable.from( values )
+                    .transform( mapped -> new SimpleRuleModifier( mapped.value(), mapped.key().min.get(), mapped.key().max.get() ) );
         }
+//        // ScaleMappedValues
+//        else if (propValue instanceof ScaleMappedNumbers) {
+//            List<V> values = ((ScaleMappedNumbers)propValue).numbers();
+//            List<Double> scales = ((ScaleMappedNumbers)propValue).scales();
+//            List<RuleModifier<V,S>> result = new ArrayList( scales.size() + 1 );
+//            for (int i=0; i<values.size(); i++) {
+//                double lowerBound = scales.get( i );
+//                double upperBound = scales.size() > (i+1) ? scales.get( i+1 ) : Double.POSITIVE_INFINITY;
+//                result.add( new SimpleRuleModifier( values.get( i ), lowerBound, upperBound ) );
+//            }
+//            return result;
+//        }
         else {
             throw new RuntimeException( "Unhandled StylePropertyValue type: " + propValue.getClass().getSimpleName() );
         }

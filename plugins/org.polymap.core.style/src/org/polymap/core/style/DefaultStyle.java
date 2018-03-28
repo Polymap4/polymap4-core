@@ -150,7 +150,7 @@ public class DefaultStyle {
     
     
     public static Color randomColor() {
-        int from = 50, range = 150;
+        int from = 50, range = 180;
         return new Color( 
                 from + rand.nextInt( range ), 
                 from + rand.nextInt( range ),

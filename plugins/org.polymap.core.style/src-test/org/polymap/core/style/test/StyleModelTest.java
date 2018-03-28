@@ -53,14 +53,14 @@ import org.polymap.core.style.model.feature.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.feature.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.feature.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.feature.FilterMappedColors;
-import org.polymap.core.style.model.feature.FilterMappedNumbers;
+import org.polymap.core.style.model.feature.FilterMappedPrimitives;
 import org.polymap.core.style.model.feature.Font;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.PropertyNumber;
 import org.polymap.core.style.model.feature.PropertyString;
-import org.polymap.core.style.model.feature.ScaleMappedNumbers;
+import org.polymap.core.style.model.feature.ScaleMappedPrimitives;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
@@ -256,7 +256,7 @@ public class StyleModelTest {
         FeatureStyle fs = repo.newFeatureStyle();
         PointStyle point = fs.members().createElement( PointStyle.defaults );
 
-        point.rotation.createValue( FilterMappedNumbers.defaults() )
+        point.rotation.createValue( FilterMappedPrimitives.defaults() )
                 .add( ff.equals( ff.literal( 1 ), ff.literal( 1 ) ), 45d )
                 .add( ff.equals( ff.literal( 2 ), ff.literal( 2 ) ), 90d );
         
@@ -269,6 +269,30 @@ public class StyleModelTest {
         assertEquals( 2, fts.rules().size() );
         assertEqualsLiteral( 45.0, ((PointSymbolizer)fts.rules().get( 0 ).symbolizers().get( 0 )).getGraphic().getRotation() );
         assertEqualsLiteral( 90.0, ((PointSymbolizer)fts.rules().get( 1 ).symbolizers().get( 0 )).getGraphic().getRotation() );
+    }
+
+
+    @Test
+    public void testScaleMappedNumbers() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
+        PointStyle point = fs.members().createElement( PointStyle.defaults );
+
+        point.diameter.createValue( ScaleMappedPrimitives.defaults() )
+                .add( 0, 1, new Double( 1 ) )
+                .add( 1, 2, new Double( 2 ) )
+                .add( 2, Double.POSITIVE_INFINITY, new Double( 3 ) );
+        
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        
+        Style result = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
+        assertEquals( 1, result.featureTypeStyles().size() );
+        FeatureTypeStyle fts = result.featureTypeStyles().get( 0 );
+        assertEquals( 3, fts.rules().size() );
+        
+        assertEqualsLiteral( 1.0, ((PointSymbolizer)fts.rules().get( 0 ).symbolizers().get( 0 )).getGraphic().getSize() );
+        assertEqualsLiteral( 2.0, ((PointSymbolizer)fts.rules().get( 1 ).symbolizers().get( 0 )).getGraphic().getSize() );
+        assertEqualsLiteral( 3.0, ((PointSymbolizer)fts.rules().get( 2 ).symbolizers().get( 0 )).getGraphic().getSize() );
     }
 
 
@@ -318,7 +342,7 @@ public class StyleModelTest {
         polygon.fill.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
         polygon.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
         polygon.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
-        polygon.stroke.get().opacity.createValue( FilterMappedNumbers.defaults() )
+        polygon.stroke.get().opacity.createValue( FilterMappedPrimitives.defaults() )
                 .add( ff.equals( ff.literal( 1 ), ff.literal( 1 ) ), 0.1 )
                 .add( ff.equals( ff.literal( 2 ), ff.literal( 2 ) ), 0.2 );
         polygon.stroke.get().strokeStyle.get().capStyle.createValue( ConstantStrokeCapStyle.defaults() );
@@ -411,10 +435,9 @@ public class StyleModelTest {
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
 
-        point.diameter.createValue( new ValueInitializer<FilterMappedNumbers<Double>>() {
-
+        point.diameter.createValue( new ValueInitializer<FilterMappedPrimitives<Double>>() {
             @Override
-            public FilterMappedNumbers<Double> initialize( FilterMappedNumbers<Double> proto ) throws Exception {
+            public FilterMappedPrimitives<Double> initialize( FilterMappedPrimitives<Double> proto ) throws Exception {
                 proto.add( ff.equals( ff.property( "foo" ), ff.literal( "big" ) ), new Double( 5 ) );
                 proto.add( ff.equals( ff.property( "foo" ), ff.literal( "bigger" ) ), new Double( 15 ) );
                 proto.add( ff.and( ff.notEqual( ff.property( "foo" ), ff.literal( "big" ) ),
@@ -449,10 +472,9 @@ public class StyleModelTest {
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
 
-        point.diameter.createValue( new ValueInitializer<FilterMappedNumbers<Double>>() {
-
+        point.diameter.createValue( new ValueInitializer<FilterMappedPrimitives<Double>>() {
             @Override
-            public FilterMappedNumbers<Double> initialize( FilterMappedNumbers<Double> proto ) throws Exception {
+            public FilterMappedPrimitives<Double> initialize( FilterMappedPrimitives<Double> proto ) throws Exception {
                 proto.add( ff.lessOrEqual( ff.property( "foo" ), ff.literal( "big" ) ), new Double( 5 ) );
                 proto.add( ff.less( ff.property( "foo" ), ff.literal( "bigger" ) ), new Double( 15 ) );
                 proto.add( ff.greaterOrEqual( ff.property( "foo" ), ff.literal( "bigger" ) ), new Double( 23 ) );
@@ -515,29 +537,4 @@ public class StyleModelTest {
                 featureTypeStyles.get( 0 ).rules().get( 2 ).getFilter().toString() );
     }
 
-
-    @Test
-    public void testScaleMappedNumbers() {
-        FeatureStyle fs = repo.newFeatureStyle();
-        PointStyle point = fs.members().createElement( PointStyle.defaults );
-
-        point.diameter.createValue( ScaleMappedNumbers.defaults() )
-                .setDefault( new Double( 23 ) )
-                .add( new Double( 5 ), new Double( 10000 ) )
-                .add( new Double( 150 ), new Double( 500000 ) );
-
-        fs.store();
-        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
-
-        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class, OutputFormat.OGC ) );
-        // Style style = repo.serializedFeatureStyle( fs.id(), Style.class )
-        // .get();
-        // PointSymbolizer sym =
-        // (PointSymbolizer)style.featureTypeStyles.get(0].rules().get(0].getSymbolizers()[0];
-        // Map<String, Object> record = Maps.newHashMap();
-        // record.put( "foo", 48 );
-        // assertEquals( SLDSerializer.ff.literal( 23.0 ),
-        // sym.getGraphic().getSize().evaluate( record ) );
-    }
-    
 }

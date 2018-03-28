@@ -92,6 +92,16 @@ public class UIUtils {
     }
 
 
+    public static Color getColor( java.awt.Color color ) {
+        return getColor( color.getRed() , color.getGreen(), color.getBlue() );
+    }
+
+
+    public static RGB getRGB( java.awt.Color color ) {
+        return getColor( color ).getRGB();
+    }
+
+
     /**
      * The {@link Display} of the session of the current thread. Null, if the current
      * thread has no session. The result is equivalent to
