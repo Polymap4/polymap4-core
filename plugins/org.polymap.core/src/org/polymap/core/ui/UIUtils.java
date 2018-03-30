@@ -25,6 +25,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -308,6 +314,54 @@ public class UIUtils {
     public static SelectionAdapter selection( ISelection sel ) {
         return new SelectionAdapter( sel );
     }
+
+
+    /**
+     * 
+     *
+     * @param sourceControl The source of the drag event.
+     * @param transfer The type of the transfer.
+     */
+    public static void addDropSupport( Control sourceControl, Transfer transfer, DropTargetAdapter listener ) {
+        int operations = DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT;
+        DropTarget source = new DropTarget( sourceControl, operations);
+        source.setTransfer( new Transfer[] {transfer} );
+        source.addDropListener( listener );
+        
+    }
+    
+    
+    /**
+     * 
+     *
+     * @param sourceControl The source of the drag event.
+     * @param transfer The type of the transfer.
+     */
+    public static void addDragSupport( Control sourceControl, Transfer transfer, DragSourceAdapter listener ) {
+        int operations = DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT;
+        DragSource source = new DragSource( sourceControl, operations);
+        source.setTransfer( new Transfer[] {transfer} );
+        source.addDragListener( listener );
+
+//        source.addDragListener( new DragSourceListener() {
+//            @Override
+//            public void dragStart( DragSourceEvent ev ) {
+//                // check control status and change ev.doIt
+//            }
+//            @Override
+//            public void dragSetData( DragSourceEvent ev ) {
+//                if (transfer.isSupportedType( ev.dataType) ) {
+//                    event.data = dragLabel.getText();
+//                }
+//            }
+//            public void dragFinished(DragSourceEvent event) {
+//                // remove the data if DROP_MOVE
+//                if (event.detail == DND.DROP_MOVE)
+//                    dragLabel.setText("");
+//            }
+//        });
+    }
+    
     
 //    public static SelectionAdapter selection( SelectionEvent ev ) {
 //        return new SelectionAdapter( ev.g );
