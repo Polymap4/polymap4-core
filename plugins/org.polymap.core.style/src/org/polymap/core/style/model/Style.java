@@ -14,6 +14,9 @@
  */
 package org.polymap.core.style.model;
 
+import java.util.LinkedList;
+import java.util.stream.Collectors;
+
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 
@@ -48,6 +51,7 @@ public abstract class Style
         public Style initialize( Style proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );
             proto.visibleIf.createValue( ConstantFilter.defaultTrue );
+            proto.zPriority.set( (int)System.currentTimeMillis() );
             return proto;
         }
     };
@@ -86,6 +90,13 @@ public abstract class Style
     public Property<Boolean>                    removed;
     
     /**
+     * The order of rendering.
+     */
+    @DefaultValue( "0" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<Integer>                    zPriority;
+    
+    /**
      * Describes the condition that makes this style is generally active/visible. The
      * value might be a constant or a complex filter expression.
      * <p/>
@@ -110,6 +121,36 @@ public abstract class Style
     @Override
     public boolean equals( Object obj ) {
         return obj == this;
+    }
+    
+    /**
+     * Update the {@link #zPriority} of this Style and siblings. Inserts the receiver
+     * <code>before/after</code) the given <code>other</other> Style of the same parent.
+     *
+     * @param other The Style to indert the receiver before/after.
+     * @param before
+     */
+    public void setZPriority( Style other, boolean before ) {
+        FeatureStyle parent = context.getCompositePart( FeatureStyle.class );
+        LinkedList<Style> sorted = parent.styles.get().members.stream()
+                .filter( s -> s != this )
+                .sorted( (s1,s2) -> s1.zPriority.get().compareTo( s2.zPriority.get() ) )
+                .collect( Collectors.toCollection( () -> new LinkedList() ) );
+        int index = sorted.indexOf( other );
+        sorted.add( before ? index : index+1, this );
+        
+        assert parent.styles.get().members.size() == sorted.size();
+        for (int i=0; i<sorted.size(); i++) {
+            sorted.get( i ).zPriority.set( i );
+        }
+    }
+
+    /**
+     * The minimum {@link #zPriority} of this Style and all of its siblings.
+     */
+    public Integer minZPriority() {
+        FeatureStyle parent = context.getCompositePart( FeatureStyle.class );
+        return parent.styles.get().members.stream().mapToInt( s -> s.zPriority.get() ).min().orElse( 1 );
     }
     
 }

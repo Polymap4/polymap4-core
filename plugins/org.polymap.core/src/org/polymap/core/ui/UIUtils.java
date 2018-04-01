@@ -321,13 +321,14 @@ public class UIUtils {
      *
      * @param sourceControl The source of the drag event.
      * @param transfer The type of the transfer.
+     * @return The newly created target.
      */
-    public static void addDropSupport( Control sourceControl, Transfer transfer, DropTargetAdapter listener ) {
+    public static DropTarget addDropSupport( Control sourceControl, Transfer transfer, DropTargetAdapter listener ) {
         int operations = DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT;
-        DropTarget source = new DropTarget( sourceControl, operations);
-        source.setTransfer( new Transfer[] {transfer} );
-        source.addDropListener( listener );
-        
+        DropTarget target = new DropTarget( sourceControl, operations);
+        target.setTransfer( new Transfer[] {transfer} );
+        target.addDropListener( listener );
+        return target;
     }
     
     
@@ -336,8 +337,9 @@ public class UIUtils {
      *
      * @param sourceControl The source of the drag event.
      * @param transfer The type of the transfer.
+     * @return The newly created drag source.
      */
-    public static void addDragSupport( Control sourceControl, Transfer transfer, DragSourceAdapter listener ) {
+    public static DragSource addDragSupport( Control sourceControl, Transfer transfer, DragSourceAdapter listener ) {
         int operations = DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT;
         DragSource source = new DragSource( sourceControl, operations);
         source.setTransfer( new Transfer[] {transfer} );
@@ -360,6 +362,7 @@ public class UIUtils {
 //                    dragLabel.setText("");
 //            }
 //        });
+        return source;
     }
     
     

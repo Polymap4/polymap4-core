@@ -79,9 +79,17 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
 
     
     /**
-     * ...
+     * Sets the value(s) of the given style property via the given setter in the
+     * target symbolizer.
      * <p/>
-     * The setter is not called if the given property is not set. 
+     * More specificly, for the given sub-class of {@link StylePropertyValue} one or
+     * more values for the target symbolizer are generated (see
+     * {@link RuleModifier}). Then all rules of the given {@link FeatureTypeStyle}
+     * are copied and modified by the given <b>setter</b>. The actual target
+     * <b>symbolizer</b>, that is given to the setter, is determined by the current
+     * {@link #accessor}.
+     * <p/>
+     * The setter is not called if the given property is not set.
      *
      * @param fts
      * @param prop

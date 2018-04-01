@@ -43,6 +43,8 @@ public class TextStyleSerializer
         style.font.opt().ifPresent( font -> text.setFont( sf.getDefaultFont() ) );
 
         FeatureTypeStyle fts = defaultFeatureTypeStyle( text );
+        fts.setName( style.title.opt().orElse( "TextStyle" ) );
+        fts.getDescription().setTitle( style.title.opt().orElse( "TextStyle" ) );
         accessor.set( rule -> (TextSymbolizer)rule.symbolizers().get( 0 ) );
         serialize( style, fts );
 

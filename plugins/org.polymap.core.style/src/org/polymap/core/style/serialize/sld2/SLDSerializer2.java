@@ -14,11 +14,16 @@
  */
 package org.polymap.core.style.serialize.sld2;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.styling.SLD;
 import org.geotools.styling.SLDTransformer;
 import org.geotools.styling.StyleFactory;
 import org.opengis.filter.FilterFactory2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -64,13 +69,26 @@ public class SLDSerializer2
 
     public static final FilterFactory2 ff = DataPlugin.ff;
 
+    /**
+     * Converts the given color into string in the form of <code>#rrggbb</code.
+     * <p/>
+     * {@link SLD#colorToHex(java.awt.Color)} is buggy. 
+     */
+    public static String toHexString( java.awt.Color c ) {
+        return "#" + StringUtils.leftPad( Integer.toHexString( c.getRGB() & 0x00ffffff ), 6, '0' );
+    }
+    
     
     @Override
     public org.geotools.styling.Style serialize( Context context ) {
         FeatureStyle featureStyle = context.featureStyle.get();
         
+        List<Style> sorted = featureStyle.members().stream()
+                .sorted( (s1,s2) -> s1.zPriority.get().compareTo( s2.zPriority.get() ) )
+                .collect( Collectors.toList() );
+        
         org.geotools.styling.Style result = sf.createStyle();
-        for (Style style : featureStyle.members()) {
+        for (Style style : sorted) {
             if (style.active.get()) {
                 StyleSerializer serializer = null;
                 if (style instanceof PointStyle) {

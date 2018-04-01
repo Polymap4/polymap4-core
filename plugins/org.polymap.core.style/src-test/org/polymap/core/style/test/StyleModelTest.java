@@ -22,6 +22,8 @@ import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
 import java.util.List;
 
 import java.awt.Color;
+import java.io.File;
+import java.nio.file.Files;
 
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.LineSymbolizer;
@@ -40,6 +42,7 @@ import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.Literal;
 import org.opengis.style.GraphicalSymbol;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -55,6 +58,7 @@ import org.polymap.core.style.model.feature.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.feature.FilterMappedColors;
 import org.polymap.core.style.model.feature.FilterMappedPrimitives;
 import org.polymap.core.style.model.feature.Font;
+import org.polymap.core.style.model.feature.Graphic;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
@@ -148,6 +152,26 @@ public class StyleModelTest {
         assertEqualsLiteral( 5.0, mark.getStroke().getWidth() );
     }
 
+    
+    @Test
+    public void testEquipSvg() throws Exception {
+        File f = Files.createTempFile( getClass().getName(), null ).toFile();
+        
+        String svg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n" + 
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\">\n" + 
+        "  <path d=\"M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z\" />\n" + 
+        "</svg>";
+        FileUtils.writeStringToFile( f, svg, "UTF-8" );
+        
+//        try (InputStream in = getClass().getClassLoader().getResourceAsStream( "resources/icons/map-marker.svg" )) {
+//            FileUtils.copyInputStreamToFile( in, f );
+//        }
+        Graphic.equipSvg( f );
+        String s = FileUtils.readFileToString( f, "UTF-8" );
+        log.info( "SVG: " + s );
+        assertTrue( s.contains( "fill=\"param(fill-color)\"" ) );
+    }
+    
     
     @Test
     public void testSimpleLine() throws Exception {

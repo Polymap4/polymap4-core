@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.ViewerSorter;
 
 import org.eclipse.rap.rwt.client.ClientFile;
 
@@ -69,12 +70,8 @@ public class ConstantExternalGraphicEditor
         Composite container = super.createContents( parent );
         
         ComboViewer viewer = new ComboViewer( container, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
-        viewer.getCombo().setVisibleItemCount( 9 );
-//        viewer.setSorter( new ViewerSorter() {
-//            @Override public int compare( Viewer _viewer, Object e1, Object e2 ) {
-//                return ((TargetPlatformConfig)e2).url.get().compareTo( ((TargetPlatformConfig)e1).url.get() );
-//            }
-//        });
+        viewer.getCombo().setVisibleItemCount( 12 );
+        viewer.setSorter( new ViewerSorter() );
         viewer.setContentProvider( ArrayContentProvider.getInstance() );
         viewer.setInput( Graphic.allGraphics() );
         
