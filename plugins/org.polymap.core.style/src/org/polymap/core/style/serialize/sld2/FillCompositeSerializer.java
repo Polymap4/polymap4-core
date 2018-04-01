@@ -33,8 +33,8 @@ public class FillCompositeSerializer
 
     @Override
     public void serialize( Fill fill, FeatureTypeStyle fts ) {
-        set( fts, fill.color, (value,sym) -> sym.setColor( ff.literal( value ) ) );
-        set( fts, fill.opacity, (value,sym) -> sym.setOpacity( ff.literal( value ) ) );
+        set( fts, fill.color, (value,sym) -> sym.setColor( value ) );
+        set( fts, fill.opacity, (value,sym) -> sym.setOpacity( value ) );
     }
     
 }

@@ -23,7 +23,7 @@ import org.opengis.filter.expression.Expression;
 
 import com.google.common.collect.Lists;
 
-import org.polymap.core.style.model.feature.PropertyNumber;
+import org.polymap.core.style.model.feature.AttributeNumber;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
 import org.polymap.core.style.serialize.sld.StylePropertyValueHandler;
@@ -33,10 +33,10 @@ import org.polymap.core.style.serialize.sld.SymbolizerDescriptor;
  * @author Steffen Stundzig
  */
 public class PropertyNumberHandler
-        extends StylePropertyValueHandler<PropertyNumber,Object> {
+        extends StylePropertyValueHandler<AttributeNumber,Object> {
 
     @Override
-    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, PropertyNumber spv, SD sd,
+    public <SD extends SymbolizerDescriptor> List<SD> doHandle( Context context, AttributeNumber spv, SD sd,
             StylePropertyValueHandler.Setter<SD> setter ) {
         List<SD> result = Lists.newArrayList();
         if (context.outputFormat.get().equals( OutputFormat.GEOSERVER )) {

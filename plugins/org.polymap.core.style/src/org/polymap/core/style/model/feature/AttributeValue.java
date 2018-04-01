@@ -15,6 +15,7 @@
 package org.polymap.core.style.model.feature;
 
 import org.polymap.core.style.model.StylePropertyChange;
+import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Nullable;
@@ -22,21 +23,24 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Describes a feature property based number.
+ * A style property that uses values from a Feature attribute.
  *
  * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
-public class PropertyNumber<T extends Number>
-        extends PropertyValue<T> {
-    
-    /** Initializes a newly created instance with the given default value. */
-    public static ValueInitializer<PropertyNumber> defaults( final String value, final Double minimum, final Double maximum ) {
-        return new ValueInitializer<PropertyNumber>() {
+public class AttributeValue<T>
+        extends StylePropertyValue<T> {
+
+    /**
+     * Initializes a newly created instance with the given default value.
+     */
+    public static <R> ValueInitializer<AttributeValue<R>> defaults( String attributeName, R min, R max ) {
+        return new ValueInitializer<AttributeValue<R>>() {
             @Override
-            public PropertyNumber initialize( PropertyNumber proto ) throws Exception {
-                proto.propertyName.set( value );
-                proto.minimumValue.set( minimum );
-                proto.maximumValue.set( maximum );
+            public AttributeValue initialize( AttributeValue proto ) throws Exception {
+                proto.attributeName.set( attributeName );
+                proto.minimumValue.set( min );
+                proto.maximumValue.set( max );
                 return proto;
             }
         };
@@ -44,14 +48,21 @@ public class PropertyNumber<T extends Number>
 
     // instance *******************************************
 
+    /**
+     * The name of the feature attribute.
+     */
     @Nullable
-    @NumberRange(defaultValue=0, from=-1, to=-1, increment=-1)
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<Double>             minimumValue;
+    public Property<String>         attributeName;
+ 
+    @Nullable
+    //@NumberRange(defaultValue=0, from=-1, to=-1, increment=-1)
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<T>              minimumValue;
 
     @Nullable
-    @NumberRange(defaultValue=10000, from=-1, to=-1, increment=-1)
+    //@NumberRange(defaultValue=10000, from=-1, to=-1, increment=-1)
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<Double>             maximumValue;
-    
+    public Property<T>              maximumValue;
+
 }

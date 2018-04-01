@@ -67,11 +67,11 @@ public class TextStyleSerializer
     @Override
     public void serialize( TextStyle style, FeatureTypeStyle fts ) {
         // property name
-        set( fts, style.property, (value,sym) -> sym.setLabel( ff.property( value ) ) );
+        set( fts, style.property, (value,sym) -> sym.setLabel( value ) );
         
         // fill
-        set( fts, style.opacity, (value,sym) -> sym.getFill().setOpacity( ff.literal( value ) ) );
-        set( fts, style.color, (value,sym) -> sym.getFill().setColor( ff.literal( value ) ) );
+        set( fts, style.opacity, (value,sym) -> sym.getFill().setOpacity( value ) );
+        set( fts, style.color, (value,sym) -> sym.getFill().setColor( value ) );
     }
     
 }

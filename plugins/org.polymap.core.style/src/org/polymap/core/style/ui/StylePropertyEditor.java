@@ -28,6 +28,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.ui.feature.AttributeValueEditor;
 import org.polymap.core.style.ui.feature.ColorGradient2FilterEditor;
 import org.polymap.core.style.ui.feature.ColorMap2FilterEditor;
 import org.polymap.core.style.ui.feature.ConstantColorEditor;
@@ -40,8 +41,6 @@ import org.polymap.core.style.ui.feature.ConstantNumberEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeCapStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeDashStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeJoinStyleEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyBasedNumberEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyBasedStringEditor;
 import org.polymap.core.style.ui.feature.NumberGradient2FilterEditor;
 import org.polymap.core.style.ui.feature.NumberGradient2MapScaleEditor;
 import org.polymap.core.style.ui.feature.ScaleRangeEditor;
@@ -73,15 +72,14 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,
             ConstantStrokeJoinStyleEditor.class,
+            // attribute value
+            AttributeValueEditor.class,
             //
             NumberGradient2FilterEditor.class,
             ColorGradient2FilterEditor.class,
             ColorMap2FilterEditor.class,
 //            FeaturePropertyMatchingNumberEditor.class,
 //            FeaturePropertyMatchingStringEditor.class,
-            // attribute value
-            FeaturePropertyBasedStringEditor.class,
-            FeaturePropertyBasedNumberEditor.class,
             // scale dependent
             ScaleRangeEditor.class,
             NumberGradient2MapScaleEditor.class,

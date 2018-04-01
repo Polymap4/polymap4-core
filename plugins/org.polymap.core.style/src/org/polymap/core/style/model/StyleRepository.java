@@ -127,9 +127,9 @@ public class StyleRepository
 
                         ScaleMappedPrimitives.class,
 
-                        PropertyNumber.class,
-                        PropertyString.class,
-                        // PropertyValue.class,
+                        AttributeValue.class,
+                        // PropertyString.class,
+                        // AttributeValue.class,
                         PropertyMatchingNumberFilter.class,
                         PropertyMatchingStringFilter.class,
                         ScaleRangeFilter.class,

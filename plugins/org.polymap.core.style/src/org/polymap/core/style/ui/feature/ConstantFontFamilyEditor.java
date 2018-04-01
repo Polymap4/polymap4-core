@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org 
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -41,9 +42,9 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantFontFamilyEditor
         extends StylePropertyEditor<ConstantFontFamily> {
 
-    private static final IMessages i18n = Messages.forPrefix( "FontFamily" );
+    private static final Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
 
-    private static Log log = LogFactory.getLog( ConstantFontFamilyEditor.class );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantFontFamilyEditor", "ConstantEditor" );
 
 
     @Override

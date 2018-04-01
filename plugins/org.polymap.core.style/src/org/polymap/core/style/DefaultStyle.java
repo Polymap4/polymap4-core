@@ -33,6 +33,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.style.model.FeatureStyle;
+import org.polymap.core.style.model.feature.AttributeValue;
 import org.polymap.core.style.model.feature.ConstantColor;
 import org.polymap.core.style.model.feature.ConstantFontFamily;
 import org.polymap.core.style.model.feature.ConstantFontStyle;
@@ -44,7 +45,6 @@ import org.polymap.core.style.model.feature.ConstantStrokeJoinStyle;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
-import org.polymap.core.style.model.feature.PropertyString;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
@@ -172,7 +172,7 @@ public class DefaultStyle {
             for (PropertyDescriptor descriptor : schemaDescriptors) {
                 if (geometryDescriptor == null || !geometryDescriptor.equals( descriptor )) {
                     if (String.class.isAssignableFrom( descriptor.getType().getBinding() )) {
-                        text.property.createValue( PropertyString.defaults( descriptor.getName().getLocalPart() ) );
+                        text.property.createValue( AttributeValue.defaults( descriptor.getName().getLocalPart(), null, null ) );
                         break;
                     }
                 }

@@ -40,7 +40,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantColorEditor
         extends StylePropertyEditor<ConstantColor> {
 
-    private static final IMessages i18n = Messages.forPrefix( "ColorEditor" );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantColorEditor", "ConstantEditor" );
 
 
     @Override

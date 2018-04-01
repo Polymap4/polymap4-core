@@ -47,7 +47,7 @@ import org.polymap.rap.updownload.upload.Upload;
 public class ConstantExternalGraphicEditor
         extends StylePropertyEditor<ConstantGraphic> { 
 
-    private static final IMessages i18n = Messages.forPrefix( "ConstantExternalGraphicEditor" );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantExternalGraphicEditor", "ConstantEditor" );
 
     @Override
     public String label() {
@@ -82,8 +82,8 @@ public class ConstantExternalGraphicEditor
         });
         
         Upload upload = new Upload( container, SWT.BORDER );
-        upload.setText( "Upload..." );
-        upload.setToolTipText( "Upload an image file (*.png, *.svg, *.gif, *.jpg)" );
+        upload.setText( i18n.get( "upload" ) );
+        upload.setToolTipText( i18n.get( "uploadTooltip" ) );
         upload.setHandler( (clientFile, in) -> {
             String name = upload( clientFile, in );
             UIThreadExecutor.async( () -> {

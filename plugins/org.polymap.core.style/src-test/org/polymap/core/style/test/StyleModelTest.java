@@ -39,7 +39,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
 import org.opengis.style.GraphicalSymbol;
 
 import org.apache.commons.io.FileUtils;
@@ -48,6 +47,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.StyleRepository;
+import org.polymap.core.style.model.feature.AttributeValue;
 import org.polymap.core.style.model.feature.ConstantColor;
 import org.polymap.core.style.model.feature.ConstantFilter;
 import org.polymap.core.style.model.feature.ConstantNumber;
@@ -62,8 +62,6 @@ import org.polymap.core.style.model.feature.Graphic;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
-import org.polymap.core.style.model.feature.PropertyNumber;
-import org.polymap.core.style.model.feature.PropertyString;
 import org.polymap.core.style.model.feature.ScaleMappedPrimitives;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.TextStyle;
@@ -99,7 +97,7 @@ public class StyleModelTest {
     // instance *******************************************
 
     protected <T> void assertEqualsLiteral( T expected, Expression actual ) {
-        assertEquals( expected, ((Literal)actual).getValue() );
+        assertEquals( expected, actual.evaluate( null ) );
     }
 
     
@@ -338,7 +336,7 @@ public class StyleModelTest {
                 .get( 0 );
         assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
 
-        point.diameter.createValue( PropertyNumber.defaults( "foo", null, null ) );
+        point.diameter.createValue( AttributeValue.defaults( "foo", null, null ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         style = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
@@ -392,7 +390,7 @@ public class StyleModelTest {
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
 
-        text.property.createValue( PropertyString.defaults( "featureproperty" ) );
+        text.property.createValue( AttributeValue.defaults( "featureproperty", null, null ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
     }
@@ -432,7 +430,7 @@ public class StyleModelTest {
         // point
         PointStyle point = fs.members().createElement( PointStyle.defaults );
 
-        point.diameter.createValue( PropertyNumber.defaults( "foo", new Double( 8 ), new Double( 23 ) ) );
+        point.diameter.createValue( AttributeValue.defaults( "foo", new Double( 8 ), new Double( 23 ) ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         Style style = repo.serializedFeatureStyle( fs.id(), Style.class ).get();

@@ -25,6 +25,8 @@ import org.geotools.styling.Graphic;
 import org.geotools.styling.Mark;
 import org.geotools.styling.PointSymbolizer;
 import org.geotools.styling.Style;
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.expression.Literal;
 import org.opengis.style.GraphicalSymbol;
 
 import org.apache.commons.logging.Log;
@@ -48,6 +50,16 @@ public class PointStyleSerializer
     }
 
     
+    protected <R> R literalValue( Expression expr ) {
+        if (expr instanceof Literal) {
+            return (R)((Literal)expr).getValue();
+        }
+        else {
+            throw new RuntimeException( "SLD ExternalGraphics do not support any other than fixed (literal) expression." );
+        }
+    }
+    
+    
     @Override
     public void serialize( PointStyle style, Style result ) {
         // default symbolizer
@@ -68,12 +80,12 @@ public class PointStyleSerializer
                 GraphicalSymbol symbol = sym.getGraphic().graphicalSymbols().get( 0 );
                 // Mark
                 if (symbol instanceof Mark) {
-                    ((Mark)symbol).getFill().setColor( ff.literal( value ) );
+                    ((Mark)symbol).getFill().setColor( value );
                 }
                 // ExternalGraphic
                 else if (symbol instanceof ExternalGraphic) {
-                    addParam( (ExternalGraphic)symbol, "fill", SLDSerializer2.toHexString( value ) );
-                    addParam( (ExternalGraphic)symbol, "fill-color", SLDSerializer2.toHexString( value ) );
+                    addParam( (ExternalGraphic)symbol, "fill", SLDSerializer2.toHexString( literalValue( value ) ) );
+                    addParam( (ExternalGraphic)symbol, "fill-color", SLDSerializer2.toHexString( literalValue( value ) ) );
                 }
                 else {
                     throw new RuntimeException( "Unhandled symbol type" + symbol );
@@ -84,11 +96,11 @@ public class PointStyleSerializer
                 GraphicalSymbol symbol = sym.getGraphic().graphicalSymbols().get( 0 );
                 // Mark
                 if (symbol instanceof Mark) {
-                    ((Mark)symbol).getFill().setOpacity( ff.literal( value ) );
+                    ((Mark)symbol).getFill().setOpacity( value );
                 }
                 // ExternalGraphic
                 else if (symbol instanceof ExternalGraphic) {
-                    addParam( (ExternalGraphic)symbol, "fill-opacity", value.toString() );
+                    addParam( (ExternalGraphic)symbol, "fill-opacity", literalValue( value ).toString() );
                 }
                 else {
                     throw new RuntimeException( "Unhandled symbol type" + symbol );
@@ -101,10 +113,10 @@ public class PointStyleSerializer
             set( fts, style.stroke.get().color, (value,sym) -> {
                 GraphicalSymbol symbol = sym.getGraphic().graphicalSymbols().get( 0 );
                 if (symbol instanceof Mark) {
-                    ((Mark)symbol).getStroke().setColor( ff.literal( value ) );
+                    ((Mark)symbol).getStroke().setColor( value );
                 }
                 else if (symbol instanceof ExternalGraphic) {
-                    addParam( (ExternalGraphic)symbol, "stroke-color", SLDSerializer2.toHexString( value ) );
+                    addParam( (ExternalGraphic)symbol, "stroke-color", SLDSerializer2.toHexString( literalValue( value ) ) );
                 }
                 else {
                     throw new RuntimeException( "Unhandled symbol type" + symbol );
@@ -114,10 +126,10 @@ public class PointStyleSerializer
             set( fts, style.stroke.get().opacity, (value,sym) -> {
                 GraphicalSymbol symbol = sym.getGraphic().graphicalSymbols().get( 0 );
                 if (symbol instanceof Mark) {
-                    ((Mark)symbol).getStroke().setOpacity( ff.literal( value ) );
+                    ((Mark)symbol).getStroke().setOpacity( value );
                 }
                 else if (symbol instanceof ExternalGraphic) {
-                    addParam( (ExternalGraphic)symbol, "stroke-opacity", value.toString() );
+                    addParam( (ExternalGraphic)symbol, "stroke-opacity", literalValue( value ).toString() );
                 }
                 else {
                     throw new RuntimeException( "Unhandled symbol type" + symbol );
@@ -127,10 +139,10 @@ public class PointStyleSerializer
             set( fts, style.stroke.get().width, (value,sym) -> {
                 GraphicalSymbol symbol = sym.getGraphic().graphicalSymbols().get( 0 );
                 if (symbol instanceof Mark) {
-                    ((Mark)symbol).getStroke().setWidth( ff.literal( value ) );
+                    ((Mark)symbol).getStroke().setWidth( value );
                 }
                 else if (symbol instanceof ExternalGraphic) {
-                    addParam( (ExternalGraphic)symbol, "stroke-width", value.toString() + "px" );
+                    addParam( (ExternalGraphic)symbol, "stroke-width", literalValue( value ).toString() + "px" );
                 }
                 else {
                     throw new RuntimeException( "Unhandled symbol type" + symbol );
@@ -163,8 +175,11 @@ public class PointStyleSerializer
         set( fts, style.graphic, (value,sym) -> {
             List<GraphicalSymbol> symbols = sym.getGraphic().graphicalSymbols();
             assert symbols.isEmpty();
+            
+            org.polymap.core.style.model.feature.Graphic graphic = (org.polymap.core.style.model.feature.Graphic)((Literal)value).getValue();
+            
             // mark
-            value.mark().ifPresent( mark -> {
+            graphic.mark().ifPresent( mark -> {
                 switch (mark) {
                     case Circle : symbols.add( sf.getCircleMark() ); break;
                     case Cross : symbols.add( sf.getCrossMark() ); break;
@@ -176,16 +191,16 @@ public class PointStyleSerializer
                 }
             });
             // url
-            value.url().ifPresent( url -> {
-                symbols.add( sf.createExternalGraphic( url, value.format().get() ) );
+            graphic.url().ifPresent( url -> {
+                symbols.add( sf.createExternalGraphic( url, graphic.format().get() ) );
             });
         });
         // default: Circle
         setDefault( fts, style.graphic, (value,sym) -> {
             sym.getGraphic().graphicalSymbols().add( sf.getCircleMark() );
         });
-        set( fts, style.diameter, (value,sym) -> sym.getGraphic().setSize( ff.literal( value ) ) );
-        set( fts, style.rotation, (value,sym) -> sym.getGraphic().setRotation( ff.literal( value ) ) );
+        set( fts, style.diameter, (value,sym) -> sym.getGraphic().setSize( value ) );
+        set( fts, style.rotation, (value,sym) -> sym.getGraphic().setRotation( value ) );
     }
     
 }

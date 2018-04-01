@@ -15,10 +15,12 @@ package org.polymap.core.style.ui;
 import java.io.IOException;
 
 import org.opengis.filter.Filter;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Composite;
+
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.feature.ConstantFilter;
@@ -32,7 +34,7 @@ import org.polymap.core.style.model.feature.ConstantFontFamily;
 public class AlwaysTrueEditor
         extends StylePropertyEditor<ConstantFilter> {
 
-    private static final IMessages i18n = Messages.forPrefix( "AlwaysTrue" );
+    private static final IMessages i18n = Messages.forPrefix( "AlwaysTrueEditor" );
 
     private static Log log = LogFactory.getLog( AlwaysTrueEditor.class );
 

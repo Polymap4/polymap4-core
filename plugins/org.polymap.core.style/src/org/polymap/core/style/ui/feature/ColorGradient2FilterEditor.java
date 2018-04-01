@@ -72,10 +72,7 @@ public class ColorGradient2FilterEditor
 
     private static final Log log = LogFactory.getLog( ColorGradient2FilterEditor.class );
     
-    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyRangeMappedColorsEditor" );
-    //private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyRangeMappedNumbersEditor" );
-
-    private static final IMessages chooser_i18n = Messages.forPrefix( "FeaturePropertyRangeMappedColorsChooser" );
+    private static final IMessages i18n = Messages.forPrefix( "ColorGradient2FilterEditor", "AbstractGradient2FilterEditor" );
 
     public static final double      UNINITIALIZED = Double.NaN;
 
@@ -220,7 +217,7 @@ public class ColorGradient2FilterEditor
     
     protected void updateButton() {
         if (propertyName != null && minimumValue != null && maximumValue != null) {
-            btn.setText( i18n.get( "chooseBetween", propertyName ) );
+            btn.setText( i18n.get( "rechoose", propertyName ) );
             btn.setForeground( defaultFg );
             btn.setBackground( StylePlugin.okColor() );
         }
@@ -260,7 +257,7 @@ public class ColorGradient2FilterEditor
         private Label       scaleLine;
 
         public String title() {
-            return chooser_i18n.get( "title" );
+            return i18n.get( "dialogTitle" );
         }
 
 
@@ -309,7 +306,7 @@ public class ColorGradient2FilterEditor
                 upperBoundSpinner.setMinimum( (int)lowerBound );
                 upperBoundSpinner.setMaximum( (int)upperBound );
                 upperBoundSpinner.setSelection( (int)upperBound );
-                scaleLine.setText( chooser_i18n.get( "currentValues", df.format( lowerBound ), df.format( upperBound ) ) );
+                scaleLine.setText( i18n.get( "currentValues", df.format( lowerBound ), df.format( upperBound ) ) );
             });
             propCombo.setContentProvider( ArrayContentProvider.getInstance() );
             propCombo.setInput( site().featureType.get().getDescriptors() );
@@ -383,38 +380,38 @@ public class ColorGradient2FilterEditor
             parent.setLayout( FormLayoutFactory.defaults().spacing( 16 ).create() );
 
             Label l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "selectProperty" ) );
+            l.setText( i18n.get( "selectProperty" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( 3 ).left( 0 );
             FormDataFactory.on( propCombo.getControl() ).top( 0 ).left( l, -10 ).right( 100, -10 );
             
             scaleLine.setFont( UIUtils.italic( scaleLine.getFont() ) );
             if (propertyName != null) {
-                scaleLine.setText( chooser_i18n.get( "currentValues", lowerBound, upperBound ) );
+                scaleLine.setText( i18n.get( "currentValues", lowerBound, upperBound ) );
             }
             FormDataFactory.on( scaleLine ).left( l, -10 ).top( l, -10 ).right( 100, -10 ).noBottom();
             
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "lowerBound" ) );
+            l.setText( i18n.get( "lowerBound" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( scaleLine, 3 ).left( 0 );
             FormDataFactory.on( lowerBoundSpinner ).width( spinnerWidth ).top( scaleLine ).left( l, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "mapsTo" ) );
+            l.setText( i18n.get( "mapsTo" ) );
             FormDataFactory.on( l ).top( scaleLine, 3 ).left( lowerBoundSpinner );
             FormDataFactory.on( mappedMinimumBtn ).width( spinnerWidth/2 ).top( scaleLine, -2 ).left( l, -10 ).right( 100, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "upperBound" ) );
+            l.setText( i18n.get( "upperBound" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( lowerBoundSpinner, 3 ).left( 0 );
             FormDataFactory.on( upperBoundSpinner ).width( spinnerWidth ).top( lowerBoundSpinner, 0 ).left( l, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "mapsTo" ) );
+            l.setText( i18n.get( "mapsTo" ) );
             FormDataFactory.on( l ).top( lowerBoundSpinner, 3 ).left( upperBoundSpinner );
             FormDataFactory.on( mappedMaximumBtn ).width( spinnerWidth/2 ).top( lowerBoundSpinner, -2 ).left( l, -10 ).right( 100, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "steps" ) );
+            l.setText( i18n.get( "steps" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( upperBoundSpinner, 3 ).left( 0 );
             FormDataFactory.on( stepsSpinner ).width( spinnerWidth ).top( upperBoundSpinner, 0 ).left( l, -10 );
         }

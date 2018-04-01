@@ -33,9 +33,9 @@ public class StrokeCompositeSerializer
 
     @Override
     public void serialize( Stroke stroke, FeatureTypeStyle fts ) {
-        set( fts, stroke.color, (value,sym) -> sym.setColor( ff.literal( value ) ) );
-        set( fts, stroke.opacity, (value,sym) -> sym.setOpacity( ff.literal( value ) ) );
-        set( fts, stroke.width, (value,sym) -> sym.setWidth( ff.literal( value ) ) );
+        set( fts, stroke.color, (value,sym) -> sym.setColor( value ) );
+        set( fts, stroke.opacity, (value,sym) -> sym.setOpacity( value ) );
+        set( fts, stroke.width, (value,sym) -> sym.setWidth( value ) );
         // XXX linestyle
     }
     

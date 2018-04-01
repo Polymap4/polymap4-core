@@ -39,7 +39,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantStrokeDashStyleEditor
         extends StylePropertyEditor<ConstantStrokeDashStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "StrokeDashstyle" );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantStrokeDashstyleEditor", "ConstantEditor" );
 
     private final static List<StrokeDashStyle> content = Lists.newArrayList( StrokeDashStyle.values() );
 

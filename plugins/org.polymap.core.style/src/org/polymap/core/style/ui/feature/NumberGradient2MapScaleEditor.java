@@ -63,9 +63,7 @@ public class NumberGradient2MapScaleEditor<N extends Number>
 
     private static final Log log = LogFactory.getLog( NumberGradient2MapScaleEditor.class );
     
-    private static final IMessages i18n = Messages.forPrefix( "ScaleRangeMappedNumbersEditor" );
-
-    private static final IMessages chooser_i18n = Messages.forPrefix( "ScaleRangeMappedNumbersChooser" );
+    private static final IMessages i18n = Messages.forPrefix( "NumberGradient2MapScaleEditor", "AbstractGradient2FilterEditor" );
 
     public static final double      UNINITIALIZED = Double.NaN;
     
@@ -130,19 +128,19 @@ public class NumberGradient2MapScaleEditor<N extends Number>
         
         // defaults
         if (values.isEmpty()) {
-            lowerBound = 1000;
+            lowerBound = 5000;
             upperBound = maxScale != -1 ? (int)maxScale : 1000000;
             minimumValue = annotation.from();
             maximumValue = annotation.to();
-            breakpoints = 10;
+            breakpoints = 5;
         }
         // from prop
         else {
-            lowerBound = values.get( 0 ).key().min.get();
-            upperBound = values.get( values.size() - 1 ).key().max.get();
+            lowerBound = values.get( 0 ).key().max.get();
+            upperBound = values.get( values.size() - 1 ).key().min.get();
             minimumValue = values.get( 0 ).value().doubleValue();
             maximumValue = values.get( values.size() - 1 ).value().doubleValue();
-            breakpoints = values.size();
+            breakpoints = values.size() - 3;  // 3 intervals -> no extra breakpoint
         }
     }
 
@@ -169,35 +167,38 @@ public class NumberGradient2MapScaleEditor<N extends Number>
     }
 
     
+    protected N toTargetType( double d ) {
+        Double round = Numbers.roundToDigits( d, annotation.digits() );
+        return Numbers.cast( round, site().targetType() );        
+    }
+    
+    
     protected void submit() {
         prop.get().clear();
 
-        // only linear currently
-        int intervals = breakpoints - 1;
-        double valueStep = (maximumValue - minimumValue) / intervals;
-        double scaleStep = (upperBound - lowerBound) / intervals;
-        double currentValue = minimumValue;
-        double currentLower = lowerBound;
+        // anstieg: wert pro scale
+        double q = (maximumValue - minimumValue) / (upperBound - lowerBound);
 
-        for (int i = 0; i < intervals; i++) {
-            Double round = Numbers.roundToDigits( currentValue, annotation.digits() );
-            prop.get().add( currentLower, currentLower + scaleStep, Numbers.cast( round, site().targetType() ) );
-            currentValue += valueStep;
-            currentLower += scaleStep;
+        // first interval: always starts at scale 0
+        prop.get().add( 0, lowerBound, toTargetType( minimumValue ) );
+
+        // breakpoints
+        for (int i=0; i<=breakpoints; i++) {
+            double lower = (upperBound - lowerBound) / (breakpoints + 1) * i;
+            double upper = (upperBound - lowerBound) / (breakpoints + 1) * (i + 1);
+            double value = (lowerBound + lower + (upper - lower)/2) * q;  // mean value of the interval
+            prop.get().add( lowerBound+lower, lowerBound+upper, toTargetType( minimumValue+value ) );
         }
 
-        handle top/bottom interval
-        
-//        // in order to cover the entire scale range we add 0th interval starting at scale 0
-//        // if user did not explicitly cover lower limits
-//        if (lowerBound > 0 || currentValue > annotation.from()) {
-//            prop.get().add( 0d, lowerBound, (N)Double.valueOf( 0d ) );
-//            currentValue += valueStep;
-//            currentScale += scaleStep;
-//            intervals --;
-//        }
+        // last interval: always ends at scale POSITIVE_INFINITY
+        prop.get().add( upperBound, Double.POSITIVE_INFINITY, toTargetType( maximumValue ) );
     }
 
+    
+//    protected double[] linearDistribution( int i ) {
+//        
+//    }
+    
     
     protected void updateButton( Button button ) {
         if (minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED) {
@@ -205,7 +206,7 @@ public class NumberGradient2MapScaleEditor<N extends Number>
             df.setMaximumFractionDigits( annotation.digits() );
             df.setMinimumFractionDigits( annotation.digits() );
 
-            button.setText( i18n.get( "chooseBetween", df.format( minimumValue ), df.format( maximumValue ) ) );
+            button.setText( i18n.get( "rechoose", df.format( minimumValue ), df.format( maximumValue ) ) );
             button.setForeground( defaultFgColor );
             button.setBackground( StylePlugin.okColor() );
         }
@@ -220,8 +221,7 @@ public class NumberGradient2MapScaleEditor<N extends Number>
     @Override
     public boolean isValid() {
         return lowerBound != UNINITIALIZED && upperBound != UNINITIALIZED 
-                && minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED 
-                && breakpoints > 0;
+                && minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED; 
     }
     
     
@@ -242,7 +242,7 @@ public class NumberGradient2MapScaleEditor<N extends Number>
 
 
         public String title() {
-            return chooser_i18n.get( "title" );
+            return i18n.get( "dialogTitle" );
         }
 
 
@@ -256,10 +256,10 @@ public class NumberGradient2MapScaleEditor<N extends Number>
             upperBoundSpinner = new Spinner( parent, SWT.BORDER );
             upperBoundSpinner.setToolTipText( "Last interval covers everything bigger than this upper bounds\nand and maps to the given value" );
 
-            lowerBoundSpinner.setMinimum( Integer.MIN_VALUE );
+            lowerBoundSpinner.setMinimum( 1 );
             lowerBoundSpinner.setMaximum( Integer.MAX_VALUE );
             lowerBoundSpinner.setIncrement( 1000 );
-            lowerBoundSpinner.setPageIncrement(20000 );
+            lowerBoundSpinner.setPageIncrement( 10000 );
             lowerBoundSpinner.setSelection( (int)lowerBound );
             lowerBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = lowerBoundSpinner.getSelection();
@@ -267,7 +267,7 @@ public class NumberGradient2MapScaleEditor<N extends Number>
                 upperBoundSpinner.setMinimum( selection );
             }));
 
-            upperBoundSpinner.setMinimum( Integer.MIN_VALUE );
+            upperBoundSpinner.setMinimum( 1 );
             upperBoundSpinner.setMaximum( Integer.MAX_VALUE );
             upperBoundSpinner.setIncrement( 1000 );
             upperBoundSpinner.setPageIncrement( 20000 );
@@ -309,8 +309,8 @@ public class NumberGradient2MapScaleEditor<N extends Number>
             stepsSpinner = new Spinner( parent, SWT.BORDER );
             stepsSpinner.setToolTipText( "For X breakpoints X+1 intervalls are generated" );
             stepsSpinner.setDigits( 0 );
-            stepsSpinner.setMinimum( 2 );
-            stepsSpinner.setMaximum( 100 );
+            stepsSpinner.setMinimum( 0 );
+            stepsSpinner.setMaximum( 30 );
             stepsSpinner.setSelection( breakpoints );
             stepsSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 breakpoints = stepsSpinner.getSelection();
@@ -321,31 +321,31 @@ public class NumberGradient2MapScaleEditor<N extends Number>
             parent.setLayout( FormLayoutFactory.defaults().spacing( 16 ).create() );
 
             Label scaleLine = new Label( parent, SWT.NONE );
-            scaleLine.setText( chooser_i18n.get( "currentScale", (int)mapScale, (int)maxScale ) );
+            scaleLine.setText( i18n.get( "currentScale", (int)mapScale, (int)maxScale ) );
             FormDataFactory.on( scaleLine ).fill().noBottom();
             
             Label l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "lowerBound" ) );
+            l.setText( i18n.get( "lowerBound" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( scaleLine, 3 ).left( 0 );
             FormDataFactory.on( lowerBoundSpinner ).width( spinnerWidth ).top( scaleLine ).left( l, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "mapsTo" ) );
+            l.setText( i18n.get( "mapsTo" ) );
             FormDataFactory.on( l ).top( scaleLine, 3 ).left( lowerBoundSpinner );
             FormDataFactory.on( mappedMinimumSpinner ).width( spinnerWidth ).top( scaleLine ).left( l, -10 ).right( 100, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "upperBound" ) );
+            l.setText( i18n.get( "upperBound" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( lowerBoundSpinner, 3 ).left( 0 );
             FormDataFactory.on( upperBoundSpinner ).width( spinnerWidth ).top( lowerBoundSpinner, 0 ).left( l, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "mapsTo" ) );
+            l.setText( i18n.get( "mapsTo" ) );
             FormDataFactory.on( l ).top( lowerBoundSpinner, 3 ).left( upperBoundSpinner );
             FormDataFactory.on( mappedMaximumSpinner ).width( spinnerWidth ).top( lowerBoundSpinner ).left( l, -10 ).right( 100, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "breakpoints" ) );
+            l.setText( i18n.get( "breakpoints" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( upperBoundSpinner, 3 ).left( 0 );
             FormDataFactory.on( stepsSpinner ).width( spinnerWidth ).top( upperBoundSpinner, 0 ).left( l, -10 );
         }

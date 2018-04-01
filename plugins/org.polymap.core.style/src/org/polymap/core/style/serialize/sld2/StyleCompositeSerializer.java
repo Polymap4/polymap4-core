@@ -26,6 +26,7 @@ import org.geotools.styling.StyleFactory;
 import org.geotools.styling.Symbolizer;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.expression.Expression;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,11 +39,11 @@ import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Mandatory;
 import org.polymap.core.style.model.StyleComposite;
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.feature.AttributeValue;
 import org.polymap.core.style.model.feature.ConstantValue;
 import org.polymap.core.style.model.feature.FilterMappedValues;
 import org.polymap.core.style.model.feature.MappedValues.Mapped;
 import org.polymap.core.style.model.feature.NoValue;
-import org.polymap.core.style.model.feature.PropertyValue;
 import org.polymap.core.style.model.feature.ScaleMappedValues;
 import org.polymap.core.style.model.feature.ScaleMappedValues.ScaleRange;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
@@ -144,31 +145,34 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
 
 
     protected <V> Iterable<RuleModifier<V,S>> handle( Property<StylePropertyValue<V>> prop ) {
-        StylePropertyValue<V> propValue = prop.get();
+        StylePropertyValue<V> styleProp = prop.get();
 
         // no value -> nothing to modify
-        if (propValue == null || propValue instanceof NoValue) {
+        if (styleProp == null || styleProp instanceof NoValue) {
             return singletonList( new NoValueRuleModifier() );
         }
         // ConstantValue
-        else if (propValue instanceof ConstantValue) {
-            return singletonList( new SimpleRuleModifier( ((ConstantValue)propValue).value() ) );
+        else if (styleProp instanceof ConstantValue) {
+            Expression expr = ff.literal( ((ConstantValue)styleProp).value() );
+            return singletonList( new SimpleRuleModifier( expr ) );
         }
-        // PropertyValue
-        else if (propValue instanceof PropertyValue) {
-            return singletonList( new SimpleRuleModifier( ((PropertyValue)propValue).propertyName.get() ) );
+        // AttributeValue
+        else if (styleProp instanceof AttributeValue) {
+            String attributeName = (String)((AttributeValue)styleProp).attributeName.get();
+            Expression expr = ff.property( attributeName );
+            return singletonList( new SimpleRuleModifier( expr ) );
         }
         // FilterMappedValues
-        else if (propValue instanceof FilterMappedValues) {
-            List<Mapped<Filter,Object>> values = ((FilterMappedValues)propValue).values();
+        else if (styleProp instanceof FilterMappedValues) {
+            List<Mapped<Filter,Object>> values = ((FilterMappedValues)styleProp).values();
             return FluentIterable.from( values )
-                    .transform( mapped -> new SimpleRuleModifier( mapped.value(), mapped.key() ) );
+                    .transform( mapped -> new SimpleRuleModifier( ff.literal( mapped.value() ), mapped.key() ) );
         }
         // ScaleMappedValues
-        else if (propValue instanceof ScaleMappedValues) {
-            List<Mapped<ScaleRange,Object>> values = ((ScaleMappedValues)propValue).values();
+        else if (styleProp instanceof ScaleMappedValues) {
+            List<Mapped<ScaleRange,Object>> values = ((ScaleMappedValues)styleProp).values();
             return FluentIterable.from( values )
-                    .transform( mapped -> new SimpleRuleModifier( mapped.value(), mapped.key().min.get(), mapped.key().max.get() ) );
+                    .transform( mapped -> new SimpleRuleModifier( ff.literal( mapped.value() ), mapped.key().min.get(), mapped.key().max.get() ) );
         }
 //        // ScaleMappedValues
 //        else if (propValue instanceof ScaleMappedNumbers) {
@@ -183,7 +187,7 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
 //            return result;
 //        }
         else {
-            throw new RuntimeException( "Unhandled StylePropertyValue type: " + propValue.getClass().getSimpleName() );
+            throw new RuntimeException( "Unhandled StylePropertyValue type: " + styleProp.getClass().getSimpleName() );
         }
     }
 
@@ -215,7 +219,7 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
      */
     @FunctionalInterface
     public static interface Setter<V,S> {
-        public void apply( V value, S symbolizer );
+        public void apply( Expression value, S symbolizer );
     }
 
 
@@ -245,20 +249,20 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
      */
     public static class SimpleRuleModifier<V,S>
             implements RuleModifier<V,S> {
-        public double       minScale = -1, maxScale = -1;
-        public Filter       filter;
-        public V            value;
+        public double           minScale = -1, maxScale = -1;
+        public Filter           filter;
+        public Expression/*<V>*/value;
         
-        public SimpleRuleModifier( V value ) {
+        public SimpleRuleModifier( Expression value ) {
             this( value, null );
         }
 
-        public SimpleRuleModifier( V value, Filter filter ) {
+        public SimpleRuleModifier( Expression value, Filter filter ) {
             this.value = value;
             this.filter = filter;
         }
 
-        public SimpleRuleModifier( V value, double minScale, double maxScale ) {
+        public SimpleRuleModifier( Expression value, double minScale, double maxScale ) {
             this.value = value;
             this.minScale = minScale;
             this.maxScale = maxScale;

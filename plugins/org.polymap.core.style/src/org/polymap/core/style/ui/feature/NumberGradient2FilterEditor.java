@@ -72,9 +72,7 @@ public class NumberGradient2FilterEditor<N extends Number>
 
     private static final Log log = LogFactory.getLog( NumberGradient2FilterEditor.class );
     
-    private static final IMessages i18n = Messages.forPrefix( "FeaturePropertyRangeMappedNumbersEditor" );
-
-    private static final IMessages chooser_i18n = Messages.forPrefix( "FeaturePropertyRangeMappedNumbersChooser" );
+    private static final IMessages i18n = Messages.forPrefix( "NumberGradient2FilterEditor", "AbstractGradient2FilterEditor" );
 
     public static final double      UNINITIALIZED = Double.NaN;
 
@@ -177,40 +175,36 @@ public class NumberGradient2FilterEditor<N extends Number>
     }
 
     
+    protected N toTargetType( double d ) {
+        Double round = Numbers.roundToDigits( d, annotation.digits() );
+        return Numbers.cast( round, site().targetType() );        
+    }
+    
+    
     protected void submit() {
         prop.get().clear();
 
-        // only linear currently
-        int intervals = breakpoints - 1;
-        double valueStep = (maximumValue - minimumValue) / intervals;
-        double scaleStep = (upperBound - lowerBound) / intervals;
-        double currentValue = minimumValue;
-        double currentLower = lowerBound;
+        // anstieg: wert pro scale
+        double q = (maximumValue - minimumValue) / (upperBound - lowerBound);
 
-        for (int i = 0; i < intervals; i++) {
-            Double round = Numbers.roundToDigits( currentValue, annotation.digits() );
+        // breakpoints
+        for (int i=0; i<=breakpoints; i++) {
+            double lower = (upperBound - lowerBound) / (breakpoints + 1) * i;
+            double upper = (upperBound - lowerBound) / (breakpoints + 1) * (i + 1);
+            double value = (lowerBound + lower + (upper - lower)/2) * q;  // mean value of the interval
             prop.get().add( ff.and( 
-                    ff.greaterOrEqual( ff.property( propertyName ), ff.literal( currentLower ) ),
-                    ff.less( ff.property( propertyName ), ff.literal( currentLower+scaleStep ) ) ),
-                    Numbers.cast( round, site().targetType() ) );
-            currentValue += valueStep;
-            currentLower += scaleStep;
+                    ff.greaterOrEqual( ff.property( propertyName ), ff.literal( lowerBound+lower ) ),
+                    i < breakpoints 
+                            ? ff.less( ff.property( propertyName ), ff.literal( lowerBound+upper ) )
+                            : ff.lessOrEqual( ff.property( propertyName ), ff.literal( lowerBound+upper ) ) ),
+                    toTargetType( minimumValue + value ) );
         }
-        
-//        // in order to cover the entire scale range we add 0th interval starting at scale 0
-//        // if user did not explicitly cover lower limits
-//        if (lowerBound > 0 || currentValue > annotation.from()) {
-//            prop.get().add( 0d, lowerBound, (N)Double.valueOf( 0d ) );
-//            currentValue += valueStep;
-//            currentScale += scaleStep;
-//            intervals --;
-//        }
     }
 
     
     protected void updateButton( Button button ) {
         if (propertyName != null && minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED) {
-            button.setText( i18n.get( "chooseBetween", propertyName, df.format( minimumValue ), df.format( maximumValue ) ) );
+            button.setText( i18n.get( "rechoose", propertyName, df.format( minimumValue ), df.format( maximumValue ) ) );
             button.setForeground( defaultFgColor );
             button.setBackground( StylePlugin.okColor() );
         }
@@ -225,8 +219,7 @@ public class NumberGradient2FilterEditor<N extends Number>
     @Override
     public boolean isValid() {
         return lowerBound != UNINITIALIZED && upperBound != UNINITIALIZED 
-                && minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED 
-                && breakpoints > 0;
+                && minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED;
     }
     
     
@@ -251,7 +244,7 @@ public class NumberGradient2FilterEditor<N extends Number>
 
 
         public String title() {
-            return chooser_i18n.get( "title" );
+            return i18n.get( "dialogTitle" );
         }
 
 
@@ -302,7 +295,7 @@ public class NumberGradient2FilterEditor<N extends Number>
                 upperBoundSpinner.setMinimum( (int)lowerBound );
                 upperBoundSpinner.setMaximum( (int)upperBound );
                 upperBoundSpinner.setSelection( (int)upperBound );
-                scaleLine.setText( chooser_i18n.get( "currentValues", df.format( lowerBound ), df.format( upperBound ) ) );
+                scaleLine.setText( i18n.get( "currentValues", df.format( lowerBound ), df.format( upperBound ) ) );
             });
             propCombo.setContentProvider( ArrayContentProvider.getInstance() );
             propCombo.setInput( site().featureType.get().getDescriptors() );
@@ -359,10 +352,10 @@ public class NumberGradient2FilterEditor<N extends Number>
             }));
 
             stepsSpinner = new Spinner( parent, SWT.BORDER );
-            stepsSpinner.setToolTipText( "For X breakpoints X+1 intervalls are generated" );
+            stepsSpinner.setToolTipText( "For x breakpoints x+1 intervalls are generated" );
             stepsSpinner.setDigits( 0 );
-            stepsSpinner.setMinimum( 2 );
-            stepsSpinner.setMaximum( 100 );
+            stepsSpinner.setMinimum( 0 );
+            stepsSpinner.setMaximum( 30 );
             stepsSpinner.setSelection( breakpoints );
             stepsSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 breakpoints = stepsSpinner.getSelection();
@@ -374,38 +367,38 @@ public class NumberGradient2FilterEditor<N extends Number>
             parent.setLayout( FormLayoutFactory.defaults().spacing( 16 ).create() );
 
             Label l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "selectProperty" ) );
+            l.setText( i18n.get( "selectProperty" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( 3 ).left( 0 );
             FormDataFactory.on( propCombo.getControl() ).top( 0 ).left( l, -10 ).right( 100, -10 );
             
             scaleLine.setFont( UIUtils.italic( scaleLine.getFont() ) );
             if (propertyName != null) {
-                scaleLine.setText( chooser_i18n.get( "currentValues", lowerBound, upperBound ) );
+                scaleLine.setText( i18n.get( "currentValues", lowerBound, upperBound ) );
             }
             FormDataFactory.on( scaleLine ).left( l, -10 ).top( l, -10 ).right( 100, -10 ).noBottom();
             
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "lowerBound" ) );
+            l.setText( i18n.get( "lowerBound" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( scaleLine, 3 ).left( 0 );
             FormDataFactory.on( lowerBoundSpinner ).width( spinnerWidth ).top( scaleLine ).left( l, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "mapsTo" ) );
+            l.setText( i18n.get( "mapsTo" ) );
             FormDataFactory.on( l ).top( scaleLine, 3 ).left( lowerBoundSpinner );
             FormDataFactory.on( mappedMinimumSpinner ).width( spinnerWidth ).top( scaleLine ).left( l, -10 ).right( 100, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "upperBound" ) );
+            l.setText( i18n.get( "upperBound" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( lowerBoundSpinner, 3 ).left( 0 );
             FormDataFactory.on( upperBoundSpinner ).width( spinnerWidth ).top( lowerBoundSpinner, 0 ).left( l, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "mapsTo" ) );
+            l.setText( i18n.get( "mapsTo" ) );
             FormDataFactory.on( l ).top( lowerBoundSpinner, 3 ).left( upperBoundSpinner );
             FormDataFactory.on( mappedMaximumSpinner ).width( spinnerWidth ).top( lowerBoundSpinner ).left( l, -10 ).right( 100, -10 );
 
             l = new Label( parent, SWT.RIGHT );
-            l.setText( chooser_i18n.get( "steps" ) );
+            l.setText( i18n.get( "steps" ) );
             FormDataFactory.on( l ).width( labelWidth ).top( upperBoundSpinner, 3 ).left( 0 );
             FormDataFactory.on( stepsSpinner ).width( spinnerWidth ).top( upperBoundSpinner, 0 ).left( l, -10 );
         }

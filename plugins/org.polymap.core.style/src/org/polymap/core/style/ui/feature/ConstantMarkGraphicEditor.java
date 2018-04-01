@@ -41,7 +41,7 @@ import org.polymap.model2.runtime.NotNullableException;
 public class ConstantMarkGraphicEditor
         extends StylePropertyEditor<ConstantGraphic> {
 
-    private static final IMessages i18n = Messages.forPrefix( "ConstantMarkGraphicEditor" );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantMarkGraphicEditor", "ConstantEditor" );
 
     private final static List<WellKnownMark> VALUES = Lists.newArrayList( WellKnownMark.values() );
 

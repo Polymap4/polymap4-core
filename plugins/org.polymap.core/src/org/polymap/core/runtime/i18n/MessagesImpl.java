@@ -137,15 +137,6 @@ public class MessagesImpl
     }
 
     
-    /**
-     * Find the localized message for the given key. If arguments are given, then the
-     * result message is formatted via {@link MessageFormat}.
-     *
-     * @param locale The locale to use to localize the given message.
-     * @param key
-     * @param args If not null, then the message is formatted via {@link MessageFormat}
-     * @return The message for the given key, or the empty String if there is no resource for that key.
-     */
     @Override
     public String get( Locale locale, String key, Object... args ) {
         assert key != null && key.length() > 0 : "The given messages key is empty.";
@@ -160,7 +151,7 @@ public class MessagesImpl
         catch (MissingResourceException e) {
             log.warn( "Can't find key '" + prefix + key + "' in bundle " + bundleName );
             // ResourceBundleEditor removes empty entries :(
-            return "";
+            return NO_SUCH_KEY;
         }
         catch (Exception e) {
             log.warn( "", e );
@@ -168,14 +159,6 @@ public class MessagesImpl
         }
     }
 
-    /**
-     * Find the localized message for the given key. If arguments are given, then the
-     * result message is formatted via {@link MessageFormat}.
-     *
-     * @param key
-     * @param args If not null, then the message is formatted via {@link MessageFormat}
-     * @return The message for the given key.
-     */
     @Override
     public String get( String key, Object... args ) {
         Locale locale = Polymap.getSessionLocale();

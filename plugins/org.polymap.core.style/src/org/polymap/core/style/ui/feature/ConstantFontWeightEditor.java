@@ -14,9 +14,6 @@ package org.polymap.core.style.ui.feature;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.google.common.collect.Lists;
 
 import org.eclipse.swt.SWT;
@@ -42,9 +39,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantFontWeightEditor
         extends StylePropertyEditor<ConstantFontWeight> {
 
-    private static final IMessages i18n = Messages.forPrefix( "FontWeight" );
-
-    private static Log log = LogFactory.getLog( ConstantFontWeightEditor.class );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantFontWeightEditor", "ConstantEditor" );
 
     private final static List<FontWeight> content = Lists.newArrayList( FontWeight.values() );
 

@@ -37,7 +37,7 @@ import org.polymap.core.style.model.feature.FontFamily;
 import org.polymap.core.style.model.feature.FontStyle;
 import org.polymap.core.style.model.feature.FontWeight;
 import org.polymap.core.style.model.feature.NoValue;
-import org.polymap.core.style.model.feature.PropertyNumber;
+import org.polymap.core.style.model.feature.AttributeNumber;
 import org.polymap.core.style.model.feature.PropertyString;
 import org.polymap.core.style.model.feature.ScaleMappedNumbers;
 import org.polymap.core.style.model.feature.StrokeCapStyle;
@@ -124,8 +124,8 @@ public abstract class StylePropertyValueHandler<SPV extends StylePropertyValue, 
             else if (spv instanceof PropertyString) {
                 return new PropertyStringHandler().doHandle( context, (PropertyString)spv, sd, setter );
             }
-            else if (spv instanceof PropertyNumber) {
-                return new PropertyNumberHandler().doHandle( context, (PropertyNumber)spv, sd, setter );
+            else if (spv instanceof AttributeNumber) {
+                return new PropertyNumberHandler().doHandle( context, (AttributeNumber)spv, sd, setter );
             }
             else if (spv instanceof ScaleMappedNumbers) {
                 return new ScaleMappedNumbersHandler().doHandle( context, (ScaleMappedNumbers)spv, sd, setter );

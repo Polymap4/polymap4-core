@@ -84,10 +84,10 @@ public class LineStyleSerializer
         style.stroke.opt().ifPresent( outerStroke -> {
             set( fts, outerStroke.width, (value,syms) -> {
                 Literal innerWidth = (Literal)syms.get( 1 ).getStroke().getWidth();
-                syms.get( 0 ).getStroke().setWidth( ff.literal( value * 2 + (Double)innerWidth.getValue() ) );
+                syms.get( 0 ).getStroke().setWidth( ff.add( ff.multiply( value, ff.literal( 2 ) ), innerWidth ) );
             });
-            set( fts, outerStroke.color, (value,syms) -> syms.get( 0 ).getStroke().setColor( ff.literal( value ) ) );
-            set( fts, outerStroke.opacity, (value,syms) -> syms.get( 0 ).getStroke().setOpacity( ff.literal( value ) ) );
+            set( fts, outerStroke.color, (value,syms) -> syms.get( 0 ).getStroke().setColor( value ) );
+            set( fts, outerStroke.opacity, (value,syms) -> syms.get( 0 ).getStroke().setOpacity( value ) );
             // XXX linestyle
         });
     }

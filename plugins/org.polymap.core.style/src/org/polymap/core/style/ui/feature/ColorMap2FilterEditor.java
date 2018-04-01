@@ -87,9 +87,7 @@ public class ColorMap2FilterEditor
 
     private static final Log log = LogFactory.getLog( ColorMap2FilterEditor.class );
 
-    private static final IMessages  i18n = Messages.forPrefix( "FeaturePropertyMappedColorsEditor" );
-
-    private static final IMessages  dialog_i18n = Messages.forPrefix( "FeaturePropertyMappedColorsChooser" );
+    private static final IMessages  i18n = Messages.forPrefix( "ColorMap2FilterEditor", "AbstractMap2FilterEditor" );
 
     private static final int        MAX_VALUES = 100;
 
@@ -235,7 +233,7 @@ public class ColorMap2FilterEditor
 
 
         public String title() {
-            return i18n.get( "title" );
+            return i18n.get( "dialogTitle" );
         }
 
 
