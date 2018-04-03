@@ -17,7 +17,6 @@ package org.polymap.core.style.model.feature;
 import org.opengis.filter.Filter;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Nullable;
@@ -25,19 +24,18 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
+ * 
  * @author Steffen Stundzig
  */
 public class ScaleRangeFilter
-        extends StylePropertyValue<Filter> {
+        extends FilterStyleProperty {
 
     public static ValueInitializer<ScaleRangeFilter> defaults() {
         return defaults( 1, 80000000 );
     }
 
-
-    public static ValueInitializer<ScaleRangeFilter> defaults( final Integer minScale, final Integer maxScale ) {
+    public static ValueInitializer<ScaleRangeFilter> defaults( Integer minScale, Integer maxScale ) {
         return new ValueInitializer<ScaleRangeFilter>() {
-
             @Override
             public ScaleRangeFilter initialize( ScaleRangeFilter proto ) throws Exception {
                 proto.minScale.set( minScale );
@@ -49,10 +47,16 @@ public class ScaleRangeFilter
 
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<Integer> minScale;
+    public Property<Integer>        minScale;
 
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<Integer> maxScale;
+    public Property<Integer>        maxScale;
 
+    
+    @Override
+    public Filter filter() {
+        throw new RuntimeException( "Must never be called." );
+    }
+    
 }

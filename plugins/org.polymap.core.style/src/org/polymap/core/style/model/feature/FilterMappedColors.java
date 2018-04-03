@@ -54,7 +54,7 @@ public class FilterMappedColors
     @Override
     public List<Mapped<Filter,Color>> values() {
         return values( encodedFilters, rgbas, (encodedFilter,rgba) ->
-                new Mapped( ConstantFilter.decode( encodedFilter ), new Color( rgba ) ) );
+                new Mapped( FilterStyleProperty.decode( encodedFilter ), new Color( rgba ) ) );
     }
 
     @Override

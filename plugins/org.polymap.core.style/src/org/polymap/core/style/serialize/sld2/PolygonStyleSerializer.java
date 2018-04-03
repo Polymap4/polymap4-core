@@ -41,7 +41,7 @@ public class PolygonStyleSerializer
         polygon.setFill( sf.getDefaultFill() );
         polygon.setStroke( sf.getDefaultStroke() );
 
-        FeatureTypeStyle fts = defaultFeatureTypeStyle( polygon );
+        FeatureTypeStyle fts = defaultFeatureTypeStyle( result, style, polygon );
         fts.setName( style.title.opt().orElse( "PolygonStyle" ) );
         fts.getDescription().setTitle( style.title.opt().orElse( "PolygonStyle" ) );
         accessor.set( rule -> (PolygonSymbolizer)rule.symbolizers().get( 0 ) );
@@ -58,7 +58,6 @@ public class PolygonStyleSerializer
                     .accessor.put( rule -> accessor.get().apply( rule ).getStroke() )
                     .serialize( stroke, fts );
         });
-        result.featureTypeStyles().add( fts );
     }
 
         

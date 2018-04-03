@@ -124,14 +124,11 @@ public class StyleRepository
                         
                         FilterMappedColors.class,
                         FilterMappedPrimitives.class,
-
                         ScaleMappedPrimitives.class,
 
                         AttributeValue.class,
-                        // PropertyString.class,
-                        // AttributeValue.class,
-                        PropertyMatchingNumberFilter.class,
-                        PropertyMatchingStringFilter.class,
+                        
+                        ConstantFilter.class,
                         ScaleRangeFilter.class,
                         
                         RasterGrayStyle.class,

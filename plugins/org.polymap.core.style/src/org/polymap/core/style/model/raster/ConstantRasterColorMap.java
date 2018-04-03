@@ -15,7 +15,7 @@
 package org.polymap.core.style.model.raster;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.feature.ConstantValue;
 import org.polymap.core.style.model.feature.NumberConcern;
 import org.polymap.core.style.model.feature.NumberRange;
 
@@ -32,16 +32,14 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantRasterColorMap
-        extends StylePropertyValue<RasterColorMap> {
+        extends ConstantValue<RasterColorMap> {
 
     /**
      * Initializes a newly created instance with the given default value.
      */
     public static ValueInitializer<ConstantRasterColorMap> defaults() {
         return new ValueInitializer<ConstantRasterColorMap>() {
-            @Override
-            public ConstantRasterColorMap initialize( ConstantRasterColorMap proto ) throws Exception {
-                //proto.band.set( band );
+            @Override public ConstantRasterColorMap initialize( ConstantRasterColorMap proto ) throws Exception {
                 return proto;
             }
         };
@@ -53,6 +51,11 @@ public class ConstantRasterColorMap
     //@Nullable
     //@Concerns( StylePropertyChange.Concern.class )
     public CollectionProperty<Entry>        entries;
+    
+    @Override
+    public RasterColorMap value() {
+        return new RasterColorMap( entries );
+    }
     
 
     /**

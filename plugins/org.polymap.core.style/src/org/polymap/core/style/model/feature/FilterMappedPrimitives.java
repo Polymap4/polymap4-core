@@ -62,7 +62,7 @@ public class FilterMappedPrimitives<V>
     @Override
     public List<Mapped<Filter,V>> values() {
         return values( encodedFilters, values, (encodedFilter,value) -> 
-                new Mapped( ConstantFilter.decode( encodedFilter ), value ) );
+                new Mapped( FilterStyleProperty.decode( encodedFilter ), value ) );
     }
 
     @Override

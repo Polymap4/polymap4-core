@@ -29,6 +29,7 @@ public abstract class StyleSerializer<T extends Style,R>
         super( context );
     }
 
+    
     public abstract void serialize( T style, org.geotools.styling.Style result );
 
 }

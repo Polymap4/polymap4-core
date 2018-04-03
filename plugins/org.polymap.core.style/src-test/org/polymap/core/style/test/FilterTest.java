@@ -37,6 +37,7 @@ import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.StyleRepository;
 import org.polymap.core.style.model.feature.ConstantFilter;
 import org.polymap.core.style.model.feature.ConstantNumber;
+import org.polymap.core.style.model.feature.FilterStyleProperty;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.ScaleRangeFilter;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
@@ -49,7 +50,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 @Ignore
 public class FilterTest {
 
-    private static Log log = LogFactory.getLog( FilterTest.class );
+    private static final Log log = LogFactory.getLog( FilterTest.class );
 
     private static StyleRepository repo;
 
@@ -74,8 +75,8 @@ public class FilterTest {
     public void serialization() throws Exception {
 
         Filter filter = ff.equals( ff.property( "prop" ), ff.literal( "literal" ) );
-        String encoded = ConstantFilter.encode( filter );
-        Filter decoded = ConstantFilter.decode( encoded );
+        String encoded = FilterStyleProperty.encode( filter );
+        Filter decoded = FilterStyleProperty.decode( encoded );
 
         assertEquals( filter, decoded );
         assertEquals( "[ prop = literal ]", decoded.toString() );

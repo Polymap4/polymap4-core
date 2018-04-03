@@ -41,9 +41,10 @@ import org.polymap.core.style.ui.feature.ConstantNumberEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeCapStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeDashStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeJoinStyleEditor;
+import org.polymap.core.style.ui.feature.AttributeLiteralFilterEditor;
 import org.polymap.core.style.ui.feature.NumberGradient2FilterEditor;
 import org.polymap.core.style.ui.feature.NumberGradient2MapScaleEditor;
-import org.polymap.core.style.ui.feature.ScaleRangeEditor;
+import org.polymap.core.style.ui.feature.ScaleRangeFilterEditor;
 import org.polymap.core.style.ui.raster.ConstantRasterBandEditor;
 import org.polymap.core.style.ui.raster.ConstantRasterColorMapTypeEditor;
 import org.polymap.core.style.ui.raster.PredefinedColorMapEditor;
@@ -59,7 +60,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
     
-    public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
+    public static final Class<StylePropertyEditor>[] EDITORS = new Class[] {
             NoValueEditor.class,
             AlwaysTrueEditor.class,
             ConstantColorEditor.class,
@@ -78,10 +79,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             NumberGradient2FilterEditor.class,
             ColorGradient2FilterEditor.class,
             ColorMap2FilterEditor.class,
-//            FeaturePropertyMatchingNumberEditor.class,
-//            FeaturePropertyMatchingStringEditor.class,
+            // filter target
+            AttributeLiteralFilterEditor.class,
+            ScaleRangeFilterEditor.class,
             // scale dependent
-            ScaleRangeEditor.class,
             NumberGradient2MapScaleEditor.class,
             // raster
             ConstantRasterBandEditor.class,
@@ -91,12 +92,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     /**
      * Factory of new editor instances.
-     *
-     * @param spv
      */
     public static StylePropertyEditor[] forValue( StylePropertyFieldSite fieldSite ) {
-        List<StylePropertyEditor> result = new ArrayList( availableEditors.length );
-        for (Class<StylePropertyEditor> cl : availableEditors) {
+        List<StylePropertyEditor> result = new ArrayList( EDITORS.length );
+        for (Class<StylePropertyEditor> cl : EDITORS) {
             try {
                 StylePropertyEditor editor = cl.newInstance();
                 if (editor.init( fieldSite )) {

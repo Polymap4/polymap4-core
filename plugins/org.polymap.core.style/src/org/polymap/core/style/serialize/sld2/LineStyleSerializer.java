@@ -40,7 +40,7 @@ public class LineStyleSerializer
     
     @Override
     public void serialize( LineStyle style, Style result ) {
-        FeatureTypeStyle fts = defaultFeatureTypeStyle();
+        FeatureTypeStyle fts = defaultFeatureTypeStyle( result, style );
         
         // stroke line: 1st LineSymbolizer
         LineSymbolizer strokeLine = sf.createLineSymbolizer();
@@ -65,7 +65,6 @@ public class LineStyleSerializer
 //        });
 
         serialize( style, fts );
-        result.featureTypeStyles().add( fts );
     }
 
 

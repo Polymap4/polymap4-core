@@ -37,15 +37,19 @@ import com.rits.cloning.Cloner;
 import org.polymap.core.runtime.config.Config2;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Mandatory;
+import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StyleComposite;
 import org.polymap.core.style.model.StylePropertyValue;
 import org.polymap.core.style.model.feature.AttributeValue;
+import org.polymap.core.style.model.feature.ConstantFilter;
 import org.polymap.core.style.model.feature.ConstantValue;
 import org.polymap.core.style.model.feature.FilterMappedValues;
+import org.polymap.core.style.model.feature.FilterStyleProperty;
 import org.polymap.core.style.model.feature.MappedValues.Mapped;
 import org.polymap.core.style.model.feature.NoValue;
 import org.polymap.core.style.model.feature.ScaleMappedValues;
 import org.polymap.core.style.model.feature.ScaleMappedValues.ScaleRange;
+import org.polymap.core.style.model.feature.ScaleRangeFilter;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 import org.polymap.model2.Property;
@@ -151,6 +155,11 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
         if (styleProp == null || styleProp instanceof NoValue) {
             return singletonList( new NoValueRuleModifier() );
         }
+//        // ConstantRasterBand
+//        else if (styleProp instanceof ConstantRasterBand) {
+//            Expression expr = ff.literal( ((ConstantValue)styleProp).value() );
+//            return singletonList( new SimpleRuleModifier( expr ) );
+//        }
         // ConstantValue
         else if (styleProp instanceof ConstantValue) {
             Expression expr = ff.literal( ((ConstantValue)styleProp).value() );
@@ -174,31 +183,37 @@ public abstract class StyleCompositeSerializer<T extends StyleComposite,S>
             return FluentIterable.from( values )
                     .transform( mapped -> new SimpleRuleModifier( ff.literal( mapped.value() ), mapped.key().min.get(), mapped.key().max.get() ) );
         }
-//        // ScaleMappedValues
-//        else if (propValue instanceof ScaleMappedNumbers) {
-//            List<V> values = ((ScaleMappedNumbers)propValue).numbers();
-//            List<Double> scales = ((ScaleMappedNumbers)propValue).scales();
-//            List<RuleModifier<V,S>> result = new ArrayList( scales.size() + 1 );
-//            for (int i=0; i<values.size(); i++) {
-//                double lowerBound = scales.get( i );
-//                double upperBound = scales.size() > (i+1) ? scales.get( i+1 ) : Double.POSITIVE_INFINITY;
-//                result.add( new SimpleRuleModifier( values.get( i ), lowerBound, upperBound ) );
-//            }
-//            return result;
-//        }
         else {
             throw new RuntimeException( "Unhandled StylePropertyValue type: " + styleProp.getClass().getSimpleName() );
         }
     }
 
 
-    protected FeatureTypeStyle defaultFeatureTypeStyle( Symbolizer... symbolizers ) {
+    protected FeatureTypeStyle defaultFeatureTypeStyle( org.geotools.styling.Style result, Style style, Symbolizer... symbolizers ) {
         Rule rule = sf.createRule();
+        
+        // handle visibleIf
+        FilterStyleProperty visibleIf = (FilterStyleProperty)style.visibleIf.get();
+        if (visibleIf instanceof ScaleRangeFilter) {
+            rule.setMinScaleDenominator( ((ScaleRangeFilter)visibleIf).minScale.get() );
+            rule.setMaxScaleDenominator( ((ScaleRangeFilter)visibleIf).maxScale.get() );
+        }
+        else if (visibleIf instanceof ConstantFilter) {
+            Filter filter = ((ConstantFilter)visibleIf).filter();
+            if (!filter.equals( Filter.INCLUDE )) {
+                rule.setFilter( filter );
+            }
+        }
+        else {
+            throw new RuntimeException( "Unhandled Style.visibleIf type: " + visibleIf.getClass() );
+        }
+        
         for (Symbolizer s : symbolizers) {
             rule.symbolizers().add( s );
         };
         FeatureTypeStyle fts = sf.createFeatureTypeStyle();
         fts.rules().add( rule );
+        result.featureTypeStyles().add( fts );
         return fts;
     }
 

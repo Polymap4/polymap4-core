@@ -36,6 +36,9 @@ import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.TextStyle;
+import org.polymap.core.style.model.raster.RasterColorMapStyle;
+import org.polymap.core.style.model.raster.RasterGrayStyle;
+import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
 import org.polymap.core.style.serialize.sld.SLDSerializer;
 
@@ -103,15 +106,15 @@ public class SLDSerializer2
                 else if (style instanceof LineStyle) {
                     serializer = new LineStyleSerializer( context );
                 }
-//                else if (style instanceof RasterGrayStyle) {
-//                    serializer = new GrayscaleSymbolizerDescriptor.Serializer( context );
-//                }
-//                else if (style instanceof RasterRGBStyle) {
-//                    serializer = new RGBSymbolizerDescriptor.Serializer( context );
-//                }
-//                else if (style instanceof RasterColorMapStyle) {
-//                    serializer = new ColorMapSymbolizerDescriptor.Serializer( context );
-//                }
+                else if (style instanceof RasterGrayStyle) {
+                    serializer = new RasterSerializer.GraySerializer( context );
+                }
+                else if (style instanceof RasterRGBStyle) {
+                    serializer = new RasterSerializer.RGBSerializer( context );
+                }
+                else if (style instanceof RasterColorMapStyle) {
+                    serializer = new RasterSerializer.ColorMapSerializer( context );
+                }
                 else {
                     throw new RuntimeException( "Unhandled Style type: " + style.getClass().getName() );
                 }

@@ -42,7 +42,7 @@ public class TextStyleSerializer
         style.halo.opt().ifPresent( halo -> text.setHalo( sf.createHalo( sf.getDefaultFill(), ff.literal( 1 ) ) ) );
         style.font.opt().ifPresent( font -> text.setFont( sf.getDefaultFont() ) );
 
-        FeatureTypeStyle fts = defaultFeatureTypeStyle( text );
+        FeatureTypeStyle fts = defaultFeatureTypeStyle( result, style, text );
         fts.setName( style.title.opt().orElse( "TextStyle" ) );
         fts.getDescription().setTitle( style.title.opt().orElse( "TextStyle" ) );
         accessor.set( rule -> (TextSymbolizer)rule.symbolizers().get( 0 ) );
@@ -60,7 +60,6 @@ public class TextStyleSerializer
             set( fts, halo.opacity, (value,sym) -> sym.getHalo().getFill().setOpacity( ff.literal( value ) ) );
             set( fts, halo.width, (value,sym) -> sym.getHalo().setRadius( ff.literal( value ) ) );
         });
-        result.featureTypeStyles().add( fts );
     }
 
         

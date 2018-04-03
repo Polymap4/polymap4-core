@@ -50,7 +50,7 @@ public abstract class Style
         @Override
         public Style initialize( Style proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );
-            proto.visibleIf.createValue( ConstantFilter.defaultTrue );
+            proto.visibleIf.createValue( ConstantFilter.defaults( true ) );
             proto.zPriority.set( (int)System.currentTimeMillis() );
             return proto;
         }
@@ -97,8 +97,8 @@ public abstract class Style
     public Property<Integer>                    zPriority;
     
     /**
-     * Describes the condition that makes this style is generally active/visible. The
-     * value might be a constant or a complex filter expression.
+     * The condition that makes this style active/visible. The value might be a
+     * constant or a complex filter expression.
      * <p/>
      * Defaults to: {@link ConstantFilter#defaultTrue}
      */

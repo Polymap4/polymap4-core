@@ -67,7 +67,7 @@ public class PointStyleSerializer
         PointSymbolizer point = sf.createPointSymbolizer( gr, null );
 
         // basics / init symbolizer
-        FeatureTypeStyle fts = defaultFeatureTypeStyle( point );
+        FeatureTypeStyle fts = defaultFeatureTypeStyle( result, style, point );
         fts.setName( style.title.opt().orElse( "PointStyle" ) );
         fts.getDescription().setTitle( style.title.opt().orElse( "PointStyle" ) );
         accessor.set( rule -> (PointSymbolizer)rule.symbolizers().get( 0 ) );
@@ -149,7 +149,6 @@ public class PointStyleSerializer
                 }
             });
         });
-        result.featureTypeStyles().add( fts );
     }
 
     
