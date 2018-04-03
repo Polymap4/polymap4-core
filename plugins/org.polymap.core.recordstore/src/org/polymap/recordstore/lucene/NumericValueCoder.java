@@ -60,8 +60,8 @@ public final class NumericValueCoder
                 field = new NumericField( key, stored ? Store.YES : Store.NO, indexed );
                 doc.add( field );
             }
-            if (value instanceof Integer) {
-                field.setIntValue( (Integer)value );
+            if (value instanceof Integer || value instanceof Short || value instanceof Byte) {
+                field.setIntValue( ((Number)value).intValue() );
             }
             else if (value instanceof Long) {
                 field.setLongValue( (Long)value );

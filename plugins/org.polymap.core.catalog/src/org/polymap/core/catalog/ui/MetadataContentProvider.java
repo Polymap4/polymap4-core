@@ -122,22 +122,18 @@ public class MetadataContentProvider
             return;
         }
         Object[] cached = cache.get( elm );
-        if (cached != null && 
-                (cached.length == currentChildCount || cached == CACHE_LOADING)) {
+        if (cached != null && (cached.length == currentChildCount || cached == CACHE_LOADING)) {
             return;    
         }
         
         // Collection of IMetadataCatalog
         if (elm instanceof Collection) {
-            Object[] children = ((Collection)elm).toArray();
-            cache.put( elm, children );
-            viewer.setChildCount( elm, children.length );
+            updateMetadataCatalogs( (Collection<IMetadataCatalog>)elm, currentChildCount );
         }
-        // Array of IMetadataCatalog
-        else if (elm instanceof IMetadataCatalog[]) {
-            cache.put( elm, (IMetadataCatalog[])elm );
-            viewer.setChildCount( elm, ((IMetadataCatalog[])elm).length );
-        }
+//        // Array of IMetadataCatalog
+//        else if (elm instanceof IMetadataCatalog[]) {
+//            updateMetadataCatalogs( (IMetadataCatalog[])elm, currentChildCount );
+//        }
         // IMetadataCatalog -> query
         else if (elm instanceof IMetadataCatalog) {
             updateMetadataCatalog( (IMetadataCatalog)elm, currentChildCount );
@@ -162,6 +158,12 @@ public class MetadataContentProvider
     }
 
 
+    protected void updateMetadataCatalogs( Collection<IMetadataCatalog> elm, int currentChildCount ) {
+        cache.put( elm, elm.toArray() );
+        viewer.setChildCount( elm, elm.size() );
+    }
+    
+    
     /**
      *
      * @param elm

@@ -153,7 +153,8 @@ public class FeatureRenderProcessor2
                 }
                 @Override
                 public void errorOccurred( Exception e ) {
-                    if (e.getMessage().contains( "Error transforming bbox" )
+                    if (e.getMessage() == null
+                            || e.getMessage().contains( "Error transforming bbox" )
                             || e.getMessage().contains( "too close to a pole" )) {
                         log.warn( "Renderer: " + e.getMessage() );
                     }
