@@ -40,7 +40,6 @@ import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer;
-import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 /**
  * Creates a {@link org.geotools.styling.Style GeoTools Style} out of a
@@ -66,7 +65,7 @@ import org.polymap.core.style.serialize.sld.SLDSerializer;
 public class SLDSerializer2
         extends FeatureStyleSerializer<org.geotools.styling.Style> {
 
-    private static final Log log = LogFactory.getLog( SLDSerializer.class );
+    private static final Log log = LogFactory.getLog( SLDSerializer2.class );
 
     public static final StyleFactory sf = CommonFactoryFinder.getStyleFactory( null );  //new DeepCopyStyleFactory();
 

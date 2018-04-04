@@ -17,7 +17,7 @@ package org.polymap.core.style.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.polymap.core.style.serialize.sld.SLDSerializer.ff;
+import static org.polymap.core.style.serialize.sld2.SLDSerializer2.ff;
 
 import java.util.List;
 
@@ -66,7 +66,6 @@ import org.polymap.core.style.model.feature.ScaleMappedPrimitives;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
-import org.polymap.core.style.serialize.sld.SLDSerializer;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -334,21 +333,21 @@ public class StyleModelTest {
         Style style = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
         PointSymbolizer sym = (PointSymbolizer)style.featureTypeStyles().get( 0 ).rules().get( 0 ).symbolizers()
                 .get( 0 );
-        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
+        assertEquals( ff.literal( 23.0 ), sym.getGraphic().getSize() );
 
         point.diameter.createValue( AttributeValue.defaults( "foo", null, null ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         style = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
         sym = (PointSymbolizer)style.featureTypeStyles().get( 0 ).rules().get( 0 ).getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.property( "foo" ), sym.getGraphic().getSize() );
+        assertEquals( ff.property( "foo" ), sym.getGraphic().getSize() );
 
         point.diameter.createValue( ConstantNumber.defaults( 42.0 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
         style = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
         sym = (PointSymbolizer)style.featureTypeStyles().get( 0 ).rules().get( 0 ).symbolizers().get( 0 );
-        assertEquals( SLDSerializer.ff.literal( 42.0 ), sym.getGraphic().getSize() );
+        assertEquals( ff.literal( 42.0 ), sym.getGraphic().getSize() );
     }
 
 

@@ -40,7 +40,7 @@ import org.polymap.core.style.model.feature.ConstantNumber;
 import org.polymap.core.style.model.feature.FilterStyleProperty;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.ScaleRangeFilter;
-import org.polymap.core.style.serialize.sld.SLDSerializer;
+import org.polymap.core.style.serialize.sld2.SLDSerializer2;
 
 import org.polymap.model2.runtime.ValueInitializer;
 
@@ -108,7 +108,7 @@ public class FilterTest {
         assertTrue( filter.getExpression2() instanceof Literal );
         assertEquals( "literal", ((Literal)filter.getExpression2()).getValue() );
         PointSymbolizer sym = (PointSymbolizer)rule.getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
+        assertEquals( SLDSerializer2.ff.literal( 23.0 ), sym.getGraphic().getSize() );
     }
 
 
@@ -133,7 +133,7 @@ public class FilterTest {
         assertEquals( 10000.0d, rule.getMinScaleDenominator(), 0 );
         assertEquals( 500000.0d, rule.getMaxScaleDenominator(), 0 );
         PointSymbolizer sym = (PointSymbolizer)rule.getSymbolizers()[0];
-        assertEquals( SLDSerializer.ff.literal( 23.0 ), sym.getGraphic().getSize() );
+        assertEquals( SLDSerializer2.ff.literal( 23.0 ), sym.getGraphic().getSize() );
     }
 
 
