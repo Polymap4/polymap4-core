@@ -17,10 +17,11 @@ package org.polymap.core.project;
 import static org.polymap.core.data.pipeline.ProcessorExtension.forType;
 
 import java.util.Comparator;
-import java.util.Map.Entry;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -179,17 +180,12 @@ public class ILayer
      * inside an operation and a nested {@link UnitOfWork}.
      */
     public void orderUp( IProgressMonitor monitor ) {
-        TreeMap<Integer,ILayer> ordered = orderedLayers();
-        Entry<Integer,ILayer> ceiling = ordered.ceilingEntry( orderKey.get()+1 );
-        if (ceiling != null ) {
-            ordered.put( ceiling.getKey(), this );
-            ordered.put( orderKey.get(), ceiling.getValue() );
-            updateOrderKeys( ordered );
-        }
-        else {
-            //log.info( "No ceiling, we are biggest orderKey: " + this );            
-            throw new IllegalStateException( "No ceiling, we are biggest orderKey: " + this );            
-        }
+        List<ILayer> ordered = orderedLayers();
+        int index = ordered.indexOf( this );
+        assert index < ordered.size()-1 : "index >= size-1, we are the highest orderKey: " + this;
+        ordered.remove( index );
+        ordered.add( index+1, this );
+        updateOrderKeys( ordered );
     }
 
     
@@ -199,18 +195,13 @@ public class ILayer
      * This changes {@link #orderKey} if this and other layers. Should be called
      * inside an operation and a nested {@link UnitOfWork}.
      */
-    public void orderDown(  IProgressMonitor monitor ) {
-        TreeMap<Integer,ILayer> ordered = orderedLayers();
-        Entry<Integer,ILayer> floor = ordered.floorEntry( orderKey.get()-1 );
-        if (floor != null ) {
-            ordered.put( floor.getKey(), this );
-            ordered.put( orderKey.get(), floor.getValue() );
-            updateOrderKeys( ordered );
-        }
-        else {
-            //log.info( "No floor, we are lowest orderKey: " + this );
-            throw new IllegalStateException( "No floor, we are lowest orderKey: " + this );
-        }
+    public void orderDown( IProgressMonitor monitor ) {
+        List<ILayer> ordered = orderedLayers();
+        int index = ordered.indexOf( this );
+        assert index > 0 : "index <= 0, we are the lowest orderKey: " + this;
+        ordered.remove( index );
+        ordered.add( index-1, this );
+        updateOrderKeys( ordered );
     }
 
     
@@ -218,8 +209,8 @@ public class ILayer
      * The highest {@link #orderKey} of all layers of my {@link ProjectNode#parentMap}. 
      */
     public Integer maxOrderKey() {
-        TreeMap<Integer,ILayer> ordered = orderedLayers();
-        return ordered.isEmpty() ? 0 : ordered.lastKey();
+        List<ILayer> ordered = orderedLayers();
+        return ordered.isEmpty() ? 0 : ordered.get( ordered.size()-1 ).orderKey.get();
     }
     
     
@@ -227,25 +218,22 @@ public class ILayer
      * The lowest {@link #orderKey} of all layers of my {@link ProjectNode#parentMap}. 
      */
     public Integer minOrderKey() {
-        TreeMap<Integer,ILayer> ordered = orderedLayers();
-        return ordered.isEmpty() ? 0 : ordered.firstKey();
+        List<ILayer> ordered = orderedLayers();
+        return ordered.isEmpty() ? 0 : ordered.get( 0 ).orderKey.get();
     }
     
     
-    protected TreeMap<Integer,ILayer> orderedLayers() {
-        TreeMap<Integer,ILayer> ordered = new TreeMap();
-        for (ILayer layer : parentMap.get().layers) {
-            if (ordered.putIfAbsent( layer.orderKey.get(), layer ) != null) {
-                throw new IllegalStateException( "orderKey already seen: " + layer );
-            }
-        }
-        return ordered;
+    public List<ILayer> orderedLayers() {
+        return parentMap.get().layers.stream()
+                .sorted( (l1,l2) -> l1.orderKey.get().compareTo( l2.orderKey.get() ) )
+                .collect( Collectors.toCollection( () -> new LinkedList() ) );
     }
     
     
-    protected void updateOrderKeys( TreeMap<Integer,ILayer> ordered ) {
-        for (Entry<Integer,ILayer> entry: ordered.entrySet()) {
-            entry.getValue().orderKey.set( entry.getKey() );
+    public void updateOrderKeys( List<ILayer> ordered ) {
+        int key = 1;
+        for (ILayer l : ordered) {
+            l.orderKey.set( key++ );
         }
     }
     
