@@ -82,7 +82,11 @@ public class FullDataStoreSyncStrategy
         proc.ifUpdateNeeded( () -> {
             syncJob.schedule();
             // waiting here is important as several processors may work on the same
-            // layer and we need a relyable status after init
+            // layer and we need a relyable status after init;
+            // moreover, it seems that processor init() is called several times from
+            // different instances (!) when a pipeline is created; if we would not
+            // wait here then one syncJob starts, ifUpdateNeeded is updated and the next
+            // instances assumes that cache is up-to-date and shows maybe empty layer
             syncJob.join();
         });
     }
