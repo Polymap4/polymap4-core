@@ -14,9 +14,12 @@
  */
 package org.polymap.core.style.serialize.sld2;
 
+import java.awt.Color;
+
 import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Style;
 import org.geotools.styling.TextSymbolizer;
+import org.opengis.filter.expression.Literal;
 
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
@@ -56,9 +59,10 @@ public class TextStyleSerializer
         });
         // halo
         style.halo.opt().ifPresent( halo -> {
-            set( fts, halo.color, (value,sym) -> sym.getHalo().getFill().setColor( ff.literal( value ) ) );
-            set( fts, halo.opacity, (value,sym) -> sym.getHalo().getFill().setOpacity( ff.literal( value ) ) );
-            set( fts, halo.width, (value,sym) -> sym.getHalo().setRadius( ff.literal( value ) ) );
+            // XXX for what reason ever for halo color an awt.Color does not seem to work
+            set( fts, halo.color, (value,sym) -> sym.getHalo().getFill().setColor( ff.literal( SLDSerializer2.toHexString( (Color)((Literal)value).getValue() ) ) ) );
+            set( fts, halo.opacity, (value,sym) -> sym.getHalo().getFill().setOpacity( value ) );
+            set( fts, halo.width, (value,sym) -> sym.getHalo().setRadius( value ) );
         });
     }
 
