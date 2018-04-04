@@ -42,6 +42,7 @@ import org.polymap.core.style.model.feature.ConstantNumber;
 import org.polymap.core.style.model.feature.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.feature.ConstantStrokeDashStyle;
 import org.polymap.core.style.model.feature.ConstantStrokeJoinStyle;
+import org.polymap.core.style.model.feature.FontFamily;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
@@ -76,7 +77,7 @@ public class DefaultStyle {
             Class<?> geometryType = schema.getGeometryDescriptor().getType().getBinding();
             if (Point.class.isAssignableFrom( geometryType ) || MultiPoint.class.isAssignableFrom( geometryType )) {
                 fillPointStyle( fs );
-                fillTextStyle( fs, schema );
+                //fillTextStyle( fs, schema );
             }
             else if (Polygon.class.isAssignableFrom( geometryType )
                     || MultiPolygon.class.isAssignableFrom( geometryType )) {
@@ -86,7 +87,7 @@ public class DefaultStyle {
             else if (LineString.class.isAssignableFrom( geometryType )
                     || MultiLineString.class.isAssignableFrom( geometryType )) {
                 fillLineStyle( fs );
-                fillTextStyle( fs, schema );
+                //fillTextStyle( fs, schema );
             }
             else if (Geometry.class.isAssignableFrom( geometryType )) {
                 // add all
@@ -122,7 +123,7 @@ public class DefaultStyle {
     
     public static PointStyle fillPointStyle( FeatureStyle fs ) {
         PointStyle point = fs.members().createElement( PointStyle.defaults );
-        point.diameter.createValue( ConstantNumber.defaults( 8.0 ) );
+        point.diameter.createValue( ConstantNumber.defaults( 18.0 ) );
         point.fill.get().color.createValue( ConstantColor.defaults( randomColor() ) );
         point.fill.get().opacity.createValue( ConstantNumber.defaults( 1.0 ) );
         point.stroke.get().color.createValue( ConstantColor.defaults( randomColor() ) );
@@ -160,11 +161,11 @@ public class DefaultStyle {
 
     public static TextStyle fillTextStyle( FeatureStyle fs, FeatureType schema ) {
         TextStyle text = fs.members().createElement( TextStyle.defaults );
-        text.font.get().family.createValue( ConstantFontFamily.defaults() );
+        text.font.get().family.createValue( ConstantFontFamily.defaults( FontFamily.Arial ) );
         text.font.get().style.createValue( ConstantFontStyle.defaults() );
         text.font.get().weight.createValue( ConstantFontWeight.defaults() );
-        text.font.get().size.createValue( ConstantNumber.defaults( 10.0 ) );
-        text.color.createValue( ConstantColor.defaults( Color.BLACK ) );
+        text.font.get().size.createValue( ConstantNumber.defaults( 12.0 ) );
+        text.color.createValue( ConstantColor.defaults( new Color( 0x40, 0x40, 0x40 ) ) );
 
         if (schema != null) {
             Collection<PropertyDescriptor> schemaDescriptors = schema.getDescriptors();
