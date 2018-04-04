@@ -15,7 +15,6 @@
 package org.polymap.core.style.model.feature;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -27,11 +26,9 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantNumber<T extends Number>
-        extends StylePropertyValue<T> {
+        extends ConstantValue<T> {
 
-    /**
-     * Initializes a newly created instance with the given default value.
-     */
+    /** Initializes a newly created instance with the given default value. */
     public static <N extends Number> ValueInitializer<ConstantNumber<N>> defaults( N value ) {
         return new ValueInitializer<ConstantNumber<N>>() {
             @Override
@@ -42,11 +39,13 @@ public class ConstantNumber<T extends Number>
         };
     }
     
-
-    // instance *******************************************
-    
     //@Nullable
     @Concerns( StylePropertyChange.Concern.class )
-    public Property<Number>             constantNumber;
+    public Property<Number> constantNumber;
+
+    @Override
+    public T value() {
+        return (T)constantNumber.get();
+    }
     
 }

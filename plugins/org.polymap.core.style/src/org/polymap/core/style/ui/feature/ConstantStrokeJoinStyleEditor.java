@@ -39,7 +39,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantStrokeJoinStyleEditor
         extends StylePropertyEditor<ConstantStrokeJoinStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "StrokeJoinstyle" );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantStrokeJoinstyleEditor", "ConstantEditor" );
 
     private final static List<StrokeJoinStyle> content = Lists.newArrayList( StrokeJoinStyle.values() );
 

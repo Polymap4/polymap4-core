@@ -19,7 +19,6 @@ import org.polymap.core.runtime.event.EventManager;
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
-import org.polymap.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.model2.runtime.ModelRuntimeException;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.runtime.ValueInitializer;
@@ -29,7 +28,8 @@ import org.polymap.model2.runtime.ValueInitializer;
  * is <b>not tied</b> to any particular backend (SLD, OpenLayers). It rather models
  * the "user experience" we want to achieve.
  * <p/>
- * Every instance is created/loaded inside its own {@link UnitOfWork}.
+ * Every instance is created/loaded inside its own {@link UnitOfWork}. See also
+ * {@link StyleRepository}.
  * <p/>
  * The name is misleading and will be changed in future versions. It should be
  * MapStyle.
@@ -71,6 +71,14 @@ public class FeatureStyle
     @Override
     public String id() {
         return (String)super.id();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (uow != null) {
+            uow.close();
+            uow = null;
+        }
     }
 
     /**

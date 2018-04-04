@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org 
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -13,7 +14,6 @@
 package org.polymap.core.style.model.feature;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -25,19 +25,16 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Steffen Stundzig
  */
 public class ConstantFontWeight
-        extends StylePropertyValue<FontWeight> {
+        extends ConstantValue<FontWeight> {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    /** Initializes a newly created instance with default values. */
     public static ValueInitializer<ConstantFontWeight> defaults() {
         return defaults( FontWeight.normal );
     }
 
-
+    /** Initializes a newly created instance with default values. */
     public static ValueInitializer<ConstantFontWeight> defaults( final FontWeight weight ) {
         return new ValueInitializer<ConstantFontWeight>() {
-
             @Override
             public ConstantFontWeight initialize( final ConstantFontWeight proto ) throws Exception {
                 proto.value.set( weight );
@@ -48,4 +45,10 @@ public class ConstantFontWeight
 
     @Concerns(StylePropertyChange.Concern.class)
     public Property<FontWeight> value;
+
+    @Override
+    public FontWeight value() {
+        return value.get();
+    }
+    
 }

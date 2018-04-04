@@ -14,9 +14,6 @@ package org.polymap.core.style.ui.feature;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.google.common.collect.Lists;
 
 import org.eclipse.swt.SWT;
@@ -42,9 +39,7 @@ import org.polymap.model2.runtime.ValueInitializer;
 public class ConstantStrokeCapStyleEditor
         extends StylePropertyEditor<ConstantStrokeCapStyle> {
 
-    private static final IMessages i18n = Messages.forPrefix( "StrokeCapstyle" );
-
-    private static Log log = LogFactory.getLog( ConstantStrokeCapStyleEditor.class );
+    private static final IMessages i18n = Messages.forPrefix( "ConstantStrokeCapstyleEditor", "ConstantEditor" );
 
     private final static List<StrokeCapStyle> content = Lists.newArrayList( StrokeCapStyle.values() );
 

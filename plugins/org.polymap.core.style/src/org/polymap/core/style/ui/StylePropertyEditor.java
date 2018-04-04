@@ -14,7 +14,6 @@ package org.polymap.core.style.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -29,23 +28,23 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.ui.feature.AttributeValueEditor;
+import org.polymap.core.style.ui.feature.ColorGradient2FilterEditor;
+import org.polymap.core.style.ui.feature.ColorMap2FilterEditor;
 import org.polymap.core.style.ui.feature.ConstantColorEditor;
+import org.polymap.core.style.ui.feature.ConstantExternalGraphicEditor;
 import org.polymap.core.style.ui.feature.ConstantFontFamilyEditor;
 import org.polymap.core.style.ui.feature.ConstantFontStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantFontWeightEditor;
+import org.polymap.core.style.ui.feature.ConstantMarkGraphicEditor;
 import org.polymap.core.style.ui.feature.ConstantNumberEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeCapStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeDashStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeJoinStyleEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyBasedNumberEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyBasedStringEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyMappedColorsEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyMatchingNumberEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyMatchingStringEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedColorsEditor;
-import org.polymap.core.style.ui.feature.FeaturePropertyRangeMappedNumbersEditor;
-import org.polymap.core.style.ui.feature.ScaleRangeEditor;
-import org.polymap.core.style.ui.feature.ScaleRangeMappedNumbersEditor;
+import org.polymap.core.style.ui.feature.AttributeLiteralFilterEditor;
+import org.polymap.core.style.ui.feature.NumberGradient2FilterEditor;
+import org.polymap.core.style.ui.feature.NumberGradient2MapScaleEditor;
+import org.polymap.core.style.ui.feature.ScaleRangeFilterEditor;
 import org.polymap.core.style.ui.raster.ConstantRasterBandEditor;
 import org.polymap.core.style.ui.raster.ConstantRasterColorMapTypeEditor;
 import org.polymap.core.style.ui.raster.PredefinedColorMapEditor;
@@ -61,28 +60,30 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     public static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2( null );
     
-    public static final Class<StylePropertyEditor>[] availableEditors = new Class[] {
+    public static final Class<StylePropertyEditor>[] EDITORS = new Class[] {
             NoValueEditor.class,
             AlwaysTrueEditor.class,
             ConstantColorEditor.class,
             ConstantFontFamilyEditor.class,
             ConstantFontStyleEditor.class,
             ConstantFontWeightEditor.class,
+            ConstantMarkGraphicEditor.class,
+            ConstantExternalGraphicEditor.class,
             ConstantNumberEditor.class, 
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,
             ConstantStrokeJoinStyleEditor.class,
-            FeaturePropertyMappedColorsEditor.class,
-            FeaturePropertyMatchingNumberEditor.class,
-            FeaturePropertyMatchingStringEditor.class,
-            FeaturePropertyRangeMappedColorsEditor.class,
-            FeaturePropertyRangeMappedNumbersEditor.class,
             // attribute value
-            FeaturePropertyBasedStringEditor.class,
-            FeaturePropertyBasedNumberEditor.class,
+            AttributeValueEditor.class,
+            //
+            NumberGradient2FilterEditor.class,
+            ColorGradient2FilterEditor.class,
+            ColorMap2FilterEditor.class,
+            // filter target
+            AttributeLiteralFilterEditor.class,
+            ScaleRangeFilterEditor.class,
             // scale dependent
-            ScaleRangeEditor.class,
-            ScaleRangeMappedNumbersEditor.class,
+            NumberGradient2MapScaleEditor.class,
             // raster
             ConstantRasterBandEditor.class,
             PredefinedColorMapEditor.class,
@@ -91,12 +92,10 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
 
     /**
      * Factory of new editor instances.
-     *
-     * @param spv
      */
     public static StylePropertyEditor[] forValue( StylePropertyFieldSite fieldSite ) {
-        List<StylePropertyEditor> result = new ArrayList( availableEditors.length );
-        for (Class<StylePropertyEditor> cl : availableEditors) {
+        List<StylePropertyEditor> result = new ArrayList( EDITORS.length );
+        for (Class<StylePropertyEditor> cl : EDITORS) {
             try {
                 StylePropertyEditor editor = cl.newInstance();
                 if (editor.init( fieldSite )) {
@@ -162,16 +161,15 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
      * <pre>
      * Property&lt;StylePropertyValue&lt;Number&gt;&gt; -> Number
      * </pre>
+     * Deprecated! Use {@link StylePropertyFieldSite#targetType} instead.
      *
+     * @see StylePropertyFieldSite#targetType
      * @param site
      * @return
      */
     protected Class targetType( @SuppressWarnings("hiding") StylePropertyFieldSite site ) {
-        assert StylePropertyValue.class.isAssignableFrom( site.prop.get().info().getType() );
-        Optional<ParameterizedType> o = site.prop.get().info().getParameterizedType();
-        ParameterizedType p = o.orElseThrow(
-                () -> new RuntimeException( "StylePropertyValue has no type parameter: " + prop.toString() ) );
-        return (Class)p.getActualTypeArguments()[0];
+        assert site() == null || site == site();
+        return site.targetType.get();
     }
 
 
@@ -184,6 +182,9 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
         Class<? extends StylePropertyValue> targetClass = null;
         if (targetType instanceof Class) {
             targetClass = (Class<? extends StylePropertyValue>)targetType;
+        }
+        else if (targetType instanceof ParameterizedType) {
+            targetClass = (Class<? extends StylePropertyValue>)((ParameterizedType)targetType).getRawType();
         }
         else {
             throw new RuntimeException( "Target type is not a Class: " + targetType );

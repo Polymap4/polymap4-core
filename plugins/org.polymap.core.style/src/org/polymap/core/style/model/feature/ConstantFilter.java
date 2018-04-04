@@ -14,27 +14,12 @@
  */
 package org.polymap.core.style.model.feature;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 
-import javax.xml.namespace.QName;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.geotools.filter.v1_1.OGCConfiguration;
-import org.geotools.xml.Configuration;
-import org.geotools.xml.Encoder;
-import org.geotools.xml.Parser;
 import org.opengis.filter.Filter;
-import org.xml.sax.SAXException;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.polymap.core.runtime.Timer;
+import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Nullable;
@@ -42,42 +27,43 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Provides a constant filter as style property value.
+ * Provides a constant filter as style property value. For example used by
+ * {@link Style#visibleIf}.
  *
  * @author Falko Bräutigam
  */
 public class ConstantFilter
-        extends StylePropertyValue<Filter> {
+        extends FilterStyleProperty {
 
-    private static Log log = LogFactory.getLog( ConstantFilter.class );
+    /**  */
+    public static final ValueInitializer<ConstantFilter> defaults( boolean b ) {
+        return new ValueInitializer<ConstantFilter>() {
+            @Override public ConstantFilter initialize( ConstantFilter proto ) throws Exception {
+                // use default in order to avoid encode for default
+                if (b == false) {
+                    proto.encoded.set( encode( b ? Filter.INCLUDE : Filter.EXCLUDE ) );
+                }
+                return proto;
+            }
+        };
+    }
 
-    private final static QName name = org.geotools.filter.v1_1.OGC.Filter;
-
-    private static Parser parser;
-
-    private static final Configuration ENCODE_CONFIG = new org.geotools.filter.v1_1.OGCConfiguration();
-
-    private static final Configuration CONFIGURATION = new OGCConfiguration();
-
-    public static final Charset ENCODE_CHARSET = Charset.forName( "UTF-8" );
-
-    /**
-     * 
-     */
-    public static final ValueInitializer<ConstantFilter> defaultTrue = new ValueInitializer<ConstantFilter>() {
-
-        @Override
-        public ConstantFilter initialize( ConstantFilter proto ) throws Exception {
-            return proto;
-        }
-    };
+    /**  */
+    public static final ValueInitializer<ConstantFilter> defaults( Filter filter ) {
+        return new ValueInitializer<ConstantFilter>() {
+            @Override public ConstantFilter initialize( ConstantFilter proto ) throws Exception {
+                proto.encoded.set( encode( filter ) );
+                return proto;
+            }
+        };
+    }
 
     // instance *******************************************
 
     /** Null specifies {@link Filter#INCLUDE}. */
     @Nullable
     @Concerns(StylePropertyChange.Concern.class)
-    protected Property<String> encoded;
+    protected Property<String>          encoded;
 
 
     public ConstantFilter setFilter( Filter filter ) throws IOException {
@@ -86,51 +72,9 @@ public class ConstantFilter
     }
 
 
-    public Filter filter() throws IOException, SAXException, ParserConfigurationException {
+    @Override
+    public Filter filter() {
         return encoded.get() != null ? decode( encoded.get() ) : Filter.INCLUDE;
-    }
-
-
-    public static Filter decode( String encoded ) throws IOException, SAXException, ParserConfigurationException {
-        Timer t = new Timer().start();
-        Object result = getParser().parse( new ByteArrayInputStream( encoded.getBytes( ENCODE_CHARSET ) ) );
-        log.info( "Filter decoded (" + t.elapsedTime() + "ms): " );
-        if (result instanceof Filter) {
-            return (Filter)result;
-        }
-        if (result instanceof String && StringUtils.isBlank( (String)result )) {
-            return Filter.INCLUDE;
-        }
-        throw new IOException( "unknown parser result " + result );
-    }
-
-
-    private static synchronized Parser getParser() {
-        if (parser == null) {
-            parser = new Parser( ENCODE_CONFIG );
-        }
-        return parser;
-    }
-
-
-    public static String encode( Filter filter ) throws IOException {
-        Timer t = new Timer().start();
-
-        String encoded = getEncoder().encodeAsString( filter, name );
-        log.info( "Filter encoded (" + t.elapsedTime() + "ms): " );
-        return encoded;
-    }
-
-
-    private static Encoder getEncoder() {
-        // if (encoder == null) {
-        Encoder encoder = new Encoder( CONFIGURATION );
-        encoder.setIndenting( true );
-        encoder.setEncoding( ENCODE_CHARSET );
-        encoder.setNamespaceAware( false );
-        encoder.setOmitXMLDeclaration( true );
-        // }
-        return encoder;
     }
 
 }

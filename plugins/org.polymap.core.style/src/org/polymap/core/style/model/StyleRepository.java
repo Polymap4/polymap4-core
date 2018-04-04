@@ -37,7 +37,7 @@ import org.polymap.core.style.model.raster.RasterGrayStyle;
 import org.polymap.core.style.model.raster.RasterRGBStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
-import org.polymap.core.style.serialize.sld.SLDSerializer;
+import org.polymap.core.style.serialize.sld2.SLDSerializer2;
 
 import org.polymap.model2.runtime.ConcurrentEntityModificationException;
 import org.polymap.model2.runtime.EntityRepository;
@@ -99,6 +99,16 @@ public class StyleRepository
 
         repo = EntityRepository.newConfiguration()
                 .entities.set( new Class[] {
+                        FeatureStyle.class,
+                        LineStyle.class,
+                        PointStyle.class,
+                        PolygonStyle.class,
+                        TextStyle.class,
+
+                        Halo.class,
+                        LabelPlacement.class,
+                        
+                        NoValue.class,
                         ConstantBoolean.class,
                         ConstantColor.class,
                         ConstantFilter.class,
@@ -110,24 +120,16 @@ public class StyleRepository
                         ConstantStrokeCapStyle.class,
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
-                        FeatureStyle.class,
+                        ConstantGraphic.class,
+                        
                         FilterMappedColors.class,
-                        FilterMappedNumbers.class,
-                        Halo.class,
-                        LabelPlacement.class,
-                        LineStyle.class,
-                        NoValue.class,
-                        // ScaleMappedNumbers.class,
-                        PointStyle.class,
-                        PolygonStyle.class,
-                        PropertyNumber.class,
-                        PropertyString.class,
-                        // PropertyValue.class,
-                        PropertyMatchingNumberFilter.class,
-                        PropertyMatchingStringFilter.class,
-                        ScaleMappedNumbers.class,
+                        FilterMappedPrimitives.class,
+                        ScaleMappedPrimitives.class,
+
+                        AttributeValue.class,
+                        
+                        ConstantFilter.class,
                         ScaleRangeFilter.class,
-                        TextStyle.class,
                         
                         RasterGrayStyle.class,
                         RasterRGBStyle.class,
@@ -210,10 +212,14 @@ public class StyleRepository
                 log.debug( "serializedFeatureStyle(): start... (" + key +  ")" );
                 return featureStyle( id ).map( fs -> {
                     Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
-                    org.geotools.styling.Style result = new SLDSerializer().serialize( sc );
-                    log.debug( "SLD: " + toSLD( result ) );
+                    org.geotools.styling.Style result = new SLDSerializer2().serialize( sc );
+                    log.info( "SLD: " + toSLD( result ) );
                     return result;
                 });
+            }
+            catch (Exception e) {
+                log.warn( "Unable to load and/or serialize the style.", e );
+                return Optional.empty();
             }
             finally {
                 log.debug( "serializedFeatureStyle(): end." );

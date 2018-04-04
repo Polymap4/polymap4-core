@@ -168,20 +168,26 @@ public class FeatureRenderProcessor2
             // rendering hints
             RenderingHints hints = new RenderingHints(
                     RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_SPEED );
+                    RenderingHints.VALUE_RENDER_QUALITY );
             hints.add( new RenderingHints(
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON ) );
             hints.add( new RenderingHints(
                     RenderingHints.KEY_TEXT_ANTIALIASING,
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
-
+            hints.add( new RenderingHints( 
+                    RenderingHints.KEY_FRACTIONALMETRICS,
+                    RenderingHints.VALUE_FRACTIONALMETRICS_ON ) );
+//            hints.add( new RenderingHints( 
+//                    RenderingHints.KEY_TEXT_ANTIALIASING, 
+//                    RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB ) );
+            
             // geoserver compatibility to support *env* in SLD functions
             double scale = RendererUtilities.calculateOGCScale( request.getBoundingBox(), request.getWidth(), Collections.EMPTY_MAP);
             EnvFunction.setLocalValue( "wms_scale_denominator", scale );
             
             renderer.setJava2DHints( hints );
-            // g.setRenderingHints( hints );
+            g.setRenderingHints( hints );
 
             // render params
             Map rendererParams = new HashMap();

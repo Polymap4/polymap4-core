@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,58 +14,53 @@
  */
 package org.polymap.core.style.model.feature;
 
-import java.util.Iterator;
 import java.util.List;
 
 import java.awt.Color;
 
-import com.google.common.collect.Lists;
+import org.opengis.filter.Filter;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
- * Colors mapped filters.
  * 
- * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
 public class FilterMappedColors
         extends FilterMappedValues<Color> {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
-    public static ValueInitializer<FilterMappedColors> defaults() {
+    /** Initializes a newly created instance with default values. */
+    public static <R extends Number> ValueInitializer<FilterMappedColors> defaults() {
         return new ValueInitializer<FilterMappedColors>() {
-            @Override
-            public FilterMappedColors initialize( FilterMappedColors proto ) throws Exception {
+            @Override public FilterMappedColors initialize( FilterMappedColors proto ) throws Exception {
                 return proto;
             }
         };
     }
 
     // instance *******************************************
-
+    
     // @Concerns( StylePropertyChange.Concern.class )
-    public CollectionProperty<Integer> colorValues;
+    protected CollectionProperty<Integer>       rgbas;
 
 
     @Override
-    public FilterMappedColors addValue( Color value ) {
-        colorValues.add( value.getRed() );
-        colorValues.add( value.getGreen() );
-        colorValues.add( value.getBlue() );
-        return this;
+    public MappedValues<Filter,Color> add( Filter key, Color value ) {
+        rgbas.add( value.getRGB() );
+        return super.add( key, value );
     }
-
 
     @Override
-    public List<Color> values() {
-        List<Color> colors = Lists.newArrayList();
-        Iterator<Integer> iterator = colorValues.iterator();
-        while (iterator.hasNext()) {
-            colors.add( new Color( iterator.next(), iterator.next(), iterator.next() ) );
-        }
-        return colors;
+    public List<Mapped<Filter,Color>> values() {
+        return values( encodedFilters, rgbas, (encodedFilter,rgba) ->
+                new Mapped( FilterStyleProperty.decode( encodedFilter ), new Color( rgba ) ) );
     }
+
+    @Override
+    public void clear() {
+        rgbas.clear();
+        super.clear();
+    }
+
 }

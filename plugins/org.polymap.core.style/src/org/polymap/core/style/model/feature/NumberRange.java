@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,23 +20,31 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.polymap.core.style.model.StylePropertyValue;
+
 /**
+ * Denotes the value range used in the UI to edit the value of a
+ * {@link StylePropertyValue}.
  * 
  * @author Falko Bräutigam
  * @author Steffen Stundzig
  */
-@Retention( RetentionPolicy.RUNTIME )
-@Target( { ElementType.FIELD } )
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD})
 @Documented
 public @interface NumberRange {
 
-    double from() default 0;
+    /** Value range start. */
+    public double from();
     
-    double to() default 100;
+    /** Value range end. */
+    public double to();
     
-    double defaultValue();
+    public double defaultValue();
     
-    int digits() default 1;
+    /** The number of decimal digits used in the UI. */
+    public int digits() default 1;
     
-    double increment() default 2;
+    public double increment();
+    
 }

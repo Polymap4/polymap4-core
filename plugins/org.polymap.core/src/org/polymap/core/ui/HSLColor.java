@@ -2,6 +2,8 @@ package org.polymap.core.ui;
 
 import java.awt.Color;
 
+import org.eclipse.swt.graphics.RGB;
+
 /**
  * The HSLColor class provides methods to manipulate HSL (Hue, Saturation Luminance)
  * values to create a corresponding Color object using the RGB ColorSpace.
@@ -167,19 +169,19 @@ public class HSLColor
      * @return the RGB Color object.
      */
     public Color toAWT() {
-        float[] rgb = toRGB();
+        float[] rgb = calculateRGB();
         return new Color( rgb[0], rgb[1], rgb[2] );
     }
 
     public org.eclipse.swt.graphics.Color toSWT() {
-        float[] rgb = toRGB();
+        float[] rgb = calculateRGB();
         return UIUtils.getColor( (int)(rgb[0]*0xff), (int)(rgb[1]*0xff), (int)(rgb[2]*0xff) );
     }
 
-//    public RGB toRGB() {
-//        float[] rgb = toRGB();
-//        return new RGB( rgb[0], rgb[1], rgb[2] );
-//    }
+    public RGB toRGB() {
+        float[] rgb = calculateRGB();
+        return new RGB( rgb[0], rgb[1], rgb[2] );
+    }
 
     public String toString() {
         return "HSLColor[h=" + hsl[0] + ",s=" + hsl[1] + ",l=" + hsl[2] + ",alpha=" + alpha + "]";
@@ -236,7 +238,7 @@ public class HSLColor
      *
      * @returns the RGB Color object
      */
-    protected float[] toRGB() {
+    protected float[] calculateRGB() {
         assert hsl[1] >= 0.0f && hsl[1] <= 100.0f;
         assert hsl[2] >= 0.0f && hsl[2] <= 100.0f;
         assert alpha >= 0.0f && alpha <= 1.0f;

@@ -15,7 +15,7 @@
 package org.polymap.core.style.model.raster;
 
 import org.polymap.core.style.model.StylePropertyChange;
-import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.feature.ConstantValue;
 
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Property;
@@ -27,7 +27,7 @@ import org.polymap.model2.runtime.ValueInitializer;
  * @author Falko Bräutigam
  */
 public class ConstantRasterColorMapType
-        extends StylePropertyValue<RasterColorMapType> {
+        extends ConstantValue<RasterColorMapType> {
 
     /**
      * Initializes a newly created instance with the given default value.
@@ -47,5 +47,11 @@ public class ConstantRasterColorMapType
     
     @Concerns( StylePropertyChange.Concern.class )
     public Property<RasterColorMapType>     type;
+
+
+    @Override
+    public RasterColorMapType value() {
+        return type.get();
+    }
     
 }

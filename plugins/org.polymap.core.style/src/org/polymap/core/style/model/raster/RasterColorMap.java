@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2017, the @authors. All rights reserved.
+ * Copyright (C) 2017-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,44 +14,32 @@
  */
 package org.polymap.core.style.model.raster;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.model.raster.ConstantRasterColorMap.Entry;
+
+import org.polymap.model2.CollectionProperty;
 
 /**
- * The target class of a {@link StylePropertyValue} member declaration. This
- * is just an empty tagging class.
+ * The target class of a {@link StylePropertyValue} member declaration.
  *
  * @author Falko Bräutigam
  */
-public class RasterColorMap {
-//        extends StylePropertyValue<Color> {
-//
-//    @Nullable
-//    @Concerns(StylePropertyChange.Concern.class)
-//    public Property<String>                 fake;
-//
-//    // XXX Collections are not supported yet, use force-fire-fake prop?
-//    //@Concerns( StylePropertyChange.Concern.class )
-//    public CollectionProperty<ColorMapEntry> entries;
-//
-//    /**
-//     * 
-//     */
-//    public static class ColorMapEntry
-//            extends Composite {
-//        
-//        @Immutable
-//        public Property<Double>     bandValue;
-//        
-//        @Immutable
-//        public Property<Color>      color;
-//        
-//        @Immutable
-//        @Nullable
-//        @UIOrder(20)
-//        @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
-//        @Concerns(StylePropertyChange.Concern.class)
-//        public Property<Double>     opacity;
-//        
-//    }
+public class RasterColorMap
+        implements Iterable<Entry> {
+
+    private List<Entry>     entries;
+    
+    public RasterColorMap( CollectionProperty<Entry> entries ) {
+        this.entries = new ArrayList( entries );
+    }
+
+    @Override
+    public Iterator<Entry> iterator() {
+        return entries.iterator();
+    }
     
 }

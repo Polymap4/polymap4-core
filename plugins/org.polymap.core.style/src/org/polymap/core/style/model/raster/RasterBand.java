@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2017, the @authors. All rights reserved.
+ * Copyright (C) 2017-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -17,11 +17,20 @@ package org.polymap.core.style.model.raster;
 import org.polymap.core.style.model.StylePropertyValue;
 
 /**
- * The target class of a {@link StylePropertyValue} member declaration. This
- * is just an empty tagging class.
+ * The target class of a {@link StylePropertyValue} member declaration.
  *
  * @author Falko Bräutigam
  */
 public class RasterBand {
 
+    public int         band;
+    
+    public RasterBand( int band ) {
+        this.band = band;
+    }
+
+    public String band() {
+        return String.valueOf( band+1 );
+    }
+    
 }

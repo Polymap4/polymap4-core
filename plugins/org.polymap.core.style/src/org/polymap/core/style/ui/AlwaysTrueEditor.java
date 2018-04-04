@@ -1,5 +1,6 @@
 /*
- * polymap.org Copyright (C) 2016, the @authors. All rights reserved.
+ * polymap.org 
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it under the terms of
  * the GNU Lesser General Public License as published by the Free Software
@@ -15,27 +16,22 @@ package org.polymap.core.style.ui;
 import java.io.IOException;
 
 import org.opengis.filter.Filter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.swt.widgets.Composite;
+
 import org.polymap.core.runtime.i18n.IMessages;
 import org.polymap.core.style.Messages;
 import org.polymap.core.style.model.feature.ConstantFilter;
-import org.polymap.core.style.model.feature.ConstantFontFamily;
 
 /**
- * Editor that creates one {@link ConstantFontFamily}.
+ * 
  *
  * @author Steffen Stundzig
  */
 public class AlwaysTrueEditor
         extends StylePropertyEditor<ConstantFilter> {
 
-    private static final IMessages i18n = Messages.forPrefix( "AlwaysTrue" );
-
-    private static Log log = LogFactory.getLog( AlwaysTrueEditor.class );
-
+    private static final IMessages i18n = Messages.forPrefix( "AlwaysTrueEditor" );
 
     @Override
     public String label() {
@@ -45,14 +41,13 @@ public class AlwaysTrueEditor
 
     @Override
     public boolean init( StylePropertyFieldSite site ) {
-        return Filter.class.isAssignableFrom( targetType( site ) ) && site.featureType.isPresent() ? super.init( site )
-                : false;
+        return super.init( site ) && Filter.class.isAssignableFrom( targetType( site ) );
     }
 
 
     @Override
     public void updateProperty() {
-        prop.createValue( ConstantFilter.defaultTrue );
+        prop.createValue( ConstantFilter.defaults( true ) );
     }
 
 
@@ -66,4 +61,5 @@ public class AlwaysTrueEditor
         }
         return parent;
     }
+    
 }

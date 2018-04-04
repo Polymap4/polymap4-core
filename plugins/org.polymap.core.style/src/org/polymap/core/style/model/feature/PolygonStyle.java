@@ -41,7 +41,7 @@ public class PolygonStyle
         @Override
         public PolygonStyle initialize( PolygonStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
-            proto.title.set( "Polygon style" );
+            proto.title.set( "Polygon" );
             proto.fill.createValue( Fill.defaults );
             proto.stroke.createValue( Stroke.defaults );
             return proto;
@@ -55,5 +55,7 @@ public class PolygonStyle
 
     @UIOrder( 20 )
     @Description( "stroke" )
+    @Concerns(StylePropertyChange.Concern.class)
     public Property<Stroke>         stroke;
+    
 }

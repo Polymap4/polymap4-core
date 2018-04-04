@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -28,19 +28,20 @@ import org.polymap.model2.Property;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
+ * 
  * @author Steffen Stundzig
+ * @author Falko Bräutigam
  */
 public class Fill
         extends StyleComposite {
 
-    /**
-     * Initializes a newly created instance with default values.
-     */
+    /** Initializes a newly created instance with default values. */
     @SuppressWarnings("hiding")
     public static final ValueInitializer<Fill> defaults = new ValueInitializer<Fill>() {
         @Override
         public Fill initialize( Fill proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );
+            proto.opacity.createValue( ConstantNumber.defaults( 1.0 ) );
             return proto;
         }
     };
@@ -49,12 +50,13 @@ public class Fill
     @UIOrder(10)
     @Description("color")
     @Concerns(StylePropertyChange.Concern.class)
-    public Property<StylePropertyValue<Color>> color;
+    public Property<StylePropertyValue<Color>>  color;
 
     @Nullable
     @UIOrder(20)
     @Description("opacity")
-    @NumberRange(to = 1, defaultValue = 1, increment = 0.1)
+    @NumberRange(defaultValue = 1, from = 0, to = 1, increment = 0.1)
     @Concerns(StylePropertyChange.Concern.class)
     public Property<StylePropertyValue<Double>> opacity;
+
 }
