@@ -79,7 +79,12 @@ public class FullDataStoreSyncStrategy
         }        
         // schedule sync
         assert syncJob.getState() == Job.NONE;
-        proc.ifUpdateNeeded( () -> syncJob.schedule() );
+        proc.ifUpdateNeeded( () -> {
+            syncJob.schedule();
+            // waiting here is important as several processors may work on the same
+            // layer and we need a relyable status after init
+            syncJob.join();
+        });
     }
 
     
@@ -105,17 +110,16 @@ public class FullDataStoreSyncStrategy
 
     @Override
     public void beforeProbe( StoreCacheProcessor proc, ProcessorProbe probe, ProcessorContext context ) throws Exception {
+        // don't wait for update to complete; rely on definite update in init()
+        // use older data as long as update is not complete
         proc.ifUpdateNeeded( () -> syncJob.schedule() );
-        
-        // wait for (possible) sync to complete
-        syncJob.join();
     }
 
 
     /**
      * 
      */
-    class SyncJob
+    protected class SyncJob
             extends UIJob {
 
         public SyncJob() {
