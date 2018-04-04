@@ -3,30 +3,6 @@
 <plugin>
    <extension-point id="org.polymap.core.operation.concerns" name="Operation Concerns" schema="schema/operation.concerns.exsd"/>
    <extension-point id="org.polymap.core.security.AuthorizationModule" name="AuthorizationModule" schema="schema/AuthorizationModule.exsd"/>
-  <extension
-      point="org.eclipse.rap.ui.themes">
-     <theme
-           file="resource/css/workbench-default.css"
-           id="org.polymap.core.theme"
-           name="Workbench Theme">
-     </theme>
-     <themeContribution
-           file="resource/css/ctab.css"
-           themeId="org.polymap.core.theme">
-     </themeContribution>
-     <themeContribution
-           file="resource/css/shell.css"
-           themeId="org.polymap.core.theme">
-     </themeContribution>
-     <themeContribution
-           file="resource/css/tree.css"
-           themeId="org.polymap.core.theme">
-     </themeContribution>
-     <themeContribution
-           file="resource/css/toolbar.css"
-           themeId="org.polymap.core.theme">
-     </themeContribution>
-  </extension>
    <extension
          id="org.polymap.core.security.DummyLoginModule"
          name="Dummy Login"
