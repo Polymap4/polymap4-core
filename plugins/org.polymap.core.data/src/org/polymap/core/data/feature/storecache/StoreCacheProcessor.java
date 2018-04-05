@@ -128,7 +128,7 @@ public class StoreCacheProcessor
     public void init( @SuppressWarnings( "hiding" ) PipelineProcessorSite site ) throws Exception {
         this.site = site;
 
-        // XXX shouldn't the ressource name come from upstream schema?
+        // XXX shouldn't the resource name come from upstream schema?
         assert cachestore != null : "cachestore is not yet initialized.";
         cacheDs = cachestore.get();
         String resName = site.dsd.get().resourceName.get();

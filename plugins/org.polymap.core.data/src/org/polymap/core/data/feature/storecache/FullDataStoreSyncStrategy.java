@@ -15,6 +15,7 @@
 package org.polymap.core.data.feature.storecache;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
@@ -25,10 +26,12 @@ import org.geotools.data.Transaction;
 import org.geotools.feature.NameImpl;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.Name;
-import org.opengis.filter.Filter;
+import org.opengis.feature.type.PropertyDescriptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -38,6 +41,7 @@ import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.data.pipeline.ProcessorProbe;
 import org.polymap.core.runtime.Timer;
 import org.polymap.core.runtime.UIJob;
+import org.polymap.core.ui.StatusDispatcher;
 
 /**
  * Periodicly copy the entire contents of the upstream/backend {@link DataStore} into
@@ -70,13 +74,6 @@ public class FullDataStoreSyncStrategy
         this.fs = ds.getFeatureSource( resName );
         this.cacheDs = proc.cacheDataStore();
         
-        // check/init schema
-        if (!cacheDs.getNames().contains( resName )) {
-            cacheDs.createSchema( fs.getSchema() );
-        }
-        else {
-            checkUpdateSchema();
-        }        
         // schedule sync
         assert syncJob.getState() == Job.NONE;
         proc.ifUpdateNeeded( () -> {
@@ -87,36 +84,29 @@ public class FullDataStoreSyncStrategy
             // different instances (!) when a pipeline is created; if we would not
             // wait here then one syncJob starts, ifUpdateNeeded is updated and the next
             // instances assumes that cache is up-to-date and shows maybe empty layer
-            syncJob.join();
+            if (Display.getCurrent() == null) {
+                syncJob.join();
+            }
+            else {
+                if (!syncJob.joinAndDispatch( Duration.ofSeconds( 30 ).toMillis() )) {
+                    StatusDispatcher.handleError( 
+                            "The cache of resource '" + resName + "'"
+                            + "could not be updated within 30s. The contents"
+                            + "might be out of sync.", null );
+                }
+            }
         });
     }
 
     
-    protected void checkUpdateSchema() throws IOException {
-        FeatureStore cacheFs = (FeatureStore)cacheDs.getFeatureSource( resName );
-        FeatureType cacheSchema = cacheFs.getSchema();
-        FeatureType schema = fs.getSchema();
-        
-        // simple check as equals() does not work for us here
-        boolean needsUpdate = false;
-        if (!schema.getName().equals( cacheSchema.getName() )) {
-            needsUpdate = true;
-        }
-        if (schema.getDescriptors().equals( cacheSchema.getDescriptors() )) {
-            needsUpdate = true;
-        }
-        
-        if (needsUpdate) {
-            // XXX
-            log.warn( "Not implemented: schema update" );
-        }
-    }
-
     @Override
     public void beforeProbe( StoreCacheProcessor proc, ProcessorProbe probe, ProcessorContext context ) throws Exception {
-        // don't wait for update to complete; rely on definite update in init()
-        // use older data as long as update is not complete
-        proc.ifUpdateNeeded( () -> syncJob.schedule() );
+        proc.ifUpdateNeeded( () -> {
+            syncJob.schedule();
+            // XXX unfortunately remove/re-create schema and fetching features is not
+            // an atomic operation (due to stupid geotools DataStore API)
+            syncJob.join();
+        });
     }
 
 
@@ -127,25 +117,47 @@ public class FullDataStoreSyncStrategy
             extends UIJob {
 
         public SyncJob() {
-            super( "Cache synchronization", false );
+            super( "Cache update", false );
         }
 
         @Override
         protected void runWithException( IProgressMonitor monitor ) throws Exception {
+            monitor.beginTask( getName(), 4 );
             log.info( "Start cache update..." );
-            FeatureStore cacheFs = (FeatureStore)cacheDs.getFeatureSource( resName );
+
+            // XXX remove/re-create schema and fetching features is not an
+            // atomic operation (due to stupid geotools DataStore Transaction API)
             
+            // re-create schema
+            monitor.subTask( "Re-creating schema" );
+            if (cacheDs.getNames().contains( fs.getSchema().getName() )) {
+                log.info( "Removing schema: " + fs.getSchema().getName() );
+                cacheDs.removeSchema( fs.getSchema().getName() );
+            }
+            log.info( "Creating cache schema: " + fs.getSchema().getName() );
+            cacheDs.createSchema( fs.getSchema() );
+            monitor.worked( 1 );
+                        
             // fill cache
             Transaction tx = new DefaultTransaction();
             try {
-                Timer timer = new Timer();
+                Timer timer = new Timer();                
+                FeatureStore cacheFs = (FeatureStore)cacheDs.getFeatureSource( resName );
                 cacheFs.setTransaction( tx );
-                cacheFs.removeFeatures( Filter.INCLUDE );
-                log.info( "Cache cleared: " + timer.elapsedTime() + "ms" ); timer.start();
+//                monitor.subTask( "Clearing" );
+//                cacheFs.removeFeatures( Filter.INCLUDE );
+//                log.info( "Cache cleared: " + timer.elapsedTime() + "ms" ); timer.start();
+//                monitor.worked( 1 );
+                
+                monitor.subTask( "Fetching" );
                 cacheFs.addFeatures( fs.getFeatures() );
                 log.info( "Cache filled: " + timer.elapsedTime() + "ms" ); timer.start();
+                monitor.worked( 1 );
+                
+                monitor.subTask( "Committing" );
                 tx.commit();
                 log.info( "Cache committed: " + timer.elapsedTime() + "ms" );
+                monitor.done();
             }
             catch (Exception e) {
                 log.warn( "", e );
@@ -155,6 +167,34 @@ public class FullDataStoreSyncStrategy
                 tx.close();
             }
         }
+
+        
+        protected void checkUpdateSchema() throws IOException {
+            FeatureStore cacheFs = (FeatureStore)cacheDs.getFeatureSource( resName );
+            FeatureType cacheSchema = cacheFs.getSchema();
+            FeatureType schema = fs.getSchema();
+            
+            // simple check as equals() does not work for us here
+            boolean needsUpdate = false;
+            if (!schema.getName().equals( cacheSchema.getName() )) {
+                needsUpdate = true;
+            }
+            else {
+                for (PropertyDescriptor prop : schema.getDescriptors()) {
+                    PropertyDescriptor cacheProp = cacheSchema.getDescriptor( prop.getName() );
+                    if (cacheProp == null || !prop.getType().getBinding().equals( cacheProp.getType().getBinding() )) {
+                        needsUpdate = true;
+                        break;
+                    }
+                }
+            }        
+            if (needsUpdate) {
+                log.info( "Schema has changed. Re-creating: " + cacheSchema.getName() );
+                cacheDs.removeSchema( cacheSchema.getName() );
+                cacheDs.createSchema( schema );
+            }
+        }
+
     }
     
 }

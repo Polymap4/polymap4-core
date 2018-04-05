@@ -309,8 +309,7 @@ public abstract class UIJob
      */
     public boolean joinAndDispatch( long timeoutMillis ) {
 
-        final AtomicBoolean done = new AtomicBoolean( 
-                getState() == Job.NONE );
+        final AtomicBoolean done = new AtomicBoolean( getState() == Job.NONE );
 
         IJobChangeListener jobListener = new JobChangeAdapter() {
             public void done( IJobChangeEvent event ) {

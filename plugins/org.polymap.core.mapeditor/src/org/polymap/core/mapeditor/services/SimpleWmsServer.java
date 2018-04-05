@@ -136,7 +136,7 @@ public abstract class SimpleWmsServer
                 assert !layer.contains( INNER_DELIMETER );
                 final String style = kvp.get( "STYLES" );
                 assert style == null || !style.contains( INNER_DELIMETER );
-                log.info( "layers=" + layer + ", style=" + style );
+                log.debug( "layers=" + layer + ", style=" + style );
 
                 // WIDTH/HEIGHT
                 int width = Integer.parseInt( kvp.get( "WIDTH" ) );

@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2012-2013, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2012-2013-2018, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -43,8 +43,10 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.collect.ImmutableList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import org.polymap.core.data.rs.RFeatureStore.TransactionState;
+
 import org.polymap.recordstore.IRecordState;
 import org.polymap.recordstore.IRecordStore;
 import org.polymap.recordstore.IRecordStore.Updater;
@@ -59,7 +61,7 @@ import org.polymap.recordstore.SimpleQuery;
 public class RDataStore
         implements DataAccess {
 
-    private static Log log = LogFactory.getLog( RDataStore.class );
+    private static final Log log = LogFactory.getLog( RDataStore.class );
 
     public static final FilterFactory2  ff = CommonFactoryFinder.getFilterFactory2( null );
 
@@ -95,10 +97,9 @@ public class RDataStore
     
     protected Optional<FeatureType> loadSchema( Name name ) throws IOException {
         // result is not cached; query should be fast enough, if not then it is not
-        // fast enough for querying features too; besides, caching schemas is bit
-        // difficult as the names might not be unique; the current implementation
-        // matches a name without a namespace with all schemas with *and* without
-        // name
+        // fast enough for querying features too; caching schemas is bit difficult as
+        // the names might not be unique; the current implementation matches a name
+        // without a namespace with all schemas with *and* without name
         assert name != null : "Name must not be null.";
         try {
             // query the store
@@ -138,9 +139,8 @@ public class RDataStore
 
     
     @Override
-    public void removeSchema( Name typeName ) throws IOException {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void removeSchema( Name name ) throws IOException {
+        deleteSchema( getSchema( name ), new NullProgressMonitor() );
     }
 
 
@@ -177,7 +177,7 @@ public class RDataStore
             for (IRecordState entry : rs) {
                 String namespace = entry.get( "namespace" );
                 String localpart = entry.get( "name" );
-                Name name = namespace == null ? new NameImpl( namespace, localpart ) : new NameImpl( localpart );
+                Name name = namespace != null ? new NameImpl( namespace, localpart ) : new NameImpl( localpart );
                 if (!result.add( name )) {
                     throw new IllegalStateException( "Name already loaded: " + name );
                 }
@@ -192,9 +192,7 @@ public class RDataStore
 
     @Override
     public FeatureSource getFeatureSource( Name name ) throws IOException {
-        FeatureType schema = loadSchema( name )
-                .orElseThrow( () ->  new IOException( "Schema does not exist: " + name ) );
-        return new RFeatureStore( this, schema );
+        return new RFeatureStore( this, getSchema( name ) );
     }
 
 
@@ -358,7 +356,7 @@ public class RDataStore
         // remove schema
         Updater tx = store.prepareUpdate();
         try {
-            ResultSet rs = store.find ( new SimpleQuery().setMaxResults( 1 )
+            ResultSet rs = store.find( new SimpleQuery().setMaxResults( 1 )
                     .eq( "type", "FeatureType" )
                     .eq( "name", schema.getName().getLocalPart() )
                     .eq( "namespace", schema.getName().getNamespaceURI() ) );
