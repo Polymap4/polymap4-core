@@ -14,6 +14,11 @@
  */
 package org.polymap.core.data.pipeline;
 
+import java.util.List;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
+
 /**
  * 
  *
@@ -22,6 +27,56 @@ package org.polymap.core.data.pipeline;
 public abstract class PipelineBuilderBase
         implements PipelineBuilder {
 
+    //  /**
+    //  * Session bound incubation listeners. 
+    //  */
+    // static class Session
+    //         extends SessionSingleton {
+    //
+    //     private ListenerList<PipelineBuilderConcern> listeners = new ListenerList();
+    //
+    //     public static Session instance() {
+    //         return instance( Session.class );
+    //     }
+    //
+    //     protected Session() {
+    //         for (PipelineBuilderConcernExtension ext : PipelineBuilderConcernExtension.allExtensions()) {
+    //             try {
+    //                 PipelineBuilderConcern listener = ext.newListener();
+    //                 listeners.add( listener );
+    //             }
+    //             catch (CoreException e) {
+    //                 log.error( "Unable to create a new PipelineBuilderConcern: " + ext.getId() );
+    //             }
+    //         }
+    //     }        
+    // }
+
+    protected List<PipelineBuilderConcern> createConcerns() {
+        return FluentIterable.from( PipelineBuilderConcernExtension.all() )
+                .transform( ext -> ext.newInstance() )
+                .toList();
+    };
+
+    
+    @FunctionalInterface
+    protected interface Task {
+        public void perform( PipelineBuilderConcern concern ) throws Exception;
+    }
+
+    
+    protected void forEachConcern( List<PipelineBuilderConcern> concerns, Task task ) {
+        for (PipelineBuilderConcern concern : concerns) {
+            try {
+                task.perform( concern );
+            }
+            catch (Exception e) {
+                throw Throwables.propagate( e );
+            }
+        }
+    }
+
+    
     protected Pipeline createPipeline( String layerId, ProcessorSignature usecase, 
             DataSourceDescriptor dsd, Iterable<ProcessorDescriptor> chain ) 
             throws PipelineBuilderException {

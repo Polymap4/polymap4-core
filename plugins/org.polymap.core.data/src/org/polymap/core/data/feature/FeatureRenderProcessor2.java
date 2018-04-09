@@ -18,7 +18,6 @@ import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import java.awt.BasicStroke;
@@ -136,7 +135,6 @@ public class FeatureRenderProcessor2
         BufferedImage result = new BufferedImage( request.getWidth(), request.getHeight(), TYPE_4BYTE_ABGR );
         result.setAccelerationPriority( 1 );
         final Graphics2D g = result.createGraphics();
-        //      log.info( "IMAGE: accelerated=" + result.getCapabilities( g.getDeviceConfiguration() ).isAccelerated() );
 
         MapContent mapContent = new MapContent();
         try {
@@ -166,33 +164,23 @@ public class FeatureRenderProcessor2
             });
 
             // rendering hints
-            RenderingHints hints = new RenderingHints(
-                    RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_QUALITY );
-            hints.add( new RenderingHints(
-                    RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON ) );
-            hints.add( new RenderingHints(
-                    RenderingHints.KEY_TEXT_ANTIALIASING,
-                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
-            hints.add( new RenderingHints( 
-                    RenderingHints.KEY_FRACTIONALMETRICS,
-                    RenderingHints.VALUE_FRACTIONALMETRICS_ON ) );
-//            hints.add( new RenderingHints( 
-//                    RenderingHints.KEY_TEXT_ANTIALIASING, 
-//                    RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB ) );
+            RenderingHints hints = new RenderingHints( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY );
+            hints.add( new RenderingHints( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON ) );
+            hints.add( new RenderingHints( RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON ) );
+            hints.add( new RenderingHints( RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON ) );
+//            hints.add( new RenderingHints( RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB ) );
             
             // geoserver compatibility to support *env* in SLD functions
             double scale = RendererUtilities.calculateOGCScale( request.getBoundingBox(), request.getWidth(), Collections.EMPTY_MAP);
             EnvFunction.setLocalValue( "wms_scale_denominator", scale );
             
             renderer.setJava2DHints( hints );
-            g.setRenderingHints( hints );
-
-            // render params
-            Map rendererParams = new HashMap();
-            rendererParams.put( "optimizedDataLoadingEnabled", Boolean.TRUE );
-            renderer.setRendererHints( rendererParams );
+            renderer.setRendererHints( new HashMap() {{
+                put( StreamingRenderer.TEXT_RENDERING_KEY, StreamingRenderer.TEXT_RENDERING_ADAPTIVE );
+                put( StreamingRenderer.OPTIMIZE_FTS_RENDERING_KEY, Boolean.TRUE );
+                put( "optimizedDataLoadingEnabled", Boolean.TRUE );
+            }});
+            //g.setRenderingHints( hints );
 
             renderer.setMapContent( mapContent );
             Rectangle paintArea = new Rectangle( request.getWidth(), request.getHeight() );

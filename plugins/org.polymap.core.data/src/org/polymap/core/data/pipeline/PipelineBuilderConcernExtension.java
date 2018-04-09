@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright 2011, Polymap GmbH. All rights reserved.
+ * Copyright 2011-2018, Polymap GmbH. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,8 +15,11 @@
 package org.polymap.core.data.pipeline;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.eclipse.core.runtime.CoreException;
+
+import com.google.common.collect.FluentIterable;
+
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 
@@ -24,33 +27,35 @@ import org.polymap.core.data.DataPlugin;
 
 /**
  * Provides access the data of an extension of extension point
- * <code>org.polymap.core.data.pipeline.listeners</code>.
+ * <code>org.polymap.core.data.pipeline.builderConcerns</code>.
  * 
  * @author <a href="http://www.polymap.de">Falko Braeutigam</a>
- * @since 3.1
  */
-public class PipelineListenerExtension {
+public final class PipelineBuilderConcernExtension {
 
-    public static final String          EXTENSION_POINT_NAME = "pipeline.listeners";
+    public static final String          EXTENSION_POINT_NAME = "pipeline.builderConcerns";
 
-    public static PipelineListenerExtension[] allExtensions() {
+    /**
+     * 
+     */
+    public static Iterable<PipelineBuilderConcernExtension> all() {
         IConfigurationElement[] elms = Platform.getExtensionRegistry()
                 .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
         
-        PipelineListenerExtension[] result = new PipelineListenerExtension[ elms.length ];
-        for (int i=0; i<elms.length; i++) {
-            result[i] = new PipelineListenerExtension( elms[i] );
-        }
-        return result;
+        return FluentIterable.from( Arrays.asList( elms ) )
+                .transform( elm -> new PipelineBuilderConcernExtension( elm ) );
     }
-    
-    public static PipelineListenerExtension forExtensionId( String id ) {
-        IConfigurationElement[] elms = Platform.getExtensionRegistry().getConfigurationElementsFor(
-                DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
+
+    /**
+     * 
+     */
+    public static PipelineBuilderConcernExtension forExtensionId( String id ) {
+        IConfigurationElement[] elms = Platform.getExtensionRegistry()
+                .getConfigurationElementsFor( DataPlugin.PLUGIN_ID, EXTENSION_POINT_NAME );
         
-        List<PipelineListenerExtension> result = new ArrayList( elms.length );
+        List<PipelineBuilderConcernExtension> result = new ArrayList( elms.length );
         for (int i=0; i<elms.length; i++) {
-            PipelineListenerExtension ext = new PipelineListenerExtension( elms[i] );
+            PipelineBuilderConcernExtension ext = new PipelineBuilderConcernExtension( elms[i] );
             if (ext.getId().equals( id )) {
                 result.add( ext );
             }
@@ -71,7 +76,7 @@ public class PipelineListenerExtension {
     private IConfigurationElement       ext;
 
     
-    public PipelineListenerExtension( IConfigurationElement ext ) {
+    public PipelineBuilderConcernExtension( IConfigurationElement ext ) {
         this.ext = ext;
     }
     
@@ -87,14 +92,9 @@ public class PipelineListenerExtension {
         return ext.getAttribute( "description" );
     }
     
-    public boolean isTerminal() {
-        return ext.getAttribute( "isTerminal" ).equalsIgnoreCase( "true" );
-    }
-
-    public IPipelineIncubationListener newListener()
-    throws CoreException {
+    public PipelineBuilderConcern newInstance() {
         try {
-            return (IPipelineIncubationListener)ext.createExecutableExtension( "class" );
+            return (PipelineBuilderConcern)ext.createExecutableExtension( "class" );
         }
         catch (Exception e) {
             throw new RuntimeException( "Error creating new processor for extension: " + getId(), e );

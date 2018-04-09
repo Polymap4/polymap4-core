@@ -60,32 +60,6 @@ public class AutoWirePipelineBuilder
     }
 
 
-//    /**
-//     * Session bound incubation listeners. 
-//     */
-//    static class Session
-//            extends SessionSingleton {
-//
-//        private ListenerList<IPipelineIncubationListener> listeners = new ListenerList();
-//
-//        public static Session instance() {
-//            return instance( Session.class );
-//        }
-//
-//        protected Session() {
-//            for (PipelineListenerExtension ext : PipelineListenerExtension.allExtensions()) {
-//                try {
-//                    IPipelineIncubationListener listener = ext.newListener();
-//                    listeners.add( listener );
-//                }
-//                catch (CoreException e) {
-//                    log.error( "Unable to create a new IPipelineIncubationListener: " + ext.getId() );
-//                }
-//            }
-//        }        
-//    }
-
-
     @Override
     public Optional<Pipeline> createPipeline( String layerId, Class<? extends PipelineProcessor> usecase, 
             DataSourceDescriptor dsd ) throws PipelineBuilderException {
@@ -99,8 +73,11 @@ public class AutoWirePipelineBuilder
             DataSourceDescriptor dsd,
             List<ProcessorDescriptor> procs)
             throws PipelineBuilderException {
+
+        List<PipelineBuilderConcern> concerns = createConcerns();
+        forEachConcern( concerns, concern -> concern.preBuild( this, terminals, transformers ) );
+
         ProcessorSignature usecaseSig = new ProcessorSignature( usecase );
-        
         assert !usecaseSig.requestIn.isEmpty()
                 && usecaseSig.requestOut.isEmpty()
                 && !usecaseSig.responseOut.isEmpty()
@@ -113,9 +90,11 @@ public class AutoWirePipelineBuilder
         usecaseSig.responseOut = Collections.EMPTY_SET;
         
         ProcessorDescriptor start = new ProcessorDescriptor( usecaseSig );
-
+        forEachConcern( concerns, concern -> concern.startBuild( this, layerId, dsd, usecase, start ) );
+        
         // terminal
-        Iterable<ProcessorDescriptor<TerminalPipelineProcessor>> terms = findTerminals( usecaseSig, dsd );
+        List<ProcessorDescriptor<TerminalPipelineProcessor>> terms = findTerminals( usecaseSig, dsd );
+        forEachConcern( concerns, concern -> concern.terminals( this, terms ) );
 
         // transformer chain
         LinkedList<ProcessorDescriptor> chain = new LinkedList();
@@ -129,6 +108,7 @@ public class AutoWirePipelineBuilder
                 log.debug( "No transformer chain for terminal: " + term );
             }
         }
+        forEachConcern( concerns, concern -> concern.transformations( this, chain ) );
         if (termCount == 0) {
             //throw new PipelineBuilderException( "No terminal for data source: " + dsd );
             return null;
@@ -155,11 +135,15 @@ public class AutoWirePipelineBuilder
 //                throw new RuntimeException( "No compatible parent found for: " + candidate );
 //            }
         }
-        return createPipeline( layerId, usecaseSig, dsd, chain );
+        forEachConcern( concerns, concern -> concern.additionals( this, chain ) );
+        
+        Pipeline pipeline = createPipeline( layerId, usecaseSig, dsd, chain );
+        forEachConcern( concerns, concern -> concern.postBuild( this, pipeline ) );
+        return pipeline;
     }
 
 
-    protected Iterable<ProcessorDescriptor<TerminalPipelineProcessor>> findTerminals( 
+    protected List<ProcessorDescriptor<TerminalPipelineProcessor>> findTerminals( 
             ProcessorSignature usecase, DataSourceDescriptor dsd ) 
             throws PipelineBuilderException {
         // f*ck streaming has no Exception handling

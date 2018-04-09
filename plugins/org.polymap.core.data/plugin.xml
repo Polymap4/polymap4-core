@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension-point id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners" schema="schema/org.polymap.core.data.pipeline.listeners.exsd"/>
+   <extension-point id="org.polymap.core.data.pipeline.builderConcerns" name="Pipeline Builder Concerns" schema="schema/org.polymap.core.data.pipeline.builderConcerns.exsd"/>
    <extension-point id="org.polymap.core.data.process.providers" name="Module Providers" schema="schema/org.polymap.core.data.process.providers.exsd"/>
    <extension-point id="org.polymap.core.data.process.fieldIO" name="Input Field Suppliers" schema="schema/org.polymap.core.data.process.fieldIO.exsd"/>
    <extension-point id="org.polymap.core.data.pipeline.processors" name="Pipeline Processors" schema="schema/org.polymap.core.data.pipeline.processors.exsd"/>

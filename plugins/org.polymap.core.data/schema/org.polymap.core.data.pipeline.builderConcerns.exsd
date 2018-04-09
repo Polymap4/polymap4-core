@@ -3,10 +3,10 @@
 <schema targetNamespace="org.polymap.core.data" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.polymap.core.data" id="org.polymap.core.data.pipeline.listeners" name="Pipeline Listeners"/>
+         <meta.schema plugin="org.polymap.core.data" id="org.polymap.core.data.pipeline.builderConcerns" name="Pipeline Builder Concerns"/>
       </appinfo>
       <documentation>
-         Allows to install pipeline incubation listeners.
+         Allows to intercept and decorate pipeline building.
       </documentation>
    </annotation>
 
@@ -81,10 +81,10 @@
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  a fully qualified name of a class implementing org.polymap.core.data.pipeline.IPipelineIncubationListener.
+                  a fully qualified name of a class implementing org.polymap.core.data.pipeline.PipelineBuilderConcern.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.polymap.core.data.pipeline.IPipelineIncubationListener"/>
+                  <meta.attribute kind="java" basedOn=":org.polymap.core.data.pipeline.PipelineBuilderConcern"/>
                </appinfo>
             </annotation>
          </attribute>
