@@ -122,10 +122,16 @@ public class ColorMap2FilterEditor
     protected void initValues() {
         List<Mapped<Filter,Color>> values = prop.get().values();
         for (Mapped<Filter,Color> entry : values) {
-            PropertyIsEqualTo filter = (PropertyIsEqualTo)entry.key();
-            propertyName = ((PropertyName)filter.getExpression1()).getPropertyName();
-            Object value = ((Literal)filter.getExpression2()).getValue();
-            colorMap.add( new Triple( value, -1, entry.value() ) );
+            try {
+                PropertyIsEqualTo filter = (PropertyIsEqualTo)entry.key();
+                propertyName = ((PropertyName)filter.getExpression1()).getPropertyName();
+                Object value = ((Literal)filter.getExpression2()).getValue();
+                colorMap.add( new Triple( value, -1, entry.value() ) );
+            }
+            catch (ClassCastException e) {
+                log.warn( e.getMessage() );
+                // old data with other filter type/encoding; use defaults
+            }
         }
     }
 

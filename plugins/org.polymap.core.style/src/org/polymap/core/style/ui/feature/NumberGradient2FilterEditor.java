@@ -21,7 +21,6 @@ import java.text.NumberFormat;
 
 import org.geotools.util.NullProgressListener;
 import org.opengis.feature.type.PropertyDescriptor;
-import org.opengis.filter.And;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Literal;
@@ -55,6 +54,7 @@ import org.polymap.core.style.model.feature.NumberRange;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
+import org.polymap.core.style.ui.feature.IntervalBuilder.Interval;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 import org.polymap.core.ui.StatusDispatcher;
@@ -131,24 +131,22 @@ public class NumberGradient2FilterEditor<N extends Number>
         if (values.isEmpty()) {
             minimumValue = annotation.from();
             maximumValue = annotation.to();
-            breakpoints = 10;
+            breakpoints = 5;
         }
         // from prop
         else {
-            And first = (And)values.get( 0 ).key();
-            BinaryComparisonOperator lessThan = (BinaryComparisonOperator)first.getChildren().get( 0 );
+            BinaryComparisonOperator lessThan = (BinaryComparisonOperator)values.get( 0 ).key();
             propertyName = ((PropertyName)lessThan.getExpression1()).getPropertyName();
             String value = (String)((Literal)lessThan.getExpression2()).getValue();
             lowerBound = Double.parseDouble( value ); 
 
-            And last = (And)values.get( values.size()-1 ).key();
-            BinaryComparisonOperator greaterThan = (BinaryComparisonOperator)last.getChildren().get( 0 );
+            BinaryComparisonOperator greaterThan = (BinaryComparisonOperator)values.get( values.size()-1 ).key();
             value = (String)((Literal)greaterThan.getExpression2()).getValue();
             upperBound = Double.parseDouble( value ); 
 
             minimumValue = values.get( 0 ).value().doubleValue();
             maximumValue = values.get( values.size() - 1 ).value().doubleValue();
-            breakpoints = values.size() + 1;
+            breakpoints = values.size() - 3;  // 3 intervals -> no extra breakpoint
         }
     }
 
@@ -184,21 +182,18 @@ public class NumberGradient2FilterEditor<N extends Number>
     protected void submit() {
         prop.get().clear();
 
-        // anstieg: wert pro scale
-        double q = (maximumValue - minimumValue) / (upperBound - lowerBound);
-
-        // breakpoints
-        for (int i=0; i<=breakpoints; i++) {
-            double lower = (upperBound - lowerBound) / (breakpoints + 1) * i;
-            double upper = (upperBound - lowerBound) / (breakpoints + 1) * (i + 1);
-            double value = (lowerBound + lower + (upper - lower)/2) * q;  // mean value of the interval
+        // first interval: always starts at scale 0
+        PropertyName property = ff.property( propertyName );
+        prop.get().add( ff.less( property, ff.literal( lowerBound ) ), toTargetType( minimumValue ) );
+        
+        for (Interval i : new IntervalBuilder().calculate( lowerBound, upperBound, minimumValue, maximumValue, breakpoints )) {
             prop.get().add( ff.and( 
-                    ff.greaterOrEqual( ff.property( propertyName ), ff.literal( lowerBound+lower ) ),
-                    i < breakpoints 
-                            ? ff.less( ff.property( propertyName ), ff.literal( lowerBound+upper ) )
-                            : ff.lessOrEqual( ff.property( propertyName ), ff.literal( lowerBound+upper ) ) ),
-                    toTargetType( minimumValue + value ) );
+                        ff.greaterOrEqual( property, ff.literal( i.start ) ),
+                        ff.less( property, ff.literal( i.end ) ) ),
+                    toTargetType( i.value ) );
         }
+
+        prop.get().add( ff.greaterOrEqual( property, ff.literal( upperBound ) ), toTargetType( maximumValue ) );
     }
 
     
@@ -242,20 +237,26 @@ public class NumberGradient2FilterEditor<N extends Number>
 
         private Label       scaleLine;
 
+        /* The lower bound found from the data. */
+        private double      dataUpperBound;
+
+        /* The upper bound found from the data. */
+        private double      dataLowerBound;
+
 
         public String title() {
             return i18n.get( "dialogTitle" );
         }
 
 
-        protected void updateBoundsFromProperty( PropertyDescriptor propDescriptor ) {
+        protected void readBoundsFromData( PropertyDescriptor propDescriptor ) {
             try {
-                upperBound = Double.MIN_VALUE;
-                lowerBound = Double.MAX_VALUE;
+                dataUpperBound = Double.MIN_VALUE;
+                dataLowerBound = Double.MAX_VALUE;
                 site().featureStore.get().getFeatures().accepts( feature -> {
                     Number value = (Number)feature.getProperty( propDescriptor.getName() ).getValue();
-                    upperBound = Math.max( upperBound, value.doubleValue() );
-                    lowerBound = Math.min( lowerBound, value.doubleValue() );
+                    dataUpperBound = Math.max( dataUpperBound, value.doubleValue() );
+                    dataLowerBound = Math.min( dataLowerBound, value.doubleValue() );
                 }, new NullProgressListener() );
             }
             catch (IOException e) {
@@ -285,29 +286,31 @@ public class NumberGradient2FilterEditor<N extends Number>
                 }
             });
             propCombo.addSelectionChangedListener( ev -> {
-                PropertyDescriptor sel = UIUtils.selection( propCombo.getSelection() ).first( PropertyDescriptor.class ).get();
-                updateBoundsFromProperty( sel );
-                propertyName = sel.getName().getLocalPart();
+                PropertyDescriptor sel = UIUtils.selection( ev.getSelection() ).first( PropertyDescriptor.class ).get();
+                readBoundsFromData( sel );
+                scaleLine.setText( i18n.get( "currentValues", df.format( dataLowerBound ), df.format( dataUpperBound ) ) );
                 // XXX digit/increment for given value range
-                lowerBoundSpinner.setMinimum( (int)lowerBound );
-                lowerBoundSpinner.setMaximum( (int)upperBound );
-                lowerBoundSpinner.setSelection( (int)lowerBound );
-                upperBoundSpinner.setMinimum( (int)lowerBound );
-                upperBoundSpinner.setMaximum( (int)upperBound );
-                upperBoundSpinner.setSelection( (int)upperBound );
-                scaleLine.setText( i18n.get( "currentValues", df.format( lowerBound ), df.format( upperBound ) ) );
+                lowerBoundSpinner.setMinimum( (int)dataLowerBound );
+                lowerBoundSpinner.setMaximum( (int)dataUpperBound );
+                upperBoundSpinner.setMinimum( (int)dataLowerBound );
+                upperBoundSpinner.setMaximum( (int)dataUpperBound );
+                // don't change *initial* set lowerBounds (when this is called from propCombo.setSelection())
+                if (!sel.getName().getLocalPart().equals( propertyName )) {
+                    propertyName = sel.getName().getLocalPart();
+                    lowerBoundSpinner.setSelection( (int)dataLowerBound );
+                    upperBoundSpinner.setSelection( (int)dataUpperBound );
+                }
             });
             propCombo.setContentProvider( ArrayContentProvider.getInstance() );
             propCombo.setInput( site().featureType.get().getDescriptors() );
             if (propertyName != null) {
                 PropertyDescriptor propDescriptor = site().featureType.get().getDescriptor( propertyName );
                 if (propDescriptor != null) {
-                    propertyName = propDescriptor.getName().getLocalPart();
                     propCombo.setSelection( new StructuredSelection( propDescriptor ) );
                 }
             }
             
-            lowerBoundSpinner.setToolTipText( "First interval covers everything up to this lower bounds\nand maps to the given value" );
+            lowerBoundSpinner.setToolTipText( i18n.get( "lowerBoundTooltip" ) );
             lowerBoundSpinner.setSelection( (int)lowerBound );
             lowerBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = lowerBoundSpinner.getSelection();
@@ -315,7 +318,7 @@ public class NumberGradient2FilterEditor<N extends Number>
                 upperBoundSpinner.setMinimum( selection );
             }));
 
-            upperBoundSpinner.setToolTipText( "Last interval covers everything bigger than this upper bounds\nand and maps to the given value" );
+            upperBoundSpinner.setToolTipText( i18n.get( "upperBoundTooltip" ) );
             upperBoundSpinner.setSelection( (int)upperBound );
             upperBoundSpinner.addSelectionListener( UIUtils.selectionListener( ev -> {
                 int selection = upperBoundSpinner.getSelection();
@@ -352,7 +355,7 @@ public class NumberGradient2FilterEditor<N extends Number>
             }));
 
             stepsSpinner = new Spinner( parent, SWT.BORDER );
-            stepsSpinner.setToolTipText( "For x breakpoints x+1 intervalls are generated" );
+            stepsSpinner.setToolTipText( i18n.get( "stepsTooltip" ) );
             stepsSpinner.setDigits( 0 );
             stepsSpinner.setMinimum( 0 );
             stepsSpinner.setMaximum( 30 );

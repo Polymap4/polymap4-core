@@ -45,6 +45,7 @@ import org.polymap.core.style.model.feature.ScaleMappedValues.ScaleRange;
 import org.polymap.core.style.ui.StylePropertyEditor;
 import org.polymap.core.style.ui.StylePropertyFieldSite;
 import org.polymap.core.style.ui.UIService;
+import org.polymap.core.style.ui.feature.IntervalBuilder.Interval;
 import org.polymap.core.ui.FormDataFactory;
 import org.polymap.core.ui.FormLayoutFactory;
 import org.polymap.core.ui.StatusDispatcher;
@@ -176,29 +177,16 @@ public class NumberGradient2MapScaleEditor<N extends Number>
     protected void submit() {
         prop.get().clear();
 
-        // anstieg: wert pro scale
-        double q = (maximumValue - minimumValue) / (upperBound - lowerBound);
-
         // first interval: always starts at scale 0
         prop.get().add( 0, lowerBound, toTargetType( minimumValue ) );
 
-        // breakpoints
-        for (int i=0; i<=breakpoints; i++) {
-            double lower = (upperBound - lowerBound) / (breakpoints + 1) * i;
-            double upper = (upperBound - lowerBound) / (breakpoints + 1) * (i + 1);
-            double value = (lowerBound + lower + (upper - lower)/2) * q;  // mean value of the interval
-            prop.get().add( lowerBound+lower, lowerBound+upper, toTargetType( minimumValue+value ) );
+        for (Interval i : new IntervalBuilder().calculate( lowerBound, upperBound, minimumValue, maximumValue, breakpoints )) {
+             prop.get().add( i.start, i.end, toTargetType( i.value ) );
         }
-
         // last interval: always ends at scale POSITIVE_INFINITY
         prop.get().add( upperBound, Double.POSITIVE_INFINITY, toTargetType( maximumValue ) );
     }
 
-    
-//    protected double[] linearDistribution( int i ) {
-//        
-//    }
-    
     
     protected void updateButton( Button button ) {
         if (minimumValue != UNINITIALIZED && maximumValue != UNINITIALIZED) {
@@ -252,9 +240,9 @@ public class NumberGradient2MapScaleEditor<N extends Number>
             double factorX = Math.pow( 10, digits );
 
             lowerBoundSpinner = new Spinner( parent, SWT.BORDER );
-            lowerBoundSpinner.setToolTipText( "First interval covers everything up to this lower bounds\nand maps to the given value" );
+            lowerBoundSpinner.setToolTipText( i18n.get( "lowerBoundTooltip" ) );
             upperBoundSpinner = new Spinner( parent, SWT.BORDER );
-            upperBoundSpinner.setToolTipText( "Last interval covers everything bigger than this upper bounds\nand and maps to the given value" );
+            upperBoundSpinner.setToolTipText( i18n.get( "upperBoundTooltip" ) );
 
             lowerBoundSpinner.setMinimum( 1 );
             lowerBoundSpinner.setMaximum( Integer.MAX_VALUE );
@@ -307,7 +295,7 @@ public class NumberGradient2MapScaleEditor<N extends Number>
             }));
 
             stepsSpinner = new Spinner( parent, SWT.BORDER );
-            stepsSpinner.setToolTipText( "For X breakpoints X+1 intervalls are generated" );
+            stepsSpinner.setToolTipText( i18n.get( "stepsTooltip" ) );
             stepsSpinner.setDigits( 0 );
             stepsSpinner.setMinimum( 0 );
             stepsSpinner.setMaximum( 30 );
