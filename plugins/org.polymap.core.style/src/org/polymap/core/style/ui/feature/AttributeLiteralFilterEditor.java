@@ -63,7 +63,7 @@ public class AttributeLiteralFilterEditor
 
     private static final IMessages i18n = Messages.forPrefix( "AttributeLiteralFilterEditor" );
 
-    public static final Map<Class<? extends Filter>, String> OPS = new HashMap() {{
+    public static final Map<Class<? extends BinaryComparisonOperator>,String> OPS = new HashMap() {{
             put( PropertyIsEqualTo.class, "==" );
             put( PropertyIsGreaterThan.class, ">" );
             put( PropertyIsGreaterThanOrEqualTo.class, ">=" );
@@ -102,7 +102,8 @@ public class AttributeLiteralFilterEditor
     protected void initValues() {
         if (prop.get().filter() instanceof BinaryComparisonOperator) {
             BinaryComparisonOperator filter = (BinaryComparisonOperator)prop.get().filter();
-            opType = filter.getClass();
+            opType = OPS.keySet().stream().filter( op -> op.isAssignableFrom( filter.getClass() ) ).findAny()
+                    .orElseThrow( () -> new RuntimeException( "Unhandled filter operation type: " + filter.getClass() ) );
             propertyName = ((PropertyName)filter.getExpression1()).getPropertyName();
             literal = ((Literal)filter.getExpression2()).getValue();
         }
