@@ -16,6 +16,9 @@ package org.polymap.core.data;
 
 import java.io.File;
 
+import javax.media.jai.JAI;
+import javax.media.jai.OperationRegistry;
+
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.FilterFactory2;
@@ -23,6 +26,8 @@ import org.osgi.framework.BundleContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.sun.media.jai.imageioimpl.ImageReadWriteSpi;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -76,6 +81,15 @@ public class DataPlugin
         // does not seem to break things if not available
         log.info( "Using Marlin render engine if avalable." );
         System.setProperty( "sun.java2d.renderer", "org.marlin.pisces.PiscesRenderingEngine" );
+        
+        // XXX #110: [Data] ImageRead: No OperationDescriptor
+        try {
+            OperationRegistry registry = JAI.getDefaultInstance().getOperationRegistry();
+            new ImageReadWriteSpi().updateRegistry( registry );
+        }
+        catch (Exception e) {
+            log.warn( "Unable to register ImageRead: " + e.getLocalizedMessage() );
+        }
         
         // XXX seems that some imageio classes (?) have to be initialized by the data plugin;
         // once loaded its possible to use/access from other plugins

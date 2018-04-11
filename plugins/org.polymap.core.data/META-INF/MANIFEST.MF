@@ -680,7 +680,8 @@ Export-Package: com.objectplanet.image,
  org.w3c.dom.xpath,
  org.xmlpull.mxp1,
  org.xmlpull.v1
-Import-Package: org.eclipse.core.resources,
+Import-Package: com.sun.media.jai.imageioimpl,
+ org.eclipse.core.resources,
  org.osgi.service.http;version="1.2.1"
 Bundle-Localization: plugin
 Bundle-ClassPath: .,
