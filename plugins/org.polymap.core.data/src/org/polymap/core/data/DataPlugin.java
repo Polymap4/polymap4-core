@@ -83,6 +83,8 @@ public class DataPlugin
         System.setProperty( "sun.java2d.renderer", "org.marlin.pisces.PiscesRenderingEngine" );
         
         // XXX #110: [Data] ImageRead: No OperationDescriptor
+        // after last update of geotools (?) there is an Exception, *just* on the
+        // mapzone server. This fixes this. Pure magic. :(
         try {
             OperationRegistry registry = JAI.getDefaultInstance().getOperationRegistry();
             new ImageReadWriteSpi().updateRegistry( registry );
