@@ -15,6 +15,7 @@
 package org.polymap.core.style.model.feature;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import java.awt.Color;
 
@@ -53,6 +54,9 @@ public class ShadowStyle
             
             for (Style s : proto.mapStyle().members()) {
                 if (ShadowStyleSerializer.SUPPORTED.contains( s.getClass() )) {
+                    if (s.id.get() == null) { // support old styles without id set
+                        s.id.set( UUID.randomUUID().toString() );
+                    }
                     proto.styleId.createValue( ConstantStyleId.defaults( s ) );
                 }
             }

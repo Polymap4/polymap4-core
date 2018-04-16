@@ -105,7 +105,7 @@ public class ConstantStyleIdEditor
         }
         //
         else {
-            new Label( contents, SWT.NONE ).setText( "Add an other style first." );
+            new Label( contents, SWT.NONE|SWT.CENTER ).setText( "No supported style found." );
         }
 
         return contents;
