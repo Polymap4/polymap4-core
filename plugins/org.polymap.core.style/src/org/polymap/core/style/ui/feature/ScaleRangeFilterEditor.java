@@ -76,6 +76,7 @@ public class ScaleRangeFilterEditor
         final Combo minScaleCombo = new Combo( contents, SWT.SINGLE | SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY );
         
         // min
+        minScaleCombo.setVisibleItemCount( 10 );
         minScaleCombo.setItems( SCALES.stream().map( value -> "1:" + value ).toArray( String[]::new ) );
         minScaleCombo.select( SCALES.indexOf( prop.get().minScale.get() ) );
         minScaleCombo.addSelectionListener( UIUtils.selectionListener( ev -> {
@@ -90,6 +91,7 @@ public class ScaleRangeFilterEditor
         label.setText( i18n.get( "to" ) );
 
         // max
+        maxScaleCombo.setVisibleItemCount( 10 );
         maxScaleCombo.setItems( SCALES.stream().map( value -> "1:" + value ).toArray( String[]::new ) );
         maxScaleCombo.select( SCALES.indexOf( prop.get().maxScale.get() ) );
         maxScaleCombo.addSelectionListener( UIUtils.selectionListener( ev -> {
