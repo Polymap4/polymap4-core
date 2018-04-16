@@ -15,6 +15,7 @@
 package org.polymap.core.style.model;
 
 import java.util.LinkedList;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.opengis.feature.Feature;
@@ -23,13 +24,16 @@ import org.opengis.filter.Filter;
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.polymap.core.style.model.feature.ConstantFilter;
+import org.polymap.core.style.model.feature.Displacement;
 
 import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Composite;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Description;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
+import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.runtime.ValueInitializer;
 
 /**
@@ -50,12 +54,21 @@ public abstract class Style
         @Override
         public Style initialize( Style proto ) throws Exception {
             StyleComposite.defaults.initialize( proto );
+            proto.id.set( UUID.randomUUID().toString() );
             proto.visibleIf.createValue( ConstantFilter.defaults( true ) );
             proto.zPriority.set( (int)System.currentTimeMillis() );
+            proto.displacement.createValue( Displacement.defaults( 0, 0, 0 ) );
             return proto;
         }
     };
 
+    /**
+     * Makes Style referencable (by other Styles, for shadow for example).
+     */
+    @Nullable
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<String>                     id;
+    
     /**
      * Allow the user to give this style a title in order to better distinguish between
      * the styles in the {@link StyleGroup} hierarchy.
@@ -107,14 +120,28 @@ public abstract class Style
     @Concerns( StylePropertyChange.Concern.class )
     public Property<StylePropertyValue<Filter>> visibleIf;
 
-//    /**
-//     * This allows to bring structure to the (possibly many) styles of an
-//     * {@link FeatureStyle}. Used to have the notion of "folders" or something like
-//     * that in the UI. Not sure about this yet :)
-//     */
-//    public CollectionProperty<String>           tags;
+    @Nullable
+    @UIOrder( 1000 )
+    @Description( "displacement" )
+    @Concerns( StylePropertyChange.Concern.class )
+    public Property<Displacement>               displacement;
 
 
+    public UnitOfWork belongsTo() {
+        return context.getUnitOfWork();
+    }
+    
+    
+    /**
+     * The {@link FeatureStyle} entity this {@link Style} is part of.
+     * <p/>
+     * The name of {@link FeatureStyle} is subject to change in next versions. This
+     * method alreadfy reflects new name.
+     */
+    public FeatureStyle mapStyle() {
+        return context.getEntity();
+    }
+    
     /**
      * Identity check. Necessary to make UI work with Style instances.
      */
@@ -125,7 +152,7 @@ public abstract class Style
     
     /**
      * Update the {@link #zPriority} of this Style and siblings. Inserts the receiver
-     * <code>before/after</code) the given <code>other</other> Style of the same parent.
+     * <code>before/after</code> the given <code>other</other> Style of the same parent.
      *
      * @param other The Style to indert the receiver before/after.
      * @param before

@@ -58,6 +58,19 @@ public class PolygonStyleSerializer
                     .accessor.put( rule -> accessor.get().apply( rule ).getStroke() )
                     .serialize( stroke, fts );
         });
+        
+        // displacement
+        style.displacement.opt().ifPresent( displacement -> {
+            set( fts, displacement.offsetX, (value,sym) -> {
+                sym.setDisplacement( sf.displacement( value, ff.literal( 0 ) ) );
+            });
+            set( fts, displacement.offsetY, (value,sym) -> {
+                sym.getDisplacement().setDisplacementY( value );
+            });
+            set( fts, displacement.offsetSize, (value,sym) -> {
+                sym.setPerpendicularOffset( value );
+            });
+        });
     }
 
         

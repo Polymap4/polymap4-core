@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2016, the @authors. All rights reserved.
+ * Copyright (C) 2016-2018, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -26,13 +26,13 @@ import org.polymap.model2.runtime.ValueInitializer;
 /**
  * Describes the visual representation (aka the style) of a layer and its data. This
  * is <b>not tied</b> to any particular backend (SLD, OpenLayers). It rather models
- * the "user experience" we want to achieve.
+ * the <b>user experience</b> we want to achieve.
  * <p/>
  * Every instance is created/loaded inside its own {@link UnitOfWork}. See also
  * {@link StyleRepository}.
  * <p/>
  * The name is misleading and will be changed in future versions. It should be
- * MapStyle.
+ * <code><b>MapStyle</b></code>.
  *
  * @author Falko Bräutigam
  */

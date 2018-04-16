@@ -17,6 +17,7 @@ package org.polymap.core.style.serialize.sld2;
 import java.awt.Color;
 
 import org.geotools.styling.FeatureTypeStyle;
+import org.geotools.styling.PointPlacement;
 import org.geotools.styling.Style;
 import org.geotools.styling.TextSymbolizer;
 import org.opengis.filter.expression.Literal;
@@ -41,10 +42,12 @@ public class TextStyleSerializer
     public void serialize( TextStyle style, Style result ) {
         // default symbolizer
         TextSymbolizer text = sf.createTextSymbolizer();
+        text.getOptions().put( TextSymbolizer.CONFLICT_RESOLUTION_KEY, Boolean.FALSE.toString() );
         text.setFill( sf.getDefaultFill() );
         style.halo.opt().ifPresent( halo -> text.setHalo( sf.createHalo( sf.getDefaultFill(), ff.literal( 1 ) ) ) );
         style.font.opt().ifPresent( font -> text.setFont( sf.getDefaultFont() ) );
-
+        
+        
         FeatureTypeStyle fts = defaultFeatureTypeStyle( result, style, text );
         fts.setName( style.title.opt().orElse( "TextStyle" ) );
         fts.getDescription().setTitle( style.title.opt().orElse( "TextStyle" ) );
@@ -75,6 +78,27 @@ public class TextStyleSerializer
         // fill
         set( fts, style.opacity, (value,sym) -> sym.getFill().setOpacity( value ) );
         set( fts, style.color, (value,sym) -> sym.getFill().setColor( value ) );
+        
+        // displacement
+        style.displacement.opt().ifPresent( displacement -> {
+            set( fts, displacement.offsetX, (value,sym) -> {
+                // XXX support labelPlacement set in TextStyle
+                sym.setLabelPlacement( sf.pointPlacement( 
+                        sf.anchorPoint( ff.literal( 0 ), ff.literal( 0 ) ),
+                        sf.displacement( ff.literal( value ), ff.literal( 0 ) ),
+                        ff.literal( 0 ) ) );
+            });
+            set( fts, displacement.offsetY, (value,sym) -> {
+                ((PointPlacement)sym.getLabelPlacement()).getDisplacement().setDisplacementY( ff.literal( value ) );
+            });
+            set( fts, displacement.offsetSize, (value,sym) -> {
+                // XXX the renderer cannot handle ADD expression, to sad :(
+                Number origSize = (Number)((Literal)sym.getFont().getSize()).getValue();
+                Number offset = (Number)((Literal)value).getValue();
+                sym.getFont().setSize( ff.literal( origSize.intValue() + offset.intValue() ) );
+            });
+        });
+
     }
     
 }

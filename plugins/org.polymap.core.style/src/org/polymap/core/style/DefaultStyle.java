@@ -36,8 +36,6 @@ import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.feature.AttributeValue;
 import org.polymap.core.style.model.feature.ConstantColor;
 import org.polymap.core.style.model.feature.ConstantFontFamily;
-import org.polymap.core.style.model.feature.ConstantFontStyle;
-import org.polymap.core.style.model.feature.ConstantFontWeight;
 import org.polymap.core.style.model.feature.ConstantNumber;
 import org.polymap.core.style.model.feature.ConstantStrokeCapStyle;
 import org.polymap.core.style.model.feature.ConstantStrokeDashStyle;
@@ -46,6 +44,7 @@ import org.polymap.core.style.model.feature.FontFamily;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
+import org.polymap.core.style.model.feature.ShadowStyle;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.model.raster.ConstantRasterBand;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
@@ -150,22 +149,13 @@ public class DefaultStyle {
     }
     
     
-    public static Color randomColor() {
-        int from = 50, range = 180;
-        return new Color( 
-                from + rand.nextInt( range ), 
-                from + rand.nextInt( range ),
-                from + rand.nextInt( range ) );
-    }
-
-
     public static TextStyle fillTextStyle( FeatureStyle fs, FeatureType schema ) {
         TextStyle text = fs.members().createElement( TextStyle.defaults );
-        text.font.get().family.createValue( ConstantFontFamily.defaults( FontFamily.Arial ) );
-        text.font.get().style.createValue( ConstantFontStyle.defaults() );
-        text.font.get().weight.createValue( ConstantFontWeight.defaults() );
-        text.font.get().size.createValue( ConstantNumber.defaults( 12.0 ) );
-        text.color.createValue( ConstantColor.defaults( new Color( 0x40, 0x40, 0x40 ) ) );
+        text.font.get().family.createValue( ConstantFontFamily.defaults( FontFamily.SansSerif ) );
+//        text.font.get().style.createValue( ConstantFontStyle.defaults() );
+//        text.font.get().weight.createValue( ConstantFontWeight.defaults() );
+//        text.font.get().size.createValue( ConstantNumber.defaults( 12.0 ) );
+//        text.color.createValue( ConstantColor.defaults( new Color( 0x40, 0x40, 0x40 ) ) );
 
         if (schema != null) {
             Collection<PropertyDescriptor> schemaDescriptors = schema.getDescriptors();
@@ -182,7 +172,12 @@ public class DefaultStyle {
         return text;
     }
 
+    
+    public static ShadowStyle fillShadowStyle( FeatureStyle fs, FeatureType schema ) {
+        return fs.members().createElement( ShadowStyle.defaults );
+    }
 
+    
     /**
      * Fills the given FeatureStyle with a default style for the given raster.
      * Usually this is {@link PredefinedColorMap#RAINBOW}.
@@ -221,6 +216,15 @@ public class DefaultStyle {
 
         predef.fillModel( colormap, gridCoverage, new NullProgressMonitor() );
         return colormap;
+    }
+
+
+    public static Color randomColor() {
+        int from = 50, range = 180;
+        return new Color( 
+                from + rand.nextInt( range ), 
+                from + rand.nextInt( range ),
+                from + rand.nextInt( range ) );
     }
 
 }

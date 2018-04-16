@@ -30,6 +30,7 @@ import org.polymap.core.runtime.PlainLazyInit;
 import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.Configurable;
 import org.polymap.core.runtime.config.Mandatory;
+import org.polymap.core.style.model.FeatureStyle;
 import org.polymap.core.style.model.StylePropertyValue;
 
 import org.polymap.model2.Property;
@@ -49,6 +50,9 @@ public class StylePropertyFieldSite
     @Mandatory
     public Config<Property<StylePropertyValue>> prop;
 
+    @Mandatory
+    public Config<FeatureStyle>                 mapStyle;
+    
     /** Optional: present if layer is connected to a feature data source. */
     public Config<FeatureStore>                 featureStore;
 

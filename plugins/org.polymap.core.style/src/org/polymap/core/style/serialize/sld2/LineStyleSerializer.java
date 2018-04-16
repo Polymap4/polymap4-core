@@ -77,6 +77,12 @@ public class LineStyleSerializer
             new StrokeCompositeSerializer( context )
                     .accessor.put( rule -> accessor.get().apply( rule ).get( 1 ).getStroke() )
                     .serialize( fillStroke, fts );
+
+            // displacement
+            style.displacement.opt().ifPresent( displacement -> {
+                set( fts, displacement.offsetSize, (value,syms) -> syms.get( 1 ).setPerpendicularOffset( value ) );
+                // no displacement in LineSymbolizer!?
+            });
         });
         
         // stroke line: 1st LineSymbolizer
@@ -88,6 +94,11 @@ public class LineStyleSerializer
             set( fts, outerStroke.color, (value,syms) -> syms.get( 0 ).getStroke().setColor( value ) );
             set( fts, outerStroke.opacity, (value,syms) -> syms.get( 0 ).getStroke().setOpacity( value ) );
             // XXX linestyle
+
+            // displacement
+            style.displacement.opt().ifPresent( displacement -> {
+                set( fts, displacement.offsetSize, (value,syms) -> syms.get( 0 ).setPerpendicularOffset( value ) );
+            });
         });
     }
     

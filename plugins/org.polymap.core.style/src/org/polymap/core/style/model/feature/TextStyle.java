@@ -40,6 +40,7 @@ public class TextStyle
         public TextStyle initialize( TextStyle proto ) throws Exception {
             Style.defaults.initialize( proto );
             proto.title.set( "Text" );
+            proto.color.createValue( ConstantColor.defaults( new Color( 0x40, 0x40, 0x40 ) ) );
             proto.font.createValue( Font.defaults );
             proto.halo.createValue( Halo.defaults );
             proto.labelPlacement.createValue( LabelPlacement.defaults );

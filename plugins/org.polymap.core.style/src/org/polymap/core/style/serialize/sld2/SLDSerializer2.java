@@ -35,6 +35,7 @@ import org.polymap.core.style.model.Style;
 import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
+import org.polymap.core.style.model.feature.ShadowStyle;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.model.raster.RasterColorMapStyle;
 import org.polymap.core.style.model.raster.RasterGrayStyle;
@@ -104,6 +105,9 @@ public class SLDSerializer2
                 }
                 else if (style instanceof LineStyle) {
                     serializer = new LineStyleSerializer( context );
+                }
+                else if (style instanceof ShadowStyle) {
+                    serializer = new ShadowStyleSerializer( context );
                 }
                 else if (style instanceof RasterGrayStyle) {
                     serializer = new RasterSerializer.GraySerializer( context );

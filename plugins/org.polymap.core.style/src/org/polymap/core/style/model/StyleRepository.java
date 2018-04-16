@@ -104,9 +104,14 @@ public class StyleRepository
                         PointStyle.class,
                         PolygonStyle.class,
                         TextStyle.class,
+                        ShadowStyle.class,
 
                         Halo.class,
                         LabelPlacement.class,
+                        Fill.class,
+                        Stroke.class,
+                        Displacement.class,
+                        Font.class,
                         
                         NoValue.class,
                         ConstantBoolean.class,
@@ -121,6 +126,7 @@ public class StyleRepository
                         ConstantStrokeDashStyle.class,
                         ConstantStrokeJoinStyle.class,
                         ConstantGraphic.class,
+                        ConstantStyleId.class,
                         
                         FilterMappedColors.class,
                         FilterMappedPrimitives.class,

@@ -14,12 +14,15 @@
  */
 package org.polymap.core.style.serialize.sld2;
 
+import org.geotools.styling.Symbolizer;
+
 import org.polymap.core.style.model.Style;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.Context;
 
 /**
  * 
- *
+ * @param <T> The type of the {@link Style} to serialize.
+ * @param <R> The type of the resulting {@link Symbolizer}.
  * @author Falko Bräutigam
  */
 public abstract class StyleSerializer<T extends Style,R>

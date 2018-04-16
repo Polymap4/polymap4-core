@@ -28,6 +28,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.polymap.core.style.model.StylePropertyValue;
+import org.polymap.core.style.ui.feature.AttributeLiteralFilterEditor;
 import org.polymap.core.style.ui.feature.AttributeValueEditor;
 import org.polymap.core.style.ui.feature.ColorGradient2FilterEditor;
 import org.polymap.core.style.ui.feature.ColorMap2FilterEditor;
@@ -41,7 +42,7 @@ import org.polymap.core.style.ui.feature.ConstantNumberEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeCapStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeDashStyleEditor;
 import org.polymap.core.style.ui.feature.ConstantStrokeJoinStyleEditor;
-import org.polymap.core.style.ui.feature.AttributeLiteralFilterEditor;
+import org.polymap.core.style.ui.feature.ConstantStyleIdEditor;
 import org.polymap.core.style.ui.feature.NumberGradient2FilterEditor;
 import org.polymap.core.style.ui.feature.NumberGradient2MapScaleEditor;
 import org.polymap.core.style.ui.feature.ScaleRangeFilterEditor;
@@ -73,6 +74,7 @@ public abstract class StylePropertyEditor<SPV extends StylePropertyValue> {
             ConstantStrokeCapStyleEditor.class, 
             ConstantStrokeDashStyleEditor.class,
             ConstantStrokeJoinStyleEditor.class,
+            ConstantStyleIdEditor.class,
             // attribute value
             AttributeValueEditor.class,
             //

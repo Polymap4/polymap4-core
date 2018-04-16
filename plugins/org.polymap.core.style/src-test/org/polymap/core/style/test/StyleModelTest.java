@@ -63,6 +63,7 @@ import org.polymap.core.style.model.feature.LineStyle;
 import org.polymap.core.style.model.feature.PointStyle;
 import org.polymap.core.style.model.feature.PolygonStyle;
 import org.polymap.core.style.model.feature.ScaleMappedPrimitives;
+import org.polymap.core.style.model.feature.ShadowStyle;
 import org.polymap.core.style.model.feature.StrokeDashStyle;
 import org.polymap.core.style.model.feature.TextStyle;
 import org.polymap.core.style.serialize.FeatureStyleSerializer.OutputFormat;
@@ -116,7 +117,7 @@ public class StyleModelTest {
         PointStyle style = fs.members().createElement( PointStyle.defaults );
         assertTrue( style.visibleIf.get() instanceof ConstantFilter );
 
-        style.diameter.createValue( ConstantNumber.defaults( 100.0 ) );
+        style.diameter.createValue( ConstantNumber.defaults( 100.5 ) );
         style.rotation.createValue( ConstantNumber.defaults( 45.0 ) );
         
         style.fill.get().color.createValue( ConstantColor.defaults( 0, 0, 0 ) );
@@ -139,7 +140,7 @@ public class StyleModelTest {
         assertEquals( 1, rule.symbolizers().size() );
         assertNull( rule.getFilter() );
         PointSymbolizer sym = (PointSymbolizer)rule.symbolizers().get( 0 );
-        assertEqualsLiteral( 100.0, sym.getGraphic().getSize() );
+        assertEqualsLiteral( 100.5, sym.getGraphic().getSize() );
         assertEqualsLiteral( 45.0, sym.getGraphic().getRotation() );
         assertEquals( 1, sym.getGraphic().graphicalSymbols().size() );
         GraphicalSymbol symbol = sym.getGraphic().graphicalSymbols().get( 0 );
@@ -147,6 +148,33 @@ public class StyleModelTest {
         assertEqualsLiteral( 0.0, mark.getFill().getOpacity() );
         assertEqualsLiteral( 0.5, mark.getStroke().getOpacity() );
         assertEqualsLiteral( 5.0, mark.getStroke().getWidth() );
+    }
+
+    
+    @Test
+    public void testPointShadow() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
+
+        PointStyle style = fs.members().createElement( PointStyle.defaults );
+        style.diameter.createValue( ConstantNumber.defaults( 100.0 ) );
+        style.rotation.createValue( ConstantNumber.defaults( 45.0 ) );
+        style.fill.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
+        style.fill.get().opacity.createValue( ConstantNumber.defaults( 0.0 ) );
+        style.stroke.get().color.createValue( ConstantColor.defaults( 100, 100, 100 ) );
+        style.stroke.get().width.createValue( ConstantNumber.defaults( 5.0 ) );
+        style.stroke.get().opacity.createValue( ConstantNumber.defaults( 0.5 ));
+
+        ShadowStyle shadow = fs.members().createElement( ShadowStyle.defaults );
+        shadow.color.createValue( ConstantColor.defaults( 0, 0, 100 ) );
+        
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        
+        Style result = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
+        assertEquals( 4, result.featureTypeStyles().size() );
+        FeatureTypeStyle fts = result.featureTypeStyles().get( 1 );
+        assertEquals( 1, fts.rules().size() );
+        //Rule rule = fts.rules().get( 0 );
     }
 
     
@@ -375,16 +403,11 @@ public class StyleModelTest {
     }
 
 
-    @Ignore
     @Test
     public void testText() throws Exception {
         FeatureStyle fs = repo.newFeatureStyle();
-
-        // point
         TextStyle text = fs.members().createElement( TextStyle.defaults );
-
         text.property.createValue( ConstantString.defaults( "constant" ) );
-        // text.halo.createValue( Halo.defaults );
         text.halo.get().color.createValue( ConstantColor.defaults( 1, 2, 3 ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
@@ -392,6 +415,26 @@ public class StyleModelTest {
         text.property.createValue( AttributeValue.defaults( "featureproperty", null, null ) );
         fs.store();
         log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+    }
+
+
+    @Test
+    public void testTextShadow() throws Exception {
+        FeatureStyle fs = repo.newFeatureStyle();
+        TextStyle text = fs.members().createElement( TextStyle.defaults );
+        text.property.createValue( ConstantString.defaults( "constant" ) );
+
+        ShadowStyle shadow = fs.members().createElement( ShadowStyle.defaults );
+        shadow.color.createValue( ConstantColor.defaults( 0, 0, 100 ) );
+        
+        fs.store();
+        log.info( "SLD: " + repo.serializedFeatureStyle( fs.id(), String.class ) );
+        
+        Style result = repo.serializedFeatureStyle( fs.id(), Style.class ).get();
+        assertEquals( 2, result.featureTypeStyles().size() );
+        FeatureTypeStyle fts = result.featureTypeStyles().get( 1 );
+        assertEquals( 1, fts.rules().size() );
+        //Rule rule = fts.rules().get( 0 );
     }
 
 
