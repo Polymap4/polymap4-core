@@ -219,7 +219,7 @@ public class StyleRepository
                 return featureStyle( id ).map( fs -> {
                     Context sc = new Context().featureStyle.put( fs ).outputFormat.put( outputFormat );
                     org.geotools.styling.Style result = new SLDSerializer2().serialize( sc );
-                    log.info( "SLD: " + toSLD( result ) );
+                    //log.info( "SLD: " + toSLD( result ) );
                     return result;
                 });
             }
