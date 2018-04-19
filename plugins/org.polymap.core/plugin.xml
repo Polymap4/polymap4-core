@@ -89,4 +89,17 @@
       </concern>
    </extension>
 
+   <extension
+         point="org.eclipse.equinox.http.registry.filters">
+      <filter
+            alias="/"
+            class="org.polymap.core.security.SpnegoFilter">
+            <!--init-param
+                  name="spnego.login.conf" value="file:/home/joerg/git/mapzone/polymap4-core/plugins/org.polymap.core/resource/login.conf">
+            </init-param>
+            <init-param
+                  name="spnego.krb5.conf" value="/etc/krb5.conf">
+            </init-param-->
+      </filter>
+   </extension>
 </plugin>
