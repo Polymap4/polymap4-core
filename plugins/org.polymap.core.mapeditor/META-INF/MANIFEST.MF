@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MapEditor
 Bundle-SymbolicName: org.polymap.core.mapeditor;singleton:=true
-Bundle-Version: 4.0.0.qualifier
+Bundle-Version: 4.0.1.qualifier
 Bundle-Activator: org.polymap.core.mapeditor.MapEditorPlugin
 Bundle-Vendor: polymap.org
 Bundle-Localization: plugin
@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.rap.ui.forms;bundle-version="2.3.1",
  org.polymap.core;bundle-version="4.0.0";visibility:=reexport,
  org.polymap.core.data;bundle-version="4.0.0";visibility:=reexport,
- org.polymap.rap.openlayers;bundle-version="1.0.0";visibility:=reexport
+ org.polymap.rap.openlayers;bundle-version="2.0.1";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.polymap.core.mapeditor,

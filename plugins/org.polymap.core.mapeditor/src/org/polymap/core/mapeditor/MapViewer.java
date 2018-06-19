@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2013-2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2013-2018, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.json.JSONArray;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import org.apache.commons.logging.Log;
@@ -49,10 +48,10 @@ import org.polymap.core.runtime.config.Config;
 import org.polymap.core.runtime.config.ConfigurationFactory;
 import org.polymap.core.runtime.config.DefaultPropertyConcern;
 import org.polymap.core.runtime.config.Mandatory;
+import org.polymap.core.runtime.event.EventHandler;
 import org.polymap.core.runtime.i18n.IMessages;
 
 import org.polymap.rap.openlayers.base.OlEvent;
-import org.polymap.rap.openlayers.base.OlEventListener;
 import org.polymap.rap.openlayers.base.OlMap;
 import org.polymap.rap.openlayers.control.Control;
 import org.polymap.rap.openlayers.interaction.Interaction;
@@ -69,10 +68,9 @@ import org.polymap.rap.openlayers.view.View;
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
 public class MapViewer<CL>
-        extends Viewer
-        implements OlEventListener {
+        extends Viewer {
 
-    private static Log log = LogFactory.getLog( MapViewer.class );
+    private static final Log log = LogFactory.getLog( MapViewer.class );
     
     public static final IMessages       i18n = Messages.forPrefix( "MapViewer" ); //$NON-NLS-1$
 
@@ -183,10 +181,9 @@ public class MapViewer<CL>
         }
         // maxExtent
         View view = olmap.view.get();
-        // view.extent.set( maxExtent.map( new ToOlExtent() ).get() );
-        view.addEventListener( View.Event.resolution, this );
-        view.addEventListener( View.Event.rotation, this );
-        view.addEventListener( View.Event.center, this );
+        view.addEventListener( View.Event.RESOLUTION, this, new View.ExtentEventPayload() );
+        view.addEventListener( View.Event.ROTATION, this, new View.ExtentEventPayload() );
+        view.addEventListener( View.Event.CENTER, this, new View.ExtentEventPayload() );
     
         // center
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();
@@ -331,7 +328,17 @@ public class MapViewer<CL>
     }
     
     
+    /** @deprecated Use {@link #map()} instead. */
     public OlMap getMap() {
+        return olmap;
+    }
+
+
+    /**
+     * The OlMap of this viewer, or <code>null</code> if the underlying map is not
+     * yet initialized by {@link #setInput(Object)}.
+     */
+    public OlMap map() {
         return olmap;
     }
 
@@ -403,19 +410,18 @@ public class MapViewer<CL>
     }
     
     
-    @Override
-    public void handleEvent( OlEvent ev ) {
-        JSONArray extent = ev.properties().optJSONArray( "extent" );
-        if (extent != null) {
-            Envelope envelope = new Envelope( extent.getDouble( 0 ), extent.getDouble( 2 ), extent.getDouble( 1 ),
-                    extent.getDouble( 3 ) );
+    @EventHandler( display=true )
+    protected void onOlEvent( OlEvent ev ) {
+        log.info( "OlEvent: " + ev.properties() );
+        
+        View.ExtentEventPayload.findIn( ev ).ifPresent( payload -> {
+            Extent extent = payload.extent();
+            Envelope envelope = new Envelope( extent.minx, extent.maxx, extent.miny, extent.miny );
             // bypass concern, prevent loop
             this.mapExtent.info().setRawValue( envelope );
-        }
-        Double newResolution = ev.properties().optDouble( "resolution" );
-        if (newResolution != null) {
-            this.resolution.info().setRawValue( newResolution.floatValue() );
-        }
+            
+            this.resolution.info().setRawValue( payload.resolution() );
+        });
     }
 
     
