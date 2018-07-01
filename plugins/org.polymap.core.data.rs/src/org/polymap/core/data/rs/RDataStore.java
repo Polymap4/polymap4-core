@@ -356,10 +356,13 @@ public class RDataStore
         // remove schema
         Updater tx = store.prepareUpdate();
         try {
-            ResultSet rs = store.find( new SimpleQuery().setMaxResults( 1 )
+            SimpleQuery query = new SimpleQuery().setMaxResults( 1 )
                     .eq( "type", "FeatureType" )
-                    .eq( "name", schema.getName().getLocalPart() )
-                    .eq( "namespace", schema.getName().getNamespaceURI() ) );
+                    .eq( "name", schema.getName().getLocalPart() );
+            if (schema.getName().getNamespaceURI() != null) {
+                query.eq( "namespace", schema.getName().getNamespaceURI() );
+            }
+            ResultSet rs = store.find( query );
 
             assert rs.count() == 1 : "Illegal number of schemas found: " + rs.count();
             tx.remove( rs.get( 0 ) );
