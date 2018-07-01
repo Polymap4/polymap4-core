@@ -3,7 +3,7 @@ Eclipse-BuddyPolicy: registered
 Bundle-ManifestVersion: 2
 Bundle-Name: Data access and processing
 Bundle-SymbolicName: org.polymap.core.data;singleton:=true
-Bundle-Version: 4.0.4.qualifier
+Bundle-Version: 4.0.5.qualifier
 Bundle-Activator: org.polymap.core.data.DataPlugin
 Bundle-Vendor: polymap.org
 Require-Bundle: org.eclipse.rap.rwt;bundle-version="2.3.1",

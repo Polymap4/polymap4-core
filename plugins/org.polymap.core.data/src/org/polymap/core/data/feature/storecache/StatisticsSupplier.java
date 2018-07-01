@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
-import org.polymap.core.data.feature.storecache.StoreCacheProcessor.AtomicLong2;
+import org.polymap.core.data.feature.storecache.StoreCacheProcessor.Timestamp;
 import org.polymap.core.data.pipeline.Param;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.runtime.DurationFormat;
@@ -68,7 +68,7 @@ public class StatisticsSupplier
         btn.setText( "FLUSH CACHE" );
         btn.setToolTipText( "Reset timestamp so that next access will re-fetch contents from backend store" );
         btn.addSelectionListener( UIUtils.selectionListener( ev -> {
-            StoreCacheProcessor.lastUpdated.put( layerId, new AtomicLong2() );
+            Timestamp.of( layerId ).clear();
             updateUI();
         }));
         
@@ -81,8 +81,8 @@ public class StatisticsSupplier
 
     
     protected void updateUI() {
-        AtomicLong2 timestamp = StoreCacheProcessor.lastUpdated.get( layerId );
-        if (timestamp != null && timestamp.get() > 0) {
+        Timestamp timestamp = Timestamp.of( layerId );
+        if (timestamp.get() > 0) {
             long ago = System.currentTimeMillis() - timestamp.get();
             l.setText( "Last update: " + df.format( new Date( timestamp.get() ) ) + "  (" + ddf.format( Duration.ofMillis( ago ) ) + ")" );
         }

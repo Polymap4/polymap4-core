@@ -15,22 +15,25 @@
 package org.polymap.core.data.feature.storecache;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.Duration;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureStore;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Throwables;
 
+import org.polymap.core.CorePlugin;
+import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.FeaturesProducer;
@@ -49,6 +52,7 @@ import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 import org.polymap.core.data.pipeline.ProcessorProbe;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
+import org.polymap.core.runtime.PlainLazyInit;
 
 /**
  * Caches the entire contents of the upstream {@link FeaturesProducer} (aka backend
@@ -75,26 +79,65 @@ public class StoreCacheProcessor
     @Param.UI( description="Statistics", custom=StatisticsSupplier.class )
     public static final Param           STATISTICS = new Param( "resname", String.class );
 
-    /**
-     * XXX I'm to stupid to use AtomicLong check/set methods?
-     */
-    static class AtomicLong2
-            extends AtomicLong {
 
+    /**
+     * {@link File} based timestamp.
+     */
+    public static class Timestamp {
+
+        public static Timestamp of( String layerId ) {
+            return new Timestamp( layerId );
+        }
+        
+        // instance ***************************************
+        
+        private String          layerId;
+        
+        private Lazy<File>      file = new PlainLazyInit( () -> {
+            File cacheDir = new File( CorePlugin.getCacheLocation( DataPlugin.getDefault() ), "storecache" );
+            return new File( cacheDir, layerId );
+        });
+        
+        private Timestamp( String layerId ) {
+            this.layerId = layerId;
+        }
+
+        public long get() {
+            try {
+                return file.get().exists() 
+                        ? Long.parseLong( FileUtils.readFileToString( file.get(), "UTF-8" ) )
+                        : 0;
+            }
+            catch (NumberFormatException | IOException e) {
+                throw new RuntimeException( e );
+            }
+        }        
+        
         public <E extends Exception> void checkSet( Function<Long,Boolean> check, Task<E> set ) throws E {
             if (check.apply( get() )) {
-                synchronized (this) {
-                    if (check.apply( get() )) {
-                        set.run();
-                    }
+                set.run();
+                try {
+                    // XXX no real atomic check but may give a hint
+                    //assert !file.get().exists() || timestamp == Long.parseLong( FileUtils.readFileToString( f, "UTF-8" ) );
+                    FileUtils.writeStringToFile( file.get(), Long.toString( System.currentTimeMillis() ), "UTF-8" );
                 }
+                catch (IOException e) {
+                    throw new RuntimeException( e );                    
+                }
+            }
+        }
+        
+        public void clear() {
+            try {
+                Files.deleteIfExists( file.get().toPath() );
+            }
+            catch (IOException e) {
+                throw new RuntimeException( e );                    
             }
         }
     }
     
-    /** Maps {@link PipelineProcessorSite#layerId} into atomic timestamp. */
-    static ConcurrentMap<String,AtomicLong2>    lastUpdated = new ConcurrentHashMap();
-    
+
     private static Lazy<DataAccess>             cachestore;
     
     /**
@@ -133,8 +176,6 @@ public class StoreCacheProcessor
         cacheDs = cachestore.get();
         String resName = site.dsd.get().resourceName.get();
         
-        lastUpdated.computeIfAbsent( site.layerId.get(), k -> new AtomicLong2() );
-        
         // init sync strategy
         String classname = getClass().getPackage().getName() + "." + SYNC_TYPE.get( site );
         sync = (SyncStrategy)getClass().getClassLoader().loadClass( classname ).newInstance();
@@ -160,14 +201,12 @@ public class StoreCacheProcessor
 
     
     protected <E extends Exception> void ifUpdateNeeded( Task<E> task ) throws E {
-        AtomicLong2 timestamp = lastUpdated.get( site.layerId.get() );
+        Timestamp timestamp = Timestamp.of( site.layerId.get() );
         long timeout = MIN_UPDATE_TIMEOUT.get( site ).toMillis();
-        
+
         log.info( "Cache timeout: T - " + Math.max(0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );
-        
-        timestamp.checkSet( c -> c+timeout < System.currentTimeMillis(), () -> {
+        timestamp.checkSet( t -> t + timeout < System.currentTimeMillis(), () -> {
             task.run();
-            timestamp.set( System.currentTimeMillis() );            
         });
     }
     
@@ -176,6 +215,7 @@ public class StoreCacheProcessor
     interface Task<E extends Exception> {
         public void run() throws E;
     }
+    
     
     protected void withSync( ProcessorProbe probe, ProcessorContext context, Task task ) throws Exception {
         // XXX Exception?
@@ -187,6 +227,7 @@ public class StoreCacheProcessor
             sync.afterProbe( this, probe, context );
         }
     }
+    
     
     @Override
     public void setTransactionRequest( TransactionRequest request, ProcessorContext context ) throws Exception {

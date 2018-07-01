@@ -110,6 +110,21 @@ public class FullDataStoreSyncStrategy
     }
 
 
+//    protected class TimerJob
+//            extends UIJob {
+//
+//        public TimerJob() {
+//            super( name );
+//        }
+//
+//        @Override
+//        protected void runWithException( IProgressMonitor monitor ) throws Exception {
+//            // XXX Auto-generated method stub
+//            throw new RuntimeException( "not yet implemented." );
+//        }
+//    }
+    
+    
     /**
      * 
      */
@@ -118,6 +133,7 @@ public class FullDataStoreSyncStrategy
 
         public SyncJob() {
             super( "Cache update", false );
+            setPriority( Job.BUILD );
         }
 
         @Override
