@@ -14,6 +14,8 @@
  */
 package org.polymap.core.data.feature.storecache;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import java.io.IOException;
 import java.time.Duration;
 
@@ -54,6 +56,9 @@ public class FullDataStoreSyncStrategy
 
     private static final Log log = LogFactory.getLog( FullDataStoreSyncStrategy.class );
 
+    /** True, if a {@link SyncJob} is running currently. */
+    private static AtomicBoolean    running = new AtomicBoolean();
+
     /** The original (upstream) service found in the processor site. */
     private DataAccess          ds;
 
@@ -77,23 +82,35 @@ public class FullDataStoreSyncStrategy
         // schedule sync
         assert syncJob.getState() == Job.NONE;
         proc.ifUpdateNeeded( () -> {
-            syncJob.schedule();
-            // waiting here is important as several processors may work on the same
-            // layer and we need a relyable status after init;
-            // moreover, it seems that processor init() is called several times from
-            // different instances (!) when a pipeline is created; if we would not
-            // wait here then one syncJob starts, ifUpdateNeeded is updated and the next
-            // instances assumes that cache is up-to-date and shows maybe empty layer
-            if (Display.getCurrent() == null) {
-                syncJob.join();
+            if (running.compareAndSet( false, true )) {
+                try {
+                    syncJob.schedule();
+                    // waiting here is important as several processors may work on the same
+                    // layer and we need a relyable status after init;
+                    // moreover, it seems that processor init() is called several times from
+                    // different instances (!) when a pipeline is created; if we would not
+                    // wait here then one syncJob starts, ifUpdateNeeded is updated and the next
+                    // instances assumes that cache is up-to-date and shows maybe empty layer
+                    if (Display.getCurrent() == null) {
+                        syncJob.join();
+                    }
+                    else {
+                        if (!syncJob.joinAndDispatch( Duration.ofSeconds( 30 ).toMillis() )) {
+                            StatusDispatcher.handleError( 
+                                    "The cache of resource '" + resName + "'"
+                                            + "could not be updated within 30s. The contents"
+                                            + "might be out of sync.", null );
+                        }
+                    }
+                    return true;
+                }
+                finally {
+                    running.set( false );
+                }
             }
             else {
-                if (!syncJob.joinAndDispatch( Duration.ofSeconds( 30 ).toMillis() )) {
-                    StatusDispatcher.handleError( 
-                            "The cache of resource '" + resName + "'"
-                            + "could not be updated within 30s. The contents"
-                            + "might be out of sync.", null );
-                }
+                log.info( "Update needed but other Job is running!" );
+                return false;
             }
         });
     }
@@ -102,35 +119,32 @@ public class FullDataStoreSyncStrategy
     @Override
     public void beforeProbe( StoreCacheProcessor proc, ProcessorProbe probe, ProcessorContext context ) throws Exception {
         proc.ifUpdateNeeded( () -> {
-            syncJob.schedule();
-            // XXX unfortunately remove/re-create schema and fetching features is not
-            // an atomic operation (due to stupid geotools DataStore API)
-            syncJob.join();
+            if (running.compareAndSet( false, true )) {
+                try {
+                    syncJob.schedule();
+                    // XXX unfortunately remove/re-create schema and fetching features is not
+                    // an atomic operation (due to stupid geotools DataStore API)
+                    syncJob.join();
+                    return true;
+                }
+                finally {
+                    running.set( false );
+                }
+            }
+            else {
+                log.info( "Update needed but other Job is running!" );
+                return false;
+            }
         });
     }
 
 
-//    protected class TimerJob
-//            extends UIJob {
-//
-//        public TimerJob() {
-//            super( name );
-//        }
-//
-//        @Override
-//        protected void runWithException( IProgressMonitor monitor ) throws Exception {
-//            // XXX Auto-generated method stub
-//            throw new RuntimeException( "not yet implemented." );
-//        }
-//    }
-    
-    
     /**
      * 
      */
     protected class SyncJob
             extends UIJob {
-
+        
         public SyncJob() {
             super( "Cache update", false );
             setPriority( Job.BUILD );
@@ -146,12 +160,13 @@ public class FullDataStoreSyncStrategy
             
             // re-create schema
             monitor.subTask( "Re-creating schema" );
-            if (cacheDs.getNames().contains( fs.getSchema().getName() )) {
-                log.info( "Removing schema: " + fs.getSchema().getName() );
-                cacheDs.removeSchema( fs.getSchema().getName() );
+            FeatureType schema = fs.getSchema();
+            if (cacheDs.getNames().contains( schema.getName() )) {
+                log.info( "Removing schema: " + schema.getName() );
+                cacheDs.removeSchema( schema.getName() );
             }
-            log.info( "Creating cache schema: " + fs.getSchema().getName() );
-            cacheDs.createSchema( fs.getSchema() );
+            log.info( "Creating cache schema: " + schema.getName() );
+            cacheDs.createSchema( schema );
             monitor.worked( 1 );
                         
             // fill cache

@@ -15,25 +15,18 @@
 package org.polymap.core.data.feature.storecache;
 
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.Duration;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureStore;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.common.base.Throwables;
 
-import org.polymap.core.CorePlugin;
-import org.polymap.core.data.DataPlugin;
 import org.polymap.core.data.feature.AddFeaturesRequest;
 import org.polymap.core.data.feature.DataSourceProcessor;
 import org.polymap.core.data.feature.FeaturesProducer;
@@ -52,7 +45,6 @@ import org.polymap.core.data.pipeline.PipelineProcessorSite.Params;
 import org.polymap.core.data.pipeline.ProcessorProbe;
 import org.polymap.core.runtime.Lazy;
 import org.polymap.core.runtime.LockedLazyInit;
-import org.polymap.core.runtime.PlainLazyInit;
 
 /**
  * Caches the entire contents of the upstream {@link FeaturesProducer} (aka backend
@@ -79,66 +71,7 @@ public class StoreCacheProcessor
     @Param.UI( description="Statistics", custom=StatisticsSupplier.class )
     public static final Param           STATISTICS = new Param( "resname", String.class );
 
-
-    /**
-     * {@link File} based timestamp.
-     */
-    public static class Timestamp {
-
-        public static Timestamp of( String layerId ) {
-            return new Timestamp( layerId );
-        }
-        
-        // instance ***************************************
-        
-        private String          layerId;
-        
-        private Lazy<File>      file = new PlainLazyInit( () -> {
-            File cacheDir = new File( CorePlugin.getCacheLocation( DataPlugin.getDefault() ), "storecache" );
-            return new File( cacheDir, layerId );
-        });
-        
-        private Timestamp( String layerId ) {
-            this.layerId = layerId;
-        }
-
-        public long get() {
-            try {
-                return file.get().exists() 
-                        ? Long.parseLong( FileUtils.readFileToString( file.get(), "UTF-8" ) )
-                        : 0;
-            }
-            catch (NumberFormatException | IOException e) {
-                throw new RuntimeException( e );
-            }
-        }        
-        
-        public <E extends Exception> void checkSet( Function<Long,Boolean> check, Task<E> set ) throws E {
-            if (check.apply( get() )) {
-                set.run();
-                try {
-                    // XXX no real atomic check but may give a hint
-                    //assert !file.get().exists() || timestamp == Long.parseLong( FileUtils.readFileToString( f, "UTF-8" ) );
-                    FileUtils.writeStringToFile( file.get(), Long.toString( System.currentTimeMillis() ), "UTF-8" );
-                }
-                catch (IOException e) {
-                    throw new RuntimeException( e );                    
-                }
-            }
-        }
-        
-        public void clear() {
-            try {
-                Files.deleteIfExists( file.get().toPath() );
-            }
-            catch (IOException e) {
-                throw new RuntimeException( e );                    
-            }
-        }
-    }
-    
-
-    private static Lazy<DataAccess>             cachestore;
+    private static Lazy<DataAccess>     cachestore;
     
     /**
      * Initialize the global cache store.
@@ -204,16 +137,14 @@ public class StoreCacheProcessor
         Timestamp timestamp = Timestamp.of( site.layerId.get() );
         long timeout = MIN_UPDATE_TIMEOUT.get( site ).toMillis();
 
-        log.info( "Cache timeout: T - " + Math.max(0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );
-        timestamp.checkSet( t -> t + timeout < System.currentTimeMillis(), () -> {
-            task.run();
-        });
+        log.info( "Cache timeout: T - " + Math.max( 0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );
+        timestamp.checkSet( t -> t + timeout < System.currentTimeMillis(), task );
     }
     
     
     @FunctionalInterface
     interface Task<E extends Exception> {
-        public void run() throws E;
+        public boolean run() throws E;
     }
     
     
@@ -231,8 +162,10 @@ public class StoreCacheProcessor
     
     @Override
     public void setTransactionRequest( TransactionRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.setTransactionRequest( request, context ) );
+        withSync( request, context, () -> { 
+            cache.setTransactionRequest( request, context );
+            return true;
+        });
     }
 
     @Override
@@ -258,26 +191,34 @@ public class StoreCacheProcessor
 
     @Override
     public void getFeatureTypeRequest( GetFeatureTypeRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.getFeatureTypeRequest( request, context ) );
+        withSync( request, context, () -> { 
+            cache.getFeatureTypeRequest( request, context );
+            return true;
+        });
     }
 
     @Override
     public void getFeatureSizeRequest( GetFeaturesSizeRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.getFeatureSizeRequest( request, context ) );
+        withSync( request, context, () -> {
+            cache.getFeatureSizeRequest( request, context );
+            return true;
+        });
     }
 
     @Override
     public void getFeatureBoundsRequest( GetBoundsRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.getFeatureBoundsRequest( request, context ) );
+        withSync( request, context, () -> { 
+            cache.getFeatureBoundsRequest( request, context );
+            return true;
+        });
     }
 
     @Override
     public void getFeatureRequest( GetFeaturesRequest request, ProcessorContext context ) throws Exception {
-        withSync( request, context, () -> 
-                cache.getFeatureRequest( request, context ) );
+        withSync( request, context, () -> { 
+            cache.getFeatureRequest( request, context );
+            return true;
+        });
     }
     
 }

@@ -25,7 +25,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
-import org.polymap.core.data.feature.storecache.StoreCacheProcessor.Timestamp;
 import org.polymap.core.data.pipeline.Param;
 import org.polymap.core.data.pipeline.PipelineProcessorSite;
 import org.polymap.core.runtime.DurationFormat;
