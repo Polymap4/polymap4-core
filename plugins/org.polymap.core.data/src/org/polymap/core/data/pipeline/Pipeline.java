@@ -71,6 +71,11 @@ public class Pipeline
     }
 
 
+    public boolean remove( ProcessorDescriptor procDesc ) {
+        return chain.remove( procDesc );
+    }
+
+
     public ProcessorDescriptor get( int index ) {
         assert index < chain.size();
         return chain.get( index );

@@ -152,6 +152,9 @@ public abstract class SimpleWmsServer
                 String format = kvp.get( "FORMAT" );
                 format = format != null ? format : "image/png";
 
+                // TIME
+                String time = kvp.get( "TIME" );
+                
                 log.debug( "    --layers= " + layer );
                 log.debug( "    --imageSize= " + width + "x" + height );
                 log.debug( "    --bbox= " + bbox );
@@ -159,13 +162,12 @@ public abstract class SimpleWmsServer
                 log.debug( "    --CRS= " + bbox.getCoordinateReferenceSystem().getName() );
 
                 // find/create pipeline
-                final Pipeline pipeline = pipelines.get( layer, key -> 
-                createPipeline( key ) );
+                final Pipeline pipeline = pipelines.get( layer, key -> createPipeline( key ) );
 
                 long modifiedSince = request.getDateHeader( "If-Modified-Since" );
-                final ProcessorRequest pr = new GetMapRequest( 
+                final ProcessorRequest pr = new GetMapRequest(
                         Collections.singletonList( layer ), Collections.singletonList( style ), 
-                        srsCode, bbox, format, width, height, modifiedSince );  
+                        srsCode, bbox, format, width, height, modifiedSince, time );  
 
                 // process
                 Lazy<ServletOutputStream> out = new PlainLazyInit( () -> {

@@ -59,7 +59,7 @@ public class ProcessorSignatureTest {
         assertTrue( equals( signature.responseIn, EncodedImageResponse.class, EndOfProcessing.class, GetBoundsResponse.class ) );
         assertTrue( equals( signature.responseOut, EncodedImageResponse.class, EndOfProcessing.class, GetBoundsResponse.class ) );
 
-        signature.invoke( proc, new GetMapRequest( null, null, null, null, null, 0, 0, 0 ), new TestProcessorContext() );
+        signature.invoke( proc, new GetMapRequest( null, null, null, null, null, 0, 0, 0, null ), new TestProcessorContext() );
     }
 
 

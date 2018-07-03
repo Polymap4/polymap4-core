@@ -187,7 +187,7 @@ public class MapViewer<CL>
     
         // center
         Coordinate center = mapExtent.orElse( maxExtent.get() ).centre();
-        log.info( "center: " + center );
+        log.debug( "center: " + center );
         view.center.set( ToOlCoordinate.map( center ) );
         
         // read layers from contentProvider
@@ -412,8 +412,6 @@ public class MapViewer<CL>
     
     @EventHandler( display=true )
     protected void onOlEvent( OlEvent ev ) {
-        log.info( "OlEvent: " + ev.properties() );
-        
         View.ExtentEventPayload.findIn( ev ).ifPresent( payload -> {
             Extent extent = payload.extent();
             Envelope envelope = new Envelope( extent.minx, extent.maxx, extent.miny, extent.miny );

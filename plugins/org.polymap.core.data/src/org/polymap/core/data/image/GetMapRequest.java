@@ -52,6 +52,8 @@ public class GetMapRequest
     private List<String>            layers;
 
     private List<String>            styles;
+    
+    private String                  time;
 
 //    private Map<LayerType,Interpolation> interpolations = new HashMap();
 //
@@ -63,7 +65,7 @@ public class GetMapRequest
     
 
     public GetMapRequest( List<String> layers, List<String> styles, String crs, ReferencedEnvelope bbox, 
-            String format, int width, int height, long ifModifiedSince ) {
+            String format, int width, int height, long ifModifiedSince, String time ) {
         this.layers = layers;
         this.styles = styles;
         this.crs = crs;
@@ -72,6 +74,7 @@ public class GetMapRequest
         this.width = width;
         this.height = height;
         this.ifModifiedSince = ifModifiedSince;
+        this.time = time;
     }
 
     public GetMapRequest( GetMapRequest rhs ) {
@@ -107,6 +110,10 @@ public class GetMapRequest
 
     public List<String> getStyles() {
         return styles;
+    }
+    
+    public String getTime() {
+        return time;
     }
 
     /**
