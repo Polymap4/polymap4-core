@@ -317,7 +317,8 @@ public class PipelineMapOutputFormat
                 StringUtils.defaultIfEmpty( request.getFormat(), DEFAULT_MAP_FORMAT ), 
                 mapContent.getMapWidth(), 
                 mapContent.getMapHeight(), 
-                0L /* Date.valueOf( modifiedSince )*/ );
+                0L /* Date.valueOf( modifiedSince )*/,
+                null /*XXX request.getTime()*/ );
     }
 
 
