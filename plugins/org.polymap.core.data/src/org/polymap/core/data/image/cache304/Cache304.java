@@ -328,6 +328,9 @@ public class Cache304 {
             String styleHash = StringUtils.defaultString( request.getStyles().get( 0 ), "_" );
             cachedTile.style.put( styleHash );
 
+            String time = StringUtils.defaultString( request.getTime(), "_" );
+            cachedTile.time.put( time );
+
             cachedTile.format.put( request.getFormat() );
             
             //String layer = request.getLayers().get( 0 );
@@ -419,6 +422,10 @@ public class Cache304 {
         // style
         String styleHash = StringUtils.defaultString( request.getStyles().get( 0 ), "_" );
         query.eq( CachedTile.TYPE.style.name(), styleHash );
+
+        // time
+        String time = StringUtils.defaultString( request.getTime(), "_" );
+        query.eq( CachedTile.TYPE.time.name(), time );
 
         // format
         query.eq( CachedTile.TYPE.format.name(), request.getFormat() );
