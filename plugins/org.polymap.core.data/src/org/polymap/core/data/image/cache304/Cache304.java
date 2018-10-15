@@ -477,7 +477,7 @@ public class Cache304 {
             try {
                 Timer timer = new Timer();
                 queueState = updateQueue.state(); 
-                log.info( "Updater: flushing elements in queue: " + queueState.size() );
+                log.debug( "Updater: flushing elements in queue: " + queueState.size() );
                 for (CacheUpdateQueue.Command command: queueState) {
                     try {
                         command.apply( tx );
@@ -531,7 +531,7 @@ public class Cache304 {
                 query.sort( CachedTile.TYPE.lastAccessed.name(), SimpleQuery.ASC, String.class );
                 
                 ResultSet expiredTiles = store.find( query );
-                log.info( "Updater: pruning expired tiles: " + expiredTiles.count() );
+                log.debug( "Updater: pruning expired tiles: " + expiredTiles.count() );
                 
                 for (IRecordState state : expiredTiles) {
                     deleteTile( state, tx );
@@ -551,7 +551,7 @@ public class Cache304 {
 
             // check store size ***************************
             if (dataDirSize.get() > maxStoreSizeInByte) {
-                log.info( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
+                log.debug( "Updater: checking maxStoreSize... (" + dataDirSize.get() + "/" + maxStoreSizeInByte + ")" );
                 tx = store.prepareUpdate();
                 try {
                     // check max livetime

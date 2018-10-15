@@ -137,7 +137,7 @@ public class StoreCacheProcessor
         Timestamp timestamp = Timestamp.of( site.layerId.get() );
         long timeout = MIN_UPDATE_TIMEOUT.get( site ).toMillis();
 
-        log.info( "Cache timeout: T - " + Math.max( 0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );
+        log.debug( "Cache timeout: T - " + Math.max( 0, timestamp.get()+timeout-System.currentTimeMillis())/1000 + "s" );
         timestamp.checkSet( t -> t + timeout < System.currentTimeMillis(), task );
     }
     
