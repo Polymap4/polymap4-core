@@ -414,7 +414,7 @@ public class MapViewer<CL>
     protected void onOlEvent( OlEvent ev ) {
         View.ExtentEventPayload.findIn( ev ).ifPresent( payload -> {
             Extent extent = payload.extent();
-            Envelope envelope = new Envelope( extent.minx, extent.maxx, extent.miny, extent.miny );
+            Envelope envelope = new Envelope( extent.minx, extent.maxx, extent.miny, extent.maxy );
             // bypass concern, prevent loop
             this.mapExtent.info().setRawValue( envelope );
             
